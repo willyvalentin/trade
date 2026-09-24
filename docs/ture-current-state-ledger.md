@@ -618,16 +618,19 @@ both entry/exit commissions under explicit available-cash, open-risk, sector,
 correlation-group and absolute-beta-notional limits. Invalid, stale,
 post-decision, future or unversioned risk evidence rejects that candidate;
 an already over-limit portfolio blocks the whole allocation instead of silently
-resizing it. The result is digest-bound and order-independent, but has no
-provider, ranking/publication, database/paper-command or broker authority.
+resizing it. Duplicate decision lineage blocks the allocation rather than
+double-counting an opportunity. The result is deeply immutable, digest-bound
+and order-independent even for invalid net-EV inputs, but has no provider,
+ranking/publication, database/paper-command or broker authority.
 
-Local acceptance: seven focused provider-free regressions cover dynamic sizing,
+Local acceptance: nine focused provider-free regressions cover dynamic sizing,
 sector and correlation concentration, absolute beta without offsetting exposure,
-missing/future evidence, over-limit existing portfolios, deterministic ordering
-and authority containment; strict TypeScript, changed-file ESLint and diff
-checks pass. Webpack compiled the production bundle successfully in the
-temporary linked-dependency worktree; Turbopack's external-symlink refusal is
-an environment limitation and no completed Turbopack artifact is claimed.
+missing/future evidence, over-limit existing portfolios, duplicate lineage,
+receipt immutability, deterministic valid/invalid-input ordering and authority
+containment; strict TypeScript, changed-file ESLint and diff checks pass.
+Webpack compiled the production bundle successfully in the temporary
+linked-dependency worktree; Turbopack's external-symlink refusal is an
+environment limitation and no completed Turbopack artifact is claimed.
 This source-only core is not merged, CI-verified, deployed, wired to C paper
 handoff, backed by a frozen persistent allocation policy, or evidence of
 allocation quality. Defer push/PR merge and any production deploy until the
