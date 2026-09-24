@@ -606,6 +606,27 @@ must not be silently treated as fixed by this volume slice.
 
 ### Next — ordered, bounded product work
 
+**Selected SV-J.1 CLOSED drift/health gate, 2026-09-24 (8–16h):** owner
+Codex on isolated `codex/sv-j-drift-health`, based on exact frozen main
+`56e6138cb9e55f25dcc15fcabdb298d3e8da7b9c`. This independent source-only
+slice evaluates supplied, versioned baseline and rolling-window feature,
+regime, performance, calibration, outcome-coverage and execution-cost metrics
+against a frozen policy with explicit minimum sample and narrow/pause bounds.
+It must distinguish an operational outage from statistical/model drift,
+produce a deterministic `continue`, `narrow` or `pause` receipt, fail closed
+on missing, mixed-version, out-of-order or unsupported evidence, and have no
+provider, database, scheduler, ranking/publication, persistence or broker
+authority. Local acceptance is focused adversarial behavior tests plus strict
+TypeScript, changed-file lint, diff check and production build. Local evidence:
+eight focused tests cover healthy continuation, bounded narrowing, severe pause,
+outage-versus-drift classification, minimum-sample narrowing, invalid/mixed/
+overlapping/future policy-window rejection, out-of-domain bounded-metric
+threshold rejection and authority containment; strict
+TypeScript, changed-file ESLint, diff check and a complete Next webpack
+production build pass. It cannot prove forward drift, false-alarm rates, a
+strategy change, or runtime pause behavior; those remain SV-J OPEN/integration
+evidence after a durable metrics path exists.
+
 **Selected independent CLOSED slice — SV-A.2 continuous regular-session scan
 admission, 2026-09-23 (4–16h):** owner Codex on
 `codex/sv-a2-continuous-market-monitoring`, integrating after merged
