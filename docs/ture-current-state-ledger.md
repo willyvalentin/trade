@@ -670,6 +670,49 @@ or verified on live market data. Before PR completion, review per-slot durable
 lineage and the legacy user-facing “official batch” wording; a later admitted
 market session must establish actual behavior and provider cost.
 
+**Selected SV-I.1 CLOSED source-only portfolio-allocation core, 2026-09-24
+(8–16h):** owner Codex on isolated
+`codex/sv-i-portfolio-allocation`, started from exact main
+`56e6138cb9e55f25dcc15fcabdb298d3e8da7b9c` and later reconciled with
+`d847be5a681bba261f1af7c161f0eed21183a56a`. The new pure
+`internal_paper_portfolio_allocation_v1` consumes only supplied, calibrated
+net-EV evidence and time-bound sector/correlation/beta risk estimates; an
+ordinal scanner score or confidence label is not accepted as an allocation
+substitute. It deterministically sizes whole shares after spread, slippage and
+both entry/exit commissions under explicit available-cash, open-risk, sector,
+correlation-group, absolute-beta-notional and explicit stress-scenario-loss
+limits. Every policy must supply a nonempty versioned scenario set and every
+risk estimate must supply one finite nonnegative loss-per-share value for each
+exact scenario; unsupported scenarios fail closed. Existing and newly selected
+positions accumulate scenario exposure, so an already over-limit portfolio
+blocks the whole allocation instead of silently resizing it. Invalid, stale,
+post-decision, future or unversioned risk evidence rejects that candidate.
+Duplicate decision lineage blocks the allocation rather than double-counting
+an opportunity. The result is deeply immutable, digest-bound and
+order-independent even for invalid net-EV inputs; malformed non-finite net-EV
+inputs remain digest-distinct from explicitly unavailable values. It has no
+provider, ranking/publication, database/paper-command or broker authority.
+
+Local acceptance: fifteen focused provider-free regressions cover dynamic
+sizing under scenario-loss caps, scenario-exposure receipts, sector and
+correlation concentration, absolute beta without offsetting exposure,
+missing/future/unsupported stress evidence, non-positive calibrated net-EV,
+over-limit existing portfolios, duplicate lineage, receipt immutability,
+deterministic valid/invalid-input ordering and authority containment plus
+malformed-versus-unavailable evidence identity and malformed-runtime-payload
+receipt behavior; strict TypeScript, changed-file ESLint, diff checks and a
+complete Next webpack production build pass. Turbopack's external-symlink
+refusal is an environment limitation and no Turbopack artifact is claimed.
+This source-only core is not merged, CI-verified, deployed, wired to C paper
+handoff, backed by a frozen persistent allocation policy, or evidence of
+allocation quality. The separately frozen 2026-09-24 A.2 observation correctly
+ended `no_go` before activation because its protected reservation-ledger
+readback was unavailable; this source-only delivery did not alter that
+observation's revision, configuration, data or evidence. A later C/I
+integration must bind actual calibrated F evidence plus G risk features,
+durable policy/account state and concurrent-opportunity readback before it can
+influence a paper command.
+
 **Selected second development slice — SV-B.1 decision lineage, 2026-09-21
 (CLOSED, 8–16h):** owner Codex, branch `codex/sv-b1-decision-lineage`; the
 existing scan-run/snapshot persistence boundary is stable enough for an
