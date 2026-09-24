@@ -18,8 +18,11 @@ const c3Migration = new URL(
   "../supabase/migrations/20260922045917_sv_c3_durable_internal_paper_worker.sql",
   import.meta.url,
 );
-const dependentMigrations = [
+const c4Migration = new URL(
   "../supabase/migrations/20260922062854_sv_c4_internal_paper_handoff_context.sql",
+  import.meta.url,
+);
+const postC4Migrations = [
   "../supabase/migrations/20260922073013_sv_d1_internal_paper_observer_read_model.sql",
   "../supabase/migrations/20260922090000_sv_c5_internal_paper_pilot_operational_admission.sql",
 ].map((path) => new URL(path, import.meta.url));
@@ -255,7 +258,77 @@ try {
   `);
 
   psql(readFileSync(c3Migration, "utf8"));
-  for (const migration of dependentMigrations) {
+
+  // C4 must reject pre-existing durable paper state before creating its
+  // service-role handoff function.
+  psql(`
+    insert into public.internal_paper_accounts(
+      id, owner_user_id, account_key, status, strategy_id, strategy_version,
+      strategy_rollback_identity, symbol_selection_policy_id,
+      symbol_selection_policy_version, observed_universe_version,
+      eligible_symbols, config_version, fill_model_version, starting_cash,
+      cash_balance, per_trade_risk_cap, daily_loss_cap, spread_bps,
+      slippage_bps, commission_per_order
+    ) values (
+      '${account}', '${owner}', 'c4-preflight-only', 'paused', 'pilot-strategy',
+      '1.0.0', 'pilot-strategy@1.0.0', 'pilot-symbols', '1.0.0',
+      'pilot-universe-v1', array['AAPL'], 'pilot-config-v1',
+      'internal_paper_immediate_costed_fill_v1', 100000, 100000, 100, 500,
+      10, 5, 1
+    );
+  `);
+  psqlExpectFailure(
+    readFileSync(c4Migration, "utf8"),
+    "sv_c4_requires_empty_c1_c2_c3_state",
+  );
+  psql(`
+    do $$ begin
+      if pg_catalog.to_regprocedure(
+        'public.app_read_internal_paper_handoff_context_v1(uuid,uuid,text)'
+      ) is not null
+      then raise exception 'C4 DDL leaked through non-empty preflight'; end if;
+    end $$;
+    delete from public.internal_paper_accounts where id = '${account}';
+  `);
+
+  // A drifted predecessor function fails before C4 creates anything.
+  psql(`
+    alter function public.app_read_internal_paper_worker_v1(uuid, uuid, text)
+      security invoker;
+  `);
+  psqlExpectFailure(
+    readFileSync(c4Migration, "utf8"),
+    "sv_c4_unexpected_worker_function_contract",
+  );
+  psql(`
+    do $$ begin
+      if pg_catalog.to_regprocedure(
+        'public.app_read_internal_paper_handoff_context_v1(uuid,uuid,text)'
+      ) is not null
+      then raise exception 'C4 DDL leaked through predecessor drift'; end if;
+    end $$;
+    alter function public.app_read_internal_paper_worker_v1(uuid, uuid, text)
+      security definer;
+  `);
+
+  // Same-signature C4 drift is rejected instead of replaced.
+  psql(`
+    create function public.app_read_internal_paper_handoff_context_v1(
+      uuid, uuid, text
+    ) returns jsonb language sql as 'select ''{}''::jsonb';
+  `);
+  psqlExpectFailure(
+    readFileSync(c4Migration, "utf8"),
+    "sv_c4_preexisting_handoff_contract",
+  );
+  psql(`
+    drop function public.app_read_internal_paper_handoff_context_v1(
+      uuid, uuid, text
+    );
+  `);
+
+  psql(readFileSync(c4Migration, "utf8"));
+  for (const migration of postC4Migrations) {
     psql(readFileSync(migration, "utf8"));
   }
 
