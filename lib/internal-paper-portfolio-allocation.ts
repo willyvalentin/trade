@@ -142,20 +142,20 @@ type Exposure = {
 };
 
 const SHA256_PATTERN = /^[a-f0-9]{64}$/;
-const AUTHORITY: Authority = {
+const AUTHORITY: Authority = Object.freeze({
   can_request_provider_data: false,
   can_change_ranking_or_publication: false,
   can_persist_or_submit_internal_paper_command: false,
   can_execute_broker_action: false,
-};
-const EVIDENCE_LIMITS = [
+});
+const EVIDENCE_LIMITS = Object.freeze([
   "source_only_allocation_core",
   "requires_frozen_durable_policy_before_runtime_use",
   "requires_time_bound_calibrated_net_ev",
   "requires_current_portfolio_risk_evidence",
   "no_provider_or_broker_authority",
   "no_forward_portfolio_acceptance",
-] as const;
+] as const);
 
 function canonical(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(canonical);
@@ -173,6 +173,14 @@ function digest(value: unknown) {
   return createHash("sha256")
     .update(JSON.stringify(canonical(value)))
     .digest("hex");
+}
+
+function deepFreeze<T>(value: T): T {
+  if (value && typeof value === "object" && !Object.isFrozen(value)) {
+    for (const item of Object.values(value)) deepFreeze(item);
+    Object.freeze(value);
+  }
+  return value;
 }
 
 function round(value: number) {
@@ -212,7 +220,7 @@ function ageSeconds(later: string, earlier: string) {
 }
 
 function terminal<T extends object>(value: T): T & { result_digest: string } {
-  return { ...value, result_digest: digest(value) };
+  return deepFreeze({ ...value, result_digest: digest(value) });
 }
 
 function blocked(

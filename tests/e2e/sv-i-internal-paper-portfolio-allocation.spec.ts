@@ -310,4 +310,13 @@ test("is order-independent and retains no provider, publication, paper-write or 
     can_persist_or_submit_internal_paper_command: false,
     can_execute_broker_action: false,
   });
+  expect(Object.isFrozen(forward)).toBe(true);
+  expect(Object.isFrozen(forward.authority)).toBe(true);
+  expect(Object.isFrozen(forward.candidate_decisions)).toBe(true);
+  expect(() => {
+    (forward.authority as { can_execute_broker_action: boolean }).can_execute_broker_action = true;
+  }).toThrow(TypeError);
+  expect(() => {
+    (forward.candidate_decisions as unknown as { push(value: unknown): number }).push({});
+  }).toThrow(TypeError);
 });
