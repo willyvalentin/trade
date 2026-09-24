@@ -650,8 +650,9 @@ market session must establish actual behavior and provider cost.
 
 **Selected SV-I.1 CLOSED source-only portfolio-allocation core, 2026-09-24
 (8–16h):** owner Codex on isolated
-`codex/sv-i-portfolio-allocation`, based on exact main
-`56e6138cb9e55f25dcc15fcabdb298d3e8da7b9c`. The new pure
+`codex/sv-i-portfolio-allocation`, started from exact main
+`56e6138cb9e55f25dcc15fcabdb298d3e8da7b9c` and later reconciled with
+`d847be5a681bba261f1af7c161f0eed21183a56a`. The new pure
 `internal_paper_portfolio_allocation_v1` consumes only supplied, calibrated
 net-EV evidence and time-bound sector/correlation/beta risk estimates; an
 ordinal scanner score or confidence label is not accepted as an allocation
@@ -682,11 +683,13 @@ complete Next webpack production build pass. Turbopack's external-symlink
 refusal is an environment limitation and no Turbopack artifact is claimed.
 This source-only core is not merged, CI-verified, deployed, wired to C paper
 handoff, backed by a frozen persistent allocation policy, or evidence of
-allocation quality. Defer push/PR merge and any production deploy until the
-separately frozen A.2 OPEN observation has finished, so its exact production
-revision is not mixed with the observation. A later C/I integration must bind
-actual calibrated F evidence plus G risk features, durable policy/account state
-and concurrent-opportunity readback before it can influence a paper command.
+allocation quality. The separately frozen 2026-09-24 A.2 observation correctly
+ended `no_go` before activation because its protected reservation-ledger
+readback was unavailable; this source-only delivery did not alter that
+observation's revision, configuration, data or evidence. A later C/I
+integration must bind actual calibrated F evidence plus G risk features,
+durable policy/account state and concurrent-opportunity readback before it can
+influence a paper command.
 
 **Selected second development slice — SV-B.1 decision lineage, 2026-09-21
 (CLOSED, 8–16h):** owner Codex, branch `codex/sv-b1-decision-lineage`; the
