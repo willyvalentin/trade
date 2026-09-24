@@ -606,6 +606,27 @@ must not be silently treated as fixed by this volume slice.
 
 ### Next — ordered, bounded product work
 
+**Selected independent CLOSED slice — SV-A.2 continuous regular-session scan
+admission, 2026-09-23 (4–16h):** owner Codex on
+`codex/sv-a2-continuous-market-monitoring`, integrating after merged
+ranking-plan PR #605 and the completed 2026-09-23 OPEN scan/readback. The
+user has superseded fixed morning/midday/power-hour publication times as a
+product principle. Local implementation uses the scheduler's true New York
+market-clock segment and a versioned `continuous_regular_session_v1` admission
+for provider-confirmed open sessions, including the former 09:30, 11:00 and
+14:30 gaps. Existing late-session trial, catalog-only, same-slot deduplication,
+freshness, Basic Free reservation and selective-publication gates remain
+separate. A missing ranking cannot manufacture a valid `no_trade`. The
+diagnostic full-session budget estimate now counts up to 26 quarter-hour
+opportunities rather than three legacy windows; actual reservations remain the
+cost authority. Seven focused behavior tests and 58 other integrated tests
+pass after the merge with PR #605; strict TypeScript, changed-file and full
+lint (zero errors, eight existing warnings) and the Next webpack build pass
+locally. This is **not** merged, deployed, authenticated-browser checked
+or verified on live market data. Before PR completion, review per-slot durable
+lineage and the legacy user-facing “official batch” wording; a later admitted
+market session must establish actual behavior and provider cost.
+
 **Selected SV-I.1 CLOSED source-only portfolio-allocation core, 2026-09-24
 (8–16h):** owner Codex on isolated
 `codex/sv-i-portfolio-allocation`, based on exact main
@@ -632,13 +653,12 @@ Local acceptance: fifteen focused provider-free regressions cover dynamic
 sizing under scenario-loss caps, scenario-exposure receipts, sector and
 correlation concentration, absolute beta without offsetting exposure,
 missing/future/unsupported stress evidence, non-positive calibrated net-EV,
-over-limit existing portfolios,
-duplicate lineage, receipt immutability, deterministic valid/invalid-input
-ordering and authority containment plus malformed-versus-unavailable evidence
-identity and malformed-runtime-payload receipt behavior; strict TypeScript,
-changed-file ESLint, diff checks and a complete Next webpack production build
-pass. Turbopack's external-symlink refusal is an environment limitation and no
-Turbopack artifact is claimed.
+over-limit existing portfolios, duplicate lineage, receipt immutability,
+deterministic valid/invalid-input ordering and authority containment plus
+malformed-versus-unavailable evidence identity and malformed-runtime-payload
+receipt behavior; strict TypeScript, changed-file ESLint, diff checks and a
+complete Next webpack production build pass. Turbopack's external-symlink
+refusal is an environment limitation and no Turbopack artifact is claimed.
 This source-only core is not merged, CI-verified, deployed, wired to C paper
 handoff, backed by a frozen persistent allocation policy, or evidence of
 allocation quality. Defer push/PR merge and any production deploy until the
@@ -646,27 +666,6 @@ separately frozen A.2 OPEN observation has finished, so its exact production
 revision is not mixed with the observation. A later C/I integration must bind
 actual calibrated F evidence plus G risk features, durable policy/account state
 and concurrent-opportunity readback before it can influence a paper command.
-
-**Selected independent CLOSED slice — SV-A.2 continuous regular-session scan
-admission, 2026-09-23 (4–16h):** owner Codex on
-`codex/sv-a2-continuous-market-monitoring`, integrating after merged
-ranking-plan PR #605 and the completed 2026-09-23 OPEN scan/readback. The
-user has superseded fixed morning/midday/power-hour publication times as a
-product principle. Local implementation uses the scheduler's true New York
-market-clock segment and a versioned `continuous_regular_session_v1` admission
-for provider-confirmed open sessions, including the former 09:30, 11:00 and
-14:30 gaps. Existing late-session trial, catalog-only, same-slot deduplication,
-freshness, Basic Free reservation and selective-publication gates remain
-separate. A missing ranking cannot manufacture a valid `no_trade`. The
-diagnostic full-session budget estimate now counts up to 26 quarter-hour
-opportunities rather than three legacy windows; actual reservations remain the
-cost authority. Seven focused behavior tests and 58 other integrated tests
-pass after the merge with PR #605; strict TypeScript, changed-file and full
-lint (zero errors, eight existing warnings) and the Next webpack build pass
-locally. This is **not** merged, deployed, authenticated-browser checked
-or verified on live market data. Before PR completion, review per-slot durable
-lineage and the legacy user-facing “official batch” wording; a later admitted
-market session must establish actual behavior and provider cost.
 
 **Selected second development slice — SV-B.1 decision lineage, 2026-09-21
 (CLOSED, 8–16h):** owner Codex, branch `codex/sv-b1-decision-lineage`; the
