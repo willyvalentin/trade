@@ -15,12 +15,31 @@ export const INTERNAL_PAPER_PORTFOLIO_ALLOCATION_RESULT_VERSION =
   "internal_paper_portfolio_allocation_result_v1" as const;
 export const INTERNAL_PAPER_PORTFOLIO_RISK_ESTIMATE_VERSION =
   "internal_paper_portfolio_risk_estimate_v1" as const;
+export const INTERNAL_PAPER_PORTFOLIO_STRESS_SCENARIO_VERSION =
+  "internal_paper_portfolio_stress_scenario_v1" as const;
+
+export type InternalPaperPortfolioStressScenario = Readonly<{
+  scenario_version: typeof INTERNAL_PAPER_PORTFOLIO_STRESS_SCENARIO_VERSION;
+  scenario_id: string;
+  max_open_loss: number;
+}>;
+
+export type InternalPaperPortfolioStressLoss = Readonly<{
+  scenario_id: string;
+  loss_per_share: number;
+}>;
+
+export type InternalPaperPortfolioEstimatedStressLoss = Readonly<{
+  scenario_id: string;
+  estimated_open_loss: number;
+}>;
 
 export type InternalPaperPortfolioRiskEstimate = Readonly<{
   estimate_version: typeof INTERNAL_PAPER_PORTFOLIO_RISK_ESTIMATE_VERSION;
   sector: string;
   correlation_group: string;
   beta: number;
+  stress_losses: readonly InternalPaperPortfolioStressLoss[];
   observed_at: string;
   model_version: string;
   source_fingerprint: string;
@@ -39,6 +58,7 @@ export type InternalPaperPortfolioAllocationPolicy = Readonly<{
   max_correlation_group_open_risk: number;
   max_correlation_group_positions: number;
   max_absolute_beta_notional: number;
+  stress_scenarios: readonly InternalPaperPortfolioStressScenario[];
   spread_bps: number;
   slippage_bps: number;
   commission_per_order: number;
@@ -84,6 +104,7 @@ export type InternalPaperPortfolioCandidateDecision = Readonly<{
   estimated_entry_price: number | null;
   estimated_cash_required: number | null;
   estimated_open_risk: number | null;
+  estimated_stress_losses: readonly InternalPaperPortfolioEstimatedStressLoss[] | null;
 }>;
 
 export type InternalPaperPortfolioAllocationResult =
@@ -110,11 +131,13 @@ export type InternalPaperPortfolioAllocationResult =
       total_estimated_open_risk: number;
       remaining_cash: number;
       absolute_beta_notional: number;
+      stress_scenario_losses: readonly InternalPaperPortfolioEstimatedStressLoss[];
       evidence_limits: readonly [
         "source_only_allocation_core",
         "requires_frozen_durable_policy_before_runtime_use",
         "requires_time_bound_calibrated_net_ev",
         "requires_current_portfolio_risk_evidence",
+        "requires_versioned_stress_scenario_evidence",
         "no_provider_or_broker_authority",
         "no_forward_portfolio_acceptance",
       ];
@@ -139,6 +162,7 @@ type Exposure = {
   sector_positions: Map<string, number>;
   correlation_risk: Map<string, number>;
   correlation_positions: Map<string, number>;
+  stress_scenario_losses: Map<string, number>;
 };
 
 const SHA256_PATTERN = /^[a-f0-9]{64}$/;
@@ -153,6 +177,7 @@ const EVIDENCE_LIMITS = Object.freeze([
   "requires_frozen_durable_policy_before_runtime_use",
   "requires_time_bound_calibrated_net_ev",
   "requires_current_portfolio_risk_evidence",
+  "requires_versioned_stress_scenario_evidence",
   "no_provider_or_broker_authority",
   "no_forward_portfolio_acceptance",
 ] as const);
@@ -288,11 +313,44 @@ function policyReasons(policy: InternalPaperPortfolioAllocationPolicy) {
   ) {
     reasons.push("allocation_policy_freshness_or_cash_invalid");
   }
+  if (!Array.isArray(policy.stress_scenarios) || policy.stress_scenarios.length === 0) {
+    reasons.push("allocation_policy_stress_scenarios_invalid");
+  } else {
+    const scenarioIds = new Set<string>();
+    for (const scenario of policy.stress_scenarios) {
+      const scenarioId = normalizedText(scenario?.scenario_id);
+      if (
+        scenario?.scenario_version !== INTERNAL_PAPER_PORTFOLIO_STRESS_SCENARIO_VERSION ||
+        !scenarioId ||
+        scenarioIds.has(scenarioId) ||
+        !nonNegativeFinite(scenario?.max_open_loss)
+      ) {
+        reasons.push("allocation_policy_stress_scenarios_invalid");
+        continue;
+      }
+      scenarioIds.add(scenarioId);
+    }
+  }
   return reasons;
+}
+
+function stressLossesByScenario(
+  estimate: InternalPaperPortfolioRiskEstimate,
+  policy: InternalPaperPortfolioAllocationPolicy,
+) {
+  const losses = new Map<string, number>();
+  for (const stressLoss of estimate.stress_losses) {
+    losses.set(normalizedText(stressLoss.scenario_id), stressLoss.loss_per_share);
+  }
+  return policy.stress_scenarios.map((scenario) => ({
+    scenario_id: normalizedText(scenario.scenario_id),
+    loss_per_share: losses.get(normalizedText(scenario.scenario_id)) as number,
+  }));
 }
 
 function riskEstimateReasons(input: {
   estimate: InternalPaperPortfolioRiskEstimate;
+  policy: InternalPaperPortfolioAllocationPolicy;
   allocationAt: string;
   decisionAt?: string;
   maxAgeSeconds: number;
@@ -310,6 +368,30 @@ function riskEstimateReasons(input: {
   ) {
     reasons.push("risk_estimate_identity_invalid");
     return reasons;
+  }
+  if (!Array.isArray(estimate.stress_losses)) {
+    reasons.push("risk_estimate_stress_scenarios_unsupported");
+    return reasons;
+  }
+  const expectedScenarioIds = new Set(
+    input.policy.stress_scenarios.map((scenario) => normalizedText(scenario.scenario_id)),
+  );
+  const observedScenarioIds = new Set<string>();
+  for (const stressLoss of estimate.stress_losses) {
+    const scenarioId = normalizedText(stressLoss?.scenario_id);
+    if (
+      !scenarioId ||
+      observedScenarioIds.has(scenarioId) ||
+      !expectedScenarioIds.has(scenarioId) ||
+      !nonNegativeFinite(stressLoss?.loss_per_share)
+    ) {
+      reasons.push("risk_estimate_stress_scenarios_unsupported");
+      break;
+    }
+    observedScenarioIds.add(scenarioId);
+  }
+  if (observedScenarioIds.size !== expectedScenarioIds.size) {
+    reasons.push("risk_estimate_stress_scenarios_unsupported");
   }
   const age = ageSeconds(input.allocationAt, estimate.observed_at);
   if (age < 0 || age > input.maxAgeSeconds) {
@@ -339,6 +421,7 @@ function positionExposure(input: {
   entryPrice: number;
   stopPrice: number;
   beta: number;
+  stressLosses: readonly InternalPaperPortfolioStressLoss[];
   policy: InternalPaperPortfolioAllocationPolicy;
 }) {
   const estimatedEntryPrice = estimateEntryPrice(input.entryPrice, input.policy);
@@ -352,12 +435,19 @@ function positionExposure(input: {
   const betaNotional = round(
     input.quantity * estimatedEntryPrice * Math.abs(input.beta),
   );
+  const estimatedStressLosses = input.stressLosses.map((stressLoss) => ({
+    scenario_id: normalizedText(stressLoss.scenario_id),
+    estimated_open_loss: round(
+      input.quantity * stressLoss.loss_per_share + input.policy.commission_per_order * 2,
+    ),
+  }));
   return {
     estimatedEntryPrice,
     riskPerShare,
     estimatedOpenRisk,
     estimatedCashRequired,
     betaNotional,
+    estimatedStressLosses,
   };
 }
 
@@ -383,6 +473,12 @@ function exposureForOpenPositions(input: {
     sector_positions: new Map<string, number>(),
     correlation_risk: new Map<string, number>(),
     correlation_positions: new Map<string, number>(),
+    stress_scenario_losses: new Map(
+      input.policy.stress_scenarios.map((scenario) => [
+        normalizedText(scenario.scenario_id),
+        0,
+      ]),
+    ),
   };
   const reasons: string[] = [];
   const positionIds = new Set<string>();
@@ -407,6 +503,7 @@ function exposureForOpenPositions(input: {
     }
     const riskReasons = riskEstimateReasons({
       estimate: position.risk_estimate,
+      policy: input.policy,
       allocationAt: input.policy.allocation_at,
       maxAgeSeconds: input.policy.max_risk_estimate_age_seconds,
     });
@@ -419,6 +516,7 @@ function exposureForOpenPositions(input: {
       entryPrice: position.entry_price,
       stopPrice: position.stop_price,
       beta: position.risk_estimate.beta,
+      stressLosses: stressLossesByScenario(position.risk_estimate, input.policy),
       policy: input.policy,
     });
     if (terms.riskPerShare <= 0 || terms.estimatedOpenRisk <= 0) {
@@ -436,6 +534,13 @@ function exposureForOpenPositions(input: {
     increaseCount(exposure.sector_positions, sector);
     increase(exposure.correlation_risk, correlationGroup, terms.estimatedOpenRisk);
     increaseCount(exposure.correlation_positions, correlationGroup);
+    for (const stressLoss of terms.estimatedStressLosses) {
+      increase(
+        exposure.stress_scenario_losses,
+        stressLoss.scenario_id,
+        stressLoss.estimated_open_loss,
+      );
+    }
   }
   return { exposure, reasons };
 }
@@ -459,6 +564,11 @@ function exposureWithinPolicy(
     ) &&
     [...exposure.correlation_positions.values()].every(
       (count) => count <= policy.max_correlation_group_positions,
+    ) &&
+    policy.stress_scenarios.every(
+      (scenario) =>
+        (exposure.stress_scenario_losses.get(normalizedText(scenario.scenario_id)) ??
+          Number.POSITIVE_INFINITY) <= scenario.max_open_loss,
     )
   );
 }
@@ -500,6 +610,7 @@ function candidateDecision(
     estimatedEntryPrice: number;
     estimatedCashRequired: number;
     estimatedOpenRisk: number;
+    estimatedStressLosses: readonly InternalPaperPortfolioEstimatedStressLoss[];
   } | null = null,
 ): InternalPaperPortfolioCandidateDecision {
   return {
@@ -516,6 +627,7 @@ function candidateDecision(
     estimated_entry_price: terms?.estimatedEntryPrice ?? null,
     estimated_cash_required: terms?.estimatedCashRequired ?? null,
     estimated_open_risk: terms?.estimatedOpenRisk ?? null,
+    estimated_stress_losses: terms?.estimatedStressLosses ?? null,
   };
 }
 
@@ -611,6 +723,7 @@ export function allocateInternalPaperPortfolio(
 
     const riskReasons = riskEstimateReasons({
       estimate: candidate.risk_estimate,
+      policy: input.policy,
       allocationAt: input.policy.allocation_at,
       decisionAt: candidate.decision_timestamp,
       maxAgeSeconds: input.policy.max_risk_estimate_age_seconds,
@@ -644,6 +757,10 @@ export function allocateInternalPaperPortfolio(
 
     const estimatedEntryPrice = estimateEntryPrice(candidate.entry_price, input.policy);
     const riskPerShare = estimatedEntryPrice - candidate.stop_price;
+    const candidateStressLosses = stressLossesByScenario(
+      candidate.risk_estimate,
+      input.policy,
+    );
     const remainingRisk = Math.min(
       input.policy.max_position_risk,
       input.policy.max_total_open_risk - exposure.total_open_risk,
@@ -659,12 +776,26 @@ export function allocateInternalPaperPortfolio(
       Math.abs(candidate.risk_estimate.beta) === 0
         ? Number.MAX_SAFE_INTEGER
         : Math.floor(betaBudget / (estimatedEntryPrice * Math.abs(candidate.risk_estimate.beta)));
+    const stressShares = input.policy.stress_scenarios.map((scenario) => {
+      const scenarioId = normalizedText(scenario.scenario_id);
+      const lossPerShare = candidateStressLosses.find(
+        (stressLoss) => stressLoss.scenario_id === scenarioId,
+      )?.loss_per_share;
+      const remainingStressLoss =
+        scenario.max_open_loss -
+        (exposure.stress_scenario_losses.get(scenarioId) ?? Number.POSITIVE_INFINITY) -
+        input.policy.commission_per_order * 2;
+      return lossPerShare === 0
+        ? Number.MAX_SAFE_INTEGER
+        : Math.floor(remainingStressLoss / (lossPerShare as number));
+    });
     const riskShares = Math.floor(riskBudgetAfterFees / riskPerShare);
     const cashShares = Math.floor(cashBudgetAfterFee / estimatedEntryPrice);
     const quantity = Math.min(
       riskShares,
       cashShares,
       betaShares,
+      ...stressShares,
     );
     if (!Number.isSafeInteger(quantity) || quantity <= 0 || riskPerShare <= 0) {
       const limitReason =
@@ -672,6 +803,8 @@ export function allocateInternalPaperPortfolio(
           ? "absolute_beta_limit_reached"
           : cashBudgetAfterFee <= 0 || cashShares <= 0
             ? "cash_reserve_limit_reached"
+            : stressShares.some((shares) => shares <= 0)
+              ? "stress_scenario_loss_limit_reached"
             : "open_risk_limit_reached";
       decisions.push(candidateDecision(candidate, "rejected", [limitReason]));
       continue;
@@ -682,13 +815,26 @@ export function allocateInternalPaperPortfolio(
       entryPrice: candidate.entry_price,
       stopPrice: candidate.stop_price,
       beta: candidate.risk_estimate.beta,
+      stressLosses: candidateStressLosses,
       policy: input.policy,
     });
     if (
       terms.estimatedOpenRisk > remainingRisk ||
       terms.estimatedCashRequired > exposure.remaining_cash ||
       terms.betaNotional + exposure.absolute_beta_notional >
-        input.policy.max_absolute_beta_notional
+        input.policy.max_absolute_beta_notional ||
+      terms.estimatedStressLosses.some((stressLoss) => {
+        const scenario = input.policy.stress_scenarios.find(
+          (item) => normalizedText(item.scenario_id) === stressLoss.scenario_id,
+        );
+        return (
+          !scenario ||
+          stressLoss.estimated_open_loss +
+            (exposure.stress_scenario_losses.get(stressLoss.scenario_id) ??
+              Number.POSITIVE_INFINITY) >
+            scenario.max_open_loss
+        );
+      })
     ) {
       decisions.push(candidateDecision(candidate, "rejected", ["allocation_terms_exceed_limit"]));
       continue;
@@ -705,12 +851,20 @@ export function allocateInternalPaperPortfolio(
     increaseCount(exposure.sector_positions, sector);
     increase(exposure.correlation_risk, correlationGroup, terms.estimatedOpenRisk);
     increaseCount(exposure.correlation_positions, correlationGroup);
+    for (const stressLoss of terms.estimatedStressLosses) {
+      increase(
+        exposure.stress_scenario_losses,
+        stressLoss.scenario_id,
+        stressLoss.estimated_open_loss,
+      );
+    }
     decisions.push(
       candidateDecision(candidate, "selected", [], {
         quantity,
         estimatedEntryPrice: terms.estimatedEntryPrice,
         estimatedCashRequired: terms.estimatedCashRequired,
         estimatedOpenRisk: terms.estimatedOpenRisk,
+        estimatedStressLosses: terms.estimatedStressLosses,
       }),
     );
   }
@@ -729,6 +883,11 @@ export function allocateInternalPaperPortfolio(
     total_estimated_open_risk: exposure.total_open_risk,
     remaining_cash: exposure.remaining_cash,
     absolute_beta_notional: exposure.absolute_beta_notional,
+    stress_scenario_losses: input.policy.stress_scenarios.map((scenario) => ({
+      scenario_id: normalizedText(scenario.scenario_id),
+      estimated_open_loss:
+        exposure.stress_scenario_losses.get(normalizedText(scenario.scenario_id)) ?? 0,
+    })),
     evidence_limits: EVIDENCE_LIMITS,
     authority: AUTHORITY,
   });

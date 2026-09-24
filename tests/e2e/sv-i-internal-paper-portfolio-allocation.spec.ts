@@ -24,6 +24,10 @@ function riskEstimate(
     sector: "technology",
     correlation_group: "mega_cap_tech",
     beta: 1,
+    stress_losses: [
+      { scenario_id: "market_down_5pct", loss_per_share: 3 },
+      { scenario_id: "sector_drawdown", loss_per_share: 4 },
+    ],
     observed_at: "2026-09-24T13:44:45.000Z",
     model_version: "portfolio_risk_model_v1",
     source_fingerprint: fingerprint("risk"),
@@ -68,6 +72,18 @@ function input(
       max_correlation_group_open_risk: 250,
       max_correlation_group_positions: 1,
       max_absolute_beta_notional: 10_000,
+      stress_scenarios: [
+        {
+          scenario_version: "internal_paper_portfolio_stress_scenario_v1",
+          scenario_id: "market_down_5pct",
+          max_open_loss: 500,
+        },
+        {
+          scenario_version: "internal_paper_portfolio_stress_scenario_v1",
+          scenario_id: "sector_drawdown",
+          max_open_loss: 500,
+        },
+      ],
       spread_bps: 10,
       slippage_bps: 10,
       commission_per_order: 1,
@@ -196,6 +212,56 @@ test("sizes a correlated candidate only within the remaining correlation-group r
   expect(result.total_estimated_open_risk).toBe(249.1);
 });
 
+test("sizes a candidate under each explicit stress-loss cap and records the scenario exposure", () => {
+  const result = allocateInternalPaperPortfolio(
+    input({
+      policy: {
+        ...input().policy,
+        cash_balance: 100_000,
+        cash_reserve: 0,
+        max_total_open_risk: 1_000,
+        max_position_risk: 1_000,
+        max_sector_open_risk: 1_000,
+        max_sector_positions: 3,
+        max_correlation_group_open_risk: 1_000,
+        max_correlation_group_positions: 3,
+        max_absolute_beta_notional: 100_000,
+        stress_scenarios: [
+          {
+            scenario_version: "internal_paper_portfolio_stress_scenario_v1",
+            scenario_id: "market_down_5pct",
+            max_open_loss: 200,
+          },
+          {
+            scenario_version: "internal_paper_portfolio_stress_scenario_v1",
+            scenario_id: "sector_drawdown",
+            max_open_loss: 500,
+          },
+        ],
+      },
+      candidates: [candidate("ALPHA", { calibrated_net_expected_value_r: 0.9 })],
+    }),
+  );
+
+  expect(result.status).toBe("completed");
+  if (result.status !== "completed") return;
+  expect(result.candidate_decisions).toEqual([
+    expect.objectContaining({
+      candidate_id: "ALPHA",
+      status: "selected",
+      quantity: 66,
+      estimated_stress_losses: [
+        { scenario_id: "market_down_5pct", estimated_open_loss: 200 },
+        { scenario_id: "sector_drawdown", estimated_open_loss: 266 },
+      ],
+    }),
+  ]);
+  expect(result.stress_scenario_losses).toEqual([
+    { scenario_id: "market_down_5pct", estimated_open_loss: 200 },
+    { scenario_id: "sector_drawdown", estimated_open_loss: 266 },
+  ]);
+});
+
 test("rejects missing, stale, future and post-decision risk facts without substituting a score", () => {
   const result = allocateInternalPaperPortfolio(
     input({
@@ -242,6 +308,78 @@ test("rejects missing, stale, future and post-decision risk facts without substi
       }),
     ]),
   );
+});
+
+test("fails closed when the policy or a risk estimate lacks the exact stress-scenario evidence", () => {
+  const invalidPolicy = allocateInternalPaperPortfolio(
+    input({ policy: { ...input().policy, stress_scenarios: [] } }),
+  );
+  const unsupportedCandidate = allocateInternalPaperPortfolio(
+    input({
+      candidates: [
+        candidate("ALPHA", {
+          risk_estimate: riskEstimate({
+            stress_losses: [
+              { scenario_id: "market_down_5pct", loss_per_share: 3 },
+            ],
+          }),
+        }),
+      ],
+    }),
+  );
+
+  expect(invalidPolicy).toMatchObject({
+    status: "blocked",
+    reason_codes: ["allocation_policy_stress_scenarios_invalid"],
+  });
+  expect(unsupportedCandidate).toMatchObject({
+    status: "completed",
+    selected_count: 0,
+    candidate_decisions: [
+      expect.objectContaining({
+        status: "rejected",
+        reason_codes: ["risk_estimate_stress_scenarios_unsupported"],
+      }),
+    ],
+  });
+});
+
+test("treats an existing stress-limit breach as a global stop before allocating new risk", () => {
+  const result = allocateInternalPaperPortfolio(
+    input({
+      policy: {
+        ...input().policy,
+        stress_scenarios: [
+          {
+            scenario_version: "internal_paper_portfolio_stress_scenario_v1",
+            scenario_id: "market_down_5pct",
+            max_open_loss: 100,
+          },
+          {
+            scenario_version: "internal_paper_portfolio_stress_scenario_v1",
+            scenario_id: "sector_drawdown",
+            max_open_loss: 500,
+          },
+        ],
+      },
+      open_positions: [
+        {
+          position_id: "position-alpha",
+          ticker: "ALPHA",
+          quantity: 40,
+          entry_price: 100,
+          stop_price: 98,
+          risk_estimate: riskEstimate(),
+        },
+      ],
+    }),
+  );
+
+  expect(result).toMatchObject({
+    status: "blocked",
+    reason_codes: ["open_portfolio_exceeds_policy"],
+    candidate_decisions: [],
+  });
 });
 
 test("treats an over-limit pre-existing portfolio as a global stop, not an invitation to resize it", () => {

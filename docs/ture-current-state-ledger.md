@@ -615,24 +615,28 @@ net-EV evidence and time-bound sector/correlation/beta risk estimates; an
 ordinal scanner score or confidence label is not accepted as an allocation
 substitute. It deterministically sizes whole shares after spread, slippage and
 both entry/exit commissions under explicit available-cash, open-risk, sector,
-correlation-group and absolute-beta-notional limits. Invalid, stale,
-post-decision, future or unversioned risk evidence rejects that candidate;
-an already over-limit portfolio blocks the whole allocation instead of silently
-resizing it. Duplicate decision lineage blocks the allocation rather than
-double-counting an opportunity. The result is deeply immutable, digest-bound
-and order-independent even for invalid net-EV inputs; malformed non-finite
-net-EV inputs remain digest-distinct from explicitly unavailable values. It
-has no provider, ranking/publication, database/paper-command or broker
-authority.
+correlation-group, absolute-beta-notional and explicit stress-scenario-loss
+limits. Every policy must supply a nonempty versioned scenario set and every
+risk estimate must supply one finite nonnegative loss-per-share value for each
+exact scenario; unsupported scenarios fail closed. Existing and newly selected
+positions accumulate scenario exposure, so an already over-limit portfolio
+blocks the whole allocation instead of silently resizing it. Invalid, stale,
+post-decision, future or unversioned risk evidence rejects that candidate.
+Duplicate decision lineage blocks the allocation rather than double-counting
+an opportunity. The result is deeply immutable, digest-bound and
+order-independent even for invalid net-EV inputs; malformed non-finite net-EV
+inputs remain digest-distinct from explicitly unavailable values. It has no
+provider, ranking/publication, database/paper-command or broker authority.
 
-Local acceptance: ten focused provider-free regressions cover dynamic sizing,
-sector and correlation concentration, absolute beta without offsetting exposure,
-missing/future evidence, over-limit existing portfolios, duplicate lineage,
-receipt immutability, deterministic valid/invalid-input ordering and authority
-containment plus malformed-versus-unavailable evidence identity; strict
-TypeScript, changed-file ESLint, diff checks and a complete Next webpack
-production build pass. Turbopack's external-symlink refusal is an environment
-limitation and no Turbopack artifact is claimed.
+Local acceptance: thirteen focused provider-free regressions cover dynamic
+sizing under scenario-loss caps, scenario-exposure receipts, sector and
+correlation concentration, absolute beta without offsetting exposure,
+missing/future/unsupported stress evidence, over-limit existing portfolios,
+duplicate lineage, receipt immutability, deterministic valid/invalid-input
+ordering and authority containment plus malformed-versus-unavailable evidence
+identity; strict TypeScript, changed-file ESLint, diff checks and a complete
+Next webpack production build pass. Turbopack's external-symlink refusal is an
+environment limitation and no Turbopack artifact is claimed.
 This source-only core is not merged, CI-verified, deployed, wired to C paper
 handoff, backed by a frozen persistent allocation policy, or evidence of
 allocation quality. Defer push/PR merge and any production deploy until the
