@@ -182,6 +182,10 @@ const EVIDENCE_LIMITS = Object.freeze([
   "no_forward_portfolio_acceptance",
 ] as const);
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
 function canonical(value: unknown): unknown {
   // JSON.stringify turns NaN and infinities into null. Preserve malformed
   // numeric inputs as distinct evidence rather than conflating them with an
@@ -256,7 +260,7 @@ function terminal<T extends object>(value: T): T & { result_digest: string } {
 
 function blocked(
   reasonCodes: string[],
-  input: InternalPaperPortfolioAllocationInput | null,
+  input: unknown,
 ): InternalPaperPortfolioAllocationResult {
   return terminal({
     result_version: INTERNAL_PAPER_PORTFOLIO_ALLOCATION_RESULT_VERSION,
@@ -357,6 +361,10 @@ function riskEstimateReasons(input: {
 }) {
   const estimate = input.estimate;
   const reasons: string[] = [];
+  if (!isRecord(estimate)) {
+    reasons.push("risk_estimate_identity_invalid");
+    return reasons;
+  }
   if (
     estimate.estimate_version !== INTERNAL_PAPER_PORTFOLIO_RISK_ESTIMATE_VERSION ||
     !nonemptyText(estimate.sector) ||
@@ -485,8 +493,6 @@ function exposureForOpenPositions(input: {
 
   for (const position of input.positions) {
     const ticker = normalizedTicker(position.ticker);
-    const sector = normalizedText(position.risk_estimate.sector);
-    const correlationGroup = normalizedText(position.risk_estimate.correlation_group);
     if (
       !nonemptyText(position.position_id) ||
       positionIds.has(position.position_id) ||
@@ -511,6 +517,8 @@ function exposureForOpenPositions(input: {
       reasons.push(...riskReasons.map((reason) => `open_position_${reason}`));
       continue;
     }
+    const sector = normalizedText(position.risk_estimate.sector);
+    const correlationGroup = normalizedText(position.risk_estimate.correlation_group);
     const terms = positionExposure({
       quantity: position.quantity,
       entryPrice: position.entry_price,
@@ -648,20 +656,33 @@ function candidateSort(
   } else if (leftHasCalibratedValue !== rightHasCalibratedValue) {
     return leftHasCalibratedValue ? -1 : 1;
   }
-  return left.candidate_id.localeCompare(right.candidate_id);
+  return normalizedText(left.candidate_id).localeCompare(
+    normalizedText(right.candidate_id),
+  );
 }
 
-function allocationInputForDigest(input: InternalPaperPortfolioAllocationInput) {
+function allocationInputForDigest(input: unknown) {
+  if (!isRecord(input)) return input;
+  const openPositions = Array.isArray(input.open_positions)
+    ? [...input.open_positions]
+    : [];
+  const candidates = Array.isArray(input.candidates) ? [...input.candidates] : [];
   return {
     ...input,
-    open_positions: [...input.open_positions].sort((left, right) =>
-      left.position_id.localeCompare(right.position_id),
+    open_positions: openPositions.sort((left, right) =>
+      normalizedText(isRecord(left) ? left.position_id : "").localeCompare(
+        normalizedText(isRecord(right) ? right.position_id : ""),
+      ),
     ),
-    candidates: [...input.candidates].sort((left, right) => {
-      const identity = left.candidate_id.localeCompare(right.candidate_id);
+    candidates: candidates.sort((left, right) => {
+      const identity = normalizedText(
+        isRecord(left) ? left.candidate_id : "",
+      ).localeCompare(normalizedText(isRecord(right) ? right.candidate_id : ""));
       return identity !== 0
         ? identity
-        : normalizedTicker(left.ticker).localeCompare(normalizedTicker(right.ticker));
+        : normalizedTicker(isRecord(left) ? left.ticker : "").localeCompare(
+            normalizedTicker(isRecord(right) ? right.ticker : ""),
+          );
     }),
   };
 }
@@ -674,8 +695,20 @@ function allocationInputForDigest(input: InternalPaperPortfolioAllocationInput) 
 export function allocateInternalPaperPortfolio(
   input: InternalPaperPortfolioAllocationInput,
 ): InternalPaperPortfolioAllocationResult {
-  if (!input || input.allocation_version !== INTERNAL_PAPER_PORTFOLIO_ALLOCATION_VERSION) {
-    return blocked(["allocation_version_invalid"], input ?? null);
+  if (
+    !isRecord(input) ||
+    input.allocation_version !== INTERNAL_PAPER_PORTFOLIO_ALLOCATION_VERSION
+  ) {
+    return blocked(["allocation_version_invalid"], input);
+  }
+  if (
+    !isRecord(input.policy) ||
+    !Array.isArray(input.open_positions) ||
+    !Array.isArray(input.candidates) ||
+    input.open_positions.some((position) => !isRecord(position)) ||
+    input.candidates.some((candidate) => !isRecord(candidate))
+  ) {
+    return blocked(["allocation_input_structure_invalid"], input);
   }
 
   const invalidPolicy = policyReasons(input.policy);

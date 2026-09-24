@@ -539,3 +539,30 @@ test("keeps malformed net-EV evidence distinct from an explicitly unavailable va
   expect(verifyInternalPaperPortfolioAllocationDigest(malformed)).toBe(true);
   expect(verifyInternalPaperPortfolioAllocationDigest(unavailable)).toBe(true);
 });
+
+test("blocks malformed runtime payloads with a receipt instead of throwing", () => {
+  const malformedPolicy = {
+    allocation_version: INTERNAL_PAPER_PORTFOLIO_ALLOCATION_VERSION,
+    policy: null,
+    open_positions: [],
+    candidates: [],
+  } as unknown as InternalPaperPortfolioAllocationInput;
+  const malformedCandidate = input({
+    candidates: [null as unknown as InternalPaperPortfolioCandidate],
+  });
+
+  expect(() => allocateInternalPaperPortfolio(malformedPolicy)).not.toThrow();
+  expect(() => allocateInternalPaperPortfolio(malformedCandidate)).not.toThrow();
+  const policyResult = allocateInternalPaperPortfolio(malformedPolicy);
+  const candidateResult = allocateInternalPaperPortfolio(malformedCandidate);
+  expect(policyResult).toMatchObject({
+    status: "blocked",
+    reason_codes: ["allocation_input_structure_invalid"],
+  });
+  expect(candidateResult).toMatchObject({
+    status: "blocked",
+    reason_codes: ["allocation_input_structure_invalid"],
+  });
+  expect(verifyInternalPaperPortfolioAllocationDigest(policyResult)).toBe(true);
+  expect(verifyInternalPaperPortfolioAllocationDigest(candidateResult)).toBe(true);
+});

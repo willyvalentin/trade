@@ -628,15 +628,16 @@ order-independent even for invalid net-EV inputs; malformed non-finite net-EV
 inputs remain digest-distinct from explicitly unavailable values. It has no
 provider, ranking/publication, database/paper-command or broker authority.
 
-Local acceptance: thirteen focused provider-free regressions cover dynamic
+Local acceptance: fourteen focused provider-free regressions cover dynamic
 sizing under scenario-loss caps, scenario-exposure receipts, sector and
 correlation concentration, absolute beta without offsetting exposure,
 missing/future/unsupported stress evidence, over-limit existing portfolios,
 duplicate lineage, receipt immutability, deterministic valid/invalid-input
 ordering and authority containment plus malformed-versus-unavailable evidence
-identity; strict TypeScript, changed-file ESLint, diff checks and a complete
-Next webpack production build pass. Turbopack's external-symlink refusal is an
-environment limitation and no Turbopack artifact is claimed.
+identity and malformed-runtime-payload receipt behavior; strict TypeScript,
+changed-file ESLint, diff checks and a complete Next webpack production build
+pass. Turbopack's external-symlink refusal is an environment limitation and no
+Turbopack artifact is claimed.
 This source-only core is not merged, CI-verified, deployed, wired to C paper
 handoff, backed by a frozen persistent allocation policy, or evidence of
 allocation quality. Defer push/PR merge and any production deploy until the
