@@ -620,14 +620,17 @@ post-decision, future or unversioned risk evidence rejects that candidate;
 an already over-limit portfolio blocks the whole allocation instead of silently
 resizing it. Duplicate decision lineage blocks the allocation rather than
 double-counting an opportunity. The result is deeply immutable, digest-bound
-and order-independent even for invalid net-EV inputs, but has no provider,
-ranking/publication, database/paper-command or broker authority.
+and order-independent even for invalid net-EV inputs; malformed non-finite
+net-EV inputs remain digest-distinct from explicitly unavailable values. It
+has no provider, ranking/publication, database/paper-command or broker
+authority.
 
-Local acceptance: nine focused provider-free regressions cover dynamic sizing,
+Local acceptance: ten focused provider-free regressions cover dynamic sizing,
 sector and correlation concentration, absolute beta without offsetting exposure,
 missing/future evidence, over-limit existing portfolios, duplicate lineage,
 receipt immutability, deterministic valid/invalid-input ordering and authority
-containment; strict TypeScript, changed-file ESLint and diff checks pass.
+containment plus malformed-versus-unavailable evidence identity; strict
+TypeScript, changed-file ESLint and diff checks pass.
 Webpack compiled the production bundle successfully in the temporary
 linked-dependency worktree; Turbopack's external-symlink refusal is an
 environment limitation and no completed Turbopack artifact is claimed.

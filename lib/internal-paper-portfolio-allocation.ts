@@ -158,6 +158,12 @@ const EVIDENCE_LIMITS = Object.freeze([
 ] as const);
 
 function canonical(value: unknown): unknown {
+  // JSON.stringify turns NaN and infinities into null. Preserve malformed
+  // numeric inputs as distinct evidence rather than conflating them with an
+  // explicitly unavailable value in an allocation receipt.
+  if (typeof value === "number" && !Number.isFinite(value)) {
+    return { __invalid_non_finite_number__: String(value) };
+  }
   if (Array.isArray(value)) return value.map(canonical);
   if (value && typeof value === "object") {
     return Object.fromEntries(

@@ -372,3 +372,32 @@ test("uses a total deterministic sort even when candidates have invalid calibrat
     ],
   });
 });
+
+test("keeps malformed net-EV evidence distinct from an explicitly unavailable value", () => {
+  const malformed = allocateInternalPaperPortfolio(
+    input({
+      candidates: [
+        candidate("ALPHA", {
+          calibrated_net_expected_value_r: Number.NaN,
+          calibration_version: "",
+        }),
+      ],
+    }),
+  );
+  const unavailable = allocateInternalPaperPortfolio(
+    input({
+      candidates: [
+        candidate("ALPHA", {
+          calibrated_net_expected_value_r: null as unknown as number,
+          calibration_version: "",
+        }),
+      ],
+    }),
+  );
+
+  expect(malformed).toMatchObject({ status: "completed", selected_count: 0 });
+  expect(unavailable).toMatchObject({ status: "completed", selected_count: 0 });
+  expect(malformed.input_digest).not.toBe(unavailable.input_digest);
+  expect(verifyInternalPaperPortfolioAllocationDigest(malformed)).toBe(true);
+  expect(verifyInternalPaperPortfolioAllocationDigest(unavailable)).toBe(true);
+});
