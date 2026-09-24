@@ -42,6 +42,28 @@ remains outside the development workflow.
   positive alpha before building the paper/replay infrastructure needed to
   test it. Early paper remains experimental; live promotion requires the gates.
 
+### Continuous observation and publication
+
+The scheduler is a safe wake-up mechanism, not a publication clock. A
+versioned observation-cycle policy must decide whether current data is needed
+from verified session, freshness, material change, coverage, candidate state,
+explicit provider budget and persisted retry/backoff facts.
+
+- Keep the kill switch, private invocation, idempotent trigger claim, durable
+  receipt and fail-closed behavior while moving consumers to generic cycle
+  readback. Do not delete `scheduled_scan_runs` or window-derived diagnostics
+  before compatible readback is deployed and verified.
+- Keep observation, discovery/evaluation and publication independently
+  versioned. A scheduled tick, data update or active market must never force a
+  candidate, weaken a quality threshold or turn research into a recommendation.
+- “Continuous” means timely, policy-governed re-evaluation; it does not permit
+  unbounded polling, a full-market request on every wake-up, increased credit
+  spend or bypassing an entitlement, freshness, backoff or no-trade gate.
+- Verify the transition through a vertical slice with UI readback, durable
+  cycle evidence and focused behavior tests. Current-market evidence must show
+  actual cost, freshness, retries and outcome classification; it does not by
+  itself establish coverage, strategy quality or execution authority.
+
 ### Pilot and decision checkpoints
 
 Use the master roadmap's bounded first pilot: one existing long-only equity
