@@ -41,8 +41,12 @@ as $$
     where p_owner_user_id is not null
       and p_trading_date is not null
       and p_target_slot_utc is not null
-      and date_trunc('minute', p_target_slot_utc) = p_target_slot_utc
-      and extract(minute from p_target_slot_utc)::integer % 15 = 0
+      -- Anchor the boundary in UTC rather than the database session timezone.
+      and date_bin(
+        '15 minutes'::interval,
+        p_target_slot_utc,
+        '1970-01-01 00:00:00+00'::timestamptz
+      ) = p_target_slot_utc
   ), reservations as (
     select reservation.*
     from public.basic_free_discovery_credit_reservations as reservation

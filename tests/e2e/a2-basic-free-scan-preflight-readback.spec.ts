@@ -163,6 +163,8 @@ test("A.2 SQL and authenticated route preserve private, read-only preflight boun
   expect(migration).toContain("from public, anon, authenticated;");
   expect(migration).toContain("grant execute on function public.read_basic_free_scheduled_scan_preflight");
   expect(migration).toContain("to service_role;");
+  expect(migration).toContain("date_bin(");
+  expect(migration).toContain("'1970-01-01 00:00:00+00'::timestamptz");
   expect(migration).toContain("to_char(");
   expect(migration).toContain("YYYY-MM-DD\"T\"HH24:MI:SS.MS\"Z\"");
   expect(migration).not.toContain("insert into public.basic_free_discovery_credit_reservations");
