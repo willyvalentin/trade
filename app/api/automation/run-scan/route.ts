@@ -55,6 +55,12 @@ import {
   buildScheduledScanRejectionSummary,
 } from "@/lib/scheduled-scan-attempts";
 import {
+  decisionBuildCommitForScheduledInvocation,
+  mergeScheduledScanAttemptPayload,
+  scheduledScanInvocationReceiptFromAttempt,
+  type ScheduledScanInvocationReceipt,
+} from "@/lib/scheduled-scan-invocation-receipt";
+import {
   buildRecommendationScanRun,
   recommendationScanRunFromPersistenceRow,
   type RecommendationScanRun,
@@ -296,7 +302,11 @@ function automationVersionFields() {
 }
 
 function currentBuildGitCommit() {
-  for (const value of [process.env.COMMIT_REF, process.env.GITHUB_SHA]) {
+  for (const value of [
+    process.env.COMMIT_REF,
+    process.env.NETLIFY_COMMIT_REF,
+    process.env.GITHUB_SHA,
+  ]) {
     const commit = value?.trim() ?? "";
     if (/^[a-f0-9]{40}$/i.test(commit)) {
       return commit.toLowerCase();
@@ -308,8 +318,12 @@ function currentBuildGitCommit() {
 
 function buildCandidateDecisionLearningAttributionForScan(
   capture: CandidateDecisionCapture | null | undefined,
+  scheduledInvocationReceipt: ScheduledScanInvocationReceipt | null,
 ) {
-  const gitCommit = currentBuildGitCommit();
+  const gitCommit = decisionBuildCommitForScheduledInvocation({
+    invocationReceipt: scheduledInvocationReceipt,
+    runtimeBuildCommit: currentBuildGitCommit(),
+  });
   const rankingVersion = capture?.ranking
     ? `scanner_candidate_ranking_v${capture.ranking.summary_version}`
     : null;
@@ -1430,6 +1444,34 @@ async function updateScheduledScanRun({
   }
 }
 
+async function readScheduledScanInvocationReceipt(attemptFingerprint: string) {
+  const { data, error } = await serverSupabase()
+    .from("scheduled_scan_attempts")
+    .select("source,mode,payload_json")
+    .eq("attempt_fingerprint", attemptFingerprint)
+    .maybeSingle();
+
+  if (error) {
+    console.error("[automation/run-scan] scheduled_invocation_receipt_read_error", {
+      source: "supabase.scheduled_scan_attempts",
+      operation: "read_scheduler_owned_invocation_receipt",
+      attemptFingerprint,
+      error: normalizeUnknownError(error),
+    });
+    return { status: "unavailable" as const, receipt: null };
+  }
+
+  const receipt = scheduledScanInvocationReceiptFromAttempt({
+    source: data?.source,
+    mode: data?.mode,
+    payload: data?.payload_json,
+  });
+
+  return receipt
+    ? { status: "ready" as const, receipt }
+    : { status: "invalid" as const, receipt: null };
+}
+
 async function recordScheduledScanAttempt({
   attemptFingerprint,
   source,
@@ -1447,6 +1489,7 @@ async function recordScheduledScanAttempt({
   scanLog = null,
   activeScanTrace = null,
   scheduledScanRunId = null,
+  scheduledInvocationReceipt = null,
 }: {
   attemptFingerprint: string;
   source: string | null;
@@ -1464,6 +1507,7 @@ async function recordScheduledScanAttempt({
   scanLog?: ScanLogEntry | null;
   activeScanTrace?: ActiveScanTrace | null;
   scheduledScanRunId?: string | number | null;
+  scheduledInvocationReceipt?: ScheduledScanInvocationReceipt | null;
 }) {
   const rawCount =
     activeScanTrace?.raw_candidates.raw_candidate_count ??
@@ -1526,27 +1570,30 @@ async function recordScheduledScanAttempt({
       scheduledScanRunId === null || scheduledScanRunId === undefined
         ? null
         : String(scheduledScanRunId),
-    payload_json: {
-      scan_log_result: scanLog?.result ?? null,
-      active_scan_trace: activeScanTrace,
-      selected_to_built_drop_off:
-        activeScanTrace?.final.selected_to_built_drop_off ??
-        scanLog?.selected_to_built_drop_off ??
-        null,
-      selected_candidate_build_diagnostics:
-        activeScanTrace?.final.selected_candidate_build_diagnostics ??
-        scanLog?.selected_candidate_build_diagnostics ??
-        [],
-      reference_refresh: scanLog?.reference_refresh ?? null,
-      market_wide_discovery: scanLog?.market_wide_discovery ?? null,
-      basic_free_discovery: scanLog?.basic_free_discovery ?? null,
-      basic_free_catalog_one_shot:
-        scanLog?.basic_free_catalog_one_shot ?? null,
-      basic_free_catalog_capability_probe:
-        scanLog?.basic_free_catalog_capability_probe ?? null,
-      basic_free_scheduled_scan_credit_reservation:
-        scanLog?.basic_free_scheduled_scan_credit_reservation ?? null,
-    },
+    payload_json: mergeScheduledScanAttemptPayload({
+      invocationReceipt: scheduledInvocationReceipt,
+      routePayload: {
+        scan_log_result: scanLog?.result ?? null,
+        active_scan_trace: activeScanTrace,
+        selected_to_built_drop_off:
+          activeScanTrace?.final.selected_to_built_drop_off ??
+          scanLog?.selected_to_built_drop_off ??
+          null,
+        selected_candidate_build_diagnostics:
+          activeScanTrace?.final.selected_candidate_build_diagnostics ??
+          scanLog?.selected_candidate_build_diagnostics ??
+          [],
+        reference_refresh: scanLog?.reference_refresh ?? null,
+        market_wide_discovery: scanLog?.market_wide_discovery ?? null,
+        basic_free_discovery: scanLog?.basic_free_discovery ?? null,
+        basic_free_catalog_one_shot:
+          scanLog?.basic_free_catalog_one_shot ?? null,
+        basic_free_catalog_capability_probe:
+          scanLog?.basic_free_catalog_capability_probe ?? null,
+        basic_free_scheduled_scan_credit_reservation:
+          scanLog?.basic_free_scheduled_scan_credit_reservation ?? null,
+      },
+    }),
   });
   const { error } = await serverSupabase()
     .from("scheduled_scan_attempts")
@@ -2383,6 +2430,7 @@ async function persistAutomationArtifacts({
   learningAccelerationMode,
   learningAccelerationTargetSamples,
   candidateDecisionCapture,
+  scheduledInvocationReceipt,
   learningAccelerationInput,
 }: {
   scanDate: string;
@@ -2400,6 +2448,7 @@ async function persistAutomationArtifacts({
   learningAccelerationMode: LearningAccelerationModeEvaluation;
   learningAccelerationTargetSamples: number;
   candidateDecisionCapture: CandidateDecisionCapture | null;
+  scheduledInvocationReceipt: ScheduledScanInvocationReceipt | null;
   learningAccelerationInput?: {
     candidateGeneration?: RecommendationScanLogDetails["real_scanner_candidate_generation"] | null;
     ranking?: RecommendationScanLogDetails["scanner_candidate_ranking"] | null;
@@ -2547,6 +2596,7 @@ async function persistAutomationArtifacts({
     buildVersion: `${AUTOMATION_ROUTE_VERSION}:${RECOMMENDATION_PUBLISH_POLICY_VERSION}:${BUILD_MARKER}`,
     learningAttribution: buildCandidateDecisionLearningAttributionForScan(
       candidateDecisionCapture,
+      scheduledInvocationReceipt,
     ),
   });
   if (candidateDecisionRecord) {
@@ -3059,6 +3109,29 @@ export async function POST(request: Request) {
       routeReceivedAt: new Date().toISOString(),
       source: requestSource ?? (force ? "manual" : "automation_route"),
     });
+  let scheduledInvocationReceipt: ScheduledScanInvocationReceipt | null = null;
+
+  if (requestSource === "netlify_scheduled_function") {
+    const invocationReceiptReadback = await readScheduledScanInvocationReceipt(
+      scheduledScanAttemptFingerprint,
+    );
+
+    if (invocationReceiptReadback.status !== "ready") {
+      console.error("[automation/run-scan] scheduled_invocation_receipt_unavailable", {
+        status: invocationReceiptReadback.status,
+        scheduledScanAttemptFingerprint,
+      });
+      return NextResponse.json(
+        {
+          error: "Scheduled invocation receipt is unavailable.",
+          code: "scheduled_invocation_receipt_unavailable",
+        },
+        { status: 503, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+
+    scheduledInvocationReceipt = invocationReceiptReadback.receipt;
+  }
 
   console.log("[automation/run-scan] request body", {
     force,
@@ -3297,6 +3370,7 @@ export async function POST(request: Request) {
       scanLog: input.scanLog ?? null,
       activeScanTrace: input.activeScanTrace ?? null,
       scheduledScanRunId: input.scheduledScanRunId ?? null,
+      scheduledInvocationReceipt,
     });
 
   await recordAttempt({
@@ -5052,6 +5126,7 @@ export async function POST(request: Request) {
         // private persistence path so an empty result remains attributable.
         candidateDecisionCapture:
           generationScanLog?.candidate_decision_capture ?? null,
+        scheduledInvocationReceipt,
         learningAccelerationInput: {
           candidateGeneration:
             generationScanLog?.real_scanner_candidate_generation ?? null,

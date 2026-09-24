@@ -630,6 +630,7 @@ function scheduledScanAttemptPayload({
   scheduledSlotIdentitySource,
   runtimeConfiguration,
   context,
+  buildDeploymentIdentity,
   probePreflightAdmission,
   normalScanOneShotControl,
   normalScanOneShotAdmission,
@@ -639,6 +640,7 @@ function scheduledScanAttemptPayload({
   scheduledSlotIdentitySource: ScheduledScanSlotIdentitySource;
   runtimeConfiguration: ScheduledScanRuntimeConfiguration;
   context: Context;
+  buildDeploymentIdentity: ScheduledScanBuildDeploymentIdentity | null;
   probePreflightAdmission: ScheduledScanProbePreflightAdmission | null;
   normalScanOneShotControl?: ScheduledScanNormalOneShotControl | null;
   normalScanOneShotAdmission?: ScheduledScanProbePreflightAdmission | null;
@@ -649,6 +651,10 @@ function scheduledScanAttemptPayload({
     scheduled_slot_identity_source: scheduledSlotIdentitySource,
     runtime_configuration: runtimeConfiguration,
     netlify_deploy: scheduledScanDeployIdentity(context),
+    // The private route may add terminal facts to this exact durable attempt,
+    // but it must retain this generated build identity rather than recover a
+    // possibly absent runtime environment variable.
+    build_deployment_identity: buildDeploymentIdentity,
     probe_preflight_admission: probePreflightAdmission,
     normal_scan_one_shot_control: normalScanOneShotControl ?? null,
     normal_scan_one_shot_admission: normalScanOneShotAdmission ?? null,
@@ -828,10 +834,11 @@ export default async function handler(request: Request, context: Context) {
   const firedAt = new Date();
   const firedAtUtc = firedAt.toISOString();
   const eventNextRun = await scheduledScanEventNextRun(request);
+  const scheduledScanBuildIdentity = loadScheduledScanBuildDeploymentIdentity();
   const probePreflightAdmission = disabledProbePreflight
     ? scheduledScanTimeBoundAdmission({
         contextIdentity: scheduledScanDeployIdentity(context),
-        buildIdentity: loadScheduledScanBuildDeploymentIdentity(),
+        buildIdentity: scheduledScanBuildIdentity,
         runtimeSiteId: process.env.SITE_ID,
         eventEvidence: scheduledScanPreflightEventEvidence({
           nextRun: eventNextRun,
@@ -844,7 +851,7 @@ export default async function handler(request: Request, context: Context) {
       })
     : null;
   const normalScanOneShotBuildIdentity = normalScanOneShotRequested
-    ? loadScheduledScanBuildDeploymentIdentity()
+    ? scheduledScanBuildIdentity
     : null;
   const normalScanOneShotAdmission = normalScanOneShotRequested
     ? scheduledScanTimeBoundAdmission({
@@ -968,6 +975,7 @@ export default async function handler(request: Request, context: Context) {
       scheduledSlotIdentitySource: scheduledSlotIdentity.source,
       runtimeConfiguration,
       context,
+      buildDeploymentIdentity: scheduledScanBuildIdentity,
       probePreflightAdmission,
       normalScanOneShotControl: normalScanOneShotRequested
         ? normalScanOneShotControl
@@ -1015,6 +1023,7 @@ export default async function handler(request: Request, context: Context) {
         scheduledSlotIdentitySource: scheduledSlotIdentity.source,
         runtimeConfiguration,
         context,
+        buildDeploymentIdentity: scheduledScanBuildIdentity,
         probePreflightAdmission,
         normalScanOneShotControl: normalScanOneShotRequested
           ? normalScanOneShotControl
@@ -1054,6 +1063,7 @@ export default async function handler(request: Request, context: Context) {
           scheduledSlotIdentitySource: scheduledSlotIdentity.source,
           runtimeConfiguration,
           context,
+          buildDeploymentIdentity: scheduledScanBuildIdentity,
           probePreflightAdmission,
           normalScanOneShotControl: normalScanOneShotRequested
             ? normalScanOneShotControl
@@ -1086,6 +1096,7 @@ export default async function handler(request: Request, context: Context) {
         scheduledSlotIdentitySource: scheduledSlotIdentity.source,
         runtimeConfiguration,
         context,
+        buildDeploymentIdentity: scheduledScanBuildIdentity,
         probePreflightAdmission,
         normalScanOneShotControl: normalScanOneShotRequested
           ? normalScanOneShotControl
