@@ -1079,6 +1079,28 @@ shards plus aggregate/provenance and merged through PR #581 as
 migration remains unapplied in Supabase production and no paper runtime was
 activated; source deployment is not environment behavior evidence.
 
+**SV-C.2 production-migration safety hardening, 2026-09-24:** the source
+migration now admits only an empty, exact C.1 contract. It sets bounded lock
+and statement timeouts, rejects any retained C.1 account, intent, fill,
+position or ledger row before changing schema, verifies the three exact C.1
+ledger checks it must replace, and removes data backfills, permissive
+`IF NOT EXISTS`/`DROP ... IF EXISTS` DDL and sequence reseeding. A disposable
+PostgreSQL 17 harness proved that non-empty admission fails with
+`sv_c2_requires_empty_c1_state` before any C.2 table, account column or exit
+function exists; after deleting only the test probe, the same migration passed
+the full partial/final/stop, retry/restart, owner isolation, reconciliation and
+late-failure rollback lifecycle. The downstream C.3/C.4/C.5/D.1/E.1 database
+harness also passed unchanged against the hardened migration, so no economic
+or worker behavior was intentionally altered. Script syntax and diff checks
+pass locally; a new focused static migration assertion is included for
+protected CI because this isolated worktree could not install Playwright from
+the unavailable npm network. This is source and local-database evidence only:
+the migration still replaces three C.1 constraints and relaxes two ledger
+identity columns, remains unapplied in Supabase production, and requires a
+separate exact production-apply decision after protected CI and a fresh
+empty-state/catalog preflight. No paper account, worker, schedule, provider,
+publication or broker path was activated.
+
 **Selected SV-C.3 CLOSED vertical slice — durable autonomous paper worker
 core, 2026-09-22 (8–16h):** owner Codex on
 `codex/sv-c3-autonomous-paper-worker`; interfaces

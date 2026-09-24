@@ -1,4 +1,6 @@
 import { expect, test } from "@playwright/test";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 import {
   buildInternalPaperExitCommand,
@@ -50,6 +52,68 @@ function build(
 }
 
 test.describe("SV-C2 internal-paper exit admission", () => {
+  test("ships an empty-state-only, fail-closed C2 migration", () => {
+    const migration = readFileSync(
+      resolve(
+        process.cwd(),
+        "supabase/migrations/20260922023000_sv_c2_internal_paper_exit_reconciliation.sql",
+      ),
+      "utf8",
+    );
+
+    expect(migration).toContain("set lock_timeout = '5s'");
+    expect(migration).toContain("set statement_timeout = '60s'");
+    expect(migration).toContain("sv_c2_requires_empty_c1_state");
+    expect(migration).toContain("sv_c2_unexpected_c1_ledger_contract");
+
+    for (const table of [
+      "internal_paper_accounts",
+      "internal_paper_entry_intents",
+      "internal_paper_fills",
+      "internal_paper_positions",
+      "internal_paper_ledger_entries",
+    ]) {
+      expect(migration).toContain(`exists (select 1 from public.${table})`);
+    }
+
+    expect(migration).not.toContain("set total_commission_paid = coalesce((");
+    expect(migration).not.toContain(
+      "set remaining_quantity = case when position.status",
+    );
+    expect(migration).not.toMatch(/drop trigger if exists/i);
+    expect(migration).not.toMatch(/drop constraint if exists/i);
+    expect(migration).not.toMatch(/create table if not exists/i);
+    expect(migration).not.toMatch(/add column if not exists/i);
+    expect(migration).not.toMatch(/\bsetval\s*\(/i);
+    expect(migration).not.toMatch(/create or replace function/i);
+
+    const droppedConstraints = Array.from(
+      migration.matchAll(/drop constraint\s+([a-z0-9_]+)/gi),
+      (match) => match[1],
+    );
+    expect(droppedConstraints).toEqual([
+      "internal_paper_ledger_entries_account_bucket_check",
+      "internal_paper_ledger_entries_entry_type_check",
+      "internal_paper_ledger_entries_amount_check",
+    ]);
+
+    expect(migration).toContain(
+      "alter table public.internal_paper_exit_intents enable row level security",
+    );
+    expect(migration).toContain(
+      "alter table public.internal_paper_exit_fills enable row level security",
+    );
+    expect(migration).toContain(
+      "revoke all privileges on table public.internal_paper_exit_intents",
+    );
+    expect(migration).toContain(
+      "revoke all privileges on table public.internal_paper_exit_fills",
+    );
+    expect(migration).toContain(
+      "grant execute on function public.app_apply_internal_paper_exit_v1",
+    );
+  });
+
   test("emits only durable identities and leaves reason, quantity and price to the database", () => {
     expect(build()).toEqual({
       status: "ready",
