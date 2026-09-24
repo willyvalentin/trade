@@ -653,7 +653,13 @@ function applyCandle(
     fillPriceScaled <= BIGINT_ZERO ||
     netCashProceedsScaled < BIGINT_ZERO
   ) {
-    return { state: prior, event: null };
+    // An exit condition has already fired. Treating an economically invalid
+    // fill as "no event" would let later candles erase a stop or EOD exit.
+    return {
+      state: prior,
+      event: null,
+      blocked_reason: "economic_result_out_of_range",
+    };
   }
 
   const fullExit = quantity === prior.remaining_quantity;
