@@ -58,27 +58,98 @@ repository warnings) and a complete Next production build. The local browser
 reached the password boundary; authenticated UI rendering remains environment
 verification to perform without entering credentials into browser automation.
 
-**Selected A.2 CLOSED preflight-readback repair, 2026-09-24 (4–8h):** the
-2026-09-24 frozen observation was correctly marked `no_go` before activation
-when a direct production read of
+**Selected A.2 CLOSED preflight-readback repair completed, 2026-09-24 (4–8h):**
+the 2026-09-24 frozen observation was correctly marked `no_go` before
+activation when a direct production read of
 `basic_free_discovery_credit_reservations` returned `403`. That relation is
 intentionally not directly readable, so treating the error as an empty ledger
-would have made the eight-credit and overlap checks unverifiable. The isolated
-repair adds an additive, aggregate-only service-role RPC for one owner, New
-York date and canonical quarter-hour target. It returns no reservation,
-attempt, user or provider identifiers and cannot claim, begin, finalize or
-release credits. The authenticated, read-only application endpoint validates
-its strict versioned output and returns `ready`, `blocked` or `unavailable`;
-it cannot arm a scheduler, invoke a provider or take a broker action. The
-actual scheduled path retains its atomic eight-credit guard, so preflight
-success is never an authorization or reservation. Local evidence: four
-adversarial preflight tests, Next typegen, strict TypeScript, changed-file
+would have made the eight-credit and overlap checks unverifiable. PR #619 was
+merged as `4d5fa79a3bdc88b7a029aa81c4b77f4f32db85eb`; Netlify production deploy
+`6ab538b743500b00082c183d` is `ready` on that exact revision. It provides an
+additive, aggregate-only service-role RPC for one owner, New York date and
+canonical quarter-hour target, plus an authenticated read-only application
+endpoint that validates its strict versioned output as `ready`, `blocked` or
+`unavailable`. Neither surface can claim, begin, finalize or release credits,
+arm a scheduler, invoke a provider or take a broker action. The scheduled path
+retains its independent atomic eight-credit guard, so preflight success is not
+an authorization or reservation.
+
+The user-authorized source migration
+`20260924125256_a2_basic_free_scan_preflight_readback.sql` was applied only to
+the production Trade Supabase project after the similarly named staging project
+was ruled out by read-only identity and migration-history checks; no write was
+made to staging. Supabase recorded it as `20260924145600`. Production catalog
+readback verifies a `SECURITY DEFINER`, `STABLE` function with
+`search_path=pg_catalog, public`, service-role-only execution and no direct
+`anon` or `authenticated` reservation access. A harmless all-zero-owner,
+future-date call returned the strict zero-state shape; generated type catalog
+readback includes the function. The general Supabase advisor still reports its
+unrelated Auth leaked-password-protection warning and 28 informational
+RLS-without-policy findings; this repair created neither a table nor an Auth
+setting and its privilege boundary is explicitly verified. Local evidence:
+four adversarial preflight tests, Next typegen, strict TypeScript, changed-file
 ESLint, diff check, scheduler-runtime packaging and a complete webpack
-production build pass. The SQL migration has **not** been applied anywhere;
-local SQL execution remains unverified because Docker is unavailable. A
-separate migration-application decision, generated-type/catalog verification,
-production deploy and then a newly frozen OPEN test card remain required
-before another normal scan may be armed.
+production build pass. Docker was unavailable, so local SQL execution remains
+unverified; production schema verification above is environment evidence, not
+a substitute for a normal market observation.
+
+**Frozen A.2 OPEN test card — one normal Basic Free scheduled scan,
+2026-09-24 16:30:00Z (12:30 America/New_York / 18:30 CEST):**
+
+- **Question and scope.** Can one normal, quarter-hour scheduled scan in the
+  verified regular `America/New_York` session complete or honestly reject with
+  a durable, owner-attributable scheduled-attempt → Basic Free
+  reservation/finalization → scan-run → candidate-decision/lineage readback?
+  Zero recommendations and a complete `no_trade`/empty result may pass this
+  operational question; neither establishes alpha, coverage nor policy quality.
+- **Frozen runtime/data contract.** The tested scheduler, preflight reader and
+  application reader are the production code deployed from
+  `4d5fa79a3bdc88b7a029aa81c4b77f4f32db85eb` (respectively source blobs
+  `e8fee6cb748ce1f880aae5e3fb0a854e2460a5ca`,
+  `fb58a4259c637321cc7703f9b74f2d569f3c1c29` and
+  `074404bdea2e21956479ba50a1f68232e0fc6d54`) with migration source blob
+  `b0c4baf732fe4adbad003a78ce0ca5e42a0902de`. Before arming, read back the
+  exact Git-connected production deploy revision and require those runtime
+  blobs unchanged; any behavioral source change is `no_go`. Use only the
+  existing Twelve Data Basic Free source, normal `/stocks` discovery path,
+  deployed `intraday_indicator_refresh_allocation_v1` policy and current
+  owner-scoped data. No new source, ranking/publishing threshold, migration,
+  route invocation or broker action is in scope.
+- **Time, budget and one-shot boundary.** Target only
+  `2026-09-24T16:30:00.000Z`, a normal quarter-hour inside the confirmed
+  2026-09-24 regular New York session, and require a ready activation deploy at
+  least one complete scheduler interval before that slot. The exact UTC target
+  must be written into the one-shot controls and independently read back before
+  the slot. Allow exactly one scheduled delivery, no retry and at most eight
+  Twelve Data credits or reservations; fresh cache must not reserve an
+  additional provider credit.
+  Keep `TURE_DISABLE_SCHEDULED_FUNCTIONS=true` throughout. The normal one-shot
+  is eligible only with catalog capability probe disabled, catalog observation
+  one-shot disabled, outcome evaluation one-shot not true and internal-paper
+  worker not true. Restore all normal one-shot controls immediately after the
+  bounded readback and publish a ready cleanup deploy before another slot.
+- **Go/no-go and expected chain.** Before activation, authoritative production
+  preflight for the owner/date/target must be `ready`: zero target-slot attempts,
+  zero unresolved overlapping attempts, zero active reservations and zero
+  previously reserved normal-scan credits, leaving the full eight-credit bound.
+  Confirm the target is a regular session, no active overlapping run exists,
+  the above effective function-scoped gates hold, and the activation deploy has
+  the exact approved code identity. The normal Netlify schedule alone may then
+  claim the attempt and invoke the private internal route. Expected evidence is
+  scheduled attempt with slot/deploy identity, at most eight Basic Free credit
+  reservations/finalization, completed/empty scan trace, versioned candidate
+  decision plus matching decision lineage, and owner-authorized readback. The
+  scan must not publish from stale or incomplete evidence.
+- **Classification and recovery.** `pass` requires exactly one attributable
+  scheduled attempt, no more than eight credits, a terminal completed/empty
+  scan, and coherent decision/lineage fingerprint and source-time ordering.
+  Stale input, timeout, provider block or wrong session is `inconclusive`;
+  absent bounded evidence is `missing_result`; duplicate attempt, exceeded
+  budget, missing/misbound lineage or stale/incomplete publication is `fail`.
+  From one minute after the target slot, read only authoritative receipts for at
+  most 90 seconds, then restore the one-shot flags even on missing evidence.
+  No second same-day slot is implied by this card; any later observation needs a
+  separately frozen purpose and remaining-budget check.
 
 **A.2 authorized catalog-probe bounded missing result, 2026-09-21:** before
 the 15:30 CEST scheduled slot, a direct production ledger read for New York
