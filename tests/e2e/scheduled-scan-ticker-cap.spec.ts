@@ -90,19 +90,22 @@ test("the scheduled route carries its Free budget into reference refresh", () =>
   expect(generator).toContain("maxAttempts: referenceRefreshMaxAttempts");
 });
 
-test("scanner reserves its provider slot before a fallible intraday refresh", () => {
+test("scanner checks the batched indicator cache before reserving a provider slot", () => {
   const scanner = source("lib/scanner.ts");
   const attachment = scanner.slice(
     scanner.indexOf("async function attachIntradayIndicators("),
-    scanner.indexOf("for (const baseCandidate of baseCandidates)"),
+    scanner.indexOf("for (const [tickerIndex, baseCandidate] of baseCandidates.entries())"),
   );
 
+  expect(attachment).toContain("getCachedIntradayIndicators(candidate.ticker, cacheOptions)");
+  expect(attachment).toContain("resolveIntradayIndicatorRefreshAdmission");
+  expect(attachment.indexOf("getCachedIntradayIndicators")).toBeLessThan(
+    attachment.indexOf("freshProviderCallsUsed += 1"),
+  );
   expect(attachment).toMatch(
-    /if \(allowFreshFetch\) freshProviderCallsUsed \+= 1;\s+const result = await measureScanFetchStep\(\{[\s\S]*?run: \(\) => getOrRefreshIntradayIndicators/,
+    /if \(admission\.reserve_provider_credit\) \{\s+\/\/ A refresh-capable call may reach Twelve Data\.[\s\S]*?freshProviderCallsUsed \+= 1;[\s\S]*?getOrRefreshIntradayIndicators/,
   );
-  expect(attachment).not.toMatch(
-    /if \(result\.source === "fresh"\) \{\s+freshProviderCallsUsed \+= 1/,
-  );
+  expect(attachment).toContain("allowFreshFetch: admission.allow_fresh_fetch");
 });
 
 test("scanner reuses its batched raw cache for indicator reads without changing provider admission", () => {

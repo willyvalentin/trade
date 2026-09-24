@@ -1,10 +1,15 @@
 import "server-only";
 
 import {
+  getCachedIntradayIndicators,
   getOrRefreshIntradayIndicators,
   MAX_FRESH_INDICATOR_FETCHES_PER_RUN,
   SCANNER_INDICATOR_MAX_AGE_MINUTES,
 } from "@/lib/intraday-indicator-cache";
+import {
+  INTRADAY_INDICATOR_REFRESH_ALLOCATION_POLICY_VERSION,
+  resolveIntradayIndicatorRefreshAdmission,
+} from "@/lib/intraday-indicator-refresh-admission";
 import {
   intradayIndicatorsFromUnknown,
   withAdmissibleRecentIntradayVolume,
@@ -653,27 +658,59 @@ async function scanMarketCore(
     preloadedScannerCacheRow?: ScannerCacheRow,
   ): Promise<CandidateWithIndicatorCache> {
     throwIfAborted(options.signal);
-    const allowFreshFetch =
-      freshProviderCallsUsed < maxFreshProviderCalls &&
-      freshIndicatorFetchesUsed < MAX_FRESH_INDICATOR_FETCHES_PER_RUN;
-    // Reserve before the cache helper can reach Twelve Data. A failed refresh
-    // returns unavailable/stale rather than "fresh", but still spends a call.
-    if (allowFreshFetch) freshProviderCallsUsed += 1;
-    const result = await measureScanFetchStep({
+    const cacheOptions = {
+      source: options.source === "scheduled" ? "scheduled" : "manual",
+      maxAgeMinutes: SCANNER_INDICATOR_MAX_AGE_MINUTES,
+      signal: options.signal,
+      ...(preloadedScannerCacheRow
+        ? { preloadedScannerCacheRaw: preloadedScannerCacheRow.raw }
+        : {}),
+    } as const;
+    const cached = await measureScanFetchStep({
       trace: options.activeScanTrace,
       step: "intraday_indicators",
       tickerIndex,
-      run: () => getOrRefreshIntradayIndicators(candidate.ticker, {
-        source: options.source === "scheduled" ? "scheduled" : "manual",
-        maxAgeMinutes: SCANNER_INDICATOR_MAX_AGE_MINUTES,
-        allowFreshFetch,
-        signal: options.signal,
-        ...(preloadedScannerCacheRow
-          ? { preloadedScannerCacheRaw: preloadedScannerCacheRow.raw }
-          : {}),
-      }),
+      run: () => getCachedIntradayIndicators(candidate.ticker, cacheOptions),
     });
     throwIfAborted(options.signal);
+    const admission = resolveIntradayIndicatorRefreshAdmission({
+      cache: {
+        source: cached.source,
+        has_indicators: cached.indicators !== null,
+        stale: cached.stale,
+      },
+      fresh_provider_calls_used: freshProviderCallsUsed,
+      max_fresh_provider_calls: maxFreshProviderCalls,
+      fresh_indicator_fetches_used: freshIndicatorFetchesUsed,
+      max_fresh_indicator_fetches: MAX_FRESH_INDICATOR_FETCHES_PER_RUN,
+    });
+    let result = cached;
+
+    if (admission.reserve_provider_credit) {
+      // A refresh-capable call may reach Twelve Data. Reserve the bounded slot
+      // immediately before it, including when that refresh later fails.
+      freshProviderCallsUsed += 1;
+      result = await measureScanFetchStep({
+        trace: options.activeScanTrace,
+        step: "intraday_indicators",
+        tickerIndex,
+        run: () => getOrRefreshIntradayIndicators(candidate.ticker, {
+          ...cacheOptions,
+          allowFreshFetch: admission.allow_fresh_fetch,
+        }),
+      });
+      throwIfAborted(options.signal);
+    } else if (admission.disposition !== "reuse_fresh_cache") {
+      result = {
+        ...cached,
+        warnings: [
+          ...cached.warnings,
+          cached.indicators
+            ? "Using stale intraday indicator cache; fresh fetch disabled."
+            : "Fresh intraday indicator fetch disabled.",
+        ],
+      };
+    }
 
     if (result.source === "fresh") {
       freshIndicatorFetchesUsed += 1;
@@ -842,6 +879,10 @@ async function scanMarketCore(
   logScanner("cache_misses", cacheMisses);
   logScanner("fresh_provider_calls_used", freshProviderCallsUsed);
   logScanner("fresh_indicator_fetches_used", freshIndicatorFetchesUsed);
+  logScanner(
+    "intraday_indicator_refresh_allocation_policy_version",
+    INTRADAY_INDICATOR_REFRESH_ALLOCATION_POLICY_VERSION,
+  );
   logScanner("indicator_sources", indicatorSources);
   logScanner("stale_cache_fallbacks", staleFallbacks);
   logScanner("tickers_skipped_due_to_fresh_call_limit", skippedDueToFreshCallLimit);
