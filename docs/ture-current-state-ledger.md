@@ -9,6 +9,28 @@ not new runtime or strategy evidence. The older IF receipts below remain usable;
 their former queue and Avanza execution priority are superseded. Repository
 roadmap/governance/ledger are the only control sources; Notion stays outside scope.
 
+### Delivery method — CLOSED readiness, 2026-09-24
+
+This governance-only update adds no runtime, deployment, OPEN or strategy
+evidence. It does not alter the frozen 2026-09-25 A.2 receipt-continuity retest,
+its authorization, limits, cleanup or classification below.
+
+For subsequent selected deliveries, use the built scheduled-event → backend →
+provider-boundary fixture → isolated database → decision/readback chain to
+close reproducible operational gaps during CLOSED. Verify existing coverage
+before adding duplicate tests or implementation. Record exact revision,
+environment, remaining gaps and distinct operational/data/strategy outcomes.
+An independent CLOSED vertical slice may continue while OPEN evidence waits,
+subject to the existing two-slice and interface/schema ownership limits.
+
+Summarize timing, attributable-results ratio, repeated escapes, deploy/manual
+operations and credits only where receipts support them; unknown is not zero.
+The preparation targets and test requirements live in
+[operating governance](./roadmap-operating-governance.md) and the
+[OPEN contract](./open-market-test-contract.md). This note is not a second
+Now/Next/Blocked queue. Multi-observation activation still requires implemented,
+tested limits and applicable authority; current one-shot controls remain in force.
+
 ### Continuous-observation technical direction — 2026-09-24
 
 The 2026-09-23 market-timing decision is implemented as a future observation
