@@ -630,10 +630,9 @@ sector and correlation concentration, absolute beta without offsetting exposure,
 missing/future evidence, over-limit existing portfolios, duplicate lineage,
 receipt immutability, deterministic valid/invalid-input ordering and authority
 containment plus malformed-versus-unavailable evidence identity; strict
-TypeScript, changed-file ESLint and diff checks pass.
-Webpack compiled the production bundle successfully in the temporary
-linked-dependency worktree; Turbopack's external-symlink refusal is an
-environment limitation and no completed Turbopack artifact is claimed.
+TypeScript, changed-file ESLint, diff checks and a complete Next webpack
+production build pass. Turbopack's external-symlink refusal is an environment
+limitation and no Turbopack artifact is claimed.
 This source-only core is not merged, CI-verified, deployed, wired to C paper
 handoff, backed by a frozen persistent allocation policy, or evidence of
 allocation quality. Defer push/PR merge and any production deploy until the
