@@ -570,6 +570,7 @@ export function allocateInternalPaperPortfolio(
   }
 
   const candidateIds = new Set<string>();
+  const decisionFingerprints = new Set<string>();
   if (
     input.candidates.some((candidate) => {
       if (candidateIds.has(candidate.candidate_id)) return true;
@@ -578,6 +579,15 @@ export function allocateInternalPaperPortfolio(
     })
   ) {
     return blocked(["candidate_identity_duplicate"], input);
+  }
+  if (
+    input.candidates.some((candidate) => {
+      if (decisionFingerprints.has(candidate.decision_fingerprint)) return true;
+      decisionFingerprints.add(candidate.decision_fingerprint);
+      return false;
+    })
+  ) {
+    return blocked(["candidate_decision_lineage_duplicate"], input);
   }
   candidateIds.clear();
   const candidates = [...input.candidates].sort(candidateSort);

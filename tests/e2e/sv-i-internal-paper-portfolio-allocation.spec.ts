@@ -269,6 +269,32 @@ test("treats an over-limit pre-existing portfolio as a global stop, not an invit
   expect(verifyInternalPaperPortfolioAllocationDigest(result)).toBe(true);
 });
 
+test("treats two candidate records for one decision lineage as a global stop", () => {
+  const sharedDecisionFingerprint = fingerprint("shared-decision");
+  const result = allocateInternalPaperPortfolio(
+    input({
+      candidates: [
+        candidate("ALPHA", { decision_fingerprint: sharedDecisionFingerprint }),
+        candidate("BRAVO", {
+          decision_fingerprint: sharedDecisionFingerprint,
+          risk_estimate: riskEstimate({
+            sector: "healthcare",
+            correlation_group: "healthcare_large_cap",
+            source_fingerprint: fingerprint("bravo-risk"),
+          }),
+        }),
+      ],
+    }),
+  );
+
+  expect(result).toMatchObject({
+    status: "blocked",
+    reason_codes: ["candidate_decision_lineage_duplicate"],
+    candidate_decisions: [],
+  });
+  expect(verifyInternalPaperPortfolioAllocationDigest(result)).toBe(true);
+});
+
 test("enforces absolute beta notional without cancelling opposite beta exposures", () => {
   const result = allocateInternalPaperPortfolio(
     input({
