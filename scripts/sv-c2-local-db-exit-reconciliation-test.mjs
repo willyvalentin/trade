@@ -7,11 +7,15 @@ import { join } from "node:path";
 
 const container = `ture-sv-c2-${process.pid}`;
 const sqlPath = join(tmpdir(), `ture-sv-c2-${process.pid}.sql`);
-const migrationPaths = [
+const foundationMigrationPaths = [
   "../supabase/migrations/20260709000000_create_historical_candle_storage.sql",
   "../supabase/migrations/20260922001000_sv_c1_internal_paper_entry_lifecycle.sql",
-  "../supabase/migrations/20260922023000_sv_c2_internal_paper_exit_reconciliation.sql",
+  "../supabase/migrations/20260924195853_sv_c1_internal_paper_foreign_key_indexes.sql",
 ].map((path) => new URL(path, import.meta.url));
+const c2MigrationPath = new URL(
+  "../supabase/migrations/20260922023000_sv_c2_internal_paper_exit_reconciliation.sql",
+  import.meta.url,
+);
 
 const owner = "11111111-1111-4111-8111-111111111111";
 const otherOwner = "99999999-9999-4999-8999-999999999999";
@@ -45,6 +49,24 @@ function psql(sql) {
     "-f",
     "/tmp/test.sql",
   );
+}
+
+function expectPsqlFailure(sql, expectedMessage) {
+  let failure = null;
+  try {
+    psql(sql);
+  } catch (error) {
+    failure = error;
+  }
+  if (!failure) {
+    throw new Error(`Expected PostgreSQL failure: ${expectedMessage}`);
+  }
+  const output = `${failure.stdout ?? ""}\n${failure.stderr ?? ""}`;
+  if (!output.includes(expectedMessage)) {
+    throw new Error(
+      `PostgreSQL failed without expected message ${expectedMessage}: ${output}`,
+    );
+  }
 }
 
 const decisionPayload = JSON.stringify({
@@ -118,7 +140,7 @@ try {
     container,
     "-e",
     "POSTGRES_PASSWORD=postgres",
-    "postgres:16-alpine",
+    "postgres:17-alpine",
   );
   for (let attempt = 0; attempt < 80; attempt += 1) {
     try {
@@ -177,9 +199,49 @@ try {
     );
     insert into auth.users(id) values ('${owner}'), ('${otherOwner}');
   `);
-  for (const migrationPath of migrationPaths) {
+  for (const migrationPath of foundationMigrationPaths) {
     psql(readFileSync(migrationPath, "utf8"));
   }
+
+  psql(`
+    insert into public.internal_paper_accounts(
+      id, owner_user_id, account_key, status, strategy_id, strategy_version,
+      strategy_rollback_identity, symbol_selection_policy_id,
+      symbol_selection_policy_version, observed_universe_version,
+      eligible_symbols, config_version, fill_model_version, starting_cash,
+      cash_balance, per_trade_risk_cap, daily_loss_cap, spread_bps,
+      slippage_bps, commission_per_order
+    ) values (
+      'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee', '${owner}', 'c2-guard-probe',
+      'ready', 'intraday_long_multi_setup_quality_ranker', '1.0.0',
+      'intraday_long_multi_setup_quality_ranker@1.0.0',
+      'rotating_scanner_universe', 'scanner_universe_selection_v1',
+      'scanner_universe_v1', array['AAPL'], 'pilot-config-v1',
+      'internal_paper_immediate_costed_fill_v1', 100000, 100000, 100, 500,
+      10, 5, 1
+    );
+  `);
+  expectPsqlFailure(
+    readFileSync(c2MigrationPath, "utf8"),
+    "sv_c2_requires_empty_c1_state",
+  );
+  psql(`
+    do $$ begin
+      if to_regclass('public.internal_paper_exit_intents') is not null
+        or exists (
+          select 1
+          from information_schema.columns
+          where table_schema = 'public'
+            and table_name = 'internal_paper_accounts'
+            and column_name = 'exit_fill_model_version'
+        )
+        or to_regprocedure('public.app_apply_internal_paper_exit_v1(uuid,uuid,uuid,uuid,text,text,text)') is not null
+      then raise exception 'failed C2 admission changed schema'; end if;
+    end $$;
+    delete from public.internal_paper_accounts
+    where id = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';
+  `);
+  psql(readFileSync(c2MigrationPath, "utf8"));
 
   psql(`
     insert into public.recommendation_scan_runs(
@@ -471,7 +533,7 @@ try {
   `);
 
   console.log(
-    "SV-C2 disposable PostgreSQL partial/final/stop exit, restart, reconciliation, isolation and rollback tests passed.",
+    "SV-C2 PostgreSQL empty-state guard, partial/final/stop exit, restart, reconciliation, isolation and rollback tests passed.",
   );
 } finally {
   try {

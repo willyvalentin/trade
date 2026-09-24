@@ -4,89 +4,98 @@
 -- candle writer, provider request, candidate publication or broker path. The
 -- command can only consume an already-persisted validated one-minute candle.
 
-alter table public.internal_paper_accounts
-  add column if not exists exit_fill_model_version text not null
-    default 'internal_paper_immediate_costed_exit_v1',
-  add column if not exists target_exit_fraction_bps integer not null default 5000,
-  add column if not exists realized_gross_pnl numeric(20, 6) not null default 0,
-  add column if not exists realized_net_pnl numeric(20, 6) not null default 0,
-  add column if not exists total_commission_paid numeric(20, 6) not null default 0;
+set lock_timeout = '5s';
+set statement_timeout = '60s';
+
+-- Production admission is deliberately empty-state only. C.2 changes the
+-- shape of C.1 rows and replaces three exact C.1 checks, so an environment
+-- with any paper state requires a separately reviewed backfill migration.
+do $$
+begin
+  if exists (select 1 from public.internal_paper_accounts)
+    or exists (select 1 from public.internal_paper_entry_intents)
+    or exists (select 1 from public.internal_paper_fills)
+    or exists (select 1 from public.internal_paper_positions)
+    or exists (select 1 from public.internal_paper_ledger_entries)
+  then
+    raise exception 'sv_c2_requires_empty_c1_state';
+  end if;
+
+  if not exists (
+    select 1 from pg_catalog.pg_constraint
+    where conrelid = 'public.internal_paper_ledger_entries'::regclass
+      and conname = 'internal_paper_ledger_entries_account_bucket_check'
+      and contype = 'c'
+  ) or not exists (
+    select 1 from pg_catalog.pg_constraint
+    where conrelid = 'public.internal_paper_ledger_entries'::regclass
+      and conname = 'internal_paper_ledger_entries_entry_type_check'
+      and contype = 'c'
+  ) or not exists (
+    select 1 from pg_catalog.pg_constraint
+    where conrelid = 'public.internal_paper_ledger_entries'::regclass
+      and conname = 'internal_paper_ledger_entries_amount_check'
+      and contype = 'c'
+  ) then
+    raise exception 'sv_c2_unexpected_c1_ledger_contract';
+  end if;
+end;
+$$;
 
 alter table public.internal_paper_accounts
-  drop constraint if exists internal_paper_accounts_exit_fill_model_version_check,
+  add column exit_fill_model_version text not null
+    default 'internal_paper_immediate_costed_exit_v1',
+  add column target_exit_fraction_bps integer not null default 5000,
+  add column realized_gross_pnl numeric(20, 6) not null default 0,
+  add column realized_net_pnl numeric(20, 6) not null default 0,
+  add column total_commission_paid numeric(20, 6) not null default 0;
+
+alter table public.internal_paper_accounts
   add constraint internal_paper_accounts_exit_fill_model_version_check
     check (exit_fill_model_version = 'internal_paper_immediate_costed_exit_v1'),
-  drop constraint if exists internal_paper_accounts_target_exit_fraction_bps_check,
   add constraint internal_paper_accounts_target_exit_fraction_bps_check
     check (target_exit_fraction_bps between 1 and 9999),
-  drop constraint if exists internal_paper_accounts_total_commission_paid_check,
   add constraint internal_paper_accounts_total_commission_paid_check
     check (total_commission_paid >= 0);
 
-update public.internal_paper_accounts account
-set total_commission_paid = coalesce((
-  select sum(fill.commission)
-  from public.internal_paper_fills fill
-  where fill.account_id = account.id
-    and fill.owner_user_id = account.owner_user_id
-), 0);
-
 alter table public.internal_paper_positions
-  add column if not exists remaining_quantity bigint,
-  add column if not exists remaining_cost_basis numeric(20, 6),
-  add column if not exists entry_commission numeric(20, 6),
-  add column if not exists remaining_entry_commission numeric(20, 6),
-  add column if not exists target_exit_completed boolean not null default false,
-  add column if not exists realized_gross_pnl numeric(20, 6) not null default 0,
-  add column if not exists realized_net_pnl numeric(20, 6) not null default 0,
-  add column if not exists exit_commission_total numeric(20, 6) not null default 0,
-  add column if not exists last_exit_at timestamptz null;
-
-update public.internal_paper_positions position
-set remaining_quantity = case when position.status = 'closed' then 0 else position.quantity end,
-    remaining_cost_basis = case when position.status = 'closed' then 0 else position.cost_basis end,
-    entry_commission = fill.commission,
-    remaining_entry_commission = case
-      when position.status = 'closed' then 0 else fill.commission
-    end
-from public.internal_paper_fills fill
-where fill.id = position.entry_fill_id
-  and fill.account_id = position.account_id
-  and fill.owner_user_id = position.owner_user_id;
+  add column remaining_quantity bigint,
+  add column remaining_cost_basis numeric(20, 6),
+  add column entry_commission numeric(20, 6),
+  add column remaining_entry_commission numeric(20, 6),
+  add column target_exit_completed boolean not null default false,
+  add column realized_gross_pnl numeric(20, 6) not null default 0,
+  add column realized_net_pnl numeric(20, 6) not null default 0,
+  add column exit_commission_total numeric(20, 6) not null default 0,
+  add column last_exit_at timestamptz null;
 
 alter table public.internal_paper_positions
   alter column remaining_quantity set not null,
   alter column remaining_cost_basis set not null,
   alter column entry_commission set not null,
   alter column remaining_entry_commission set not null,
-  drop constraint if exists internal_paper_positions_remaining_quantity_check,
   add constraint internal_paper_positions_remaining_quantity_check
     check (remaining_quantity between 0 and quantity),
-  drop constraint if exists internal_paper_positions_remaining_cost_basis_check,
   add constraint internal_paper_positions_remaining_cost_basis_check
     check (remaining_cost_basis >= 0 and remaining_cost_basis <= cost_basis),
-  drop constraint if exists internal_paper_positions_entry_commission_check,
   add constraint internal_paper_positions_entry_commission_check
     check (entry_commission >= 0),
-  drop constraint if exists internal_paper_positions_remaining_entry_commission_check,
   add constraint internal_paper_positions_remaining_entry_commission_check
     check (
       remaining_entry_commission >= 0
       and remaining_entry_commission <= entry_commission
     ),
-  drop constraint if exists internal_paper_positions_exit_commission_total_check,
   add constraint internal_paper_positions_exit_commission_total_check
     check (exit_commission_total >= 0),
-  drop constraint if exists internal_paper_positions_status_quantity_check,
   add constraint internal_paper_positions_status_quantity_check check (
     (status = 'open' and remaining_quantity > 0 and closed_at is null)
     or (status = 'closed' and remaining_quantity = 0 and closed_at is not null)
   );
 
-create unique index if not exists internal_paper_positions_id_account_owner_uidx
+create unique index internal_paper_positions_id_account_owner_uidx
   on public.internal_paper_positions (id, account_id, owner_user_id);
 
-create or replace function public.app_initialize_internal_paper_position_v2()
+create function public.app_initialize_internal_paper_position_v2()
 returns trigger
 language plpgsql
 security definer
@@ -116,8 +125,6 @@ begin
 end;
 $$;
 
-drop trigger if exists internal_paper_initialize_position_v2
-  on public.internal_paper_positions;
 create trigger internal_paper_initialize_position_v2
   before insert on public.internal_paper_positions
   for each row execute function public.app_initialize_internal_paper_position_v2();
@@ -125,7 +132,7 @@ create trigger internal_paper_initialize_position_v2
 revoke all on function public.app_initialize_internal_paper_position_v2()
   from public, anon, authenticated;
 
-create or replace function public.app_record_internal_paper_entry_commission_v2()
+create function public.app_record_internal_paper_entry_commission_v2()
 returns trigger
 language plpgsql
 security definer
@@ -140,8 +147,6 @@ begin
 end;
 $$;
 
-drop trigger if exists internal_paper_record_entry_commission_v2
-  on public.internal_paper_fills;
 create trigger internal_paper_record_entry_commission_v2
   after insert on public.internal_paper_fills
   for each row execute function public.app_record_internal_paper_entry_commission_v2();
@@ -149,7 +154,7 @@ create trigger internal_paper_record_entry_commission_v2
 revoke all on function public.app_record_internal_paper_entry_commission_v2()
   from public, anon, authenticated;
 
-create table if not exists public.internal_paper_exit_intents (
+create table public.internal_paper_exit_intents (
   id uuid primary key default gen_random_uuid(),
   owner_user_id uuid not null references auth.users(id) on delete restrict,
   account_id uuid not null,
@@ -187,7 +192,7 @@ create table if not exists public.internal_paper_exit_intents (
     on delete restrict
 );
 
-create table if not exists public.internal_paper_exit_fills (
+create table public.internal_paper_exit_fills (
   id uuid primary key default gen_random_uuid(),
   owner_user_id uuid not null references auth.users(id) on delete restrict,
   account_id uuid not null,
@@ -223,15 +228,15 @@ create table if not exists public.internal_paper_exit_fills (
     on delete restrict
 );
 
-create index if not exists internal_paper_exit_intents_account_created_idx
+create index internal_paper_exit_intents_account_created_idx
   on public.internal_paper_exit_intents (account_id, created_at desc);
-create index if not exists internal_paper_exit_intents_position_created_idx
+create index internal_paper_exit_intents_position_created_idx
   on public.internal_paper_exit_intents (position_id, created_at desc);
-create index if not exists internal_paper_exit_intents_candle_id_idx
+create index internal_paper_exit_intents_candle_id_idx
   on public.internal_paper_exit_intents (candle_id);
-create index if not exists internal_paper_exit_fills_account_filled_idx
+create index internal_paper_exit_fills_account_filled_idx
   on public.internal_paper_exit_fills (account_id, filled_at desc);
-create index if not exists internal_paper_exit_fills_position_filled_idx
+create index internal_paper_exit_fills_position_filled_idx
   on public.internal_paper_exit_fills (position_id, filled_at desc);
 
 alter table public.internal_paper_exit_intents enable row level security;
@@ -244,22 +249,21 @@ revoke all privileges on table public.internal_paper_exit_fills
 alter table public.internal_paper_ledger_entries
   alter column intent_id drop not null,
   alter column fill_id drop not null,
-  add column if not exists exit_intent_id uuid null,
-  add column if not exists exit_fill_id uuid null;
+  add column exit_intent_id uuid null,
+  add column exit_fill_id uuid null;
 
 alter table public.internal_paper_ledger_entries
-  drop constraint if exists internal_paper_ledger_entries_account_bucket_check,
+  drop constraint internal_paper_ledger_entries_account_bucket_check,
   add constraint internal_paper_ledger_entries_account_bucket_check check (
     account_bucket in (
       'cash', 'position_cost_basis', 'execution_cost_expense',
       'realized_pnl_income'
     )
   ),
-  drop constraint if exists internal_paper_ledger_entries_entry_type_check,
+  drop constraint internal_paper_ledger_entries_entry_type_check,
   add constraint internal_paper_ledger_entries_entry_type_check
     check (entry_type in ('paper_entry_fill', 'paper_exit_fill')),
-  drop constraint if exists internal_paper_ledger_entries_amount_check,
-  drop constraint if exists internal_paper_ledger_entries_effect_identity_check,
+  drop constraint internal_paper_ledger_entries_amount_check,
   add constraint internal_paper_ledger_entries_effect_identity_check check (
     (
       entry_type = 'paper_entry_fill'
@@ -271,32 +275,25 @@ alter table public.internal_paper_ledger_entries
       and exit_intent_id is not null and exit_fill_id is not null
     )
   ),
-  drop constraint if exists internal_paper_ledger_entries_exit_intent_fk,
   add constraint internal_paper_ledger_entries_exit_intent_fk
     foreign key (exit_intent_id, account_id, owner_user_id)
     references public.internal_paper_exit_intents(id, account_id, owner_user_id)
     on delete restrict,
-  drop constraint if exists internal_paper_ledger_entries_exit_fill_fk,
   add constraint internal_paper_ledger_entries_exit_fill_fk
     foreign key (exit_fill_id, account_id, owner_user_id)
     references public.internal_paper_exit_fills(id, account_id, owner_user_id)
     on delete restrict;
 
-create unique index if not exists internal_paper_ledger_exit_intent_bucket_uidx
+create unique index internal_paper_ledger_exit_intent_bucket_uidx
   on public.internal_paper_ledger_entries (exit_intent_id, account_bucket)
   where exit_intent_id is not null;
-create index if not exists internal_paper_ledger_exit_fill_id_idx
+create index internal_paper_ledger_exit_fill_id_idx
   on public.internal_paper_ledger_entries (exit_fill_id)
   where exit_fill_id is not null;
 
-create sequence if not exists public.internal_paper_ledger_global_sequence;
-select setval(
-  'public.internal_paper_ledger_global_sequence',
-  greatest(coalesce((select max(ledger_sequence) from public.internal_paper_ledger_entries), 0) + 1, 1),
-  false
-);
+create sequence public.internal_paper_ledger_global_sequence start with 1;
 
-create or replace function public.app_assign_internal_paper_ledger_sequence_v1()
+create function public.app_assign_internal_paper_ledger_sequence_v1()
 returns trigger
 language plpgsql
 security definer
@@ -308,8 +305,6 @@ begin
 end;
 $$;
 
-drop trigger if exists internal_paper_assign_ledger_sequence_v1
-  on public.internal_paper_ledger_entries;
 create trigger internal_paper_assign_ledger_sequence_v1
   before insert on public.internal_paper_ledger_entries
   for each row execute function public.app_assign_internal_paper_ledger_sequence_v1();
@@ -317,7 +312,7 @@ create trigger internal_paper_assign_ledger_sequence_v1
 revoke all on function public.app_assign_internal_paper_ledger_sequence_v1()
   from public, anon, authenticated;
 
-create or replace function public.app_apply_internal_paper_exit_v1(
+create function public.app_apply_internal_paper_exit_v1(
   p_owner_user_id uuid,
   p_account_id uuid,
   p_position_id uuid,
@@ -698,7 +693,7 @@ grant execute on function public.app_apply_internal_paper_exit_v1(
   uuid, uuid, uuid, uuid, text, text, text
 ) to service_role;
 
-create or replace function public.app_read_internal_paper_account_v2(
+create function public.app_read_internal_paper_account_v2(
   p_owner_user_id uuid,
   p_account_id uuid,
   p_read_version text
