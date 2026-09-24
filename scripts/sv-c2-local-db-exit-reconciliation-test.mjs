@@ -16,6 +16,10 @@ const c2MigrationPath = new URL(
   "../supabase/migrations/20260922023000_sv_c2_internal_paper_exit_reconciliation.sql",
   import.meta.url,
 );
+const c2ForeignKeyIndexesMigrationPath = new URL(
+  "../supabase/migrations/20260924222835_sv_c2_internal_paper_foreign_key_indexes.sql",
+  import.meta.url,
+);
 
 const owner = "11111111-1111-4111-8111-111111111111";
 const otherOwner = "99999999-9999-4999-8999-999999999999";
@@ -294,6 +298,46 @@ try {
       alter column intent_id set not null;
   `);
   psql(readFileSync(c2MigrationPath, "utf8"));
+  psql(readFileSync(c2ForeignKeyIndexesMigrationPath, "utf8"));
+
+  psql(`
+    do $$
+    begin
+      if exists (
+        select 1
+        from pg_catalog.pg_constraint constraint_record
+        where constraint_record.contype = 'f'
+          and constraint_record.conname in (
+            'internal_paper_exit_intents_owner_user_id_fkey',
+            'internal_paper_exit_intents_account_id_owner_user_id_fkey',
+            'internal_paper_exit_intents_position_id_account_id_owner_u_fkey',
+            'internal_paper_exit_fills_owner_user_id_fkey',
+            'internal_paper_exit_fills_account_id_owner_user_id_fkey',
+            'internal_paper_exit_fills_position_id_account_id_owner_use_fkey',
+            'internal_paper_exit_fills_intent_id_account_id_owner_user__fkey',
+            'internal_paper_ledger_entries_exit_intent_fk',
+            'internal_paper_ledger_entries_exit_fill_fk'
+          )
+          and not exists (
+            select 1
+            from pg_catalog.pg_index index_record
+            where index_record.indrelid = constraint_record.conrelid
+              and index_record.indisvalid
+              and index_record.indisready
+              and not exists (
+                select 1
+                from unnest(constraint_record.conkey)
+                  with ordinality as fk_column(attribute_number, ordinal)
+                where (index_record.indkey::smallint[])[fk_column.ordinal - 1]
+                  is distinct from fk_column.attribute_number
+              )
+          )
+      ) then
+        raise exception 'SV-C2 foreign key index coverage is incomplete';
+      end if;
+    end;
+    $$;
+  `);
 
   psql(`
     insert into public.recommendation_scan_runs(
