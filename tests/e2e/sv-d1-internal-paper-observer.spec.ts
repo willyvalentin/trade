@@ -125,6 +125,13 @@ test.describe("SV-D1 read-only internal paper observer", () => {
     const executableSource = source.replace(/^--.*$/gm, "");
 
     expect(source).toContain("app_read_internal_paper_observer_v1");
+    expect(source).toContain("set lock_timeout = '5s'");
+    expect(source).toContain("set statement_timeout = '60s'");
+    expect(source).toContain("sv_d1_requires_empty_c1_c2_c3_state");
+    expect(source).toContain("sv_d1_unexpected_projection_contract");
+    expect(source).toContain("sv_d1_unexpected_handoff_function_contract");
+    expect(source).toContain("sv_d1_requires_unconsumed_ledger_sequence");
+    expect(source).toContain("sv_d1_preexisting_observer_contract");
     expect(source).toContain("p_observer_version is distinct from");
     expect(source).toContain("stable");
     expect(source).toContain("security definer");
@@ -133,7 +140,12 @@ test.describe("SV-D1 read-only internal paper observer", () => {
     expect(source).toContain("to service_role");
     expect(source).toContain("'marked_equity', null");
     expect(source).toContain("'threshold_seconds', null");
+    expect(source).not.toMatch(/create\s+or\s+replace\s+function/i);
     expect(executableSource).not.toMatch(/\b(insert|update|delete)\b/);
+    expect(executableSource).not.toMatch(/\bcron\.schedule\b/i);
+    expect(executableSource).not.toMatch(
+      /\b(net\.http_post|extensions\.http_post)\b/i,
+    );
     expect(executableSource).not.toContain("twelve_data");
     expect(executableSource).not.toContain("broker");
   });

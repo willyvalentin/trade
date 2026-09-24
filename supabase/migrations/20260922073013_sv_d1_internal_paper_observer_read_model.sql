@@ -5,7 +5,171 @@
 -- owner/account-bound read model to service_role only. Mark-to-market equity is
 -- deliberately unavailable until current, attributable price evidence exists.
 
-create or replace function public.app_read_internal_paper_observer_v1(
+set lock_timeout = '5s';
+set statement_timeout = '60s';
+
+-- Production admission is deliberately empty-state only. D.1 exposes a
+-- read-only projection over the exact C.1-C.4 schema; durable paper state or
+-- predecessor/catalog drift requires a separately reviewed migration.
+do $$
+declare
+  v_handoff_function oid := pg_catalog.to_regprocedure(
+    'public.app_read_internal_paper_handoff_context_v1(uuid,uuid,text)'
+  );
+  v_sequence_last_value bigint;
+  v_sequence_is_called boolean;
+begin
+  if pg_catalog.to_regclass('public.internal_paper_accounts') is null
+    or pg_catalog.to_regclass('public.internal_paper_entry_intents') is null
+    or pg_catalog.to_regclass('public.internal_paper_fills') is null
+    or pg_catalog.to_regclass('public.internal_paper_positions') is null
+    or pg_catalog.to_regclass('public.internal_paper_ledger_entries') is null
+    or pg_catalog.to_regclass('public.internal_paper_exit_intents') is null
+    or pg_catalog.to_regclass('public.internal_paper_exit_fills') is null
+    or pg_catalog.to_regclass('public.internal_paper_worker_jobs') is null
+    or pg_catalog.to_regclass('public.internal_paper_ledger_global_sequence') is null
+  then
+    raise exception 'sv_d1_required_c1_c2_c3_c4_contract_missing';
+  end if;
+
+  if exists (select 1 from public.internal_paper_accounts)
+    or exists (select 1 from public.internal_paper_entry_intents)
+    or exists (select 1 from public.internal_paper_fills)
+    or exists (select 1 from public.internal_paper_positions)
+    or exists (select 1 from public.internal_paper_ledger_entries)
+    or exists (select 1 from public.internal_paper_exit_intents)
+    or exists (select 1 from public.internal_paper_exit_fills)
+    or exists (select 1 from public.internal_paper_worker_jobs)
+  then
+    raise exception 'sv_d1_requires_empty_c1_c2_c3_state';
+  end if;
+
+  if exists (
+    select 1
+    from (values
+      ('public.internal_paper_accounts', 'id', 'uuid'::pg_catalog.regtype, true),
+      ('public.internal_paper_accounts', 'owner_user_id', 'uuid'::pg_catalog.regtype, true),
+      ('public.internal_paper_accounts', 'status', 'text'::pg_catalog.regtype, true),
+      ('public.internal_paper_accounts', 'base_currency', 'text'::pg_catalog.regtype, true),
+      ('public.internal_paper_accounts', 'config_version', 'text'::pg_catalog.regtype, true),
+      ('public.internal_paper_accounts', 'state_version', 'bigint'::pg_catalog.regtype, true),
+      ('public.internal_paper_accounts', 'strategy_id', 'text'::pg_catalog.regtype, true),
+      ('public.internal_paper_accounts', 'strategy_version', 'text'::pg_catalog.regtype, true),
+      ('public.internal_paper_accounts', 'strategy_rollback_identity', 'text'::pg_catalog.regtype, true),
+      ('public.internal_paper_accounts', 'symbol_selection_policy_id', 'text'::pg_catalog.regtype, true),
+      ('public.internal_paper_accounts', 'symbol_selection_policy_version', 'text'::pg_catalog.regtype, true),
+      ('public.internal_paper_accounts', 'observed_universe_version', 'text'::pg_catalog.regtype, true),
+      ('public.internal_paper_accounts', 'eligible_symbols', 'text[]'::pg_catalog.regtype, true),
+      ('public.internal_paper_accounts', 'updated_at', 'timestamptz'::pg_catalog.regtype, true),
+      ('public.internal_paper_accounts', 'starting_cash', 'numeric'::pg_catalog.regtype, true),
+      ('public.internal_paper_accounts', 'cash_balance', 'numeric'::pg_catalog.regtype, true),
+      ('public.internal_paper_accounts', 'realized_gross_pnl', 'numeric'::pg_catalog.regtype, true),
+      ('public.internal_paper_accounts', 'realized_net_pnl', 'numeric'::pg_catalog.regtype, true),
+      ('public.internal_paper_accounts', 'total_commission_paid', 'numeric'::pg_catalog.regtype, true),
+      ('public.internal_paper_worker_jobs', 'id', 'uuid'::pg_catalog.regtype, true),
+      ('public.internal_paper_worker_jobs', 'owner_user_id', 'uuid'::pg_catalog.regtype, true),
+      ('public.internal_paper_worker_jobs', 'account_id', 'uuid'::pg_catalog.regtype, true),
+      ('public.internal_paper_worker_jobs', 'work_kind', 'text'::pg_catalog.regtype, true),
+      ('public.internal_paper_worker_jobs', 'payload', 'jsonb'::pg_catalog.regtype, true),
+      ('public.internal_paper_worker_jobs', 'priority', 'smallint'::pg_catalog.regtype, true),
+      ('public.internal_paper_worker_jobs', 'status', 'text'::pg_catalog.regtype, true),
+      ('public.internal_paper_worker_jobs', 'available_at', 'timestamptz'::pg_catalog.regtype, true),
+      ('public.internal_paper_worker_jobs', 'lease_expires_at', 'timestamptz'::pg_catalog.regtype, false),
+      ('public.internal_paper_worker_jobs', 'attempt_count', 'integer'::pg_catalog.regtype, true),
+      ('public.internal_paper_worker_jobs', 'max_attempts', 'integer'::pg_catalog.regtype, true),
+      ('public.internal_paper_worker_jobs', 'last_failure_code', 'text'::pg_catalog.regtype, false),
+      ('public.internal_paper_worker_jobs', 'created_at', 'timestamptz'::pg_catalog.regtype, true),
+      ('public.internal_paper_worker_jobs', 'updated_at', 'timestamptz'::pg_catalog.regtype, true),
+      ('public.internal_paper_worker_jobs', 'completed_at', 'timestamptz'::pg_catalog.regtype, false),
+      ('public.internal_paper_positions', 'id', 'uuid'::pg_catalog.regtype, true),
+      ('public.internal_paper_positions', 'owner_user_id', 'uuid'::pg_catalog.regtype, true),
+      ('public.internal_paper_positions', 'account_id', 'uuid'::pg_catalog.regtype, true),
+      ('public.internal_paper_positions', 'ticker', 'text'::pg_catalog.regtype, true),
+      ('public.internal_paper_positions', 'side', 'text'::pg_catalog.regtype, true),
+      ('public.internal_paper_positions', 'status', 'text'::pg_catalog.regtype, true),
+      ('public.internal_paper_positions', 'quantity', 'bigint'::pg_catalog.regtype, true),
+      ('public.internal_paper_positions', 'remaining_quantity', 'bigint'::pg_catalog.regtype, true),
+      ('public.internal_paper_positions', 'average_entry_price', 'numeric'::pg_catalog.regtype, true),
+      ('public.internal_paper_positions', 'remaining_cost_basis', 'numeric'::pg_catalog.regtype, true),
+      ('public.internal_paper_positions', 'stop_price', 'numeric'::pg_catalog.regtype, true),
+      ('public.internal_paper_positions', 'target_price', 'numeric'::pg_catalog.regtype, true),
+      ('public.internal_paper_positions', 'realized_gross_pnl', 'numeric'::pg_catalog.regtype, true),
+      ('public.internal_paper_positions', 'realized_net_pnl', 'numeric'::pg_catalog.regtype, true),
+      ('public.internal_paper_positions', 'entry_commission', 'numeric'::pg_catalog.regtype, true),
+      ('public.internal_paper_positions', 'exit_commission_total', 'numeric'::pg_catalog.regtype, true),
+      ('public.internal_paper_positions', 'opened_at', 'timestamptz'::pg_catalog.regtype, true),
+      ('public.internal_paper_positions', 'last_exit_at', 'timestamptz'::pg_catalog.regtype, false),
+      ('public.internal_paper_positions', 'closed_at', 'timestamptz'::pg_catalog.regtype, false),
+      ('public.internal_paper_positions', 'updated_at', 'timestamptz'::pg_catalog.regtype, true),
+      ('public.internal_paper_ledger_entries', 'owner_user_id', 'uuid'::pg_catalog.regtype, true),
+      ('public.internal_paper_ledger_entries', 'account_id', 'uuid'::pg_catalog.regtype, true),
+      ('public.internal_paper_ledger_entries', 'amount', 'numeric'::pg_catalog.regtype, true),
+      ('public.internal_paper_exit_intents', 'id', 'uuid'::pg_catalog.regtype, true),
+      ('public.internal_paper_exit_intents', 'owner_user_id', 'uuid'::pg_catalog.regtype, true),
+      ('public.internal_paper_exit_intents', 'account_id', 'uuid'::pg_catalog.regtype, true),
+      ('public.internal_paper_exit_intents', 'ticker', 'text'::pg_catalog.regtype, true),
+      ('public.internal_paper_exit_intents', 'exit_reason', 'text'::pg_catalog.regtype, true),
+      ('public.internal_paper_exit_fills', 'id', 'uuid'::pg_catalog.regtype, true),
+      ('public.internal_paper_exit_fills', 'owner_user_id', 'uuid'::pg_catalog.regtype, true),
+      ('public.internal_paper_exit_fills', 'account_id', 'uuid'::pg_catalog.regtype, true),
+      ('public.internal_paper_exit_fills', 'position_id', 'uuid'::pg_catalog.regtype, true),
+      ('public.internal_paper_exit_fills', 'intent_id', 'uuid'::pg_catalog.regtype, true),
+      ('public.internal_paper_exit_fills', 'quantity', 'bigint'::pg_catalog.regtype, true),
+      ('public.internal_paper_exit_fills', 'fill_price', 'numeric'::pg_catalog.regtype, true),
+      ('public.internal_paper_exit_fills', 'gross_pnl', 'numeric'::pg_catalog.regtype, true),
+      ('public.internal_paper_exit_fills', 'net_pnl', 'numeric'::pg_catalog.regtype, true),
+      ('public.internal_paper_exit_fills', 'commission', 'numeric'::pg_catalog.regtype, true),
+      ('public.internal_paper_exit_fills', 'filled_at', 'timestamptz'::pg_catalog.regtype, true)
+    ) as expected(relation_name, column_name, type_oid, must_be_not_null)
+    where not exists (
+      select 1
+      from pg_catalog.pg_attribute attribute
+      where attribute.attrelid = pg_catalog.to_regclass(expected.relation_name)
+        and attribute.attname = expected.column_name
+        and attribute.atttypid = expected.type_oid
+        and (not expected.must_be_not_null or attribute.attnotnull)
+        and attribute.attnum > 0
+        and not attribute.attisdropped
+    )
+  ) then
+    raise exception 'sv_d1_unexpected_projection_contract';
+  end if;
+
+  if v_handoff_function is null or not exists (
+    select 1
+    from pg_catalog.pg_proc procedure_record
+    where procedure_record.oid = v_handoff_function
+      and procedure_record.prokind = 'f'
+      and procedure_record.provolatile = 's'
+      and procedure_record.prosecdef
+      and procedure_record.proconfig @>
+        array['search_path=pg_catalog, public']::text[]
+  ) or not pg_catalog.has_function_privilege(
+    'service_role', v_handoff_function, 'EXECUTE'
+  ) or pg_catalog.has_function_privilege(
+    'anon', v_handoff_function, 'EXECUTE'
+  ) or pg_catalog.has_function_privilege(
+    'authenticated', v_handoff_function, 'EXECUTE'
+  ) then
+    raise exception 'sv_d1_unexpected_handoff_function_contract';
+  end if;
+
+  select last_value, is_called
+  into v_sequence_last_value, v_sequence_is_called
+  from public.internal_paper_ledger_global_sequence;
+  if v_sequence_last_value <> 1 or v_sequence_is_called then
+    raise exception 'sv_d1_requires_unconsumed_ledger_sequence';
+  end if;
+
+  if pg_catalog.to_regprocedure(
+    'public.app_read_internal_paper_observer_v1(uuid,uuid,text)'
+  ) is not null then
+    raise exception 'sv_d1_preexisting_observer_contract';
+  end if;
+end;
+$$;
+
+create function public.app_read_internal_paper_observer_v1(
   p_owner_user_id uuid,
   p_account_id uuid,
   p_observer_version text
