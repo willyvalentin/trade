@@ -198,6 +198,67 @@ persistence; it must not manufacture the missing source timestamp. A fresh,
 separately frozen observation is required after that repair is merged and
 production-verified.
 
+**Frozen A.2 receipt-continuity retest — one normal Basic Free scheduled scan,
+2026-09-25 `14:00:00Z` (10:00 America/New_York / 16:00 CEST):**
+
+- **Question and scope.** Does the repair merged as
+  `e048258138f638a51b347051c1c10568656511e5` preserve the scheduler-owned
+  target-slot and generated production-build identity when the normal private
+  route writes its terminal attempt and the resulting decision lineage? This
+  is a narrow receipt-integrity retest of the 2026-09-24 failure. A qualified
+  `empty`/`no_trade` is acceptable; candidate count, recommendation count and
+  apparent strategy performance are not pass criteria.
+- **Frozen source and environment contract.** The tested behavior is exactly
+  the #621 repair in `netlify/functions/scheduled-scan.ts`,
+  `app/api/automation/run-scan/route.ts` and
+  `lib/scheduled-scan-invocation-receipt.ts`. The documentation-only commit
+  carrying this card may change the Git/deploy identity, but before arming the
+  operator must prove the deployed production revision is descended from
+  `e048258138f638a51b347051c1c10568656511e5` and that those three behavior
+  paths are byte-for-byte unchanged from that repair. Require one ready,
+  Git-connected `main` production deploy at that exact revision, including a
+  registered `scheduled-scan` function and its ordinary quarter-hour schedule.
+  Any behavior-path diff, non-production deploy or deploy/main mismatch is
+  `no_go`; neither the old failed card nor a local checkout is an alternative
+  runtime identity.
+- **Data, session and budget contract.** Use only the existing Twelve Data
+  Basic Free normal `/stocks` path and deployed
+  `intraday_indicator_refresh_allocation_v1` policy, with no new source,
+  migration, ranking/publishing threshold, route invocation or broker action.
+  Confirm that 2026-09-25 is a regular America/New_York session and the target
+  is within it. Before arming, the authoritative owner/date/slot preflight must
+  be `ready`: no target-slot attempt, no unresolved attempt, no active
+  reservation and no earlier normal-scan reservation for that New York date.
+  The atomic guard remains the authority; preflight reserves nothing. Permit
+  exactly one normal scheduled delivery, no retry and at most eight Twelve Data
+  credits/reservations; fresh-cache reuse must not reserve an extra credit.
+- **One-shot and recovery boundary.** Keep
+  `TURE_DISABLE_SCHEDULED_FUNCTIONS=true` throughout. Only for this target
+  arm normal one-shot `true` with date `2026-09-25` and slot
+  `2026-09-25T14:00:00.000Z`; leave catalog capability probe, outcome
+  evaluation and internal-paper worker disabled, and set catalog observation
+  one-shot `false`. The activation deploy must be ready at least one complete
+  scheduler interval before the target. The normal Netlify schedule alone may
+  invoke the private route. From one minute after the target, read only the
+  attributable production receipts for at most 90 seconds, then immediately
+  restore normal one-shot `false`, clear its date/slot, restore catalog
+  observation one-shot `true`, keep the global disable true and verify one
+  ready cleanup deploy before another slot is considered.
+- **Expected evidence and classification.** The receipt-continuity question
+  passes only with exactly one attributable scheduled attempt, no more than
+  eight credits, a terminal completed/empty scan, and a retained initial and
+  terminal attempt that share the exact target slot, generated build identity,
+  canonical commit, decision fingerprint and decision-lineage fingerprint.
+  A missing or altered slot/build identity, a missing canonical version solely
+  because runtime variables are absent, duplication, budget excess or a stale/
+  incomplete publication is `fail`. Provider block, timeout, wrong session or
+  stale input is `inconclusive`; no bounded terminal evidence is
+  `missing_result`. `source_timestamp_missing` remains an honest data-quality
+  limitation: it prevents a claim of complete source-time ordering, but cannot
+  be repaired, hidden or reclassified as a scheduler-receipt failure. This
+  retest therefore reports receipt continuity and temporal-source quality as
+  separate evidence dimensions.
+
 **A.2 authorized catalog-probe bounded missing result, 2026-09-21:** before
 the 15:30 CEST scheduled slot, a direct production ledger read for New York
 date `2026-09-21` found zero `catalog_observation` reservations and zero
