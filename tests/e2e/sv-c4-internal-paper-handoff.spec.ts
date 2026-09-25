@@ -334,10 +334,27 @@ test.describe("SV-C4 decision handoff and dormant worker host", () => {
       ),
       "utf8",
     );
+    const preFunctionDdl = migration.slice(
+      0,
+      migration.indexOf(
+        "create function public.app_read_internal_paper_handoff_context_v1",
+      ),
+    );
+    expect(migration).toContain("set lock_timeout = '5s'");
+    expect(migration).toContain("set statement_timeout = '60s'");
+    expect(migration).toContain("sv_c4_requires_empty_c1_c2_c3_state");
+    expect(migration).toContain("sv_c4_unexpected_worker_function_contract");
+    expect(migration).toContain("sv_c4_requires_unconsumed_ledger_sequence");
+    expect(migration).toContain("sv_c4_preexisting_handoff_contract");
     expect(migration).toContain("security definer");
     expect(migration).toContain("set search_path = pg_catalog, public");
     expect(migration).toContain("from public, anon, authenticated");
     expect(migration).toContain("to service_role");
-    expect(migration).not.toContain("insert into");
+    expect(migration).not.toMatch(/create\s+or\s+replace\s+function/i);
+    expect(preFunctionDdl).not.toMatch(
+      /\b(insert\s+into|update\s+public\.|delete\s+from)\b/i,
+    );
+    expect(migration).not.toMatch(/\bcron\.schedule\b/i);
+    expect(migration).not.toMatch(/\b(net\.http_post|extensions\.http_post)\b/i);
   });
 });
