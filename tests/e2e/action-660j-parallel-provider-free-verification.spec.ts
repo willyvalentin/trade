@@ -69,6 +69,7 @@ const foundationTests = [
   "tests/e2e/sv-k1-internal-paper-event-risk-admission.spec.ts",
   "tests/e2e/sv-l1-ibkr-order-reconciliation.spec.ts",
   "tests/e2e/sv-l2-ibkr-session-feasibility.spec.ts",
+  "tests/e2e/sv-n1-broker-neutral-transaction-cost-attribution.spec.ts",
   "tests/e2e/scheduled-scan-invocation-idempotency.spec.ts",
   "tests/e2e/a2-basic-free-scan-preflight-readback.spec.ts",
   "tests/e2e/intraday-volume-provenance.spec.ts",

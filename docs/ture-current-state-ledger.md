@@ -1425,6 +1425,37 @@ run `36096294096`, then merged through PR #638 as
 merge revision. This proves protected source delivery only; no IBKR account,
 credential, session, transport or broker behavior was environment-verified.
 
+**Selected SV-N.1 CLOSED vertical slice — broker-neutral transaction-cost
+attribution, 2026-09-25 (8–16h):** owner Codex on isolated
+`codex/sv-n1-broker-neutral-transaction-cost-attribution`; interfaces
+`broker_neutral_transaction_cost_attribution_v1` and
+`broker_neutral_transaction_cost_leg_v1`. The pure source-only core consumes
+strictly supplied normalized evidence for either the modeled internal-paper or
+observed IBKR-paper cohort, never a mixture. It binds the decision fingerprint,
+symbol, side, decision and arrival benchmarks, order lifecycle, individual
+fills, cancellation/unfilled disposition, explicit commissions/fees and source
+execution digests. It attributes decision-to-arrival delay, arrival-to-fill
+shortfall, explicit fees and—only when a post-terminal benchmark is supplied—
+missed opportunity on the unfilled quantity. Missing opportunity evidence
+keeps total cost and net expected edge unavailable rather than inventing zero.
+
+Spread and market-impact estimates are disclosure-only and must explicitly be
+marked as already embedded in fill prices, preventing a second subtraction.
+Fully matched entry/exit evidence can expose realized gross P&L and net P&L
+after explicit fees; unmatched round trips remain unavailable. Latency,
+completion and partial/cancel outcomes remain visible per leg. Eleven focused
+adversarial tests cover full/partial/unfilled economics, supplied missed
+opportunity, long/short signs, price improvement, matched and unmatched round
+trips, chronology, identity/disposition validation, anti-double-counting,
+determinism and
+immutability. Focused tests, strict TypeScript and changed-file lint are green
+locally; the combined L.1/L.2/N.1 plus protected-CI contract suite passes 40/40,
+full repository lint has zero errors and the same eight existing warnings, and
+the complete Next production build passes. Protected CI, merge, exact-main
+deploy, real IBKR/account evidence and actual live TCA remain separate; the core
+contains no transport, database, provider, ranking, publication or broker
+authority.
+
 **Selected SV-E.1 CLOSED vertical slice — deterministic one-day market replay,
 2026-09-22 (8–16h):** owner Codex on
 `codex/sv-e1-deterministic-one-day-replay`; interfaces
