@@ -1542,11 +1542,42 @@ duplicate exit identities, unbound/future evidence, determinism, deep
 immutability, added authority and hostile accessors. The combined N.1–N.4 plus
 protected-CI contract suite passes 39/39; strict TypeScript, changed-file lint,
 full lint with zero errors and the same eight existing warnings, and the full
-Next production build are green locally. Protected-CI registration is included.
-This is local source evidence only until commit, protected CI, merge and exact
-production-deploy verification complete. The slice makes no provider request,
-database write, ranking/publication change, broker transport or broker action,
-and does not prove live transaction-cost accuracy or recommendation alpha.
+Next production build are green locally. Feature revision
+`2a38e70d1c68d1345a5a11e4c9bf5566aca7b83f` passed all six protected
+provider-free CI shards, aggregate and merge-candidate provenance in run
+`36114275780`, then merged through PR #643 as
+`dcaeb24bf4653440ca4e7a9c2a526a3c40919432`. Netlify production deploy
+`6ab638f52c35ca00071d9233` is `ready` in `production` on `main` at that exact
+merge revision. The slice makes no provider request, database write,
+ranking/publication change, broker transport or broker action, and does not
+prove live transaction-cost accuracy or recommendation alpha.
+
+**Selected SV-N.5 CLOSED vertical slice — source-bound IBKR paper multi-order
+projection v2, 2026-09-25 (8–16h):** owner Codex on isolated
+`codex/sv-n5-ibkr-multi-order-projection`; interface
+`source_bound_ibkr_multi_order_projection_v2`. The additive orchestrator leaves
+N.2 v1 and N.3 v2 unchanged, recomputes every constituent N.2 paper-order
+receipt, and binds one entry plus up to 64 ordered exits to the same owner,
+decision fingerprint, symbol, position direction, paper account, contract,
+security type, currency and exchange. It preserves filled, cancelled,
+partially-filled-cancelled and retry lifecycles as separate legs instead of
+collapsing them. Duplicate intent/result/benchmark/leg identities, mismatched
+cutoffs, cross-order source drift, zero-filled entry, temporal overlap and exit
+overcommitment fail closed with the exact blocked child index where applicable.
+
+Seven focused adversarial tests cover a fully closed two-exit position, an
+unfilled cancelled exit followed by retry, a partial cancellation followed by
+the remaining exit, forged child receipts, cross-decision binding, duplicate
+receipts, out-of-order exits, overcommitment, determinism, deep immutability,
+added authority and hostile input. The combined N.1–N.5 plus protected-CI
+contract suite passes 46/46; strict TypeScript and changed-file lint are green
+locally, full repository lint has zero errors and the same eight existing
+warnings, the full Next production build passes, and protected-CI registration
+is included. This is local source evidence only until commit, protected CI,
+merge and exact production-deploy verification complete. It performs no
+provider request, database write, ranking/publication change, broker transport
+or broker action and does not prove live TCA accuracy, recommendation quality
+or alpha.
 
 **Selected SV-E.1 CLOSED vertical slice — deterministic one-day market replay,
 2026-09-22 (8–16h):** owner Codex on
