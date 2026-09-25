@@ -30,6 +30,10 @@ const c5Migration = new URL(
   "../supabase/migrations/20260922090000_sv_c5_internal_paper_pilot_operational_admission.sql",
   import.meta.url,
 );
+const c6Migration = new URL(
+  "../supabase/migrations/20260925030000_sv_c6_provider_rights_admission.sql",
+  import.meta.url,
+);
 
 const owner = "11111111-1111-4111-8111-111111111111";
 const account = "22222222-2222-4222-8222-222222222222";
@@ -456,6 +460,88 @@ try {
 
   psql(readFileSync(c5Migration, "utf8"));
 
+  // C6 refuses to retrofit rights evidence onto a policy that was already
+  // frozen through the older free-form reference boundary.
+  psql(`
+    insert into public.internal_paper_accounts(
+      id, owner_user_id, account_key, status, strategy_id, strategy_version,
+      strategy_rollback_identity, symbol_selection_policy_id,
+      symbol_selection_policy_version, observed_universe_version,
+      eligible_symbols, config_version, fill_model_version, starting_cash,
+      cash_balance, per_trade_risk_cap, daily_loss_cap, spread_bps,
+      slippage_bps, commission_per_order
+    ) values (
+      '${account}', '${owner}', 'c6-preflight-only', 'paused',
+      'pilot-strategy', '1.0.0', 'pilot-strategy@1.0.0', 'pilot-symbols',
+      '1.0.0', 'pilot-universe-v1', array['AAPL'], 'pilot-config-v1',
+      'internal_paper_immediate_costed_fill_v1', 100000, 100000, 100, 500,
+      10, 5, 1
+    );
+    set role service_role;
+    select public.app_freeze_internal_paper_pilot_policy_v1(
+      '${owner}', '${account}',
+      'internal_paper_pilot_operating_policy_2026_09_22_v1',
+      'pre-c6:free-form-entitlement', 'pre-c6:free-form-retention',
+      30, 104857600, '2026-09-22T14:00:00Z'
+    );
+    reset role;
+  `);
+  psqlExpectFailure(
+    readFileSync(c6Migration, "utf8"),
+    "sv_c6_requires_empty_pilot_policy_state",
+  );
+  psql(`
+    do $$ begin
+      if pg_catalog.to_regclass(
+        'public.internal_paper_provider_rights_evidence'
+      ) is not null then
+        raise exception 'C6 schema leaked through non-empty preflight';
+      end if;
+    end $$;
+    delete from public.internal_paper_pilot_policies where account_id = '${account}';
+    delete from public.internal_paper_accounts where id = '${account}';
+  `);
+  psql(readFileSync(c6Migration, "utf8"));
+
+  // C6 preserves the reviewed Basic Free evidence as blocked. Tests add one
+  // explicit admitted fixture so the existing lifecycle can exercise the
+  // positive path without weakening the production evidence decision.
+  psql(`
+    set role service_role;
+    create temporary table blocked_rights_receipt as
+      select public.app_read_internal_paper_provider_rights_evidence_v1(
+        'provider_rights_twelve_data_basic_free_2026_09_25_v1',
+        'internal_paper_provider_rights_evidence_reader_v1'
+      ) receipt;
+    reset role;
+    do $$ begin
+      if (select receipt ->> 'admission_status' from blocked_rights_receipt)
+          <> 'blocked'
+        or (select receipt ->> 'max_exact_price_evidence_retention_days'
+            from blocked_rights_receipt) is not null
+      then raise exception 'C6 blocked rights receipt invariant failed'; end if;
+    end $$;
+
+    insert into public.internal_paper_provider_rights_evidence(
+      evidence_id, provider_plan, admission_status, evidence_document_path,
+      evidence_document_sha256, entitlement_evidence_reference,
+      retention_rights_evidence_reference, internal_non_display_allowed,
+      noncommercial_use_required, raw_provider_payload_retention_bytes,
+      non_reversible_derived_data_allowed,
+      max_exact_price_evidence_retention_days,
+      termination_data_deletion_required, reason_codes, reviewed_at,
+      source_terms_effective_date
+    ) values (
+      'provider_rights_test_fixture_v1', 'twelve_data_basic_free', 'admitted',
+      'test-fixture-only',
+      'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      'fixture:basic-free-entitlement',
+      'fixture:derived-evidence-retention', true, true, 0, true, 30, true,
+      array['written_test_fixture_confirmation'],
+      '2026-09-22T14:29:00Z', '2026-01-01'
+    );
+  `);
+
   // The policy and heartbeat child foreign keys must all have valid, ready
   // covering indexes in their foreign-key column order.
   psql(`
@@ -492,7 +578,7 @@ try {
             )
         );
 
-      if v_foreign_key_count <> 3 or v_uncovered_count <> 0 then
+      if v_foreign_key_count <> 4 or v_uncovered_count <> 0 then
         raise exception 'C5 foreign-key index coverage failed: total %, uncovered %',
           v_foreign_key_count, v_uncovered_count;
       end if;
@@ -608,6 +694,20 @@ try {
     reset role;
     update public.internal_paper_accounts set status = 'paused' where id = '${account}';
     set role service_role;
+    do $$ begin
+      begin
+        perform public.app_freeze_internal_paper_pilot_policy_v1(
+          '${owner}', '${account}',
+          'internal_paper_pilot_operating_policy_2026_09_22_v1',
+          'official:twelve_data_pricing_and_personal_usage:reviewed_2026_09_25',
+          'official:twelve_data_terms_sections_2_6_12_16:effective_2026_01_01:reviewed_2026_09_25',
+          30, 104857600, '2026-09-22T14:29:30Z'
+        );
+        raise exception 'C6 blocked rights unexpectedly froze a policy';
+      exception when raise_exception then
+        if sqlerrm <> 'internal_paper_provider_rights_not_admitted' then raise; end if;
+      end;
+    end $$;
     create temporary table policy_receipts as
       select public.app_freeze_internal_paper_pilot_policy_v1(
         '${owner}', '${account}',
@@ -628,7 +728,7 @@ try {
           '${owner}', '${account}',
           'internal_paper_pilot_operating_policy_2026_09_22_v1',
           'fixture:basic-free-entitlement', 'fixture:derived-evidence-retention',
-          31, 104857600, '2026-09-22T14:29:30Z'
+          30, 104857601, '2026-09-22T14:29:30Z'
         );
         raise exception 'C5 policy unexpectedly accepted mutation';
       exception when raise_exception then
@@ -1053,10 +1153,25 @@ try {
         raise exception 'authenticated unexpectedly read worker heartbeats';
       exception when insufficient_privilege then null;
       end;
+      begin
+        set local role authenticated;
+        perform count(*) from public.internal_paper_provider_rights_evidence;
+        raise exception 'authenticated unexpectedly read provider rights evidence';
+      exception when insufficient_privilege then null;
+      end;
+      begin
+        set local role authenticated;
+        perform public.app_read_internal_paper_provider_rights_evidence_v1(
+          'provider_rights_twelve_data_basic_free_2026_09_25_v1',
+          'internal_paper_provider_rights_evidence_reader_v1'
+        );
+        raise exception 'authenticated unexpectedly invoked rights reader';
+      exception when insufficient_privilege then null;
+      end;
     end $$;
   `);
 
-  console.log("SV-C3/C4/C5/D1/E1 durable lifecycle and exact fill-parity database proof passed");
+  console.log("SV-C3/C4/C5/C6/D1/E1 durable lifecycle and exact fill-parity database proof passed");
 } finally {
   try { docker("rm", "-f", container); } catch {}
   rmSync(sqlPath, { force: true });
