@@ -165,6 +165,26 @@ test.describe("A.2 terminal active-scan trace reconciliation", () => {
     });
   });
 
+  test("does not preserve a stale successful terminal state for a failed run", () => {
+    const scanRun = productionShapedRun();
+    scanRun.status = "failed";
+    const trace = scanRun.payload_json.active_scan_trace as {
+      final: Record<string, unknown>;
+    };
+    trace.final.decision = "scanned";
+    trace.final.status = "completed";
+
+    const reconciled = reconcileRecommendationScanRunTerminalTrace(scanRun);
+    const reconciledTrace = reconciled.payload_json.active_scan_trace as {
+      final: Record<string, unknown>;
+    };
+
+    expect(reconciledTrace.final).toMatchObject({
+      decision: "failed",
+      status: "failed",
+    });
+  });
+
   test("fails closed on decision or trace identity drift", () => {
     const decisionMismatch = productionShapedRun();
     (

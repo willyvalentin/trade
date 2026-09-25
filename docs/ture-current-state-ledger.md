@@ -2081,10 +2081,11 @@ generated and ranked candidates rather than an inflated eight or false zero.
 An explicit published-ticker decision is also the minimum for built, created,
 served and published terminal counts, preventing a sparse visible-row counter
 from leaving a contradictory zero/one trace. Identity drift fails closed. Missing
-decision evidence leaves the run unchanged. The function cannot call a
+decision evidence leaves the run unchanged, and a top-level failed run cannot
+retain stale `completed`/`scanned` terminal labels. The function cannot call a
 provider, alter discovery/ranking/publication, fabricate a candidate or
-authorize paper/broker work. Local acceptance passes 6/6 focused adversarial
-tests, including the universe-versus-observation truth guard, the 52/52 combined
+authorize paper/broker work. Local acceptance passes 7/7 focused adversarial
+tests, including the universe-versus-observation truth guard, the 53/53 combined
 decision-lineage/window/invocation regression, changed-file lint, strict
 non-incremental TypeScript and the complete Next production build. Protected
 delivery and a later exact-environment receipt remain pending; the repair is

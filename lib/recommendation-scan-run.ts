@@ -587,9 +587,13 @@ export function reconcileRecommendationScanRunTerminalTrace(
   const reconciledFinal = {
     ...terminal,
     decision:
-      textOrNull(String(terminal.decision ?? "")) ??
-      (scanRun.status === "failed" ? "failed" : "scanned"),
-    status: textOrNull(String(terminal.status ?? "")) ?? terminalStatus,
+      scanRun.status === "failed"
+        ? "failed"
+        : textOrNull(String(terminal.decision ?? "")) ?? "scanned",
+    status:
+      scanRun.status === "failed"
+        ? "failed"
+        : textOrNull(String(terminal.status ?? "")) ?? terminalStatus,
     candidates_generated: Math.max(
       nonNegativeInteger(terminal.candidates_generated) ?? 0,
       generatedCount,
