@@ -1309,15 +1309,54 @@ configuration, non-empty economic state, blocked rights or excess retention
 fail the transaction. No activation RPC, route, schedule, provider call,
 publication or broker path is added.
 
-Local acceptance currently includes four focused source/adapter tests, strict
-TypeScript, full lint with zero errors/eight existing warnings, a complete Next
-production build and a disposable PostgreSQL 16 lifecycle proof
+Local acceptance includes four focused source/adapter tests, strict TypeScript,
+full lint with zero errors/eight existing warnings, a complete Next production
+build and a disposable PostgreSQL 16 lifecycle proof
 covering blocked-rights rollback, admitted provisioning, exact retry,
 configuration conflict, retention rejection, paused state, single-row
-cardinality and browser-role denial across C3–C7/D1/E1. Protected CI, merge,
-exact-main deploy and production migration application remain separate. Because
-the only production C6 row is blocked, applying C7 would remain inert and could
-not create the first pilot account.
+cardinality and browser-role denial across C3–C7/D1/E1. Feature revision
+`479fc85b578165cc3b92f51724a27acbe510c319` passed all protected
+provider-free CI shards, aggregate, merge-candidate provenance and Netlify
+preview, then merged through PR #636 as
+`bb945fc6b73009bf9ad821d5cfc62b58c9d32dd2`. Netlify production deploy
+`6ab5f120d13ecd00083133e6` is `ready` on that exact revision. Production
+migration `20260925040020` (`sv_c7_internal_paper_pilot_provisioning`) is
+applied from source SHA-256
+`532fe096b74f5cedaa66b0189e5a08ff6357706d4fa1db5b13925f5b4973c3f9`.
+Production readback verifies the RPC is `SECURITY DEFINER`, fixed to
+`search_path=pg_catalog, public`, executable by `service_role` only, and still
+requires admitted C6 rights plus its retention ceiling. All account, intent,
+fill, position, ledger, job, policy and heartbeat relations remained empty.
+Because the only production C6 row remains blocked, C7 is inert and cannot
+create the first pilot account. No activation, provider request, publication or
+broker action occurred.
+
+**Selected SV-L.1 CLOSED vertical slice — IBKR paper order identity and
+reconciliation, 2026-09-25 (8–16h):** owner Codex on isolated
+`codex/sv-l1-ibkr-order-reconciliation`; interfaces `ibkr_order_intent_v1`,
+`ibkr_order_event_v1` and `ibkr_order_reconciliation_v1`. The provider-free
+core requires an already persisted, owner-bound paper intent before any supplied
+broker evidence. It binds one paper account, USD `STK`/`SMART` contract,
+decision and C-intent fingerprints, risk-policy version, whole-share quantity,
+order type, TIF and a deterministic `order_ref`. Supplied acknowledgement,
+status, execution and commission events are scope-checked, deterministically
+ordered, exactly deduplicated and reconciled through IBKR order, permanent and
+execution identities. Conflicting event reuse, cross-account/order evidence,
+impossible quantities and orphan costs fail closed. Unknown submit outcomes and
+incomplete execution/cost evidence require broker readback; non-monotonic state,
+execution corrections and conflicting terminal states require manual review.
+No outcome ever authorizes automatic resubmission.
+
+Local acceptance currently includes eleven focused adversarial tests covering
+deterministic order references, persisted-before-send containment, out-of-order
+partial fills, exact retry deduplication, identity isolation, unknown submit
+outcomes, incomplete execution/commission evidence, overfill rejection,
+correction and non-monotonic-history quarantine, live-account denial and input
+validation. Strict TypeScript and changed-file lint pass. The slice contains no
+IBKR transport, credential read, database write, provider request, broker
+submission or live-account authority. Protected CI, merge and exact-main deploy
+remain separate; account/auth/session feasibility and real IBKR Paper readback
+remain later L CLOSED/OPEN evidence.
 
 **Selected SV-E.1 CLOSED vertical slice — deterministic one-day market replay,
 2026-09-22 (8–16h):** owner Codex on
@@ -1874,7 +1913,7 @@ on A/B evidence and must not be inferred from the source registry.
 | --- | --- | --- |
 | Primary development | A.2 one-slot normal-scan and shared outcome-credit guards are merged and exact-revision production-deployed at `53181a54` and `0d0e773d`; fresh normal-scan and outcome behavior evidence remains OPEN | Require a separately authorized scheduled session with frozen credit/slot bounds; do not treat source/deploy verification as a provider receipt |
 | Second development | SV-A.2 ranking-plan integrity v1.1 is locally implemented and tested on `codex/sv-a2-ranking-plan-integrity` against the production-verified PR #604 base; it is independent of the frozen scheduled-scan admission path. B.1 base lineage and strategy/selection registry are merged, but real-decision/outcome acceptance remains OPEN. | Finish protected CI and review; do not deploy a changed ranking policy into the prepared OPEN observation or pool v1.0 and v1.1 decisions. |
-| CLOSED successor | SV-C.1–C.6, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2 and SV-H.1–H.3 plus the E.1 volume-integrity and earlier E.2 repairs are merged and exact-revision production-deployed. C.1–C.6/D.1 migrations are production-applied and verified inert/empty. C6 deliberately blocks policy freeze because exact-price retention duration and account-specific terms remain unverified. C7 paused-pilot provisioning is locally implemented and tested, but not yet merged, deployed or production-applied; every paper runtime gate remains off. The A.2 one-slot outcome-evaluation guard is also merged/deployed as `ea9a024d` without an outcome receipt. | Finish C7 protected delivery without activation. Separately obtain authoritative C6 entitlement/retention evidence before any C5 policy row or observed pilot. Family-level fill/latency/impact uncertainty and forward shadow remain later H evidence; real G/H evaluation remains blocked on licensed point-in-time history plus verified rights. Account/config/policy creation, activation and OPEN pilot acceptance remain separate evidence steps. |
+| CLOSED successor | SV-C.1–C.7, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2 and SV-H.1–H.3 plus the E.1 volume-integrity and earlier E.2 repairs are merged and exact-revision production-deployed. C.1–C.7/D.1 migrations are production-applied and verified inert/empty. C6 deliberately blocks policy/account creation because exact-price retention duration and account-specific terms remain unverified. L.1 paper-order identity/reconciliation is locally implemented and tested without transport or submit authority; every paper runtime and broker gate remains off. The A.2 one-slot outcome-evaluation guard is also merged/deployed as `ea9a024d` without an outcome receipt. | Finish L.1 protected delivery. Separately obtain authoritative C6 entitlement/retention evidence before any C5 policy row or observed pilot. Then select L account/auth/session feasibility without granting order authority. Family-level fill/latency/impact uncertainty and forward shadow remain later H evidence; real G/H evaluation remains blocked on licensed point-in-time history plus verified rights. Account/config/policy creation, activation and OPEN pilot acceptance remain separate evidence steps. |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
 
