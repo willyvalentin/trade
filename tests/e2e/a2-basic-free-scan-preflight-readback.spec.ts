@@ -7,20 +7,25 @@ import { expect, test } from "@playwright/test";
 import { buildSync } from "esbuild";
 
 const migrationPath =
-  "supabase/migrations/20260924125256_a2_basic_free_scan_preflight_readback.sql";
+  "supabase/migrations/20260925171512_a2_multi_slot_scan_preflight.sql";
 
 function validSnapshot() {
   return {
-    preflight_version: "basic_free_scheduled_scan_preflight_v1",
+    preflight_version: "basic_free_scheduled_scan_preflight_v2",
     trading_date: "2026-09-24",
     target_slot_utc: "2026-09-24T13:45:00.000Z",
     total_reservation_count: 0,
     total_reserved_credits: 0,
     normal_scan_reservation_count: 0,
     normal_scan_reserved_credits: 0,
+    catalog_observation_reservation_count: 0,
+    catalog_observation_reserved_credits: 0,
     active_reservation_count: 0,
     active_reserved_credits: 0,
-    catalog_observation_reservation_count: 0,
+    terminal_reservation_count: 0,
+    terminal_reserved_credits: 0,
+    target_slot_reservation_count: 0,
+    target_slot_reserved_credits: 0,
     minimum_declared_daily_credit_budget: null,
     maximum_declared_daily_credit_budget: null,
     minimum_declared_per_minute_credit_budget: null,
@@ -64,7 +69,7 @@ const expected = {
   target_slot_utc: "2026-09-24T13:45:00.000Z",
 };
 
-test("A.2 preflight permits only a canonical empty, unclaimed target state", async () => {
+test("A.2 preflight permits a canonical empty, unclaimed target state", async () => {
   const runtime = await loadRuntime();
   try {
     const readback = runtime.basicFreeScheduledScanPreflightReadbackFromUnknown(
@@ -89,15 +94,59 @@ test("A.2 preflight permits only a canonical empty, unclaimed target state", asy
   }
 });
 
-test("A.2 preflight blocks prior target delivery, active work, normal usage, and exhausted capacity", async () => {
+test("A.2 preflight permits prior terminal normal slots while daily capacity remains", async () => {
+  const runtime = await loadRuntime();
+  try {
+    for (const priorTerminal of [
+      {
+        total_reservation_count: 1,
+        total_reserved_credits: 8,
+        normal_scan_reservation_count: 1,
+        normal_scan_reserved_credits: 8,
+        terminal_reservation_count: 1,
+        terminal_reserved_credits: 8,
+      },
+      {
+        total_reservation_count: 99,
+        total_reserved_credits: 792,
+        normal_scan_reservation_count: 99,
+        normal_scan_reserved_credits: 792,
+        terminal_reservation_count: 99,
+        terminal_reserved_credits: 792,
+      },
+    ]) {
+      const readback = runtime.basicFreeScheduledScanPreflightReadbackFromUnknown(
+        {
+          ...validSnapshot(),
+          ...priorTerminal,
+          minimum_declared_daily_credit_budget: 800,
+          maximum_declared_daily_credit_budget: 800,
+          minimum_declared_per_minute_credit_budget: 8,
+          maximum_declared_per_minute_credit_budget: 8,
+        },
+        expected,
+      );
+      expect(readback).toMatchObject({ status: "available" });
+      expect(runtime.evaluateBasicFreeScheduledScanPreflight(readback)).toEqual({
+        status: "ready",
+        readback,
+        reason_codes: [],
+      });
+    }
+  } finally {
+    runtime.dispose();
+  }
+});
+
+test("A.2 preflight blocks duplicate target work, active work, unresolved delivery, and exhausted capacity", async () => {
   const runtime = await loadRuntime();
   try {
     for (const [change, reason] of [
       [{ target_slot_attempt_count: 1 }, "target_slot_attempt_already_exists"],
       [{ unresolved_scheduled_attempt_count: 1 }, "unresolved_scheduled_attempt_exists"],
-      [{ active_reservation_count: 1, active_reserved_credits: 8, total_reservation_count: 1, total_reserved_credits: 8, minimum_declared_daily_credit_budget: 800, maximum_declared_daily_credit_budget: 800, minimum_declared_per_minute_credit_budget: 8, maximum_declared_per_minute_credit_budget: 8 }, "active_basic_free_reservation_exists"],
-      [{ normal_scan_reservation_count: 1, normal_scan_reserved_credits: 8, total_reservation_count: 1, total_reserved_credits: 8, minimum_declared_daily_credit_budget: 800, maximum_declared_daily_credit_budget: 800, minimum_declared_per_minute_credit_budget: 8, maximum_declared_per_minute_credit_budget: 8 }, "normal_scan_reservation_already_exists"],
-      [{ total_reservation_count: 1, total_reserved_credits: 793, catalog_observation_reservation_count: 1, minimum_declared_daily_credit_budget: 800, maximum_declared_daily_credit_budget: 800, minimum_declared_per_minute_credit_budget: 8, maximum_declared_per_minute_credit_budget: 8 }, "daily_basic_free_credit_capacity_unavailable"],
+      [{ active_reservation_count: 1, active_reserved_credits: 8, total_reservation_count: 1, total_reserved_credits: 8, normal_scan_reservation_count: 1, normal_scan_reserved_credits: 8, minimum_declared_daily_credit_budget: 800, maximum_declared_daily_credit_budget: 800, minimum_declared_per_minute_credit_budget: 8, maximum_declared_per_minute_credit_budget: 8 }, "active_basic_free_reservation_exists"],
+      [{ target_slot_reservation_count: 1, target_slot_reserved_credits: 8, terminal_reservation_count: 1, terminal_reserved_credits: 8, total_reservation_count: 1, total_reserved_credits: 8, normal_scan_reservation_count: 1, normal_scan_reserved_credits: 8, minimum_declared_daily_credit_budget: 800, maximum_declared_daily_credit_budget: 800, minimum_declared_per_minute_credit_budget: 8, maximum_declared_per_minute_credit_budget: 8 }, "target_slot_reservation_already_exists"],
+      [{ total_reservation_count: 100, total_reserved_credits: 800, normal_scan_reservation_count: 100, normal_scan_reserved_credits: 800, terminal_reservation_count: 100, terminal_reserved_credits: 800, minimum_declared_daily_credit_budget: 800, maximum_declared_daily_credit_budget: 800, minimum_declared_per_minute_credit_budget: 8, maximum_declared_per_minute_credit_budget: 8 }, "daily_basic_free_credit_capacity_unavailable"],
     ] as const) {
       const readback = runtime.basicFreeScheduledScanPreflightReadbackFromUnknown(
         { ...validSnapshot(), ...change },
@@ -124,8 +173,42 @@ test("A.2 preflight fails closed on malformed, mismatched, or inconsistent aggre
       {
         ...validSnapshot(),
         total_reservation_count: 1,
+        total_reserved_credits: 8,
+        normal_scan_reservation_count: 1,
+        normal_scan_reserved_credits: 8,
+        terminal_reservation_count: 0,
+        terminal_reserved_credits: 0,
+        minimum_declared_daily_credit_budget: 800,
+        maximum_declared_daily_credit_budget: 800,
+        minimum_declared_per_minute_credit_budget: 8,
+        maximum_declared_per_minute_credit_budget: 8,
+      },
+      {
+        ...validSnapshot(),
+        total_reservation_count: 1,
+        total_reserved_credits: 8,
+        normal_scan_reservation_count: 1,
+        normal_scan_reserved_credits: 8,
+        terminal_reservation_count: 1,
+        terminal_reserved_credits: 7,
+        minimum_declared_daily_credit_budget: 800,
+        maximum_declared_daily_credit_budget: 800,
+        minimum_declared_per_minute_credit_budget: 8,
+        maximum_declared_per_minute_credit_budget: 8,
+      },
+      {
+        ...validSnapshot(),
+        target_slot_reservation_count: 0,
+        target_slot_reserved_credits: 8,
+      },
+      {
+        ...validSnapshot(),
+        total_reservation_count: 1,
         total_reserved_credits: 1,
         catalog_observation_reservation_count: 1,
+        catalog_observation_reserved_credits: 1,
+        terminal_reservation_count: 1,
+        terminal_reserved_credits: 1,
         minimum_declared_daily_credit_budget: 799,
         maximum_declared_daily_credit_budget: 799,
         minimum_declared_per_minute_credit_budget: 8,
@@ -159,20 +242,24 @@ test("A.2 SQL and authenticated route preserve private, read-only preflight boun
 
   expect(migration).toContain("security definer");
   expect(migration).toContain("set search_path = pg_catalog, public");
-  expect(migration).toContain("revoke all on function public.read_basic_free_scheduled_scan_preflight");
+  expect(migration).toContain("revoke all on function public.read_basic_free_scheduled_scan_preflight_v2");
   expect(migration).toContain("from public, anon, authenticated;");
-  expect(migration).toContain("grant execute on function public.read_basic_free_scheduled_scan_preflight");
+  expect(migration).toContain("grant execute on function public.read_basic_free_scheduled_scan_preflight_v2");
   expect(migration).toContain("to service_role;");
   expect(migration).toContain("date_bin(");
   expect(migration).toContain("'1970-01-01 00:00:00+00'::timestamptz");
   expect(migration).toContain("to_char(");
   expect(migration).toContain("YYYY-MM-DD\"T\"HH24:MI:SS.MS\"Z\"");
+  expect(migration).toContain("status in ('completed', 'failed')");
+  expect(migration).toContain("minute_bucket = requested_target_slot_utc");
+  expect(migration).toContain("basic_free_scheduled_scan_preflight_v2");
   expect(migration).not.toContain("insert into public.basic_free_discovery_credit_reservations");
   expect(migration).not.toContain("update public.basic_free_discovery_credit_reservations");
   expect(migration).not.toContain("delete from public.basic_free_discovery_credit_reservations");
   expect(route).toContain("requireApplicationSession");
   expect(route).toContain("export async function GET");
   expect(route).not.toContain("export async function POST");
+  expect(route).toContain("basic_free_scheduled_scan_preflight_route_v2");
   expect(route).toContain("scheduler_activation_allowed: false");
   expect(route).toContain("provider_request_allowed: false");
   expect(route).toContain("broker_action_allowed: false");

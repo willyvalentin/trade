@@ -4,10 +4,10 @@ import {
 } from "@/lib/basic-free-discovery-credit-reservation-store";
 
 export const BASIC_FREE_SCHEDULED_SCAN_PREFLIGHT_VERSION =
-  "basic_free_scheduled_scan_preflight_v1" as const;
+  "basic_free_scheduled_scan_preflight_v2" as const;
 
 export const basicFreeScheduledScanPreflightRpcName =
-  "read_basic_free_scheduled_scan_preflight" as const;
+  "read_basic_free_scheduled_scan_preflight_v2" as const;
 
 type PreflightSnapshot = {
   preflight_version: typeof BASIC_FREE_SCHEDULED_SCAN_PREFLIGHT_VERSION;
@@ -17,9 +17,14 @@ type PreflightSnapshot = {
   total_reserved_credits: number;
   normal_scan_reservation_count: number;
   normal_scan_reserved_credits: number;
+  catalog_observation_reservation_count: number;
+  catalog_observation_reserved_credits: number;
   active_reservation_count: number;
   active_reserved_credits: number;
-  catalog_observation_reservation_count: number;
+  terminal_reservation_count: number;
+  terminal_reserved_credits: number;
+  target_slot_reservation_count: number;
+  target_slot_reserved_credits: number;
   minimum_declared_daily_credit_budget: number | null;
   maximum_declared_daily_credit_budget: number | null;
   minimum_declared_per_minute_credit_budget: number | null;
@@ -113,10 +118,25 @@ export function basicFreeScheduledScanPreflightReadbackFromUnknown(
   const totalReservedCredits = nonNegativeInteger(row?.total_reserved_credits);
   const normalReservationCount = nonNegativeInteger(row?.normal_scan_reservation_count);
   const normalReservedCredits = nonNegativeInteger(row?.normal_scan_reserved_credits);
-  const activeReservationCount = nonNegativeInteger(row?.active_reservation_count);
-  const activeReservedCredits = nonNegativeInteger(row?.active_reserved_credits);
   const catalogReservationCount = nonNegativeInteger(
     row?.catalog_observation_reservation_count,
+  );
+  const catalogReservedCredits = nonNegativeInteger(
+    row?.catalog_observation_reserved_credits,
+  );
+  const activeReservationCount = nonNegativeInteger(row?.active_reservation_count);
+  const activeReservedCredits = nonNegativeInteger(row?.active_reserved_credits);
+  const terminalReservationCount = nonNegativeInteger(
+    row?.terminal_reservation_count,
+  );
+  const terminalReservedCredits = nonNegativeInteger(
+    row?.terminal_reserved_credits,
+  );
+  const targetSlotReservationCount = nonNegativeInteger(
+    row?.target_slot_reservation_count,
+  );
+  const targetSlotReservedCredits = nonNegativeInteger(
+    row?.target_slot_reserved_credits,
   );
   const minimumDailyBudget = nullablePositiveInteger(
     row?.minimum_declared_daily_credit_budget,
@@ -159,9 +179,14 @@ export function basicFreeScheduledScanPreflightReadbackFromUnknown(
     totalReservedCredits === null ||
     normalReservationCount === null ||
     normalReservedCredits === null ||
+    catalogReservationCount === null ||
+    catalogReservedCredits === null ||
     activeReservationCount === null ||
     activeReservedCredits === null ||
-    catalogReservationCount === null ||
+    terminalReservationCount === null ||
+    terminalReservedCredits === null ||
+    targetSlotReservationCount === null ||
+    targetSlotReservedCredits === null ||
     minimumDailyBudget === undefined ||
     maximumDailyBudget === undefined ||
     minimumMinuteBudget === undefined ||
@@ -171,9 +196,22 @@ export function basicFreeScheduledScanPreflightReadbackFromUnknown(
     totalReservedCredits > BASIC_FREE_DISCOVERY_MAX_DAILY_CREDITS ||
     normalReservationCount > totalReservationCount ||
     normalReservedCredits > totalReservedCredits ||
+    catalogReservationCount > totalReservationCount ||
+    catalogReservedCredits > totalReservedCredits ||
     activeReservationCount > totalReservationCount ||
     activeReservedCredits > totalReservedCredits ||
-    catalogReservationCount > totalReservationCount ||
+    terminalReservationCount > totalReservationCount ||
+    terminalReservedCredits > totalReservedCredits ||
+    targetSlotReservationCount > totalReservationCount ||
+    targetSlotReservedCredits > totalReservedCredits ||
+    normalReservationCount + catalogReservationCount !== totalReservationCount ||
+    normalReservedCredits + catalogReservedCredits !== totalReservedCredits ||
+    activeReservationCount + terminalReservationCount !== totalReservationCount ||
+    activeReservedCredits + terminalReservedCredits !== totalReservedCredits ||
+    normalReservedCredits !==
+      normalReservationCount * BASIC_FREE_DISCOVERY_MAX_PER_MINUTE_CREDITS ||
+    catalogReservedCredits !== catalogReservationCount ||
+    (targetSlotReservationCount === 0) !== (targetSlotReservedCredits === 0) ||
     (!noReservations && !budgetsAreExpected) ||
     (noReservations && !budgetsAreAbsent)
   ) {
@@ -190,9 +228,14 @@ export function basicFreeScheduledScanPreflightReadbackFromUnknown(
       total_reserved_credits: totalReservedCredits,
       normal_scan_reservation_count: normalReservationCount,
       normal_scan_reserved_credits: normalReservedCredits,
+      catalog_observation_reservation_count: catalogReservationCount,
+      catalog_observation_reserved_credits: catalogReservedCredits,
       active_reservation_count: activeReservationCount,
       active_reserved_credits: activeReservedCredits,
-      catalog_observation_reservation_count: catalogReservationCount,
+      terminal_reservation_count: terminalReservationCount,
+      terminal_reserved_credits: terminalReservedCredits,
+      target_slot_reservation_count: targetSlotReservationCount,
+      target_slot_reserved_credits: targetSlotReservedCredits,
       minimum_declared_daily_credit_budget: minimumDailyBudget,
       maximum_declared_daily_credit_budget: maximumDailyBudget,
       minimum_declared_per_minute_credit_budget: minimumMinuteBudget,
@@ -232,10 +275,10 @@ export function evaluateBasicFreeScheduledScanPreflight(
     reasons.push("active_basic_free_reservation_exists");
   }
   if (
-    snapshot.normal_scan_reservation_count !== 0 ||
-    snapshot.normal_scan_reserved_credits !== 0
+    snapshot.target_slot_reservation_count !== 0 ||
+    snapshot.target_slot_reserved_credits !== 0
   ) {
-    reasons.push("normal_scan_reservation_already_exists");
+    reasons.push("target_slot_reservation_already_exists");
   }
   if (
     snapshot.total_reserved_credits + BASIC_FREE_DISCOVERY_MAX_PER_MINUTE_CREDITS >
