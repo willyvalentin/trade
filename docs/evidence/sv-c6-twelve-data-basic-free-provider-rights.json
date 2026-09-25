@@ -1,0 +1,79 @@
+{
+  "record_version": "twelve_data_basic_free_internal_paper_rights_evidence_v1",
+  "reviewed_at": "2026-09-25T02:30:00.000Z",
+  "provider_plan": "twelve_data_basic_free",
+  "admission_status": "blocked",
+  "use_case": "pre_release_owner_only_internal_paper_day_trading_research",
+  "official_sources": [
+    {
+      "url": "https://twelvedata.com/pricing",
+      "reviewed_at": "2026-09-25T02:30:00.000Z",
+      "facts": [
+        "basic_free_is_internal_non_display",
+        "basic_free_has_8_api_credits_per_minute",
+        "basic_free_has_800_api_credits_per_day",
+        "basic_free_includes_real_time_us_equities_and_etfs"
+      ]
+    },
+    {
+      "url": "https://support.twelvedata.com/en/articles/5332349-commercial-and-personal-usage",
+      "reviewed_at": "2026-09-25T02:30:00.000Z",
+      "facts": [
+        "individual_plans_allow_personal_or_internal_noncommercial_use",
+        "development_and_nonproduction_testing_are_acceptable",
+        "redistribution_and_commercial_third_party_display_are_not_permitted"
+      ]
+    },
+    {
+      "url": "https://twelvedata.com/terms",
+      "effective_date": "2026-01-01",
+      "reviewed_at": "2026-09-25T02:30:00.000Z",
+      "facts": [
+        "internal_processing_and_storage_are_subject_to_subscription_and_documentation_limits",
+        "non_reversible_derived_data_may_be_created",
+        "customer_retains_rights_to_compliant_non_reversible_derived_data",
+        "free_tier_data_may_not_be_used_commercially",
+        "data_must_be_deleted_after_termination_or_expiration",
+        "third_party_provider_restrictions_may_apply"
+      ]
+    },
+    {
+      "url": "https://support.twelvedata.com/en/articles/9935903-us-equities-market-data",
+      "reviewed_at": "2026-09-25T02:30:00.000Z",
+      "facts": [
+        "default_real_time_us_feed_covers_all_listed_us_equities",
+        "default_real_time_us_feed_represents_about_5_percent_of_total_us_trading_volume",
+        "external_distribution_requires_additional_rights"
+      ]
+    }
+  ],
+  "verified_rights": {
+    "internal_non_display": true,
+    "noncommercial_use_required": true,
+    "raw_provider_payload_retention_bytes": 0,
+    "non_reversible_derived_data_allowed": true,
+    "termination_data_deletion_required": true
+  },
+  "unverified_requirements": [
+    "permitted_retention_duration_for_exact_provider_prices_and_candles",
+    "permission_to_retain_exact_price_level_decision_fill_and_exit_evidence_for_the_requested_pilot_period",
+    "account_specific_confirmation_that_no_additional_third_party_feed_restriction_applies"
+  ],
+  "decision": {
+    "reason_codes": [
+      "exact_price_evidence_retention_duration_unverified",
+      "account_specific_third_party_terms_unverified"
+    ],
+    "max_exact_price_evidence_retention_days": null,
+    "policy_freeze_allowed": false,
+    "required_next_evidence": "written_or_account_specific_provider_confirmation_covering_exact_price_and_candle_evidence_retention_duration_for_internal_noncommercial_research"
+  },
+  "activity_attestation": {
+    "provider_requests": 0,
+    "credits_reserved": 0,
+    "credentials_read": 0,
+    "accounts_created": 0,
+    "paper_jobs_created": 0,
+    "broker_actions": 0
+  }
+}
