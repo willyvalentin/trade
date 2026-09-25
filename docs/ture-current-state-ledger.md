@@ -2054,9 +2054,35 @@ independently verified source rights and forward shadow remain explicit gaps.
 Local acceptance passes all 31 F.1–H.4 focused regressions, including three new
 H.4 adversarial tests, strict TypeScript and changed-file lint. Full repository
 lint passes with zero errors and the same eight existing warnings, and the
-complete Next production build passes. Protected CI, merge and exact-main
-deploy remain separate at this point; this is source/fixture evidence only, not
-a real fill study, strategy-quality result or alpha evidence.
+complete Next production build passes. PR #645 then passed all six protected
+provider-free CI shards plus aggregate and merge-candidate provenance, and was
+merged as main `8b5adc6ca888c0f19a7f0d9cce3e454ec72cda63`. Netlify production
+deploy `6ab652e2242d9a0008441e98` is `ready` on that exact revision. This is
+source/fixture and deploy evidence only, not a real fill study,
+strategy-quality result or alpha evidence.
+
+**Selected A.2 CLOSED terminal decision-trace reconciliation, 2026-09-25
+(4–8h):** owner Codex on isolated
+`codex/a2-terminal-trace-reconciliation`. Read-only production evidence from
+the 2026-09-24 regular-session scan showed an attributable eight-member
+candidate set, three ranked candidates, an explicit `no_trade` decision and
+zero publications. The same durable scan row nevertheless retained its
+pre-terminal `active_scan_trace.final`: `status` and `decision` were null,
+ranked count was zero and the scan fingerprint was absent. This was a receipt
+continuity defect, not evidence that quality thresholds should be weakened.
+
+The source repair reconciles only facts already co-resident at the final
+server-owned persistence boundary: a known v1–v3 candidate-decision record,
+its exact scan-run fingerprint, persisted scan counts, ranking trace and
+selected-to-built diagnostics. Identity drift fails closed. Missing decision
+evidence leaves the run unchanged. The function cannot call a provider, alter
+discovery/ranking/publication, fabricate a candidate or authorize paper/broker
+work. Local acceptance passes 5/5 focused adversarial tests, the 51/51 combined
+decision-lineage/window/invocation regression, changed-file lint, strict
+non-incremental TypeScript and the complete Next production build. Protected
+delivery and a later exact-environment receipt remain pending; the repair is
+kept out of production until the currently frozen A.2 OPEN observation has
+finished.
 
 **Selected SV-E.2 CLOSED IOC liquidity look-ahead repair, 2026-09-23
 (4–8h):** owner Codex on `codex/sv-e2-ioc-prior-volume-proxy`, integrated
@@ -2178,8 +2204,8 @@ on A/B evidence and must not be inferred from the source registry.
 | Work slot | Selected state | Entry / return condition |
 | --- | --- | --- |
 | Primary development | A.2 one-slot normal-scan and shared outcome-credit guards are merged and exact-revision production-deployed at `53181a54` and `0d0e773d`; fresh normal-scan and outcome behavior evidence remains OPEN | Require a separately authorized scheduled session with frozen credit/slot bounds; do not treat source/deploy verification as a provider receipt |
-| Second development | SV-H.4 family-level execution-feasibility stress is locally implemented and tested on `codex/sv-h4-family-execution-feasibility`. It is provider-free, owns no A.2 runtime path and leaves all ranking/publication policy unchanged. | Finish protected CI and review; do not treat repository stress fixtures as real fill, source-rights, strategy-quality or forward-shadow evidence. |
-| CLOSED successor | SV-C.1–C.8, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2, SV-H.1–H.3, SV-L.1–L.2 and SV-N.1–N.5 plus the E.1 volume-integrity and earlier E.2 repairs are merged and exact-revision production-deployed. C.1–C.7/D.1 migrations are production-applied and verified inert/empty. C6 deliberately blocks policy/account creation because exact-price retention duration and account-specific terms remain unverified; C.8 preserves that fail-closed state. H.4 now extends fill/latency sensitivity to complete counterfactual families, with protected delivery pending. Every paper runtime and broker gate remains off. The A.2 one-slot outcome-evaluation guard is also merged/deployed as `ea9a024d` without an outcome receipt. | Finish H.4 protected delivery. Then obtain an authentic account-scoped Twelve Data confirmation of exact-price/candle retention and applicable US-equity third-party terms before any C6 admission or C5/C7 account-policy creation. Separately run only a bounded, redacted read-only IBKR Paper account/session feasibility probe on approved hosting; do not grant order authority. Market-impact/cancellation uncertainty and forward shadow remain later H evidence; real G/H evaluation remains blocked on licensed point-in-time history plus verified rights. Account/config/policy creation, activation and OPEN pilot acceptance remain separate evidence steps. |
+| Second development | A.2 terminal decision-trace reconciliation is locally implemented and tested on `codex/a2-terminal-trace-reconciliation`. It repairs contradictory persisted terminal evidence without touching the frozen route, provider path, ranking or publication policy. | Keep it local until the current OPEN observation is complete; then run protected CI/review and verify a later exact-environment receipt. |
+| CLOSED successor | SV-C.1–C.8, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2, SV-H.1–H.4, SV-L.1–L.2 and SV-N.1–N.5 plus the E.1 volume-integrity and earlier E.2 repairs are merged and exact-revision production-deployed. C.1–C.7/D.1 migrations are production-applied and verified inert/empty. C6 deliberately blocks policy/account creation because exact-price retention duration and account-specific terms remain unverified; C.8 preserves that fail-closed state. Every paper runtime and broker gate remains off. Production environment metadata has no IBKR/TWS variables, client dependency or declared persistent worker, so a real L.2 account/session probe is not currently executable there. Both available browser sessions require a fresh Twelve Data login, so account-scoped retention confirmation also remains external. The A.2 one-slot outcome-evaluation guard is merged/deployed as `ea9a024d` without an outcome receipt. | After the frozen A.2 observation, finish the terminal-trace repair's protected delivery. Obtain an authenticated account-scoped Twelve Data confirmation of exact-price/candle retention and applicable US-equity third-party terms before any C6 admission or C5/C7 account-policy creation. Provision and approve persistent hosting plus read-only IBKR Paper credentials before an L.2 account/session probe; do not grant order authority. Market-impact/cancellation uncertainty and forward shadow remain later H evidence; real G/H evaluation remains blocked on licensed point-in-time history plus verified rights. Account/config/policy creation, activation and OPEN pilot acceptance remain separate evidence steps. |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
 

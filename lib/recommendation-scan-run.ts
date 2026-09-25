@@ -478,6 +478,171 @@ export function buildRecommendationScanRun(
   };
 }
 
+function nonNegativeInteger(value: unknown) {
+  const numeric = finiteNumber(value);
+
+  return numeric !== null && numeric >= 0 ? Math.floor(numeric) : null;
+}
+
+/**
+ * Reconciles the terminal active-scan trace immediately before durable
+ * persistence. The scheduled route builds the scan-run envelope before it can
+ * know the run fingerprint and before the candidate-decision record exists.
+ * By persistence time both are available on the same in-memory run, so this
+ * function joins those already-produced facts without changing discovery,
+ * ranking, publication policy, or candidate eligibility.
+ */
+export function reconcileRecommendationScanRunTerminalTrace(
+  scanRun: RecommendationScanRun,
+): RecommendationScanRun {
+  const activeScanTrace = objectOrNull(scanRun.payload_json.active_scan_trace);
+  const terminal = objectOrNull(activeScanTrace?.final);
+  const decisionRecord = objectOrNull(
+    scanRun.payload_json.candidate_decision_record,
+  );
+  const finalDecision = objectOrNull(decisionRecord?.final_decision);
+
+  if (!activeScanTrace || !terminal || !decisionRecord || !finalDecision) {
+    return scanRun;
+  }
+
+  const recordKind = textOrNull(String(decisionRecord.record_kind ?? ""));
+  const recordVersion = textOrNull(String(decisionRecord.record_version ?? ""));
+  const decisionRunFingerprint = textOrNull(
+    String(decisionRecord.scan_run_fingerprint ?? ""),
+  );
+
+  if (
+    recordKind !== "candidate_decision_record" ||
+    (recordVersion !== "candidate_decision_record_v1" &&
+      recordVersion !== "candidate_decision_record_v2" &&
+      recordVersion !== "candidate_decision_record_v3")
+  ) {
+    return scanRun;
+  }
+
+  if (decisionRunFingerprint !== scanRun.run_fingerprint) {
+    throw new Error("candidate_decision_scan_run_fingerprint_mismatch");
+  }
+
+  const traceRunFingerprint = textOrNull(
+    String(terminal.scan_run_fingerprint ?? ""),
+  );
+  if (
+    traceRunFingerprint !== null &&
+    traceRunFingerprint !== scanRun.run_fingerprint
+  ) {
+    throw new Error("active_scan_trace_scan_run_fingerprint_mismatch");
+  }
+
+  const candidates = Array.isArray(decisionRecord.candidates)
+    ? decisionRecord.candidates
+    : [];
+  const publishedTickers = Array.isArray(finalDecision.published_tickers)
+    ? finalDecision.published_tickers.filter(
+        (ticker): ticker is string =>
+          typeof ticker === "string" && ticker.trim().length > 0,
+      )
+    : [];
+  const ranking = objectOrNull(activeScanTrace.ranking);
+  const rawCandidates = objectOrNull(activeScanTrace.raw_candidates);
+  const dropOff = objectOrNull(
+    scanRun.payload_json.selected_to_built_drop_off,
+  );
+  const selectedDiagnostics = Array.isArray(
+    scanRun.payload_json.selected_candidate_build_diagnostics,
+  )
+    ? scanRun.payload_json.selected_candidate_build_diagnostics
+    : [];
+  const visibleCount = scanRun.counts.visible_recommendation_count;
+  const rankedCount =
+    nonNegativeInteger(ranking?.ranked_count) ??
+    nonNegativeInteger(terminal.ranked_candidates_count) ??
+    0;
+  const generatedCount = Math.max(
+    scanRun.raw_candidate_count ?? 0,
+    nonNegativeInteger(rawCandidates?.raw_candidate_count) ?? 0,
+    candidates.length,
+  );
+  const builtCount = Math.max(
+    nonNegativeInteger(terminal.recommendations_built_count) ?? 0,
+    nonNegativeInteger(dropOff?.built_count) ?? 0,
+    visibleCount,
+  );
+  const publishedCount = Math.max(
+    nonNegativeInteger(terminal.recommendations_published_count) ?? 0,
+    publishedTickers.length,
+    visibleCount,
+  );
+  const noTradeReason =
+    finalDecision.disposition === "no_trade"
+      ? textOrNull(String(finalDecision.no_trade_reason ?? ""))
+      : null;
+  const recommendationBuildPath = textOrNull(
+    String(finalDecision.recommendation_build_path ?? ""),
+  );
+  const terminalStatus =
+    scanRun.status === "failed" ? "failed" : "completed";
+
+  const reconciledFinal = {
+    ...terminal,
+    decision:
+      textOrNull(String(terminal.decision ?? "")) ??
+      (scanRun.status === "failed" ? "failed" : "scanned"),
+    status: textOrNull(String(terminal.status ?? "")) ?? terminalStatus,
+    candidates_generated: Math.max(
+      nonNegativeInteger(terminal.candidates_generated) ?? 0,
+      generatedCount,
+    ),
+    recommendations_served: Math.max(
+      nonNegativeInteger(terminal.recommendations_served) ?? 0,
+      visibleCount,
+    ),
+    recommendations_created: Math.max(
+      nonNegativeInteger(terminal.recommendations_created) ?? 0,
+      visibleCount,
+    ),
+    ranked_candidates_count: Math.max(
+      nonNegativeInteger(terminal.ranked_candidates_count) ?? 0,
+      rankedCount,
+    ),
+    recommendations_published_count: publishedCount,
+    ranked_candidates_not_published_reason:
+      textOrNull(
+        String(terminal.ranked_candidates_not_published_reason ?? ""),
+      ) ?? (publishedCount === 0 && rankedCount > 0 ? noTradeReason : null),
+    no_publish_reason:
+      textOrNull(String(terminal.no_publish_reason ?? "")) ?? noTradeReason,
+    recommendation_build_path:
+      textOrNull(String(terminal.recommendation_build_path ?? "")) ??
+      recommendationBuildPath,
+    recommendations_built_count: builtCount,
+    scan_run_fingerprint: scanRun.run_fingerprint,
+    zero_candidate_reason:
+      textOrNull(String(terminal.zero_candidate_reason ?? "")) ??
+      (publishedCount === 0 ? noTradeReason : null),
+    selected_candidate_build_diagnostics:
+      selectedDiagnostics.length > 0
+        ? selectedDiagnostics
+        : Array.isArray(terminal.selected_candidate_build_diagnostics)
+          ? terminal.selected_candidate_build_diagnostics
+          : [],
+    selected_to_built_drop_off:
+      dropOff ?? objectOrNull(terminal.selected_to_built_drop_off),
+  };
+
+  return {
+    ...scanRun,
+    payload_json: {
+      ...scanRun.payload_json,
+      active_scan_trace: {
+        ...activeScanTrace,
+        final: reconciledFinal,
+      },
+    },
+  };
+}
+
 export function recommendationScanRunJson(scanRun: RecommendationScanRun) {
   return JSON.stringify(scanRun, null, 2);
 }
