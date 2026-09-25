@@ -2074,10 +2074,17 @@ continuity defect, not evidence that quality thresholds should be weakened.
 The source repair reconciles only facts already co-resident at the final
 server-owned persistence boundary: a known v1–v3 candidate-decision record,
 its exact scan-run fingerprint, persisted scan counts, ranking trace and
-selected-to-built diagnostics. Identity drift fails closed. Missing decision
-evidence leaves the run unchanged. The function cannot call a provider, alter
-discovery/ranking/publication, fabricate a candidate or authorize paper/broker
-work. Local acceptance passes 5/5 focused adversarial tests, the 51/51 combined
+selected-to-built diagnostics. It uses the record's explicit observed and
+ranked coverage, not full universe membership, when trace counters are sparse;
+the eight-member/three-observed production shape therefore remains three
+generated and ranked candidates rather than an inflated eight or false zero.
+An explicit published-ticker decision is also the minimum for built, created,
+served and published terminal counts, preventing a sparse visible-row counter
+from leaving a contradictory zero/one trace. Identity drift fails closed. Missing
+decision evidence leaves the run unchanged. The function cannot call a
+provider, alter discovery/ranking/publication, fabricate a candidate or
+authorize paper/broker work. Local acceptance passes 6/6 focused adversarial
+tests, including the universe-versus-observation truth guard, the 52/52 combined
 decision-lineage/window/invocation regression, changed-file lint, strict
 non-incremental TypeScript and the complete Next production build. Protected
 delivery and a later exact-environment receipt remain pending; the repair is

@@ -19,7 +19,7 @@ function productionShapedRun() {
     source: "supabase",
     data_mode: "supabase_record",
     scanned_ticker_count: 3,
-    raw_candidate_count: 8,
+    raw_candidate_count: 3,
     payload: {
       active_scan_trace: {
         ranking: { ranked_count: 3, selected_count: 0 },
@@ -61,6 +61,11 @@ function productionShapedRun() {
     record_kind: "candidate_decision_record",
     record_version: "candidate_decision_record_v3",
     scan_run_fingerprint: scanRun.run_fingerprint,
+    coverage: {
+      expected_candidate_count: 8,
+      observed_candidate_count: 3,
+      ranked_candidate_count: 3,
+    },
     candidates: Array.from({ length: 8 }, (_, index) => ({
       ticker: `T${index + 1}`,
     })),
@@ -87,7 +92,7 @@ test.describe("A.2 terminal active-scan trace reconciliation", () => {
     expect(trace.final).toMatchObject({
       decision: "scanned",
       status: "completed",
-      candidates_generated: 8,
+      candidates_generated: 3,
       ranked_candidates_count: 3,
       recommendations_built_count: 0,
       recommendations_published_count: 0,
@@ -103,6 +108,27 @@ test.describe("A.2 terminal active-scan trace reconciliation", () => {
     );
   });
 
+  test("does not treat unobserved universe membership as generated candidates", () => {
+    const scanRun = productionShapedRun();
+    scanRun.raw_candidate_count = null;
+    const trace = scanRun.payload_json.active_scan_trace as {
+      raw_candidates: Record<string, unknown>;
+      ranking: Record<string, unknown>;
+      final: Record<string, unknown>;
+    };
+    trace.raw_candidates.raw_candidate_count = null;
+    trace.ranking.ranked_count = null;
+    trace.final.ranked_candidates_count = 0;
+
+    const reconciled = reconcileRecommendationScanRunTerminalTrace(scanRun);
+    const reconciledTrace = reconciled.payload_json.active_scan_trace as {
+      final: Record<string, unknown>;
+    };
+
+    expect(reconciledTrace.final.candidates_generated).toBe(3);
+    expect(reconciledTrace.final.ranked_candidates_count).toBe(3);
+  });
+
   test("leaves runs without a candidate decision record unchanged", () => {
     const scanRun = productionShapedRun();
     delete scanRun.payload_json.candidate_decision_record;
@@ -112,11 +138,11 @@ test.describe("A.2 terminal active-scan trace reconciliation", () => {
 
   test("retains a published decision without inventing no-trade reasons", () => {
     const scanRun = productionShapedRun();
-    scanRun.counts.visible_recommendation_count = 1;
+    scanRun.counts.visible_recommendation_count = 0;
     const record = scanRun.payload_json
       .candidate_decision_record as Record<string, unknown>;
     record.final_decision = {
-      disposition: "publish",
+      disposition: "recommendations_published",
       no_trade_reason: null,
       published_tickers: ["T1"],
       recommendation_build_path: "published",

@@ -535,9 +535,7 @@ export function reconcileRecommendationScanRunTerminalTrace(
     throw new Error("active_scan_trace_scan_run_fingerprint_mismatch");
   }
 
-  const candidates = Array.isArray(decisionRecord.candidates)
-    ? decisionRecord.candidates
-    : [];
+  const coverage = objectOrNull(decisionRecord.coverage);
   const publishedTickers = Array.isArray(finalDecision.published_tickers)
     ? finalDecision.published_tickers.filter(
         (ticker): ticker is string =>
@@ -555,24 +553,26 @@ export function reconcileRecommendationScanRunTerminalTrace(
     ? scanRun.payload_json.selected_candidate_build_diagnostics
     : [];
   const visibleCount = scanRun.counts.visible_recommendation_count;
-  const rankedCount =
-    nonNegativeInteger(ranking?.ranked_count) ??
-    nonNegativeInteger(terminal.ranked_candidates_count) ??
-    0;
+  const rankedCount = Math.max(
+    nonNegativeInteger(ranking?.ranked_count) ?? 0,
+    nonNegativeInteger(terminal.ranked_candidates_count) ?? 0,
+    nonNegativeInteger(coverage?.ranked_candidate_count) ?? 0,
+  );
   const generatedCount = Math.max(
     scanRun.raw_candidate_count ?? 0,
     nonNegativeInteger(rawCandidates?.raw_candidate_count) ?? 0,
-    candidates.length,
-  );
-  const builtCount = Math.max(
-    nonNegativeInteger(terminal.recommendations_built_count) ?? 0,
-    nonNegativeInteger(dropOff?.built_count) ?? 0,
-    visibleCount,
+    nonNegativeInteger(coverage?.observed_candidate_count) ?? 0,
   );
   const publishedCount = Math.max(
     nonNegativeInteger(terminal.recommendations_published_count) ?? 0,
     publishedTickers.length,
     visibleCount,
+  );
+  const builtCount = Math.max(
+    nonNegativeInteger(terminal.recommendations_built_count) ?? 0,
+    nonNegativeInteger(dropOff?.built_count) ?? 0,
+    visibleCount,
+    publishedCount,
   );
   const noTradeReason =
     finalDecision.disposition === "no_trade"
@@ -597,10 +597,12 @@ export function reconcileRecommendationScanRunTerminalTrace(
     recommendations_served: Math.max(
       nonNegativeInteger(terminal.recommendations_served) ?? 0,
       visibleCount,
+      publishedCount,
     ),
     recommendations_created: Math.max(
       nonNegativeInteger(terminal.recommendations_created) ?? 0,
       visibleCount,
+      publishedCount,
     ),
     ranked_candidates_count: Math.max(
       nonNegativeInteger(terminal.ranked_candidates_count) ?? 0,
