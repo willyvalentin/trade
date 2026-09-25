@@ -1281,6 +1281,44 @@ boundary, not paper-account behavior. Migration application, policy/account
 creation and runtime activation remain separately authorized successors and
 require OPEN pilot evidence.
 
+**SV-C.6 provider-rights admission — delivered and production-verified,
+2026-09-25:** PR #635 merged as
+`1dd6cb61b77e02192bb828efa3acbff1ac82751c`; Netlify production deploy
+`6ab5e59698b0ab0007585a99` is `ready` on that exact revision. Production
+migration `20260925031006` (`sv_c6_provider_rights_admission`) is applied.
+The private C6 evidence ledger contains exactly one reviewed Twelve Data Basic
+Free row and correctly classifies it `blocked`: internal non-display use and
+non-reversible derived data are evidenced, but the permitted retention duration
+for reconstructable exact prices/candles and account-specific third-party terms
+remain unverified. Consequently no C5 policy can be frozen. RLS, revoked table
+access and service-role-only fixed-search-path RPC grants were verified in
+production; all paper accounts, policies, jobs and heartbeats remained empty.
+This is a truthful rights gate, not pilot activation or recommendation-quality
+evidence.
+
+**Selected SV-C.7 CLOSED vertical slice — atomic paused-pilot provisioning,
+2026-09-25 (8–16h):** owner Codex on
+`codex/sv-c7-pilot-provisioning`; interface
+`internal_paper_pilot_provisioning_v1`. The additive migration introduces one
+service-role-only, security-definer RPC that atomically creates an exact paused
+C1 account and freezes its C5 policy only after an already `admitted` C6 rights
+record passes its retention ceiling. Canonical symbols, frozen strategy and
+selection identity, risk/cost configuration and deterministic account identity
+are validated. Exact no-effect retries reuse the same account/policy; changed
+configuration, non-empty economic state, blocked rights or excess retention
+fail the transaction. No activation RPC, route, schedule, provider call,
+publication or broker path is added.
+
+Local acceptance currently includes four focused source/adapter tests, strict
+TypeScript, full lint with zero errors/eight existing warnings, a complete Next
+production build and a disposable PostgreSQL 16 lifecycle proof
+covering blocked-rights rollback, admitted provisioning, exact retry,
+configuration conflict, retention rejection, paused state, single-row
+cardinality and browser-role denial across C3–C7/D1/E1. Protected CI, merge,
+exact-main deploy and production migration application remain separate. Because
+the only production C6 row is blocked, applying C7 would remain inert and could
+not create the first pilot account.
+
 **Selected SV-E.1 CLOSED vertical slice — deterministic one-day market replay,
 2026-09-22 (8–16h):** owner Codex on
 `codex/sv-e1-deterministic-one-day-replay`; interfaces
@@ -1836,7 +1874,7 @@ on A/B evidence and must not be inferred from the source registry.
 | --- | --- | --- |
 | Primary development | A.2 one-slot normal-scan and shared outcome-credit guards are merged and exact-revision production-deployed at `53181a54` and `0d0e773d`; fresh normal-scan and outcome behavior evidence remains OPEN | Require a separately authorized scheduled session with frozen credit/slot bounds; do not treat source/deploy verification as a provider receipt |
 | Second development | SV-A.2 ranking-plan integrity v1.1 is locally implemented and tested on `codex/sv-a2-ranking-plan-integrity` against the production-verified PR #604 base; it is independent of the frozen scheduled-scan admission path. B.1 base lineage and strategy/selection registry are merged, but real-decision/outcome acceptance remains OPEN. | Finish protected CI and review; do not deploy a changed ranking policy into the prepared OPEN observation or pool v1.0 and v1.1 decisions. |
-| CLOSED successor | SV-C.1–C.5, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2 and SV-H.1–H.3 plus the E.1 volume-integrity and earlier E.2 repairs are merged and exact-revision production-deployed. C.1 and C.2 are production-schema verified and remain inert/empty, including complete C.2 foreign-key index coverage; C.3–C.5/D.1 migrations remain unapplied and every paper runtime gate remains off. The A.2 one-slot outcome-evaluation guard is also merged/deployed as `ea9a024d` without an outcome receipt. | Family-level fill/latency/impact uncertainty and forward shadow remain later H evidence. Real G/H evaluation remains blocked on licensed point-in-time history plus verified entitlement/retention evidence. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; later migrations, account/config/policy-freeze and activation still require their own evidence plus OPEN pilot acceptance. |
+| CLOSED successor | SV-C.1–C.6, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2 and SV-H.1–H.3 plus the E.1 volume-integrity and earlier E.2 repairs are merged and exact-revision production-deployed. C.1–C.6/D.1 migrations are production-applied and verified inert/empty. C6 deliberately blocks policy freeze because exact-price retention duration and account-specific terms remain unverified. C7 paused-pilot provisioning is locally implemented and tested, but not yet merged, deployed or production-applied; every paper runtime gate remains off. The A.2 one-slot outcome-evaluation guard is also merged/deployed as `ea9a024d` without an outcome receipt. | Finish C7 protected delivery without activation. Separately obtain authoritative C6 entitlement/retention evidence before any C5 policy row or observed pilot. Family-level fill/latency/impact uncertainty and forward shadow remain later H evidence; real G/H evaluation remains blocked on licensed point-in-time history plus verified rights. Account/config/policy creation, activation and OPEN pilot acceptance remain separate evidence steps. |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
 

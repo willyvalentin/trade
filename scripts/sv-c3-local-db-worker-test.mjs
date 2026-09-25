@@ -34,6 +34,10 @@ const c6Migration = new URL(
   "../supabase/migrations/20260925030000_sv_c6_provider_rights_admission.sql",
   import.meta.url,
 );
+const c7Migration = new URL(
+  "../supabase/migrations/20260925031531_sv_c7_internal_paper_pilot_provisioning.sql",
+  import.meta.url,
+);
 
 const owner = "11111111-1111-4111-8111-111111111111";
 const account = "22222222-2222-4222-8222-222222222222";
@@ -502,10 +506,11 @@ try {
     delete from public.internal_paper_accounts where id = '${account}';
   `);
   psql(readFileSync(c6Migration, "utf8"));
+  psql(readFileSync(c7Migration, "utf8"));
 
-  // C6 preserves the reviewed Basic Free evidence as blocked. Tests add one
-  // explicit admitted fixture so the existing lifecycle can exercise the
-  // positive path without weakening the production evidence decision.
+  // C7 must fail atomically against the reviewed blocked Basic Free evidence.
+  // Tests then add one admitted fixture so provisioning can exercise its
+  // positive and idempotent path without weakening production evidence.
   psql(`
     set role service_role;
     create temporary table blocked_rights_receipt as
@@ -520,6 +525,32 @@ try {
         or (select receipt ->> 'max_exact_price_evidence_retention_days'
             from blocked_rights_receipt) is not null
       then raise exception 'C6 blocked rights receipt invariant failed'; end if;
+    end $$;
+
+    set role service_role;
+    do $$ begin
+      begin
+        perform public.app_provision_internal_paper_pilot_v1(
+          '${owner}', '${account}', 'pilot', 'pilot-strategy', '1.0.0',
+          'pilot-strategy@1.0.0', 'pilot-symbols', '1.0.0',
+          'pilot-universe-v1', array['aapl'], 'pilot-config-v1',
+          100000, 100, 500, 10, 5, 1,
+          'provider_rights_twelve_data_basic_free_2026_09_25_v1',
+          30, 104857600, '2026-09-22T14:29:30Z',
+          'internal_paper_pilot_provisioning_v1'
+        );
+        raise exception 'C7 unexpectedly provisioned against blocked rights';
+      exception when raise_exception then
+        if sqlerrm <> 'internal_paper_provider_rights_not_admitted' then
+          raise;
+        end if;
+      end;
+    end $$;
+    reset role;
+    do $$ begin
+      if exists (select 1 from public.internal_paper_accounts)
+        or exists (select 1 from public.internal_paper_pilot_policies)
+      then raise exception 'C7 blocked provisioning was not atomic'; end if;
     end $$;
 
     insert into public.internal_paper_provider_rights_evidence(
@@ -540,6 +571,82 @@ try {
       array['written_test_fixture_confirmation'],
       '2026-09-22T14:29:00Z', '2026-01-01'
     );
+
+    set role service_role;
+    create temporary table provisioning_receipts as
+      select public.app_provision_internal_paper_pilot_v1(
+        '${owner}', '${account}', 'pilot', 'pilot-strategy', '1.0.0',
+        'pilot-strategy@1.0.0', 'pilot-symbols', '1.0.0',
+        'pilot-universe-v1', array['aapl'], 'pilot-config-v1',
+        100000, 100, 500, 10, 5, 1,
+        'provider_rights_test_fixture_v1', 30, 104857600,
+        '2026-09-22T14:29:30Z',
+        'internal_paper_pilot_provisioning_v1'
+      ) receipt;
+    insert into provisioning_receipts
+      select public.app_provision_internal_paper_pilot_v1(
+        '${owner}', '${account}', 'pilot', 'pilot-strategy', '1.0.0',
+        'pilot-strategy@1.0.0', 'pilot-symbols', '1.0.0',
+        'pilot-universe-v1', array['AAPL'], 'pilot-config-v1',
+        100000, 100, 500, 10, 5, 1,
+        'provider_rights_test_fixture_v1', 30, 104857600,
+        '2026-09-22T14:29:30Z',
+        'internal_paper_pilot_provisioning_v1'
+      );
+    do $$ begin
+      begin
+        perform public.app_provision_internal_paper_pilot_v1(
+          '${owner}', '${account}', 'pilot', 'pilot-strategy', '1.0.0',
+          'pilot-strategy@1.0.0', 'pilot-symbols', '1.0.0',
+          'pilot-universe-v1', array['AAPL'], 'pilot-config-v1',
+          100001, 100, 500, 10, 5, 1,
+          'provider_rights_test_fixture_v1', 30, 104857600,
+          '2026-09-22T14:29:30Z',
+          'internal_paper_pilot_provisioning_v1'
+        );
+        raise exception 'C7 unexpectedly accepted an altered retry';
+      exception when raise_exception then
+        if sqlerrm <> 'internal_paper_pilot_provisioning_conflict' then
+          raise;
+        end if;
+      end;
+      begin
+        perform public.app_provision_internal_paper_pilot_v1(
+          '${owner}', '${secondAccount}', 'pilot-retention',
+          'pilot-strategy', '1.0.0', 'pilot-strategy@1.0.0',
+          'pilot-symbols', '1.0.0', 'pilot-universe-v1', array['AAPL'],
+          'pilot-config-v1', 100000, 100, 500, 10, 5, 1,
+          'provider_rights_test_fixture_v1', 31, 104857600,
+          '2026-09-22T14:29:30Z',
+          'internal_paper_pilot_provisioning_v1'
+        );
+        raise exception 'C7 unexpectedly exceeded rights retention';
+      exception when raise_exception then
+        if sqlerrm <> 'internal_paper_provider_rights_retention_exceeded' then
+          raise;
+        end if;
+      end;
+    end $$;
+    reset role;
+    do $$ begin
+      if (select receipt ->> 'disposition' from provisioning_receipts limit 1)
+          <> 'created'
+        or (select receipt ->> 'policy_disposition'
+            from provisioning_receipts limit 1) <> 'created'
+        or (select receipt ->> 'disposition'
+            from provisioning_receipts offset 1 limit 1) <> 'reused'
+        or (select receipt ->> 'policy_disposition'
+            from provisioning_receipts offset 1 limit 1) <> 'reused'
+        or (select receipt -> 'eligible_symbols' ->> 0
+            from provisioning_receipts limit 1) <> 'AAPL'
+        or (select count(*) from public.internal_paper_accounts) <> 1
+        or (select count(*) from public.internal_paper_pilot_policies) <> 1
+        or (select status from public.internal_paper_accounts
+            where id = '${account}') <> 'paused'
+        or exists (select 1 from public.internal_paper_accounts
+                   where id = '${secondAccount}')
+      then raise exception 'C7 provisioning invariant failed'; end if;
+    end $$;
   `);
 
   // The policy and heartbeat child foreign keys must all have valid, ready
@@ -648,20 +755,6 @@ try {
       'AAPL', 'visible', 'supabase', 'live', '2026-09-22T14:31:00Z',
       100, 95, 112, '${owner}'
     );
-    insert into public.internal_paper_accounts(
-      id, owner_user_id, account_key, status, strategy_id, strategy_version,
-      strategy_rollback_identity, symbol_selection_policy_id,
-      symbol_selection_policy_version, observed_universe_version,
-      eligible_symbols, config_version, fill_model_version, starting_cash,
-      cash_balance, per_trade_risk_cap, daily_loss_cap, spread_bps,
-      slippage_bps, commission_per_order
-    ) values (
-      '${account}', '${owner}', 'pilot', 'paused', 'pilot-strategy', '1.0.0',
-      'pilot-strategy@1.0.0', 'pilot-symbols', '1.0.0',
-      'pilot-universe-v1', array['AAPL'], 'pilot-config-v1',
-      'internal_paper_immediate_costed_fill_v1', 100000, 100000, 100, 500,
-      10, 5, 1
-    );
   `);
 
   // C4 exposes only the exact frozen account context to the service-role handoff.
@@ -681,18 +774,9 @@ try {
     end $$;
   `);
 
-  // C5 keeps handoff and claim blocked until an immutable policy and a current
-  // account-scoped worker heartbeat exist.
+  // C5 keeps handoff blocked until an immutable policy and a current
+  // account-scoped worker heartbeat exist. C7 already froze the exact policy.
   psql(`
-    update public.internal_paper_accounts set status = 'ready' where id = '${account}';
-    set role service_role;
-    create temporary table missing_policy_claim as
-      select public.app_claim_internal_paper_worker_job_v2(
-        '${account}', 'worker-before-policy', '2026-09-22T14:29:00Z', 60,
-        'internal_paper_worker_claim_v2'
-      ) receipt;
-    reset role;
-    update public.internal_paper_accounts set status = 'paused' where id = '${account}';
     set role service_role;
     do $$ begin
       begin
@@ -770,10 +854,7 @@ try {
       ) receipt;
     reset role;
     do $$ begin
-      if (select receipt ->> 'status' from missing_policy_claim) <> 'blocked'
-        or (select receipt ->> 'reason_code' from missing_policy_claim)
-          <> 'pilot_policy_or_ready_account_unavailable'
-        or (select receipt ->> 'disposition' from policy_receipts limit 1) <> 'created'
+      if (select receipt ->> 'disposition' from policy_receipts limit 1) <> 'reused'
         or (select receipt ->> 'disposition' from policy_receipts offset 1 limit 1) <> 'reused'
         or (select receipt ->> 'disposition' from heartbeat_receipts limit 1) <> 'created'
         or (select receipt ->> 'disposition' from heartbeat_receipts offset 1 limit 1) <> 'reused'
@@ -1168,10 +1249,23 @@ try {
         raise exception 'authenticated unexpectedly invoked rights reader';
       exception when insufficient_privilege then null;
       end;
+      begin
+        set local role authenticated;
+        perform public.app_provision_internal_paper_pilot_v1(
+          '${owner}', '${secondAccount}', 'browser-pilot', 'pilot-strategy',
+          '1.0.0', 'pilot-strategy@1.0.0', 'pilot-symbols', '1.0.0',
+          'pilot-universe-v1', array['AAPL'], 'pilot-config-v1',
+          100000, 100, 500, 10, 5, 1, 'provider_rights_test_fixture_v1',
+          30, 104857600, '2026-09-22T14:29:30Z',
+          'internal_paper_pilot_provisioning_v1'
+        );
+        raise exception 'authenticated unexpectedly provisioned paper pilot';
+      exception when insufficient_privilege then null;
+      end;
     end $$;
   `);
 
-  console.log("SV-C3/C4/C5/C6/D1/E1 durable lifecycle and exact fill-parity database proof passed");
+  console.log("SV-C3/C4/C5/C6/C7/D1/E1 durable lifecycle and exact fill-parity database proof passed");
 } finally {
   try { docker("rm", "-f", container); } catch {}
   rmSync(sqlPath, { force: true });
