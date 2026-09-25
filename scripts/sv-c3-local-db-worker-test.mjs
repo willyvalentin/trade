@@ -26,9 +26,10 @@ const d1Migration = new URL(
   "../supabase/migrations/20260922073013_sv_d1_internal_paper_observer_read_model.sql",
   import.meta.url,
 );
-const postD1Migrations = [
+const c5Migration = new URL(
   "../supabase/migrations/20260922090000_sv_c5_internal_paper_pilot_operational_admission.sql",
-].map((path) => new URL(path, import.meta.url));
+  import.meta.url,
+);
 
 const owner = "11111111-1111-4111-8111-111111111111";
 const account = "22222222-2222-4222-8222-222222222222";
@@ -394,9 +395,109 @@ try {
   `);
 
   psql(readFileSync(d1Migration, "utf8"));
-  for (const migration of postD1Migrations) {
-    psql(readFileSync(migration, "utf8"));
-  }
+
+  // C5 must reject any existing durable paper state before creating policy,
+  // heartbeat or v2 read/claim boundaries.
+  psql(`
+    insert into public.internal_paper_accounts(
+      id, owner_user_id, account_key, status, strategy_id, strategy_version,
+      strategy_rollback_identity, symbol_selection_policy_id,
+      symbol_selection_policy_version, observed_universe_version,
+      eligible_symbols, config_version, fill_model_version, starting_cash,
+      cash_balance, per_trade_risk_cap, daily_loss_cap, spread_bps,
+      slippage_bps, commission_per_order
+    ) values (
+      '${account}', '${owner}', 'c5-preflight-only', 'paused', 'pilot-strategy',
+      '1.0.0', 'pilot-strategy@1.0.0', 'pilot-symbols', '1.0.0',
+      'pilot-universe-v1', array['AAPL'], 'pilot-config-v1',
+      'internal_paper_immediate_costed_fill_v1', 100000, 100000, 100, 500,
+      10, 5, 1
+    );
+  `);
+  psqlExpectFailure(
+    readFileSync(c5Migration, "utf8"),
+    "sv_c5_requires_empty_c1_c2_c3_state",
+  );
+  psql(`
+    do $$ begin
+      if pg_catalog.to_regclass('public.internal_paper_pilot_policies') is not null
+        or pg_catalog.to_regclass('public.internal_paper_worker_heartbeats') is not null
+      then raise exception 'C5 DDL leaked through non-empty preflight'; end if;
+    end $$;
+    delete from public.internal_paper_accounts where id = '${account}';
+  `);
+
+  // A drifted D1 function fails before C5 creates any schema.
+  psql(`
+    alter function public.app_read_internal_paper_observer_v1(uuid, uuid, text)
+      security invoker;
+  `);
+  psqlExpectFailure(
+    readFileSync(c5Migration, "utf8"),
+    "sv_c5_unexpected_read_boundary_contract",
+  );
+  psql(`
+    alter function public.app_read_internal_paper_observer_v1(uuid, uuid, text)
+      security definer;
+  `);
+
+  // Same-signature C5 drift is rejected instead of replaced.
+  psql(`
+    create function public.app_read_internal_paper_observer_v2(uuid, uuid, text)
+    returns jsonb language sql as 'select ''{}''::jsonb';
+  `);
+  psqlExpectFailure(
+    readFileSync(c5Migration, "utf8"),
+    "sv_c5_preexisting_operational_admission_contract",
+  );
+  psql(`
+    drop function public.app_read_internal_paper_observer_v2(uuid, uuid, text);
+  `);
+
+  psql(readFileSync(c5Migration, "utf8"));
+
+  // The policy and heartbeat child foreign keys must all have valid, ready
+  // covering indexes in their foreign-key column order.
+  psql(`
+    do $$
+    declare
+      v_foreign_key_count integer;
+      v_uncovered_count integer;
+    begin
+      select count(*) into v_foreign_key_count
+      from pg_catalog.pg_constraint foreign_key
+      where foreign_key.conrelid in (
+        'public.internal_paper_pilot_policies'::regclass,
+        'public.internal_paper_worker_heartbeats'::regclass
+      ) and foreign_key.contype = 'f';
+
+      select count(*) into v_uncovered_count
+      from pg_catalog.pg_constraint foreign_key
+      where foreign_key.conrelid in (
+        'public.internal_paper_pilot_policies'::regclass,
+        'public.internal_paper_worker_heartbeats'::regclass
+      ) and foreign_key.contype = 'f'
+        and not exists (
+          select 1
+          from pg_catalog.pg_index index_record
+          where index_record.indrelid = foreign_key.conrelid
+            and index_record.indisvalid
+            and index_record.indisready
+            and not exists (
+              select 1
+              from unnest(foreign_key.conkey) with ordinality
+                as foreign_key_column(attnum, ord)
+              where (index_record.indkey::smallint[])[foreign_key_column.ord - 1]
+                is distinct from foreign_key_column.attnum
+            )
+        );
+
+      if v_foreign_key_count <> 3 or v_uncovered_count <> 0 then
+        raise exception 'C5 foreign-key index coverage failed: total %, uncovered %',
+          v_foreign_key_count, v_uncovered_count;
+      end if;
+    end $$;
+  `);
 
   // Every C3 child foreign key must have a valid, ready index whose leading
   // key columns match the foreign-key column order.
