@@ -7,6 +7,7 @@ import type {
   RecommendationScanRun,
   RecommendationScanRunPersistenceResult,
 } from "@/lib/recommendation-scan-run";
+import { reconcileRecommendationScanRunTerminalTrace } from "@/lib/recommendation-scan-run";
 
 type SupabaseMutationResult = {
   error?: { message?: string } | null;
@@ -95,15 +96,22 @@ export async function persistRecommendationScanRun(
   }
 
   try {
+    const reconciledScanRun =
+      reconcileRecommendationScanRunTerminalTrace(scanRun);
     const result = await options.supabaseClient
       .from("recommendation_scan_runs")
-      .upsert?.(toSupabaseRow(scanRun, ownerUserId), {
+      .upsert?.(toSupabaseRow(reconciledScanRun, ownerUserId), {
         onConflict: "run_fingerprint",
         ignoreDuplicates: true,
       });
 
     if (!result?.error) {
-      return { status: "saved", mode: "supabase", scan_run: scanRun, error: null };
+      return {
+        status: "saved",
+        mode: "supabase",
+        scan_run: reconciledScanRun,
+        error: null,
+      };
     }
 
     console.error("[recommendation-scan-run] supabase_persistence_error", {
@@ -115,7 +123,7 @@ export async function persistRecommendationScanRun(
     return {
       status: "failed",
       mode: "supabase",
-      scan_run: scanRun,
+      scan_run: reconciledScanRun,
       error: `${classifySupabasePersistenceError(result.error)}:${
         result.error.message ?? "Unknown Supabase scan-run persistence error."
       }`,

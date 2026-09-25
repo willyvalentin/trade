@@ -478,6 +478,205 @@ export function buildRecommendationScanRun(
   };
 }
 
+function nonNegativeInteger(value: unknown) {
+  const numeric = finiteNumber(value);
+
+  return numeric !== null && Number.isInteger(numeric) && numeric >= 0
+    ? numeric
+    : null;
+}
+
+/**
+ * Reconciles the terminal active-scan trace immediately before durable
+ * persistence. The scheduled route builds the scan-run envelope before it can
+ * know the run fingerprint and before the candidate-decision record exists.
+ * By persistence time both are available on the same in-memory run, so this
+ * function joins those already-produced facts without changing discovery,
+ * ranking, publication policy, or candidate eligibility.
+ */
+export function reconcileRecommendationScanRunTerminalTrace(
+  scanRun: RecommendationScanRun,
+): RecommendationScanRun {
+  const activeScanTrace = objectOrNull(scanRun.payload_json.active_scan_trace);
+  const terminal = objectOrNull(activeScanTrace?.final);
+  const stages = objectOrNull(activeScanTrace?.stages);
+  const decisionRecord = objectOrNull(
+    scanRun.payload_json.candidate_decision_record,
+  );
+  const finalDecision = objectOrNull(decisionRecord?.final_decision);
+
+  if (
+    !activeScanTrace ||
+    !terminal ||
+    !stages ||
+    !decisionRecord ||
+    !finalDecision
+  ) {
+    return scanRun;
+  }
+
+  const recordKind = textOrNull(String(decisionRecord.record_kind ?? ""));
+  const recordVersion = textOrNull(String(decisionRecord.record_version ?? ""));
+  const decisionRunFingerprint = textOrNull(
+    String(decisionRecord.scan_run_fingerprint ?? ""),
+  );
+
+  if (
+    recordKind !== "candidate_decision_record" ||
+    (recordVersion !== "candidate_decision_record_v1" &&
+      recordVersion !== "candidate_decision_record_v2" &&
+      recordVersion !== "candidate_decision_record_v3")
+  ) {
+    return scanRun;
+  }
+
+  if (decisionRunFingerprint !== scanRun.run_fingerprint) {
+    throw new Error("candidate_decision_scan_run_fingerprint_mismatch");
+  }
+
+  const traceRunFingerprint = textOrNull(
+    String(terminal.scan_run_fingerprint ?? ""),
+  );
+  if (
+    traceRunFingerprint !== null &&
+    traceRunFingerprint !== scanRun.run_fingerprint
+  ) {
+    throw new Error("active_scan_trace_scan_run_fingerprint_mismatch");
+  }
+
+  const coverage = objectOrNull(decisionRecord.coverage);
+  const candidates = Array.isArray(decisionRecord.candidates)
+    ? decisionRecord.candidates
+    : null;
+  const rawPublishedTickers = Array.isArray(finalDecision.published_tickers)
+    ? finalDecision.published_tickers
+    : null;
+  const publishedTickers = rawPublishedTickers?.filter(
+    (ticker): ticker is string =>
+      typeof ticker === "string" && ticker.trim().length > 0,
+  ) ?? [];
+  const disposition = textOrNull(String(finalDecision.disposition ?? ""));
+  const dropOff = objectOrNull(
+    scanRun.payload_json.selected_to_built_drop_off,
+  );
+  const selectedDiagnostics = Array.isArray(
+    scanRun.payload_json.selected_candidate_build_diagnostics,
+  )
+    ? scanRun.payload_json.selected_candidate_build_diagnostics
+    : [];
+  const observedCandidateCount = nonNegativeInteger(
+    coverage?.observed_candidate_count,
+  );
+  const rankedCandidateCount = nonNegativeInteger(
+    coverage?.ranked_candidate_count,
+  );
+  const expectedCandidateCount = nonNegativeInteger(
+    coverage?.expected_candidate_count,
+  );
+  const publishedCandidateTickers = candidates?.flatMap((candidate) => {
+    const row = objectOrNull(candidate);
+    const ticker = textOrNull(String(row?.ticker ?? ""));
+    return row?.disposition === "published" && ticker
+      ? [ticker.toUpperCase()]
+      : [];
+  }) ?? [];
+  const normalizedPublishedTickers = publishedTickers.map((ticker) =>
+    ticker.trim().toUpperCase(),
+  );
+  const publishedCandidateTickerSet = new Set(publishedCandidateTickers);
+  const normalizedPublishedTickerSet = new Set(normalizedPublishedTickers);
+
+  if (
+    candidates === null ||
+    rawPublishedTickers === null ||
+    publishedTickers.length !== rawPublishedTickers.length ||
+    new Set(publishedTickers.map((ticker) => ticker.trim().toUpperCase())).size !==
+      publishedTickers.length ||
+    observedCandidateCount === null ||
+    rankedCandidateCount === null ||
+    expectedCandidateCount === null ||
+    candidates.length !== expectedCandidateCount ||
+    observedCandidateCount > expectedCandidateCount ||
+    rankedCandidateCount > observedCandidateCount ||
+    publishedCandidateTickerSet.size !== publishedCandidateTickers.length ||
+    publishedCandidateTickerSet.size !== normalizedPublishedTickerSet.size ||
+    [...publishedCandidateTickerSet].some(
+      (ticker) => !normalizedPublishedTickerSet.has(ticker),
+    ) ||
+    (disposition !== "no_trade" &&
+      disposition !== "recommendations_published") ||
+    (disposition === "no_trade" && publishedTickers.length > 0) ||
+    (disposition === "recommendations_published" &&
+      publishedTickers.length === 0)
+  ) {
+    throw new Error("candidate_decision_terminal_evidence_invalid");
+  }
+
+  const candidateBuiltCount = candidates.filter((candidate) => {
+    const build = objectOrNull(objectOrNull(candidate)?.build);
+    return build?.built === true;
+  }).length;
+  const generatedCount = observedCandidateCount;
+  const rankedCount = rankedCandidateCount;
+  const publishedCount = publishedTickers.length;
+  const builtCount = Math.max(candidateBuiltCount, publishedCount);
+  const noTradeReason =
+    disposition === "no_trade"
+      ? textOrNull(String(finalDecision.no_trade_reason ?? ""))
+      : null;
+  if (disposition === "no_trade" && noTradeReason === null) {
+    throw new Error("candidate_decision_terminal_evidence_invalid");
+  }
+  const recommendationBuildPath = textOrNull(
+    String(finalDecision.recommendation_build_path ?? ""),
+  );
+  const terminalStatus =
+    scanRun.status === "failed" ? "failed" : "completed";
+
+  const reconciledFinal = {
+    ...terminal,
+    decision: scanRun.status === "failed" ? "failed" : "scanned",
+    status: terminalStatus,
+    candidates_generated: generatedCount,
+    recommendations_served: publishedCount,
+    recommendations_created: publishedCount,
+    ranked_candidates_count: rankedCount,
+    recommendations_published_count: publishedCount,
+    ranked_candidates_not_published_reason:
+      disposition === "no_trade" && rankedCount > 0 ? noTradeReason : null,
+    no_publish_reason: disposition === "no_trade" ? noTradeReason : null,
+    recommendation_build_path: recommendationBuildPath,
+    recommendations_built_count: builtCount,
+    scan_run_fingerprint: scanRun.run_fingerprint,
+    zero_candidate_reason:
+      disposition === "no_trade" ? noTradeReason : null,
+    selected_candidate_build_diagnostics:
+      selectedDiagnostics.length > 0
+        ? selectedDiagnostics
+        : Array.isArray(terminal.selected_candidate_build_diagnostics)
+          ? terminal.selected_candidate_build_diagnostics
+          : [],
+    selected_to_built_drop_off:
+      dropOff ?? objectOrNull(terminal.selected_to_built_drop_off),
+  };
+
+  return {
+    ...scanRun,
+    payload_json: {
+      ...scanRun.payload_json,
+      active_scan_trace: {
+        ...activeScanTrace,
+        last_stage_reached: "final",
+        stages: {
+          ...stages,
+          final: terminalStatus,
+        },
+        final: reconciledFinal,
+      },
+    },
+  };
+}
+
 export function recommendationScanRunJson(scanRun: RecommendationScanRun) {
   return JSON.stringify(scanRun, null, 2);
 }
