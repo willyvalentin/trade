@@ -1514,13 +1514,39 @@ remain explicitly incomplete rather than inventing zero cost.
 Seven focused adversarial tests cover three-exit full closure, partial closure
 and fee/basis allocation, over-exit rejection, lifecycle overlap rejection,
 incomplete opportunity evidence, short-side signs, determinism, immutability
-and hostile-input containment. Focused tests, strict TypeScript and changed-file
-lint are green locally; protected-CI registration is included. Source-bound
-replay projection still exposes only N.2 v1 and deliberately refuses multiple
-replay exits; a separate versioned projection successor remains required before
-replay output can enter N.3 without weakening N.2. No provider request,
-database write, ranking/publication change, broker transport or broker action
-is authorized.
+and hostile-input containment. Feature revision
+`74ae02e2f38cc8c0394888d48a2f9c7542326029` passed every applicable protected
+provider-free CI shard, aggregate and merge-candidate provenance in run
+`36110048677`, then merged through PR #642 as
+`c319eeed1ec9ce4721296b4e9d72c6e2e6fbd235`. Netlify production deploy
+`6ab62f627129d90008e7edf1` is `ready` in `production` on `main` at that exact
+merge revision. No provider request, database write, ranking/publication
+change, broker transport or broker action is authorized.
+
+**Selected SV-N.4 CLOSED vertical slice — source-bound internal-replay
+multi-exit projection v2, 2026-09-25 (8–16h):** owner Codex on isolated
+`codex/sv-n4-multi-exit-replay-projection`; interface
+`source_bound_internal_replay_multi_exit_projection_v2`. The additive adapter
+leaves N.2 v1 unchanged, independently recomputes the E.2 execution receipt,
+requires exact claimed-result equality, and binds owner, decision, symbol,
+point-in-time cutoff, source lineage, execution lineage and supplied benchmark
+evidence before projecting any N.3 leg. One supplied entry identity and one
+unique identity per ordered source exit are mandatory. Exit count, chronology,
+sequence, ticker, evidence identity, quantity conservation and modeled
+economics all fail closed; source exit events are never collapsed into one
+false lifecycle.
+
+Seven focused adversarial tests cover a two-exit replay-to-N.3 closure, partial
+entry with explicit incomplete cost, forged source receipt, missing and
+duplicate exit identities, unbound/future evidence, determinism, deep
+immutability, added authority and hostile accessors. The combined N.1–N.4 plus
+protected-CI contract suite passes 39/39; strict TypeScript, changed-file lint,
+full lint with zero errors and the same eight existing warnings, and the full
+Next production build are green locally. Protected-CI registration is included.
+This is local source evidence only until commit, protected CI, merge and exact
+production-deploy verification complete. The slice makes no provider request,
+database write, ranking/publication change, broker transport or broker action,
+and does not prove live transaction-cost accuracy or recommendation alpha.
 
 **Selected SV-E.1 CLOSED vertical slice — deterministic one-day market replay,
 2026-09-22 (8–16h):** owner Codex on
