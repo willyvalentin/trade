@@ -57,6 +57,7 @@ const foundationTests = [
   "tests/e2e/sv-c4-internal-paper-handoff.spec.ts",
   "tests/e2e/sv-c5-internal-paper-pilot-operational-admission.spec.ts",
   "tests/e2e/sv-c6-provider-rights-admission.spec.ts",
+  "tests/e2e/sv-c7-internal-paper-pilot-provisioning.spec.ts",
   "tests/e2e/sv-d1-internal-paper-observer.spec.ts",
   "tests/e2e/sv-e1-internal-paper-market-replay.spec.ts",
   "tests/e2e/sv-e2-internal-paper-replay-execution.spec.ts",
