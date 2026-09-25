@@ -374,9 +374,11 @@ an incident state if markets or connectivity prevent closure. Fault tests cover
 stale/corrupt feeds, loss limits, broker outages, mismatches, extreme events,
 abnormal costs and severe drift. No control may claim a fill before confirmation.
 
-Official IBKR sources checked 2026-09-21 (recheck when selecting implementation):
+Official IBKR sources rechecked 2026-09-25 for the L.1 contract boundary:
 - [Paper trading limitations](https://www.interactivebrokers.com/docs/tws-api/doc/notes-limitations/limitations/paper-trading): simulated execution can differ from live; plan separate live evidence.
 - [Web API sessions](https://www.interactivebrokers.com/docs/web-api/authentication/sessions): brokerage sessions and username-specific permissions constrain authentication; do not assume simultaneous sessions.
+- [Current Web API documentation](https://ibkrcampus.com/campus/ibkr-api-page/webapi-doc/): authenticated usernames have global and endpoint-specific pacing limits, `/iserver` has a daily maintenance interruption, and individual access has account-type/funding prerequisites. These are future adapter inputs, not evidence that Ture's account is eligible.
+- [First-party OAuth workflow](https://ibkrcampus.com/docs/web-api/authentication/oauth-1a/first-party-oauth/first-party-o-auth-workflow): creating a live session token does not itself initialize a brokerage session; session initialization and recovery remain explicit L gates.
 - [API market-data requirements](https://www.interactivebrokers.com/docs/general/market-data-subscriptions/introduction): applicable subscriptions must be verified. IBKR-first execution does not automatically replace licensed research/discovery data sources or supply historical options coverage.
 
 ### Market-window scheduling and first slices
