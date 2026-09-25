@@ -381,6 +381,16 @@ Official IBKR sources rechecked 2026-09-25 for the L.1 contract boundary:
 - [First-party OAuth workflow](https://ibkrcampus.com/docs/web-api/authentication/oauth-1a/first-party-oauth/first-party-o-auth-workflow): creating a live session token does not itself initialize a brokerage session; session initialization and recovery remain explicit L gates.
 - [API market-data requirements](https://www.interactivebrokers.com/docs/general/market-data-subscriptions/introduction): applicable subscriptions must be verified. IBKR-first execution does not automatically replace licensed research/discovery data sources or supply historical options coverage.
 
+Implement SV-L in separately reviewable authority steps. L.1 owns durable paper
+order identity and supplied-event reconciliation without transport. L.2 owns the
+redacted read-only account/session feasibility contract and requires a persistent
+server connection owner, explicit pacing/maintenance handling, exact paper
+account and stock-permission readback, and visible authentication/recovery debt.
+A later bounded environment probe may supply that receipt, but must keep all
+submit/modify/cancel and live-account capabilities disabled. Only after an
+account-specific route and recovery model are verified may a subsequent L slice
+introduce a transport adapter, still behind deterministic Core authority.
+
 ### Market-window scheduling and first slices
 
 Use the instrument's exchange calendar and `America/New_York`, including DST,

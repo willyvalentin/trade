@@ -1347,16 +1347,45 @@ incomplete execution/cost evidence require broker readback; non-monotonic state,
 execution corrections and conflicting terminal states require manual review.
 No outcome ever authorizes automatic resubmission.
 
-Local acceptance currently includes eleven focused adversarial tests covering
+Local acceptance includes eleven focused adversarial tests covering
 deterministic order references, persisted-before-send containment, out-of-order
 partial fills, exact retry deduplication, identity isolation, unknown submit
 outcomes, incomplete execution/commission evidence, overfill rejection,
 correction and non-monotonic-history quarantine, live-account denial and input
-validation. Strict TypeScript and changed-file lint pass. The slice contains no
-IBKR transport, credential read, database write, provider request, broker
-submission or live-account authority. Protected CI, merge and exact-main deploy
-remain separate; account/auth/session feasibility and real IBKR Paper readback
-remain later L CLOSED/OPEN evidence.
+validation. Strict TypeScript, changed-file lint, full repository lint with zero
+errors/eight existing warnings and a complete Next production build pass.
+Feature revision `53709df00a278583e2722158cf8888b607967c21` passed all six
+protected provider-free CI shards, aggregate and merge-candidate provenance in
+run `36093710360`, then merged through PR #637 as
+`27d606790291fa1239e4772c2191655d96e85016`. Netlify production deploy
+`6ab5fac8f8fe850008aa526d` is `ready` in `production` on `main` at that exact
+merge revision. The slice contains no IBKR transport, credential read, database
+write, provider request, broker submission or live-account authority.
+Account/auth/session feasibility and real IBKR Paper readback remain later L
+CLOSED/OPEN evidence.
+
+**Selected SV-L.2 CLOSED vertical slice — IBKR paper read-only session
+feasibility, 2026-09-25 (8–16h):** owner Codex on isolated
+`codex/sv-l2-ibkr-session-feasibility`; interfaces
+`ibkr_session_feasibility_v1` and `ibkr_session_probe_receipt_v1`. The pure
+contract validates only an already supplied, short-lived and redacted
+account/session probe receipt. It requires exact paper-account identity, the
+transport-specific authentication shape, initialized brokerage session,
+account/buying-power/positions/open-orders/executions readback, US-stock
+permission, persistent server-worker ownership, server-only secrets, one active
+broker session, health evidence, explicit pacing and maintenance constraints,
+and disabled order/live/recommendation-data paths. Browser and short-lived
+function connection owners fail closed. Missing session or worker restart proof
+remains explicit operator-restoration debt rather than a claim of unattended
+authentication; missing market-data entitlement remains a separate gap rather
+than being inferred from account access.
+
+This source-only evaluator does not connect to IBKR, inspect credentials,
+authenticate, query an account, persist evidence or authorize submit/modify/
+cancel. Local fixtures therefore prove the admission contract only, not account
+feasibility. The next environment step remains a separately bounded, redacted,
+read-only account/session probe using an approved account and supported hosting;
+it must not grant order authority.
 
 **Selected SV-E.1 CLOSED vertical slice — deterministic one-day market replay,
 2026-09-22 (8–16h):** owner Codex on
@@ -1913,7 +1942,7 @@ on A/B evidence and must not be inferred from the source registry.
 | --- | --- | --- |
 | Primary development | A.2 one-slot normal-scan and shared outcome-credit guards are merged and exact-revision production-deployed at `53181a54` and `0d0e773d`; fresh normal-scan and outcome behavior evidence remains OPEN | Require a separately authorized scheduled session with frozen credit/slot bounds; do not treat source/deploy verification as a provider receipt |
 | Second development | SV-A.2 ranking-plan integrity v1.1 is locally implemented and tested on `codex/sv-a2-ranking-plan-integrity` against the production-verified PR #604 base; it is independent of the frozen scheduled-scan admission path. B.1 base lineage and strategy/selection registry are merged, but real-decision/outcome acceptance remains OPEN. | Finish protected CI and review; do not deploy a changed ranking policy into the prepared OPEN observation or pool v1.0 and v1.1 decisions. |
-| CLOSED successor | SV-C.1–C.7, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2 and SV-H.1–H.3 plus the E.1 volume-integrity and earlier E.2 repairs are merged and exact-revision production-deployed. C.1–C.7/D.1 migrations are production-applied and verified inert/empty. C6 deliberately blocks policy/account creation because exact-price retention duration and account-specific terms remain unverified. L.1 paper-order identity/reconciliation is locally implemented and tested without transport or submit authority; every paper runtime and broker gate remains off. The A.2 one-slot outcome-evaluation guard is also merged/deployed as `ea9a024d` without an outcome receipt. | Finish L.1 protected delivery. Separately obtain authoritative C6 entitlement/retention evidence before any C5 policy row or observed pilot. Then select L account/auth/session feasibility without granting order authority. Family-level fill/latency/impact uncertainty and forward shadow remain later H evidence; real G/H evaluation remains blocked on licensed point-in-time history plus verified rights. Account/config/policy creation, activation and OPEN pilot acceptance remain separate evidence steps. |
+| CLOSED successor | SV-C.1–C.7, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2, SV-H.1–H.3 and SV-L.1 plus the E.1 volume-integrity and earlier E.2 repairs are merged and exact-revision production-deployed. C.1–C.7/D.1 migrations are production-applied and verified inert/empty. C6 deliberately blocks policy/account creation because exact-price retention duration and account-specific terms remain unverified. L.2 read-only account/session feasibility is selected without transport, credentials or order authority; every paper runtime and broker gate remains off. The A.2 one-slot outcome-evaluation guard is also merged/deployed as `ea9a024d` without an outcome receipt. | Finish L.2 protected delivery. Separately obtain authoritative C6 entitlement/retention evidence before any C5 policy row or observed pilot. Then run only a separately bounded, redacted read-only IBKR Paper account/session feasibility probe on approved hosting; do not grant order authority. Family-level fill/latency/impact uncertainty and forward shadow remain later H evidence; real G/H evaluation remains blocked on licensed point-in-time history plus verified rights. Account/config/policy creation, activation and OPEN pilot acceptance remain separate evidence steps. |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
 
