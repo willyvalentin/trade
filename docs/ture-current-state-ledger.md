@@ -1487,10 +1487,40 @@ partial replay, future evidence, multi-exit refusal, determinism, immutability
 and authority containment. The combined E.2/L.1/N.1/N.2 plus protected-CI
 contract suite passes 51/51; strict TypeScript, changed-file lint, full lint
 with zero errors and the same eight existing warnings, and the complete Next
-production build are green locally. Protected CI, merge and exact-main deploy
-remain to be recorded. This slice performs no provider request, database write,
+production build are green locally. Feature revision
+`5cf351558a7275a23bf67c49b423c462d264b7e1` passed all applicable protected
+provider-free CI shards, aggregate and merge-candidate provenance in run
+`36106485645`, then merged through PR #641 as
+`4847d49baee78d8258c032d530f14e180c1c8457`. Netlify production deploy
+`6ab6256dd602d10008015b57` is `ready` in `production` on `main` at that exact
+merge revision. This slice performs no provider request, database write,
 ranking or publication change, broker transport or broker action, and it does
 not prove live transaction-cost accuracy or recommendation alpha.
+
+**Selected SV-N.3 CLOSED vertical slice — ordered multi-exit transaction-cost
+attribution v2, 2026-09-25 (8–16h):** owner Codex on isolated
+`codex/sv-n3-multi-exit-transaction-cost-attribution`; interface
+`broker_neutral_multi_exit_transaction_cost_attribution_v2`. The additive
+source-only core leaves N.1 v1 semantics unchanged and accepts one filled entry
+followed by up to 64 non-overlapping exit lifecycles. It reuses the exact N.1
+per-leg attribution math, tracks entered/exited/open quantity, aggregates
+attributable costs once, and computes realized gross/net P&L while allocating
+entry explicit fees proportionally to exited quantity. Exit request quantity
+may never exceed the currently owned remainder; duplicate identities,
+overlapping lifecycles, wrong side/role, malformed evidence and zero-filled
+entries fail closed. Partial exits without post-terminal opportunity evidence
+remain explicitly incomplete rather than inventing zero cost.
+
+Seven focused adversarial tests cover three-exit full closure, partial closure
+and fee/basis allocation, over-exit rejection, lifecycle overlap rejection,
+incomplete opportunity evidence, short-side signs, determinism, immutability
+and hostile-input containment. Focused tests, strict TypeScript and changed-file
+lint are green locally; protected-CI registration is included. Source-bound
+replay projection still exposes only N.2 v1 and deliberately refuses multiple
+replay exits; a separate versioned projection successor remains required before
+replay output can enter N.3 without weakening N.2. No provider request,
+database write, ranking/publication change, broker transport or broker action
+is authorized.
 
 **Selected SV-E.1 CLOSED vertical slice — deterministic one-day market replay,
 2026-09-22 (8–16h):** owner Codex on
