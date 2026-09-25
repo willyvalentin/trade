@@ -22,6 +22,10 @@ function productionShapedRun() {
     raw_candidate_count: 3,
     payload: {
       active_scan_trace: {
+        last_stage_reached: "persistence",
+        stages: {
+          final: "not_reached",
+        },
         ranking: { ranked_count: 3, selected_count: 0 },
         raw_candidates: { raw_candidate_count: 3 },
         final: {
@@ -86,6 +90,8 @@ test.describe("A.2 terminal active-scan trace reconciliation", () => {
     const scanRun = productionShapedRun();
     const reconciled = reconcileRecommendationScanRunTerminalTrace(scanRun);
     const trace = reconciled.payload_json.active_scan_trace as {
+      last_stage_reached: string;
+      stages: Record<string, unknown>;
       final: Record<string, unknown>;
     };
 
@@ -104,6 +110,8 @@ test.describe("A.2 terminal active-scan trace reconciliation", () => {
       scan_run_fingerprint: scanRun.run_fingerprint,
       zero_candidate_reason: "no_publishable_ranked_candidates",
     });
+    expect(trace.last_stage_reached).toBe("final");
+    expect(trace.stages.final).toBe("completed");
     expect(scanRun.payload_json.active_scan_trace).not.toEqual(
       reconciled.payload_json.active_scan_trace,
     );
@@ -149,6 +157,9 @@ test.describe("A.2 terminal active-scan trace reconciliation", () => {
     trace.final.recommendations_created = 3;
     trace.final.recommendations_served = 3;
     trace.final.recommendations_published_count = 3;
+    (
+      scanRun.payload_json.selected_to_built_drop_off as Record<string, unknown>
+    ).built_count = 7;
     trace.final.no_publish_reason = "stale_no_trade_reason";
     trace.final.ranked_candidates_not_published_reason =
       "stale_no_trade_reason";
@@ -218,6 +229,23 @@ test.describe("A.2 terminal active-scan trace reconciliation", () => {
       decision: "failed",
       status: "failed",
     });
+    const reconciledActiveTrace = reconciled.payload_json.active_scan_trace as {
+      last_stage_reached: string;
+      stages: Record<string, unknown>;
+    };
+    expect(reconciledActiveTrace.last_stage_reached).toBe("final");
+    expect(reconciledActiveTrace.stages.final).toBe("failed");
+  });
+
+  test("fails closed instead of rounding fractional coverage counts", () => {
+    const scanRun = productionShapedRun();
+    const record = scanRun.payload_json
+      .candidate_decision_record as Record<string, unknown>;
+    (record.coverage as Record<string, unknown>).observed_candidate_count = 2.5;
+
+    expect(() => reconcileRecommendationScanRunTerminalTrace(scanRun)).toThrow(
+      "candidate_decision_terminal_evidence_invalid",
+    );
   });
 
   test("fails closed on decision or trace identity drift", () => {

@@ -481,7 +481,9 @@ export function buildRecommendationScanRun(
 function nonNegativeInteger(value: unknown) {
   const numeric = finiteNumber(value);
 
-  return numeric !== null && numeric >= 0 ? Math.floor(numeric) : null;
+  return numeric !== null && Number.isInteger(numeric) && numeric >= 0
+    ? numeric
+    : null;
 }
 
 /**
@@ -497,12 +499,19 @@ export function reconcileRecommendationScanRunTerminalTrace(
 ): RecommendationScanRun {
   const activeScanTrace = objectOrNull(scanRun.payload_json.active_scan_trace);
   const terminal = objectOrNull(activeScanTrace?.final);
+  const stages = objectOrNull(activeScanTrace?.stages);
   const decisionRecord = objectOrNull(
     scanRun.payload_json.candidate_decision_record,
   );
   const finalDecision = objectOrNull(decisionRecord?.final_decision);
 
-  if (!activeScanTrace || !terminal || !decisionRecord || !finalDecision) {
+  if (
+    !activeScanTrace ||
+    !terminal ||
+    !stages ||
+    !decisionRecord ||
+    !finalDecision
+  ) {
     return scanRun;
   }
 
@@ -610,11 +619,7 @@ export function reconcileRecommendationScanRunTerminalTrace(
   const generatedCount = observedCandidateCount;
   const rankedCount = rankedCandidateCount;
   const publishedCount = publishedTickers.length;
-  const builtCount = Math.max(
-    nonNegativeInteger(dropOff?.built_count) ?? 0,
-    candidateBuiltCount,
-    publishedCount,
-  );
+  const builtCount = Math.max(candidateBuiltCount, publishedCount);
   const noTradeReason =
     disposition === "no_trade"
       ? textOrNull(String(finalDecision.no_trade_reason ?? ""))
@@ -661,6 +666,11 @@ export function reconcileRecommendationScanRunTerminalTrace(
       ...scanRun.payload_json,
       active_scan_trace: {
         ...activeScanTrace,
+        last_stage_reached: "final",
+        stages: {
+          ...stages,
+          final: terminalStatus,
+        },
         final: reconciledFinal,
       },
     },
