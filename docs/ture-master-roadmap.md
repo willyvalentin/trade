@@ -340,6 +340,18 @@ Shadow portfolios reserve capital independently and cannot double-count one
 opportunity as many independent observations. Counters for rejected/missing
 samples make storage limits and selection bias visible.
 
+Provider-rights admission must distinguish an active-subscription retention
+right from a post-termination deletion obligation. A public instruction to
+delete data after a subscription ends is never a numeric right to retain exact
+prices or candles while the subscription is active. Public cache examples also
+do not establish a retention duration. If exact decision, fill or exit evidence
+is reconstructable from provider prices, the applicable plan and account must
+have a current, account-scoped provider confirmation that states the numeric
+retention ceiling and resolves applicable third-party US-equity terms. A pure
+reconciliation result may make that evidence eligible for an independent
+database-admission review; it cannot itself admit rights, provision a pilot,
+activate a worker or authorize a provider or broker action.
+
 ### IBKR design boundaries to resolve in SV-L
 
 Use one domain decision/risk/portfolio core and capability-aware adapters for
