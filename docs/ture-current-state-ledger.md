@@ -286,6 +286,17 @@ weaken publication thresholds. Cleanup production deploy
 one-shot false, its date/slot cleared, catalog-observation one-shot restored
 true and the global scheduler disable still true.
 
+**A.2 same-day second normal-scan preflight no-go, 2026-09-25:** after the
+cleanup above, the authenticated production preflight for a later target slot
+returned `blocked` with `normal_scan_reservation_already_exists`. Its read-only
+snapshot retained exactly one finalized normal reservation for eight credits,
+zero active reservations, zero unresolved scheduled attempts and zero attempts
+for the proposed later slot, against the configured 800-credit daily and
+eight-credit minute limits. No flag, deploy, provider request, candidate,
+publication or broker state changed. The daily claim guard remains authority;
+do not retry or bypass it. The terminal-trace repair therefore needs a new
+bounded normal-scan observation on the next eligible regular session.
+
 **A.2 authorized catalog-probe bounded missing result, 2026-09-21:** before
 the 15:30 CEST scheduled slot, a direct production ledger read for New York
 date `2026-09-21` found zero `catalog_observation` reservations and zero
@@ -329,6 +340,56 @@ result. The existing Basic Free catalog reference observation is not itself an
 outcome evaluation and cannot close the end-to-end outcome evidence gap. Do not
 invoke either route manually, add a provider request, or infer outcome coverage
 from a completed scan.
+
+**Frozen A.2 OPEN outcome-evaluation receipt observation — one scheduled
+one-shot, 2026-09-25 `16:15:00Z` (12:15 America/New_York / 18:15 CEST):**
+
+- **Question and scope.** Can the deployed one-slot outcome adapter produce
+  exactly one attributable, durable terminal attempt and truthful
+  decision-to-outcome readback under the shared Basic Free guard? This is an
+  operational delivery, credit and lineage test. A complete zero-eligible or
+  zero-evaluated receipt is a valid delivery result but does not prove outcome
+  persistence, strategy quality or alpha.
+- **Frozen source and environment contract.** The behavior baseline is main
+  `968aacfc377ddb5344b5c89495c3af0d5c2dc0c9` and ready production deploy
+  `6ab687adae4793000852226c`, including the merged one-slot admission and shared
+  outcome-credit guard. A documentation-only commit carrying this card may
+  change the final Git/deploy identity, but the outcome function, route,
+  receipt, provider-credit and ownership paths must remain byte-for-byte
+  unchanged from this baseline. Before arming, require a ready Git-connected
+  production deploy of current `main` with `scheduled-outcome-evaluation`
+  registered on its ordinary quarter-hour schedule. Any behavior-path drift,
+  deploy/main mismatch or non-production identity is `no_go`.
+- **Preconditions and budget.** Production must still show no outcome attempt
+  for New York date `2026-09-25`, no active overlapping provider reservation
+  and enough verified Basic Free day/minute capacity for at most four outcome
+  candle requests. Keep the daily normal-scan result and its eight credits
+  untouched. Do not change strategy, ranking, publication, candidate or broker
+  policy; do not invoke a route or provider directly and do not retry. If the
+  owner/date/slot claim, configured 800/day or eight/minute budget, exact
+  source identity or any other precondition is uncertain, fail closed before
+  provider work.
+- **One-shot and recovery boundary.** Keep
+  `TURE_DISABLE_SCHEDULED_FUNCTIONS=true` throughout. Arm only
+  `TURE_OUTCOME_EVALUATION_ONE_SHOT_ENABLED=true`, date `2026-09-25` and slot
+  `2026-09-25T16:15:00.000Z`; normal-scan one-shot and catalog capability probe
+  must remain false and the internal-paper worker must not be enabled. The
+  activation deploy must be ready at least one complete scheduler interval
+  before the target. Let only Netlify's normal schedule invoke the packaged
+  route. From one minute after the slot, perform a bounded readback of the
+  attributable attempt, finalized credits, evaluated snapshots, persisted
+  outcomes and owner-bound decision-to-outcome chain, then immediately disable
+  outcome one-shot, clear its date/slot and verify a ready cleanup deploy on
+  unchanged `main`.
+- **Classification.** Delivery/receipt passes only with exactly one target-slot
+  attempt, no more than four reserved/finalized credits, a terminal truthful
+  receipt and zero candidate/publication/broker side effects. A terminal
+  no-eligible/blocked receipt may pass that narrow delivery dimension while
+  leaving outcome evaluation and persistence unproven. A provider block,
+  timeout, stale source or insufficient horizon is `inconclusive`; no bounded
+  terminal receipt is `missing_result`; duplication, budget excess, wrong
+  owner/date/slot identity, malformed lineage, unreported write or any broker/
+  publication side effect is `fail`.
 
 **A.2 provider-free preflight retry, 2026-09-21:** the explicitly authorized
 retry first restored a previously left-on probe flag, then used normal
@@ -2120,10 +2181,14 @@ pre-terminal-stage contradiction, universe-versus-observation truth guard,
 stale built-count rejection and fractional-counter fail-closed behavior.
 The combined decision-lineage/window/invocation regression passes 55/55;
 changed-file lint, strict non-incremental TypeScript, diff check and the complete
-Next production build also pass. Protected delivery and a later
-exact-environment receipt remain pending; the 2026-09-25 OPEN result above is
-failure evidence for the predecessor, not environment verification of this
-repair.
+Next production build also pass. PR #646 passed all six protected provider-free
+CI shards plus aggregate and merge-candidate provenance, then merged as main
+`968aacfc377ddb5344b5c89495c3af0d5c2dc0c9`. Automatic Netlify production
+deploy `6ab687adae4793000852226c` is `ready` on that exact revision with the
+scheduled functions registered. This is source, CI and exact-deploy evidence;
+the 2026-09-25 OPEN result above is failure evidence for the predecessor, not
+environment verification of this repair. A later bounded normal scan remains
+required.
 
 **Selected SV-E.2 CLOSED IOC liquidity look-ahead repair, 2026-09-23
 (4–8h):** owner Codex on `codex/sv-e2-ioc-prior-volume-proxy`, integrated
@@ -2244,9 +2309,9 @@ on A/B evidence and must not be inferred from the source registry.
 
 | Work slot | Selected state | Entry / return condition |
 | --- | --- | --- |
-| Primary development | A.2 one-slot normal-scan and shared outcome-credit guards are merged and exact-revision production-deployed. The 2026-09-25 normal scan produced bounded OPEN evidence and an honest no-trade, but failed terminal trace continuity; outcome behavior evidence remains OPEN. | Close PR #646 through protected delivery, then freeze a later exact-environment receipt test; do not treat source/deploy verification or the failed predecessor receipt as repaired behavior. |
-| Second development | A.2 terminal decision-trace reconciliation is locally implemented and fully tested on `codex/a2-terminal-trace-reconciliation`. The 2026-09-25 OPEN observation reproduced its exact predecessor defect without a budget, publication or broker escape. | Complete protected CI/review and exact-revision deployment; verify the repaired receipt only in a later separately bounded OPEN observation. |
-| CLOSED successor | SV-C.1–C.8, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2, SV-H.1–H.4, SV-L.1–L.2 and SV-N.1–N.5 plus the E.1 volume-integrity and earlier E.2 repairs are merged and exact-revision production-deployed. C.1–C.7/D.1 migrations are production-applied and verified inert/empty. C6 deliberately blocks policy/account creation because exact-price retention duration and account-specific terms remain unverified; C.8 preserves that fail-closed state. Every paper runtime and broker gate remains off. Production environment metadata has no IBKR/TWS variables, client dependency or declared persistent worker, so a real L.2 account/session probe is not currently executable there. Both available browser sessions require a fresh Twelve Data login, so account-scoped retention confirmation also remains external. The A.2 one-slot outcome-evaluation guard is merged/deployed as `ea9a024d` without an outcome receipt. | After PR #646 protected delivery, select the next compatible CLOSED slice. Separately obtain authenticated account-scoped Twelve Data confirmation of exact-price/candle retention and applicable US-equity third-party terms before any C6 admission or C5/C7 account-policy creation. Provision and approve persistent hosting plus read-only IBKR Paper credentials before an L.2 account/session probe; do not grant order authority. Market-impact/cancellation uncertainty and forward shadow remain later H evidence; real G/H evaluation remains blocked on licensed point-in-time history plus verified rights. Account/config/policy creation, activation and OPEN pilot acceptance remain separate evidence steps. |
+| Primary development | A.2 terminal decision-trace reconciliation is merged, protected-CI verified and exact-revision production-deployed as `968aacfc`; the predecessor's 2026-09-25 receipt failed and today's second normal scan is correctly blocked by the daily claim. | Verify the repair in one later bounded normal scan on the next eligible regular session; do not infer repaired environment behavior from source/deploy evidence. |
+| Second development | A.2 one-slot outcome-evaluation admission and shared credit guard are merged/deployed. Production has no outcome attempt for 2026-09-25, and the exact `16:15Z` receipt observation above is frozen without changing recommendation policy. | If every frozen precondition holds, execute exactly that normal scheduled one-shot, perform bounded readback and clean up immediately; otherwise record `no_go` without provider work. |
+| CLOSED successor | SV-C.1–C.8, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2, SV-H.1–H.4, SV-L.1–L.2 and SV-N.1–N.5 plus the E.1 volume-integrity and earlier E.2 repairs are merged and exact-revision production-deployed. C.1–C.7/D.1 migrations are production-applied and verified inert/empty. C6 deliberately blocks policy/account creation because exact-price retention duration and account-specific terms remain unverified; C.8 preserves that fail-closed state. Every paper runtime and broker gate remains off. Production environment metadata has no IBKR/TWS variables, client dependency or declared persistent worker, so a real L.2 account/session probe is not currently executable there. Both available browser sessions require a fresh Twelve Data login, so account-scoped retention confirmation also remains external. | After the bounded outcome observation is cleaned up or skipped, select the next compatible CLOSED slice. Separately obtain authenticated account-scoped Twelve Data confirmation of exact-price/candle retention and applicable US-equity third-party terms before any C6 admission or C5/C7 account-policy creation. Provision and approve persistent hosting plus read-only IBKR Paper credentials before an L.2 account/session probe; do not grant order authority. Market-impact/cancellation uncertainty and forward shadow remain later H evidence; real G/H evaluation remains blocked on licensed point-in-time history plus verified rights. Account/config/policy creation, activation and OPEN pilot acceptance remain separate evidence steps. |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
 
