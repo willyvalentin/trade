@@ -1451,10 +1451,46 @@ determinism and
 immutability. Focused tests, strict TypeScript and changed-file lint are green
 locally; the combined L.1/L.2/N.1 plus protected-CI contract suite passes 40/40,
 full repository lint has zero errors and the same eight existing warnings, and
-the complete Next production build passes. Protected CI, merge, exact-main
-deploy, real IBKR/account evidence and actual live TCA remain separate; the core
-contains no transport, database, provider, ranking, publication or broker
-authority.
+the complete Next production build passes. Feature revision
+`c3aa17c6bd0687b12f9d98dcb31cc8b6006a6348` passed all applicable protected
+provider-free CI shards, aggregate and merge-candidate provenance in run
+`36102487080`, then merged through PR #640 as
+`53af90b609b92c297d1a7e7cab68aa0e4ca0f238`. Netlify production deploy
+`6ab6196521f9fe00080e09a9` is `ready` in `production` on `main` at that exact
+merge revision. This proves protected source delivery only; real IBKR/account
+evidence and actual live TCA remain separate, and the core contains no
+transport, database, provider, ranking, publication or broker authority.
+
+**Selected SV-N.2 CLOSED vertical slice — source-bound transaction-cost
+projection, 2026-09-25 (8–16h):** owner Codex on isolated
+`codex/sv-n2-source-bound-attribution-adapters`; interface
+`source_bound_transaction_cost_projection_v1`. Two pure adapters recompute the
+existing L.1 IBKR-paper reconciliation or E.2 internal replay execution from
+the supplied source input and require exact equality with the claimed source
+receipt before projecting any N.1 leg. Each accepted projection binds owner,
+decision fingerprint, symbol, side, source input/result digests, chronology,
+individual fills, terminal disposition and explicit costs. IBKR decision and
+arrival references remain explicit supplied benchmark evidence; the adapter
+does not reinterpret a limit price or status timestamp as a market benchmark.
+Internal replay derives modeled arrival/fill/spread/slippage only from the
+recomputed replay and requires separately bound decision evidence.
+
+Terminal filled and partially-filled-cancelled IBKR orders are supported;
+working, uncertain, correction/manual-review and incomplete reconciliation
+states fail closed. Internal replay supports one modeled entry plus at most one
+exit order in this slice. Multiple replay exit orders remain explicitly
+blocked rather than being collapsed under one false lifecycle benchmark.
+Missing post-terminal opportunity evidence remains null and therefore keeps
+N.1 total cost incomplete. Eight focused tests cover full and partial IBKR,
+forged source receipts, benchmark binding, nonterminal evidence, full and
+partial replay, future evidence, multi-exit refusal, determinism, immutability
+and authority containment. The combined E.2/L.1/N.1/N.2 plus protected-CI
+contract suite passes 51/51; strict TypeScript, changed-file lint, full lint
+with zero errors and the same eight existing warnings, and the complete Next
+production build are green locally. Protected CI, merge and exact-main deploy
+remain to be recorded. This slice performs no provider request, database write,
+ranking or publication change, broker transport or broker action, and it does
+not prove live transaction-cost accuracy or recommendation alpha.
 
 **Selected SV-E.1 CLOSED vertical slice — deterministic one-day market replay,
 2026-09-22 (8–16h):** owner Codex on

@@ -407,6 +407,22 @@ function legValid(leg: unknown, attributedAt: number) {
   );
 }
 
+/**
+ * Public, side-effect-free admission check for source adapters. It exposes the
+ * exact leg boundary used by the attribution core without granting authority
+ * to rank, persist, publish, fetch data or contact a broker.
+ */
+export function validateBrokerNeutralTransactionCostLeg(
+  leg: unknown,
+  attributedAt: string,
+) {
+  try {
+    return instant(attributedAt) && legValid(leg, Date.parse(attributedAt));
+  } catch {
+    return false;
+  }
+}
+
 function inputValid(value: unknown): value is BrokerNeutralTransactionCostAttributionInput {
   if (!exactRecord(value, INPUT_KEYS)) return false;
   const input = value as Record<string, unknown>;
