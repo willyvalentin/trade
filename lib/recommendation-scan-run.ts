@@ -536,14 +536,17 @@ export function reconcileRecommendationScanRunTerminalTrace(
   }
 
   const coverage = objectOrNull(decisionRecord.coverage);
-  const publishedTickers = Array.isArray(finalDecision.published_tickers)
-    ? finalDecision.published_tickers.filter(
-        (ticker): ticker is string =>
-          typeof ticker === "string" && ticker.trim().length > 0,
-      )
-    : [];
-  const ranking = objectOrNull(activeScanTrace.ranking);
-  const rawCandidates = objectOrNull(activeScanTrace.raw_candidates);
+  const candidates = Array.isArray(decisionRecord.candidates)
+    ? decisionRecord.candidates
+    : null;
+  const rawPublishedTickers = Array.isArray(finalDecision.published_tickers)
+    ? finalDecision.published_tickers
+    : null;
+  const publishedTickers = rawPublishedTickers?.filter(
+    (ticker): ticker is string =>
+      typeof ticker === "string" && ticker.trim().length > 0,
+  ) ?? [];
+  const disposition = textOrNull(String(finalDecision.disposition ?? ""));
   const dropOff = objectOrNull(
     scanRun.payload_json.selected_to_built_drop_off,
   );
@@ -552,32 +555,73 @@ export function reconcileRecommendationScanRunTerminalTrace(
   )
     ? scanRun.payload_json.selected_candidate_build_diagnostics
     : [];
-  const visibleCount = scanRun.counts.visible_recommendation_count;
-  const rankedCount = Math.max(
-    nonNegativeInteger(ranking?.ranked_count) ?? 0,
-    nonNegativeInteger(terminal.ranked_candidates_count) ?? 0,
-    nonNegativeInteger(coverage?.ranked_candidate_count) ?? 0,
+  const observedCandidateCount = nonNegativeInteger(
+    coverage?.observed_candidate_count,
   );
-  const generatedCount = Math.max(
-    scanRun.raw_candidate_count ?? 0,
-    nonNegativeInteger(rawCandidates?.raw_candidate_count) ?? 0,
-    nonNegativeInteger(coverage?.observed_candidate_count) ?? 0,
+  const rankedCandidateCount = nonNegativeInteger(
+    coverage?.ranked_candidate_count,
   );
-  const publishedCount = Math.max(
-    nonNegativeInteger(terminal.recommendations_published_count) ?? 0,
-    publishedTickers.length,
-    visibleCount,
+  const expectedCandidateCount = nonNegativeInteger(
+    coverage?.expected_candidate_count,
   );
+  const publishedCandidateTickers = candidates?.flatMap((candidate) => {
+    const row = objectOrNull(candidate);
+    const ticker = textOrNull(String(row?.ticker ?? ""));
+    return row?.disposition === "published" && ticker
+      ? [ticker.toUpperCase()]
+      : [];
+  }) ?? [];
+  const normalizedPublishedTickers = publishedTickers.map((ticker) =>
+    ticker.trim().toUpperCase(),
+  );
+  const publishedCandidateTickerSet = new Set(publishedCandidateTickers);
+  const normalizedPublishedTickerSet = new Set(normalizedPublishedTickers);
+
+  if (
+    candidates === null ||
+    rawPublishedTickers === null ||
+    publishedTickers.length !== rawPublishedTickers.length ||
+    new Set(publishedTickers.map((ticker) => ticker.trim().toUpperCase())).size !==
+      publishedTickers.length ||
+    observedCandidateCount === null ||
+    rankedCandidateCount === null ||
+    expectedCandidateCount === null ||
+    candidates.length !== expectedCandidateCount ||
+    observedCandidateCount > expectedCandidateCount ||
+    rankedCandidateCount > observedCandidateCount ||
+    publishedCandidateTickerSet.size !== publishedCandidateTickers.length ||
+    publishedCandidateTickerSet.size !== normalizedPublishedTickerSet.size ||
+    [...publishedCandidateTickerSet].some(
+      (ticker) => !normalizedPublishedTickerSet.has(ticker),
+    ) ||
+    (disposition !== "no_trade" &&
+      disposition !== "recommendations_published") ||
+    (disposition === "no_trade" && publishedTickers.length > 0) ||
+    (disposition === "recommendations_published" &&
+      publishedTickers.length === 0)
+  ) {
+    throw new Error("candidate_decision_terminal_evidence_invalid");
+  }
+
+  const candidateBuiltCount = candidates.filter((candidate) => {
+    const build = objectOrNull(objectOrNull(candidate)?.build);
+    return build?.built === true;
+  }).length;
+  const generatedCount = observedCandidateCount;
+  const rankedCount = rankedCandidateCount;
+  const publishedCount = publishedTickers.length;
   const builtCount = Math.max(
-    nonNegativeInteger(terminal.recommendations_built_count) ?? 0,
     nonNegativeInteger(dropOff?.built_count) ?? 0,
-    visibleCount,
+    candidateBuiltCount,
     publishedCount,
   );
   const noTradeReason =
-    finalDecision.disposition === "no_trade"
+    disposition === "no_trade"
       ? textOrNull(String(finalDecision.no_trade_reason ?? ""))
       : null;
+  if (disposition === "no_trade" && noTradeReason === null) {
+    throw new Error("candidate_decision_terminal_evidence_invalid");
+  }
   const recommendationBuildPath = textOrNull(
     String(finalDecision.recommendation_build_path ?? ""),
   );
@@ -586,47 +630,21 @@ export function reconcileRecommendationScanRunTerminalTrace(
 
   const reconciledFinal = {
     ...terminal,
-    decision:
-      scanRun.status === "failed"
-        ? "failed"
-        : textOrNull(String(terminal.decision ?? "")) ?? "scanned",
-    status:
-      scanRun.status === "failed"
-        ? "failed"
-        : textOrNull(String(terminal.status ?? "")) ?? terminalStatus,
-    candidates_generated: Math.max(
-      nonNegativeInteger(terminal.candidates_generated) ?? 0,
-      generatedCount,
-    ),
-    recommendations_served: Math.max(
-      nonNegativeInteger(terminal.recommendations_served) ?? 0,
-      visibleCount,
-      publishedCount,
-    ),
-    recommendations_created: Math.max(
-      nonNegativeInteger(terminal.recommendations_created) ?? 0,
-      visibleCount,
-      publishedCount,
-    ),
-    ranked_candidates_count: Math.max(
-      nonNegativeInteger(terminal.ranked_candidates_count) ?? 0,
-      rankedCount,
-    ),
+    decision: scanRun.status === "failed" ? "failed" : "scanned",
+    status: terminalStatus,
+    candidates_generated: generatedCount,
+    recommendations_served: publishedCount,
+    recommendations_created: publishedCount,
+    ranked_candidates_count: rankedCount,
     recommendations_published_count: publishedCount,
     ranked_candidates_not_published_reason:
-      textOrNull(
-        String(terminal.ranked_candidates_not_published_reason ?? ""),
-      ) ?? (publishedCount === 0 && rankedCount > 0 ? noTradeReason : null),
-    no_publish_reason:
-      textOrNull(String(terminal.no_publish_reason ?? "")) ?? noTradeReason,
-    recommendation_build_path:
-      textOrNull(String(terminal.recommendation_build_path ?? "")) ??
-      recommendationBuildPath,
+      disposition === "no_trade" && rankedCount > 0 ? noTradeReason : null,
+    no_publish_reason: disposition === "no_trade" ? noTradeReason : null,
+    recommendation_build_path: recommendationBuildPath,
     recommendations_built_count: builtCount,
     scan_run_fingerprint: scanRun.run_fingerprint,
     zero_candidate_reason:
-      textOrNull(String(terminal.zero_candidate_reason ?? "")) ??
-      (publishedCount === 0 ? noTradeReason : null),
+      disposition === "no_trade" ? noTradeReason : null,
     selected_candidate_build_diagnostics:
       selectedDiagnostics.length > 0
         ? selectedDiagnostics

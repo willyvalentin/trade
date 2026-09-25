@@ -68,6 +68,7 @@ function productionShapedRun() {
     },
     candidates: Array.from({ length: 8 }, (_, index) => ({
       ticker: `T${index + 1}`,
+      disposition: "not_evaluated",
     })),
     final_decision: {
       disposition: "no_trade",
@@ -139,6 +140,19 @@ test.describe("A.2 terminal active-scan trace reconciliation", () => {
   test("retains a published decision without inventing no-trade reasons", () => {
     const scanRun = productionShapedRun();
     scanRun.counts.visible_recommendation_count = 0;
+    const trace = scanRun.payload_json.active_scan_trace as {
+      final: Record<string, unknown>;
+    };
+    trace.final.decision = "skipped";
+    trace.final.candidates_generated = 8;
+    trace.final.ranked_candidates_count = 8;
+    trace.final.recommendations_created = 3;
+    trace.final.recommendations_served = 3;
+    trace.final.recommendations_published_count = 3;
+    trace.final.no_publish_reason = "stale_no_trade_reason";
+    trace.final.ranked_candidates_not_published_reason =
+      "stale_no_trade_reason";
+    trace.final.zero_candidate_reason = "stale_no_trade_reason";
     const record = scanRun.payload_json
       .candidate_decision_record as Record<string, unknown>;
     record.final_decision = {
@@ -147,15 +161,20 @@ test.describe("A.2 terminal active-scan trace reconciliation", () => {
       published_tickers: ["T1"],
       recommendation_build_path: "published",
     };
+    (record.candidates as Array<Record<string, unknown>>)[0]!.disposition =
+      "published";
 
     const reconciled = reconcileRecommendationScanRunTerminalTrace(scanRun);
-    const trace = reconciled.payload_json.active_scan_trace as {
+    const reconciledTrace = reconciled.payload_json.active_scan_trace as {
       final: Record<string, unknown>;
     };
 
-    expect(trace.final).toMatchObject({
-      recommendations_served: 1,
+    expect(reconciledTrace.final).toMatchObject({
+      decision: "scanned",
+      candidates_generated: 3,
+      ranked_candidates_count: 3,
       recommendations_created: 1,
+      recommendations_served: 1,
       recommendations_built_count: 1,
       recommendations_published_count: 1,
       no_publish_reason: null,
@@ -163,6 +182,22 @@ test.describe("A.2 terminal active-scan trace reconciliation", () => {
       recommendation_build_path: "published",
       zero_candidate_reason: null,
     });
+  });
+
+  test("fails closed on contradictory terminal decision evidence", () => {
+    const scanRun = productionShapedRun();
+    const record = scanRun.payload_json
+      .candidate_decision_record as Record<string, unknown>;
+    record.final_decision = {
+      disposition: "no_trade",
+      no_trade_reason: "no_publishable_ranked_candidates",
+      published_tickers: ["T1"],
+      recommendation_build_path: "no_publish",
+    };
+
+    expect(() => reconcileRecommendationScanRunTerminalTrace(scanRun)).toThrow(
+      "candidate_decision_terminal_evidence_invalid",
+    );
   });
 
   test("does not preserve a stale successful terminal state for a failed run", () => {
