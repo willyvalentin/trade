@@ -44,6 +44,7 @@ const foundationTests = [
   "tests/e2e/sv-n2-source-bound-transaction-cost-projection.spec.ts",
   "tests/e2e/sv-n3-multi-exit-transaction-cost-attribution.spec.ts",
   "tests/e2e/sv-n4-source-bound-internal-replay-multi-exit-projection.spec.ts",
+  "tests/e2e/sv-n5-source-bound-ibkr-multi-order-projection.spec.ts",
   "tests/e2e/scheduled-scan-invocation-idempotency.spec.ts",
   "tests/e2e/a2-basic-free-scan-preflight-readback.spec.ts",
   "tests/e2e/intraday-volume-provenance.spec.ts",
