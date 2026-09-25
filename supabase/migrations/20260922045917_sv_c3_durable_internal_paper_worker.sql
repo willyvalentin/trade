@@ -5,6 +5,133 @@
 -- Jobs are service-role-only and can execute only the already fail-closed,
 -- idempotent C1/C2 paper entry and exit database boundaries.
 
+set lock_timeout = '5s';
+set statement_timeout = '60s';
+
+-- Production admission is deliberately empty-state only. The queue is an
+-- execution boundary over the exact C.1/C.2 contract, so any existing paper
+-- state or catalog drift requires a separately reviewed migration.
+do $$
+declare
+  v_entry_function oid := pg_catalog.to_regprocedure(
+    'public.app_apply_internal_paper_entry_v1(uuid,uuid,text,text,text,text,text,text,text,text,text,text,text,text,bigint,numeric,numeric,numeric,timestamptz,text,text)'
+  );
+  v_exit_function oid := pg_catalog.to_regprocedure(
+    'public.app_apply_internal_paper_exit_v1(uuid,uuid,uuid,uuid,text,text,text)'
+  );
+  v_sequence_last_value bigint;
+  v_sequence_is_called boolean;
+begin
+  if pg_catalog.to_regclass('public.internal_paper_accounts') is null
+    or pg_catalog.to_regclass('public.internal_paper_entry_intents') is null
+    or pg_catalog.to_regclass('public.internal_paper_fills') is null
+    or pg_catalog.to_regclass('public.internal_paper_positions') is null
+    or pg_catalog.to_regclass('public.internal_paper_ledger_entries') is null
+    or pg_catalog.to_regclass('public.internal_paper_exit_intents') is null
+    or pg_catalog.to_regclass('public.internal_paper_exit_fills') is null
+    or pg_catalog.to_regclass('public.internal_paper_ledger_global_sequence') is null
+  then
+    raise exception 'sv_c3_required_c1_c2_contract_missing';
+  end if;
+
+  if exists (select 1 from public.internal_paper_accounts)
+    or exists (select 1 from public.internal_paper_entry_intents)
+    or exists (select 1 from public.internal_paper_fills)
+    or exists (select 1 from public.internal_paper_positions)
+    or exists (select 1 from public.internal_paper_ledger_entries)
+    or exists (select 1 from public.internal_paper_exit_intents)
+    or exists (select 1 from public.internal_paper_exit_fills)
+  then
+    raise exception 'sv_c3_requires_empty_c1_c2_state';
+  end if;
+
+  if exists (
+    select 1
+    from (values
+      ('public.internal_paper_accounts', 'id', 'uuid'::pg_catalog.regtype, true),
+      ('public.internal_paper_accounts', 'owner_user_id', 'uuid'::pg_catalog.regtype, true),
+      ('public.internal_paper_accounts', 'status', 'text'::pg_catalog.regtype, true),
+      ('public.recommendation_scan_runs', 'id', 'text'::pg_catalog.regtype, true),
+      ('public.recommendation_scan_runs', 'run_fingerprint', 'text'::pg_catalog.regtype, true),
+      ('public.recommendation_scan_runs', 'owner_user_id', 'uuid'::pg_catalog.regtype, false),
+      ('public.recommendation_scan_runs', 'payload_json', 'jsonb'::pg_catalog.regtype, true)
+    ) as expected(relation_name, column_name, type_oid, must_be_not_null)
+    where not exists (
+      select 1
+      from pg_catalog.pg_attribute attribute
+      where attribute.attrelid = pg_catalog.to_regclass(expected.relation_name)
+        and attribute.attname = expected.column_name
+        and attribute.atttypid = expected.type_oid
+        and (not expected.must_be_not_null or attribute.attnotnull)
+        and attribute.attnum > 0
+        and not attribute.attisdropped
+    )
+  ) or not exists (
+    select 1
+    from pg_catalog.pg_constraint constraint_record
+    where constraint_record.conrelid = 'public.internal_paper_accounts'::pg_catalog.regclass
+      and constraint_record.contype = 'u'
+      and constraint_record.convalidated
+      and pg_catalog.pg_get_constraintdef(constraint_record.oid, true) =
+        'UNIQUE (id, owner_user_id)'
+  ) then
+    raise exception 'sv_c3_unexpected_c1_c2_table_contract';
+  end if;
+
+  if v_entry_function is null or v_exit_function is null or exists (
+    select 1
+    from (values (v_entry_function), (v_exit_function)) as required(procedure_oid)
+    where not exists (
+      select 1
+      from pg_catalog.pg_proc procedure_record
+      where procedure_record.oid = required.procedure_oid
+        and procedure_record.prokind = 'f'
+        and procedure_record.prosecdef
+        and procedure_record.proconfig @>
+          array['search_path=pg_catalog, public']::text[]
+    )
+      or not pg_catalog.has_function_privilege(
+        'service_role', required.procedure_oid, 'EXECUTE'
+      )
+      or pg_catalog.has_function_privilege(
+        'anon', required.procedure_oid, 'EXECUTE'
+      )
+      or pg_catalog.has_function_privilege(
+        'authenticated', required.procedure_oid, 'EXECUTE'
+      )
+  ) then
+    raise exception 'sv_c3_unexpected_c1_c2_function_contract';
+  end if;
+
+  select last_value, is_called
+  into v_sequence_last_value, v_sequence_is_called
+  from public.internal_paper_ledger_global_sequence;
+  if v_sequence_last_value <> 1 or v_sequence_is_called then
+    raise exception 'sv_c3_requires_unconsumed_ledger_sequence';
+  end if;
+
+  if pg_catalog.to_regclass('public.internal_paper_worker_jobs') is not null
+    or pg_catalog.to_regprocedure(
+      'public.app_enqueue_internal_paper_worker_job_v1(uuid,uuid,text,jsonb,text)'
+    ) is not null
+    or pg_catalog.to_regprocedure(
+      'public.app_claim_internal_paper_worker_job_v1(text,timestamptz,integer,text)'
+    ) is not null
+    or pg_catalog.to_regprocedure(
+      'public.app_execute_internal_paper_worker_job_v1(uuid,uuid,timestamptz,text)'
+    ) is not null
+    or pg_catalog.to_regprocedure(
+      'public.app_release_internal_paper_worker_job_v1(uuid,uuid,timestamptz,timestamptz,text,text)'
+    ) is not null
+    or pg_catalog.to_regprocedure(
+      'public.app_read_internal_paper_worker_v1(uuid,uuid,text)'
+    ) is not null
+  then
+    raise exception 'sv_c3_preexisting_worker_contract';
+  end if;
+end;
+$$;
+
 create table public.internal_paper_worker_jobs (
   id uuid primary key default gen_random_uuid(),
   owner_user_id uuid not null references auth.users(id) on delete restrict,
@@ -62,6 +189,10 @@ create index internal_paper_worker_jobs_claim_idx
   where status in ('queued', 'leased');
 create index internal_paper_worker_jobs_account_created_idx
   on public.internal_paper_worker_jobs (account_id, created_at desc, id desc);
+create index internal_paper_worker_jobs_owner_idx
+  on public.internal_paper_worker_jobs (owner_user_id);
+create index internal_paper_worker_jobs_account_owner_idx
+  on public.internal_paper_worker_jobs (account_id, owner_user_id);
 create unique index internal_paper_worker_jobs_one_live_lease_per_account_uidx
   on public.internal_paper_worker_jobs (account_id)
   where status = 'leased';
@@ -70,7 +201,7 @@ alter table public.internal_paper_worker_jobs enable row level security;
 revoke all privileges on table public.internal_paper_worker_jobs
   from public, anon, authenticated, service_role;
 
-create or replace function public.app_enqueue_internal_paper_worker_job_v1(
+create function public.app_enqueue_internal_paper_worker_job_v1(
   p_owner_user_id uuid,
   p_account_id uuid,
   p_work_kind text,
@@ -189,7 +320,7 @@ grant execute on function public.app_enqueue_internal_paper_worker_job_v1(
   uuid, uuid, text, jsonb, text
 ) to service_role;
 
-create or replace function public.app_claim_internal_paper_worker_job_v1(
+create function public.app_claim_internal_paper_worker_job_v1(
   p_worker_id text,
   p_now timestamptz,
   p_lease_seconds integer,
@@ -270,7 +401,7 @@ grant execute on function public.app_claim_internal_paper_worker_job_v1(
   text, timestamptz, integer, text
 ) to service_role;
 
-create or replace function public.app_execute_internal_paper_worker_job_v1(
+create function public.app_execute_internal_paper_worker_job_v1(
   p_job_id uuid,
   p_lease_token uuid,
   p_now timestamptz,
@@ -409,7 +540,7 @@ grant execute on function public.app_execute_internal_paper_worker_job_v1(
   uuid, uuid, timestamptz, text
 ) to service_role;
 
-create or replace function public.app_release_internal_paper_worker_job_v1(
+create function public.app_release_internal_paper_worker_job_v1(
   p_job_id uuid,
   p_lease_token uuid,
   p_now timestamptz,
@@ -475,7 +606,7 @@ grant execute on function public.app_release_internal_paper_worker_job_v1(
   uuid, uuid, timestamptz, timestamptz, text, text
 ) to service_role;
 
-create or replace function public.app_read_internal_paper_worker_v1(
+create function public.app_read_internal_paper_worker_v1(
   p_owner_user_id uuid,
   p_account_id uuid,
   p_read_version text

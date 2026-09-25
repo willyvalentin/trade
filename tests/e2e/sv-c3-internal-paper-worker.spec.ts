@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
 import { expect, test } from "@playwright/test";
 
 import type { InternalPaperEntryCommand } from "@/lib/internal-paper-entry";
@@ -36,6 +39,40 @@ function entryCommand(): InternalPaperEntryCommand {
 }
 
 test.describe("SV-C3 internal-paper worker admission", () => {
+  test("keeps the production migration empty-state, exact-contract and inert", () => {
+    const migration = readFileSync(
+      resolve(
+        process.cwd(),
+        "supabase/migrations/20260922045917_sv_c3_durable_internal_paper_worker.sql",
+      ),
+      "utf8",
+    );
+    const preFunctionDdl = migration.slice(
+      0,
+      migration.indexOf(
+        "create function public.app_enqueue_internal_paper_worker_job_v1",
+      ),
+    );
+
+    expect(migration).toContain("set lock_timeout = '5s'");
+    expect(migration).toContain("set statement_timeout = '60s'");
+    expect(migration).toContain("sv_c3_requires_empty_c1_c2_state");
+    expect(migration).toContain("sv_c3_unexpected_c1_c2_function_contract");
+    expect(migration).toContain("sv_c3_requires_unconsumed_ledger_sequence");
+    expect(migration).toContain("sv_c3_preexisting_worker_contract");
+    expect(migration).toContain("internal_paper_worker_jobs_owner_idx");
+    expect(migration).toContain("internal_paper_worker_jobs_account_owner_idx");
+    expect(
+      migration.match(/^create function public\.app_.*worker.*_v1\(/gm),
+    ).toHaveLength(5);
+    expect(migration).not.toMatch(/create\s+or\s+replace\s+function/i);
+    expect(preFunctionDdl).not.toMatch(
+      /\b(insert\s+into|update\s+public\.|delete\s+from)\b/i,
+    );
+    expect(migration).not.toMatch(/\bcron\.schedule\b/i);
+    expect(migration).not.toMatch(/\b(net\.http_post|extensions\.http_post)\b/i);
+  });
+
   test("wraps an admitted entry without expanding its authority", () => {
     expect(
       buildInternalPaperWorkerJob({

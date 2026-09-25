@@ -7,11 +7,18 @@ import { join } from "node:path";
 
 const container = `ture-sv-c3-${process.pid}`;
 const sqlPath = join(tmpdir(), `ture-sv-c3-${process.pid}.sql`);
-const migrations = [
+const prerequisiteMigrations = [
   "../supabase/migrations/20260709000000_create_historical_candle_storage.sql",
   "../supabase/migrations/20260922001000_sv_c1_internal_paper_entry_lifecycle.sql",
   "../supabase/migrations/20260922023000_sv_c2_internal_paper_exit_reconciliation.sql",
+  "../supabase/migrations/20260924195853_sv_c1_internal_paper_foreign_key_indexes.sql",
+  "../supabase/migrations/20260924222835_sv_c2_internal_paper_foreign_key_indexes.sql",
+].map((path) => new URL(path, import.meta.url));
+const c3Migration = new URL(
   "../supabase/migrations/20260922045917_sv_c3_durable_internal_paper_worker.sql",
+  import.meta.url,
+);
+const dependentMigrations = [
   "../supabase/migrations/20260922062854_sv_c4_internal_paper_handoff_context.sql",
   "../supabase/migrations/20260922073013_sv_d1_internal_paper_observer_read_model.sql",
   "../supabase/migrations/20260922090000_sv_c5_internal_paper_pilot_operational_admission.sql",
@@ -36,6 +43,23 @@ function psql(sql) {
     "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres",
     "-f", "/tmp/test.sql",
   );
+}
+
+function psqlExpectFailure(sql, expectedMessage) {
+  try {
+    psql(sql);
+  } catch (error) {
+    const output = [error?.stdout, error?.stderr, error?.message]
+      .filter(Boolean)
+      .join("\n");
+    if (!output.includes(expectedMessage)) {
+      throw new Error(
+        `Expected PostgreSQL failure ${expectedMessage}, received:\n${output}`,
+      );
+    }
+    return;
+  }
+  throw new Error(`Expected PostgreSQL failure ${expectedMessage}`);
 }
 
 const publishedDecision = {
@@ -174,7 +198,105 @@ try {
     );
     insert into auth.users(id) values ('${owner}');
   `);
-  for (const migration of migrations) psql(readFileSync(migration, "utf8"));
+  for (const migration of prerequisiteMigrations) {
+    psql(readFileSync(migration, "utf8"));
+  }
+
+  // Production admission must fail before any C3 DDL if durable paper state
+  // already exists. The fixture is removed before the reviewed empty-state
+  // migration is applied.
+  psql(`
+    insert into public.internal_paper_accounts(
+      id, owner_user_id, account_key, status, strategy_id, strategy_version,
+      strategy_rollback_identity, symbol_selection_policy_id,
+      symbol_selection_policy_version, observed_universe_version,
+      eligible_symbols, config_version, fill_model_version, starting_cash,
+      cash_balance, per_trade_risk_cap, daily_loss_cap, spread_bps,
+      slippage_bps, commission_per_order
+    ) values (
+      '${account}', '${owner}', 'preflight-only', 'paused', 'pilot-strategy',
+      '1.0.0', 'pilot-strategy@1.0.0', 'pilot-symbols', '1.0.0',
+      'pilot-universe-v1', array['AAPL'], 'pilot-config-v1',
+      'internal_paper_immediate_costed_fill_v1', 100000, 100000, 100, 500,
+      10, 5, 1
+    );
+  `);
+  psqlExpectFailure(
+    readFileSync(c3Migration, "utf8"),
+    "sv_c3_requires_empty_c1_c2_state",
+  );
+  psql(`
+    do $$ begin
+      if pg_catalog.to_regclass('public.internal_paper_worker_jobs') is not null
+        or pg_catalog.to_regprocedure(
+          'public.app_enqueue_internal_paper_worker_job_v1(uuid,uuid,text,jsonb,text)'
+        ) is not null
+      then raise exception 'C3 DDL leaked through non-empty preflight'; end if;
+    end $$;
+    delete from public.internal_paper_accounts where id = '${account}';
+  `);
+
+  // A same-named pre-existing function is catalog drift, not an object that
+  // the migration may replace in place.
+  psql(`
+    create function public.app_read_internal_paper_worker_v1(uuid, uuid, text)
+    returns jsonb language sql as 'select ''{}''::jsonb';
+  `);
+  psqlExpectFailure(
+    readFileSync(c3Migration, "utf8"),
+    "sv_c3_preexisting_worker_contract",
+  );
+  psql(`
+    do $$ begin
+      if pg_catalog.to_regclass('public.internal_paper_worker_jobs') is not null
+      then raise exception 'C3 table leaked through drift preflight'; end if;
+    end $$;
+    drop function public.app_read_internal_paper_worker_v1(uuid, uuid, text);
+  `);
+
+  psql(readFileSync(c3Migration, "utf8"));
+  for (const migration of dependentMigrations) {
+    psql(readFileSync(migration, "utf8"));
+  }
+
+  // Every C3 child foreign key must have a valid, ready index whose leading
+  // key columns match the foreign-key column order.
+  psql(`
+    do $$
+    declare
+      v_foreign_key_count integer;
+      v_uncovered_count integer;
+    begin
+      select count(*) into v_foreign_key_count
+      from pg_catalog.pg_constraint foreign_key
+      where foreign_key.conrelid = 'public.internal_paper_worker_jobs'::regclass
+        and foreign_key.contype = 'f';
+
+      select count(*) into v_uncovered_count
+      from pg_catalog.pg_constraint foreign_key
+      where foreign_key.conrelid = 'public.internal_paper_worker_jobs'::regclass
+        and foreign_key.contype = 'f'
+        and not exists (
+          select 1
+          from pg_catalog.pg_index index_record
+          where index_record.indrelid = foreign_key.conrelid
+            and index_record.indisvalid
+            and index_record.indisready
+            and not exists (
+              select 1
+              from unnest(foreign_key.conkey) with ordinality
+                as foreign_key_column(attnum, ord)
+              where (index_record.indkey::smallint[])[foreign_key_column.ord - 1]
+                is distinct from foreign_key_column.attnum
+            )
+        );
+
+      if v_foreign_key_count <> 2 or v_uncovered_count <> 0 then
+        raise exception 'C3 foreign-key index coverage failed: total %, uncovered %',
+          v_foreign_key_count, v_uncovered_count;
+      end if;
+    end $$;
+  `);
 
   // Keep queue availability on the fixture's logical clock. The production
   // default is wall-clock now(), which would make this historical test expire
