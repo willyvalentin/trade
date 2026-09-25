@@ -1,0 +1,52 @@
+{
+  "record_version": "twelve_data_basic_free_retention_reconciliation_evidence_v1",
+  "reviewed_at": "2026-09-25T04:45:00.000Z",
+  "public_evidence": {
+    "evidence_version": "twelve_data_basic_free_public_retention_evidence_v2",
+    "provider_plan": "twelve_data_basic_free",
+    "reviewed_at": "2026-09-25T04:45:00.000Z",
+    "terms_effective_date": "2026-01-01",
+    "official_source_urls": [
+      "https://twelvedata.com/pricing",
+      "https://support.twelvedata.com/en/articles/5332349-commercial-and-personal-usage",
+      "https://twelvedata.com/terms",
+      "https://twelvedata.com/docs",
+      "https://support.twelvedata.com/en/articles/5615854-credits",
+      "https://support.twelvedata.com/en/articles/5656039-how-to-get-historical-prices",
+      "https://support.twelvedata.com/en/articles/9935903-us-equities-market-data"
+    ],
+    "internal_non_display_allowed": true,
+    "noncommercial_use_required": true,
+    "raw_provider_payload_retention_bytes": 0,
+    "non_reversible_derived_data_allowed": true,
+    "documentation_cache_examples_found": true,
+    "documentation_numeric_in_subscription_retention_found": false,
+    "numeric_in_subscription_exact_price_retention_days": null,
+    "termination_deletion_days": 30,
+    "termination_window_is_in_subscription_retention_authority": false,
+    "account_specific_third_party_terms_resolved": false
+  },
+  "decision": {
+    "admission_status": "blocked_pending_provider_confirmation",
+    "reason_codes": [
+      "account_specific_provider_confirmation_missing",
+      "exact_price_evidence_retention_duration_unverified",
+      "public_termination_deletion_window_not_retention_authority",
+      "third_party_us_equity_terms_unresolved"
+    ],
+    "required_next_evidence": [
+      "account_scoped_provider_confirmation_for_exact_price_and_candle_retention",
+      "account_scoped_confirmation_of_applicable_us_equity_third_party_terms"
+    ],
+    "production_c6_row_must_remain_blocked": true
+  },
+  "activity_attestation": {
+    "provider_requests": 0,
+    "credits_reserved": 0,
+    "credentials_read": 0,
+    "database_writes": 0,
+    "accounts_created": 0,
+    "paper_jobs_created": 0,
+    "broker_actions": 0
+  }
+}
