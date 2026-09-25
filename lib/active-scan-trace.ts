@@ -185,6 +185,12 @@ export type ActiveScanTrace = {
   };
   market_data_fetch: {
     attempted_tickers: number;
+    provider_credit_policy_version: string | null;
+    provider_call_cap: number | null;
+    provider_calls_reserved_count: number;
+    daily_candle_provider_calls_reserved_count: number;
+    intraday_indicator_provider_calls_reserved_count: number;
+    intraday_indicator_fresh_cache_reuse_count: number;
     quote_success_count: number;
     quote_error_count: number;
     candle_success_count: number;
@@ -437,6 +443,12 @@ export function createActiveScanTrace({
     },
     market_data_fetch: {
       attempted_tickers: 0,
+      provider_credit_policy_version: null,
+      provider_call_cap: null,
+      provider_calls_reserved_count: 0,
+      daily_candle_provider_calls_reserved_count: 0,
+      intraday_indicator_provider_calls_reserved_count: 0,
+      intraday_indicator_fresh_cache_reuse_count: 0,
       quote_success_count: 0,
       quote_error_count: 0,
       candle_success_count: 0,

@@ -211,6 +211,47 @@ test("fresh provider intraday reference rescues stale scanner-cache candidate", 
   expect(refreshedReference.plan_reference_metadata_status).toBe("complete");
 });
 
+test("fresh pre-ranking intraday evidence needs no post-ranking refresh budget", async () => {
+  let fetchCount = 0;
+  const candidate = {
+    ...staleCandidate("AMD"),
+    intraday_indicators: {
+      ...indicators(112.35),
+      latestCandleTimestamp: "2026-06-25T17:00:00.000Z",
+    },
+    intraday_indicator_source: "fresh" as const,
+    intraday_indicator_cached_at: "2026-06-25T17:02:00.000Z",
+    intraday_indicator_stale: false,
+  };
+
+  const result = await refreshSelectedCandidateReferences({
+    candidates: [candidate],
+    maxAttempts: 0,
+    now: "2026-06-25T17:03:00.000Z",
+    fetchIntradayIndicators: async (ticker) => {
+      fetchCount += 1;
+      return providerResult({ ticker, price: 999 });
+    },
+  });
+  const reference = resolvePlanReferencePriceMetadata(result.candidates[0], {
+    enforceFreshness: true,
+    now: "2026-06-25T17:03:00.000Z",
+  });
+
+  expect(fetchCount).toBe(0);
+  expect(result.diagnostics.reference_refresh_attempted_count).toBe(0);
+  expect(result.diagnostics.reference_refresh_skipped_budget_count).toBe(0);
+  expect(reference).toMatchObject({
+    reference_price_used_for_plan: 112.35,
+    reference_price_source: "scanner_candidate_intraday_latest_price",
+    reference_price_timestamp: "2026-06-25T17:00:00.000Z",
+    reference_price_provider: "twelve_data",
+    reference_price_read_path:
+      "scanner_candidate.intraday_indicators.latestPrice",
+    plan_reference_metadata_status: "complete",
+  });
+});
+
 test("reference refresh validates the candle market time, not the fetch time", async () => {
   const now = "2026-06-25T17:03:00.000Z";
   const staleCandle = await refreshSelectedCandidateReferences({

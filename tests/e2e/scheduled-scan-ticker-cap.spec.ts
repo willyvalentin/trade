@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 
 import {
   resolveScheduledScanProviderCreditBudget,
+  resolveScheduledScannerProviderCallCap,
   resolveScheduledScanTickerCap,
 } from "@/lib/scheduled-scan-ticker-cap";
 
@@ -50,17 +51,17 @@ test("paid plan profiles retain their explicitly requested bounded cap", () => {
   });
 });
 
-test("Basic Free reserves known scan calls before allowing reference refreshes", () => {
+test("Basic Free spends its bounded candidate budget before ranking", () => {
   expect(
     resolveScheduledScanProviderCreditBudget({ planMode: "free" }),
   ).toEqual({
-    policy_version: "scheduled_scan_provider_credit_budget_v1",
+    policy_version: "scheduled_scan_provider_credit_budget_v2",
     plan_mode: "free",
     enforced: true,
     per_minute_credit_cap: 8,
     market_regime_credits_reserved: 2,
-    scanner_credits_reserved: 1,
-    reference_refresh_max_attempts: 5,
+    scanner_credits_reserved: 6,
+    reference_refresh_max_attempts: 0,
     max_known_credits_per_scan: 8,
   });
 });
@@ -69,7 +70,7 @@ test("paid profiles preserve the existing reference-refresh limit", () => {
   expect(
     resolveScheduledScanProviderCreditBudget({ planMode: "grow" }),
   ).toEqual({
-    policy_version: "scheduled_scan_provider_credit_budget_v1",
+    policy_version: "scheduled_scan_provider_credit_budget_v2",
     plan_mode: "grow",
     enforced: false,
     per_minute_credit_cap: null,
@@ -80,14 +81,63 @@ test("paid profiles preserve the existing reference-refresh limit", () => {
   });
 });
 
-test("the scheduled route carries its Free budget into reference refresh", () => {
+test("the scheduled route carries one coherent Free budget through both data stages", () => {
   const route = source("app/api/automation/run-scan/route.ts");
   const generator = source("lib/recommendation-generator.ts");
 
   expect(route).toContain("scheduled_provider_credit_budget");
-  expect(route).toContain("scheduledReferenceRefreshMaxAttempts:");
-  expect(generator).toContain("scheduledReferenceRefreshMaxAttempts");
+  expect(route).toContain("scheduledProviderCreditBudget:");
+  expect(generator).toContain(
+    "resolveScheduledScannerProviderCallCap",
+  );
+  expect(generator).toContain(
+    "scheduledProviderCreditBudget.reference_refresh_max_attempts",
+  );
+  expect(generator).toContain(
+    "provider_credit_policy_version:",
+  );
+  expect(generator).toContain("scheduledProviderCreditBudget?.policy_version");
   expect(generator).toContain("maxAttempts: referenceRefreshMaxAttempts");
+});
+
+test("the enforced Basic Free allocation cannot strand credits behind ranking", () => {
+  const budget = resolveScheduledScanProviderCreditBudget({ planMode: "free" });
+
+  expect(
+    budget.market_regime_credits_reserved +
+      budget.scanner_credits_reserved +
+      budget.reference_refresh_max_attempts,
+  ).toBe(8);
+  expect(budget.scanner_credits_reserved).toBeGreaterThan(1);
+  expect(budget.reference_refresh_max_attempts).toBe(0);
+});
+
+test("only the guarded Basic Free profile expands pre-ranking provider calls", () => {
+  const freeBudget = resolveScheduledScanProviderCreditBudget({
+    planMode: "free",
+  });
+  const growBudget = resolveScheduledScanProviderCreditBudget({
+    planMode: "grow",
+  });
+
+  expect(
+    resolveScheduledScannerProviderCallCap({
+      budget: freeBudget,
+      candidateCount: 8,
+    }),
+  ).toBe(6);
+  expect(
+    resolveScheduledScannerProviderCallCap({
+      budget: growBudget,
+      candidateCount: 8,
+    }),
+  ).toBe(1);
+  expect(
+    resolveScheduledScannerProviderCallCap({
+      budget: null,
+      candidateCount: 0,
+    }),
+  ).toBe(0);
 });
 
 test("scanner checks the batched indicator cache before reserving a provider slot", () => {

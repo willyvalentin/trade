@@ -644,6 +644,9 @@ async function scanMarketCore(
   throwIfAborted(options.signal);
   const candidates: ScannerCandidate[] = [];
   const maxFreshProviderCalls = getMaxFreshProviderCalls(options);
+  options.activeScanTrace?.updateMarketDataFetch({
+    provider_call_cap: maxFreshProviderCalls,
+  });
   const cacheHits: string[] = [];
   const cacheMisses: string[] = [];
   const staleFallbacks: string[] = [];
@@ -690,6 +693,10 @@ async function scanMarketCore(
       // A refresh-capable call may reach Twelve Data. Reserve the bounded slot
       // immediately before it, including when that refresh later fails.
       freshProviderCallsUsed += 1;
+      options.activeScanTrace?.incrementMarketDataFetch({
+        provider_calls_reserved_count: 1,
+        intraday_indicator_provider_calls_reserved_count: 1,
+      });
       result = await measureScanFetchStep({
         trace: options.activeScanTrace,
         step: "intraday_indicators",
@@ -700,7 +707,11 @@ async function scanMarketCore(
         }),
       });
       throwIfAborted(options.signal);
-    } else if (admission.disposition !== "reuse_fresh_cache") {
+    } else if (admission.disposition === "reuse_fresh_cache") {
+      options.activeScanTrace?.incrementMarketDataFetch({
+        intraday_indicator_fresh_cache_reuse_count: 1,
+      });
+    } else {
       result = {
         ...cached,
         warnings: [
@@ -808,6 +819,10 @@ async function scanMarketCore(
     }
 
     freshProviderCallsUsed += 1;
+    options.activeScanTrace?.incrementMarketDataFetch({
+      provider_calls_reserved_count: 1,
+      daily_candle_provider_calls_reserved_count: 1,
+    });
 
     try {
       const candles = await measureScanFetchStep({
