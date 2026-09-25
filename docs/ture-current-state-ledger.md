@@ -2193,10 +2193,50 @@ slice's acceptance contract.
 This implementation makes the bounded scan capable of spending its already
 reserved credits before ranking; it does not increase the quota, guarantee six
 successful provider responses, manufacture freshness, alter quality thresholds
-or prove a stronger recommendation. Protected PR/CI/deploy and one later
-separately frozen OPEN scan on policy v2 remain required to measure actual
-fresh-source coverage, provider errors, candidate quality and publication/no-
-trade behavior against the v1 receipt.
+or prove a stronger recommendation. PR #647 passed protected provider-free CI
+run `36161687319`, then merged as main
+`f5a2d077b2b9da7ff787ab3c6b914ec548a5b67f`. Automatic Netlify production
+deploy `6ab6a81d3273af000825ce3b` is `ready` on that exact revision; the later
+Git-connected A.2 cleanup deploy `6ab6aaaffb745b29731e0806` is also `ready`
+on the same revision. Source, CI and exact-main deployment are therefore
+complete. One later separately frozen OPEN scan on policy v2 remains required
+to measure actual fresh-source coverage, provider errors, candidate quality and
+publication/no-trade behavior against the v1 receipt.
+
+**Selected A.2 CLOSED multi-slot normal-scan preflight v2, 2026-09-25
+(4–8h):** owner Codex on isolated
+`codex/a2-multi-slot-scan-preflight`, based on exact main
+`f5a2d077b2b9da7ff787ab3c6b914ec548a5b67f`. The v1 private preflight treated
+any earlier normal reservation on the New York date as a permanent day-wide
+block. That prevented a later, distinct regular-session slot even when the
+earlier slot was terminal and the frozen 800-credit daily budget still had
+capacity. This contradicted the roadmap's continuous-observation direction and
+was an admission-control limitation, not a reason to weaken ranking or
+publication quality.
+
+The additive v2 service-role RPC keeps v1 intact for rollback and returns only
+bounded aggregates: normal/catalog, active/terminal, exact target-slot,
+declared budget and unresolved-attempt counts. The server readback permits a
+prior terminal slot only when category/status sums are coherent, no active or
+unresolved work exists, the exact target slot is unused and adding the frozen
+eight-credit normal claim stays within 800 credits. It continues to reject
+off-quarter slots, New York date drift, duplicate deliveries, inconsistent
+budgets and malformed aggregates. The route remains authenticated and
+read-only; atomic credit claims remain authoritative. The function cannot arm
+the scheduler, reserve credits, call a provider, rank or publish a candidate,
+or reach paper/broker execution.
+
+Local evidence: the additive migration and rollback test pass in an isolated
+Postgres 17 container, including exact execution grants, prior-terminal,
+category, target-slot and invalid-input cases. The combined preflight,
+scheduler-idempotency and Basic Free reservation regression passes 31/31;
+changed-file lint, strict TypeScript, scheduled-runtime build, diff check and a
+complete Next 16.3.4 webpack production build pass. The default Turbopack build
+was not a product failure: this temporary worktree links `node_modules`
+outside its filesystem root, which Turbopack intentionally rejects; the
+documented webpack production path completed. Protected PR/CI, production
+migration, exact-main deployment and production readback remain separate.
+This CLOSED delivery grants no scan activation or OPEN quality claim.
 
 **Selected SV-E.2 CLOSED IOC liquidity look-ahead repair, 2026-09-23
 (4–8h):** owner Codex on `codex/sv-e2-ioc-prior-volume-proxy`, integrated
@@ -2317,8 +2357,8 @@ on A/B evidence and must not be inferred from the source registry.
 
 | Work slot | Selected state | Entry / return condition |
 | --- | --- | --- |
-| Primary development | A.2 Basic Free pre-ranking credit allocation v2 is locally implemented and verified on `codex/a2-pre-ranking-credit-allocation`. It repairs the real 2026-09-25 v1 allocation deadlock without changing the eight-credit ceiling or quality gates. The independent outcome observation and exact-revision cleanup are terminal. | Complete protected PR/CI and exact-revision deploy; then freeze one later OPEN v2-versus-v1 data-fitness receipt. |
-| Second development | A.2 terminal decision-trace reconciliation is merged as main `968aacfc377ddb5344b5c89495c3af0d5c2dc0c9` and Netlify production-ready on that exact revision. The predecessor OPEN receipt reproduced the defect; the later outcome-only observation produced no normal scan and therefore could not verify the repaired trace. | Verify terminal reconciliation together with the later separately bounded normal OPEN v2 observation; do not claim it from the outcome-only receipt. |
+| Primary development | A.2 multi-slot normal-scan preflight v2 is locally implemented and verified on `codex/a2-multi-slot-scan-preflight`. It removes only the obsolete day-wide admission block while retaining target-slot idempotency, active-work exclusion, exact 800/day and 8/minute budgets, private readback and atomic claim authority. | Complete protected PR/CI, apply the additive v2 RPC migration, verify service-role-only production readback and exact-main deploy. Do not activate a scan as part of this CLOSED delivery. |
+| Second development | A.2 Basic Free pre-ranking credit allocation v2 is merged as main `f5a2d077b2b9da7ff787ab3c6b914ec548a5b67f`; protected CI and two exact-revision Netlify production deploys are ready. Terminal decision-trace reconciliation is included in the same current main. Neither repair has later OPEN behavior evidence yet. | On the next eligible trading date, freeze one bounded normal OPEN v2 receipt to evaluate actual pre-ranking freshness and simultaneously verify terminal trace reconciliation. Do not infer alpha from delivery success or a single candidate. |
 | CLOSED successor | SV-C.1–C.8, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2, SV-H.1–H.4, SV-L.1–L.2 and SV-N.1–N.5 plus the E.1 volume-integrity and earlier E.2 repairs are merged and exact-revision production-deployed. C.1–C.7/D.1 migrations are production-applied and verified inert/empty. C6 deliberately blocks policy/account creation because exact-price retention duration and account-specific terms remain unverified; C.8 preserves that fail-closed state. Every paper runtime and broker gate remains off. Production environment metadata has no IBKR/TWS variables, client dependency or declared persistent worker, so a real L.2 account/session probe is not currently executable there. Both available browser sessions require a fresh Twelve Data login, so account-scoped retention confirmation also remains external. The A.2 one-slot outcome-evaluation guard is merged/deployed as `ea9a024d`; its bounded 2026-09-25 observation delivered one terminal blocked receipt and was cleaned up on exact unchanged main with zero provider credits or side effects. | Separately obtain authenticated account-scoped Twelve Data confirmation of exact-price/candle retention and applicable US-equity third-party terms before any C6 admission or C5/C7 account-policy creation. Provision and approve persistent hosting plus read-only IBKR Paper credentials before an L.2 account/session probe; do not grant order authority. Market-impact/cancellation uncertainty and forward shadow remain later H evidence; real G/H evaluation remains blocked on licensed point-in-time history plus verified rights. Account/config/policy creation, activation and OPEN pilot acceptance remain separate evidence steps. |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |

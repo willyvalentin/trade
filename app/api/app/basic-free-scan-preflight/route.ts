@@ -66,7 +66,7 @@ export async function GET(request: Request) {
 
   return NextResponse.json(
     {
-      contract_version: "basic_free_scheduled_scan_preflight_route_v1",
+      contract_version: "basic_free_scheduled_scan_preflight_route_v2",
       target_slot_utc: targetSlot,
       trading_date: tradingDate,
       preflight,
