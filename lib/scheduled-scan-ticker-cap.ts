@@ -4,7 +4,7 @@ export const MAX_SCHEDULED_SCAN_TICKERS = 50;
 export const SCHEDULED_REFERENCE_REFRESH_DEFAULT_MAX_ATTEMPTS = 10;
 export const BASIC_FREE_SCHEDULED_SCAN_PER_MINUTE_CREDIT_CAP = 8;
 export const BASIC_FREE_SCHEDULED_SCAN_MARKET_REGIME_CREDITS = 2;
-export const BASIC_FREE_SCHEDULED_SCAN_SCANNER_CREDITS = 1;
+export const BASIC_FREE_SCHEDULED_SCAN_SCANNER_CREDITS = 6;
 
 export type ScheduledScanTickerCap = {
   effective_cap: number;
@@ -12,14 +12,17 @@ export type ScheduledScanTickerCap = {
 };
 
 /**
- * The normal scheduled scan makes its known Twelve Data calls in three
- * stages: SPY/QQQ regime, one fresh scanner candidate, then selected-candidate
- * reference refreshes. Basic Free has an eight-credit per-minute ceiling, so
- * reserve the first three calls before admitting reference refreshes. This is
- * a per-scan upper bound; it does not represent a provider usage receipt.
+ * The normal scheduled scan needs fresh evidence before ranking can select a
+ * candidate. Basic Free has an eight-credit per-minute ceiling, so two calls
+ * remain reserved for SPY/QQQ regime context and every remaining call is
+ * allocated to the scanner's shared daily/intraday pre-ranking budget.
+ * Post-ranking reference refresh is disabled for this profile: allocating
+ * credits there can deadlock on stale pre-ranking evidence and leave those
+ * credits unreachable. This is a per-scan upper bound; it does not represent
+ * a provider usage receipt.
  */
 export type ScheduledScanProviderCreditBudget = {
-  policy_version: "scheduled_scan_provider_credit_budget_v1";
+  policy_version: "scheduled_scan_provider_credit_budget_v2";
   plan_mode: Exclude<ProviderPlanProfileMode, "unknown">;
   enforced: boolean;
   per_minute_credit_cap: number | null;
@@ -34,7 +37,7 @@ export function resolveScheduledScanProviderCreditBudget(input: {
 }): ScheduledScanProviderCreditBudget {
   if (input.planMode !== "free") {
     return {
-      policy_version: "scheduled_scan_provider_credit_budget_v1",
+      policy_version: "scheduled_scan_provider_credit_budget_v2",
       plan_mode: input.planMode,
       enforced: false,
       per_minute_credit_cap: null,
@@ -49,13 +52,10 @@ export function resolveScheduledScanProviderCreditBudget(input: {
   const reservedCredits =
     BASIC_FREE_SCHEDULED_SCAN_MARKET_REGIME_CREDITS +
     BASIC_FREE_SCHEDULED_SCAN_SCANNER_CREDITS;
-  const referenceRefreshMaxAttempts = Math.max(
-    0,
-    BASIC_FREE_SCHEDULED_SCAN_PER_MINUTE_CREDIT_CAP - reservedCredits,
-  );
+  const referenceRefreshMaxAttempts = 0;
 
   return {
-    policy_version: "scheduled_scan_provider_credit_budget_v1",
+    policy_version: "scheduled_scan_provider_credit_budget_v2",
     plan_mode: input.planMode,
     enforced: true,
     per_minute_credit_cap: BASIC_FREE_SCHEDULED_SCAN_PER_MINUTE_CREDIT_CAP,
@@ -66,6 +66,19 @@ export function resolveScheduledScanProviderCreditBudget(input: {
     max_known_credits_per_scan:
       reservedCredits + referenceRefreshMaxAttempts,
   };
+}
+
+export function resolveScheduledScannerProviderCallCap(input: {
+  budget: ScheduledScanProviderCreditBudget | null;
+  candidateCount: number;
+}) {
+  if (input.budget?.enforced) {
+    return Math.max(0, Math.floor(input.budget.scanner_credits_reserved));
+  }
+
+  // Preserve the existing paid/unknown scheduled behavior. This slice only
+  // reallocates the explicitly guarded Basic Free eight-credit reservation.
+  return Math.min(1, Math.max(0, Math.floor(input.candidateCount)));
 }
 
 /**

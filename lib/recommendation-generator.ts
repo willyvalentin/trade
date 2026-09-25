@@ -115,7 +115,11 @@ import {
   type ReferenceRefreshDiagnostics,
 } from "@/lib/reference-refresh-diagnostics";
 import { normalizeApplicationOwnerUserId } from "@/lib/application-session-core";
-import { SCHEDULED_REFERENCE_REFRESH_DEFAULT_MAX_ATTEMPTS } from "@/lib/scheduled-scan-ticker-cap";
+import {
+  resolveScheduledScannerProviderCallCap,
+  SCHEDULED_REFERENCE_REFRESH_DEFAULT_MAX_ATTEMPTS,
+  type ScheduledScanProviderCreditBudget,
+} from "@/lib/scheduled-scan-ticker-cap";
 
 export type SessionType = "morning" | "midday";
 export type RecommendationGenerationSource = "manual" | "scheduled";
@@ -149,7 +153,7 @@ export type GenerateRecommendationsInput = {
   discoveryInvocationId?: string | null;
   diagnosticMaxTickers?: number | null;
   scheduledMaxTickers?: number | null;
-  scheduledReferenceRefreshMaxAttempts?: number | null;
+  scheduledProviderCreditBudget?: ScheduledScanProviderCreditBudget | null;
   growMaxLearningMode?: boolean;
   skipOpenAi?: boolean;
   activeScanTrace?: ActiveScanTraceRecorder | null;
@@ -3165,7 +3169,7 @@ export async function generateRecommendations({
   discoveryInvocationId = null,
   diagnosticMaxTickers = null,
   scheduledMaxTickers = null,
-  scheduledReferenceRefreshMaxAttempts = null,
+  scheduledProviderCreditBudget = null,
   growMaxLearningMode = false,
   skipOpenAi = false,
   activeScanTrace = null,
@@ -3576,16 +3580,27 @@ export async function generateRecommendations({
           : null,
     });
 
+    const scannerFreshProviderCallCap = diagnosticMode
+      ? Math.min(1, scannerBaseCandidates.length)
+      : source === "scheduled"
+        ? resolveScheduledScannerProviderCallCap({
+            budget: scheduledProviderCreditBudget,
+            candidateCount: scannerBaseCandidates.length,
+          })
+        : undefined;
+    activeScanTrace?.updateMarketDataFetch({
+      provider_credit_policy_version:
+        source === "scheduled"
+          ? scheduledProviderCreditBudget?.policy_version ?? null
+          : null,
+      provider_call_cap: scannerFreshProviderCallCap ?? null,
+    });
     const scannerCandidates = await scanMarket(
       scannerBaseCandidates.length > 0 ? scannerBaseCandidates : mockCandidates,
       {
         source,
         activeScanTrace,
-        maxFreshProviderCalls: diagnosticMode
-          ? Math.min(1, scannerBaseCandidates.length)
-          : typeof scheduledMaxTickers === "number"
-            ? Math.min(1, scannerBaseCandidates.length)
-            : undefined,
+        maxFreshProviderCalls: scannerFreshProviderCallCap,
         signal,
       },
     );
@@ -4021,13 +4036,14 @@ export async function generateRecommendations({
     let candidatesForOpenAI = qualifiedCandidates.slice(0, candidateLimit);
     const referenceRefreshMaxAttempts =
       source === "scheduled"
-        ? typeof scheduledReferenceRefreshMaxAttempts === "number" &&
-            Number.isFinite(scheduledReferenceRefreshMaxAttempts)
+        ? scheduledProviderCreditBudget?.enforced
           ? Math.max(
               0,
               Math.min(
                 SCHEDULED_REFERENCE_REFRESH_DEFAULT_MAX_ATTEMPTS,
-                Math.floor(scheduledReferenceRefreshMaxAttempts),
+                Math.floor(
+                  scheduledProviderCreditBudget.reference_refresh_max_attempts,
+                ),
               ),
             )
           : SCHEDULED_REFERENCE_REFRESH_DEFAULT_MAX_ATTEMPTS

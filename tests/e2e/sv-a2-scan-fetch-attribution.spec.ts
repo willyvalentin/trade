@@ -12,6 +12,39 @@ function trace() {
   });
 }
 
+test("provider-credit attribution starts empty and increments by fetch stage", () => {
+  const recorder = trace();
+
+  expect(recorder.trace.market_data_fetch).toMatchObject({
+    provider_credit_policy_version: null,
+    provider_call_cap: null,
+    provider_calls_reserved_count: 0,
+    daily_candle_provider_calls_reserved_count: 0,
+    intraday_indicator_provider_calls_reserved_count: 0,
+    intraday_indicator_fresh_cache_reuse_count: 0,
+  });
+
+  recorder.updateMarketDataFetch({
+    provider_credit_policy_version: "scheduled_scan_provider_credit_budget_v2",
+    provider_call_cap: 6,
+  });
+  recorder.incrementMarketDataFetch({
+    provider_calls_reserved_count: 2,
+    daily_candle_provider_calls_reserved_count: 1,
+    intraday_indicator_provider_calls_reserved_count: 1,
+    intraday_indicator_fresh_cache_reuse_count: 1,
+  });
+
+  expect(recorder.trace.market_data_fetch).toMatchObject({
+    provider_credit_policy_version: "scheduled_scan_provider_credit_budget_v2",
+    provider_call_cap: 6,
+    provider_calls_reserved_count: 2,
+    daily_candle_provider_calls_reserved_count: 1,
+    intraday_indicator_provider_calls_reserved_count: 1,
+    intraday_indicator_fresh_cache_reuse_count: 1,
+  });
+});
+
 test("successful timed steps retain only bounded stage and index diagnostics", async () => {
   const recorder = trace();
   const result = await measureScanFetchStep({
@@ -70,6 +103,14 @@ test("scanner attributes each awaited data step and persists elapsed time on fai
     expect(scanner).toContain(`step: "${step}"`);
   }
   expect(scanner).toContain('markStage("market_data_fetch", "failed")');
+  expect(scanner).toContain("provider_call_cap: maxFreshProviderCalls");
   expect(scanner).toContain("total_elapsed_ms: Math.max(");
   expect(scanner).toContain("Math.round(performance.now() - marketDataStartedAt)");
+  expect(scanner).toMatch(
+    /provider_calls_reserved_count: 1,[\s\S]*?intraday_indicator_provider_calls_reserved_count: 1,[\s\S]*?getOrRefreshIntradayIndicators/,
+  );
+  expect(scanner).toMatch(
+    /provider_calls_reserved_count: 1,[\s\S]*?daily_candle_provider_calls_reserved_count: 1,[\s\S]*?getDailyCandles/,
+  );
+  expect(scanner).toContain("intraday_indicator_fresh_cache_reuse_count: 1");
 });

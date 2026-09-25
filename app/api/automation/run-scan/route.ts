@@ -4873,9 +4873,8 @@ export async function POST(request: Request) {
             : calendarFallbackAllowsScan,
         powerHourTrialPublishing: powerHourTrialGate.power_hour_publish_allowed,
         scheduledMaxTickers: scheduledRuntimeConfig.scheduled_max_tickers,
-        scheduledReferenceRefreshMaxAttempts:
-          scheduledRuntimeConfig.scheduled_provider_credit_budget
-            .reference_refresh_max_attempts,
+        scheduledProviderCreditBudget:
+          scheduledRuntimeConfig.scheduled_provider_credit_budget,
         growMaxLearningMode: scheduledRuntimeConfig.grow_max_learning_mode,
         skipOpenAi: scheduledRuntimeConfig.scheduled_skip_openai,
         activeScanTrace,
