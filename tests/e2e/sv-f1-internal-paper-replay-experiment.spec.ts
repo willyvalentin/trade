@@ -17,6 +17,12 @@ import {
   verifyInternalPaperCounterfactualCostStressDigest,
 } from "@/lib/internal-paper-counterfactual-cost-stress";
 import {
+  buildInternalPaperCounterfactualExecutionStressManifest,
+  INTERNAL_PAPER_COUNTERFACTUAL_EXECUTION_STRESS_VERSION,
+  runInternalPaperCounterfactualExecutionStress,
+  verifyInternalPaperCounterfactualExecutionStressDigest,
+} from "@/lib/internal-paper-counterfactual-execution-stress";
+import {
   buildInternalPaperReplayCorpusManifest,
   INTERNAL_PAPER_REPLAY_CORPUS_VERSION,
   runInternalPaperReplayCorpus,
@@ -2029,6 +2035,260 @@ test.describe("SV-H2 frozen counterfactual cost stress", () => {
           {
             scenario_id: "dddddddd-dddd-4ddd-8ddd-ddddddddddd3",
             family: fixture.scenarios[0]!.family,
+          },
+        ],
+      }),
+    ).toBeNull();
+  });
+});
+
+function applyExecutionStressPolicy(
+  input: InternalPaperReplayCorpusInput,
+  assumptions: Pick<
+    InternalPaperReplayExecutionPolicy,
+    "latency_ms" | "max_volume_participation_bps"
+  >,
+) {
+  Object.assign(input, {
+    execution_policy: { ...input.execution_policy, ...assumptions },
+  });
+  for (const replaySession of input.sessions) {
+    for (let index = 0; index < replaySession.decisions.length; index += 1) {
+      const item = replaySession.decisions[index]!;
+      replaySession.decisions[index] = {
+        ...item,
+        execution: item.execution
+          ? {
+              ...item.execution,
+              policy: { ...item.execution.policy, ...assumptions },
+            }
+          : null,
+      };
+    }
+  }
+  rebuildCorpusManifest(input);
+}
+
+function counterfactualExecutionStressFamily({
+  scenarioIndex,
+  latencyMs,
+  participationBps,
+  costStressed = false,
+}: {
+  scenarioIndex: 1 | 2 | 3;
+  latencyMs: number;
+  participationBps: number;
+  costStressed?: boolean;
+}) {
+  const source = counterfactualFamilyFixture({ stressed: costStressed });
+  const baseline = structuredClone(source.variants[0]!.experiment.baseline);
+  applyExecutionStressPolicy(baseline, {
+    latency_ms: latencyMs,
+    max_volume_participation_bps: participationBps,
+  });
+  const experimentIds = [
+    `15151515-1515-4151-8151-1515151515${scenarioIndex}1`,
+    `15151515-1515-4151-8151-1515151515${scenarioIndex}2`,
+  ];
+  const variants = source.variants.map((sourceVariant, index) => {
+    const candidate = structuredClone(sourceVariant.experiment.candidate);
+    applyExecutionStressPolicy(candidate, {
+      latency_ms: latencyMs,
+      max_volume_participation_bps: participationBps,
+    });
+    return {
+      variant_id: sourceVariant.variant_id,
+      intervention_dimension: sourceVariant.intervention_dimension,
+      experiment: counterfactualExperiment({
+        experimentId: experimentIds[index]!,
+        baseline,
+        candidate,
+      }),
+    } satisfies InternalPaperCounterfactualVariantInput;
+  });
+  const manifest = buildInternalPaperCounterfactualFamilyManifest({
+    family_id: `16161616-1616-4161-8161-16161616161${scenarioIndex}`,
+    frozen_at: "2026-09-22T20:35:00.000Z",
+    cost_fill_scenario_id: `sv-h4-execution-scenario-${scenarioIndex}`,
+    variants,
+  });
+  if (!manifest) {
+    throw new Error("counterfactual execution family manifest must be valid");
+  }
+  return {
+    family_version: INTERNAL_PAPER_COUNTERFACTUAL_FAMILY_VERSION,
+    manifest,
+    variants,
+  } as const;
+}
+
+function counterfactualExecutionStressFixture() {
+  const scenarios = [
+    {
+      scenario_id: "17171717-1717-4171-8171-171717171711",
+      family: counterfactualExecutionStressFamily({
+        scenarioIndex: 1,
+        latencyMs: 0,
+        participationBps: 100,
+      }),
+    },
+    {
+      scenario_id: "17171717-1717-4171-8171-171717171712",
+      family: counterfactualExecutionStressFamily({
+        scenarioIndex: 2,
+        latencyMs: 600_000,
+        participationBps: 1,
+      }),
+    },
+  ] as const;
+  const manifest = buildInternalPaperCounterfactualExecutionStressManifest({
+    matrix_id: "18181818-1818-4181-8181-181818181818",
+    frozen_at: "2026-09-22T20:45:00.000Z",
+    baseline_scenario_id: scenarios[0].scenario_id,
+    scenarios,
+  });
+  if (!manifest) {
+    throw new Error("counterfactual execution stress manifest must be valid");
+  }
+  return { manifest, scenarios };
+}
+
+test.describe("SV-H4 family-level execution feasibility stress", () => {
+  test("reruns every policy on the same opportunities across execution assumptions", () => {
+    const fixture = counterfactualExecutionStressFixture();
+    const input = {
+      stress_version: INTERNAL_PAPER_COUNTERFACTUAL_EXECUTION_STRESS_VERSION,
+      ...fixture,
+    } as const;
+    const first = runInternalPaperCounterfactualExecutionStress(input);
+    const second = runInternalPaperCounterfactualExecutionStress(input);
+
+    expect(first).toEqual(second);
+    expect(verifyInternalPaperCounterfactualExecutionStressDigest(first)).toBe(
+      true,
+    );
+    expect(first.status, JSON.stringify(first, null, 2)).toBe("completed");
+    if (first.status !== "completed") return;
+    expect(first).toMatchObject({
+      baseline_scenario_id: fixture.scenarios[0].scenario_id,
+      scientific_disposition:
+        "replay_execution_stress_diagnostic_not_strategy_accepted",
+      authority: {
+        can_request_provider_data: false,
+        can_change_ranking_or_publication: false,
+        can_promote_strategy: false,
+        can_execute_broker_action: false,
+      },
+    });
+    expect(first.variants).toHaveLength(2);
+    for (const variant of first.variants) {
+      expect(variant.scenarios).toHaveLength(2);
+      expect(variant.partition_stress).toHaveLength(4);
+      expect(
+        new Set(
+          variant.scenarios.map(
+            ({ candidate_result_digest }) => candidate_result_digest,
+          ),
+        ).size,
+      ).toBe(2);
+      expect(
+        variant.scenarios.every(
+          (scenario) =>
+            scenario.partitions[0]!.opportunity_count === 1 &&
+            scenario.partitions[0]!.rejected_count === 1,
+        ),
+      ).toBe(true);
+    }
+    expect(
+      first.variants.some((variant) => {
+        const baseline = variant.scenarios[0]!.partitions.map(
+          ({ paired_net_pnl_delta }) => paired_net_pnl_delta,
+        );
+        const stressed = variant.scenarios[1]!.partitions.map(
+          ({ paired_net_pnl_delta }) => paired_net_pnl_delta,
+        );
+        return JSON.stringify(baseline) !== JSON.stringify(stressed);
+      }),
+    ).toBe(true);
+    expect(first.evidence_limits).toContain(
+      "prior_completed_bar_volume_is_only_a_liquidity_proxy",
+    );
+    expect(first.evidence_limits).toContain(
+      "market_impact_and_cancel_uncertainty_not_modeled",
+    );
+    expect(first.evidence_limits).toContain("no_automatic_policy_promotion");
+  });
+
+  test("blocks a post-freeze execution mutation instead of mixing scenarios", () => {
+    const fixture = counterfactualExecutionStressFixture();
+    const stressed =
+      fixture.scenarios[1]!.family.variants[0]!.experiment.candidate
+        .sessions[1]!.decisions[0]!.execution;
+    if (!stressed) throw new Error("fixture execution must exist");
+    Object.assign(stressed.policy, { latency_ms: 601_000 });
+
+    const result = runInternalPaperCounterfactualExecutionStress({
+      stress_version: INTERNAL_PAPER_COUNTERFACTUAL_EXECUTION_STRESS_VERSION,
+      ...fixture,
+    });
+    expect(result.status).toBe("blocked");
+    expect(result.reason_codes).toContain(
+      "execution_stress_manifest_input_mismatch",
+    );
+    expect(result.authority.can_promote_strategy).toBe(false);
+  });
+
+  test("rejects cost drift and duplicate execution assumptions", () => {
+    const fixture = counterfactualExecutionStressFixture();
+    const costDrift = {
+      scenario_id: "17171717-1717-4171-8171-171717171713",
+      family: counterfactualExecutionStressFamily({
+        scenarioIndex: 3,
+        latencyMs: 600_000,
+        participationBps: 1,
+        costStressed: true,
+      }),
+    } as const;
+    expect(
+      buildInternalPaperCounterfactualExecutionStressManifest({
+        matrix_id: fixture.manifest.matrix_id,
+        frozen_at: fixture.manifest.frozen_at,
+        baseline_scenario_id: fixture.scenarios[0].scenario_id,
+        scenarios: [fixture.scenarios[0], costDrift],
+      }),
+    ).toBeNull();
+    expect(
+      buildInternalPaperCounterfactualExecutionStressManifest({
+        matrix_id: fixture.manifest.matrix_id,
+        frozen_at: fixture.manifest.frozen_at,
+        baseline_scenario_id: fixture.scenarios[0].scenario_id,
+        scenarios: [
+          fixture.scenarios[0],
+          {
+            scenario_id: "17171717-1717-4171-8171-171717171713",
+            family: counterfactualExecutionStressFamily({
+              scenarioIndex: 3,
+              latencyMs: 0,
+              participationBps: 100,
+            }),
+          },
+        ],
+      }),
+    ).toBeNull();
+    expect(
+      buildInternalPaperCounterfactualExecutionStressManifest({
+        matrix_id: fixture.manifest.matrix_id,
+        frozen_at: fixture.manifest.frozen_at,
+        baseline_scenario_id: fixture.scenarios[0].scenario_id,
+        scenarios: [
+          fixture.scenarios[0],
+          {
+            scenario_id: "17171717-1717-4171-8171-171717171713",
+            family: counterfactualExecutionStressFamily({
+              scenarioIndex: 3,
+              latencyMs: 1_800_001,
+              participationBps: 100,
+            }),
           },
         ],
       }),

@@ -1358,8 +1358,18 @@ confirmation and returns `blocked_pending_provider_confirmation`. Focused
 adversarial tests cover the public-only block, the termination-window category
 error, bounded supplied-confirmation eligibility, excess retention, stale and
 future evidence, unresolved rights, strict plain-data input, determinism and
-immutability. Protected CI, merge and exact-main deploy remain separate at this
-point.
+immutability. All nine focused tests and the combined C.6/C.7/C.8 plus
+protected-CI contract suite (24/24) passed locally, together with strict
+TypeScript, full lint with zero errors/eight existing warnings and the complete
+Next production build. Feature revision
+`9df909388f5717d219ea4255161e05a2a98ae696` passed all six protected
+provider-free CI shards, aggregate and merge-candidate provenance in run
+`36099290372`, then merged through PR #639 as
+`b490c3fe69cad79ce6d1ed52ecf792a01125b78a`. Netlify production deploy
+`6ab60ee987e7e20008b1827f` is `ready` in `production` on `main` at that exact
+merge revision. The production C6 block remains unchanged; no database
+admission, policy/account creation, provider request, paper activation or broker
+action occurred.
 
 **Selected SV-L.1 CLOSED vertical slice — IBKR paper order identity and
 reconciliation, 2026-09-25 (8–16h):** owner Codex on isolated
@@ -1573,11 +1583,15 @@ added authority and hostile input. The combined N.1–N.5 plus protected-CI
 contract suite passes 46/46; strict TypeScript and changed-file lint are green
 locally, full repository lint has zero errors and the same eight existing
 warnings, the full Next production build passes, and protected-CI registration
-is included. This is local source evidence only until commit, protected CI,
-merge and exact production-deploy verification complete. It performs no
-provider request, database write, ranking/publication change, broker transport
-or broker action and does not prove live TCA accuracy, recommendation quality
-or alpha.
+is included. Feature revision
+`2a280d4b9d2a49f59cd1a54d36ff6e3bcfc51168` passed all six protected
+provider-free CI shards, aggregate and merge-candidate provenance in run
+`36117987874`, then merged through PR #644 as
+`5e2f50259d25b480052f09895054a7fdc656034a`. Netlify production deploy
+`6ab642a97586f2000811d1f0` is `ready` in `production` on `main` at that exact
+merge revision. It performs no provider request, database write,
+ranking/publication change, broker transport or broker action and does not
+prove live TCA accuracy, recommendation quality or alpha.
 
 **Selected SV-E.1 CLOSED vertical slice — deterministic one-day market replay,
 2026-09-22 (8–16h):** owner Codex on
@@ -2013,6 +2027,37 @@ revision. This verifies source/deploy only; no real IOC fill, provider request,
 strategy improvement, production research run or forward-shadow result was
 observed.
 
+**Selected SV-H.4 CLOSED vertical slice — family-level execution-feasibility
+stress, 2026-09-25 (8–16h):** owner Codex on isolated
+`codex/sv-h4-family-execution-feasibility`; interfaces
+`internal_paper_counterfactual_execution_stress_v1`,
+`internal_paper_counterfactual_execution_stress_manifest_v1` and
+`internal_paper_counterfactual_execution_stress_result_v1`. The provider-free
+matrix generalizes H.3's corrected latency and prior-completed-bar volume proxy
+across each H.1 counterfactual policy and every frozen train, validation,
+held-out and walk-forward opportunity. Each scenario reruns the exact H.1
+family through the E.2 execution engine. It preserves rejected and explicit
+no-trade decisions in every denominator and reports candidate position count,
+paired net P&L, modeled execution-cost and drawdown deltas per partition plus
+the worst result across scenarios.
+
+Only latency and maximum volume participation may differ. Opportunity
+population, complete market tape, strategy interventions, source lineage,
+capital/risk budget, spread, slippage, commission and every other execution
+policy field are hash-bound and equal. Post-freeze mutation, cost drift,
+duplicate assumptions, an out-of-range stress value, a blocked child family or
+a missing variant blocks the entire result. Positive diagnostics remain
+research-only and grant no provider, ranking/publication, promotion or broker
+authority. Market impact, cancellation uncertainty, quote-level fills,
+independently verified source rights and forward shadow remain explicit gaps.
+
+Local acceptance passes all 31 F.1–H.4 focused regressions, including three new
+H.4 adversarial tests, strict TypeScript and changed-file lint. Full repository
+lint passes with zero errors and the same eight existing warnings, and the
+complete Next production build passes. Protected CI, merge and exact-main
+deploy remain separate at this point; this is source/fixture evidence only, not
+a real fill study, strategy-quality result or alpha evidence.
+
 **Selected SV-E.2 CLOSED IOC liquidity look-ahead repair, 2026-09-23
 (4–8h):** owner Codex on `codex/sv-e2-ioc-prior-volume-proxy`, integrated
 after SV-H.3 against its verified main revision. The existing E.2 replay used
@@ -2133,8 +2178,8 @@ on A/B evidence and must not be inferred from the source registry.
 | Work slot | Selected state | Entry / return condition |
 | --- | --- | --- |
 | Primary development | A.2 one-slot normal-scan and shared outcome-credit guards are merged and exact-revision production-deployed at `53181a54` and `0d0e773d`; fresh normal-scan and outcome behavior evidence remains OPEN | Require a separately authorized scheduled session with frozen credit/slot bounds; do not treat source/deploy verification as a provider receipt |
-| Second development | SV-A.2 ranking-plan integrity v1.1 is locally implemented and tested on `codex/sv-a2-ranking-plan-integrity` against the production-verified PR #604 base; it is independent of the frozen scheduled-scan admission path. B.1 base lineage and strategy/selection registry are merged, but real-decision/outcome acceptance remains OPEN. | Finish protected CI and review; do not deploy a changed ranking policy into the prepared OPEN observation or pool v1.0 and v1.1 decisions. |
-| CLOSED successor | SV-C.1–C.7, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2, SV-H.1–H.3 and SV-L.1–L.2 plus the E.1 volume-integrity and earlier E.2 repairs are merged and exact-revision production-deployed. C.1–C.7/D.1 migrations are production-applied and verified inert/empty. C6 deliberately blocks policy/account creation because exact-price retention duration and account-specific terms remain unverified. C.8 now reconciles public versus future account-scoped retention evidence without mutating that gate; its protected delivery is pending. Every paper runtime and broker gate remains off. The A.2 one-slot outcome-evaluation guard is also merged/deployed as `ea9a024d` without an outcome receipt. | Finish C.8 protected delivery, then obtain an authentic account-scoped Twelve Data confirmation of exact-price/candle retention and applicable US-equity third-party terms before any C6 admission or C5/C7 account-policy creation. Separately run only a bounded, redacted read-only IBKR Paper account/session feasibility probe on approved hosting; do not grant order authority. Family-level fill/latency/impact uncertainty and forward shadow remain later H evidence; real G/H evaluation remains blocked on licensed point-in-time history plus verified rights. Account/config/policy creation, activation and OPEN pilot acceptance remain separate evidence steps. |
+| Second development | SV-H.4 family-level execution-feasibility stress is locally implemented and tested on `codex/sv-h4-family-execution-feasibility`. It is provider-free, owns no A.2 runtime path and leaves all ranking/publication policy unchanged. | Finish protected CI and review; do not treat repository stress fixtures as real fill, source-rights, strategy-quality or forward-shadow evidence. |
+| CLOSED successor | SV-C.1–C.8, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2, SV-H.1–H.3, SV-L.1–L.2 and SV-N.1–N.5 plus the E.1 volume-integrity and earlier E.2 repairs are merged and exact-revision production-deployed. C.1–C.7/D.1 migrations are production-applied and verified inert/empty. C6 deliberately blocks policy/account creation because exact-price retention duration and account-specific terms remain unverified; C.8 preserves that fail-closed state. H.4 now extends fill/latency sensitivity to complete counterfactual families, with protected delivery pending. Every paper runtime and broker gate remains off. The A.2 one-slot outcome-evaluation guard is also merged/deployed as `ea9a024d` without an outcome receipt. | Finish H.4 protected delivery. Then obtain an authentic account-scoped Twelve Data confirmation of exact-price/candle retention and applicable US-equity third-party terms before any C6 admission or C5/C7 account-policy creation. Separately run only a bounded, redacted read-only IBKR Paper account/session feasibility probe on approved hosting; do not grant order authority. Market-impact/cancellation uncertainty and forward shadow remain later H evidence; real G/H evaluation remains blocked on licensed point-in-time history plus verified rights. Account/config/policy creation, activation and OPEN pilot acceptance remain separate evidence steps. |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
 
