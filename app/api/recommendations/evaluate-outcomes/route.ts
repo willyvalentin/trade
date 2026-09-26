@@ -57,6 +57,10 @@ import {
   claimScheduledOutcomeEvaluationAttempt,
   finalizeScheduledOutcomeEvaluationAttempt,
 } from "@/lib/server/scheduled-outcome-evaluation-attempt-persistence";
+import {
+  assessScannerIntradayLiquidityShadowOutcomeAdmission,
+  SCANNER_INTRADAY_LIQUIDITY_SHADOW_OUTCOME_ADMISSION_VERSION,
+} from "@/lib/scanner-intraday-liquidity-shadow-outcome-admission";
 
 type EvaluateOutcomesRequest = {
   mode?: unknown;
@@ -85,7 +89,8 @@ type OutcomeSnapshotIneligibleReason =
   | "missing_target"
   | "missing_recommended_at"
   | "missing_batch_membership"
-  | "learning_only_disabled";
+  | "learning_only_disabled"
+  | "intraday_liquidity_shadow_evidence_rejected";
 
 type OutcomeEligibilityDiagnostics = {
   total_snapshots_loaded_for_batch: number;
@@ -94,6 +99,8 @@ type OutcomeEligibilityDiagnostics = {
   eligible_visible_snapshot_count: number;
   eligible_learning_snapshot_count: number;
   eligible_research_only_snapshot_count: number;
+  eligible_intraday_liquidity_shadow_snapshot_count: number;
+  rejected_intraday_liquidity_shadow_snapshot_count: number;
   grow_max_learning_snapshots_included_count: number;
   ineligible_snapshot_count: number;
   ineligible_reasons: Record<string, number>;
@@ -147,7 +154,7 @@ type ReceiptRun = Pick<
   | "candle_requests_saved_by_reuse"
 >;
 
-const outcomeEvaluationRouteVersion = "outcome-evaluation-route-v1.0";
+const outcomeEvaluationRouteVersion = "outcome-evaluation-route-v1.1";
 const defaultOfficialLiveMaxBatchesPerRun = 5;
 const officialLiveBatchDiscoveryLimit = 20;
 const allowedHorizons = new Set<RecommendationOutcomeHorizon>([
@@ -589,10 +596,24 @@ function isOfficialLiveSnapshot(snapshot: RecommendationSnapshot) {
   );
 }
 
+function isOfficialOutcomeEvaluationSnapshot(snapshot: RecommendationSnapshot) {
+  return (
+    isOfficialLiveSnapshot(snapshot) ||
+    assessScannerIntradayLiquidityShadowOutcomeAdmission(snapshot).status ===
+      "admitted"
+  );
+}
+
 function officialEvaluationSnapshot(snapshot: RecommendationSnapshot) {
+  const liquidityShadowOutcomeAdmission =
+    assessScannerIntradayLiquidityShadowOutcomeAdmission(snapshot);
+
   return {
     ...snapshot,
-    is_visible: snapshot.status !== "hidden" && snapshot.status !== "invalid",
+    is_visible:
+      liquidityShadowOutcomeAdmission.status === "admitted"
+        ? false
+        : snapshot.status !== "hidden" && snapshot.status !== "invalid",
   };
 }
 
@@ -867,7 +888,7 @@ async function loadOfficialLiveSnapshots({
       const batchSnapshots = includeGrowMaxLearningSnapshots
         ? rawBatchSnapshots
         : rawBatchSnapshots
-            .filter(isOfficialLiveSnapshot)
+            .filter(isOfficialOutcomeEvaluationSnapshot)
             .map(officialEvaluationSnapshot);
       const foundFingerprints = new Set(
         batchSnapshots.map((snapshot) => snapshot.snapshot_fingerprint),
@@ -919,7 +940,7 @@ async function loadOfficialLiveSnapshots({
       includeGrowMaxLearningSnapshots
       ? rawSnapshots
       : rawSnapshots
-          .filter(isOfficialLiveSnapshot)
+          .filter(isOfficialOutcomeEvaluationSnapshot)
           .map(officialEvaluationSnapshot),
     );
     const uniqueSnapshotFingerprints = Array.from(
@@ -1532,6 +1553,8 @@ function buildOutcomeEligibility({
   let eligibleVisibleSnapshotCount = 0;
   let eligibleLearningSnapshotCount = 0;
   let eligibleResearchOnlySnapshotCount = 0;
+  let eligibleIntradayLiquidityShadowSnapshotCount = 0;
+  let rejectedIntradayLiquidityShadowSnapshotCount = 0;
   let canonicalVisibleSnapshotsRetainedCount = 0;
   const canonicalization = canonicalizeOutcomeSnapshotsForBatch({
     batchFingerprint,
@@ -1592,8 +1615,19 @@ function buildOutcomeEligibility({
 
     const researchOnly = isResearchOnlySnapshot(snapshot);
     const learningOnly = !researchOnly && isLearningOnlySnapshot(snapshot);
+    const liquidityShadowOutcomeAdmission =
+      assessScannerIntradayLiquidityShadowOutcomeAdmission(snapshot);
+    const admittedLiquidityShadowResearch =
+      liquidityShadowOutcomeAdmission.status === "admitted";
+
+    if (liquidityShadowOutcomeAdmission.status === "rejected") {
+      reasons.push("intraday_liquidity_shadow_evidence_rejected");
+      rejectedIntradayLiquidityShadowSnapshotCount += 1;
+    }
 
     if (
+      liquidityShadowOutcomeAdmission.status !== "rejected" &&
+      !admittedLiquidityShadowResearch &&
       !shouldIncludeLearningAccelerationOutcomeSample({
         growMaxLearningModeEnabled,
         learningAccelerationEnabled: growMaxLearningModeEnabled,
@@ -1627,11 +1661,15 @@ function buildOutcomeEligibility({
     if (researchOnly) {
       eligibleResearchOnlySnapshotCount += 1;
     }
+    if (admittedLiquidityShadowResearch) {
+      eligibleIntradayLiquidityShadowSnapshotCount += 1;
+    }
 
     eligibleSnapshots.push({
       ...snapshot,
       is_visible:
-        growMaxLearningModeEnabled && (learningOnly || researchOnly)
+        admittedLiquidityShadowResearch ||
+        (growMaxLearningModeEnabled && (learningOnly || researchOnly))
           ? true
           : snapshot.is_visible,
     });
@@ -1662,6 +1700,10 @@ function buildOutcomeEligibility({
     eligible_visible_snapshot_count: eligibleVisibleSnapshotCount,
     eligible_learning_snapshot_count: eligibleLearningSnapshotCount,
     eligible_research_only_snapshot_count: eligibleResearchOnlySnapshotCount,
+    eligible_intraday_liquidity_shadow_snapshot_count:
+      eligibleIntradayLiquidityShadowSnapshotCount,
+    rejected_intraday_liquidity_shadow_snapshot_count:
+      rejectedIntradayLiquidityShadowSnapshotCount,
     grow_max_learning_snapshots_included_count: growMaxLearningModeEnabled
       ? eligibleSnapshots.length
       : 0,
@@ -2172,7 +2214,17 @@ export async function POST(request: Request) {
       learning_acceleration_mode:
         learningAccelerationMode.learning_acceleration_mode,
       learning_acceleration_samples_evaluated:
-        eligibilityDiagnostics.eligible_research_only_snapshot_count,
+        Math.max(
+          0,
+          eligibilityDiagnostics.eligible_research_only_snapshot_count -
+            eligibilityDiagnostics
+              .eligible_intraday_liquidity_shadow_snapshot_count,
+        ),
+      intraday_liquidity_shadow_samples_evaluated:
+        eligibilityDiagnostics
+          .eligible_intraday_liquidity_shadow_snapshot_count,
+      intraday_liquidity_shadow_outcome_admission_version:
+        SCANNER_INTRADAY_LIQUIDITY_SHADOW_OUTCOME_ADMISSION_VERSION,
       server_plan_mode: providerPlanProfile.server_plan_mode,
       public_plan_mode: providerPlanProfile.public_plan_mode,
       plan_mode_mismatch: providerPlanProfile.plan_mode_mismatch,
@@ -2524,7 +2576,16 @@ export async function POST(request: Request) {
     learning_acceleration_mode:
       learningAccelerationMode.learning_acceleration_mode,
     learning_acceleration_samples_evaluated:
-      eligibilityDiagnostics.eligible_research_only_snapshot_count,
+      Math.max(
+        0,
+        eligibilityDiagnostics.eligible_research_only_snapshot_count -
+          eligibilityDiagnostics
+            .eligible_intraday_liquidity_shadow_snapshot_count,
+      ),
+    intraday_liquidity_shadow_samples_evaluated:
+      eligibilityDiagnostics.eligible_intraday_liquidity_shadow_snapshot_count,
+    intraday_liquidity_shadow_outcome_admission_version:
+      SCANNER_INTRADAY_LIQUIDITY_SHADOW_OUTCOME_ADMISSION_VERSION,
     server_plan_mode: providerPlanProfile.server_plan_mode,
     public_plan_mode: providerPlanProfile.public_plan_mode,
     plan_mode_mismatch: providerPlanProfile.plan_mode_mismatch,

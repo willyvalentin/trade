@@ -108,9 +108,11 @@ passed all six provider-free shards, the aggregate and merge-candidate
 provenance. This proves a fail-closed evaluation path, not outcome coverage or
 better recommendations.
 
-**Active successor CLOSED slice — complete point-in-time shadow population:**
-owner Codex on `codex/liquidity-shadow-full-population`, based on exact main
-`233f9a376af05375fd4b1eee5ae4cb467921cc96`. The normal scan now prepares a
+**Merged and production-verified CLOSED slice — complete point-in-time shadow
+population:** PR [#661](https://github.com/willyvalentin/trade/pull/661) merged
+as `bb0eb506ae054b2dd98e3c51a760803360daa8fe`; Netlify production deploy
+`6ab845b63abadf0007111c03` is `ready` on that exact revision. The normal scan
+now prepares a
 separate provider-free research capture for every candidate in the immutable
 ranked population, including non-visible candidates, so the canonical evaluator
 is not silently limited by the ordinary research-sampling cap. The capture is
@@ -122,8 +124,29 @@ It adds no provider request or credit and retains `live_ranking_effect=false`,
 capture tests, 40/40 combined ranking/attribution/projection/capture/learning
 regressions, the 166/166 intelligence-foundation suite, strict non-incremental
 TypeScript, changed-file lint, scheduled-runtime packaging and a complete Next
-16.3.4 webpack production build. PR/CI/merge/deploy and real forward
-full-population outcome coverage remain separate evidence.
+16.3.4 webpack production build. Protected CI run `36274436430` passed all
+provider-free shards, the aggregate and merge-candidate provenance. Real
+forward full-population outcome coverage remains separate evidence.
+
+**Active successor CLOSED slice — exact shadow-research outcome admission:**
+owner Codex on `codex/liquidity-shadow-outcome-capacity`, based on exact main
+`bb0eb506ae054b2dd98e3c51a760803360daa8fe`. Inspection found a concrete
+evidence break: full-population snapshots are intentionally persisted as
+`research_only`, while the official outcome route previously loaded and admitted
+research snapshots only under broad Grow Max/learning acceleration. The Basic
+Free path could therefore capture the population but never mature its hidden
+members into canonical outcomes. The selected change admits only the exact
+versioned `intraday_liquidity_shadow_full_population` cohort when its research
+containment, scan/batch identity, candidate-decision lineage and point-in-time
+source evidence are complete. Unrelated research remains blocked, rejected
+cohort members receive explicit diagnostics, and the existing scheduled Basic
+Free credit reservation remains the sole provider gate. The admission itself
+authorizes zero provider requests and has no live-ranking, publication or
+execution effect. Local acceptance currently includes 6/6 focused admission
+tests within a 30/30 capture/credit/receipt regression, strict TypeScript and
+changed-file lint. PR/CI/merge/deploy and forward canonical outcomes remain
+separate evidence; this repairs measurability and does not prove the challenger
+is better.
 
 ### Continuous-observation technical direction — 2026-09-24
 

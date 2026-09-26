@@ -89,13 +89,17 @@ per-symbol decision attribution and exact owner-bound canonical outcome
 projection are now production-deployed while live ranking remains unchanged.
 The canonical paired-ranking evaluator is also production-deployed: it rejects
 partial outcome coverage and preserves the current ordinal-confidence limitation
-rather than invent probability semantics. The active successor captures a
-fresh, exact point-in-time research snapshot for the complete ranked population,
-including non-visible candidates, under a bounded fail-closed cap and without
-extra provider work. Forward observations and outcome-linked baseline comparison
-then decide whether this policy should be promoted, narrowed or rejected. No
-threshold is lowered to create candidates, and neither attribution, snapshot
-coverage nor a descriptive outcome delta is quality evidence by itself.
+rather than invent probability semantics. A fresh, exact point-in-time research
+snapshot is now captured for the complete ranked population, including
+non-visible candidates, under a bounded fail-closed cap and without extra
+provider work. The active successor must carry only that exact versioned shadow
+cohort through the canonical outcome path under existing provider-credit guards;
+it must not open generic hidden research, alter live ranking or treat admission
+as provider authority. Forward observations and outcome-linked baseline
+comparison then decide whether this policy should be promoted, narrowed or
+rejected. No threshold is lowered to create candidates, and neither attribution,
+snapshot admission, coverage nor a descriptive outcome delta is quality evidence
+by itself.
 
 For every recommendation-quality hypothesis, build in this order: admit and
 version the point-in-time input; run the challenger in shadow over the exact
