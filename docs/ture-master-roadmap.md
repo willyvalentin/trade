@@ -87,13 +87,15 @@ existing ranker: full-day candle volume may currently substitute for verified
 current-session intraday liquidity. Its versioned shadow comparison, immutable
 per-symbol decision attribution and exact owner-bound canonical outcome
 projection are now production-deployed while live ranking remains unchanged.
-The active successor must map the complete same-population evidence into the
-existing canonical paired-ranking evaluator. It must reject partial outcome
-coverage and preserve the current ordinal-confidence limitation rather than
-invent probability semantics. Forward observations and outcome-linked baseline
-comparison decide whether this policy should be promoted, narrowed or rejected.
-No threshold is lowered to create candidates, and neither attribution nor a
-descriptive outcome delta is quality evidence by itself.
+The canonical paired-ranking evaluator is also production-deployed: it rejects
+partial outcome coverage and preserves the current ordinal-confidence limitation
+rather than invent probability semantics. The active successor captures a
+fresh, exact point-in-time research snapshot for the complete ranked population,
+including non-visible candidates, under a bounded fail-closed cap and without
+extra provider work. Forward observations and outcome-linked baseline comparison
+then decide whether this policy should be promoted, narrowed or rejected. No
+threshold is lowered to create candidates, and neither attribution, snapshot
+coverage nor a descriptive outcome delta is quality evidence by itself.
 
 For every recommendation-quality hypothesis, build in this order: admit and
 version the point-in-time input; run the challenger in shadow over the exact
