@@ -31,6 +31,38 @@ The preparation targets and test requirements live in
 Now/Next/Blocked queue. Multi-observation activation still requires implemented,
 tested limits and applicable authority; current one-shot controls remain in force.
 
+### Active intelligence-quality pivot — 2026-09-26
+
+The active delivery priority now follows the master roadmap's IF-2b → IF-3 →
+IF-4 intelligence path. A.2 control work remains limited to the prepared
+observation-series reader/preflight and one separately frozen OPEN series; after
+that, additional generic control-plane work requires a reproduced defect. This
+is a priority change, not a claim that reliability work improved alpha.
+
+**Selected independent CLOSED slice — verified intraday-liquidity shadow
+ranking:** owner Codex on `codex/intelligence-quality-baseline`, based on exact
+main `b7980ac2eb3ff6c7c9d120f9b593882a789d49f6`. Source inspection found that
+ranking v1.2 computes liquidity from the greater of `daily_volume_ratio` and an
+admissible recent intraday ratio. Consequently, a full-day candle ratio can keep
+the liquidity component high when current-session volume is absent, stale or
+unverifiable. The selected change keeps live ranking unchanged and adds a
+versioned `verified_intraday_only_v1` shadow comparison over the exact same
+candidate population. It requires a fresh closed 5- or 15-minute bar, records
+per-symbol rank, score, tier and selection displacement, persists the comparison
+with the scan evidence and explicitly carries `live_ranking_effect=false`,
+`publication_effect=false` and `quality_improvement_claimed=false`.
+
+Local evidence is 6/6 focused tests covering the daily-volume
+substitution, valid closed-bar evidence, stale/expired rejection, population
+conflict, deterministic non-mutation and durable scan-log round-trip. Strict non-incremental TypeScript and
+changed-file ESLint pass; the integrated ranking/decision/selective-publication/
+CI-contract regression passes 43/43 tests, scheduled-runtime packaging passes
+and the complete Next 16.3.4 webpack production build succeeds. Protected CI, merge/deploy and forward outcome
+comparison remain outstanding. This is a
+real ranking/data-fitness measurement capability, but it is not proof that the
+shadow policy is superior and it cannot publish a recommendation or reach a
+broker.
+
 ### Continuous-observation technical direction — 2026-09-24
 
 The 2026-09-23 market-timing decision is implemented as a future observation
@@ -2515,8 +2547,8 @@ on A/B evidence and must not be inferred from the source registry.
 
 | Work slot | Selected state | Entry / return condition |
 | --- | --- | --- |
-| Primary development | SV-A.2 observation-series runtime admission v2 is merged as exact main `6b96d4569d5a634168ccb7670a234812f4b7ab71`; protected PR CI `36249657606`, exact-main CI `36250916244` and ready Netlify production deploy `6ab7e0063466ee000851c1f4` passed on that revision. Every series flag remained off. The next CLOSED slice, `codex/observation-series-evidence`, adds the missing count-checked, owner-bound post-cleanup series report and browser surface without provider or execution authority. | Complete local acceptance, protected PR/CI, merge and exact-main deploy for the evidence reader. Keep every series flag off; only a separately frozen OPEN contract may activate it later. |
-| Second development | A.2 Basic Free pre-ranking credit allocation v2, multi-slot preflight v2, terminal trace reconciliation and the generic observation-cycle receipt are merged, production-deployed and, where applicable, production-migrated. None has a later normal OPEN behavior receipt on their combined revision. | On the next eligible trading date after the admission policy is deployed, freeze one bounded normal OPEN receipt to evaluate actual pre-ranking freshness, policy admission, terminal trace and generic cycle persistence together. Do not infer alpha from delivery success or a single candidate. |
+| Primary development | SV-A.2 observation-series evidence/readback is prepared in PR #656 with green protected CI and no series flags enabled. The first bounded OPEN series remains a separately frozen environment observation. | Merge/deploy/apply its additive preflight migration under the existing authority, then run only the separately contracted bounded OPEN series. Treat that receipt as the A.2 control-plane exit check, not alpha evidence. |
+| Second development | IF-2b/IF-3 verified intraday-liquidity shadow ranking on `codex/intelligence-quality-baseline`. Live ranking remains unchanged while the same candidate population produces a versioned, persisted displacement comparison. | Complete integrated regression/build/CI and merge/deploy. Then collect forward shadow plus outcome-linked evidence before any policy promotion; a score or selection change alone is insufficient. |
 | CLOSED successor | SV-C.1–C.8, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2, SV-H.1–H.4, SV-L.1–L.2 and SV-N.1–N.5 plus the E.1 volume-integrity and earlier E.2 repairs are merged and exact-revision production-deployed. C.1–C.7/D.1 migrations are production-applied and verified inert/empty. C6 deliberately blocks policy/account creation because exact-price retention duration and account-specific terms remain unverified; C.8 preserves that fail-closed state. Every paper runtime and broker gate remains off. Production environment metadata has no IBKR/TWS variables, client dependency or declared persistent worker, so a real L.2 account/session probe is not currently executable there. Both available browser sessions require a fresh Twelve Data login, so account-scoped retention confirmation also remains external. The A.2 one-slot outcome-evaluation guard is merged/deployed as `ea9a024d`; its bounded 2026-09-25 observation delivered one terminal blocked receipt and was cleaned up on exact unchanged main with zero provider credits or side effects. | Separately obtain authenticated account-scoped Twelve Data confirmation of exact-price/candle retention and applicable US-equity third-party terms before any C6 admission or C5/C7 account-policy creation. Provision and approve persistent hosting plus read-only IBKR Paper credentials before an L.2 account/session probe; do not grant order authority. Market-impact/cancellation uncertainty and forward shadow remain later H evidence; real G/H evaluation remains blocked on licensed point-in-time history plus verified rights. Account/config/policy creation, activation and OPEN pilot acceptance remain separate evidence steps. |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |

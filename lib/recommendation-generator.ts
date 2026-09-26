@@ -68,6 +68,10 @@ import {
   type ScannerCandidateRankingResult,
 } from "@/lib/scanner-candidate-ranking";
 import {
+  buildScannerIntradayLiquidityShadowComparison,
+  type ScannerIntradayLiquidityShadowComparison,
+} from "@/lib/scanner-ranking-intraday-liquidity-shadow";
+import {
   buildCandidateDecisionCapture,
   type CandidateDecisionCapture,
   type CandidateDecisionReasonCode,
@@ -279,6 +283,7 @@ export type RecommendationScanLogDetails = {
   dynamic_movers_discovery?: DynamicMoversDiscoverySummary | null;
   market_wide_discovery?: MarketWideDiscoverySummary | null;
   scanner_candidate_ranking?: ScannerCandidateRankingSummary | null;
+  scanner_intraday_liquidity_shadow_comparison?: ScannerIntradayLiquidityShadowComparison | null;
   openai_recommendation_reality_guard?: OpenAiRecommendationRealityGuardSummary | null;
   grow_max_learning_mode?: boolean | null;
   target_ideas_per_window?: number | null;
@@ -3950,11 +3955,21 @@ export async function generateRecommendations({
           second.local_score - first.local_score ||
           sortCandidatesByDiversity(first, second),
       );
+    const rankingObservedAt = new Date();
     const scannerCandidateRankingSummary =
       buildScannerCandidateRankingSummary({
         candidates: initiallyScoredCandidates,
         scanWindow,
         universeCoverage: scannerUniverseSelection.coverage,
+        now: rankingObservedAt,
+      });
+    const scannerIntradayLiquidityShadowComparison =
+      buildScannerIntradayLiquidityShadowComparison({
+        candidates: initiallyScoredCandidates,
+        baseline: scannerCandidateRankingSummary,
+        scanWindow,
+        universeCoverage: scannerUniverseSelection.coverage,
+        now: rankingObservedAt,
       });
     activeScanTrace?.markStage("ranking", "completed");
     activeScanTrace?.updateRanking({
@@ -4210,6 +4225,8 @@ export async function generateRecommendations({
           dynamic_movers_discovery: dynamicMoversDiscovery,
           market_wide_discovery: marketWideDiscovery.summary,
           scanner_candidate_ranking: scannerCandidateRankingSummary,
+          scanner_intraday_liquidity_shadow_comparison:
+            scannerIntradayLiquidityShadowComparison,
           grow_max_learning_mode: growMaxLearningMode,
           target_ideas_per_window: growMaxRecommendationTarget,
           reference_refresh: referenceRefreshDiagnostics,
@@ -4568,6 +4585,8 @@ export async function generateRecommendations({
           dynamic_movers_discovery: dynamicMoversDiscovery,
           market_wide_discovery: marketWideDiscovery.summary,
           scanner_candidate_ranking: scannerCandidateRankingSummary,
+          scanner_intraday_liquidity_shadow_comparison:
+            scannerIntradayLiquidityShadowComparison,
           grow_max_learning_mode: growMaxLearningMode,
           target_ideas_per_window: growMaxRecommendationTarget,
           openai_recommendation_reality_guard: openAiRealityGuardSummary,
@@ -4662,6 +4681,8 @@ export async function generateRecommendations({
           dynamic_movers_discovery: dynamicMoversDiscovery,
           market_wide_discovery: marketWideDiscovery.summary,
           scanner_candidate_ranking: scannerCandidateRankingSummary,
+          scanner_intraday_liquidity_shadow_comparison:
+            scannerIntradayLiquidityShadowComparison,
           grow_max_learning_mode: growMaxLearningMode,
           target_ideas_per_window: growMaxRecommendationTarget,
           openai_recommendation_reality_guard: openAiRealityGuardSummary,
@@ -4778,6 +4799,8 @@ export async function generateRecommendations({
         dynamic_movers_discovery: dynamicMoversDiscovery,
         market_wide_discovery: marketWideDiscovery.summary,
         scanner_candidate_ranking: scannerCandidateRankingSummary,
+        scanner_intraday_liquidity_shadow_comparison:
+          scannerIntradayLiquidityShadowComparison,
         grow_max_learning_mode: growMaxLearningMode,
         target_ideas_per_window: growMaxRecommendationTarget,
         openai_recommendation_reality_guard: openAiRealityGuardSummary,

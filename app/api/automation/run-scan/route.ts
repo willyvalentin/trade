@@ -1873,6 +1873,11 @@ function createAutomationScanLog({
       details.scanner_candidate_ranking !== null
         ? (details.scanner_candidate_ranking as ScanLogEntry["scanner_candidate_ranking"])
         : null,
+    scanner_intraday_liquidity_shadow_comparison:
+      typeof details?.scanner_intraday_liquidity_shadow_comparison === "object" &&
+      details.scanner_intraday_liquidity_shadow_comparison !== null
+        ? (details.scanner_intraday_liquidity_shadow_comparison as ScanLogEntry["scanner_intraday_liquidity_shadow_comparison"])
+        : null,
     openai_recommendation_reality_guard:
       typeof details?.openai_recommendation_reality_guard === "object" &&
       details.openai_recommendation_reality_guard !== null
@@ -2687,6 +2692,8 @@ async function persistAutomationArtifacts({
         learningAccelerationSelectedBuildDiagnostics,
       reference_refresh: scanLog.reference_refresh ?? null,
       market_wide_discovery: scanLog.market_wide_discovery ?? null,
+      scanner_intraday_liquidity_shadow_comparison:
+        scanLog.scanner_intraday_liquidity_shadow_comparison ?? null,
       empty_scan_reason: emptyScanReason,
       build_rejection_diagnostics: {
         selected_count:

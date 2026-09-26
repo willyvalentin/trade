@@ -563,6 +563,8 @@ function createDiagnosticScanLog({
     dynamic_movers_discovery:
       generationScanLog?.dynamic_movers_discovery ?? null,
     scanner_candidate_ranking: generationScanLog?.scanner_candidate_ranking ?? null,
+    scanner_intraday_liquidity_shadow_comparison:
+      generationScanLog?.scanner_intraday_liquidity_shadow_comparison ?? null,
     openai_recommendation_reality_guard:
       generationScanLog?.openai_recommendation_reality_guard ?? null,
     ranked_candidates_count: generationScanLog?.ranked_candidates_count ?? null,

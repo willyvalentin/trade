@@ -77,6 +77,7 @@ const foundationTests = [
   "tests/e2e/scheduled-scan-invocation-idempotency.spec.ts",
   "tests/e2e/a2-basic-free-scan-preflight-readback.spec.ts",
   "tests/e2e/intraday-volume-provenance.spec.ts",
+  "tests/e2e/scanner-ranking-intraday-liquidity-shadow.spec.ts",
   "tests/e2e/scheduled-dynamic-movers-budget.spec.ts",
   "tests/e2e/continuous-market-scan-admission.spec.ts",
   "tests/e2e/observation-series-control.spec.ts",
