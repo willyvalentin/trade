@@ -3,12 +3,14 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { createActiveScanTrace } from "../../lib/active-scan-trace";
+import { buildObservationCycleAdmission } from "../../lib/observation-cycle-admission-policy";
 import {
   buildObservationCycleReadback,
   buildObservationCycleReceipt,
   observationCycleReadbackFromUnknown,
   observationCycleReceiptFromUnknown,
 } from "../../lib/observation-cycle-receipt";
+import { resolveScheduledScanProviderCreditBudget } from "../../lib/scheduled-scan-ticker-cap";
 
 const ownerUserId = "11111111-1111-4111-8111-111111111111";
 const attemptFingerprint = "scheduled_scan_attempt_receipt_001";
@@ -37,6 +39,14 @@ function buildReceipt({
     market_session: "regular",
   });
   configure?.(recorder);
+  const observationAdmission = buildObservationCycleAdmission({
+    now: new Date(routeReceivedAtUtc),
+    sessionVerifiedOpen: allowed,
+    recentScanRuns: [],
+    providerBudget: resolveScheduledScanProviderCreditBudget({
+      planMode: "free",
+    }),
+  });
 
   return buildObservationCycleReceipt({
     ownerUserId,
@@ -53,6 +63,7 @@ function buildReceipt({
     activeScanTrace: recorder.trace,
     scanRunFingerprint: null,
     scheduledInvocationReceipt: null,
+    observationAdmission,
   });
 }
 
@@ -64,6 +75,11 @@ test.describe("SV-A.2 observation-cycle receipts", () => {
     expect(record?.cycle_status).toBe("active");
     expect(record?.disposition).toBe("pending");
     expect(record?.receipt_json.provider_request.status).toBe("unknown");
+    expect(record?.receipt_json.admission.policy_receipt).toMatchObject({
+      policy_version: "observation_cycle_admission_v1",
+      decision: "request_current_data",
+      request_current_data: true,
+    });
     expect(record?.receipt_json.authority).toEqual({
       can_arm_scheduler: false,
       can_call_provider: false,
@@ -129,6 +145,14 @@ test.describe("SV-A.2 observation-cycle receipts", () => {
     const escalatedAuthority = escalated.authority as Record<string, boolean>;
     escalatedAuthority.can_publish = true;
     expect(observationCycleReceiptFromUnknown(escalated)).toBeNull();
+
+    const nestedEscalation = structuredClone(record.receipt_json);
+    if (nestedEscalation.admission.policy_receipt) {
+      const nestedAuthority = nestedEscalation.admission.policy_receipt
+        .authority as Record<string, boolean>;
+      nestedAuthority.calls_provider = true;
+    }
+    expect(observationCycleReceiptFromUnknown(nestedEscalation)).toBeNull();
 
     const validRow = { ...record };
     const corruptedRow = { ...record, cycle_status: "completed" };

@@ -13,6 +13,7 @@ import { buildProviderBudgetGuardSummary } from "../../lib/provider-budget-guard
 import type { RecommendationScanRun } from "../../lib/recommendation-scan-run";
 import { buildScannerCandidateRankingSummary } from "../../lib/scanner-candidate-ranking";
 import type { ScannerUniverseCoverageSummary } from "../../lib/scanner-universe";
+import { resolveScheduledScanProviderCreditBudget } from "../../lib/scheduled-scan-ticker-cap";
 
 const tradingDay: MarketSessionStatus = {
   isOpenDay: true,
@@ -48,6 +49,9 @@ function admission(
       scheduled_gate_block_reason: null,
       schedule_window_mismatch: false,
     },
+    providerBudget: resolveScheduledScanProviderCreditBudget({
+      planMode: "free",
+    }),
   });
 }
 
@@ -61,10 +65,14 @@ test("admits provider-confirmed regular-session scans between former fixed windo
     "2026-09-23T18:30:00.000Z", // 14:30 EDT, former midday/power-hour gap
   ]) {
     expect(admission(instant)).toMatchObject({
-      policy_version: "continuous_regular_session_v1",
+      policy_version: "observation_cycle_admission_v1",
       scheduled_gate_allowed: true,
       scheduled_gate_block_reason: null,
       official_window_detected: false,
+      observation_admission: {
+        decision: "request_current_data",
+        request_current_data: true,
+      },
     });
   }
 });
@@ -138,7 +146,11 @@ test("rejects clock/window mismatch and a recent completed scan", () => {
   } as RecommendationScanRun;
   expect(admission(instant, { recentScanRuns: [recentScan] })).toMatchObject({
     scheduled_gate_allowed: false,
-    scheduled_gate_block_reason: "cadence_guard",
+    scheduled_gate_block_reason: "observation_not_due",
+    observation_admission: {
+      decision: "no_request",
+      next_eligible_at: "2026-09-23T15:35:00.000Z",
+    },
   });
   expect(
     admission(instant, {
@@ -151,7 +163,7 @@ test("rejects clock/window mismatch and a recent completed scan", () => {
 
 test("does not expand the separate late-session trial gate", () => {
   expect(admission("2026-09-23T19:15:00.000Z")).toMatchObject({
-    policy_version: "continuous_regular_session_v1",
+    policy_version: "observation_cycle_admission_v1",
     scheduled_gate_window: "power_hour",
     scheduled_gate_allowed: true,
   });

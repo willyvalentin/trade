@@ -40,10 +40,13 @@ import {
   MARKET_CALENDAR_FALLBACK_SCAN_WARNING,
   POLYGON_CALENDAR_ENV_GUIDANCE,
   type DayTradeScanOrchestrationSummary,
-  type ScheduledOfficialGateDiagnostics,
 } from "@/lib/day-trade-scan-orchestration";
 import { buildMarketSessionEvaluation } from "@/lib/market-session";
-import { buildContinuousMarketScanAdmission } from "@/lib/continuous-market-scan-admission";
+import {
+  buildContinuousMarketScanAdmission,
+  type ContinuousMarketScanAdmission,
+} from "@/lib/continuous-market-scan-admission";
+import type { ObservationCycleAdmissionReceipt } from "@/lib/observation-cycle-admission-policy";
 import {
   buildRecommendationServingCadenceSummary,
   type RecommendationServingCadenceSummary,
@@ -107,10 +110,6 @@ import { verifyConfiguredApplicationOwnerPrincipal } from "@/lib/server/applicat
 import { checkRecommendationLearningSchema } from "@/lib/recommendation-learning-schema";
 import { buildProviderPlanProfile } from "@/lib/provider-plan-profile";
 import { isProviderRateLimitLikeError } from "@/lib/provider-rate-limit";
-import {
-  observeMarketWideDiscoveryBetweenPublicationWindows,
-} from "@/lib/market-wide-discovery-background-observation";
-import { marketWideDiscoveryPreviousAttemptFromUnknown } from "@/lib/market-wide-discovery-policy";
 import { observeBasicFreeDiscoveryBetweenPublicationWindows } from "@/lib/basic-free-discovery-background-observation";
 import { basicFreeDiscoveryPreviousAttemptFromUnknown } from "@/lib/basic-free-discovery-policy";
 import { buildBasicFreeCatalogOneShotControl } from "@/lib/basic-free-catalog-one-shot-control";
@@ -223,6 +222,8 @@ type AutomationRunDiagnostics = {
   scheduled_gate_allowed: boolean;
   scheduled_gate_block_reason: string | null;
   schedule_window_mismatch: boolean;
+  policy_version: ContinuousMarketScanAdmission["policy_version"];
+  observation_admission: ObservationCycleAdmissionReceipt;
   grow_max_learning_mode?: boolean;
   grow_max_learning_mode_env_raw_present?: boolean;
   grow_max_learning_mode_env_raw_value_normalized?: boolean;
@@ -772,7 +773,7 @@ function buildAutomationRunDiagnostics({
   decision: AutomationScanDecision;
   scanWindow: IntradayScanWindow;
   generationBlockReason?: string | null;
-  scheduledGateDiagnostics: ScheduledOfficialGateDiagnostics;
+  scheduledGateDiagnostics: ContinuousMarketScanAdmission;
   scheduledRuntimeConfig?: ReturnType<typeof scheduledScanRuntimeConfig>;
   skippedReason?: string | null;
   recentRecommendationScanRuns: RecommendationScanRun[];
@@ -1198,39 +1199,6 @@ async function readRecentScheduledScanRuns() {
   }));
 }
 
-async function readLatestMarketWideDiscoveryAttempt() {
-  const { data, error } = await serverSupabase()
-    .from("scheduled_scan_attempts")
-    .select("payload_json")
-    .order("utc_timestamp", { ascending: false })
-    .limit(50);
-
-  if (error) {
-    console.error(
-      "[automation/run-scan] market_wide_discovery_previous_attempt_load_error",
-      {
-        source: "supabase.scheduled_scan_attempts",
-        operation: "select_recent_market_wide_discovery_attempts",
-        error: normalizeUnknownError(error),
-      },
-    );
-    return null;
-  }
-
-  for (const row of (data ?? []) as Array<Record<string, unknown>>) {
-    const payload =
-      row.payload_json && typeof row.payload_json === "object"
-        ? (row.payload_json as Record<string, unknown>)
-        : null;
-    const previousAttempt = marketWideDiscoveryPreviousAttemptFromUnknown(
-      payload?.market_wide_discovery,
-    );
-    if (previousAttempt) return previousAttempt;
-  }
-
-  return null;
-}
-
 async function readLatestBasicFreeDiscoveryAttempt() {
   const { data, error } = await serverSupabase()
     .from("scheduled_scan_attempts")
@@ -1492,6 +1460,7 @@ async function recordScheduledScanAttempt({
   activeScanTrace = null,
   scheduledScanRunId = null,
   scheduledInvocationReceipt = null,
+  observationAdmission,
 }: {
   ownerUserId: string;
   attemptFingerprint: string;
@@ -1511,6 +1480,7 @@ async function recordScheduledScanAttempt({
   activeScanTrace?: ActiveScanTrace | null;
   scheduledScanRunId?: string | number | null;
   scheduledInvocationReceipt?: ScheduledScanInvocationReceipt | null;
+  observationAdmission: ObservationCycleAdmissionReceipt;
 }) {
   const rawCount =
     activeScanTrace?.raw_candidates.raw_candidate_count ??
@@ -1631,6 +1601,7 @@ async function recordScheduledScanAttempt({
         ? record.scan_run_fingerprint
         : null,
     scheduledInvocationReceipt,
+    observationAdmission,
   });
 
   if (!observationCycleReceipt) {
@@ -3348,6 +3319,7 @@ export async function POST(request: Request) {
     scanWindow: scanWindow.scanWindow,
     recentScanRuns: recentRecommendationScanRuns,
     legacyPowerHourWindowGate: legacyOfficialGateDiagnostics,
+    providerBudget: scheduledRuntimeConfig.scheduled_provider_credit_budget,
   });
   const activeScanTrace = createActiveScanTrace({
     routeReceivedAt: routeReceivedAtUtc,
@@ -3421,6 +3393,7 @@ export async function POST(request: Request) {
       activeScanTrace: input.activeScanTrace ?? activeScanTrace.trace,
       scheduledScanRunId: input.scheduledScanRunId ?? null,
       scheduledInvocationReceipt,
+      observationAdmission: scheduledGateDiagnostics.observation_admission,
     });
 
   await recordAttempt({
@@ -3614,8 +3587,7 @@ export async function POST(request: Request) {
   const catalogOnlyReferenceModeReady =
     readyBasicFreeCatalogOnlyOneShot || readyBasicFreeCatalogCapabilityProbe;
   const backgroundDiscoveryObservationAllowed =
-    (catalogOnlyReferenceModeReady ||
-      !scheduledGateDiagnostics.scheduled_gate_allowed) &&
+    catalogOnlyReferenceModeReady &&
     canObserveBackgroundDiscoveryBetweenPublicationWindows({
       scheduled: !force,
       // Keep the reference-only observation aligned with the route's own
@@ -4107,8 +4079,8 @@ export async function POST(request: Request) {
           // The current background observer always returns an `observed`
           // receipt once it has been admitted. Keep this explicit terminal
           // branch nevertheless: a future ineligible result must not let the
-          // intentionally bounded reference-only mode fall through to market-wide
-          // observation or the normal scheduled scan path.
+          // intentionally bounded reference-only mode fall through to the
+          // normal scheduled scan path.
           if (catalogOnlyReferenceModeEnforced) {
             const generationBlockReason =
               basicFreeCatalogCapabilityProbe.catalog_only_enforced
@@ -4198,113 +4170,12 @@ export async function POST(request: Request) {
           }
         }
 
-        const previousAttempt = await readLatestMarketWideDiscoveryAttempt();
-        const observation =
-          await observeMarketWideDiscoveryBetweenPublicationWindows({
-            scheduled: true,
-            marketOpen: true,
-            outsideOfficialPublicationWindow: true,
-            scanWindow: scanWindow.scanWindow,
-            selectedBudget: scheduledRuntimeConfig.scheduled_max_tickers,
-            ownerUserId,
-            executionFingerprint: scheduledScanAttemptFingerprint,
-            previousAttempt,
-            signal: observationAbortController.signal,
-          });
-
-        if (observation.status === "observed") {
-          const marketWideDiscovery = observation.discovery.summary;
-          const providerResponseObserved =
-            marketWideDiscovery.attempt.provider_response_observed;
-          const message = providerResponseObserved
-            ? "Market-wide discovery observation completed outside an official publication window. Recommendation generation was intentionally not run."
-            : "Market-wide discovery observation recorded a no-call admission outside an official publication window. Recommendation generation was intentionally not run.";
-          const activeScanTracePayload = finishActiveScanTrace(activeScanTrace, {
-            decision: "scanned",
-            status: "completed",
-            skipReason: "outside_official_window_observation_only",
-            noPublishReason: "outside_official_window_observation_only",
-            zeroReason:
-              marketWideDiscovery.admission.reason_codes[0] ??
-              "outside_official_window_observation_only",
-            elapsedMilliseconds: elapsedMs(routeStartedAtMs),
-            timeoutWasReached: false,
-          });
-          const scanLog = createAutomationScanLog({
-            source: "scheduled",
-            scanWindow: scanWindow.scanWindow,
-            marketStatus,
-            result: "skipped",
-            message,
-            recommendationsCreated: 0,
-            details: {
-              ...powerHourTrialGate,
-              no_publish_reason: "outside_official_window_observation_only",
-              market_wide_discovery: marketWideDiscovery,
-              day_trade_scan_orchestration: dayTradeScanOrchestration,
-              recommendation_serving_cadence: initialServingCadence,
-              active_scan_trace: activeScanTracePayload,
-            },
-          });
-
-          await recordAttempt({
-            outcome: "scanned",
-            allowed: false,
-            message,
-            skipReason: "outside_official_window_observation_only",
-            httpStatus: 200,
-            scanLog,
-            activeScanTrace: activeScanTracePayload,
-          });
-
-          return NextResponse.json({
-            ok: true,
-            message,
-            status: "observed",
-            decision: "scanned" satisfies AutomationScanDecision,
-            observation_only: true,
-            market_wide_discovery: marketWideDiscovery,
-            ...automationVersionFields(),
-            ...powerHourTrialGate,
-            ...powerHourTrialCopyFields(),
-            ...scheduledRuntimeFields(),
-            skipped_in_progress: false,
-            active_scan_trace: activeScanTracePayload,
-            automation_diagnostics: automationDiagnostics({
-              decision: "scanned",
-              skippedReason: "outside_official_window_observation_only",
-              currentScanLog: scanLog,
-            }),
-            forced: false,
-            scan_date: scanDate,
-            session_type: sessionType,
-            scan_window: scanWindow.scanWindow,
-            scan_window_label: scanWindowLabel,
-            market_status: marketStatus,
-            market_session: marketSession,
-            ...calendarFields(dayTradeScanOrchestration),
-            expired_recommendations: expiredRecommendations,
-            candidates_generated: 0,
-            recommendations_served: 0,
-            recommendations_created: 0,
-            batch_id: null,
-            batch_fingerprint: null,
-            scan_run_fingerprint: null,
-            warnings: [
-              ...dayTradeScanOrchestration.warnings.map((item) => item.message),
-              ...marketWideDiscovery.warnings,
-            ],
-            gaps: marketWideDiscovery.gaps,
-            day_trade_scan_orchestration: dayTradeScanOrchestration,
-            recommendation_serving_cadence: initialServingCadence,
-          });
-        }
       } finally {
         clearTimeout(observationAbortTimer);
       }
     }
 
-    if (!force && !scheduledGateDiagnostics.scheduled_gate_allowed) {
+    if (!scheduledGateDiagnostics.scheduled_gate_allowed) {
       const decision = scheduledSkipDecisionForOrchestration(
         dayTradeScanOrchestration,
       );

@@ -1,6 +1,10 @@
 import type { ActiveScanTrace } from "@/lib/active-scan-trace";
 import type { ScanLogEntry } from "@/lib/scan-logs";
 import type { ScheduledScanInvocationReceipt } from "@/lib/scheduled-scan-invocation-receipt";
+import {
+  observationCycleAdmissionFromUnknown,
+  type ObservationCycleAdmissionReceipt,
+} from "@/lib/observation-cycle-admission-policy";
 
 export const OBSERVATION_CYCLE_RECEIPT_VERSION =
   "observation_cycle_receipt_v1" as const;
@@ -49,6 +53,7 @@ export type ObservationCycleReceipt = Readonly<{
     market_status: string | null;
     market_session: string | null;
     reason_codes: readonly string[];
+    policy_receipt: ObservationCycleAdmissionReceipt | null;
   }>;
   provider_request: Readonly<{
     status: "attempted" | "not_attempted" | "unknown";
@@ -143,6 +148,7 @@ type BuildObservationCycleReceiptInput = Readonly<{
   activeScanTrace: ActiveScanTrace | null;
   scanRunFingerprint: string | null;
   scheduledInvocationReceipt: ScheduledScanInvocationReceipt | null;
+  observationAdmission?: ObservationCycleAdmissionReceipt | null;
 }>;
 
 const uuidPattern =
@@ -426,11 +432,13 @@ export function buildObservationCycleReceipt(
     admission: Object.freeze({
       status: classification.admissionStatus,
       policy_version:
+        input.observationAdmission?.policy_version ??
         textOrNull(classification.trace?.scheduled_gate_policy_version) ??
         textOrNull(input.orchestrationDecision),
       market_status: textOrNull(classification.trace?.market_status),
       market_session: textOrNull(classification.trace?.market_session),
       reason_codes: Object.freeze(admissionReasons),
+      policy_receipt: input.observationAdmission ?? null,
     }),
     provider_request: Object.freeze({
       status: classification.providerRequestStatus,
@@ -614,6 +622,10 @@ export function observationCycleReceiptFromUnknown(
       ? null
       : canonicalQuarterHourOrNull(trigger?.scheduled_slot_started_at_utc);
   const admissionReasons = stringArrayOrNull(admission?.reason_codes);
+  const admissionPolicyReceipt =
+    admission?.policy_receipt === null || admission?.policy_receipt === undefined
+      ? null
+      : observationCycleAdmissionFromUnknown(admission.policy_receipt);
   const freshnessReasons = stringArrayOrNull(freshness?.reason_codes);
   const publicationReasons = stringArrayOrNull(publication?.reason_codes);
   const decisionReasons = stringArrayOrNull(decision?.reason_codes);
@@ -648,6 +660,9 @@ export function observationCycleReceiptFromUnknown(
     (finalizedAt !== null && Date.parse(routeReceivedAt) > Date.parse(finalizedAt)) ||
     (trigger?.scheduled_slot_started_at_utc !== null && !scheduledSlot) ||
     !admissionReasons ||
+    (admission?.policy_receipt !== null &&
+      admission?.policy_receipt !== undefined &&
+      !admissionPolicyReceipt) ||
     !freshnessReasons ||
     !publicationReasons ||
     !decisionReasons ||
@@ -723,6 +738,7 @@ export function observationCycleReceiptFromUnknown(
       market_status: textOrNull(admission?.market_status),
       market_session: textOrNull(admission?.market_session),
       reason_codes: Object.freeze(admissionReasons),
+      policy_receipt: admissionPolicyReceipt,
     }),
     provider_request: Object.freeze({
       status: providerRequestStatus,

@@ -19604,6 +19604,15 @@ export function buildMarketDiagnosticsConsoleSummary(
         lineValue("Disposition", latestObservationCycle?.disposition ?? "none"),
         lineValue("Trigger", latestObservationCycle?.trigger.status ?? "none"),
         lineValue("Admission", latestObservationCycle?.admission.status ?? "none"),
+        lineValue(
+          "Observation decision",
+          latestObservationCycle?.admission.policy_receipt?.decision ?? "legacy",
+        ),
+        lineValue(
+          "Next eligible",
+          latestObservationCycle?.admission.policy_receipt?.next_eligible_at ??
+            "unknown",
+        ),
         lineValue("Provider request", latestObservationCycle?.provider_request.status ?? "none"),
         lineValue("Provider response", latestObservationCycle?.provider_response.status ?? "none"),
         lineValue("Freshness", latestObservationCycle?.freshness.status ?? "none"),
@@ -19616,6 +19625,26 @@ export function buildMarketDiagnosticsConsoleSummary(
         observation_policy_version:
           latestObservationCycle?.observation_policy_version ?? null,
         cycle_status: latestObservationCycle?.cycle_status ?? null,
+        observation_admission_decision:
+          latestObservationCycle?.admission.policy_receipt?.decision ?? null,
+        observation_next_eligible_at:
+          latestObservationCycle?.admission.policy_receipt?.next_eligible_at ??
+          null,
+        observation_freshness_fact:
+          latestObservationCycle?.admission.policy_receipt?.facts.freshness
+            .status ?? null,
+        observation_coverage_fact:
+          latestObservationCycle?.admission.policy_receipt?.facts.coverage
+            .status ?? null,
+        observation_candidate_state_fact:
+          latestObservationCycle?.admission.policy_receipt?.facts.candidate_state
+            .status ?? null,
+        observation_material_change_fact:
+          latestObservationCycle?.admission.policy_receipt?.facts.material_change
+            .status ?? null,
+        observation_retry_backoff_minutes:
+          latestObservationCycle?.admission.policy_receipt?.facts.retry_backoff
+            .delay_minutes ?? null,
         scheduled_slot_started_at_utc:
           latestObservationCycle?.trigger.scheduled_slot_started_at_utc ?? null,
         scan_run_fingerprint: latestObservationCycle?.scan_run_fingerprint ?? null,

@@ -56,5 +56,20 @@ deleted or reclassified by this delivery.
   worktree reuses `node_modules` through a symlink outside Turbopack's
   filesystem root.
 
-Production migration, protected-main merge, production deploy and live
-market-cycle behavior are separate evidence stages and are not claimed here.
+## Production delivery
+
+- PR #649 merged as main
+  `e3f9ea435d76545a39c4343327833aa7ab8ee67f`;
+- protected exact-main CI run `36234687506`: passed;
+- Netlify production deploy `6ab798ba2ecf42000803665b`: `ready`, branch
+  `main`, context `production`, exact merge revision;
+- Supabase production migration record:
+  `20260926100240_sv_a2_observation_cycle_receipts`;
+- production catalog readback: RLS enabled, no `anon`/`authenticated` direct
+  access, `service_role` select/insert/update only, no delete, constrained
+  trigger/function and four expected indexes;
+- retained production rows at verification: zero.
+
+This establishes merged, deployed and production-schema-verified capability.
+No normal market cycle has yet environment-verified the new receipt, and none
+of this is evidence of improved ranking, recommendation quality or alpha.
