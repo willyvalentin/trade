@@ -61,6 +61,9 @@ import {
   assessScannerIntradayLiquidityShadowOutcomeAdmission,
   SCANNER_INTRADAY_LIQUIDITY_SHADOW_OUTCOME_ADMISSION_VERSION,
 } from "@/lib/scanner-intraday-liquidity-shadow-outcome-admission";
+import {
+  buildBasicFreeScheduledOutcomeCapacityReceipt,
+} from "@/lib/basic-free-scheduled-outcome-capacity";
 
 type EvaluateOutcomesRequest = {
   mode?: unknown;
@@ -154,7 +157,7 @@ type ReceiptRun = Pick<
   | "candle_requests_saved_by_reuse"
 >;
 
-const outcomeEvaluationRouteVersion = "outcome-evaluation-route-v1.1";
+const outcomeEvaluationRouteVersion = "outcome-evaluation-route-v1.2";
 const defaultOfficialLiveMaxBatchesPerRun = 5;
 const officialLiveBatchDiscoveryLimit = 20;
 const allowedHorizons = new Set<RecommendationOutcomeHorizon>([
@@ -1089,6 +1092,24 @@ function officialOutcomeBySnapshotAndHorizon(
       outcome.snapshot_fingerprint === snapshotFingerprint &&
       outcome.horizon === horizon,
   );
+}
+
+function pendingOfficialSnapshotCount({
+  horizons,
+  outcomesByKey,
+  snapshots,
+}: {
+  horizons: RecommendationOutcomeHorizon[];
+  outcomesByKey: Map<string, RecommendationOutcome>;
+  snapshots: RecommendationSnapshot[];
+}) {
+  return snapshots.filter((snapshot) =>
+    horizons.some((horizon) =>
+      isOfficialOutcomePending(
+        outcomesByKey.get(`${snapshot.snapshot_fingerprint}:${horizon}`),
+      ),
+    ),
+  ).length;
 }
 
 function filterOfficialSnapshotsNeedingOutcomeEvaluation({
@@ -2484,6 +2505,34 @@ export async function POST(request: Request) {
     candleRequestsPlanned: run.candle_requests_planned,
     preFilterEligibleSnapshotCount: outcomeEvaluationSnapshots.length,
   });
+  const providerBudgetDeferredSnapshotCount = new Set(
+    run.candidates
+      .filter((candidate) => candidate.status === "pending_provider_budget")
+      .map((candidate) => candidate.snapshot_fingerprint)
+      .filter((fingerprint): fingerprint is string => fingerprint !== null),
+  ).size;
+  const remainingOutcomeBacklogCount = pendingOfficialSnapshotCount({
+    horizons,
+    outcomesByKey: existingByKey,
+    snapshots: outcomeEvaluationSnapshots,
+  });
+  const basicFreeScheduledOutcomeCapacity =
+    scheduledAttempt && providerPlanProfile.effective_mode === "free"
+      ? buildBasicFreeScheduledOutcomeCapacityReceipt({
+          backlog_snapshot_count_before_run: outcomeEvaluationSnapshots.length,
+          backlog_snapshot_count_after_run: remainingOutcomeBacklogCount,
+          runner_selected_snapshot_count: run.eligible_snapshot_count,
+          snapshot_cap_deferred_count: Math.max(
+            0,
+            outcomeEvaluationSnapshots.length - run.eligible_snapshot_count,
+          ),
+          provider_budget_deferred_snapshot_count:
+            providerBudgetDeferredSnapshotCount,
+          provider_requests_used: run.candle_requests_executed,
+          max_snapshots_per_run: maxSnapshotsForRun,
+          provider_request_budget: providerBudgetLimit,
+        })
+      : null;
   const latestProviderError =
     run.candidates.find((candidate) => candidate.status === "provider_error")
       ?.error ?? null;
@@ -2525,6 +2574,7 @@ export async function POST(request: Request) {
         ? {
             ...sameDayOfficialBatchRevisitDiagnostics,
             provider_requests_used: run.candle_requests_executed,
+            remaining_backlog_after_run: remainingOutcomeBacklogCount,
           }
         : null,
     evaluated_snapshots_count: evaluatedSnapshotFingerprints.size,
@@ -2594,6 +2644,8 @@ export async function POST(request: Request) {
     override_budget_limit: providerBudgetResolution.overrideBudgetLimit,
     effective_budget_limit: providerBudgetLimit,
     basic_free_scheduled_outcome_credit_reservation: outcomeCreditSummary,
+    basic_free_scheduled_outcome_capacity:
+      basicFreeScheduledOutcomeCapacity,
     ...eligibilityDiagnostics,
     ...postEligibilityDiagnostics,
     candle_requests_planned: run.candle_requests_planned,

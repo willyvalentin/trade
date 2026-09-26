@@ -223,6 +223,7 @@ test.describe("Action 556 same-day official batch revisit", () => {
     expect(routeSource).toContain("horizon_rows_complete");
     expect(routeSource).toContain("remaining_backlog_after_run");
     expect(routeSource).toContain("provider_requests_used");
+    expect(routeSource).toContain("basic_free_scheduled_outcome_capacity");
   });
 
   test("same-day official revisit keeps explicit horizons and no placeholder rows", () => {

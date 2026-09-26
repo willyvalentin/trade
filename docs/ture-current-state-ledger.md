@@ -1,13 +1,16 @@
 # Ture Current-State Ledger
 
-## Active Now / Next / Blocked — 2026-09-21 scientific validation and IBKR direction
+## Active Now / Next / Blocked — 2026-09-27 recommendation intelligence first
 
-The [master roadmap](./ture-master-roadmap.md) now maps the user's full scientific
-validation, autonomous paper, options and IBKR specification into SV-A–SV-U.
-This is a planning update based on main `0dbdcb53272b1739864a47f33a26fc22e052a0d6`,
-not new runtime or strategy evidence. The older IF receipts below remain usable;
-their former queue and Avanza execution priority are superseded. Repository
-roadmap/governance/ledger are the only control sources; Notion stays outside scope.
+The [master roadmap](./ture-master-roadmap.md) retains the full scientific,
+autonomous-paper, options and IBKR destination in SV-A-SV-U, but active work
+selection is recommendation intelligence first. The current queue is IF-2b data
+fitness/discovery -> IF-3 contextual ranking -> IF-4 complete outcome-linked
+comparison -> IF-5 shadow-tested reversible promotion. New paper/broker product
+work is deferred until sustained useful-quality evidence; only a reproduced
+integrity, safety or evidence-path defect may interrupt. Repository roadmap,
+governance and this ledger are the only control sources; Notion stays outside
+scope.
 
 ### Delivery method — CLOSED readiness, 2026-09-24
 
@@ -128,10 +131,11 @@ TypeScript, changed-file lint, scheduled-runtime packaging and a complete Next
 provider-free shards, the aggregate and merge-candidate provenance. Real
 forward full-population outcome coverage remains separate evidence.
 
-**Active successor CLOSED slice — exact shadow-research outcome admission:**
-owner Codex on `codex/liquidity-shadow-outcome-capacity`, based on exact main
-`bb0eb506ae054b2dd98e3c51a760803360daa8fe`. Inspection found a concrete
-evidence break: full-population snapshots are intentionally persisted as
+**Merged and production-verified CLOSED slice — exact shadow-research outcome
+admission:** PR [#662](https://github.com/willyvalentin/trade/pull/662) merged
+as `c76aea70f9a5319b491127f5c009c69fc05be1f9`; Netlify production deploy
+`6ab8510e4d9c5e0008e4201e` is `ready` on that exact revision. Inspection found a
+concrete evidence break: full-population snapshots are intentionally persisted as
 `research_only`, while the official outcome route previously loaded and admitted
 research snapshots only under broad Grow Max/learning acceleration. The Basic
 Free path could therefore capture the population but never mature its hidden
@@ -143,10 +147,39 @@ cohort members receive explicit diagnostics, and the existing scheduled Basic
 Free credit reservation remains the sole provider gate. The admission itself
 authorizes zero provider requests and has no live-ranking, publication or
 execution effect. Local acceptance currently includes 6/6 focused admission
-tests within a 30/30 capture/credit/receipt regression, strict TypeScript and
-changed-file lint. PR/CI/merge/deploy and forward canonical outcomes remain
-separate evidence; this repairs measurability and does not prove the challenger
-is better.
+tests within a 30/30 capture/credit/receipt regression, 32/32 broader
+outcome/schedule/canonical-coverage tests, the 166/166 intelligence-foundation
+suite, strict TypeScript, changed-file lint, scheduled-runtime packaging and a
+complete Next 16.3.4 webpack production build. Protected CI run `36277121019`
+passed all six provider-free shards, aggregate verification and merge-candidate
+provenance. Forward canonical outcomes remain separate evidence; this repairs
+measurability and does not prove the challenger is better.
+
+**Active successor CLOSED slice — Basic Free outcome-capacity alignment:** owner
+Codex on `codex/basic-free-outcome-capacity`, based on exact main
+`c76aea70f9a5319b491127f5c009c69fc05be1f9`. The scheduled outcome function
+selected up to ten pending snapshots while the same slot could reserve and issue
+at most four provider candle requests. The runner failed safely by marking the
+remaining selected snapshots `pending_provider_budget`, but the schedule and
+pre-run backlog diagnostic described more selected work than the slot could
+possibly request. The selected fix shares one versioned Basic Free capacity
+contract, aligns scheduled selection to four snapshots, and emits actual
+before/after backlog, snapshot-cap deferral, provider-budget deferral and used
+requests after persistence. It does not raise credits, call a provider, alter
+ranking/publication or claim quality improvement. Current local evidence is
+21/21 focused capacity, credit, revisit and preserved-admission tests, 50/50
+broader outcome/lineage tests, the 166/166 intelligence-foundation suite,
+strict TypeScript, changed-file lint and all scheduled-runtime bundles. The
+complete Next 16.3.4 webpack production build also passes. PR/CI, merge/deploy
+and forward outcomes remain separate evidence.
+
+**Next after this slice:** obtain the frozen full-population cohort in a bounded
+regular-session observation, drain its canonical outcomes under the truthful
+capacity/backlog contract, and run the already deployed paired evaluator against
+the frozen baseline. Classify the result continue, narrow or reject; no candidate
+quota or threshold relaxation is permitted. If that OPEN cohort is waiting, the
+next CLOSED slice must improve or test a missing data/context/ranking input for
+the same population rather than reopen generic control-plane work.
 
 ### Continuous-observation technical direction — 2026-09-24
 

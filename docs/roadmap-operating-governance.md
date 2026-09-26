@@ -1,13 +1,13 @@
 # Roadmap Operating Governance
 
-## Active delivery policy — scientific validation and IBKR first, 2026-09-21
+## Active delivery policy — recommendation intelligence first, 2026-09-27
 
-Follow the active SV-A–SV-U map in the repository master roadmap and the single
-Now / Next / Blocked queue in the ledger. The user's new specification replaces
-Avanza as the future execution target with IBKR and permits autonomous internal
-paper plus IBKR-paper engineering before proof of live alpha. It preserves the
-scientific and operational gates before real capital. Older IF and MVP material
-is reusable evidence; its former work-selection rules are historical. Notion
+Follow the active IF-2b -> IF-3 -> IF-4 -> IF-5 selection in the master roadmap
+and the single Now / Next / Blocked queue in the ledger. The retained SV-A-SV-U
+map defines the later scientific, autonomous-paper and IBKR destination, but it
+does not select new execution work ahead of the recommendation engine. Older IF,
+MVP and SV implementations remain reusable evidence and infrastructure; their
+historical queues do not override the active intelligence hypothesis. Notion
 remains outside the development workflow.
 
 ### Select and finish real product behavior
@@ -38,9 +38,13 @@ remains outside the development workflow.
 - After two same-cause failed attempts, diagnose and change approach. Do not
   create static successor chains or expand demo/research infrastructure without
   a demonstrated dependency on the selected outcome.
-- Finish the current engine's bounded operational gaps first. Do not demand
-  positive alpha before building the paper/replay infrastructure needed to
-  test it. Early paper remains experimental; live promotion requires the gates.
+- Select operational work only when it enables or protects the current
+  recommendation-quality evidence path. Otherwise choose the next concrete
+  data-fitness, discovery, context, ranking, outcome or evaluation hypothesis.
+  Do not demand positive alpha from one cohort, but do require a frozen baseline,
+  full attributable population, declared outcomes and forward evidence before
+  promoting a policy. Paper/replay may supply evidence when selected; it is not
+  the default product milestone while recommendation quality remains unproven.
 
 ### CLOSED readiness and efficient OPEN delivery — 2026-09-24
 
@@ -117,11 +121,19 @@ explicit provider budget and persisted retry/backoff facts.
   actual cost, freshness, retries and outcome classification; it does not by
   itself establish coverage, strategy quality or execution authority.
 
-### Pilot and decision checkpoints
+### Intelligence and execution checkpoints
+
+The immediate decision loop is hypothesis -> point-in-time baseline/challenger
+population -> canonical outcomes -> paired evaluation -> continue/narrow/reject.
+Every slice must identify which link it improves and whether live ranking,
+publication or execution changes. Attribution or operational success without
+outcomes is not quality evidence; a favorable aggregate without complete
+declared coverage is not promotion evidence.
 
 Use the master roadmap's bounded first pilot: one existing long-only equity
 strategy, at most ten eligible symbols, one paper position and regular hours.
-Complete its unattended durable lifecycle before increasing scope. During A,
+This pilot follows, rather than replaces, the active intelligence gate. Complete
+its unattended durable lifecycle before increasing execution scope. During A,
 record actual data rights/capacity and numeric cost/health/recovery limits in the
 ledger; freeze them before enabling the observed session and verify them with
 timed behavior tests. Do not invent calibrated probabilities or ignore missing

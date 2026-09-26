@@ -214,7 +214,9 @@ test("AI-02.12 remains server-only, I/O-free and registered once in existing CI"
   );
   const schedule = source(schedulePath);
   expect(schedule).toContain("max_batches: 5");
-  expect(schedule).toContain("max_snapshots: 10");
+  expect(schedule).toContain(
+    "max_snapshots: BASIC_FREE_SCHEDULED_OUTCOME_MAX_SNAPSHOTS_PER_RUN",
+  );
   const registration = JSON.parse(source(registrationPath)) as string[];
   expect(registration.filter((entry) => entry === thisTest)).toEqual([thisTest]);
   expect(source(runnerPath).split(JSON.stringify(thisTest)).length - 1).toBe(1);

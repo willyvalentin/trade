@@ -7,6 +7,9 @@ import {
   scheduledOutcomeEvaluationSlotStartedAt,
 } from "../../lib/scheduled-outcome-evaluation-receipt";
 import {
+  BASIC_FREE_SCHEDULED_OUTCOME_MAX_SNAPSHOTS_PER_RUN,
+} from "../../lib/basic-free-scheduled-outcome-capacity";
+import {
   parseScheduledScanBuildDeploymentIdentity,
   scheduledScanPreflightEventEvidence,
   scheduledScanTimeBoundAdmission,
@@ -201,7 +204,7 @@ async function invokeScheduledOutcomeRoute({
         mode: "official_live_today",
         horizons: officialIntradayHorizons,
         max_batches: 5,
-        max_snapshots: 10,
+        max_snapshots: BASIC_FREE_SCHEDULED_OUTCOME_MAX_SNAPSHOTS_PER_RUN,
         scheduled_function_fired_at_utc: firedAtUtc,
         scheduled_slot_at_utc: scheduledSlotAtUtc,
         scheduled_outcome_evaluation_attempt_fingerprint: attemptFingerprint,

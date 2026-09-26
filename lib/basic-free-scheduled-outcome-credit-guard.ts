@@ -14,11 +14,16 @@ import {
   prepareBasicFreeDiscoveryCreditReservation,
 } from "@/lib/server/basic-free-discovery-credit-reservation-persistence";
 import type { ProviderPlanProfileMode } from "@/lib/provider-plan-profile";
+import {
+  BASIC_FREE_SCHEDULED_OUTCOME_MAX_CANDLE_REQUESTS,
+} from "@/lib/basic-free-scheduled-outcome-capacity";
+
+export {
+  BASIC_FREE_SCHEDULED_OUTCOME_MAX_CANDLE_REQUESTS,
+} from "@/lib/basic-free-scheduled-outcome-capacity";
 
 export const BASIC_FREE_SCHEDULED_OUTCOME_CREDIT_GUARD_VERSION =
   "basic_free_scheduled_outcome_credit_guard_v1" as const;
-export const BASIC_FREE_SCHEDULED_OUTCOME_MAX_CANDLE_REQUESTS = 4;
-
 export function capBasicFreeOutcomeCandleRequests(input: {
   planMode: Exclude<ProviderPlanProfileMode, "unknown">;
   requestedLimit: number;
