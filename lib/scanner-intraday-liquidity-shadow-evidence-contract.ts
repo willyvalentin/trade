@@ -1,0 +1,3 @@
+export const SCANNER_INTRADAY_LIQUIDITY_SHADOW_EVIDENCE_CAPTURE_VERSION =
+  "scanner_intraday_liquidity_shadow_evidence_capture_v1" as const;
+

@@ -10,9 +10,9 @@ import {
   scannerIntradayLiquidityShadowComparisonFromUnknown,
   type ScannerIntradayLiquidityShadowComparison,
 } from "@/lib/scanner-ranking-intraday-liquidity-shadow";
+import { SCANNER_INTRADAY_LIQUIDITY_SHADOW_EVIDENCE_CAPTURE_VERSION } from "@/lib/scanner-intraday-liquidity-shadow-evidence-contract";
 
-export const SCANNER_INTRADAY_LIQUIDITY_SHADOW_EVIDENCE_CAPTURE_VERSION =
-  "scanner_intraday_liquidity_shadow_evidence_capture_v1" as const;
+export { SCANNER_INTRADAY_LIQUIDITY_SHADOW_EVIDENCE_CAPTURE_VERSION } from "@/lib/scanner-intraday-liquidity-shadow-evidence-contract";
 export const SCANNER_INTRADAY_LIQUIDITY_SHADOW_EVIDENCE_MAX_POPULATION = 100;
 
 export type ScannerIntradayLiquidityShadowEvidenceSample =
