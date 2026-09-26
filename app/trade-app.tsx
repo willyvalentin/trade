@@ -186,6 +186,10 @@ import {
   observationCycleReadbackFromUnknown,
   type ObservationCycleReadback,
 } from "@/lib/observation-cycle-receipt";
+import {
+  buildObservationCycleScanReadbackSelection,
+  type ObservationCycleScanReadbackProjection,
+} from "@/lib/observation-cycle-readback-projection";
 import { scheduledScanRegularSessionCron } from "@/lib/scheduled-scan-regular-session-coverage";
 import {
   buildRecommendationEmptyStateSummary,
@@ -13982,7 +13986,54 @@ export function TradeApp({
         timestampWindowClassification === "power_hour",
     };
   };
-  const latestSuccessfulReadbackScan = latestSuccessfulScanLog
+  type LatestReadbackCandidate = {
+    result: string | null;
+    created_at: string | null;
+    created_at_ny: string | null;
+    scan_window: string | null;
+    window_classification: string;
+    created_at_window_classification: string;
+    produced_inside_official_window: boolean;
+    visible_recommendation_count: number | null;
+    message: string | null;
+    source: string | null;
+  } & Partial<
+    Omit<
+      ObservationCycleScanReadbackProjection,
+      | "result"
+      | "created_at"
+      | "scan_window"
+      | "visible_recommendation_count"
+      | "message"
+      | "source"
+    >
+  >;
+  const observationCycleScanReadback =
+    buildObservationCycleScanReadbackSelection({
+      readback: observationCycleReadback,
+      tradingDate: dailySessionDate,
+    });
+  const observationCycleReadbackCandidate = (
+    projection: ObservationCycleScanReadbackProjection | null,
+  ): LatestReadbackCandidate | null =>
+    projection
+      ? {
+          ...projection,
+          ...readbackTimingFields({
+            createdAt: projection.created_at,
+            scanWindow: projection.scan_window,
+          }),
+        }
+      : null;
+  const latestCompletedObservationCycleReadback =
+    observationCycleReadbackCandidate(
+      observationCycleScanReadback.latest_completed_evaluation,
+    );
+  const latestAttemptedObservationCycleReadback =
+    observationCycleReadbackCandidate(
+      observationCycleScanReadback.latest_attempted_cycle,
+    );
+  const legacyLatestSuccessfulReadbackScan = latestSuccessfulScanLog
     ? {
         result: latestSuccessfulScanLog.result,
         created_at: latestSuccessfulScanLog.created_at,
@@ -14059,23 +14110,18 @@ export function TradeApp({
             source: "recommendation_scan_runs:closed_market_review",
           }
       : null;
-  type LatestAttemptedReadbackCandidate = {
-    result: string | null;
-    created_at: string | null;
-    created_at_ny: string | null;
-    scan_window: string | null;
-    window_classification: string;
-    created_at_window_classification: string;
-    produced_inside_official_window: boolean;
-    visible_recommendation_count: number | null;
-    message: string | null;
-    source: string | null;
-  };
+  const latestSuccessfulReadbackScan = ([
+    latestCompletedObservationCycleReadback,
+    legacyLatestSuccessfulReadbackScan,
+  ].filter(Boolean) as LatestReadbackCandidate[]).sort((first, second) =>
+    (second.created_at ?? "").localeCompare(first.created_at ?? ""),
+  )[0] ?? null;
   const latestScheduledTimelineAttempt =
     scheduledScanTimelineToday.find(
       (entry) => entry.source_type !== "retained_readback",
     ) ?? null;
   const latestAttemptedReadbackCandidates = ([
+    latestAttemptedObservationCycleReadback,
     latestScheduledTimelineAttempt
       ? {
           result:
@@ -14171,7 +14217,7 @@ export function TradeApp({
           source: dailyScheduledScanAttempts[0].source,
         }
       : null,
-  ].filter(Boolean) as LatestAttemptedReadbackCandidate[]);
+  ].filter(Boolean) as LatestReadbackCandidate[]);
   const latestAttemptedReadbackScan =
     latestAttemptedReadbackCandidates.sort((first, second) =>
       (second.created_at ?? "").localeCompare(first.created_at ?? ""),

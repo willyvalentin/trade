@@ -19613,6 +19613,21 @@ export function buildMarketDiagnosticsConsoleSummary(
           latestObservationCycle?.admission.policy_receipt?.next_eligible_at ??
             "unknown",
         ),
+        lineValue(
+          "Cadence anchor",
+          latestObservationCycle?.admission.policy_receipt?.facts.retry_backoff
+            .cadence_anchor_at ?? "none",
+        ),
+        lineValue(
+          "Cadence anchor source",
+          latestObservationCycle?.admission.policy_receipt?.facts.retry_backoff
+            .cadence_anchor_source ?? "legacy",
+        ),
+        lineValue(
+          "Includes pre-run failure",
+          latestObservationCycle?.admission.policy_receipt?.facts.retry_backoff
+            .includes_pre_run_failure ?? false,
+        ),
         lineValue("Provider request", latestObservationCycle?.provider_request.status ?? "none"),
         lineValue("Provider response", latestObservationCycle?.provider_response.status ?? "none"),
         lineValue("Freshness", latestObservationCycle?.freshness.status ?? "none"),
@@ -19645,6 +19660,15 @@ export function buildMarketDiagnosticsConsoleSummary(
         observation_retry_backoff_minutes:
           latestObservationCycle?.admission.policy_receipt?.facts.retry_backoff
             .delay_minutes ?? null,
+        observation_cadence_anchor_at:
+          latestObservationCycle?.admission.policy_receipt?.facts.retry_backoff
+            .cadence_anchor_at ?? null,
+        observation_cadence_anchor_source:
+          latestObservationCycle?.admission.policy_receipt?.facts.retry_backoff
+            .cadence_anchor_source ?? null,
+        observation_retry_includes_pre_run_failure:
+          latestObservationCycle?.admission.policy_receipt?.facts.retry_backoff
+            .includes_pre_run_failure ?? null,
         scheduled_slot_started_at_utc:
           latestObservationCycle?.trigger.scheduled_slot_started_at_utc ?? null,
         scan_run_fingerprint: latestObservationCycle?.scan_run_fingerprint ?? null,
