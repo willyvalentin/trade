@@ -36,6 +36,8 @@ export const CANDIDATE_DECISION_UNIVERSE_VERSION =
   "scanner_universe_v1" as const;
 export const CANDIDATE_DECISION_PROVIDER_CONTRACT_VERSION =
   "twelve_data_market_data_v1" as const;
+export const CANDIDATE_DECISION_SNAPSHOT_LINKAGE_VERSION =
+  "candidate_decision_snapshot_linkage_v1" as const;
 
 export type CandidateDecisionDisposition =
   | "published"
