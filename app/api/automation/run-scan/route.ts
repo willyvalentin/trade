@@ -21,6 +21,11 @@ import {
   reviewPendingDiscardedRecommendations,
 } from "@/lib/discard-review";
 import { getUsMarketStatus } from "@/lib/market-calendar";
+import type { MarketRegime } from "@/lib/market-regime";
+import {
+  buildMarketRegimeDecisionContext,
+  type MarketRegimeDecisionContext,
+} from "@/lib/market-regime-decision-context";
 import {
   getIntradayScanPolicy,
   getIntradayScanWindow,
@@ -2174,6 +2179,8 @@ function buildSnapshotFromRecommendation({
   recommendations,
   providerPlanProfileMode,
   batchFingerprint,
+  marketRegime,
+  marketRegimeContext,
 }: {
   recommendation: RecommendationRow;
   scanRunId: string;
@@ -2186,6 +2193,8 @@ function buildSnapshotFromRecommendation({
   recommendations: RecommendationRow[];
   providerPlanProfileMode: string | null;
   batchFingerprint: string | null;
+  marketRegime: MarketRegime | null;
+  marketRegimeContext: MarketRegimeDecisionContext | null;
 }) {
   const entryLow = numberOrNull(recommendation.entry_low);
   const entryHigh = numberOrNull(recommendation.entry_high);
@@ -2340,6 +2349,8 @@ function buildSnapshotFromRecommendation({
       scan_observability_summary: scanObservability,
     },
     payload: {
+      market_regime: marketRegime,
+      market_regime_context: marketRegimeContext,
       data_timestamp: dataTimestamp,
       provider_source: providerSource,
       provider_status: providerStatus,
@@ -2405,6 +2416,8 @@ function buildSnapshotFromResearchSample({
   providerPlanProfileMode,
   batchFingerprint,
   researchPurpose = "learning_acceleration",
+  marketRegime,
+  marketRegimeContext,
 }: {
   candidateDecisionLink: ResearchSnapshotCandidateDecisionLink;
   sample: LearningAccelerationResearchSample | RejectedCandidateResearchSample;
@@ -2419,6 +2432,8 @@ function buildSnapshotFromResearchSample({
   researchPurpose?:
     | "learning_acceleration"
     | "intraday_liquidity_shadow_full_population";
+  marketRegime: MarketRegime | null;
+  marketRegimeContext: MarketRegimeDecisionContext | null;
 }) {
   const rejectedCandidateResearch =
     candidateDecisionLink.candidate_disposition === "filtered_before_ranking";
@@ -2484,6 +2499,8 @@ function buildSnapshotFromResearchSample({
       scan_observability_summary: scanObservability,
     },
     payload: {
+      market_regime: marketRegime,
+      market_regime_context: marketRegimeContext,
       visibility_status: "research_only",
       not_live_signal: true,
       not_live_trade_signal: true,
@@ -2590,6 +2607,7 @@ async function persistAutomationArtifacts({
   candidateDecisionCapture,
   scheduledInvocationReceipt,
   learningAccelerationInput,
+  marketRegime,
 }: {
   scanDate: string;
   sessionType: SessionType;
@@ -2616,8 +2634,13 @@ async function persistAutomationArtifacts({
     callsiteName?: string | null;
     expectedBelowThresholdFromTimeline?: number | null;
   } | null;
+  marketRegime: MarketRegime | null;
 }) {
   activeScanTrace?.markStage("persistence", "started");
+  const marketRegimeContext = buildMarketRegimeDecisionContext({
+    marketRegime,
+    capturedAt: new Date(),
+  });
   const serverSupabase = getServerSupabaseClient();
   const observability = buildAutomationScanObservability({
     scanDate,
@@ -2699,6 +2722,8 @@ async function persistAutomationArtifacts({
       scanLog.candidates_scanned ??
       null,
     payload: {
+      market_regime: marketRegime,
+      market_regime_context: marketRegimeContext,
       scan_window: scanWindow,
       scan_reason: orchestration.scan_reason,
       run_type: orchestration.run_type,
@@ -2818,6 +2843,8 @@ async function persistAutomationArtifacts({
       recommendations,
       providerPlanProfileMode,
       batchFingerprint: null,
+      marketRegime,
+      marketRegimeContext,
     }),
   );
   const anticipatedBatchFingerprint =
@@ -2921,6 +2948,8 @@ async function persistAutomationArtifacts({
       recommendations,
       providerPlanProfileMode,
       batchFingerprint: anticipatedBatchFingerprint,
+      marketRegime,
+      marketRegimeContext,
     });
 
     snapshots.push(snapshot);
@@ -2957,6 +2986,8 @@ async function persistAutomationArtifacts({
       providerPlanProfileMode,
       batchFingerprint: anticipatedBatchFingerprint,
       researchPurpose: "intraday_liquidity_shadow_full_population",
+      marketRegime,
+      marketRegimeContext,
     });
 
     liquidityShadowResearchSnapshots.push(snapshot);
@@ -2984,6 +3015,8 @@ async function persistAutomationArtifacts({
       servingCadence,
       providerPlanProfileMode,
       batchFingerprint: anticipatedBatchFingerprint,
+      marketRegime,
+      marketRegimeContext,
     });
 
     researchSnapshots.push(snapshot);
@@ -3019,6 +3052,8 @@ async function persistAutomationArtifacts({
       servingCadence,
       providerPlanProfileMode,
       batchFingerprint: anticipatedBatchFingerprint,
+      marketRegime,
+      marketRegimeContext,
     });
 
     rejectedResearchSnapshots.push(snapshot);
@@ -5305,6 +5340,7 @@ export async function POST(request: Request) {
         candidateDecisionCapture:
           generationScanLog?.candidate_decision_capture ?? null,
         scheduledInvocationReceipt,
+        marketRegime: generationResult.market_regime ?? null,
         learningAccelerationInput: {
           candidateGeneration:
             generationScanLog?.real_scanner_candidate_generation ?? null,

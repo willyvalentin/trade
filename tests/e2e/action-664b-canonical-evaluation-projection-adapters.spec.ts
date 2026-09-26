@@ -409,6 +409,49 @@ test.describe("Action 664B canonical evaluation projection adapters", () => {
     );
   });
 
+  test("extracts nested production market-regime payloads without inventing context", () => {
+    const nestedSnapshot = projectRecommendationSnapshotDecision({
+      snapshot: {
+        ...action664bVisibleSnapshot,
+        payload_json: {
+          ...action664bVisibleSnapshot.payload_json,
+          market_regime: { regime: "risk_off" },
+          market_regime_context: {
+            contract_version: "market_regime_decision_context_v1",
+            classifier_version: "market_regime_v1",
+            captured_at: "2026-07-08T13:32:00.000Z",
+            regime: "risk_off",
+          },
+        },
+      },
+      metadata: action664bFixtureMetadata({ regime: null }),
+    });
+    const nestedBatch = projectRecommendationBatchDecision({
+      batch: {
+        ...action664bNoTradeBatch,
+        payload_json: {
+          ...action664bNoTradeBatch.payload_json,
+          market_regime: { regime: "neutral" },
+        },
+      },
+      metadata: { ...action664bNoTradeMetadata, regime: null },
+    });
+    const nestedScanRun = projectRecommendationScanRunDecision({
+      scan_run: {
+        ...action664bScanRun,
+        payload_json: {
+          ...action664bScanRun.payload_json,
+          market_regime: { regime: "risk_on" },
+        },
+      },
+      metadata: action664bFixtureMetadata({ regime: null }),
+    });
+
+    expect(nestedSnapshot.projection.context.regime).toBe("risk_off");
+    expect(nestedBatch.projection.context.regime).toBe("neutral");
+    expect(nestedScanRun.projection.context.regime).toBe("risk_on");
+  });
+
   test("coverage aggregator counts status per source and sample type", () => {
     const coverage = aggregateCanonicalProjectionCoverage(
       allFixtureResults().all,

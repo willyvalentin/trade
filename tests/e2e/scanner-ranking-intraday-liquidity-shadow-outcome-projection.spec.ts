@@ -25,6 +25,12 @@ import type { ScannerIntradayLiquidityShadowComparison } from "@/lib/scanner-ran
 import type { ScannerCandidate } from "@/lib/scanner";
 
 const DECIDED_AT = "2026-09-26T14:30:00.000Z";
+const MARKET_REGIME_CONTEXT = {
+  contract_version: "market_regime_decision_context_v1" as const,
+  classifier_version: "market_regime_v1" as const,
+  captured_at: DECIDED_AT,
+  regime: "risk_on" as const,
+};
 
 function scannerCandidate(): ScannerCandidate & { local_score: number } {
   return {
@@ -168,6 +174,8 @@ function fixture() {
     ...scanRun,
     payload_json: {
       ...scanRun.payload_json,
+      market_regime: { regime: "risk_on" },
+      market_regime_context: MARKET_REGIME_CONTEXT,
       candidate_decision_record: record,
       scanner_intraday_liquidity_shadow_comparison: comparison,
       scanner_intraday_liquidity_shadow_attribution: attribution,
@@ -191,6 +199,8 @@ function fixture() {
     side: "long",
     confidence: 82,
     payload: {
+      market_regime: { regime: "risk_on" },
+      market_regime_context: MARKET_REGIME_CONTEXT,
       visibility_status: "research_only",
       research_only: true,
       learning_scope: "research_only",
@@ -440,6 +450,80 @@ test("refuses canonical ranking evaluation when any candidate outcome is missing
   expect(result.reason_codes).toEqual([
     "candidate_primary_outcome_incomplete",
     "complete_candidate_outcome_coverage_required",
+  ]);
+});
+
+test("fails closed when the decision-time market regime is absent", () => {
+  const { persistedRun, snapshot, outcome } = fixture();
+  const runWithoutRegime = {
+    ...persistedRun,
+    payload_json: {
+      ...persistedRun.payload_json,
+      market_regime: undefined,
+      market_regime_context: undefined,
+    },
+  };
+
+  const result = evaluateScannerIntradayLiquidityShadowScan({
+    scanRun: runWithoutRegime,
+    snapshots: [snapshot],
+    outcomes: [outcome],
+    bootstrapSeed: "intraday-liquidity-shadow:test-seed-v1",
+  });
+
+  expect(result.status).toBe("insufficient_evidence");
+  expect(result.reason_codes).toEqual([
+    "decision_market_regime_context_missing",
+  ]);
+});
+
+test("fails closed when snapshot and scan-run market regimes conflict", () => {
+  const { persistedRun, snapshot, outcome } = fixture();
+  const conflictingSnapshot = {
+    ...snapshot,
+    payload_json: {
+      ...snapshot.payload_json,
+      market_regime: { regime: "risk_off" },
+      market_regime_context: {
+        ...MARKET_REGIME_CONTEXT,
+        regime: "risk_off" as const,
+      },
+    },
+  };
+
+  const result = evaluateScannerIntradayLiquidityShadowScan({
+    scanRun: persistedRun,
+    snapshots: [conflictingSnapshot],
+    outcomes: [outcome],
+    bootstrapSeed: "intraday-liquidity-shadow:test-seed-v1",
+  });
+
+  expect(result.status).toBe("conflicting");
+  expect(result.reason_codes).toEqual([
+    "candidate_market_regime_context_conflicting",
+  ]);
+});
+
+test("fails closed when the decision receipt contradicts its raw regime input", () => {
+  const { persistedRun, snapshot, outcome } = fixture();
+  const contradictoryRun = {
+    ...persistedRun,
+    payload_json: {
+      ...persistedRun.payload_json,
+      market_regime: { regime: "risk_off" },
+    },
+  };
+
+  const result = evaluateScannerIntradayLiquidityShadowScan({
+    scanRun: contradictoryRun,
+    snapshots: [snapshot],
+    outcomes: [outcome],
+    bootstrapSeed: "intraday-liquidity-shadow:test-seed-v1",
+  });
+
+  expect(result.status).toBe("conflicting");
+  expect(result.reason_codes).toEqual([
+    "decision_market_regime_context_conflicting",
   ]);
 });
 

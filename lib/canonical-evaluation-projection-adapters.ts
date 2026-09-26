@@ -26,6 +26,7 @@ import type {
 } from "@/lib/scanner-candidate-ranking";
 import type { ScannerCandidate } from "@/lib/scanner";
 import type { ReplayWithSignalPackageResult } from "@/lib/replay-with-signal-package-result-model";
+import { marketRegimeDecisionContextFromPayload } from "@/lib/market-regime-decision-context";
 
 export const CANONICAL_EVALUATION_PROJECTION_CONTRACT_VERSION =
   "canonical_evaluation_projection_v1" as const;
@@ -216,6 +217,20 @@ function recordOrNull(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : null;
+}
+
+export function canonicalMarketRegimeFromPayload(payload: unknown) {
+  const record = recordOrNull(payload);
+  if (!record) return null;
+
+  const decisionContext = marketRegimeDecisionContextFromPayload(record);
+  if (decisionContext) return decisionContext.regime;
+
+  const marketRegime = record.market_regime ?? record.regime;
+  const directRegime = textOrNull(marketRegime);
+  if (directRegime) return directRegime;
+
+  return textOrNull(recordOrNull(marketRegime)?.regime);
 }
 
 function finiteNumberOrNull(value: unknown) {
@@ -1042,7 +1057,7 @@ export function projectRecommendationSnapshotDecision(input: {
     ...snapshotRelationDiagnostics({ snapshot, batch, scanRun, outcomes }),
     ...outcomeProjection.diagnostics,
   ];
-  const payloadRegime = textOrNull(payload.market_regime ?? payload.regime);
+  const payloadRegime = canonicalMarketRegimeFromPayload(payload);
   const payloadSector = textOrNull(payload.sector);
   const provider = textOrNull(
     payload.provider ?? payload.reference_price_provider,
@@ -1407,7 +1422,8 @@ export function projectRecommendationBatchDecision(input: {
       outcome_ids: [],
     },
     context: projectionContext({
-      regime: metadata?.regime ?? textOrNull(batch.payload_json.market_regime),
+      regime:
+        metadata?.regime ?? canonicalMarketRegimeFromPayload(batch.payload_json),
       sector: metadata?.sector,
       freshness: metadata?.freshness ?? batch.freshness_status,
       provider:
@@ -1478,7 +1494,8 @@ export function projectRecommendationScanRunDecision(input: {
       scan_run_fingerprint: scanRun.run_fingerprint,
     },
     context: projectionContext({
-      regime: metadata?.regime ?? textOrNull(scanRun.payload_json.market_regime),
+      regime:
+        metadata?.regime ?? canonicalMarketRegimeFromPayload(scanRun.payload_json),
       sector: metadata?.sector,
       freshness:
         metadata?.freshness ??
