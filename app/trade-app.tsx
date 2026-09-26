@@ -190,6 +190,11 @@ import {
   buildObservationCycleScanReadbackSelection,
   type ObservationCycleScanReadbackProjection,
 } from "@/lib/observation-cycle-readback-projection";
+import {
+  observationSeriesEvidenceReadbackFromUnknown,
+  type ObservationSeriesEvidenceReadback,
+  type ObservationSeriesOperationalClassification,
+} from "@/lib/observation-series-evidence";
 import { scheduledScanRegularSessionCron } from "@/lib/scheduled-scan-regular-session-coverage";
 import {
   buildRecommendationEmptyStateSummary,
@@ -2627,6 +2632,7 @@ type ApplicationDashboardPayload = {
   scheduled_scan_runs: unknown[];
   scheduled_scan_attempts: unknown[];
   observation_cycle_readback: unknown | null;
+  observation_series_evidence_readback: unknown | null;
   recommendation_scan_runs: unknown[];
   recommendation_batches: unknown[];
   recommendation_snapshots: unknown[];
@@ -8975,6 +8981,8 @@ export function TradeApp({
   >([]);
   const [observationCycleReadback, setObservationCycleReadback] =
     useState<ObservationCycleReadback | null>(null);
+  const [observationSeriesEvidenceReadback, setObservationSeriesEvidenceReadback] =
+    useState<ObservationSeriesEvidenceReadback | null>(null);
   const [marketRegime, setMarketRegime] = useState<MarketRegime | null>(null);
   const [marketStatus, setMarketStatus] = useState<MarketStatus | null>(null);
   const [marketStatusError, setMarketStatusError] = useState("");
@@ -9444,6 +9452,10 @@ export function TradeApp({
         data: dashboard?.observation_cycle_readback ?? null,
         error: dashboardError,
       };
+      const observationSeriesEvidenceReadbackResult = {
+        data: dashboard?.observation_series_evidence_readback ?? null,
+        error: dashboardError,
+      };
       const recommendationScanRunsResult = {
         data: dashboard?.recommendation_scan_runs ?? [],
         error: dashboardError,
@@ -9643,6 +9655,16 @@ export function TradeApp({
         setObservationCycleReadback(
           observationCycleReadbackFromUnknown(
             observationCycleReadbackResult.data,
+          ),
+        );
+      }
+
+      if (observationSeriesEvidenceReadbackResult.error) {
+        if (isInitialLoad) setObservationSeriesEvidenceReadback(null);
+      } else {
+        setObservationSeriesEvidenceReadback(
+          observationSeriesEvidenceReadbackFromUnknown(
+            observationSeriesEvidenceReadbackResult.data,
           ),
         );
       }
@@ -17330,6 +17352,10 @@ export function TradeApp({
             <MarketDiagnosticsConsolePanel
               summary={marketDiagnosticsConsoleSummary}
               summaryJson={marketDiagnosticsConsoleSummaryJsonText}
+            />
+
+            <ObservationSeriesEvidencePanel
+              readback={observationSeriesEvidenceReadback}
             />
 
             <CandidateDecisionHistoryPanel
@@ -39597,6 +39623,129 @@ function RecommendationLearningBaselineReadinessPanel({
           </p>
         )}
       </div>
+    </section>
+  );
+}
+
+function observationSeriesEvidenceTone(
+  classification: ObservationSeriesOperationalClassification | null,
+): "positive" | "warning" | "danger" | "neutral" {
+  if (classification === "pass") return "positive";
+  if (classification === "fail") return "danger";
+  if (classification === "in_progress") return "warning";
+  return "neutral";
+}
+
+function ObservationSeriesEvidencePanel({
+  readback,
+}: {
+  readback: ObservationSeriesEvidenceReadback | null;
+}) {
+  const series = readback?.series ?? null;
+  const classification = series?.operational.classification ?? null;
+
+  return (
+    <section
+      className="rounded-lg border border-white/10 bg-black/20 p-4"
+      data-testid="observation-series-evidence"
+    >
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Observation orchestration
+          </p>
+          <h3 className="mt-2 font-mono text-lg font-semibold tracking-normal text-white">
+            Observation Series Evidence
+          </h3>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
+            Owner-bound readback of the latest frozen series from exact
+            scheduler claims to generic cycle receipts. Operational delivery
+            is assessed separately from recommendation quality.
+          </p>
+        </div>
+        <RecommendationDetailsPill
+          label={classification?.replaceAll("_", " ") ?? "unavailable"}
+          tone={observationSeriesEvidenceTone(classification)}
+        />
+      </div>
+
+      {!series ? (
+        <p className="mt-4 rounded-md border border-white/10 bg-white/[0.025] p-3 text-sm leading-6 text-zinc-500">
+          No complete retained series is available: {readback?.reason_codes.join(", ") || "readback unavailable"}.
+          This does not prove that no scan or candidate existed.
+        </p>
+      ) : (
+        <>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+            <SummaryCard label="NY date" value={series.trading_date} />
+            <SummaryCard
+              label="Attempts"
+              value={`${series.counts.attributed_receipts}/${series.counts.scheduled_attempts} receipted`}
+            />
+            <SummaryCard
+              label="Provider credits"
+              value={`${series.counts.reserved_provider_credits}/${series.max_provider_credits}`}
+            />
+            <SummaryCard
+              label="Evaluated cycles"
+              value={String(series.quality.completed_evaluation_cycles)}
+            />
+            <SummaryCard
+              label="Published"
+              value={String(series.counts.published_recommendations)}
+            />
+          </div>
+
+          <div className="mt-4 grid gap-3 lg:grid-cols-3">
+            <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+              <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+                Claim → receipt integrity
+              </h4>
+              <p className="mt-3 text-sm leading-6 text-zinc-300">
+                Lineage: {series.operational.lineage_status}; missing: {series.counts.missing_receipts};
+                {" "}orphaned: {series.counts.orphan_receipts}; duplicate: {series.counts.duplicate_receipts}.
+              </p>
+              <p className="mt-1 break-words text-xs leading-5 text-zinc-500">
+                Series {series.series_id}; commit {series.build_deployment_identity.commit_ref.slice(0, 8)};
+                {" "}deploy {series.build_deployment_identity.deploy_id}.
+              </p>
+            </div>
+
+            <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+              <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+                Data and decision trace
+              </h4>
+              <p className="mt-3 text-sm leading-6 text-zinc-300">
+                Provider cycles: {series.counts.provider_attempted_cycles}; successes: {series.counts.provider_successes};
+                {" "}errors: {series.counts.provider_errors}; stale inputs: {series.counts.stale_inputs}.
+              </p>
+              <p className="mt-1 text-xs leading-5 text-zinc-500">
+                Candidates raw/ranked/selected: {series.counts.raw_candidates}/{series.counts.ranked_candidates}/{series.counts.selected_candidates};
+                {" "}no-trade cycles: {series.counts.no_trade_cycles}.
+              </p>
+            </div>
+
+            <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+              <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+                Quality boundary
+              </h4>
+              <p className="mt-3 text-sm leading-6 text-zinc-300">
+                Quality classification: {series.quality.classification.replaceAll("_", " ")}.
+                A delivery pass, candidate, publication or `no_trade` is not alpha evidence.
+              </p>
+              <p className="mt-1 break-words text-xs leading-5 text-zinc-500">
+                Gaps: {series.quality.evidence_gaps.join(", ")}.
+              </p>
+            </div>
+          </div>
+
+          <p className="mt-4 rounded-md border border-white/10 bg-white/[0.025] p-3 text-xs leading-5 text-zinc-500">
+            Terminal reason: {series.operational.terminal_reason.replaceAll("_", " ")}.
+            This readback cannot arm schedules, call or reserve provider capacity,
+            alter ranking, publish, create paper trades, or reach a broker.
+          </p>
+        </>
+      )}
     </section>
   );
 }
