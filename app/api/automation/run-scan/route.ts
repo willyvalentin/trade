@@ -103,6 +103,7 @@ import {
 } from "@/lib/candidate-decision-record";
 import { buildDecisionLineageReceipt } from "@/lib/decision-lineage-receipt";
 import { buildCandidateDecisionLearningAttribution } from "@/lib/candidate-decision-learning-attribution";
+import { buildScannerIntradayLiquidityShadowAttribution } from "@/lib/scanner-ranking-intraday-liquidity-shadow-attribution";
 import { CANONICAL_OUTCOME_EVALUATOR_VERSION } from "@/lib/canonical-recommendation-evaluation";
 import type { ScanPipelineObservabilitySummary } from "@/lib/scan-pipeline-observability";
 import { normalizeUnknownError } from "@/lib/error-logging";
@@ -2732,6 +2733,12 @@ async function persistAutomationArtifacts({
     scanRun.payload_json.decision_lineage_receipt =
       buildDecisionLineageReceipt(candidateDecisionRecord);
   }
+  scanRun.payload_json.scanner_intraday_liquidity_shadow_attribution =
+    buildScannerIntradayLiquidityShadowAttribution({
+      comparison:
+        scanLog.scanner_intraday_liquidity_shadow_comparison ?? null,
+      decisionRecord: candidateDecisionRecord,
+    });
   const persistence = {
     scan_run: await persistRecommendationScanRun(scanRun, {
       supabaseClient: serverSupabase.client,

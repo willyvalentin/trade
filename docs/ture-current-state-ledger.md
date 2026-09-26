@@ -40,9 +40,11 @@ remaining environment receipt does not block independent CLOSED intelligence
 work. Additional generic control-plane work requires a reproduced defect. This
 is a priority change, not a claim that reliability work improved alpha.
 
-**Selected independent CLOSED slice — verified intraday-liquidity shadow
-ranking:** owner Codex on `codex/intelligence-quality-baseline`, integrated with
-exact main `f95069f75459d44b1c4b1bcfa6d34eeb544aa326`. Source inspection found that
+**Merged and production-verified CLOSED slice — verified intraday-liquidity
+shadow ranking:** PR [#657](https://github.com/willyvalentin/trade/pull/657)
+merged as `5cdeb2cbd0a6b40b0e24639b5df61c5edc0ee027`; Netlify production deploy
+`6ab819d484d68c000827722a` is `ready` on that exact revision. Source inspection
+found that
 ranking v1.2 computes liquidity from the greater of `daily_volume_ratio` and an
 admissible recent intraday ratio. Consequently, a full-day candle ratio can keep
 the liquidity component high when current-session volume is absent, stale or
@@ -58,11 +60,24 @@ substitution, valid closed-bar evidence, stale/expired rejection, population
 conflict, deterministic non-mutation and durable scan-log round-trip. Strict non-incremental TypeScript and
 changed-file ESLint pass; the integrated ranking/decision/selective-publication/
 CI-contract regression passes 43/43 tests, scheduled-runtime packaging passes
-and the complete Next 16.3.4 webpack production build succeeds. Protected CI, merge/deploy and forward outcome
-comparison remain outstanding. This is a
+and the complete Next 16.3.4 webpack production build succeeds. Protected CI
+run `36263432553` passed every provider-free shard and merge-candidate
+provenance. Forward outcome comparison remains outstanding. This is a
 real ranking/data-fitness measurement capability, but it is not proof that the
 shadow policy is superior and it cannot publish a recommendation or reach a
 broker.
+
+**Selected successor CLOSED slice — exact shadow outcome attribution:** owner
+Codex on `codex/shadow-outcome-attribution`, based on exact main
+`5cdeb2cbd0a6b40b0e24639b5df61c5edc0ee027`. The first increment persists a
+versioned join basis from each shadow displacement to the immutable
+`candidate_decision_id`, scan ID/fingerprint and true comparison/decision time
+order. It fails closed on population or baseline conflicts and continues to
+carry `live_ranking_effect=false`, `publication_effect=false`,
+`quality_improvement_claimed=false` and `outcome_evidence_status=not_evaluated`.
+Its purpose is to make later owner-bound canonical outcomes comparable without
+ticker- or clock-based inference. Promotion remains impossible until the
+separate outcome projection has sufficient comparable forward coverage.
 
 ### Continuous-observation technical direction — 2026-09-24
 
@@ -2588,7 +2603,7 @@ on A/B evidence and must not be inferred from the source registry.
 
 | Work slot | Selected state | Entry / return condition |
 | --- | --- | --- |
-| Primary development | IF-2b/IF-3 verified intraday-liquidity shadow ranking on `codex/intelligence-quality-baseline`. Live ranking remains unchanged while the same candidate population produces a versioned, persisted displacement comparison. | Complete integrated regression/build/CI and merge/deploy. Then collect forward shadow plus outcome-linked evidence before any policy promotion; a score or selection change alone is insufficient. |
+| Primary development | IF-3/IF-4 exact outcome-attribution basis for the production-verified intraday-liquidity shadow on `codex/shadow-outcome-attribution`. Live ranking remains unchanged while each displacement is joined to its immutable candidate decision. | Complete local regression/build and protected merge/deploy. Then add owner-bound canonical outcome projection and collect sufficient forward comparable coverage before any policy promotion; a score or selection change alone is insufficient. |
 | Bounded OPEN exit check | SV-A.2 runtime admission v2, post-cleanup evidence reader and atomic observation-series activation preflight are merged and exact-main production-deployed through `f95069f75459d44b1c4b1bcfa6d34eeb544aa326`; the preflight RPC is production-migrated and service-role-only. This delivery did not arm a series or grant provider authority. | Freeze one separate OPEN date/window/cap contract and require a fresh ready manifest immediately before activation. Treat the resulting receipt as A.2 operational exit evidence, never alpha evidence or a blocker for CLOSED intelligence work. |
 | CLOSED successor | SV-C.1–C.8, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2, SV-H.1–H.4, SV-L.1–L.2 and SV-N.1–N.5 plus the E.1 volume-integrity and earlier E.2 repairs are merged and exact-revision production-deployed. C.1–C.7/D.1 migrations are production-applied and verified inert/empty. C6 deliberately blocks policy/account creation because exact-price retention duration and account-specific terms remain unverified; C.8 preserves that fail-closed state. Every paper runtime and broker gate remains off. Production environment metadata has no IBKR/TWS variables, client dependency or declared persistent worker, so a real L.2 account/session probe is not currently executable there. Both available browser sessions require a fresh Twelve Data login, so account-scoped retention confirmation also remains external. The A.2 one-slot outcome-evaluation guard is merged/deployed as `ea9a024d`; its bounded 2026-09-25 observation delivered one terminal blocked receipt and was cleaned up on exact unchanged main with zero provider credits or side effects. | Separately obtain authenticated account-scoped Twelve Data confirmation of exact-price/candle retention and applicable US-equity third-party terms before any C6 admission or C5/C7 account-policy creation. Provision and approve persistent hosting plus read-only IBKR Paper credentials before an L.2 account/session probe; do not grant order authority. Market-impact/cancellation uncertainty and forward shadow remain later H evidence; real G/H evaluation remains blocked on licensed point-in-time history plus verified rights. Account/config/policy creation, activation and OPEN pilot acceptance remain separate evidence steps. |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |

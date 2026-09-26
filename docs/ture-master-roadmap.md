@@ -84,11 +84,14 @@ count, score movement and one favorable day are not quality proof.
 
 The first selected CLOSED slice tests a concrete data-fitness hypothesis in the
 existing ranker: full-day candle volume may currently substitute for verified
-current-session intraday liquidity. Ture will retain the live baseline while a
-versioned shadow policy requires a fresh, closed intraday bar, records per-symbol
-rank/score/tier/selection displacement, and remains incapable of publication.
-Forward observations and outcome linkage decide whether this policy should be
-promoted, narrowed or rejected. No threshold is lowered to create candidates.
+current-session intraday liquidity. Its versioned shadow comparison is now
+production-deployed while live ranking remains unchanged. The active successor
+must bind every per-symbol displacement to the immutable candidate decision and
+then to owner-bound canonical outcomes without ticker- or time-based inference.
+Forward observations and outcome-linked baseline comparison decide whether this
+policy should be promoted, narrowed or rejected. No threshold is lowered to
+create candidates, and an attribution receipt without outcomes is not quality
+evidence.
 
 ### Destination and retained principles
 
