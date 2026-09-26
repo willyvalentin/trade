@@ -46,7 +46,10 @@ import {
   buildContinuousMarketScanAdmission,
   type ContinuousMarketScanAdmission,
 } from "@/lib/continuous-market-scan-admission";
-import type { ObservationCycleAdmissionReceipt } from "@/lib/observation-cycle-admission-policy";
+import type {
+  ObservationCycleAdmissionReceipt,
+  ObservationCyclePreRunFailure,
+} from "@/lib/observation-cycle-admission-policy";
 import {
   buildRecommendationServingCadenceSummary,
   type RecommendationServingCadenceSummary,
@@ -63,7 +66,10 @@ import {
   scheduledScanInvocationReceiptFromAttempt,
   type ScheduledScanInvocationReceipt,
 } from "@/lib/scheduled-scan-invocation-receipt";
-import { buildObservationCycleReceipt } from "@/lib/observation-cycle-receipt";
+import {
+  buildObservationCycleReceipt,
+  observationCyclePreRunFailuresFromUnknown,
+} from "@/lib/observation-cycle-receipt";
 import {
   buildRecommendationScanRun,
   recommendationScanRunFromPersistenceRow,
@@ -1175,6 +1181,38 @@ async function readRecentRecommendationScanRuns(ownerUserId: string) {
   return ((data ?? []) as Array<Record<string, unknown>>)
     .map(recommendationScanRunFromPersistenceRow)
     .filter((scanRun): scanRun is RecommendationScanRun => scanRun !== null);
+}
+
+async function readRecentObservationCyclePreRunFailures(
+  ownerUserId: string,
+): Promise<ObservationCyclePreRunFailure[] | null> {
+  const { data, error } = await serverSupabase()
+    .from("observation_cycle_receipts")
+    .select("receipt_json")
+    .eq("owner_user_id", ownerUserId)
+    .order("updated_at", { ascending: false })
+    .limit(100);
+
+  if (error) {
+    console.error("[automation/run-scan] observation_cycle_history_load_error", {
+      source: "supabase.observation_cycle_receipts",
+      operation: "select_recent_observation_cycle_receipts",
+      error: normalizeUnknownError(error),
+    });
+    return null;
+  }
+
+  const failures = observationCyclePreRunFailuresFromUnknown(
+    (data ?? []).map((row) => row.receipt_json),
+  );
+  if (failures === null) {
+    console.error("[automation/run-scan] observation_cycle_history_invalid", {
+      source: "supabase.observation_cycle_receipts",
+      operation: "parse_recent_observation_cycle_receipts",
+    });
+    return null;
+  }
+  return failures;
 }
 
 async function readRecentScheduledScanRuns() {
@@ -3251,9 +3289,14 @@ export async function POST(request: Request) {
     now: scanClock,
     marketStatus,
   });
-  const [recentRecommendationScanRuns, recentScheduledScanRuns] = await Promise.all([
+  const [
+    recentRecommendationScanRuns,
+    recentScheduledScanRuns,
+    recentObservationCyclePreRunFailures,
+  ] = await Promise.all([
     readRecentRecommendationScanRuns(ownerUserId),
     readRecentScheduledScanRuns(),
+    readRecentObservationCyclePreRunFailures(ownerUserId),
   ]);
   let scanWindow = getScanWindowDueNow(scanClock);
 
@@ -3318,6 +3361,7 @@ export async function POST(request: Request) {
     marketSession,
     scanWindow: scanWindow.scanWindow,
     recentScanRuns: recentRecommendationScanRuns,
+    recentPreRunFailures: recentObservationCyclePreRunFailures,
     legacyPowerHourWindowGate: legacyOfficialGateDiagnostics,
     providerBudget: scheduledRuntimeConfig.scheduled_provider_credit_budget,
   });

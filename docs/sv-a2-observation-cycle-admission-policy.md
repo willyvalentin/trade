@@ -2,7 +2,7 @@
 
 ## Product behavior
 
-`observation_cycle_admission_v1` turns each normal quarter-hour scheduler event
+`observation_cycle_admission_v2` turns each normal quarter-hour scheduler event
 into a bounded decision opportunity. The scheduler itself grants no provider
 authority. Before the normal scan can reach its provider environment, atomic
 credit reservation or recommendation generation, the policy evaluates:
@@ -12,7 +12,8 @@ credit reservation or recommendation generation, the policy evaluates:
 - candidate-decision coverage and candidate state;
 - material change between the two latest valid decision records;
 - an explicit, enforced provider-credit ceiling; and
-- consecutive durable retryable failures.
+- consecutive durable retryable failures, including owner-bound terminal cycle
+  failures that happened before a recommendation scan-run could be persisted.
 
 A completed or honest `no_trade` cycle is eligible again after 15 minutes, the
 highest cadence currently supported by the scheduler. Consecutive retryable
@@ -46,25 +47,37 @@ authority escalation, non-admissible `no_request` state, delay outside the
 Diagnostics exposes the decision, next eligible time, freshness, coverage,
 candidate state, material-change status and retry backoff.
 
-The v1 retry counter is deliberately limited to durable same-day
-`recommendation_scan_runs`. A route failure that occurs before such a run is
-persisted remains visible in scheduled-attempt evidence but does not yet extend
-the policy backoff. Closing that pre-run failure gap requires a later policy
-version and must not be inferred from this receipt.
+Version 2 combines same-day recommendation scan-runs with strictly parsed,
+owner-bound terminal `observation_cycle_receipts` whose failure has no linked
+scan-run. Linked failures are counted once through their scan-run; manual and
+diagnostic receipts never influence scheduled cadence. The newest valid event
+anchors the next eligible time, a later successful scan resets the consecutive
+failure chain, and unavailable, malformed or future cycle history rejects before
+provider work. The receipt records the cadence anchor and whether the active
+failure chain includes a pre-run failure. Persisted v1 admission receipts remain
+strictly readable and retain their original scan-run-only meaning.
 
-## CLOSED acceptance evidence
+## Delivery evidence
 
-- 23 focused admission, continuous-session and generic-receipt tests: pass;
-- 64-test integrated scheduler, invocation, Basic Free budget/readback,
-  ticker-cap and reference-route regression: pass;
+Version 1 was merged through PR #650 as exact main
+`d811cff18322553e622f17e78d062e7a30e1c08d`. Exact-main GitHub CI run
+`36237970891` passed, including post-merge provenance, and Netlify production
+deploy `6ab7a8089ea4800008ee363a` is `ready` on that revision. This establishes
+source and deployment delivery only; it did not activate a scan or prove live
+policy behavior.
+
+Version 2 is a CLOSED local delivery candidate on
+`codex/observation-cycle-attempt-backoff`, based on that exact main:
+
+- 28 focused admission, continuous-session and generic-receipt tests: pass;
+- 144-test integrated scheduler, invocation, Basic Free budget/readback,
+  ticker-cap, freshness and reference-route regression: pass;
 - strict TypeScript no-emit: pass;
 - changed-file ESLint and `git diff --check`: pass;
 - scheduled runtime package build: pass;
 - Next 16.3.4 webpack production build: pass;
-- default Turbopack build: environment-blocked because this isolated worktree
-  reuses `node_modules` through a symlink outside Turbopack's filesystem root.
 
-Protected PR/CI, merge, exact-main production deployment and a bounded OPEN
-cycle remain separate evidence. A later live receipt must prove the actual
+Protected PR/CI, merge, exact-main production deployment and a bounded OPEN cycle
+remain separate evidence for v2. A later live receipt must prove the actual
 policy decision, provider reservation/use, terminal trace and generic cycle
 lineage together; it still cannot establish alpha from one result.

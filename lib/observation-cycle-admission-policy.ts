@@ -3,9 +3,12 @@ import type { ScheduledScanProviderCreditBudget } from "@/lib/scheduled-scan-tic
 import { getNyMarketTime } from "@/lib/market-session";
 
 export const OBSERVATION_CYCLE_ADMISSION_POLICY_VERSION =
+  "observation_cycle_admission_v2" as const;
+export const LEGACY_OBSERVATION_CYCLE_ADMISSION_POLICY_VERSION =
   "observation_cycle_admission_v1" as const;
 export const OBSERVATION_CYCLE_MINIMUM_CADENCE_MINUTES = 15;
 export const OBSERVATION_CYCLE_MAX_RETRY_BACKOFF_MINUTES = 60;
+const observationCycleFingerprintPattern = /^[a-z0-9_:.\-]{12,240}$/;
 
 export type ObservationCycleAdmissionPreconditionReason =
   | "market_session_not_provider_confirmed_open"
@@ -14,7 +17,9 @@ export type ObservationCycleAdmissionPreconditionReason =
   | "legacy_power_hour_gate_rejected";
 
 export type ObservationCycleAdmissionReceipt = Readonly<{
-  policy_version: typeof OBSERVATION_CYCLE_ADMISSION_POLICY_VERSION;
+  policy_version:
+    | typeof OBSERVATION_CYCLE_ADMISSION_POLICY_VERSION
+    | typeof LEGACY_OBSERVATION_CYCLE_ADMISSION_POLICY_VERSION;
   decision: "request_current_data" | "no_request" | "reject";
   request_current_data: boolean;
   evaluated_at: string;
@@ -56,6 +61,12 @@ export type ObservationCycleAdmissionReceipt = Readonly<{
       consecutive_retryable_failures: number;
       delay_minutes: number;
       next_eligible_at: string | null;
+      cadence_anchor_at: string | null;
+      cadence_anchor_source:
+        | "none"
+        | "recommendation_scan_run"
+        | "observation_cycle_receipt";
+      includes_pre_run_failure: boolean;
     }>;
   }>;
   authority: Readonly<{
@@ -67,11 +78,17 @@ export type ObservationCycleAdmissionReceipt = Readonly<{
   }>;
 }>;
 
+export type ObservationCyclePreRunFailure = Readonly<{
+  cycle_fingerprint: string;
+  finalized_at: string;
+}>;
+
 type BuildObservationCycleAdmissionInput = Readonly<{
   now: Date;
   sessionVerifiedOpen: boolean;
   preconditionReason?: ObservationCycleAdmissionPreconditionReason | null;
   recentScanRuns: readonly RecommendationScanRun[];
+  recentPreRunFailures: readonly ObservationCyclePreRunFailure[] | null;
   providerBudget: ScheduledScanProviderCreditBudget | null;
 }>;
 
@@ -300,10 +317,85 @@ function retryableFailure(run: RecommendationScanRun) {
   );
 }
 
-function consecutiveRetryableFailures(runs: readonly RecommendationScanRun[]) {
+type RetryHistoryEvent = Readonly<{
+  occurred_at: string;
+  retryable_failure: boolean;
+  source: "recommendation_scan_run" | "observation_cycle_receipt";
+  fingerprint: string;
+}>;
+
+function sameTradingDatePreRunFailures(
+  failures: readonly ObservationCyclePreRunFailure[],
+  now: Date,
+) {
+  const nyDate = getNyMarketTime(now).ny_date;
+  const seen = new Map<string, string>();
+  const valid: ObservationCyclePreRunFailure[] = [];
+  let invalid = false;
+
+  for (const failure of failures) {
+    const fingerprint = textOrNull(failure.cycle_fingerprint);
+    const finalizedAt = isoOrNull(failure.finalized_at);
+    if (
+      !fingerprint ||
+      !observationCycleFingerprintPattern.test(fingerprint) ||
+      !finalizedAt ||
+      Date.parse(finalizedAt) > now.getTime()
+    ) {
+      invalid = true;
+      continue;
+    }
+    if (getNyMarketTime(new Date(finalizedAt)).ny_date !== nyDate) continue;
+    const previousTimestamp = seen.get(fingerprint);
+    if (previousTimestamp && previousTimestamp !== finalizedAt) {
+      invalid = true;
+      continue;
+    }
+    if (previousTimestamp) continue;
+    seen.set(fingerprint, finalizedAt);
+    valid.push({ cycle_fingerprint: fingerprint, finalized_at: finalizedAt });
+  }
+
+  return { valid, invalid };
+}
+
+function retryHistoryEvents({
+  runs,
+  preRunFailures,
+}: {
+  runs: readonly RecommendationScanRun[];
+  preRunFailures: readonly ObservationCyclePreRunFailure[];
+}) {
+  return [
+    ...runs.map(
+      (run): RetryHistoryEvent => ({
+        occurred_at: new Date(run.observed_at).toISOString(),
+        retryable_failure: retryableFailure(run),
+        source: "recommendation_scan_run",
+        fingerprint: run.run_fingerprint,
+      }),
+    ),
+    ...preRunFailures.map(
+      (failure): RetryHistoryEvent => ({
+        occurred_at: failure.finalized_at,
+        retryable_failure: true,
+        source: "observation_cycle_receipt",
+        fingerprint: failure.cycle_fingerprint,
+      }),
+    ),
+  ].sort((first, second) => {
+    const timeDifference =
+      Date.parse(second.occurred_at) - Date.parse(first.occurred_at);
+    return timeDifference !== 0
+      ? timeDifference
+      : first.fingerprint.localeCompare(second.fingerprint);
+  });
+}
+
+function consecutiveRetryableFailures(events: readonly RetryHistoryEvent[]) {
   let count = 0;
-  for (const run of runs) {
-    if (!retryableFailure(run)) break;
+  for (const event of events) {
+    if (!event.retryable_failure) break;
     count += 1;
   }
   return count;
@@ -353,16 +445,25 @@ export function buildObservationCycleAdmission(
   const runs = sameTradingDateRuns(input.recentScanRuns, input.now);
   const latest = runs[0] ?? null;
   const previous = runs[1] ?? null;
+  const preRunFailureHistory =
+    input.recentPreRunFailures === null
+      ? { valid: [] as ObservationCyclePreRunFailure[], invalid: true }
+      : sameTradingDatePreRunFailures(input.recentPreRunFailures, input.now);
+  const retryEvents = retryHistoryEvents({
+    runs,
+    preRunFailures: preRunFailureHistory.valid,
+  });
+  const cadenceAnchor = retryEvents[0] ?? null;
   const freshness = freshnessFact(latest, input.now);
   const coverage = coverageFact(latest);
   const candidateState = candidateStateFact(latest);
   const materialChange = materialChangeFact(latest, previous);
   const providerBudget = providerBudgetFact(input.providerBudget);
-  const failures = consecutiveRetryableFailures(runs);
+  const failures = consecutiveRetryableFailures(retryEvents);
   const delayMinutes = cadenceMinutes({ failures });
-  const latestObservedAt = freshness.latest_observed_at;
-  const nextEligibleAt = latestObservedAt
-    ? new Date(Date.parse(latestObservedAt) + delayMinutes * 60_000).toISOString()
+  const cadenceAnchorAt = cadenceAnchor?.occurred_at ?? null;
+  const nextEligibleAt = cadenceAnchorAt
+    ? new Date(Date.parse(cadenceAnchorAt) + delayMinutes * 60_000).toISOString()
     : null;
   const historyTimestampInvalid =
     freshness.age_minutes !== null && freshness.age_minutes < 0;
@@ -374,11 +475,13 @@ export function buildObservationCycleAdmission(
         ? preconditionReason
         : providerBudget.status !== "bounded"
           ? "provider_budget_not_bounded"
-          : historyTimestampInvalid
-            ? "observation_history_future_timestamp"
-            : null;
+          : preRunFailureHistory.invalid
+            ? "observation_attempt_history_invalid_or_unavailable"
+            : historyTimestampInvalid
+              ? "observation_history_future_timestamp"
+              : null;
   const due =
-    latest === null ||
+    cadenceAnchor === null ||
     (nextEligibleAt !== null && input.now.getTime() >= Date.parse(nextEligibleAt));
   const decision = rejectedReason
     ? ("reject" as const)
@@ -386,10 +489,12 @@ export function buildObservationCycleAdmission(
       ? ("request_current_data" as const)
       : ("no_request" as const);
   const dueReason =
-    latest === null
+    cadenceAnchor === null
       ? "initial_observation_required"
       : failures > 0
-        ? "retry_backoff_elapsed"
+        ? cadenceAnchor?.source === "observation_cycle_receipt"
+          ? "pre_run_failure_backoff_elapsed"
+          : "retry_backoff_elapsed"
         : candidateState.status === "active" || candidateState.status === "watch"
           ? "candidate_follow_up_due"
           : freshness.status === "stale" || freshness.status === "degraded"
@@ -431,6 +536,11 @@ export function buildObservationCycleAdmission(
         consecutive_retryable_failures: failures,
         delay_minutes: delayMinutes,
         next_eligible_at: nextEligibleAt,
+        cadence_anchor_at: cadenceAnchorAt,
+        cadence_anchor_source: cadenceAnchor?.source ?? "none",
+        includes_pre_run_failure: retryEvents
+          .slice(0, failures)
+          .some((event) => event.source === "observation_cycle_receipt"),
       },
     },
   });
@@ -463,6 +573,10 @@ export function observationCycleAdmissionFromUnknown(
     retryBackoff?.next_eligible_at === null
       ? null
       : isoOrNull(retryBackoff?.next_eligible_at);
+  const policyVersion = enumOrNull(receipt?.policy_version, [
+    OBSERVATION_CYCLE_ADMISSION_POLICY_VERSION,
+    LEGACY_OBSERVATION_CYCLE_ADMISSION_POLICY_VERSION,
+  ] as const);
   const decision = enumOrNull(receipt?.decision, [
     "request_current_data",
     "no_request",
@@ -539,11 +653,35 @@ export function observationCycleAdmissionFromUnknown(
     retryBackoff?.consecutive_retryable_failures,
   );
   const delayMinutes = finiteNonNegativeInteger(retryBackoff?.delay_minutes);
+  const cadenceAnchorAt =
+    policyVersion === LEGACY_OBSERVATION_CYCLE_ADMISSION_POLICY_VERSION
+      ? latestObservedAt
+      : retryBackoff?.cadence_anchor_at === null
+        ? null
+        : isoOrNull(retryBackoff?.cadence_anchor_at);
+  const cadenceAnchorSource =
+    policyVersion === LEGACY_OBSERVATION_CYCLE_ADMISSION_POLICY_VERSION
+      ? latestObservedAt
+        ? ("recommendation_scan_run" as const)
+        : ("none" as const)
+      : enumOrNull(retryBackoff?.cadence_anchor_source, [
+          "none",
+          "recommendation_scan_run",
+          "observation_cycle_receipt",
+        ] as const);
+  const includesPreRunFailure =
+    policyVersion === LEGACY_OBSERVATION_CYCLE_ADMISSION_POLICY_VERSION
+      ? false
+      : retryBackoff?.includes_pre_run_failure === true
+        ? true
+        : retryBackoff?.includes_pre_run_failure === false
+          ? false
+          : null;
 
   if (
-    receipt?.policy_version !== OBSERVATION_CYCLE_ADMISSION_POLICY_VERSION ||
+    !policyVersion ||
     !decision ||
-    receipt.request_current_data !== (decision === "request_current_data") ||
+    receipt?.request_current_data !== (decision === "request_current_data") ||
     !evaluatedAt ||
     !rawReasonCodes ||
     !reasonCodes ||
@@ -584,12 +722,16 @@ export function observationCycleAdmissionFromUnknown(
     delayMinutes === null ||
     delayMinutes < OBSERVATION_CYCLE_MINIMUM_CADENCE_MINUTES ||
     delayMinutes > OBSERVATION_CYCLE_MAX_RETRY_BACKOFF_MINUTES ||
+    !cadenceAnchorSource ||
+    includesPreRunFailure === null ||
     nextEligibleAt !== retryNextEligibleAt ||
     (latestObservedAt === null) !== (ageMinutes === null) ||
-    (nextEligibleAt !== null && latestObservedAt === null) ||
+    (cadenceAnchorSource === "none") !== (cadenceAnchorAt === null) ||
+    (nextEligibleAt === null) !== (cadenceAnchorAt === null) ||
     (nextEligibleAt !== null &&
       Date.parse(nextEligibleAt) !==
-        Date.parse(latestObservedAt as string) + delayMinutes * 60_000) ||
+        Date.parse(cadenceAnchorAt as string) + delayMinutes * 60_000) ||
+    (includesPreRunFailure && consecutiveFailures === 0) ||
     ((decision === "request_current_data" || decision === "no_request") &&
       (sessionStatus !== "verified_open" || providerBudgetStatus !== "bounded")) ||
     !authority ||
@@ -603,7 +745,7 @@ export function observationCycleAdmissionFromUnknown(
   }
 
   return freezeReceipt({
-    policy_version: OBSERVATION_CYCLE_ADMISSION_POLICY_VERSION,
+    policy_version: policyVersion,
     decision,
     request_current_data: decision === "request_current_data",
     evaluated_at: evaluatedAt,
@@ -643,6 +785,9 @@ export function observationCycleAdmissionFromUnknown(
         consecutive_retryable_failures: consecutiveFailures,
         delay_minutes: delayMinutes,
         next_eligible_at: retryNextEligibleAt,
+        cadence_anchor_at: cadenceAnchorAt,
+        cadence_anchor_source: cadenceAnchorSource,
+        includes_pre_run_failure: includesPreRunFailure,
       },
     },
   });
