@@ -63,6 +63,33 @@ exclusive worker configuration and exact production build identity. A ready
 preflight is short-lived and read-only; it is neither activation authority nor
 OPEN evidence.
 
+### Intelligence-quality delivery pivot — 2026-09-26
+
+The A.2 control plane is an enabling constraint, not the product destination.
+The merged observation-series reader/preflight and one separately contracted
+bounded OPEN series are the final selected A.2 exit evidence. That remaining
+environment observation does not block CLOSED intelligence work now. Generic
+scheduler/control expansion is no longer selected by default and may reopen
+only for a reproduced reliability, integrity, budget, entitlement or safety
+defect.
+
+The active product sequence is now **IF-2b data fitness and discovery → IF-3
+contextual ranking evidence → IF-4 outcome-linked baseline comparison**. Each
+slice must change or measure a real discovery, feature, ranking or evaluation
+capability on the same candidate population; preserve `no_trade`; retain exact
+policy/data lineage; and state separately whether it changes live ranking,
+publication or execution. A policy may be promoted only after versioned shadow
+evidence is compared with a frozen baseline and attributable outcomes. Candidate
+count, score movement and one favorable day are not quality proof.
+
+The first selected CLOSED slice tests a concrete data-fitness hypothesis in the
+existing ranker: full-day candle volume may currently substitute for verified
+current-session intraday liquidity. Ture will retain the live baseline while a
+versioned shadow policy requires a fresh, closed intraday bar, records per-symbol
+rank/score/tier/selection displacement, and remains incapable of publication.
+Forward observations and outcome linkage decide whether this policy should be
+promoted, narrowed or rejected. No threshold is lowered to create candidates.
+
 ### Destination and retained principles
 
 Ture observes licensed market data, classifies market state, discovers candidates,

@@ -31,6 +31,39 @@ The preparation targets and test requirements live in
 Now/Next/Blocked queue. Multi-observation activation still requires implemented,
 tested limits and applicable authority; current one-shot controls remain in force.
 
+### Active intelligence-quality pivot — 2026-09-26
+
+The active delivery priority now follows the master roadmap's IF-2b → IF-3 →
+IF-4 intelligence path. A.2 control work is limited to the merged
+observation-series reader/preflight and one separately frozen OPEN series; that
+remaining environment receipt does not block independent CLOSED intelligence
+work. Additional generic control-plane work requires a reproduced defect. This
+is a priority change, not a claim that reliability work improved alpha.
+
+**Selected independent CLOSED slice — verified intraday-liquidity shadow
+ranking:** owner Codex on `codex/intelligence-quality-baseline`, integrated with
+exact main `f95069f75459d44b1c4b1bcfa6d34eeb544aa326`. Source inspection found that
+ranking v1.2 computes liquidity from the greater of `daily_volume_ratio` and an
+admissible recent intraday ratio. Consequently, a full-day candle ratio can keep
+the liquidity component high when current-session volume is absent, stale or
+unverifiable. The selected change keeps live ranking unchanged and adds a
+versioned `verified_intraday_only_v1` shadow comparison over the exact same
+candidate population. It requires a fresh closed 5- or 15-minute bar, records
+per-symbol rank, score, tier and selection displacement, persists the comparison
+with the scan evidence and explicitly carries `live_ranking_effect=false`,
+`publication_effect=false` and `quality_improvement_claimed=false`.
+
+Local evidence is 6/6 focused tests covering the daily-volume
+substitution, valid closed-bar evidence, stale/expired rejection, population
+conflict, deterministic non-mutation and durable scan-log round-trip. Strict non-incremental TypeScript and
+changed-file ESLint pass; the integrated ranking/decision/selective-publication/
+CI-contract regression passes 43/43 tests, scheduled-runtime packaging passes
+and the complete Next 16.3.4 webpack production build succeeds. Protected CI, merge/deploy and forward outcome
+comparison remain outstanding. This is a
+real ranking/data-fitness measurement capability, but it is not proof that the
+shadow policy is superior and it cannot publish a recommendation or reach a
+broker.
+
 ### Continuous-observation technical direction — 2026-09-24
 
 The 2026-09-23 market-timing decision is implemented as a future observation
@@ -211,9 +244,9 @@ revision. A scoped production environment read returned no observation-series
 keys, so no series was armed. The first separately frozen OPEN series remains
 outstanding.
 
-**SV-A.2 observation-series activation preflight — CLOSED local candidate,
-2026-09-26:** owner Codex on `codex/observation-series-activation-preflight`,
-based on exact main `b7980ac2eb3ff6c7c9d120f9b593882a789d49f6`. One additive,
+**SV-A.2 observation-series activation preflight — CLOSED merged, deployed and
+production-migrated, 2026-09-26:** PR #656 merged as exact main
+`f95069f75459d44b1c4b1bcfa6d34eeb544aa326`. One additive,
 aggregate-only RPC snapshots the entire requested half-open series window in a
 single database statement: owner-bound Basic Free daily/window reservations,
 whole-series credit capacity, active work, scheduler attempts, duplicate slots,
@@ -234,10 +267,17 @@ HTTP check returned the expected `401 application_session_required` and
 SQL test were executed successfully in an isolated
 PostgreSQL 17 container covering grants, empty state, owner isolation,
 prior/window reservations, duplicate slots, unresolved/unattributed claims and
-invalid inputs; the container was then removed. No production migration,
-configuration, deploy, provider call,
-credit reservation, publication, paper or broker action occurred. Protected
-PR/CI, merge, production migration and exact-main deploy remain outstanding.
+invalid inputs; the container was then removed. Protected PR CI passed. Netlify
+production deploy `6ab80e1a52053600082e7792` is `ready` on the exact merge
+revision. The exact reviewed migration is recorded in Supabase production as
+`20260926183222_a2_observation_series_activation_preflight`; catalog readback
+verifies a `STABLE`, `SECURITY DEFINER` function with fixed
+`search_path=pg_catalog, public`, denied execution for `anon` and
+`authenticated`, and execution granted only to `service_role`. The delivery
+did not configure or activate a series, invoke a provider, reserve a credit,
+publish a recommendation, create paper state or reach a broker. One separately
+frozen bounded OPEN series remains environment evidence, not a prerequisite for
+continuing CLOSED intelligence work and not proof of recommendation quality.
 
 ### Now — SV-A current engine finish, reusing IF-2/IF-4/IF-5
 
@@ -2548,8 +2588,8 @@ on A/B evidence and must not be inferred from the source registry.
 
 | Work slot | Selected state | Entry / return condition |
 | --- | --- | --- |
-| Primary development | SV-A.2 runtime admission v2 and the count-checked post-cleanup evidence reader are merged and exact-main production-deployed through `b7980ac2eb3ff6c7c9d120f9b593882a789d49f6`; no series keys are configured. The active CLOSED slice, `codex/observation-series-activation-preflight`, adds one atomic whole-window/whole-budget database preflight and a short-lived build/config-bound manifest without activation or provider authority. | Complete integrated acceptance, PR/CI, merge, additive production migration and exact-main deploy for the activation preflight while every series flag stays off. Then freeze one separate OPEN date/window/cap contract and require a fresh ready manifest immediately before any later activation. |
-| Second development | A.2 Basic Free pre-ranking credit allocation v2, multi-slot preflight v2, terminal trace reconciliation and the generic observation-cycle receipt are merged, production-deployed and, where applicable, production-migrated. None has a later normal OPEN behavior receipt on their combined revision. | On the next eligible trading date after the admission policy is deployed, freeze one bounded normal OPEN receipt to evaluate actual pre-ranking freshness, policy admission, terminal trace and generic cycle persistence together. Do not infer alpha from delivery success or a single candidate. |
+| Primary development | IF-2b/IF-3 verified intraday-liquidity shadow ranking on `codex/intelligence-quality-baseline`. Live ranking remains unchanged while the same candidate population produces a versioned, persisted displacement comparison. | Complete integrated regression/build/CI and merge/deploy. Then collect forward shadow plus outcome-linked evidence before any policy promotion; a score or selection change alone is insufficient. |
+| Bounded OPEN exit check | SV-A.2 runtime admission v2, post-cleanup evidence reader and atomic observation-series activation preflight are merged and exact-main production-deployed through `f95069f75459d44b1c4b1bcfa6d34eeb544aa326`; the preflight RPC is production-migrated and service-role-only. This delivery did not arm a series or grant provider authority. | Freeze one separate OPEN date/window/cap contract and require a fresh ready manifest immediately before activation. Treat the resulting receipt as A.2 operational exit evidence, never alpha evidence or a blocker for CLOSED intelligence work. |
 | CLOSED successor | SV-C.1–C.8, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2, SV-H.1–H.4, SV-L.1–L.2 and SV-N.1–N.5 plus the E.1 volume-integrity and earlier E.2 repairs are merged and exact-revision production-deployed. C.1–C.7/D.1 migrations are production-applied and verified inert/empty. C6 deliberately blocks policy/account creation because exact-price retention duration and account-specific terms remain unverified; C.8 preserves that fail-closed state. Every paper runtime and broker gate remains off. Production environment metadata has no IBKR/TWS variables, client dependency or declared persistent worker, so a real L.2 account/session probe is not currently executable there. Both available browser sessions require a fresh Twelve Data login, so account-scoped retention confirmation also remains external. The A.2 one-slot outcome-evaluation guard is merged/deployed as `ea9a024d`; its bounded 2026-09-25 observation delivered one terminal blocked receipt and was cleaned up on exact unchanged main with zero provider credits or side effects. | Separately obtain authenticated account-scoped Twelve Data confirmation of exact-price/candle retention and applicable US-equity third-party terms before any C6 admission or C5/C7 account-policy creation. Provision and approve persistent hosting plus read-only IBKR Paper credentials before an L.2 account/session probe; do not grant order authority. Market-impact/cancellation uncertainty and forward shadow remain later H evidence; real G/H evaluation remains blocked on licensed point-in-time history plus verified rights. Account/config/policy creation, activation and OPEN pilot acceptance remain separate evidence steps. |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |

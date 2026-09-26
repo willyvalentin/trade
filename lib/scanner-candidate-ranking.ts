@@ -87,13 +87,17 @@ export type ScannerCandidateRankingSummary = {
   selection: ScannerCandidateSelectionResult;
 };
 
-type RankingCandidate = ScannerCandidate & {
+export type RankingCandidate = ScannerCandidate & {
   local_score?: number;
   local_score_reasons?: string[];
   local_score_warnings?: string[];
   local_score_breakdown?: CandidateScoreBreakdown;
   setup_type?: string;
 };
+
+type RankingVolumeEvidencePolicy =
+  | "legacy_daily_or_intraday_v1"
+  | "verified_intraday_only_v1";
 
 export function buildScannerCandidateRankingSummary({
   candidates,
@@ -110,6 +114,65 @@ export function buildScannerCandidateRankingSummary({
   targetMax?: number;
   now?: Date;
 }): ScannerCandidateRankingSummary {
+  return buildScannerCandidateRankingSummaryForPolicy({
+    candidates,
+    scanWindow,
+    universeCoverage,
+    targetMin: legacyTargetMin,
+    targetMax,
+    now,
+    volumeEvidencePolicy: "legacy_daily_or_intraday_v1",
+  });
+}
+
+/**
+ * Builds the default-off ranking hypothesis used by the forward shadow
+ * comparison. The live ranker intentionally cannot select this policy through
+ * its public entry point; promotion requires a separate baseline decision.
+ */
+export function buildVerifiedIntradayLiquidityShadowRankingSummary({
+  candidates,
+  scanWindow = "unknown",
+  universeCoverage = null,
+  targetMin: legacyTargetMin = 0,
+  targetMax = 3,
+  now = new Date(),
+}: {
+  candidates: RankingCandidate[];
+  scanWindow?: IntradayScanWindow | "unknown";
+  universeCoverage?: ScannerUniverseCoverageSummary | null;
+  targetMin?: number;
+  targetMax?: number;
+  now?: Date;
+}): ScannerCandidateRankingSummary {
+  return buildScannerCandidateRankingSummaryForPolicy({
+    candidates,
+    scanWindow,
+    universeCoverage,
+    targetMin: legacyTargetMin,
+    targetMax,
+    now,
+    volumeEvidencePolicy: "verified_intraday_only_v1",
+  });
+}
+
+function buildScannerCandidateRankingSummaryForPolicy({
+  candidates,
+  scanWindow,
+  universeCoverage,
+  targetMin: legacyTargetMin,
+  targetMax,
+  now,
+  volumeEvidencePolicy,
+}: {
+  candidates: RankingCandidate[];
+  scanWindow: IntradayScanWindow | "unknown";
+  universeCoverage: ScannerUniverseCoverageSummary | null;
+  targetMin: number;
+  targetMax: number;
+  now: Date;
+  volumeEvidencePolicy: RankingVolumeEvidencePolicy;
+}): ScannerCandidateRankingSummary {
   // Accept the legacy argument so old callers and decision records remain
   // readable, but never let a minimum output quota back into selection.
   void legacyTargetMin;
@@ -120,6 +183,7 @@ export function buildScannerCandidateRankingSummary({
         scanWindow,
         universeCoverage,
         observedAtSeconds: now.getTime() / 1000,
+        volumeEvidencePolicy,
       }),
     )
     .sort((first, second) => {
@@ -223,6 +287,7 @@ function rankCandidate(
     scanWindow: IntradayScanWindow | "unknown";
     universeCoverage: ScannerUniverseCoverageSummary | null;
     observedAtSeconds: number;
+    volumeEvidencePolicy: RankingVolumeEvidencePolicy;
   },
 ): Omit<ScannerCandidateRankingResult, "rank"> {
   const warnings: ScannerCandidateRankingWarning[] = [];
@@ -237,6 +302,7 @@ function rankCandidate(
     warnings,
     gaps,
     context.observedAtSeconds,
+    context.volumeEvidencePolicy,
   );
   const sourceQuality = scoreSourceQuality(candidate, sourceContribution, warnings);
   const windowFit = scoreWindowFit(candidate, context.scanWindow, gaps);
@@ -471,16 +537,37 @@ function scoreLiquidityVolume(
   warnings: ScannerCandidateRankingWarning[],
   gaps: string[],
   observedAtSeconds: number,
+  volumeEvidencePolicy: RankingVolumeEvidencePolicy,
 ) {
   const volumeRatio = numberOrNull(candidate.volume_ratio);
-  // The flat scanner field used to contain daily-derived values. Ranking may
-  // use only closed, current intraday bars with explicit non-stale provenance.
+  // The legacy live policy retains the daily-derived volume ratio for baseline
+  // compatibility. A recent intraday ratio is admissible only from a closed,
+  // current bar with explicit non-stale provenance; the shadow policy below
+  // deliberately refuses to let the daily ratio substitute for that evidence.
   const recentVolumeRatio = admissibleRecentIntradayVolumeRatio(
     candidate.intraday_indicators,
     candidate.intraday_indicator_stale,
     observedAtSeconds,
   );
-  const bestVolumeRatio = Math.max(volumeRatio ?? 0, recentVolumeRatio ?? 0);
+  if (
+    volumeEvidencePolicy === "verified_intraday_only_v1" &&
+    recentVolumeRatio === null
+  ) {
+    gaps.push("Verified recent intraday volume is unavailable.");
+    warnings.push(
+      warning(
+        "intraday_liquidity_unverified",
+        "blocked",
+        "Current-session intraday volume is required by the shadow policy.",
+      ),
+    );
+    return 0;
+  }
+
+  const bestVolumeRatio =
+    volumeEvidencePolicy === "verified_intraday_only_v1"
+      ? (recentVolumeRatio ?? 0)
+      : Math.max(volumeRatio ?? 0, recentVolumeRatio ?? 0);
   let score = 50;
 
   if (bestVolumeRatio >= 1.5) score += 32;
