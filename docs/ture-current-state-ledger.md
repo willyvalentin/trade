@@ -119,9 +119,8 @@ build pass. Protected PR CI run `36238845640` and exact-main CI run
 activated, so OPEN behavior remains separate evidence.
 
 **SV-A.2 observation-cycle browser/readback consumer transition — CLOSED
-delivery candidate, 2026-09-26:** owner Codex on
-`codex/observation-cycle-readback-consumer`, based on exact main
-`89c8764c15307badfd374a298ea447815dca1721`. The dashboard now projects the
+delivery completed, 2026-09-26:** PR #652 merged as exact main
+`a9179bd7a9abb4e050104080abddb05301590e3c`. The dashboard now projects the
 owner-bound generic cycle receipt into its compatibility readback for the
 latest attempted cycle and latest completed evaluation. A truthful `no_trade`
 is therefore a completed engine result with zero publication, while a later
@@ -134,13 +133,34 @@ as an explicitly named fallback; no rows or contracts are deleted. Market
 Diagnostics also exposes the v2 cadence anchor, its source and whether the
 retry chain includes a pre-run failure. The projection is read-only and grants
 no scheduler, provider, ranking, publication, paper or broker authority.
-Current local evidence is 57 focused projection, receipt, policy, diagnostics,
+Delivery evidence is 57 focused projection, receipt, policy, diagnostics,
 dashboard and decision/outcome tests plus a 180-test integrated Basic Free,
 scheduler, discovery, dashboard and decision/outcome regression. Strict
 TypeScript, changed-file ESLint, diff validation, scheduled-runtime packaging
-and a complete Next 16.3.4 webpack production build also pass. Protected PR/CI,
-merge, exact-main deploy and a future OPEN receipt remain separate evidence. See
+and a complete Next 16.3.4 webpack production build also pass. Protected PR CI
+run `36241886484` and exact-main CI run `36243393419` passed. Netlify production
+deploy `6ab7c075b5d4da00088605bb` is `ready` on the exact merge revision. A future
+OPEN receipt remains separate environment-behavior evidence. See
 [SV-A.2 observation-cycle readback consumer transition](./sv-a2-observation-cycle-readback-consumer-transition.md).
+
+**SV-A.2 bounded observation-series control — CLOSED delivery candidate,
+2026-09-26:** owner Codex on `codex/observation-series-control`, based on exact
+main `a9179bd7a9abb4e050104080abddb05301590e3c`. The default-off controller binds
+one date and half-open quarter-hour window to explicit attempt and provider-credit
+caps, immutable scheduler/build identity, owner-bound durable history and
+automatic expiry. It stops before another provider reservation on publication,
+an unresolved cycle, three consecutive failures or exhausted attempt/credit
+capacity; `no_trade` remains eligible under the separate cadence/backoff policy.
+Malformed configuration or history rejects. Series and one-shot modes conflict,
+global scheduler disable stays on, and catalog/outcome/paper workers must stay
+off. Current local evidence is 53 focused controller/admission/receipt/scheduler
+tests and a 142-test integrated scheduler, discovery, budget and observation
+regression. Strict TypeScript, changed-file ESLint, diff validation,
+scheduled-runtime packaging and a complete Next 16.3.4 webpack production build
+also pass. No series, provider request, migration, publication, paper work or
+broker action was activated. Protected PR/CI, merge, exact-main deploy and later
+bounded OPEN behavior evidence remain separate. See
+[SV-A.2 bounded observation-series control](./sv-a2-observation-series-control.md).
 
 ### Now — SV-A current engine finish, reusing IF-2/IF-4/IF-5
 
@@ -2451,7 +2471,7 @@ on A/B evidence and must not be inferred from the source registry.
 
 | Work slot | Selected state | Entry / return condition |
 | --- | --- | --- |
-| Primary development | SV-A.2 observation-cycle readback consumer transition is locally implemented on `codex/observation-cycle-readback-consumer` from exact main `89c8764c15307badfd374a298ea447815dca1721`. It makes generic cycle receipts authoritative for latest attempt/completed-evaluation dashboard readback while retaining the named legacy fallback and first-class `no_trade`. | Complete full regression/build, protected PR/CI, merge and exact-main deploy. Do not activate a scan as part of this CLOSED delivery; an OPEN cycle is required to verify environment behavior. |
+| Primary development | SV-A.2 bounded observation-series control is locally implemented on `codex/observation-series-control` from exact main `a9179bd7a9abb4e050104080abddb05301590e3c`. It adds the default-off attempt/credit caps, stop conditions, immutable identity and automatic expiry required before multi-slot OPEN use. | Complete full regression/build, protected PR/CI, merge and exact-main deploy. Keep every series flag off; only a separately frozen OPEN contract may activate it later. |
 | Second development | A.2 Basic Free pre-ranking credit allocation v2, multi-slot preflight v2, terminal trace reconciliation and the generic observation-cycle receipt are merged, production-deployed and, where applicable, production-migrated. None has a later normal OPEN behavior receipt on their combined revision. | On the next eligible trading date after the admission policy is deployed, freeze one bounded normal OPEN receipt to evaluate actual pre-ranking freshness, policy admission, terminal trace and generic cycle persistence together. Do not infer alpha from delivery success or a single candidate. |
 | CLOSED successor | SV-C.1–C.8, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2, SV-H.1–H.4, SV-L.1–L.2 and SV-N.1–N.5 plus the E.1 volume-integrity and earlier E.2 repairs are merged and exact-revision production-deployed. C.1–C.7/D.1 migrations are production-applied and verified inert/empty. C6 deliberately blocks policy/account creation because exact-price retention duration and account-specific terms remain unverified; C.8 preserves that fail-closed state. Every paper runtime and broker gate remains off. Production environment metadata has no IBKR/TWS variables, client dependency or declared persistent worker, so a real L.2 account/session probe is not currently executable there. Both available browser sessions require a fresh Twelve Data login, so account-scoped retention confirmation also remains external. The A.2 one-slot outcome-evaluation guard is merged/deployed as `ea9a024d`; its bounded 2026-09-25 observation delivered one terminal blocked receipt and was cleaned up on exact unchanged main with zero provider credits or side effects. | Separately obtain authenticated account-scoped Twelve Data confirmation of exact-price/candle retention and applicable US-equity third-party terms before any C6 admission or C5/C7 account-policy creation. Provision and approve persistent hosting plus read-only IBKR Paper credentials before an L.2 account/session probe; do not grant order authority. Market-impact/cancellation uncertainty and forward shadow remain later H evidence; real G/H evaluation remains blocked on licensed point-in-time history plus verified rights. Account/config/policy creation, activation and OPEN pilot acceptance remain separate evidence steps. |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |

@@ -1,6 +1,12 @@
 import { createRequire } from "node:module";
 
 import type { Config, Context } from "@netlify/functions";
+import {
+  buildObservationSeriesSlotAdmission,
+  observationSeriesControlFromEnvironment,
+  type ObservationSeriesControl,
+  type ObservationSeriesSlotAdmission,
+} from "../../lib/observation-series-control";
 
 export const config: Config = {
   // Netlify discovers scheduled functions from this entrypoint. Keep the
@@ -27,6 +33,7 @@ const normalScanOneShotFlag = "TURE_NORMAL_SCAN_ONE_SHOT_ENABLED";
 const normalScanOneShotDateFlag = "TURE_NORMAL_SCAN_ONE_SHOT_DATE";
 const normalScanOneShotSlotFlag = "TURE_NORMAL_SCAN_ONE_SHOT_SLOT_UTC";
 const outcomeOneShotEnabledFlag = "TURE_OUTCOME_EVALUATION_ONE_SHOT_ENABLED";
+const internalPaperWorkerEnabledFlag = "TURE_INTERNAL_PAPER_WORKER_ENABLED";
 export const SCHEDULED_SCAN_DEPLOYMENT_IDENTITY_SCHEMA_VERSION =
   "scheduled_scan_deployment_identity_v1" as const;
 export const SCHEDULED_SCAN_PREFLIGHT_DELIVERY_GRACE_MILLISECONDS =
@@ -634,6 +641,8 @@ function scheduledScanAttemptPayload({
   probePreflightAdmission,
   normalScanOneShotControl,
   normalScanOneShotAdmission,
+  observationSeriesControl,
+  observationSeriesSlotAdmission,
 }: {
   executionBoundary: string;
   scheduledSlotStartedAtUtc: string;
@@ -644,6 +653,8 @@ function scheduledScanAttemptPayload({
   probePreflightAdmission: ScheduledScanProbePreflightAdmission | null;
   normalScanOneShotControl?: ScheduledScanNormalOneShotControl | null;
   normalScanOneShotAdmission?: ScheduledScanProbePreflightAdmission | null;
+  observationSeriesControl?: ObservationSeriesControl | null;
+  observationSeriesSlotAdmission?: ObservationSeriesSlotAdmission | null;
 }) {
   return {
     execution_boundary: executionBoundary,
@@ -658,6 +669,9 @@ function scheduledScanAttemptPayload({
     probe_preflight_admission: probePreflightAdmission,
     normal_scan_one_shot_control: normalScanOneShotControl ?? null,
     normal_scan_one_shot_admission: normalScanOneShotAdmission ?? null,
+    observation_series_control: observationSeriesControl ?? null,
+    observation_series_slot_admission:
+      observationSeriesSlotAdmission ?? null,
   };
 }
 
@@ -793,19 +807,45 @@ export default async function handler(request: Request, context: Context) {
   const normalScanOneShotControl =
     scheduledScanNormalOneShotControlFromEnvironment(Netlify.env);
   const normalScanOneShotRequested = normalScanOneShotControl.enabled;
+  const observationSeriesControl =
+    observationSeriesControlFromEnvironment(Netlify.env);
+  const observationSeriesRequested = observationSeriesControl.requested;
 
-  // This one-slot override applies only to scheduled-scan. The global disable
+  if (
+    observationSeriesRequested &&
+    observationSeriesControl.status !== "ready"
+  ) {
+    console.error("[scheduled-scan] Observation series configuration invalid.", {
+      reason_codes: observationSeriesControl.reason_codes,
+    });
+    return new Response("Observation series configuration invalid", {
+      status: 503,
+    });
+  }
+
+  if (normalScanOneShotRequested && observationSeriesRequested) {
+    console.error("[scheduled-scan] Normal one-shot conflicts with observation series.");
+    return new Response("Scheduled scan control conflict", { status: 503 });
+  }
+
+  // These bounded overrides apply only to scheduled-scan. The global disable
   // must remain on so outcome evaluation and the paper worker stay inert.
   // Catalog-only modes cannot fall through to a normal provider scan.
   if (
-    normalScanOneShotRequested &&
+    (normalScanOneShotRequested || observationSeriesRequested) &&
     (!runtimeConfiguration.scheduled_functions_disabled ||
       runtimeConfiguration.basic_free_catalog_capability_probe_enabled ||
       runtimeConfiguration.basic_free_catalog_observation_one_shot_enabled ||
-      Netlify.env.get(outcomeOneShotEnabledFlag) === "true")
+      Netlify.env.get(outcomeOneShotEnabledFlag) === "true" ||
+      Netlify.env.get(internalPaperWorkerEnabledFlag) === "true")
   ) {
-    console.error("[scheduled-scan] Normal one-shot mode conflicts with runtime gates.");
-    return new Response("Normal one-shot scan gates unavailable", { status: 503 });
+    console.error("[scheduled-scan] Normal scan control conflicts with runtime gates.");
+    return new Response(
+      normalScanOneShotRequested
+        ? "Normal one-shot scan gates unavailable"
+        : "Observation series scan gates unavailable",
+      { status: 503 },
+    );
   }
 
   // An explicit environment switch can make a published non-production site
@@ -825,7 +865,8 @@ export default async function handler(request: Request, context: Context) {
   if (
     runtimeConfiguration.scheduled_functions_disabled &&
     !disabledProbePreflight &&
-    !normalScanOneShotRequested
+    !normalScanOneShotRequested &&
+    !observationSeriesRequested
   ) {
     console.log("[scheduled-scan] Execution disabled by environment.");
     return new Response(null, { status: 204 });
@@ -834,16 +875,17 @@ export default async function handler(request: Request, context: Context) {
   const firedAt = new Date();
   const firedAtUtc = firedAt.toISOString();
   const eventNextRun = await scheduledScanEventNextRun(request);
+  const eventEvidence = scheduledScanPreflightEventEvidence({
+    nextRun: eventNextRun,
+    deliveryTime: firedAt,
+  });
   const scheduledScanBuildIdentity = loadScheduledScanBuildDeploymentIdentity();
   const probePreflightAdmission = disabledProbePreflight
     ? scheduledScanTimeBoundAdmission({
         contextIdentity: scheduledScanDeployIdentity(context),
         buildIdentity: scheduledScanBuildIdentity,
         runtimeSiteId: process.env.SITE_ID,
-        eventEvidence: scheduledScanPreflightEventEvidence({
-          nextRun: eventNextRun,
-          deliveryTime: firedAt,
-        }),
+        eventEvidence,
         configuredProbeSlotUtc:
           runtimeConfiguration.basic_free_catalog_capability_probe_slot_utc,
         configuredProbeDate:
@@ -858,14 +900,75 @@ export default async function handler(request: Request, context: Context) {
         contextIdentity: scheduledScanDeployIdentity(context),
         buildIdentity: normalScanOneShotBuildIdentity,
         runtimeSiteId: process.env.SITE_ID,
-        eventEvidence: scheduledScanPreflightEventEvidence({
-          nextRun: eventNextRun,
-          deliveryTime: firedAt,
-        }),
+        eventEvidence,
         configuredProbeSlotUtc: normalScanOneShotControl.target_slot_utc,
         configuredProbeDate: normalScanOneShotControl.target_date,
       })
     : null;
+  const observationSeriesSlotAdmission = observationSeriesRequested
+    ? buildObservationSeriesSlotAdmission({
+        control: observationSeriesControl,
+        scheduledSlotStartedAtUtc:
+          eventEvidence.scheduled_slot_started_at_utc,
+      })
+    : null;
+  const observationSeriesTimeBoundAdmission = observationSeriesRequested
+    ? scheduledScanTimeBoundAdmission({
+        contextIdentity: scheduledScanDeployIdentity(context),
+        buildIdentity: scheduledScanBuildIdentity,
+        runtimeSiteId: process.env.SITE_ID,
+        eventEvidence,
+        configuredProbeSlotUtc:
+          observationSeriesSlotAdmission?.scheduled_slot_started_at_utc ?? null,
+        configuredProbeDate: observationSeriesControl.trading_date,
+      })
+    : null;
+
+  if (
+    observationSeriesRequested &&
+    observationSeriesSlotAdmission?.decision !== "eligible"
+  ) {
+    if (observationSeriesSlotAdmission?.decision === "no_request") {
+      console.log("[scheduled-scan] Observation series slot is not eligible.", {
+        status: observationSeriesSlotAdmission.status,
+      });
+      return new Response(null, { status: 204 });
+    }
+    console.error("[scheduled-scan] Observation series slot admission failed.", {
+      status:
+        observationSeriesSlotAdmission?.status ??
+        "series_slot_admission_unavailable",
+    });
+    return new Response("Observation series slot admission unavailable", {
+      status: 503,
+    });
+  }
+
+  if (
+    observationSeriesRequested &&
+    !observationSeriesTimeBoundAdmission?.admitted
+  ) {
+    console.error("[scheduled-scan] Observation series time-bound admission failed.", {
+      status:
+        observationSeriesTimeBoundAdmission?.status ??
+        "series_time_bound_admission_unavailable",
+    });
+    return new Response("Observation series time-bound admission unavailable", {
+      status: 503,
+    });
+  }
+
+  if (
+    observationSeriesRequested &&
+    (!scheduledScanBuildIdentity ||
+      normalizedString(process.env.SITE_ID) !==
+        scheduledScanBuildIdentity.site_id)
+  ) {
+    console.error("[scheduled-scan] Observation series build identity unavailable.");
+    return new Response("Observation series build identity unavailable", {
+      status: 503,
+    });
+  }
 
   if (normalScanOneShotRequested && !normalScanOneShotAdmission?.admitted) {
     console.error("[scheduled-scan] Normal one-shot admission failed.", {
@@ -952,6 +1055,8 @@ export default async function handler(request: Request, context: Context) {
     ? "scheduler_disabled_basic_free_catalog_probe_preflight"
     : normalScanOneShotRequested
       ? "scheduler_disabled_normal_scan_one_shot"
+      : observationSeriesRequested
+        ? "scheduler_disabled_observation_series"
     : "bundled_next_route";
 
   const invocationClaim = await claimScheduledScanInvocation({
@@ -981,6 +1086,10 @@ export default async function handler(request: Request, context: Context) {
         ? normalScanOneShotControl
         : null,
       normalScanOneShotAdmission,
+      observationSeriesControl: observationSeriesRequested
+        ? observationSeriesControl
+        : null,
+      observationSeriesSlotAdmission,
     }),
   });
 
@@ -1029,6 +1138,10 @@ export default async function handler(request: Request, context: Context) {
           ? normalScanOneShotControl
           : null,
         normalScanOneShotAdmission,
+        observationSeriesControl: observationSeriesRequested
+          ? observationSeriesControl
+          : null,
+        observationSeriesSlotAdmission,
       }),
     });
     return new Response("Missing AUTOMATION_SECRET", { status: 500 });
@@ -1069,6 +1182,10 @@ export default async function handler(request: Request, context: Context) {
             ? normalScanOneShotControl
             : null,
           normalScanOneShotAdmission,
+          observationSeriesControl: observationSeriesRequested
+            ? observationSeriesControl
+            : null,
+          observationSeriesSlotAdmission,
         }),
       });
     }
@@ -1102,6 +1219,10 @@ export default async function handler(request: Request, context: Context) {
           ? normalScanOneShotControl
           : null,
         normalScanOneShotAdmission,
+        observationSeriesControl: observationSeriesRequested
+          ? observationSeriesControl
+          : null,
+        observationSeriesSlotAdmission,
       }),
     });
 

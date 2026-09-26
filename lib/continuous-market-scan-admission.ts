@@ -12,6 +12,7 @@ import {
   type ObservationCycleAdmissionReceipt,
 } from "@/lib/observation-cycle-admission-policy";
 import type { ScheduledScanProviderCreditBudget } from "@/lib/scheduled-scan-ticker-cap";
+import type { ObservationSeriesRuntimeAdmission } from "@/lib/observation-series-control";
 
 export const CONTINUOUS_MARKET_SCAN_ADMISSION_VERSION =
   OBSERVATION_CYCLE_ADMISSION_POLICY_VERSION;
@@ -25,6 +26,7 @@ export const CONTINUOUS_MARKET_SCAN_MAX_FULL_SESSION_TICKS = 26;
 export type ContinuousMarketScanAdmission = ScheduledOfficialGateDiagnostics & {
   policy_version: typeof CONTINUOUS_MARKET_SCAN_ADMISSION_VERSION;
   observation_admission: ObservationCycleAdmissionReceipt;
+  observation_series_admission: ObservationSeriesRuntimeAdmission;
 };
 
 /**
@@ -41,6 +43,7 @@ export function buildContinuousMarketScanAdmission(input: {
   recentPreRunFailures: readonly ObservationCyclePreRunFailure[] | null;
   legacyPowerHourWindowGate: ScheduledOfficialGateDiagnostics;
   providerBudget: ScheduledScanProviderCreditBudget | null;
+  observationSeriesAdmission: ObservationSeriesRuntimeAdmission;
 }): ContinuousMarketScanAdmission {
   const nyDate = getNyMarketTime(input.now).ny_date;
   const buildAdmission = (
@@ -66,6 +69,7 @@ export function buildContinuousMarketScanAdmission(input: {
     scheduled_gate_block_reason: reason,
     schedule_window_mismatch: reason === "scan_window_clock_mismatch",
     observation_admission: buildAdmission(reason, sessionVerifiedOpen),
+    observation_series_admission: input.observationSeriesAdmission,
   });
 
   if (
@@ -89,6 +93,9 @@ export function buildContinuousMarketScanAdmission(input: {
   // This change must not silently enable new late-session publication.
   if (input.scanWindow === "power_hour") {
     const legacyAllowed = input.legacyPowerHourWindowGate.scheduled_gate_allowed;
+    const seriesAllowed =
+      input.observationSeriesAdmission.decision === "allow" ||
+      input.observationSeriesAdmission.decision === "bypass";
     const observationAdmission = buildAdmission(
       legacyAllowed ? null : "legacy_power_hour_gate_rejected",
       true,
@@ -97,14 +104,19 @@ export function buildContinuousMarketScanAdmission(input: {
       ...input.legacyPowerHourWindowGate,
       policy_version: CONTINUOUS_MARKET_SCAN_ADMISSION_VERSION,
       scheduled_gate_allowed:
-        legacyAllowed && observationAdmission.request_current_data,
+        legacyAllowed &&
+        seriesAllowed &&
+        observationAdmission.request_current_data,
       scheduled_gate_block_reason: legacyAllowed
-        ? observationAdmission.request_current_data
-          ? null
-          : observationAdmission.reason_codes[0] ?? "observation_not_due"
+        ? !seriesAllowed
+          ? input.observationSeriesAdmission.status
+          : observationAdmission.request_current_data
+            ? null
+            : observationAdmission.reason_codes[0] ?? "observation_not_due"
         : input.legacyPowerHourWindowGate.scheduled_gate_block_reason ??
           "legacy_power_hour_gate_rejected",
       observation_admission: observationAdmission,
+      observation_series_admission: input.observationSeriesAdmission,
     };
   }
 
@@ -118,16 +130,23 @@ export function buildContinuousMarketScanAdmission(input: {
   }
 
   const observationAdmission = buildAdmission(null, true);
+  const seriesAllowed =
+    input.observationSeriesAdmission.decision === "allow" ||
+    input.observationSeriesAdmission.decision === "bypass";
 
   return {
     policy_version: CONTINUOUS_MARKET_SCAN_ADMISSION_VERSION,
     official_window_detected: false,
     scheduled_gate_window: input.scanWindow,
-    scheduled_gate_allowed: observationAdmission.request_current_data,
-    scheduled_gate_block_reason: observationAdmission.request_current_data
-      ? null
-      : observationAdmission.reason_codes[0] ?? "observation_not_due",
+    scheduled_gate_allowed:
+      seriesAllowed && observationAdmission.request_current_data,
+    scheduled_gate_block_reason: !seriesAllowed
+      ? input.observationSeriesAdmission.status
+      : observationAdmission.request_current_data
+        ? null
+        : observationAdmission.reason_codes[0] ?? "observation_not_due",
     schedule_window_mismatch: false,
     observation_admission: observationAdmission,
+    observation_series_admission: input.observationSeriesAdmission,
   };
 }

@@ -38,6 +38,13 @@ was removed from this route: a policy `no_request` can no longer fall through
 to a second provider-capable observer. Its standalone source module and
 historical receipts are retained; this delivery does not erase history.
 
+The later [bounded observation-series control](./sv-a2-observation-series-control.md)
+is an independent outer envelope. Cadence/backoff may say current data is due,
+but provider work remains blocked when that series has expired, reached an
+attempt/credit/failure stop, observed a publication or has unresolved history.
+Neither policy grants provider authority; the atomic reservation remains the
+spend authority.
+
 ## Durable evidence and diagnostics
 
 Every normal attempt passes the exact admission receipt into the owner-bound
