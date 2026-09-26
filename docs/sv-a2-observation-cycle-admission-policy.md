@@ -66,8 +66,8 @@ deploy `6ab7a8089ea4800008ee363a` is `ready` on that revision. This establishes
 source and deployment delivery only; it did not activate a scan or prove live
 policy behavior.
 
-Version 2 is a CLOSED local delivery candidate on
-`codex/observation-cycle-attempt-backoff`, based on that exact main:
+Version 2 merged through PR #651 as exact main
+`89c8764c15307badfd374a298ea447815dca1721`:
 
 - 28 focused admission, continuous-session and generic-receipt tests: pass;
 - 144-test integrated scheduler, invocation, Basic Free budget/readback,
@@ -76,8 +76,11 @@ Version 2 is a CLOSED local delivery candidate on
 - changed-file ESLint and `git diff --check`: pass;
 - scheduled runtime package build: pass;
 - Next 16.3.4 webpack production build: pass;
+- protected PR CI run `36238845640`: pass;
+- exact-main CI run `36240318337`: pass;
+- Netlify production deploy `6ab7b2aa2cfb2c00080d3f8f`: `ready` on the
+  exact merge revision.
 
-Protected PR/CI, merge, exact-main production deployment and a bounded OPEN cycle
-remain separate evidence for v2. A later live receipt must prove the actual
-policy decision, provider reservation/use, terminal trace and generic cycle
-lineage together; it still cannot establish alpha from one result.
+No scan was activated by the CLOSED delivery. A later live receipt must still
+prove the actual policy decision, provider reservation/use, terminal trace and
+generic cycle lineage together; it cannot establish alpha from one result.

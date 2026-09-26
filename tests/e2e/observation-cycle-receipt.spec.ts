@@ -223,6 +223,7 @@ test.describe("SV-A.2 observation-cycle receipts", () => {
       resolve(root, "lib/market-diagnostics-console.ts"),
       "utf8",
     );
+    const tradeApp = readFileSync(resolve(root, "app/trade-app.tsx"), "utf8");
 
     expect(route).toContain("buildObservationCycleReceipt({");
     expect(route).toContain('.from("observation_cycle_receipts")');
@@ -235,5 +236,10 @@ test.describe("SV-A.2 observation-cycle receipts", () => {
     expect(diagnostics).toContain(
       'section_id: "observation_cycle_receipt"',
     );
+    expect(diagnostics).toContain('"Cadence anchor"');
+    expect(diagnostics).toContain("observation_cadence_anchor_source");
+    expect(tradeApp).toContain("buildObservationCycleScanReadbackSelection({");
+    expect(tradeApp).toContain("latestCompletedObservationCycleReadback");
+    expect(tradeApp).toContain("legacyLatestSuccessfulReadbackScan");
   });
 });
