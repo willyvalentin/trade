@@ -98,5 +98,11 @@ test("scheduled Basic Free route records a reference-only receipt before the nor
   ).toBeLessThan(route.indexOf("!scanPolicy.allowGeneration"));
   expect(
     route.indexOf("basic_free_catalog_one_shot_observation_not_recorded"),
-  ).toBeLessThan(route.lastIndexOf("readLatestMarketWideDiscoveryAttempt"));
+  ).toBeLessThan(
+    route.indexOf("if (!scheduledGateDiagnostics.scheduled_gate_allowed)"),
+  );
+  expect(route).not.toContain("readLatestMarketWideDiscoveryAttempt");
+  expect(route).not.toContain(
+    "observeMarketWideDiscoveryBetweenPublicationWindows",
+  );
 });
