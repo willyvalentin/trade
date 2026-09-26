@@ -182,6 +182,10 @@ import {
   scheduledScanAttemptFromRow,
   type ScheduledScanAttempt,
 } from "@/lib/scheduled-scan-attempts";
+import {
+  observationCycleReadbackFromUnknown,
+  type ObservationCycleReadback,
+} from "@/lib/observation-cycle-receipt";
 import { scheduledScanRegularSessionCron } from "@/lib/scheduled-scan-regular-session-coverage";
 import {
   buildRecommendationEmptyStateSummary,
@@ -2618,6 +2622,7 @@ type ApplicationDashboardPayload = {
   position_updates: unknown[];
   scheduled_scan_runs: unknown[];
   scheduled_scan_attempts: unknown[];
+  observation_cycle_readback: unknown | null;
   recommendation_scan_runs: unknown[];
   recommendation_batches: unknown[];
   recommendation_snapshots: unknown[];
@@ -8964,6 +8969,8 @@ export function TradeApp({
   const [scheduledScanAttempts, setScheduledScanAttempts] = useState<
     ScheduledScanAttempt[]
   >([]);
+  const [observationCycleReadback, setObservationCycleReadback] =
+    useState<ObservationCycleReadback | null>(null);
   const [marketRegime, setMarketRegime] = useState<MarketRegime | null>(null);
   const [marketStatus, setMarketStatus] = useState<MarketStatus | null>(null);
   const [marketStatusError, setMarketStatusError] = useState("");
@@ -9429,6 +9436,10 @@ export function TradeApp({
         data: dashboard?.scheduled_scan_attempts ?? [],
         error: dashboardError,
       };
+      const observationCycleReadbackResult = {
+        data: dashboard?.observation_cycle_readback ?? null,
+        error: dashboardError,
+      };
       const recommendationScanRunsResult = {
         data: dashboard?.recommendation_scan_runs ?? [],
         error: dashboardError,
@@ -9620,6 +9631,16 @@ export function TradeApp({
             (attempt): attempt is ScheduledScanAttempt => attempt !== null,
           ),
       );
+      }
+
+      if (observationCycleReadbackResult.error) {
+        if (isInitialLoad) setObservationCycleReadback(null);
+      } else {
+        setObservationCycleReadback(
+          observationCycleReadbackFromUnknown(
+            observationCycleReadbackResult.data,
+          ),
+        );
       }
 
       if (scheduledOutcomeEvaluationAttemptsResult.error) {
@@ -15142,6 +15163,7 @@ export function TradeApp({
       candidate_decision_history: candidateDecisionRecordHistory,
       market_wide_discovery: latestMarketWideDiscoveryReadback,
       active_scan_trace: latestActiveScanTrace,
+      observation_cycle_readback: observationCycleReadback,
       learning_acceleration_config: learningAccelerationServerConfig,
       historical_candle_storage_detection: historicalCandleStorageDetection,
       ui_refresh: {

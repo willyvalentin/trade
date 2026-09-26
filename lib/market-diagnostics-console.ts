@@ -103,6 +103,7 @@ import type {
   CandidateDecisionRecordReadback,
 } from "@/lib/candidate-decision-readback";
 import type { MarketWideDiscoveryReadback } from "@/lib/market-wide-discovery-readback";
+import type { ObservationCycleReadback } from "@/lib/observation-cycle-receipt";
 
 export type MarketDiagnosticsConsoleSeverity =
   | "info"
@@ -189,6 +190,7 @@ export type MarketDiagnosticsConsoleInput = {
   candidate_decision_history?: CandidateDecisionRecordHistory | null;
   market_wide_discovery?: MarketWideDiscoveryReadback | null;
   active_scan_trace?: ActiveScanTrace | null;
+  observation_cycle_readback?: ObservationCycleReadback | null;
   continuous_intelligence_budget_plan?: ContinuousIntelligenceBudgetPlan | null;
   shared_candle_cache_rolling_rest_collector?: RollingRestCollectorShadowSummary | null;
   authenticated_shadow_collector_dry_run?: AuthenticatedShadowCollectorDryRunDiagnostics | null;
@@ -19585,7 +19587,46 @@ export function buildMarketDiagnosticsConsoleSummary(
   const topWarnings = buildWarnings(input);
   const overallStatus = determineOverallStatus(input, topWarnings.blockers);
   const nextAction = suggestedNextAction(input, overallStatus);
-  const sections = buildSections(input, topWarnings);
+  const latestObservationCycle = input.observation_cycle_readback?.receipts[0] ?? null;
+  const sections = [
+    ...buildSections(input, topWarnings),
+    section({
+      section_id: "observation_cycle_receipt",
+      title: "Observation Cycle Receipt",
+      severity:
+        input.observation_cycle_readback?.status === "partial" ||
+        input.observation_cycle_readback?.status === "unavailable"
+          ? "warning"
+          : "info",
+      lines: [
+        lineValue("Readback", input.observation_cycle_readback?.status ?? "unavailable"),
+        lineValue("Cycle", latestObservationCycle?.cycle_fingerprint ?? "none"),
+        lineValue("Disposition", latestObservationCycle?.disposition ?? "none"),
+        lineValue("Trigger", latestObservationCycle?.trigger.status ?? "none"),
+        lineValue("Admission", latestObservationCycle?.admission.status ?? "none"),
+        lineValue("Provider request", latestObservationCycle?.provider_request.status ?? "none"),
+        lineValue("Provider response", latestObservationCycle?.provider_response.status ?? "none"),
+        lineValue("Freshness", latestObservationCycle?.freshness.status ?? "none"),
+        lineValue("Discovery / evaluation", latestObservationCycle?.discovery_evaluation.status ?? "none"),
+        lineValue("Publication", latestObservationCycle?.publication.status ?? "none"),
+        lineValue("Invalid rows", input.observation_cycle_readback?.invalid_row_count ?? 0),
+      ],
+      metrics: {
+        receipt_version: latestObservationCycle?.receipt_version ?? null,
+        observation_policy_version:
+          latestObservationCycle?.observation_policy_version ?? null,
+        cycle_status: latestObservationCycle?.cycle_status ?? null,
+        scheduled_slot_started_at_utc:
+          latestObservationCycle?.trigger.scheduled_slot_started_at_utc ?? null,
+        scan_run_fingerprint: latestObservationCycle?.scan_run_fingerprint ?? null,
+        authority_is_inert: latestObservationCycle
+          ? Object.values(latestObservationCycle.authority).every(
+              (value) => value === false,
+            )
+          : null,
+      },
+    }),
+  ];
   const jsonPayload = JSON.stringify(
     buildJsonPayload({
       generatedAt,

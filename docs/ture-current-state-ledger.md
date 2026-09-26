@@ -48,6 +48,24 @@ data or authorize a broker action. `scheduled_scan_runs` and old
 window-derived diagnostics remain compatibility surfaces until consumers have
 moved to generic cycle receipts; historic records are retained.
 
+**SV-A.2 generic observation-cycle receipt — CLOSED delivery candidate,
+2026-09-26:** branch `codex/observation-cycle-receipts` implements the first
+runtime/readback slice of that transition. The normal scan route advances one
+owner-bound receipt under the same durable attempt fingerprint and separately
+records trigger, admission, provider request/response, freshness,
+discovery/evaluation and publication/`no_trade`. The existing attempt claim
+remains authoritative; the new service-role-only table grants no scheduler,
+provider, ranking, publication, paper or broker capability. Authenticated
+dashboard readback revalidates row columns against the versioned JSON payload,
+and Market Diagnostics exposes the latest stage chain. Local evidence is six
+focused receipt/readback/wiring tests, all 17 existing scheduler-idempotency
+tests, strict TypeScript, changed-file ESLint, scheduled-runtime packaging, a
+full Next 16.3.4 webpack production build and a PostgreSQL 17 migration plus
+transactional rollback test. This is local/tested evidence only: migration,
+protected-main merge, production deploy and real-cycle behavior are not yet
+claimed. Detailed boundaries and evidence are recorded in
+[SV-A.2 observation-cycle receipts](./sv-a2-observation-cycle-receipts.md).
+
 ### Now — SV-A current engine finish, reusing IF-2/IF-4/IF-5
 
 **A.1 reconciliation completed, 2026-09-21:** an aggregate-only production
