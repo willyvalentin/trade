@@ -185,9 +185,10 @@ provider request, credit reservation, configuration change, publication,
 paper work or broker action was activated. Later bounded OPEN behavior evidence
 remains separate.
 
-**SV-A.2 observation-series evidence readback — CLOSED delivery candidate,
-2026-09-26:** owner Codex on `codex/observation-series-evidence`, based on exact
-main `6b96d4569d5a634168ccb7670a234812f4b7ab71`. The read-only server path finds
+**SV-A.2 observation-series evidence readback — CLOSED merged/deployed,
+2026-09-26:** owner Codex delivered PR #655 from
+`codex/observation-series-evidence`, based on exact main
+`6b96d4569d5a634168ccb7670a234812f4b7ab71`. The read-only server path finds
 the latest persisted series claim, reloads its exact half-open attempt and
 owner-bound cycle window with count-checked queries, then reuses runtime
 lineage validation to produce a versioned post-cleanup report. The authenticated
@@ -196,15 +197,47 @@ dashboard separates delivery/containment from data facts and keeps quality
 candidate or a publication cannot become alpha evidence. Missing, orphaned,
 duplicate, cross-build or overdue claim/receipt evidence fails closed. No
 schema, grant, migration, provider, credit, scheduler, ranking, publication,
-paper or broker authority is added. Initial local acceptance is 5/5 focused
+paper or broker authority is added. Local acceptance is 5/5 focused
 adversarial/readback tests and 69/69 integrated series, cycle, scheduler,
 preflight and containment regressions, plus strict non-incremental TypeScript,
 changed-file ESLint, scheduled-runtime packaging, diff validation and a complete
 Next 16.3.4 webpack production build. The build caught and closed an initial
 server/client boundary leak by separating the client-safe decoder from the
 server lineage builder; the browser bundle no longer reaches `node:crypto`.
-Protected PR/CI, merge, exact-main deploy and the first separately frozen OPEN
-series remain outstanding.
+Protected PR CI `36253647918` and exact-main CI `36255540252` passed. PR #655
+merged as exact main `b7980ac2eb3ff6c7c9d120f9b593882a789d49f6`; Netlify
+production deploy `6ab7f287a62d650008bd2e4a` is `ready` on that exact
+revision. A scoped production environment read returned no observation-series
+keys, so no series was armed. The first separately frozen OPEN series remains
+outstanding.
+
+**SV-A.2 observation-series activation preflight — CLOSED local candidate,
+2026-09-26:** owner Codex on `codex/observation-series-activation-preflight`,
+based on exact main `b7980ac2eb3ff6c7c9d120f9b593882a789d49f6`. One additive,
+aggregate-only RPC snapshots the entire requested half-open series window in a
+single database statement: owner-bound Basic Free daily/window reservations,
+whole-series credit capacity, active work, scheduler attempts, duplicate slots,
+unresolved attempts and malformed/unattributed slot claims. A server-only
+adapter and authenticated GET route combine that snapshot with the exact
+requested series control, mutually exclusive production worker flags, exact
+Basic Free `800`/`8` budget configuration and the immutable Netlify
+production deploy/commit/site identity packaged before the same build. The
+result is a five-minute, default-deny manifest whose configuration, scheduler,
+provider, reservation, ranking, publication, paper and broker authorities are
+all false. Local acceptance is 5/5 focused adversarial tests and 54/54
+integrated scheduler, preflight, admission, series-control, evidence and
+CI-plan regressions, plus strict non-incremental TypeScript, changed-file ESLint,
+all three scheduled-runtime package builds, diff validation and a complete Next
+16.3.4 webpack production build that includes the authenticated route. A local
+HTTP check returned the expected `401 application_session_required` and
+`Cache-Control: no-store` without a session. The migration and rollback-based
+SQL test were executed successfully in an isolated
+PostgreSQL 17 container covering grants, empty state, owner isolation,
+prior/window reservations, duplicate slots, unresolved/unattributed claims and
+invalid inputs; the container was then removed. No production migration,
+configuration, deploy, provider call,
+credit reservation, publication, paper or broker action occurred. Protected
+PR/CI, merge, production migration and exact-main deploy remain outstanding.
 
 ### Now — SV-A current engine finish, reusing IF-2/IF-4/IF-5
 
@@ -2515,7 +2548,7 @@ on A/B evidence and must not be inferred from the source registry.
 
 | Work slot | Selected state | Entry / return condition |
 | --- | --- | --- |
-| Primary development | SV-A.2 observation-series runtime admission v2 is merged as exact main `6b96d4569d5a634168ccb7670a234812f4b7ab71`; protected PR CI `36249657606`, exact-main CI `36250916244` and ready Netlify production deploy `6ab7e0063466ee000851c1f4` passed on that revision. Every series flag remained off. The next CLOSED slice, `codex/observation-series-evidence`, adds the missing count-checked, owner-bound post-cleanup series report and browser surface without provider or execution authority. | Complete local acceptance, protected PR/CI, merge and exact-main deploy for the evidence reader. Keep every series flag off; only a separately frozen OPEN contract may activate it later. |
+| Primary development | SV-A.2 runtime admission v2 and the count-checked post-cleanup evidence reader are merged and exact-main production-deployed through `b7980ac2eb3ff6c7c9d120f9b593882a789d49f6`; no series keys are configured. The active CLOSED slice, `codex/observation-series-activation-preflight`, adds one atomic whole-window/whole-budget database preflight and a short-lived build/config-bound manifest without activation or provider authority. | Complete integrated acceptance, PR/CI, merge, additive production migration and exact-main deploy for the activation preflight while every series flag stays off. Then freeze one separate OPEN date/window/cap contract and require a fresh ready manifest immediately before any later activation. |
 | Second development | A.2 Basic Free pre-ranking credit allocation v2, multi-slot preflight v2, terminal trace reconciliation and the generic observation-cycle receipt are merged, production-deployed and, where applicable, production-migrated. None has a later normal OPEN behavior receipt on their combined revision. | On the next eligible trading date after the admission policy is deployed, freeze one bounded normal OPEN receipt to evaluate actual pre-ranking freshness, policy admission, terminal trace and generic cycle persistence together. Do not infer alpha from delivery success or a single candidate. |
 | CLOSED successor | SV-C.1–C.8, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2, SV-H.1–H.4, SV-L.1–L.2 and SV-N.1–N.5 plus the E.1 volume-integrity and earlier E.2 repairs are merged and exact-revision production-deployed. C.1–C.7/D.1 migrations are production-applied and verified inert/empty. C6 deliberately blocks policy/account creation because exact-price retention duration and account-specific terms remain unverified; C.8 preserves that fail-closed state. Every paper runtime and broker gate remains off. Production environment metadata has no IBKR/TWS variables, client dependency or declared persistent worker, so a real L.2 account/session probe is not currently executable there. Both available browser sessions require a fresh Twelve Data login, so account-scoped retention confirmation also remains external. The A.2 one-slot outcome-evaluation guard is merged/deployed as `ea9a024d`; its bounded 2026-09-25 observation delivered one terminal blocked receipt and was cleaned up on exact unchanged main with zero provider credits or side effects. | Separately obtain authenticated account-scoped Twelve Data confirmation of exact-price/candle retention and applicable US-equity third-party terms before any C6 admission or C5/C7 account-policy creation. Provision and approve persistent hosting plus read-only IBKR Paper credentials before an L.2 account/session probe; do not grant order authority. Market-impact/cancellation uncertainty and forward shadow remain later H evidence; real G/H evaluation remains blocked on licensed point-in-time history plus verified rights. Account/config/policy creation, activation and OPEN pilot acceptance remain separate evidence steps. |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |

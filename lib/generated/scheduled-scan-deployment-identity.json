@@ -1,0 +1,7 @@
+{
+  "schema_version": "scheduled_scan_deployment_identity_v1",
+  "deploy_id": null,
+  "deploy_context": null,
+  "commit_ref": null,
+  "site_id": null
+}
