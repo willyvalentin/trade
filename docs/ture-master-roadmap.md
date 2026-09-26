@@ -56,15 +56,22 @@ it remains default-off and requires a separate frozen OPEN contract after
 merge/deploy. Its post-cleanup audit surface is specified in
 [SV-A.2 observation-series evidence readback](./sv-a2-observation-series-evidence.md):
 operational delivery and recommendation quality remain separate classifications.
+Before any series is armed, the
+[SV-A.2 observation-series activation preflight](./sv-a2-observation-series-activation-preflight.md)
+must atomically prove the complete window, whole-series credit capacity,
+exclusive worker configuration and exact production build identity. A ready
+preflight is short-lived and read-only; it is neither activation authority nor
+OPEN evidence.
 
 ### Intelligence-quality delivery pivot — 2026-09-26
 
 The A.2 control plane is an enabling constraint, not the product destination.
-After the observation-series reader/preflight and the first bounded OPEN series
-have produced attributable receipts, generic scheduler/control expansion is no
-longer selected by default. Reopen it only for a reproduced reliability,
-integrity, budget, entitlement or safety defect. A missing market window does
-not block independent CLOSED intelligence work.
+The merged observation-series reader/preflight and one separately contracted
+bounded OPEN series are the final selected A.2 exit evidence. That remaining
+environment observation does not block CLOSED intelligence work now. Generic
+scheduler/control expansion is no longer selected by default and may reopen
+only for a reproduced reliability, integrity, budget, entitlement or safety
+defect.
 
 The active product sequence is now **IF-2b data fitness and discovery → IF-3
 contextual ranking evidence → IF-4 outcome-linked baseline comparison**. Each
