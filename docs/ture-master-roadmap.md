@@ -53,7 +53,9 @@ implement and verify before use, not permission to widen current one-shot limits
 The selected CLOSED implementation is specified in
 [SV-A.2 bounded observation-series control](./sv-a2-observation-series-control.md):
 it remains default-off and requires a separate frozen OPEN contract after
-merge/deploy.
+merge/deploy. Its post-cleanup audit surface is specified in
+[SV-A.2 observation-series evidence readback](./sv-a2-observation-series-evidence.md):
+operational delivery and recommendation quality remain separate classifications.
 
 ### Destination and retained principles
 

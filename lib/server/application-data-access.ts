@@ -17,6 +17,7 @@ import { scheduledOutcomeEvaluationAttemptFromRow } from "@/lib/scheduled-outcom
 import { buildObservationCycleReadback } from "@/lib/observation-cycle-receipt";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 import { normalizeApplicationOwnerUserId } from "@/lib/application-session-core";
+import { readLatestObservationSeriesEvidence } from "@/lib/server/observation-series-evidence-readback";
 import {
   calculateOwnedLongPositionCloseMetrics,
   ownedLongPositionCloseMetricsMatch,
@@ -66,6 +67,7 @@ export async function readApplicationDashboardData(ownerUserId: string) {
     recommendationOutcomes,
     scheduledOutcomeEvaluationAttempts,
     marketRegime,
+    observationSeriesEvidenceReadback,
   ] = await Promise.all([
     client.from("recommendations").select("*").eq("owner_user_id", owner),
     client
@@ -149,6 +151,7 @@ export async function readApplicationDashboardData(ownerUserId: string) {
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
+    readLatestObservationSeriesEvidence(owner),
   ]);
 
   const results = [
@@ -212,6 +215,7 @@ export async function readApplicationDashboardData(ownerUserId: string) {
       observation_cycle_readback: buildObservationCycleReadback(
         observationCycleReceipts.data ?? [],
       ),
+      observation_series_evidence_readback: observationSeriesEvidenceReadback,
       recommendation_scan_runs: recommendationScanRuns.data ?? [],
       recommendation_batches: recommendationBatches.data ?? [],
       recommendation_snapshots: recommendationSnapshots.data ?? [],

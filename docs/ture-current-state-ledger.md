@@ -164,24 +164,47 @@ provider request, migration, publication, paper work or broker action was
 activated; bounded OPEN behavior evidence remains separate. See
 [SV-A.2 bounded observation-series control](./sv-a2-observation-series-control.md).
 
-**SV-A.2 observation-series exact claim lineage — CLOSED delivery candidate,
-2026-09-26:** owner Codex on `codex/observation-series-lineage`, based on exact
-main `66acb25ca4ed25f550ea0fc48c80efb52e808a7d`. Runtime admission v2 joins every
+**SV-A.2 observation-series exact claim lineage — CLOSED delivery completed,
+2026-09-26:** PR #654 merged as exact main
+`6b96d4569d5a634168ccb7670a234812f4b7ab71`. Runtime admission v2 joins every
 series receipt to exactly one scheduler-owned claim using attempt fingerprint,
 quarter-hour slot, immutable series control and production build/deploy
 identity. Missing claim history, orphan or duplicate receipts, a prior claim
 without a terminal cycle receipt, two claims for one slot, changed control or
 deploy identity and current-claim replay all stop before another provider
 reservation. The change reuses the existing service-role-only tables and needs
-no migration. Current local acceptance is 67/67 integrated series, cycle,
+no migration. Local acceptance is 67/67 integrated series, cycle,
 policy, scheduler-idempotency, continuous-scan and Basic Free budget tests,
 strict TypeScript, changed-file ESLint, diff validation, scheduled-runtime
-packaging and a complete Next 16.3.4 webpack production build. The default
+packaging and a complete Next 16.3.4 webpack production build. Protected PR CI
+run `36249657606` and exact-main CI run `36250916244` passed; Netlify production
+deploy `6ab7e0063466ee000851c1f4` is `ready` on the exact merge revision. The default
 Turbopack build cannot traverse this isolated worktree's external
 `node_modules` symlink; the documented webpack build path passes. No series,
 provider request, credit reservation, configuration change, publication,
-paper work or broker action was activated. Protected PR/CI, merge, exact-main
-deploy and later bounded OPEN behavior evidence remain separate.
+paper work or broker action was activated. Later bounded OPEN behavior evidence
+remains separate.
+
+**SV-A.2 observation-series evidence readback — CLOSED delivery candidate,
+2026-09-26:** owner Codex on `codex/observation-series-evidence`, based on exact
+main `6b96d4569d5a634168ccb7670a234812f4b7ab71`. The read-only server path finds
+the latest persisted series claim, reloads its exact half-open attempt and
+owner-bound cycle window with count-checked queries, then reuses runtime
+lineage validation to produce a versioned post-cleanup report. The authenticated
+dashboard separates delivery/containment from data facts and keeps quality
+`not_evaluated` or `insufficient_forward_evidence`; a completed `no_trade`, one
+candidate or a publication cannot become alpha evidence. Missing, orphaned,
+duplicate, cross-build or overdue claim/receipt evidence fails closed. No
+schema, grant, migration, provider, credit, scheduler, ranking, publication,
+paper or broker authority is added. Initial local acceptance is 5/5 focused
+adversarial/readback tests and 69/69 integrated series, cycle, scheduler,
+preflight and containment regressions, plus strict non-incremental TypeScript,
+changed-file ESLint, scheduled-runtime packaging, diff validation and a complete
+Next 16.3.4 webpack production build. The build caught and closed an initial
+server/client boundary leak by separating the client-safe decoder from the
+server lineage builder; the browser bundle no longer reaches `node:crypto`.
+Protected PR/CI, merge, exact-main deploy and the first separately frozen OPEN
+series remain outstanding.
 
 ### Now — SV-A current engine finish, reusing IF-2/IF-4/IF-5
 
@@ -2492,7 +2515,7 @@ on A/B evidence and must not be inferred from the source registry.
 
 | Work slot | Selected state | Entry / return condition |
 | --- | --- | --- |
-| Primary development | SV-A.2 observation-series runtime admission v2 is locally implemented on `codex/observation-series-lineage` from exact main `66acb25ca4ed25f550ea0fc48c80efb52e808a7d`. It closes the remaining attribution gap by joining every historical receipt to one exact scheduler claim, slot, frozen control and production deploy before another reservation. | Complete protected PR/CI, merge and exact-main deploy. Keep every series flag off; only a separately frozen OPEN contract may activate it later. |
+| Primary development | SV-A.2 observation-series runtime admission v2 is merged as exact main `6b96d4569d5a634168ccb7670a234812f4b7ab71`; protected PR CI `36249657606`, exact-main CI `36250916244` and ready Netlify production deploy `6ab7e0063466ee000851c1f4` passed on that revision. Every series flag remained off. The next CLOSED slice, `codex/observation-series-evidence`, adds the missing count-checked, owner-bound post-cleanup series report and browser surface without provider or execution authority. | Complete local acceptance, protected PR/CI, merge and exact-main deploy for the evidence reader. Keep every series flag off; only a separately frozen OPEN contract may activate it later. |
 | Second development | A.2 Basic Free pre-ranking credit allocation v2, multi-slot preflight v2, terminal trace reconciliation and the generic observation-cycle receipt are merged, production-deployed and, where applicable, production-migrated. None has a later normal OPEN behavior receipt on their combined revision. | On the next eligible trading date after the admission policy is deployed, freeze one bounded normal OPEN receipt to evaluate actual pre-ranking freshness, policy admission, terminal trace and generic cycle persistence together. Do not infer alpha from delivery success or a single candidate. |
 | CLOSED successor | SV-C.1–C.8, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2, SV-H.1–H.4, SV-L.1–L.2 and SV-N.1–N.5 plus the E.1 volume-integrity and earlier E.2 repairs are merged and exact-revision production-deployed. C.1–C.7/D.1 migrations are production-applied and verified inert/empty. C6 deliberately blocks policy/account creation because exact-price retention duration and account-specific terms remain unverified; C.8 preserves that fail-closed state. Every paper runtime and broker gate remains off. Production environment metadata has no IBKR/TWS variables, client dependency or declared persistent worker, so a real L.2 account/session probe is not currently executable there. Both available browser sessions require a fresh Twelve Data login, so account-scoped retention confirmation also remains external. The A.2 one-slot outcome-evaluation guard is merged/deployed as `ea9a024d`; its bounded 2026-09-25 observation delivered one terminal blocked receipt and was cleaned up on exact unchanged main with zero provider credits or side effects. | Separately obtain authenticated account-scoped Twelve Data confirmation of exact-price/candle retention and applicable US-equity third-party terms before any C6 admission or C5/C7 account-policy creation. Provision and approve persistent hosting plus read-only IBKR Paper credentials before an L.2 account/session probe; do not grant order authority. Market-impact/cancellation uncertainty and forward shadow remain later H evidence; real G/H evaluation remains blocked on licensed point-in-time history plus verified rights. Account/config/policy creation, activation and OPEN pilot acceptance remain separate evidence steps. |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
