@@ -600,7 +600,10 @@ test("wires the policy before the normal-scan provider path", () => {
     "providerBudget: scheduledRuntimeConfig.scheduled_provider_credit_budget",
   );
   expect(route).toContain(
-    "readRecentObservationCyclePreRunFailures(ownerUserId)",
+    "readRecentObservationCycleReadback(ownerUserId, observationSeriesControl)",
+  );
+  expect(route).toContain(
+    "observationCyclePreRunFailuresFromUnknown(",
   );
   expect(route).toContain(
     "recentPreRunFailures: recentObservationCyclePreRunFailures",

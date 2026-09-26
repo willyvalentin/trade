@@ -50,6 +50,10 @@ acceptance. Do not count green CI, one live candidate or a complete `no_trade`
 as demonstrated strategy improvement. Efficient observation-series control
 (attempt/credit caps, stop conditions and automatic expiry) is a capability to
 implement and verify before use, not permission to widen current one-shot limits.
+The selected CLOSED implementation is specified in
+[SV-A.2 bounded observation-series control](./sv-a2-observation-series-control.md):
+it remains default-off and requires a separate frozen OPEN contract after
+merge/deploy.
 
 ### Destination and retained principles
 

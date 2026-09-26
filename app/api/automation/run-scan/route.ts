@@ -68,8 +68,16 @@ import {
 } from "@/lib/scheduled-scan-invocation-receipt";
 import {
   buildObservationCycleReceipt,
+  buildObservationCycleReadback,
   observationCyclePreRunFailuresFromUnknown,
+  type ObservationCycleReadback,
 } from "@/lib/observation-cycle-receipt";
+import {
+  buildObservationSeriesRuntimeAdmission,
+  observationSeriesControlFromEnvironment,
+  type ObservationSeriesControl,
+  type ObservationSeriesRuntimeAdmission,
+} from "@/lib/observation-series-control";
 import {
   buildRecommendationScanRun,
   recommendationScanRunFromPersistenceRow,
@@ -1183,13 +1191,29 @@ async function readRecentRecommendationScanRuns(ownerUserId: string) {
     .filter((scanRun): scanRun is RecommendationScanRun => scanRun !== null);
 }
 
-async function readRecentObservationCyclePreRunFailures(
+async function readRecentObservationCycleReadback(
   ownerUserId: string,
-): Promise<ObservationCyclePreRunFailure[] | null> {
-  const { data, error } = await serverSupabase()
+  observationSeriesControl: ObservationSeriesControl,
+): Promise<ObservationCycleReadback | null> {
+  let query = serverSupabase()
     .from("observation_cycle_receipts")
-    .select("receipt_json")
-    .eq("owner_user_id", ownerUserId)
+    .select(
+      "receipt_version,cycle_fingerprint,owner_user_id,source_attempt_fingerprint,trigger_kind,cycle_status,disposition,observation_policy_version,scheduled_slot_at,triggered_at,route_received_at,finalized_at,scan_run_fingerprint,receipt_json,updated_at",
+    )
+    .eq("owner_user_id", ownerUserId);
+
+  // A series cap must be derived from the complete bounded window, not from a
+  // global "latest N" sample that unrelated receipts could displace. The
+  // maximum valid series has only 26 quarter-hour opportunities, so 100 rows
+  // remains a conservative corruption/duplication guard after this exact
+  // server-side window restriction.
+  if (observationSeriesControl.status === "ready") {
+    query = query
+      .gte("scheduled_slot_at", observationSeriesControl.starts_at_utc!)
+      .lt("scheduled_slot_at", observationSeriesControl.expires_at_utc!);
+  }
+
+  const { data, error } = await query
     .order("updated_at", { ascending: false })
     .limit(100);
 
@@ -1202,17 +1226,15 @@ async function readRecentObservationCyclePreRunFailures(
     return null;
   }
 
-  const failures = observationCyclePreRunFailuresFromUnknown(
-    (data ?? []).map((row) => row.receipt_json),
-  );
-  if (failures === null) {
+  const readback = buildObservationCycleReadback(data ?? []);
+  if (readback.status !== "available") {
     console.error("[automation/run-scan] observation_cycle_history_invalid", {
       source: "supabase.observation_cycle_receipts",
       operation: "parse_recent_observation_cycle_receipts",
+      invalid_row_count: readback.invalid_row_count,
     });
-    return null;
   }
-  return failures;
+  return readback;
 }
 
 async function readRecentScheduledScanRuns() {
@@ -1499,6 +1521,7 @@ async function recordScheduledScanAttempt({
   scheduledScanRunId = null,
   scheduledInvocationReceipt = null,
   observationAdmission,
+  observationSeriesAdmission,
 }: {
   ownerUserId: string;
   attemptFingerprint: string;
@@ -1519,6 +1542,7 @@ async function recordScheduledScanAttempt({
   scheduledScanRunId?: string | number | null;
   scheduledInvocationReceipt?: ScheduledScanInvocationReceipt | null;
   observationAdmission: ObservationCycleAdmissionReceipt;
+  observationSeriesAdmission: ObservationSeriesRuntimeAdmission;
 }) {
   const rawCount =
     activeScanTrace?.raw_candidates.raw_candidate_count ??
@@ -1603,6 +1627,7 @@ async function recordScheduledScanAttempt({
           scanLog?.basic_free_catalog_capability_probe ?? null,
         basic_free_scheduled_scan_credit_reservation:
           scanLog?.basic_free_scheduled_scan_credit_reservation ?? null,
+        observation_series_admission: observationSeriesAdmission,
       },
     }),
   });
@@ -3289,15 +3314,29 @@ export async function POST(request: Request) {
     now: scanClock,
     marketStatus,
   });
+  const observationSeriesControl = observationSeriesControlFromEnvironment({
+    get: (name) =>
+      requestSource === "netlify_scheduled_function"
+        ? process.env[name]
+        : undefined,
+  });
   const [
     recentRecommendationScanRuns,
     recentScheduledScanRuns,
-    recentObservationCyclePreRunFailures,
+    recentObservationCycleReadback,
   ] = await Promise.all([
     readRecentRecommendationScanRuns(ownerUserId),
     readRecentScheduledScanRuns(),
-    readRecentObservationCyclePreRunFailures(ownerUserId),
+    readRecentObservationCycleReadback(ownerUserId, observationSeriesControl),
   ]);
+  const recentObservationCyclePreRunFailures:
+    | ObservationCyclePreRunFailure[]
+    | null =
+    recentObservationCycleReadback?.status === "available"
+      ? observationCyclePreRunFailuresFromUnknown(
+          recentObservationCycleReadback.receipts,
+        )
+      : null;
   let scanWindow = getScanWindowDueNow(scanClock);
 
   if (force) {
@@ -3355,6 +3394,24 @@ export async function POST(request: Request) {
     orchestration: dayTradeScanOrchestration,
     scanWindow: scanWindow.scanWindow,
   });
+  const observationSeriesAdmission =
+    buildObservationSeriesRuntimeAdmission({
+      control: observationSeriesControl,
+      schedulerControl:
+        scheduledInvocationReceipt?.durable_invocation_payload
+          .observation_series_control ?? null,
+      schedulerSlotAdmission:
+        scheduledInvocationReceipt?.durable_invocation_payload
+          .observation_series_slot_admission ?? null,
+      scheduledSlotStartedAtUtc:
+        scheduledInvocationReceipt?.scheduled_slot_started_at_utc ?? null,
+      now: scanClock,
+      ownerUserId,
+      readback: recentObservationCycleReadback,
+      perAttemptProviderCredits:
+        scheduledRuntimeConfig.scheduled_provider_credit_budget
+          .max_known_credits_per_scan,
+    });
   const scheduledGateDiagnostics = buildContinuousMarketScanAdmission({
     now: scanClock,
     marketStatus,
@@ -3364,6 +3421,7 @@ export async function POST(request: Request) {
     recentPreRunFailures: recentObservationCyclePreRunFailures,
     legacyPowerHourWindowGate: legacyOfficialGateDiagnostics,
     providerBudget: scheduledRuntimeConfig.scheduled_provider_credit_budget,
+    observationSeriesAdmission,
   });
   const activeScanTrace = createActiveScanTrace({
     routeReceivedAt: routeReceivedAtUtc,
@@ -3438,6 +3496,8 @@ export async function POST(request: Request) {
       scheduledScanRunId: input.scheduledScanRunId ?? null,
       scheduledInvocationReceipt,
       observationAdmission: scheduledGateDiagnostics.observation_admission,
+      observationSeriesAdmission:
+        scheduledGateDiagnostics.observation_series_admission,
     });
 
   await recordAttempt({

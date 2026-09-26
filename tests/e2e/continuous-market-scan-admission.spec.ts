@@ -12,6 +12,11 @@ import { buildRecommendationServingCadenceSummary } from "../../lib/recommendati
 import { buildProviderBudgetGuardSummary } from "../../lib/provider-budget-guard";
 import type { RecommendationScanRun } from "../../lib/recommendation-scan-run";
 import type { ObservationCyclePreRunFailure } from "../../lib/observation-cycle-admission-policy";
+import {
+  buildObservationSeriesRuntimeAdmission,
+  observationSeriesControlFromEnvironment,
+  type ObservationSeriesRuntimeAdmission,
+} from "../../lib/observation-series-control";
 import { buildScannerCandidateRankingSummary } from "../../lib/scanner-candidate-ranking";
 import type { ScannerUniverseCoverageSummary } from "../../lib/scanner-universe";
 import { resolveScheduledScanProviderCreditBudget } from "../../lib/scheduled-scan-ticker-cap";
@@ -26,6 +31,20 @@ const tradingDay: MarketSessionStatus = {
   provider: "polygon",
 };
 
+const disabledObservationSeriesAdmission =
+  buildObservationSeriesRuntimeAdmission({
+    control: observationSeriesControlFromEnvironment({
+      get: () => undefined,
+    }),
+    schedulerControl: null,
+    schedulerSlotAdmission: null,
+    scheduledSlotStartedAtUtc: null,
+    now: new Date("2026-09-23T13:30:00.000Z"),
+    ownerUserId: "00000000-0000-4000-8000-000000000001",
+    readback: null,
+    perAttemptProviderCredits: 8,
+  });
+
 function admission(
   instant: string,
   overrides: {
@@ -33,6 +52,7 @@ function admission(
     scanWindow?: ReturnType<typeof getIntradayScanWindow>;
     recentScanRuns?: RecommendationScanRun[];
     recentPreRunFailures?: ObservationCyclePreRunFailure[] | null;
+    observationSeriesAdmission?: ObservationSeriesRuntimeAdmission;
   } = {},
 ) {
   const now = new Date(instant);
@@ -58,6 +78,9 @@ function admission(
     providerBudget: resolveScheduledScanProviderCreditBudget({
       planMode: "free",
     }),
+    observationSeriesAdmission:
+      overrides.observationSeriesAdmission ??
+      disabledObservationSeriesAdmission,
   });
 }
 
@@ -165,6 +188,30 @@ test("rejects clock/window mismatch and a recent completed scan", () => {
       ],
     }).scheduled_gate_allowed,
   ).toBe(true);
+});
+
+test("keeps cadence admission separate while a bounded series stop blocks provider work", () => {
+  expect(
+    admission("2026-09-23T15:30:00.000Z", {
+      observationSeriesAdmission: {
+        ...disabledObservationSeriesAdmission,
+        decision: "no_request",
+        status: "series_credit_cap_reached",
+        series_id: "observation_series_fixture1",
+        reason_codes: ["series_credit_cap_reached"],
+      },
+    }),
+  ).toMatchObject({
+    scheduled_gate_allowed: false,
+    scheduled_gate_block_reason: "series_credit_cap_reached",
+    observation_admission: {
+      decision: "request_current_data",
+    },
+    observation_series_admission: {
+      decision: "no_request",
+      status: "series_credit_cap_reached",
+    },
+  });
 });
 
 test("does not expand the separate late-session trial gate", () => {
