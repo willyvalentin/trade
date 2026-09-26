@@ -46,13 +46,23 @@ series can use an eligible scheduled event.
 
 ## Durable evidence and authority
 
+Runtime admission v2 closes the historical-attribution gap left by the first
+controller delivery. It does not accept a receipt merely because its timestamp
+falls inside the configured series window.
+
 The Netlify scheduler stores the parsed series contract and exact slot
 admission in its pre-route durable attempt claim. The private route requires the
 same series identity, exact scheduled slot and immutable production build
 identity, then derives cumulative state from strictly parsed, owner-bound
 observation-cycle receipts selected server-side from the complete half-open
-series window. Partial/unavailable history, owner mismatch,
-unexpected per-attempt credit ceilings or malformed receipts reject.
+series window. Every receipt is joined to the exact scheduler claim that
+created it using attempt fingerprint, slot, frozen series control and
+build/deploy identity. A prior claim without a receipt, an orphan or duplicate
+receipt, a changed deploy, a second claim for one slot, partial/unavailable
+history, owner mismatch, unexpected per-attempt credit ceilings or malformed
+evidence rejects before the next provider reservation. The current claim may
+be receipt-free only on its first route delivery; replaying an already observed
+claim is stopped.
 
 Each route update persists the runtime series admission and its counts in the
 scheduled-attempt payload. The existing atomic Basic Free reservation remains

@@ -14,6 +14,13 @@ import {
 import scheduledScanHandler from "../../netlify/functions/scheduled-scan";
 
 const ownerUserId = "00000000-0000-4000-8000-000000000001";
+const buildIdentity = {
+  schema_version: "scheduled_scan_deployment_identity_v1" as const,
+  deploy_id: "6ab1797d8ee5580008985f39",
+  deploy_context: "production" as const,
+  commit_ref: "a".repeat(40),
+  site_id: "2b582e03-ac97-4371-8051-558d9980fb94",
+};
 
 function withFixedDate<T>(timestamp: string, callback: () => T) {
   const OriginalDate = globalThis.Date;
@@ -113,6 +120,8 @@ function receipt({
   reservedCredits = 8,
   publishedCount = 0,
   admissionDecision = "request_current_data",
+  attemptFingerprint,
+  receiptBuildIdentity = buildIdentity,
 }: {
   slot: string;
   status?: ObservationCycleReceipt["cycle_status"];
@@ -120,13 +129,17 @@ function receipt({
   reservedCredits?: number;
   publishedCount?: number;
   admissionDecision?: "request_current_data" | "no_request";
+  attemptFingerprint?: string;
+  receiptBuildIdentity?: Record<string, unknown> | null;
 }): ObservationCycleReceipt {
   const suffix = slot.replace(/\D/g, "");
+  const fingerprint =
+    attemptFingerprint ?? `scheduled_scan_attempt_${suffix}`;
   return {
     receipt_version: "observation_cycle_receipt_v1",
-    cycle_fingerprint: `scheduled_scan_attempt_${suffix}`,
+    cycle_fingerprint: fingerprint,
     owner_user_id: ownerUserId,
-    source_attempt_fingerprint: `scheduled_scan_attempt_${suffix}`,
+    source_attempt_fingerprint: fingerprint,
     cycle_status: status,
     disposition,
     observation_policy_version: "scheduled_scan_observation_cycle_v1",
@@ -140,7 +153,7 @@ function receipt({
       occurred_at: slot,
       route_received_at: slot,
       scheduled_slot_started_at_utc: slot,
-      build_deployment_identity: null,
+      build_deployment_identity: receiptBuildIdentity,
     },
     admission: {
       status: "admitted",
@@ -199,6 +212,38 @@ function receipt({
   };
 }
 
+function attemptRow({
+  slot,
+  currentControl = control(),
+  attemptFingerprint,
+  attemptBuildIdentity = buildIdentity,
+}: {
+  slot: string;
+  currentControl?: ReturnType<typeof control>;
+  attemptFingerprint?: string;
+  attemptBuildIdentity?: typeof buildIdentity;
+}) {
+  const suffix = slot.replace(/\D/g, "");
+  return {
+    attempt_fingerprint:
+      attemptFingerprint ?? `scheduled_scan_attempt_${suffix}`,
+    source: "netlify_scheduled_function",
+    mode: "scheduled",
+    scheduled_function_fired_at: slot,
+    utc_timestamp: slot,
+    payload_json: {
+      scheduled_slot_started_at_utc: slot,
+      scheduled_slot_identity_source: "netlify_event_next_run",
+      build_deployment_identity: attemptBuildIdentity,
+      observation_series_control: currentControl,
+      observation_series_slot_admission: buildObservationSeriesSlotAdmission({
+        control: currentControl,
+        scheduledSlotStartedAtUtc: slot,
+      }),
+    },
+  };
+}
+
 function readback(
   receipts: ObservationCycleReceipt[],
   status: ObservationCycleReadback["status"] = "available",
@@ -217,16 +262,36 @@ function runtimeAdmission({
   receipts = [],
   readbackStatus = "available",
   slot = "2026-09-28T13:30:00.000Z",
+  scheduledAttemptRows,
+  currentAttemptFingerprint,
 }: {
   currentControl?: ReturnType<typeof control>;
   receipts?: ObservationCycleReceipt[];
   readbackStatus?: ObservationCycleReadback["status"];
   slot?: string;
+  scheduledAttemptRows?: readonly unknown[] | null;
+  currentAttemptFingerprint?: string;
 } = {}) {
   const schedulerSlotAdmission = buildObservationSeriesSlotAdmission({
     control: currentControl,
     scheduledSlotStartedAtUtc: slot,
   });
+  const currentAttempt = attemptRow({ slot, currentControl });
+  const defaultRows = [
+    ...receipts.map((item) =>
+      attemptRow({
+        slot: item.trigger.scheduled_slot_started_at_utc!,
+        currentControl,
+        attemptFingerprint: item.source_attempt_fingerprint,
+      }),
+    ),
+    currentAttempt,
+  ];
+  const uniqueDefaultRows = Array.from(
+    new Map(
+      defaultRows.map((row) => [row.attempt_fingerprint, row]),
+    ).values(),
+  );
   return buildObservationSeriesRuntimeAdmission({
     control: currentControl,
     schedulerControl: currentControl,
@@ -235,6 +300,12 @@ function runtimeAdmission({
     now: new Date(slot),
     ownerUserId,
     readback: readback(receipts, readbackStatus),
+    scheduledAttemptRows:
+      scheduledAttemptRows === undefined
+        ? uniqueDefaultRows
+        : scheduledAttemptRows,
+    currentAttemptFingerprint:
+      currentAttemptFingerprint ?? currentAttempt.attempt_fingerprint,
     perAttemptProviderCredits: 8,
   });
 }
@@ -508,9 +579,138 @@ test("fails closed on scheduler identity, history or provider-ceiling ambiguity"
       now: new Date(slot),
       ownerUserId,
       readback: readback([]),
+      scheduledAttemptRows: [attemptRow({ slot, currentControl })],
+      currentAttemptFingerprint:
+        attemptRow({ slot, currentControl }).attempt_fingerprint,
       perAttemptProviderCredits: 7,
     }).status,
   ).toBe("series_history_invalid");
+});
+
+test("attributes every series receipt to one exact claim, slot and deploy", () => {
+  const currentControl = control();
+  const priorSlot = "2026-09-28T13:30:00.000Z";
+  const currentSlot = "2026-09-28T13:45:00.000Z";
+  const priorReceipt = receipt({ slot: priorSlot });
+  const priorAttempt = attemptRow({ slot: priorSlot, currentControl });
+  const currentAttempt = attemptRow({ slot: currentSlot, currentControl });
+
+  expect(
+    runtimeAdmission({
+      currentControl,
+      slot: currentSlot,
+      scheduledAttemptRows: null,
+    }),
+  ).toMatchObject({
+    decision: "reject",
+    status: "series_history_unavailable",
+    reason_codes: ["series_attempt_history_unavailable"],
+  });
+
+  expect(
+    runtimeAdmission({
+      currentControl,
+      slot: currentSlot,
+      receipts: [priorReceipt],
+      scheduledAttemptRows: [currentAttempt],
+    }),
+  ).toMatchObject({
+    decision: "reject",
+    status: "series_history_invalid",
+    reason_codes: ["series_receipt_attempt_attribution_invalid"],
+  });
+
+  expect(
+    runtimeAdmission({
+      currentControl,
+      slot: currentSlot,
+      scheduledAttemptRows: [priorAttempt, currentAttempt],
+    }),
+  ).toMatchObject({
+    decision: "reject",
+    status: "series_history_invalid",
+    reason_codes: ["series_prior_attempt_receipt_missing"],
+  });
+
+  expect(
+    runtimeAdmission({
+      currentControl,
+      slot: currentSlot,
+      receipts: [priorReceipt],
+      scheduledAttemptRows: [
+        attemptRow({
+          slot: priorSlot,
+          currentControl: control({
+            TURE_OBSERVATION_SERIES_MAX_PROVIDER_CREDITS: "24",
+          }),
+        }),
+        currentAttempt,
+      ],
+    }),
+  ).toMatchObject({
+    decision: "reject",
+    status: "series_history_invalid",
+    reason_codes: ["series_attempt_lineage_invalid"],
+  });
+
+  const changedBuildIdentity = {
+    ...buildIdentity,
+    deploy_id: "b".repeat(24),
+  };
+  expect(
+    runtimeAdmission({
+      currentControl,
+      slot: currentSlot,
+      receipts: [
+        receipt({
+          slot: priorSlot,
+          receiptBuildIdentity: changedBuildIdentity,
+        }),
+      ],
+      scheduledAttemptRows: [
+        attemptRow({
+          slot: priorSlot,
+          currentControl,
+          attemptBuildIdentity: changedBuildIdentity,
+        }),
+        currentAttempt,
+      ],
+    }),
+  ).toMatchObject({
+    decision: "reject",
+    status: "series_history_invalid",
+    reason_codes: ["series_attempt_build_identity_mismatch"],
+  });
+
+  expect(
+    runtimeAdmission({
+      currentControl,
+      slot: currentSlot,
+      scheduledAttemptRows: [
+        currentAttempt,
+        attemptRow({
+          slot: currentSlot,
+          currentControl,
+          attemptFingerprint: "scheduled_scan_attempt_duplicate_slot",
+        }),
+      ],
+    }),
+  ).toMatchObject({
+    decision: "reject",
+    status: "series_history_invalid",
+    reason_codes: ["series_attempt_slot_duplicate"],
+  });
+
+  expect(
+    runtimeAdmission({
+      currentControl,
+      slot: currentSlot,
+      receipts: [receipt({ slot: currentSlot })],
+    }),
+  ).toMatchObject({
+    decision: "no_request",
+    status: "series_current_cycle_already_observed",
+  });
 });
 
 test("wires series control into the scheduler, route admission and durable attempt payload", () => {
@@ -540,4 +740,7 @@ test("wires series control into the scheduler, route admission and durable attem
   expect(route).toContain(
     '.lt("scheduled_slot_at", observationSeriesControl.expires_at_utc!)',
   );
+  expect(route).toContain("readObservationSeriesScheduledAttemptRows");
+  expect(route).toContain("currentAttemptFingerprint: scheduledScanAttemptFingerprint");
+  expect(route).toContain('{ count: "exact" }');
 });

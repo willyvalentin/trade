@@ -1237,6 +1237,44 @@ async function readRecentObservationCycleReadback(
   return readback;
 }
 
+async function readObservationSeriesScheduledAttemptRows(
+  observationSeriesControl: ObservationSeriesControl,
+) {
+  if (observationSeriesControl.status !== "ready") return [];
+
+  const { data, error, count } = await serverSupabase()
+    .from("scheduled_scan_attempts")
+    .select(
+      "attempt_fingerprint,source,mode,scheduled_function_fired_at,utc_timestamp,payload_json",
+      { count: "exact" },
+    )
+    .eq("source", "netlify_scheduled_function")
+    .eq("mode", "scheduled")
+    .gte(
+      "scheduled_function_fired_at",
+      observationSeriesControl.starts_at_utc!,
+    )
+    .lt(
+      "scheduled_function_fired_at",
+      observationSeriesControl.expires_at_utc!,
+    )
+    .order("scheduled_function_fired_at", { ascending: true })
+    .limit(100);
+
+  if (error || count === null || count !== (data ?? []).length) {
+    console.error("[automation/run-scan] observation_series_attempt_history_error", {
+      source: "supabase.scheduled_scan_attempts",
+      operation: "select_complete_observation_series_attempt_history",
+      count,
+      loaded_count: data?.length ?? 0,
+      error: error ? normalizeUnknownError(error) : null,
+    });
+    return null;
+  }
+
+  return data ?? [];
+}
+
 async function readRecentScheduledScanRuns() {
   const { data, error } = await serverSupabase()
     .from("scheduled_scan_runs")
@@ -3324,10 +3362,12 @@ export async function POST(request: Request) {
     recentRecommendationScanRuns,
     recentScheduledScanRuns,
     recentObservationCycleReadback,
+    observationSeriesScheduledAttemptRows,
   ] = await Promise.all([
     readRecentRecommendationScanRuns(ownerUserId),
     readRecentScheduledScanRuns(),
     readRecentObservationCycleReadback(ownerUserId, observationSeriesControl),
+    readObservationSeriesScheduledAttemptRows(observationSeriesControl),
   ]);
   const recentObservationCyclePreRunFailures:
     | ObservationCyclePreRunFailure[]
@@ -3408,6 +3448,8 @@ export async function POST(request: Request) {
       now: scanClock,
       ownerUserId,
       readback: recentObservationCycleReadback,
+      scheduledAttemptRows: observationSeriesScheduledAttemptRows,
+      currentAttemptFingerprint: scheduledScanAttemptFingerprint,
       perAttemptProviderCredits:
         scheduledRuntimeConfig.scheduled_provider_credit_budget
           .max_known_credits_per_scan,
