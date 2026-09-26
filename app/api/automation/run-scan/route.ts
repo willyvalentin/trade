@@ -106,6 +106,10 @@ import {
 import { buildDecisionLineageReceipt } from "@/lib/decision-lineage-receipt";
 import { buildCandidateDecisionLearningAttribution } from "@/lib/candidate-decision-learning-attribution";
 import { buildScannerIntradayLiquidityShadowAttribution } from "@/lib/scanner-ranking-intraday-liquidity-shadow-attribution";
+import {
+  buildScannerIntradayLiquidityShadowEvidenceCapturePlan,
+  SCANNER_INTRADAY_LIQUIDITY_SHADOW_EVIDENCE_CAPTURE_VERSION,
+} from "@/lib/scanner-intraday-liquidity-shadow-evidence-capture";
 import { CANONICAL_OUTCOME_EVALUATOR_VERSION } from "@/lib/canonical-recommendation-evaluation";
 import type { ScanPipelineObservabilitySummary } from "@/lib/scan-pipeline-observability";
 import { normalizeUnknownError } from "@/lib/error-logging";
@@ -2400,6 +2404,7 @@ function buildSnapshotFromResearchSample({
   servingCadence,
   providerPlanProfileMode,
   batchFingerprint,
+  researchPurpose = "learning_acceleration",
 }: {
   candidateDecisionLink: ResearchSnapshotCandidateDecisionLink;
   sample: LearningAccelerationResearchSample | RejectedCandidateResearchSample;
@@ -2411,6 +2416,9 @@ function buildSnapshotFromResearchSample({
   servingCadence: RecommendationServingCadenceSummary;
   providerPlanProfileMode: string | null;
   batchFingerprint: string | null;
+  researchPurpose?:
+    | "learning_acceleration"
+    | "intraday_liquidity_shadow_full_population";
 }) {
   const rejectedCandidateResearch =
     candidateDecisionLink.candidate_disposition === "filtered_before_ranking";
@@ -2480,7 +2488,15 @@ function buildSnapshotFromResearchSample({
       not_live_signal: true,
       not_live_trade_signal: true,
       visible_in_primary_recommendations: false,
-      learning_acceleration_sample: true,
+      learning_acceleration_sample:
+        researchPurpose === "learning_acceleration",
+      research_purpose: researchPurpose,
+      intraday_liquidity_shadow_evidence_sample:
+        researchPurpose === "intraday_liquidity_shadow_full_population",
+      intraday_liquidity_shadow_evidence_capture_version:
+        researchPurpose === "intraday_liquidity_shadow_full_population"
+          ? SCANNER_INTRADAY_LIQUIDITY_SHADOW_EVIDENCE_CAPTURE_VERSION
+          : null,
       research_only: true,
       learning_scope: "research_only",
       counterfactual_cohort: rejectedCandidateResearch
@@ -2546,7 +2562,7 @@ function buildSnapshotFromResearchSample({
         target_2: sample.target_2,
       },
       learning_acceleration: {
-        enabled: true,
+        enabled: researchPurpose === "learning_acceleration",
         mode: "research_only",
         not_live_signal: true,
       },
@@ -2748,12 +2764,29 @@ async function persistAutomationArtifacts({
     scanRun.payload_json.decision_lineage_receipt =
       buildDecisionLineageReceipt(candidateDecisionRecord);
   }
-  scanRun.payload_json.scanner_intraday_liquidity_shadow_attribution =
+  const scannerIntradayLiquidityShadowAttribution =
     buildScannerIntradayLiquidityShadowAttribution({
       comparison:
         scanLog.scanner_intraday_liquidity_shadow_comparison ?? null,
       decisionRecord: candidateDecisionRecord,
     });
+  scanRun.payload_json.scanner_intraday_liquidity_shadow_attribution =
+    scannerIntradayLiquidityShadowAttribution;
+  const visibleRecommendationTickers = recommendations
+    .map((recommendation) => recommendationTicker(recommendation))
+    .filter((ticker): ticker is string => ticker !== null);
+  const scannerIntradayLiquidityShadowEvidenceCapture =
+    buildScannerIntradayLiquidityShadowEvidenceCapturePlan({
+      comparison:
+        scanLog.scanner_intraday_liquidity_shadow_comparison ?? null,
+      attribution: scannerIntradayLiquidityShadowAttribution,
+      decisionRecord: candidateDecisionRecord,
+      candidates: learningAccelerationCandidateGeneration?.candidates ?? [],
+      visibleTickers: visibleRecommendationTickers,
+      scanWindow,
+    });
+  scanRun.payload_json.scanner_intraday_liquidity_shadow_evidence_capture =
+    scannerIntradayLiquidityShadowEvidenceCapture.receipt;
   const persistence = {
     scan_run: await persistRecommendationScanRun(scanRun, {
       supabaseClient: serverSupabase.client,
@@ -2765,6 +2798,9 @@ async function persistAutomationArtifacts({
       Awaited<ReturnType<typeof persistRecommendationSnapshot>>
     >,
     rejected_research_snapshots: [] as Array<
+      Awaited<ReturnType<typeof persistRecommendationSnapshot>>
+    >,
+    liquidity_shadow_research_snapshots: [] as Array<
       Awaited<ReturnType<typeof persistRecommendationSnapshot>>
     >,
     batch: null as Awaited<ReturnType<typeof persistRecommendationBatch>> | null,
@@ -2840,9 +2876,12 @@ async function persistAutomationArtifacts({
     selectedBuildDiagnostics:
       learningAccelerationSelectedBuildDiagnostics,
     selectedToBuiltDropOff,
-    visibleTickers: recommendations
-      .map((recommendation) => recommendationTicker(recommendation))
-      .filter((ticker): ticker is string => ticker !== null),
+    visibleTickers: [
+      ...visibleRecommendationTickers,
+      ...scannerIntradayLiquidityShadowEvidenceCapture.samples.map(
+        (sample) => sample.ticker,
+      ),
+    ],
     scanWindow,
     maxSamples: learningAccelerationTargetSamples,
     inputSourceHint: learningAccelerationInputSource,
@@ -2861,10 +2900,14 @@ async function persistAutomationArtifacts({
         .map((recommendation) => recommendationTicker(recommendation))
         .filter((ticker): ticker is string => ticker !== null),
       ...researchSelection.samples.map((sample) => sample.ticker),
+      ...scannerIntradayLiquidityShadowEvidenceCapture.samples.map(
+        (sample) => sample.ticker,
+      ),
     ],
   });
   const researchSnapshots: RecommendationSnapshot[] = [];
   const rejectedResearchSnapshots: RecommendationSnapshot[] = [];
+  const liquidityShadowResearchSnapshots: RecommendationSnapshot[] = [];
   for (const recommendation of recommendations) {
     const snapshot = buildSnapshotFromRecommendation({
       recommendation,
@@ -2882,6 +2925,42 @@ async function persistAutomationArtifacts({
 
     snapshots.push(snapshot);
     persistence.snapshots.push(
+      await persistRecommendationSnapshot(snapshot, {
+        supabaseClient: serverSupabase.client,
+        server: true,
+        unavailableReason: serverSupabase.unavailable_reason,
+      }),
+    );
+  }
+
+  for (const sample of scannerIntradayLiquidityShadowEvidenceCapture.samples) {
+    const candidateDecisionLink = linkResearchSnapshotToCandidateDecision({
+      record: candidateDecisionRecord,
+      ticker: sample.ticker,
+    });
+    if (
+      candidateDecisionLink.linkage_status !== "verified" ||
+      candidateDecisionLink.candidate_id !== sample.candidate_id ||
+      candidateDecisionLink.candidate_disposition === "filtered_before_ranking"
+    ) {
+      continue;
+    }
+    const snapshot = buildSnapshotFromResearchSample({
+      candidateDecisionLink,
+      sample,
+      scanRunId: scanRun.run_fingerprint,
+      scanWindow,
+      now,
+      marketSession,
+      scanObservability: observability,
+      servingCadence,
+      providerPlanProfileMode,
+      batchFingerprint: anticipatedBatchFingerprint,
+      researchPurpose: "intraday_liquidity_shadow_full_population",
+    });
+
+    liquidityShadowResearchSnapshots.push(snapshot);
+    persistence.liquidity_shadow_research_snapshots.push(
       await persistRecommendationSnapshot(snapshot, {
         supabaseClient: serverSupabase.client,
         server: true,
@@ -2955,6 +3034,7 @@ async function persistAutomationArtifacts({
   const shadowSnapshotSummary =
     summarizeRecommendationSnapshotShadowEntryTrialMetadata([
       ...snapshots,
+      ...liquidityShadowResearchSnapshots,
       ...researchSnapshots,
       ...rejectedResearchSnapshots,
     ]);
@@ -3101,9 +3181,12 @@ async function persistAutomationArtifacts({
     scan_run: scanRun,
     candidate_decision_record: candidateDecisionRecord,
     snapshots,
+    liquidity_shadow_research_snapshots: liquidityShadowResearchSnapshots,
     research_snapshots: researchSnapshots,
     rejected_research_snapshots: rejectedResearchSnapshots,
     learning_acceleration: researchSelection,
+    scanner_intraday_liquidity_shadow_evidence_capture:
+      scannerIntradayLiquidityShadowEvidenceCapture.receipt,
     rejected_candidate_research: rejectedResearchSelection,
     shadow_snapshot_summary: shadowSnapshotSummary,
     persistence,

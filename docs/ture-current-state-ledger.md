@@ -93,24 +93,37 @@ arms, coverage and descriptive deltas, but keeps promotion blocked and
 six provider-free shards and merge provenance. This is attributable outcome
 measurement, not a claim that the challenger is better.
 
-**Active successor CLOSED slice — real scan to canonical paired evaluator:**
-owner Codex on `codex/liquidity-shadow-evaluation-samples`, based on exact main
-`4df8c0d45ff285cb44cc1b06cbab038f69a80f58`. The slice strictly reads the
-persisted same-population comparison, requires one exact owner-bound snapshot
-and canonical primary outcome for every ranked candidate, and maps both ranking
-orders into the existing canonical precision/calibration evaluator. Partial
-coverage returns `insufficient_evidence`; score, membership or lineage drift
-returns `conflicting`. A complete fixture truthfully reaches
+**Merged and production-verified CLOSED slice — canonical paired evaluator:**
+PR [#660](https://github.com/willyvalentin/trade/pull/660) merged as
+`233f9a376af05375fd4b1eee5ae4cb467921cc96`; Netlify production deploy
+`6ab83a6fa5fb250007083488` is `ready` on that exact revision. It strictly reads
+the persisted same-population comparison, requires one exact owner-bound
+snapshot and canonical primary outcome for every ranked candidate, and maps
+both ranking orders into the existing canonical precision/calibration evaluator.
+Partial coverage returns `insufficient_evidence`; score, membership or lineage
+drift returns `conflicting`. A complete fixture truthfully reaches
 `probability_semantics_missing`, because Ture's confidence remains ordinal and
-is not silently converted into a probability. The all-candidate score threshold
-is diagnostic only, and the adapter retains `shadow_only=true`,
-`live_ranking_effect=false`, `publication_effect=false` and
-`causal_improvement_claimed=false`. Local acceptance currently includes 6/6
-focused tests, 44/44 combined ranking/lineage/evaluator regressions, the
-166/166 intelligence-foundation suite, strict
-non-incremental TypeScript, changed-file lint, scheduled-runtime packaging and
-a complete Next 16.3.4 webpack production build. PR/CI/merge/deploy and real
-forward full-population outcome coverage remain separate evidence.
+is not silently converted into a probability. Protected CI run `36272025424`
+passed all six provider-free shards, the aggregate and merge-candidate
+provenance. This proves a fail-closed evaluation path, not outcome coverage or
+better recommendations.
+
+**Active successor CLOSED slice — complete point-in-time shadow population:**
+owner Codex on `codex/liquidity-shadow-full-population`, based on exact main
+`233f9a376af05375fd4b1eee5ae4cb467921cc96`. The normal scan now prepares a
+separate provider-free research capture for every candidate in the immutable
+ranked population, including non-visible candidates, so the canonical evaluator
+is not silently limited by the ordinary research-sampling cap. The capture is
+bounded at 100 symbols and fails closed rather than truncating when identity,
+chronology, freshness, baseline position or research eligibility is incomplete.
+It adds no provider request or credit and retains `live_ranking_effect=false`,
+`publication_effect=false`, `execution_effect=false` and
+`quality_improvement_claimed=false`. Local acceptance includes 5/5 focused
+capture tests, 40/40 combined ranking/attribution/projection/capture/learning
+regressions, the 166/166 intelligence-foundation suite, strict non-incremental
+TypeScript, changed-file lint, scheduled-runtime packaging and a complete Next
+16.3.4 webpack production build. PR/CI/merge/deploy and real forward
+full-population outcome coverage remain separate evidence.
 
 ### Continuous-observation technical direction — 2026-09-24
 
