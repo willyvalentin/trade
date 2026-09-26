@@ -1,21 +1,38 @@
 # Ture Master Roadmap
 
-## Active product direction — scientific validation and IBKR first, 2026-09-21
+## Active product direction — recommendation intelligence first, 2026-09-27
 
-The user's 2026-09-21 specification selects **scientific validation → autonomous
-internal paper → autonomous IBKR paper → approved limited live → controlled
-live automation**, with options research and separately gated options execution.
-IBKR is the primary broker for all new execution work. Avanza is maintenance-only:
-preserve existing records, ownership and safety fixes, but build no new Avanza
-handoff or automation capability. This supersedes the former Avanza EX-1/EX-2
-sequence and the blanket rule parking all execution engineering behind IF-5.
-It does not waive evidence gates for real capital or activate any broker.
+The latest product selection is **data fitness and broad discovery → contextual
+ranking → complete outcome-linked evaluation → shadow-tested, reversible policy
+improvement → autonomous paper and broker execution**. Ture's first product is
+a recommendation engine that can find, reject, explain and learn from US-equity
+day-trading opportunities with attributable evidence. Operational reliability is
+required for that evidence path, but it is not a substitute for better inputs,
+ranking or measured recommendation quality.
+
+The 2026-09-21 scientific-validation and IBKR specification remains the retained
+execution destination after the intelligence gate: autonomous internal paper,
+autonomous IBKR paper, approved limited live and controlled live automation,
+with separately validated options research/execution. IBKR remains the future
+broker. Avanza is maintenance-only: preserve existing records, ownership and
+safety fixes, but build no new Avanza handoff or automation capability. No AI
+model gains a direct broker path, and this direction activates no broker.
 
 The repository remains the only control source. The [ledger](./ture-current-state-ledger.md)
 selects work; [governance](./roadmap-operating-governance.md) controls delivery.
 Notion is not maintained or used for selection. The complete user specification
 is preserved in [the dated source specification](./ture-scientific-validation-ibkr-spec-2026-09-21.md).
 Its numerical examples are illustrative, not observed results or approved limits.
+
+**Selection rule.** Until the active intelligence path has durable full-population
+outcomes, a frozen baseline comparison and enough forward evidence for a
+continue/narrow/reject decision, select work from IF-2b -> IF-3 -> IF-4 -> IF-5.
+Do not select generic scheduler, dashboard, internal-paper or broker expansion
+merely because it is CLOSED or technically ready. Such work may interrupt only
+for a reproduced defect that threatens data integrity, owner isolation,
+freshness, provider budget, evidence lineage or safety. The remaining bounded
+A.2 OPEN series is the selected operational exit observation and does not block
+independent intelligence work.
 
 **2026-09-23 market-timing decision.** The former named morning/midday/power-hour
 publication windows are historical operating constraints, not a product
@@ -92,14 +109,18 @@ partial outcome coverage and preserves the current ordinal-confidence limitation
 rather than invent probability semantics. A fresh, exact point-in-time research
 snapshot is now captured for the complete ranked population, including
 non-visible candidates, under a bounded fail-closed cap and without extra
-provider work. The active successor must carry only that exact versioned shadow
-cohort through the canonical outcome path under existing provider-credit guards;
-it must not open generic hidden research, alter live ranking or treat admission
-as provider authority. Forward observations and outcome-linked baseline
-comparison then decide whether this policy should be promoted, narrowed or
-rejected. No threshold is lowered to create candidates, and neither attribution,
-snapshot admission, coverage nor a descriptive outcome delta is quality evidence
-by itself.
+provider work. Only that exact versioned shadow cohort is now admitted through
+the canonical outcome path under the existing provider-credit guards; generic
+hidden research remains blocked and admission grants no provider authority. The
+active successor must keep each scheduled Basic Free snapshot selection within
+the same slot's four-request ceiling and expose versioned before/after backlog
+accounting. A receipt may not imply that selected work completed when the
+snapshot cap, provider budget, persistence or missing candles deferred it.
+Forward observations and outcome-linked baseline comparison then decide whether
+this policy should be promoted, narrowed or rejected. No threshold is lowered to
+create candidates, and neither attribution, snapshot admission, capacity
+alignment, coverage nor a descriptive outcome delta is quality evidence by
+itself.
 
 For every recommendation-quality hypothesis, build in this order: admit and
 version the point-in-time input; run the challenger in shadow over the exact
@@ -173,14 +194,14 @@ independent CLOSED slice are active, within the two-slice limit below.
 | R-OPT: options research, selection and execution | Q → R → S → T with B/E/F/G/I/K/N and separate options validation | Approval-required options first; auto only after its own live evidence |
 | R-EXEC: measured execution optimization | U after enough attributable N/O data; separate T data for options | Shadow challenger, then bounded promotion and rollback |
 
-Working order: **A → B → C + basic D → E/F**, expanding G/K context and I/J
-controls before live admission. Start L's bounded API/account/deployment feasibility
-work after A/B rather than discovering an authentication obstacle at launch;
-actual IBKR paper execution waits for C/L. Build N telemetry into C/L and finish
-its broker attribution with M. H and options research need not delay a qualified
-small equity live release, and options do not require equity full-auto activation.
-Q may start after a stable equity evidence path and B/E/F foundations exist, if
-the ledger selects it. No parallel stream is created merely by this map.
+Active working order: **IF-2b → IF-3 → IF-4 → IF-5**, using SV-B/E/F/G/J/K
+research capabilities where they directly close the selected intelligence
+hypothesis. After sustained useful-quality evidence, proceed through the retained
+execution order **A → B → C + basic D → L/M → O/P**. Build N telemetry into C/L
+and finish its broker attribution with M. Options research and Q/R/S/T remain
+separately gated. No parallel stream is created merely by this dependency map,
+and technical readiness alone does not move paper or broker work ahead of the
+recommendation engine.
 
 ### First internal-paper pilot — deliberately bounded
 

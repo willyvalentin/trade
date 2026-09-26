@@ -5,6 +5,12 @@ import { pathToFileURL } from "node:url";
 
 import { expect, test } from "@playwright/test";
 import { buildSync } from "esbuild";
+import {
+  BASIC_FREE_SCHEDULED_OUTCOME_CAPACITY_VERSION,
+  BASIC_FREE_SCHEDULED_OUTCOME_MAX_CANDLE_REQUESTS,
+  BASIC_FREE_SCHEDULED_OUTCOME_MAX_SNAPSHOTS_PER_RUN,
+  buildBasicFreeScheduledOutcomeCapacityReceipt,
+} from "../../lib/basic-free-scheduled-outcome-capacity";
 
 const ownerUserId = "7d2e0f9a-43db-4f62-9a78-aec2ae34c6d0";
 const executionFingerprint = "scheduled_outcome_evaluation_20260923_1415";
@@ -85,6 +91,78 @@ test("Basic Free cannot enlarge the outcome candle ceiling through a request or 
   } finally {
     runtime.dispose();
   }
+});
+
+test("scheduled snapshot selection is aligned with the Basic Free request ceiling", () => {
+  expect(BASIC_FREE_SCHEDULED_OUTCOME_MAX_CANDLE_REQUESTS).toBe(4);
+  expect(BASIC_FREE_SCHEDULED_OUTCOME_MAX_SNAPSHOTS_PER_RUN).toBe(4);
+
+  const aligned = buildBasicFreeScheduledOutcomeCapacityReceipt({
+    backlog_snapshot_count_before_run: 10,
+    backlog_snapshot_count_after_run: 6,
+    runner_selected_snapshot_count: 4,
+    snapshot_cap_deferred_count: 6,
+    provider_budget_deferred_snapshot_count: 0,
+    provider_requests_used: 4,
+    max_snapshots_per_run: BASIC_FREE_SCHEDULED_OUTCOME_MAX_SNAPSHOTS_PER_RUN,
+    provider_request_budget: BASIC_FREE_SCHEDULED_OUTCOME_MAX_CANDLE_REQUESTS,
+  });
+  expect(aligned).toMatchObject({
+    capacity_version: BASIC_FREE_SCHEDULED_OUTCOME_CAPACITY_VERSION,
+    status: "backlog_remaining_capacity_aligned",
+    input_valid: true,
+    capacity_aligned: true,
+    effective_snapshot_capacity_per_slot: 4,
+    completed_backlog_snapshot_count: 4,
+  });
+
+  const previousMismatch = buildBasicFreeScheduledOutcomeCapacityReceipt({
+    backlog_snapshot_count_before_run: 10,
+    backlog_snapshot_count_after_run: 6,
+    runner_selected_snapshot_count: 10,
+    snapshot_cap_deferred_count: 0,
+    provider_budget_deferred_snapshot_count: 6,
+    provider_requests_used: 4,
+    max_snapshots_per_run: 10,
+    provider_request_budget: 4,
+  });
+  expect(previousMismatch).toMatchObject({
+    status: "backlog_remaining_capacity_misaligned",
+    input_valid: true,
+    capacity_aligned: false,
+    effective_snapshot_capacity_per_slot: 4,
+  });
+});
+
+test("capacity receipt rejects contradictory backlog accounting and is wired into the schedule", () => {
+  const invalid = buildBasicFreeScheduledOutcomeCapacityReceipt({
+    backlog_snapshot_count_before_run: 3,
+    backlog_snapshot_count_after_run: 4,
+    runner_selected_snapshot_count: 3,
+    snapshot_cap_deferred_count: 0,
+    provider_budget_deferred_snapshot_count: 0,
+    provider_requests_used: 3,
+    max_snapshots_per_run: 4,
+    provider_request_budget: 4,
+  });
+  expect(invalid).toMatchObject({ status: "invalid", input_valid: false });
+
+  const scheduledSource = readFileSync(
+    resolve(process.cwd(), "netlify/functions/scheduled-outcome-evaluation.ts"),
+    "utf8",
+  );
+  const routeSource = readFileSync(
+    resolve(process.cwd(), "app/api/recommendations/evaluate-outcomes/route.ts"),
+    "utf8",
+  );
+  expect(scheduledSource).toContain(
+    "max_snapshots: BASIC_FREE_SCHEDULED_OUTCOME_MAX_SNAPSHOTS_PER_RUN",
+  );
+  expect(scheduledSource).not.toContain("max_snapshots: 10");
+  expect(routeSource).toContain(
+    "buildBasicFreeScheduledOutcomeCapacityReceipt",
+  );
+  expect(routeSource).toContain("basic_free_scheduled_outcome_capacity");
 });
 
 test("reserves the Free outcome ceiling in the same durable daily and minute ledger as scans", async () => {

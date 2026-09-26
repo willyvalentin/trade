@@ -220,7 +220,9 @@ test("AI-02.13 is I/O-free and pins the existing one-shot cost evidence", () => 
   expect(doc).toMatch(/does\s+not authorize or execute/i);
   expect(doc).toMatch(/not authorize or execute a branch deployment, staging access/i);
   expect(schedule).toContain("max_batches: 5");
-  expect(schedule).toContain("max_snapshots: 10");
+  expect(schedule).toContain(
+    "max_snapshots: BASIC_FREE_SCHEDULED_OUTCOME_MAX_SNAPSHOTS_PER_RUN",
+  );
   expect(route).toContain("maxCandleRequests: providerBudgetLimit");
   expect(runner).toContain("candleRequestsPlanned += 1");
   expect(runner).toContain("candleRequestsBeforeReuse += reusableHorizonWork.length");
