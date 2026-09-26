@@ -80,23 +80,37 @@ Protected CI run `36266142000` passed all six provider-free shards and
 merge-candidate provenance. This proves exact attribution, not outcome coverage
 or recommendation improvement.
 
-**Active successor CLOSED slice — canonical shadow outcome projection:** owner
-Codex on `codex/liquidity-shadow-outcome-projection`, based on exact main
-`a2aa2db864aaa54a9b8ccb397c2e8b425aa316a4`. It projects baseline-selected and
-shadow-selected candidates through exact candidate-decision-linked snapshots and
-the existing canonical primary-outcome rules. Missing snapshots/outcomes are
-reported as coverage gaps; ambiguous identity, chronology or relation evidence
-fails closed. The readback exposes both arms, coverage and descriptive deltas,
-but keeps promotion blocked and `quality_improvement_claimed=false` until the
-declared forward sample and held-out review are complete. Visible published
-snapshots now receive the same versioned exact candidate-decision linkage for
-future cohorts. No live rank, threshold, publication, provider, execution or
-broker behavior changes. Local acceptance currently includes 8/8 focused
-attribution/projection tests, 70/70 surrounding decision/baseline/scheduler
-regressions, the 166/166 intelligence-foundation suite, strict non-incremental
-TypeScript, changed-file lint, scheduled-runtime packaging and a complete Next
-16.3.4 webpack production build. Protected CI, merge, exact-main production
-deploy and forward outcome coverage remain separate.
+**Merged and production-verified CLOSED slice — canonical shadow outcome
+projection:** PR [#659](https://github.com/willyvalentin/trade/pull/659) merged
+as `4df8c0d45ff285cb44cc1b06cbab038f69a80f58`; Netlify production deploy
+`6ab82e8fcd54cb0008cb32be` is `ready` on that exact revision. It projects
+baseline-selected and shadow-selected candidates through exact
+candidate-decision-linked snapshots and the existing canonical primary-outcome
+rules. Missing snapshots/outcomes remain coverage gaps; ambiguous identity,
+chronology or relation evidence fails closed. The visible readback exposes both
+arms, coverage and descriptive deltas, but keeps promotion blocked and
+`quality_improvement_claimed=false`. Protected CI run `36268861175` passed all
+six provider-free shards and merge provenance. This is attributable outcome
+measurement, not a claim that the challenger is better.
+
+**Active successor CLOSED slice — real scan to canonical paired evaluator:**
+owner Codex on `codex/liquidity-shadow-evaluation-samples`, based on exact main
+`4df8c0d45ff285cb44cc1b06cbab038f69a80f58`. The slice strictly reads the
+persisted same-population comparison, requires one exact owner-bound snapshot
+and canonical primary outcome for every ranked candidate, and maps both ranking
+orders into the existing canonical precision/calibration evaluator. Partial
+coverage returns `insufficient_evidence`; score, membership or lineage drift
+returns `conflicting`. A complete fixture truthfully reaches
+`probability_semantics_missing`, because Ture's confidence remains ordinal and
+is not silently converted into a probability. The all-candidate score threshold
+is diagnostic only, and the adapter retains `shadow_only=true`,
+`live_ranking_effect=false`, `publication_effect=false` and
+`causal_improvement_claimed=false`. Local acceptance currently includes 6/6
+focused tests, 44/44 combined ranking/lineage/evaluator regressions, the
+166/166 intelligence-foundation suite, strict
+non-incremental TypeScript, changed-file lint, scheduled-runtime packaging and
+a complete Next 16.3.4 webpack production build. PR/CI/merge/deploy and real
+forward full-population outcome coverage remain separate evidence.
 
 ### Continuous-observation technical direction — 2026-09-24
 

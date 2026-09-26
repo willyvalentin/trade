@@ -69,6 +69,238 @@ function uniqueSorted(values: string[]) {
   return Array.from(new Set(values)).sort();
 }
 
+function recordOrNull(value: unknown): Record<string, unknown> | null {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function textOrNull(value: unknown) {
+  return typeof value === "string" && value.trim().length > 0
+    ? value.trim()
+    : null;
+}
+
+function finiteInteger(value: unknown) {
+  return typeof value === "number" && Number.isInteger(value) && value >= 0
+    ? value
+    : null;
+}
+
+/**
+ * Reads persisted shadow-comparison evidence without repairing partial data or
+ * inferring a candidate relation from array order. Downstream outcome
+ * evaluation must use this boundary rather than casting scan payload JSON.
+ */
+export function scannerIntradayLiquidityShadowComparisonFromUnknown(
+  value: unknown,
+): ScannerIntradayLiquidityShadowComparison | null {
+  const record = recordOrNull(value);
+  if (
+    !record ||
+    record.comparison_version !==
+      SCANNER_INTRADAY_LIQUIDITY_SHADOW_COMPARISON_VERSION ||
+    record.comparison_kind !==
+      "scanner_intraday_liquidity_shadow_comparison" ||
+    (record.status !== "comparable" && record.status !== "conflicting") ||
+    record.baseline_policy_version !==
+      SCANNER_INTRADAY_LIQUIDITY_BASELINE_POLICY_VERSION ||
+    record.shadow_policy_version !==
+      SCANNER_INTRADAY_LIQUIDITY_SHADOW_POLICY_VERSION ||
+    record.live_ranking_effect !== false ||
+    record.publication_effect !== false ||
+    record.quality_improvement_claimed !== false ||
+    record.quality_evidence_status !== "not_evaluated" ||
+    typeof record.selection_changed !== "boolean" ||
+    !Array.isArray(record.candidate_tickers) ||
+    !Array.isArray(record.baseline_selected_tickers) ||
+    !Array.isArray(record.shadow_selected_tickers) ||
+    !Array.isArray(record.reason_codes) ||
+    !Array.isArray(record.displacements)
+  ) {
+    return null;
+  }
+
+  const generatedAt = textOrNull(record.generated_at);
+  const candidateCount = finiteInteger(record.candidate_count);
+  const verifiedCount = finiteInteger(record.verified_intraday_volume_count);
+  const missingCount = finiteInteger(
+    record.missing_verified_intraday_volume_count,
+  );
+  const textArrays = [
+    record.candidate_tickers,
+    record.baseline_selected_tickers,
+    record.shadow_selected_tickers,
+    record.reason_codes,
+  ] as unknown[][];
+  if (
+    !generatedAt ||
+    !Number.isFinite(Date.parse(generatedAt)) ||
+    candidateCount === null ||
+    verifiedCount === null ||
+    missingCount === null ||
+    verifiedCount + missingCount !== candidateCount ||
+    textArrays.some(
+      (values) => values.some((item) => textOrNull(item) === null),
+    )
+  ) {
+    return null;
+  }
+
+  const displacements = record.displacements.flatMap((value) => {
+    const item = recordOrNull(value);
+    const ticker = textOrNull(item?.ticker)?.toUpperCase() ?? null;
+    const baselineRank = finiteInteger(item?.baseline_rank);
+    const shadowRank = finiteInteger(item?.shadow_rank);
+    const rankChange = finiteInteger(
+      typeof item?.rank_change === "number"
+        ? Math.abs(item.rank_change)
+        : null,
+    );
+    const baselineScore = finiteNumber(item?.baseline_score);
+    const shadowScore = finiteNumber(item?.shadow_score);
+    const scoreChange = finiteNumber(item?.score_change);
+    const baselineTier = textOrNull(item?.baseline_tier);
+    const shadowTier = textOrNull(item?.shadow_tier);
+    if (
+      !item ||
+      !ticker ||
+      baselineRank === null ||
+      baselineRank < 1 ||
+      shadowRank === null ||
+      shadowRank < 1 ||
+      rankChange === null ||
+      baselineScore === null ||
+      shadowScore === null ||
+      scoreChange === null ||
+      !baselineTier ||
+      !shadowTier ||
+      typeof item.baseline_selected !== "boolean" ||
+      typeof item.shadow_selected !== "boolean" ||
+      !Array.isArray(item.shadow_reason_codes) ||
+      item.shadow_reason_codes.some((reason) => textOrNull(reason) === null)
+    ) {
+      return [];
+    }
+    const dailyVolumeRatio =
+      item.daily_volume_ratio === null
+        ? null
+        : finiteNumber(item.daily_volume_ratio);
+    const verifiedIntradayVolumeRatio =
+      item.verified_intraday_volume_ratio === null
+        ? null
+        : finiteNumber(item.verified_intraday_volume_ratio);
+    const shadowLiquidityScore =
+      item.shadow_liquidity_score === null
+        ? null
+        : finiteNumber(item.shadow_liquidity_score);
+    if (
+      (item.daily_volume_ratio !== null && dailyVolumeRatio === null) ||
+      (item.verified_intraday_volume_ratio !== null &&
+        verifiedIntradayVolumeRatio === null) ||
+      (item.shadow_liquidity_score !== null && shadowLiquidityScore === null)
+    ) {
+      return [];
+    }
+    return [
+      {
+        ticker,
+        baseline_rank: baselineRank,
+        shadow_rank: shadowRank,
+        rank_change: item.rank_change as number,
+        baseline_score: baselineScore,
+        shadow_score: shadowScore,
+        score_change: scoreChange,
+        baseline_tier: baselineTier,
+        shadow_tier: shadowTier,
+        baseline_selected: item.baseline_selected,
+        shadow_selected: item.shadow_selected,
+        daily_volume_ratio: dailyVolumeRatio,
+        verified_intraday_volume_ratio: verifiedIntradayVolumeRatio,
+        shadow_liquidity_score: shadowLiquidityScore,
+        shadow_reason_codes: uniqueSorted(item.shadow_reason_codes as string[]),
+      },
+    ];
+  });
+  const candidateTickers = uniqueSorted(
+    (record.candidate_tickers as string[]).map((ticker) => ticker.toUpperCase()),
+  );
+  const displacementTickers = uniqueSorted(
+    displacements.map((item) => item.ticker),
+  );
+  if (
+    displacements.length !== record.displacements.length ||
+    candidateTickers.length !== candidateCount ||
+    displacementTickers.join("|") !== candidateTickers.join("|") ||
+    new Set(displacements.map((item) => item.baseline_rank)).size !==
+      displacements.length ||
+    new Set(displacements.map((item) => item.shadow_rank)).size !==
+      displacements.length ||
+    displacements.some(
+      (item) =>
+        item.rank_change !== item.baseline_rank - item.shadow_rank ||
+        Math.abs(item.score_change - (item.shadow_score - item.baseline_score)) >
+          0.000001,
+    )
+  ) {
+    return null;
+  }
+
+  const baselineSelected = uniqueSorted(
+    (record.baseline_selected_tickers as string[]).map((ticker) =>
+      ticker.toUpperCase(),
+    ),
+  );
+  const shadowSelected = uniqueSorted(
+    (record.shadow_selected_tickers as string[]).map((ticker) =>
+      ticker.toUpperCase(),
+    ),
+  );
+  if (
+    baselineSelected.join("|") !==
+      uniqueSorted(
+        displacements
+          .filter((item) => item.baseline_selected)
+          .map((item) => item.ticker),
+      ).join("|") ||
+    shadowSelected.join("|") !==
+      uniqueSorted(
+        displacements
+          .filter((item) => item.shadow_selected)
+          .map((item) => item.ticker),
+      ).join("|") ||
+    record.selection_changed !==
+      (baselineSelected.join("|") !== shadowSelected.join("|"))
+  ) {
+    return null;
+  }
+
+  return {
+    comparison_version:
+      SCANNER_INTRADAY_LIQUIDITY_SHADOW_COMPARISON_VERSION,
+    comparison_kind: "scanner_intraday_liquidity_shadow_comparison",
+    generated_at: generatedAt,
+    status: record.status,
+    baseline_policy_version:
+      SCANNER_INTRADAY_LIQUIDITY_BASELINE_POLICY_VERSION,
+    shadow_policy_version:
+      SCANNER_INTRADAY_LIQUIDITY_SHADOW_POLICY_VERSION,
+    candidate_count: candidateCount,
+    candidate_tickers: candidateTickers,
+    verified_intraday_volume_count: verifiedCount,
+    missing_verified_intraday_volume_count: missingCount,
+    baseline_selected_tickers: baselineSelected,
+    shadow_selected_tickers: shadowSelected,
+    selection_changed: record.selection_changed,
+    live_ranking_effect: false,
+    publication_effect: false,
+    quality_improvement_claimed: false,
+    quality_evidence_status: "not_evaluated",
+    reason_codes: uniqueSorted(record.reason_codes as string[]),
+    displacements,
+  };
+}
+
 function liquidityScore(
   summary: ScannerCandidateRankingSummary,
   ticker: string,
