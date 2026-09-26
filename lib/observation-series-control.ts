@@ -4,13 +4,17 @@ import type {
   ObservationCycleReadback,
   ObservationCycleReceipt,
 } from "@/lib/observation-cycle-receipt";
+import {
+  scheduledScanInvocationReceiptFromAttempt,
+  type ScheduledScanInvocationReceipt,
+} from "@/lib/scheduled-scan-invocation-receipt";
 
 export const OBSERVATION_SERIES_CONTROL_VERSION =
   "observation_series_control_v1" as const;
 export const OBSERVATION_SERIES_SLOT_ADMISSION_VERSION =
   "observation_series_slot_admission_v1" as const;
 export const OBSERVATION_SERIES_RUNTIME_ADMISSION_VERSION =
-  "observation_series_runtime_admission_v1" as const;
+  "observation_series_runtime_admission_v2" as const;
 export const OBSERVATION_SERIES_PROVIDER_CREDITS_PER_ATTEMPT = 8;
 export const OBSERVATION_SERIES_MAX_ATTEMPTS = 26;
 export const OBSERVATION_SERIES_MAX_DURATION_MINUTES = 390;
@@ -75,6 +79,7 @@ export type ObservationSeriesRuntimeAdmission = Readonly<{
     | "scheduler_series_identity_mismatch"
     | "series_history_unavailable"
     | "series_history_invalid"
+    | "series_current_cycle_already_observed"
     | "series_active_cycle_unresolved"
     | "series_terminal_publication_observed"
     | "series_failure_stop_reached"
@@ -96,6 +101,8 @@ export type ObservationSeriesRuntimeAdmission = Readonly<{
     consecutive_failures: number;
     published_recommendations: number;
     history_receipt_count: number;
+    history_attempt_count: number;
+    attributed_receipt_count: number;
   }>;
   authority: Readonly<{
     arms_scheduler: false;
@@ -138,6 +145,18 @@ function canonicalQuarterHour(value: unknown) {
     new Date(timestamp).toISOString() === candidate &&
     timestamp % quarterHourMilliseconds === 0
     ? candidate
+    : null;
+}
+
+function objectOrNull(value: unknown): Record<string, unknown> | null {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function textOrNull(value: unknown) {
+  return typeof value === "string" && value.trim().length > 0
+    ? value.trim()
     : null;
 }
 
@@ -359,6 +378,82 @@ function sameSeriesControl(
   );
 }
 
+function sameBuildIdentity(
+  first: ScheduledScanInvocationReceipt["build_deployment_identity"],
+  second: ScheduledScanInvocationReceipt["build_deployment_identity"],
+) {
+  return (
+    first.schema_version === second.schema_version &&
+    first.deploy_id === second.deploy_id &&
+    first.deploy_context === second.deploy_context &&
+    first.commit_ref === second.commit_ref &&
+    first.site_id === second.site_id
+  );
+}
+
+type ObservationSeriesAttemptLineage = Readonly<{
+  attempt_fingerprint: string;
+  scheduled_slot_started_at_utc: string;
+  invocation_receipt: ScheduledScanInvocationReceipt;
+}>;
+
+function observationSeriesAttemptLineageFromUnknown({
+  value,
+  control,
+}: {
+  value: unknown;
+  control: ObservationSeriesControl;
+}): ObservationSeriesAttemptLineage | null {
+  const row = objectOrNull(value);
+  const attemptFingerprint = textOrNull(row?.attempt_fingerprint)?.toLowerCase();
+  const invocationReceipt = scheduledScanInvocationReceiptFromAttempt({
+    source: row?.source,
+    mode: row?.mode,
+    payload: row?.payload_json,
+  });
+  if (!attemptFingerprint || !invocationReceipt) return null;
+
+  const payload = invocationReceipt.durable_invocation_payload;
+  const lineageControl = observationSeriesControlFromUnknown(
+    payload.observation_series_control,
+  );
+  const lineageSlotAdmission = slotAdmissionFromUnknown(
+    payload.observation_series_slot_admission,
+  );
+  if (
+    !lineageControl ||
+    !sameSeriesControl(lineageControl, control) ||
+    !lineageSlotAdmission ||
+    lineageSlotAdmission.series_id !== control.series_id ||
+    lineageSlotAdmission.scheduled_slot_started_at_utc !==
+      invocationReceipt.scheduled_slot_started_at_utc
+  ) {
+    return null;
+  }
+
+  return Object.freeze({
+    attempt_fingerprint: attemptFingerprint,
+    scheduled_slot_started_at_utc:
+      invocationReceipt.scheduled_slot_started_at_utc,
+    invocation_receipt: invocationReceipt,
+  });
+}
+
+function receiptBuildIdentity(receipt: ObservationCycleReceipt) {
+  const identity = objectOrNull(receipt.trigger.build_deployment_identity);
+  if (!identity) return null;
+  return scheduledScanInvocationReceiptFromAttempt({
+    source: "netlify_scheduled_function",
+    mode: "scheduled",
+    payload: {
+      scheduled_slot_started_at_utc:
+        receipt.trigger.scheduled_slot_started_at_utc,
+      scheduled_slot_identity_source: "netlify_event_next_run",
+      build_deployment_identity: identity,
+    },
+  })?.build_deployment_identity ?? null;
+}
+
 export function buildObservationSeriesSlotAdmission({
   control,
   scheduledSlotStartedAtUtc,
@@ -472,6 +567,8 @@ export function buildObservationSeriesRuntimeAdmission({
   now,
   ownerUserId,
   readback,
+  scheduledAttemptRows,
+  currentAttemptFingerprint,
   perAttemptProviderCredits,
 }: {
   control: ObservationSeriesControl;
@@ -481,6 +578,8 @@ export function buildObservationSeriesRuntimeAdmission({
   now: Date;
   ownerUserId: string;
   readback: ObservationCycleReadback | null;
+  scheduledAttemptRows?: readonly unknown[] | null;
+  currentAttemptFingerprint?: string | null;
   perAttemptProviderCredits: number | null;
 }): ObservationSeriesRuntimeAdmission {
   const emptyFacts = {
@@ -494,6 +593,8 @@ export function buildObservationSeriesRuntimeAdmission({
     consecutive_failures: 0,
     published_recommendations: 0,
     history_receipt_count: 0,
+    history_attempt_count: 0,
+    attributed_receipt_count: 0,
   };
   const evaluatedAt = now.toISOString();
   const slotAdmission = buildObservationSeriesSlotAdmission({
@@ -588,6 +689,20 @@ export function buildObservationSeriesRuntimeAdmission({
       facts: emptyFacts,
     });
   }
+  if (!scheduledAttemptRows) {
+    return runtimeReceipt({
+      admission_version: OBSERVATION_SERIES_RUNTIME_ADMISSION_VERSION,
+      decision: "reject",
+      status: "series_history_unavailable",
+      series_id: control.series_id,
+      evaluated_at: evaluatedAt,
+      scheduled_slot_started_at_utc:
+        slotAdmission.scheduled_slot_started_at_utc,
+      next_eligible_at: null,
+      reason_codes: ["series_attempt_history_unavailable"],
+      facts: emptyFacts,
+    });
+  }
   if (readback.status !== "available" || readback.invalid_row_count !== 0) {
     return runtimeReceipt({
       admission_version: OBSERVATION_SERIES_RUNTIME_ADMISSION_VERSION,
@@ -628,6 +743,106 @@ export function buildObservationSeriesRuntimeAdmission({
       receiptSlot(first) ?? first.trigger.occurred_at,
     ),
   );
+  const currentFingerprint = textOrNull(currentAttemptFingerprint)?.toLowerCase();
+  const attemptLineages = scheduledAttemptRows.map((row) =>
+    observationSeriesAttemptLineageFromUnknown({ value: row, control }),
+  );
+  const validAttemptLineages = attemptLineages.filter(
+    (lineage): lineage is ObservationSeriesAttemptLineage => lineage !== null,
+  );
+  const currentAttempt = validAttemptLineages.find(
+    (lineage) => lineage.attempt_fingerprint === currentFingerprint,
+  );
+  const uniqueAttemptFingerprints = new Set(
+    validAttemptLineages.map((lineage) => lineage.attempt_fingerprint),
+  );
+  const uniqueAttemptSlots = new Set(
+    validAttemptLineages.map(
+      (lineage) => lineage.scheduled_slot_started_at_utc,
+    ),
+  );
+  const currentBuildIdentity = currentAttempt?.invocation_receipt
+    .build_deployment_identity ?? null;
+  const buildIdentityMismatch = Boolean(
+    currentBuildIdentity &&
+      validAttemptLineages.some(
+        (lineage) =>
+          !sameBuildIdentity(
+            lineage.invocation_receipt.build_deployment_identity,
+            currentBuildIdentity,
+          ),
+      ),
+  );
+  const receiptsByAttempt = new Map<string, ObservationCycleReceipt[]>();
+  for (const receipt of orderedSeriesReceipts) {
+    const existing = receiptsByAttempt.get(receipt.source_attempt_fingerprint) ?? [];
+    existing.push(receipt);
+    receiptsByAttempt.set(receipt.source_attempt_fingerprint, existing);
+  }
+  const receiptAttributionInvalid = orderedSeriesReceipts.some((receipt) => {
+    const attempt = validAttemptLineages.find(
+      (lineage) =>
+        lineage.attempt_fingerprint === receipt.source_attempt_fingerprint,
+    );
+    const buildIdentity = receiptBuildIdentity(receipt);
+    return (
+      !attempt ||
+      receipt.trigger.scheduled_slot_started_at_utc !==
+        attempt.scheduled_slot_started_at_utc ||
+      !buildIdentity ||
+      !sameBuildIdentity(
+        buildIdentity,
+        attempt.invocation_receipt.build_deployment_identity,
+      )
+    );
+  });
+  const priorAttemptMissingReceipt = validAttemptLineages.some(
+    (lineage) =>
+      lineage.attempt_fingerprint !== currentFingerprint &&
+      !receiptsByAttempt.has(lineage.attempt_fingerprint),
+  );
+  const duplicateAttemptReceipt = [...receiptsByAttempt.values()].some(
+    (receipts) => receipts.length !== 1,
+  );
+  const lineageReason =
+    attemptLineages.some((lineage) => lineage === null)
+      ? "series_attempt_lineage_invalid"
+      : !currentFingerprint || !currentAttempt
+        ? "series_current_attempt_missing"
+        : uniqueAttemptFingerprints.size !== validAttemptLineages.length
+          ? "series_attempt_fingerprint_duplicate"
+          : uniqueAttemptSlots.size !== validAttemptLineages.length
+            ? "series_attempt_slot_duplicate"
+            : buildIdentityMismatch
+              ? "series_attempt_build_identity_mismatch"
+              : receiptAttributionInvalid
+                ? "series_receipt_attempt_attribution_invalid"
+                : priorAttemptMissingReceipt
+                  ? "series_prior_attempt_receipt_missing"
+                  : duplicateAttemptReceipt
+                    ? "series_attempt_receipt_duplicate"
+                    : null;
+  if (lineageReason) {
+    return runtimeReceipt({
+      admission_version: OBSERVATION_SERIES_RUNTIME_ADMISSION_VERSION,
+      decision: "reject",
+      status: "series_history_invalid",
+      series_id: control.series_id,
+      evaluated_at: evaluatedAt,
+      scheduled_slot_started_at_utc:
+        slotAdmission.scheduled_slot_started_at_utc,
+      next_eligible_at: null,
+      reason_codes: [lineageReason],
+      facts: {
+        ...emptyFacts,
+        history_receipt_count: seriesReceipts.length,
+        history_attempt_count: scheduledAttemptRows.length,
+        attributed_receipt_count: orderedSeriesReceipts.filter((receipt) =>
+          uniqueAttemptFingerprints.has(receipt.source_attempt_fingerprint),
+        ).length,
+      },
+    });
+  }
   const admittedReceipts = orderedSeriesReceipts.filter(admittedCurrentData);
   const reservedCredits = seriesReceipts.reduce(
     (sum, receipt) => sum + receipt.provider_request.reserved_credits,
@@ -668,11 +883,16 @@ export function buildObservationSeriesRuntimeAdmission({
     consecutive_failures: failureChain,
     published_recommendations: publishedRecommendations,
     history_receipt_count: seriesReceipts.length,
+    history_attempt_count: validAttemptLineages.length,
+    attributed_receipt_count: seriesReceipts.length,
   };
 
   let decision: ObservationSeriesRuntimeAdmission["decision"] = "allow";
   let status: ObservationSeriesRuntimeAdmission["status"] = "eligible";
-  if (
+  if (receiptsByAttempt.has(currentFingerprint!)) {
+    decision = "no_request";
+    status = "series_current_cycle_already_observed";
+  } else if (
     perAttemptProviderCredits !==
       OBSERVATION_SERIES_PROVIDER_CREDITS_PER_ATTEMPT ||
     seriesReceipts.some(
