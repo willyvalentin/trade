@@ -2313,6 +2313,66 @@ export type Database = {
         }
         Relationships: []
       }
+      observation_cycle_receipts: {
+        Row: {
+          created_at: string
+          cycle_fingerprint: string
+          cycle_status: string
+          disposition: string
+          finalized_at: string | null
+          id: string
+          observation_policy_version: string
+          owner_user_id: string
+          receipt_json: Json
+          receipt_version: string
+          route_received_at: string
+          scan_run_fingerprint: string | null
+          scheduled_slot_at: string | null
+          source_attempt_fingerprint: string
+          trigger_kind: string
+          triggered_at: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          cycle_fingerprint: string
+          cycle_status: string
+          disposition: string
+          finalized_at?: string | null
+          id?: string
+          observation_policy_version: string
+          owner_user_id: string
+          receipt_json: Json
+          receipt_version?: string
+          route_received_at: string
+          scan_run_fingerprint?: string | null
+          scheduled_slot_at?: string | null
+          source_attempt_fingerprint: string
+          trigger_kind: string
+          triggered_at: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          cycle_fingerprint?: string
+          cycle_status?: string
+          disposition?: string
+          finalized_at?: string | null
+          id?: string
+          observation_policy_version?: string
+          owner_user_id?: string
+          receipt_json?: Json
+          receipt_version?: string
+          route_received_at?: string
+          scan_run_fingerprint?: string | null
+          scheduled_slot_at?: string | null
+          source_attempt_fingerprint?: string
+          trigger_kind?: string
+          triggered_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       scheduled_scan_attempts: {
         Row: {
           allowed: boolean | null

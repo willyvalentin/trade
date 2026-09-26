@@ -60,6 +60,7 @@ import {
   scheduledScanInvocationReceiptFromAttempt,
   type ScheduledScanInvocationReceipt,
 } from "@/lib/scheduled-scan-invocation-receipt";
+import { buildObservationCycleReceipt } from "@/lib/observation-cycle-receipt";
 import {
   buildRecommendationScanRun,
   recommendationScanRunFromPersistenceRow,
@@ -1473,6 +1474,7 @@ async function readScheduledScanInvocationReceipt(attemptFingerprint: string) {
 }
 
 async function recordScheduledScanAttempt({
+  ownerUserId,
   attemptFingerprint,
   source,
   mode,
@@ -1491,6 +1493,7 @@ async function recordScheduledScanAttempt({
   scheduledScanRunId = null,
   scheduledInvocationReceipt = null,
 }: {
+  ownerUserId: string;
   attemptFingerprint: string;
   source: string | null;
   mode: "scheduled" | "manual" | "diagnostic";
@@ -1605,6 +1608,52 @@ async function recordScheduledScanAttempt({
       operation: "upsert_scheduled_scan_attempt",
       attemptFingerprint,
       error: normalizeUnknownError(error),
+    });
+    return;
+  }
+
+  const observationCycleReceipt = buildObservationCycleReceipt({
+    ownerUserId,
+    attemptFingerprint,
+    source,
+    mode,
+    outcome,
+    allowed,
+    routeReceivedAtUtc,
+    scheduledFunctionFiredAtUtc,
+    orchestrationDecision: orchestration.decision,
+    skipReason:
+      typeof record.skip_reason === "string" ? record.skip_reason : null,
+    scanLog,
+    activeScanTrace,
+    scanRunFingerprint:
+      typeof record.scan_run_fingerprint === "string"
+        ? record.scan_run_fingerprint
+        : null,
+    scheduledInvocationReceipt,
+  });
+
+  if (!observationCycleReceipt) {
+    console.error("[automation/run-scan] observation_cycle_receipt_build_error", {
+      source: "observation_cycle_receipts",
+      operation: "build_observation_cycle_receipt",
+      attemptFingerprint,
+    });
+    return;
+  }
+
+  const { error: observationCycleReceiptError } = await serverSupabase()
+    .from("observation_cycle_receipts")
+    .upsert(observationCycleReceipt, {
+      onConflict: "owner_user_id,cycle_fingerprint",
+    });
+
+  if (observationCycleReceiptError) {
+    console.error("[automation/run-scan] observation_cycle_receipt_record_error", {
+      source: "supabase.observation_cycle_receipts",
+      operation: "upsert_observation_cycle_receipt",
+      attemptFingerprint,
+      error: normalizeUnknownError(observationCycleReceiptError),
     });
   }
 }
@@ -3352,6 +3401,7 @@ export async function POST(request: Request) {
     scheduledScanRunId?: string | number | null;
   }) =>
     recordScheduledScanAttempt({
+      ownerUserId,
       attemptFingerprint: scheduledScanAttemptFingerprint,
       source: requestSource ?? (force ? "manual" : "automation_route"),
       mode: attemptMode,
@@ -3368,7 +3418,7 @@ export async function POST(request: Request) {
       skipReason: input.skipReason ?? null,
       httpStatus: input.httpStatus ?? null,
       scanLog: input.scanLog ?? null,
-      activeScanTrace: input.activeScanTrace ?? null,
+      activeScanTrace: input.activeScanTrace ?? activeScanTrace.trace,
       scheduledScanRunId: input.scheduledScanRunId ?? null,
       scheduledInvocationReceipt,
     });

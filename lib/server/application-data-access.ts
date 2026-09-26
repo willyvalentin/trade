@@ -14,6 +14,7 @@ import { recommendationOutcomeFromPersistenceRow } from "@/lib/recommendation-ou
 import { recommendationScanRunFromPersistenceRow } from "@/lib/recommendation-scan-run";
 import { recommendationSnapshotFromPersistenceRow } from "@/lib/recommendation-snapshot";
 import { scheduledOutcomeEvaluationAttemptFromRow } from "@/lib/scheduled-outcome-evaluation-receipt";
+import { buildObservationCycleReadback } from "@/lib/observation-cycle-receipt";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 import { normalizeApplicationOwnerUserId } from "@/lib/application-session-core";
 import {
@@ -58,6 +59,7 @@ export async function readApplicationDashboardData(ownerUserId: string) {
     positionUpdates,
     scheduledScanRuns,
     scheduledScanAttempts,
+    observationCycleReceipts,
     recommendationScanRuns,
     recommendationBatches,
     recommendationSnapshots,
@@ -106,6 +108,12 @@ export async function readApplicationDashboardData(ownerUserId: string) {
       .order("utc_timestamp", { ascending: false })
       .limit(100),
     client
+      .from("observation_cycle_receipts")
+      .select("*")
+      .eq("owner_user_id", owner)
+      .order("updated_at", { ascending: false })
+      .limit(100),
+    client
       .from("recommendation_scan_runs")
       .select("*")
       .eq("owner_user_id", owner)
@@ -151,6 +159,7 @@ export async function readApplicationDashboardData(ownerUserId: string) {
     positionUpdates,
     scheduledScanRuns,
     scheduledScanAttempts,
+    observationCycleReceipts,
     recommendationScanRuns,
     recommendationBatches,
     recommendationSnapshots,
@@ -200,6 +209,9 @@ export async function readApplicationDashboardData(ownerUserId: string) {
       position_updates: positionUpdates.data ?? [],
       scheduled_scan_runs: scheduledScanRuns.data ?? [],
       scheduled_scan_attempts: scheduledScanAttempts.data ?? [],
+      observation_cycle_readback: buildObservationCycleReadback(
+        observationCycleReceipts.data ?? [],
+      ),
       recommendation_scan_runs: recommendationScanRuns.data ?? [],
       recommendation_batches: recommendationBatches.data ?? [],
       recommendation_snapshots: recommendationSnapshots.data ?? [],
