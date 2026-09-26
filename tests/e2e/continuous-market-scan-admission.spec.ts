@@ -11,6 +11,7 @@ import { buildMarketSessionEvaluation, type MarketSessionStatus } from "../../li
 import { buildRecommendationServingCadenceSummary } from "../../lib/recommendation-serving-cadence";
 import { buildProviderBudgetGuardSummary } from "../../lib/provider-budget-guard";
 import type { RecommendationScanRun } from "../../lib/recommendation-scan-run";
+import type { ObservationCyclePreRunFailure } from "../../lib/observation-cycle-admission-policy";
 import { buildScannerCandidateRankingSummary } from "../../lib/scanner-candidate-ranking";
 import type { ScannerUniverseCoverageSummary } from "../../lib/scanner-universe";
 import { resolveScheduledScanProviderCreditBudget } from "../../lib/scheduled-scan-ticker-cap";
@@ -31,6 +32,7 @@ function admission(
     marketStatus?: MarketSessionStatus;
     scanWindow?: ReturnType<typeof getIntradayScanWindow>;
     recentScanRuns?: RecommendationScanRun[];
+    recentPreRunFailures?: ObservationCyclePreRunFailure[] | null;
   } = {},
 ) {
   const now = new Date(instant);
@@ -42,6 +44,10 @@ function admission(
     marketSession: buildMarketSessionEvaluation({ now, marketStatus }),
     scanWindow: overrides.scanWindow ?? getIntradayScanWindow(now),
     recentScanRuns: overrides.recentScanRuns ?? [],
+    recentPreRunFailures:
+      overrides.recentPreRunFailures === undefined
+        ? []
+        : overrides.recentPreRunFailures,
     legacyPowerHourWindowGate: {
       official_window_detected: true,
       scheduled_gate_window: "power_hour",
@@ -65,7 +71,7 @@ test("admits provider-confirmed regular-session scans between former fixed windo
     "2026-09-23T18:30:00.000Z", // 14:30 EDT, former midday/power-hour gap
   ]) {
     expect(admission(instant)).toMatchObject({
-      policy_version: "observation_cycle_admission_v1",
+      policy_version: "observation_cycle_admission_v2",
       scheduled_gate_allowed: true,
       scheduled_gate_block_reason: null,
       official_window_detected: false,
@@ -163,7 +169,7 @@ test("rejects clock/window mismatch and a recent completed scan", () => {
 
 test("does not expand the separate late-session trial gate", () => {
   expect(admission("2026-09-23T19:15:00.000Z")).toMatchObject({
-    policy_version: "observation_cycle_admission_v1",
+    policy_version: "observation_cycle_admission_v2",
     scheduled_gate_window: "power_hour",
     scheduled_gate_allowed: true,
   });

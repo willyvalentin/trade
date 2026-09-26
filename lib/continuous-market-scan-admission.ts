@@ -8,6 +8,7 @@ import {
   OBSERVATION_CYCLE_ADMISSION_POLICY_VERSION,
   OBSERVATION_CYCLE_MINIMUM_CADENCE_MINUTES,
   type ObservationCycleAdmissionPreconditionReason,
+  type ObservationCyclePreRunFailure,
   type ObservationCycleAdmissionReceipt,
 } from "@/lib/observation-cycle-admission-policy";
 import type { ScheduledScanProviderCreditBudget } from "@/lib/scheduled-scan-ticker-cap";
@@ -37,6 +38,7 @@ export function buildContinuousMarketScanAdmission(input: {
   marketSession: MarketSessionEvaluation;
   scanWindow: IntradayScanWindow;
   recentScanRuns: RecommendationScanRun[];
+  recentPreRunFailures: readonly ObservationCyclePreRunFailure[] | null;
   legacyPowerHourWindowGate: ScheduledOfficialGateDiagnostics;
   providerBudget: ScheduledScanProviderCreditBudget | null;
 }): ContinuousMarketScanAdmission {
@@ -50,6 +52,7 @@ export function buildContinuousMarketScanAdmission(input: {
       sessionVerifiedOpen,
       preconditionReason,
       recentScanRuns: input.recentScanRuns,
+      recentPreRunFailures: input.recentPreRunFailures,
       providerBudget: input.providerBudget,
     });
   const block = (

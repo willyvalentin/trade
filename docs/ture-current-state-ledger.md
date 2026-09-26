@@ -72,9 +72,9 @@ delivery, not live observation behavior or improved strategy quality. Detailed
 boundaries and evidence are recorded in
 [SV-A.2 observation-cycle receipts](./sv-a2-observation-cycle-receipts.md).
 
-**SV-A.2 observation-cycle admission policy — CLOSED delivery candidate,
-2026-09-26:** branch `codex/observation-cycle-admission-policy`, based on exact
-main `e3f9ea435d76545a39c4343327833aa7ab8ee67f`, replaces the route's fixed
+**SV-A.2 observation-cycle admission policy — CLOSED delivery completed,
+2026-09-26:** PR #650 merged as exact main
+`d811cff18322553e622f17e78d062e7a30e1c08d`, replacing the route's fixed
 cadence-only decision with versioned `observation_cycle_admission_v1`. The
 policy evaluates provider-confirmed session, durable same-day freshness,
 candidate-decision coverage and state, material-change comparison, explicit
@@ -93,13 +93,28 @@ retained. The older paid background observer was removed from this route so a
 Local evidence includes 23 focused policy/receipt tests and a 64-test integrated
 scheduler, Basic Free budget/readback and reference-route regression, strict
 TypeScript, changed-file ESLint, scheduled-runtime packaging and a complete
-Next 16.3.4 webpack build. Protected PR/CI, merge, exact-main deployment and
-OPEN behavior remain separate evidence. See
+Next 16.3.4 webpack build. Protected exact-main CI run `36237970891` passed,
+including post-merge provenance, and Netlify production deploy
+`6ab7a8089ea4800008ee363a` is `ready` on the exact merge revision. No scan was
+activated by this delivery, so OPEN behavior remains separate evidence. See
 [SV-A.2 observation-cycle admission policy](./sv-a2-observation-cycle-admission-policy.md).
 
-The v1 retry counter intentionally derives only from durable same-day
-`recommendation_scan_runs`; failures before a scan run exists remain visible in
-scheduled-attempt evidence but do not yet lengthen policy backoff.
+**SV-A.2 observation-cycle pre-run backoff — CLOSED delivery candidate,
+2026-09-26:** owner Codex on `codex/observation-cycle-attempt-backoff`, based on
+exact main `d811cff18322553e622f17e78d062e7a30e1c08d`. Versioned
+`observation_cycle_admission_v2` closes the documented v1 gap by combining
+same-day scan-run outcomes with strictly parsed, owner-bound terminal cycle
+failures that have no linked scan-run. Linked failures are counted once through
+their scan-run; manual/diagnostic receipts cannot change scheduled cadence. A
+later successful scan resets the chain. Unavailable, malformed or future cycle
+history rejects before provider work. Persisted v1 receipts remain readable
+with their original scan-run-only semantics. The policy remains inert and does
+not call a provider, reserve credits, change ranking/publication or reach paper
+or broker execution. Local evidence: 28 focused tests, a 144-test integrated
+scheduler/Basic Free/freshness regression, strict TypeScript, changed-file
+ESLint, diff check, scheduled-runtime packaging and the full Next 16.3.4 webpack
+build pass. Protected PR/CI, merge, exact-main deploy and OPEN behavior remain
+separate evidence.
 
 ### Now — SV-A current engine finish, reusing IF-2/IF-4/IF-5
 
@@ -2410,7 +2425,7 @@ on A/B evidence and must not be inferred from the source registry.
 
 | Work slot | Selected state | Entry / return condition |
 | --- | --- | --- |
-| Primary development | SV-A.2 observation-cycle admission policy is locally implemented and verified on `codex/observation-cycle-admission-policy` from exact main `e3f9ea435d76545a39c4343327833aa7ab8ee67f`. It makes session, freshness, coverage, candidate state, material change, explicit budget and durable retry/backoff the versioned normal-provider decision, removes the old paid background bypass, and persists the inert decision in the generic cycle receipt. | Complete protected PR/CI, merge and exact-main deploy. Do not activate a scan as part of this CLOSED delivery; OPEN behavior remains a later bounded receipt. |
+| Primary development | SV-A.2 observation-cycle pre-run backoff v2 is locally implemented and verified on `codex/observation-cycle-attempt-backoff` from exact main `d811cff18322553e622f17e78d062e7a30e1c08d`. It closes the documented v1 gap with owner-bound generic cycle failures, strict legacy compatibility, deduplication and fail-closed history loading. | Complete protected PR/CI, merge and exact-main deploy. Do not activate a scan as part of this CLOSED delivery; OPEN behavior remains a later bounded receipt. |
 | Second development | A.2 Basic Free pre-ranking credit allocation v2, multi-slot preflight v2, terminal trace reconciliation and the generic observation-cycle receipt are merged, production-deployed and, where applicable, production-migrated. None has a later normal OPEN behavior receipt on their combined revision. | On the next eligible trading date after the admission policy is deployed, freeze one bounded normal OPEN receipt to evaluate actual pre-ranking freshness, policy admission, terminal trace and generic cycle persistence together. Do not infer alpha from delivery success or a single candidate. |
 | CLOSED successor | SV-C.1–C.8, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2, SV-H.1–H.4, SV-L.1–L.2 and SV-N.1–N.5 plus the E.1 volume-integrity and earlier E.2 repairs are merged and exact-revision production-deployed. C.1–C.7/D.1 migrations are production-applied and verified inert/empty. C6 deliberately blocks policy/account creation because exact-price retention duration and account-specific terms remain unverified; C.8 preserves that fail-closed state. Every paper runtime and broker gate remains off. Production environment metadata has no IBKR/TWS variables, client dependency or declared persistent worker, so a real L.2 account/session probe is not currently executable there. Both available browser sessions require a fresh Twelve Data login, so account-scoped retention confirmation also remains external. The A.2 one-slot outcome-evaluation guard is merged/deployed as `ea9a024d`; its bounded 2026-09-25 observation delivered one terminal blocked receipt and was cleaned up on exact unchanged main with zero provider credits or side effects. | Separately obtain authenticated account-scoped Twelve Data confirmation of exact-price/candle retention and applicable US-equity third-party terms before any C6 admission or C5/C7 account-policy creation. Provision and approve persistent hosting plus read-only IBKR Paper credentials before an L.2 account/session probe; do not grant order authority. Market-impact/cancellation uncertainty and forward shadow remain later H evidence; real G/H evaluation remains blocked on licensed point-in-time history plus verified rights. Account/config/policy creation, activation and OPEN pilot acceptance remain separate evidence steps. |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |

@@ -7,6 +7,7 @@ import { buildObservationCycleAdmission } from "../../lib/observation-cycle-admi
 import {
   buildObservationCycleReadback,
   buildObservationCycleReceipt,
+  observationCyclePreRunFailuresFromUnknown,
   observationCycleReadbackFromUnknown,
   observationCycleReceiptFromUnknown,
 } from "../../lib/observation-cycle-receipt";
@@ -19,10 +20,14 @@ const routeReceivedAtUtc = "2026-09-25T16:15:04.000Z";
 function buildReceipt({
   outcome = "route_received",
   allowed = true,
+  mode = "scheduled",
+  scanRunFingerprint = null,
   configure,
 }: {
   outcome?: "route_received" | "skipped" | "failed" | "scanned";
   allowed?: boolean;
+  mode?: "scheduled" | "manual" | "diagnostic";
+  scanRunFingerprint?: string | null;
   configure?: (
     recorder: ReturnType<typeof createActiveScanTrace>,
   ) => void;
@@ -43,6 +48,7 @@ function buildReceipt({
     now: new Date(routeReceivedAtUtc),
     sessionVerifiedOpen: allowed,
     recentScanRuns: [],
+    recentPreRunFailures: [],
     providerBudget: resolveScheduledScanProviderCreditBudget({
       planMode: "free",
     }),
@@ -51,8 +57,9 @@ function buildReceipt({
   return buildObservationCycleReceipt({
     ownerUserId,
     attemptFingerprint,
-    source: "netlify_scheduled_function",
-    mode: "scheduled",
+    source:
+      mode === "scheduled" ? "netlify_scheduled_function" : "manual_route",
+    mode,
     outcome,
     allowed,
     routeReceivedAtUtc,
@@ -61,7 +68,7 @@ function buildReceipt({
     skipReason: outcome === "skipped" ? "market_closed" : null,
     scanLog: null,
     activeScanTrace: recorder.trace,
-    scanRunFingerprint: null,
+    scanRunFingerprint,
     scheduledInvocationReceipt: null,
     observationAdmission,
   });
@@ -76,7 +83,7 @@ test.describe("SV-A.2 observation-cycle receipts", () => {
     expect(record?.disposition).toBe("pending");
     expect(record?.receipt_json.provider_request.status).toBe("unknown");
     expect(record?.receipt_json.admission.policy_receipt).toMatchObject({
-      policy_version: "observation_cycle_admission_v1",
+      policy_version: "observation_cycle_admission_v2",
       decision: "request_current_data",
       request_current_data: true,
     });
@@ -174,6 +181,32 @@ test.describe("SV-A.2 observation-cycle receipts", () => {
     expect(parsed.status).toBe("unavailable");
     expect(parsed.receipts).toEqual([]);
     expect(parsed.reason_codes).toContain("observation_cycle_readback_invalid");
+  });
+
+  test("extracts only owner-validated terminal pre-run failures for policy backoff", () => {
+    const preRunFailure = buildReceipt({ outcome: "failed" });
+    const linkedFailure = buildReceipt({
+      outcome: "failed",
+      scanRunFingerprint: "scan_run_linked_failure_001",
+    });
+    const manualFailure = buildReceipt({
+      outcome: "failed",
+      mode: "diagnostic",
+    });
+
+    expect(
+      observationCyclePreRunFailuresFromUnknown([
+        preRunFailure?.receipt_json,
+        linkedFailure?.receipt_json,
+        manualFailure?.receipt_json,
+      ]),
+    ).toEqual([
+      {
+        cycle_fingerprint: attemptFingerprint,
+        finalized_at: preRunFailure?.receipt_json.finalized_at,
+      },
+    ]);
+    expect(observationCyclePreRunFailuresFromUnknown([{}])).toBeNull();
   });
 
   test("is wired to the normal scan attempt, owner-bound dashboard and diagnostics", () => {

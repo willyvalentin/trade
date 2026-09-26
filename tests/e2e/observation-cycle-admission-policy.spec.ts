@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 import {
   buildObservationCycleAdmission,
   observationCycleAdmissionFromUnknown,
+  type ObservationCyclePreRunFailure,
 } from "../../lib/observation-cycle-admission-policy";
 import type { RecommendationScanRun } from "../../lib/recommendation-scan-run";
 import { resolveScheduledScanProviderCreditBudget } from "../../lib/scheduled-scan-ticker-cap";
@@ -108,6 +109,7 @@ function run(input: {
 function admission(input: {
   now: string;
   runs?: RecommendationScanRun[];
+  preRunFailures?: ObservationCyclePreRunFailure[] | null;
   sessionVerifiedOpen?: boolean;
   budget?: typeof boundedBudget | null;
 }) {
@@ -115,6 +117,8 @@ function admission(input: {
     now: new Date(input.now),
     sessionVerifiedOpen: input.sessionVerifiedOpen ?? true,
     recentScanRuns: input.runs ?? [],
+    recentPreRunFailures:
+      input.preRunFailures === undefined ? [] : input.preRunFailures,
     providerBudget:
       input.budget === undefined ? boundedBudget : input.budget,
   });
@@ -123,7 +127,7 @@ function admission(input: {
 test("admits a first bounded observation while retaining an inert authority receipt", () => {
   const result = admission({ now: "2026-09-28T14:00:00.000Z" });
   expect(result).toMatchObject({
-    policy_version: "observation_cycle_admission_v1",
+    policy_version: "observation_cycle_admission_v2",
     decision: "request_current_data",
     request_current_data: true,
     next_eligible_at: null,
@@ -236,6 +240,183 @@ test("derives exponential retry backoff from durable same-day failures", () => {
       "retry_backoff_elapsed",
       "atomic_provider_credit_reservation_required",
     ]),
+  });
+});
+
+test("extends retry backoff from a durable pre-run failure without inventing a scan run", () => {
+  const preRunFailure = {
+    cycle_fingerprint: "scheduled_scan_attempt_pre_run_failure_001",
+    finalized_at: "2026-09-28T14:00:30.000Z",
+  };
+
+  expect(
+    admission({
+      now: "2026-09-28T14:14:59.000Z",
+      preRunFailures: [preRunFailure],
+    }),
+  ).toMatchObject({
+    policy_version: "observation_cycle_admission_v2",
+    decision: "no_request",
+    next_eligible_at: "2026-09-28T14:15:30.000Z",
+    facts: {
+      freshness: { status: "unknown", latest_observed_at: null },
+      retry_backoff: {
+        consecutive_retryable_failures: 1,
+        delay_minutes: 15,
+        cadence_anchor_at: "2026-09-28T14:00:30.000Z",
+        cadence_anchor_source: "observation_cycle_receipt",
+        includes_pre_run_failure: true,
+      },
+    },
+  });
+
+  expect(
+    admission({
+      now: "2026-09-28T14:15:30.000Z",
+      preRunFailures: [preRunFailure],
+    }),
+  ).toMatchObject({
+    decision: "request_current_data",
+    reason_codes: expect.arrayContaining([
+      "pre_run_failure_backoff_elapsed",
+      "atomic_provider_credit_reservation_required",
+    ]),
+  });
+});
+
+test("combines scan-run and pre-run failures while a later success resets the chain", () => {
+  const completed = run({
+    observedAt: "2026-09-28T14:00:00.000Z",
+    status: "completed",
+  });
+  const failed = run({
+    observedAt: "2026-09-28T14:30:00.000Z",
+    status: "failed",
+  });
+  const preRunFailure = {
+    cycle_fingerprint: "scheduled_scan_attempt_pre_run_failure_002",
+    finalized_at: "2026-09-28T14:15:20.000Z",
+  };
+
+  expect(
+    admission({
+      now: "2026-09-28T14:45:00.000Z",
+      runs: [completed, failed],
+      preRunFailures: [preRunFailure],
+    }),
+  ).toMatchObject({
+    decision: "no_request",
+    next_eligible_at: "2026-09-28T15:00:00.000Z",
+    facts: {
+      retry_backoff: {
+        consecutive_retryable_failures: 2,
+        delay_minutes: 30,
+        cadence_anchor_source: "recommendation_scan_run",
+        includes_pre_run_failure: true,
+      },
+    },
+  });
+
+  const laterSuccess = run({
+    observedAt: "2026-09-28T14:45:00.000Z",
+    status: "completed",
+  });
+  expect(
+    admission({
+      now: "2026-09-28T14:50:00.000Z",
+      runs: [completed, failed, laterSuccess],
+      preRunFailures: [preRunFailure],
+    }),
+  ).toMatchObject({
+    decision: "no_request",
+    next_eligible_at: "2026-09-28T15:00:00.000Z",
+    facts: {
+      retry_backoff: {
+        consecutive_retryable_failures: 0,
+        delay_minutes: 15,
+        cadence_anchor_source: "recommendation_scan_run",
+        includes_pre_run_failure: false,
+      },
+    },
+  });
+});
+
+test("fails closed when owner-bound pre-run history is unavailable or malformed", () => {
+  expect(
+    admission({
+      now: "2026-09-28T14:00:00.000Z",
+      preRunFailures: null,
+    }),
+  ).toMatchObject({
+    decision: "reject",
+    reason_codes: expect.arrayContaining([
+      "observation_attempt_history_invalid_or_unavailable",
+    ]),
+  });
+
+  expect(
+    admission({
+      now: "2026-09-28T14:00:00.000Z",
+      preRunFailures: [
+        {
+          cycle_fingerprint: "scheduled_scan_attempt_future_failure",
+          finalized_at: "2026-09-28T14:15:00.000Z",
+        },
+      ],
+    }),
+  ).toMatchObject({
+    decision: "reject",
+    reason_codes: expect.arrayContaining([
+      "observation_attempt_history_invalid_or_unavailable",
+    ]),
+  });
+
+  expect(
+    admission({
+      now: "2026-09-28T14:30:00.000Z",
+      preRunFailures: [
+        {
+          cycle_fingerprint: "scheduled_scan_attempt_conflicting_failure",
+          finalized_at: "2026-09-28T14:00:00.000Z",
+        },
+        {
+          cycle_fingerprint: "scheduled_scan_attempt_conflicting_failure",
+          finalized_at: "2026-09-28T14:15:00.000Z",
+        },
+      ],
+    }),
+  ).toMatchObject({
+    decision: "reject",
+    reason_codes: expect.arrayContaining([
+      "observation_attempt_history_invalid_or_unavailable",
+    ]),
+  });
+});
+
+test("retains strict read compatibility for persisted v1 admission receipts", () => {
+  const current = admission({ now: "2026-09-28T14:00:00.000Z" });
+  const legacy = {
+    ...current,
+    policy_version: "observation_cycle_admission_v1",
+    facts: {
+      ...current.facts,
+      retry_backoff: {
+        consecutive_retryable_failures: 0,
+        delay_minutes: 15,
+        next_eligible_at: null,
+      },
+    },
+  };
+
+  expect(observationCycleAdmissionFromUnknown(legacy)).toMatchObject({
+    policy_version: "observation_cycle_admission_v1",
+    facts: {
+      retry_backoff: {
+        cadence_anchor_at: null,
+        cadence_anchor_source: "none",
+        includes_pre_run_failure: false,
+      },
+    },
   });
 });
 
@@ -417,6 +598,15 @@ test("wires the policy before the normal-scan provider path", () => {
 
   expect(route).toContain(
     "providerBudget: scheduledRuntimeConfig.scheduled_provider_credit_budget",
+  );
+  expect(route).toContain(
+    "readRecentObservationCyclePreRunFailures(ownerUserId)",
+  );
+  expect(route).toContain(
+    "recentPreRunFailures: recentObservationCyclePreRunFailures",
+  );
+  expect(route).toContain(
+    '.from("observation_cycle_receipts")',
   );
   expect(route).toContain(
     "observationAdmission: scheduledGateDiagnostics.observation_admission",

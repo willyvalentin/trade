@@ -4,6 +4,7 @@ import type { ScheduledScanInvocationReceipt } from "@/lib/scheduled-scan-invoca
 import {
   observationCycleAdmissionFromUnknown,
   type ObservationCycleAdmissionReceipt,
+  type ObservationCyclePreRunFailure,
 } from "@/lib/observation-cycle-admission-policy";
 
 export const OBSERVATION_CYCLE_RECEIPT_VERSION =
@@ -786,6 +787,35 @@ export function observationCycleReceiptFromUnknown(
       can_execute_paper: false,
       can_execute_broker: false,
     }),
+  });
+}
+
+export function observationCyclePreRunFailuresFromUnknown(
+  values: readonly unknown[],
+): ObservationCyclePreRunFailure[] | null {
+  const receipts = values.map(observationCycleReceiptFromUnknown);
+  if (receipts.some((receipt) => receipt === null)) return null;
+
+  const seen = new Set<string>();
+  return receipts.flatMap((receipt) => {
+    if (
+      !receipt ||
+      receipt.trigger.kind === "manual_diagnostic" ||
+      receipt.cycle_status !== "failed" ||
+      receipt.disposition !== "failed" ||
+      receipt.scan_run_fingerprint !== null ||
+      receipt.finalized_at === null ||
+      seen.has(receipt.cycle_fingerprint)
+    ) {
+      return [];
+    }
+    seen.add(receipt.cycle_fingerprint);
+    return [
+      {
+        cycle_fingerprint: receipt.cycle_fingerprint,
+        finalized_at: receipt.finalized_at,
+      },
+    ];
   });
 }
 
