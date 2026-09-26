@@ -20,6 +20,7 @@ import {
   buildScannerIntradayLiquidityShadowOutcomeProjection,
   SCANNER_INTRADAY_LIQUIDITY_SHADOW_OUTCOME_PROJECTION_VERSION,
 } from "@/lib/scanner-ranking-intraday-liquidity-shadow-outcome-projection";
+import { evaluateScannerIntradayLiquidityShadowScan } from "@/lib/server/scanner-intraday-liquidity-shadow-canonical-evaluation";
 import type { ScannerIntradayLiquidityShadowComparison } from "@/lib/scanner-ranking-intraday-liquidity-shadow";
 import type { ScannerCandidate } from "@/lib/scanner";
 
@@ -168,6 +169,7 @@ function fixture() {
     payload_json: {
       ...scanRun.payload_json,
       candidate_decision_record: record,
+      scanner_intraday_liquidity_shadow_comparison: comparison,
       scanner_intraday_liquidity_shadow_attribution: attribution,
     },
   };
@@ -375,5 +377,96 @@ test("fails closed when a persisted attribution receipt is malformed", () => {
     "minimum_forward_outcome_sample_not_met",
     "no_valid_shadow_attribution_receipt",
     "shadow_attribution_or_decision_lineage_conflicting",
+  ]);
+});
+
+test("maps a complete persisted scan into the canonical paired rank evaluator", () => {
+  const { persistedRun, snapshot, outcome } = fixture();
+  const result = evaluateScannerIntradayLiquidityShadowScan({
+    scanRun: persistedRun,
+    snapshots: [snapshot],
+    outcomes: [outcome],
+    bootstrapSeed: "intraday-liquidity-shadow:test-seed-v1",
+  });
+
+  expect(result.status, JSON.stringify(result, null, 2)).toBe(
+    "probability_semantics_missing",
+  );
+  expect(result.coverage).toEqual({
+    expected_candidate_count: 1,
+    exact_snapshot_count: 1,
+    canonical_primary_outcome_count: 1,
+  });
+  expect(result.evaluation).toMatchObject({
+    status: "probability_semantics_missing",
+    shadow_only: true,
+    live_ranking_effect: false,
+    causal_improvement_claimed: false,
+    pairing_evidence: {
+      version_difference_set: {
+        differences: ["ranking_version"],
+      },
+    },
+  });
+  expect(result.reason_codes).toContain(
+    "confidence_is_ordinal_not_probability",
+  );
+  expect(result.reason_codes).toContain("threshold_sweep_diagnostic_only");
+  expect(result).toMatchObject({
+    threshold_policy_semantics: "diagnostic_all_candidates_only",
+    shadow_only: true,
+    live_ranking_effect: false,
+    publication_effect: false,
+    causal_improvement_claimed: false,
+  });
+});
+
+test("refuses canonical ranking evaluation when any candidate outcome is missing", () => {
+  const { persistedRun, snapshot } = fixture();
+  const result = evaluateScannerIntradayLiquidityShadowScan({
+    scanRun: persistedRun,
+    snapshots: [snapshot],
+    outcomes: [],
+    bootstrapSeed: "intraday-liquidity-shadow:test-seed-v1",
+  });
+
+  expect(result.status).toBe("insufficient_evidence");
+  expect(result.evaluation).toBeNull();
+  expect(result.coverage).toEqual({
+    expected_candidate_count: 1,
+    exact_snapshot_count: 1,
+    canonical_primary_outcome_count: 0,
+  });
+  expect(result.reason_codes).toEqual([
+    "candidate_primary_outcome_incomplete",
+    "complete_candidate_outcome_coverage_required",
+  ]);
+});
+
+test("fails closed when persisted comparison scores drift from the attribution", () => {
+  const { persistedRun, snapshot, outcome } = fixture();
+  const comparison = structuredClone(
+    persistedRun.payload_json
+      .scanner_intraday_liquidity_shadow_comparison as ScannerIntradayLiquidityShadowComparison,
+  );
+  comparison.displacements[0]!.baseline_score += 1;
+  const tamperedRun = {
+    ...persistedRun,
+    payload_json: {
+      ...persistedRun.payload_json,
+      scanner_intraday_liquidity_shadow_comparison: comparison,
+    },
+  };
+  const result = evaluateScannerIntradayLiquidityShadowScan({
+    scanRun: tamperedRun,
+    snapshots: [snapshot],
+    outcomes: [outcome],
+    bootstrapSeed: "intraday-liquidity-shadow:test-seed-v1",
+  });
+
+  expect(result.status).toBe("conflicting");
+  expect(result.evaluation).toBeNull();
+  expect(result.reason_codes).toEqual([
+    "shadow_scan_lineage_or_comparison_conflicting",
   ]);
 });
