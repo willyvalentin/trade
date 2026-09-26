@@ -52,6 +52,7 @@ const foundationTests = [
   "tests/e2e/continuous-market-scan-admission.spec.ts",
   "tests/e2e/observation-series-control.spec.ts",
   "tests/e2e/observation-series-evidence.spec.ts",
+  "tests/e2e/observation-series-activation-preflight.spec.ts",
   "tests/e2e/scheduled-scan-ticker-cap.spec.ts",
   "tests/e2e/entry-type-diagnostics.spec.ts",
   "tests/e2e/reference-refresh-diagnostics.spec.ts",

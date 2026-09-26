@@ -29,6 +29,12 @@ const deploymentIdentityOutputFile = join(
   ".generated",
   "scheduled-scan-deployment-identity.json",
 );
+const applicationDeploymentIdentityOutputFile = join(
+  rootDirectory,
+  "lib",
+  "generated",
+  "scheduled-scan-deployment-identity.json",
+);
 const canonicalValue = (value, pattern) => {
   const normalized = value?.trim().toLowerCase();
   return normalized && pattern.test(normalized) ? normalized : null;
@@ -47,12 +53,17 @@ const deploymentIdentity = {
   ),
 };
 
-await mkdir(dirname(deploymentIdentityOutputFile), { recursive: true });
-await writeFile(
+for (const outputFile of [
   deploymentIdentityOutputFile,
-  `${JSON.stringify(deploymentIdentity, null, 2)}\n`,
-  "utf8",
-);
+  applicationDeploymentIdentityOutputFile,
+]) {
+  await mkdir(dirname(outputFile), { recursive: true });
+  await writeFile(
+    outputFile,
+    `${JSON.stringify(deploymentIdentity, null, 2)}\n`,
+    "utf8",
+  );
+}
 
 for (const runtime of runtimes) {
   const outputFile = join(
