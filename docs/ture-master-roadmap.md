@@ -93,6 +93,16 @@ policy should be promoted, narrowed or rejected. No threshold is lowered to
 create candidates, and an attribution receipt without outcomes is not quality
 evidence.
 
+For every recommendation-quality hypothesis, build in this order: admit and
+version the point-in-time input; run the challenger in shadow over the exact
+baseline population; bind each displacement to its immutable candidate decision;
+join only exact, owner-bound canonical outcomes; accumulate the declared forward
+coverage; compare against the frozen baseline and held-out evidence; then make
+one reversible promotion decision with rollback and post-promotion monitoring.
+A missing link stops the claim, not the rest of product development. Generic
+control-plane, dashboard or execution expansion is lower priority unless a
+reproduced defect threatens data integrity, budget, safety or this evidence path.
+
 ### Destination and retained principles
 
 Ture observes licensed market data, classifies market state, discovers candidates,
@@ -928,7 +938,12 @@ but it cannot prove a policy improvement. Promotion requires both a frozen,
 held-out historical comparison and subsequent forward-live shadow evidence over
 a declared comparable sample. A promoted policy must outperform the frozen
 baseline on the declared quality, coverage, reliability and cost measures, with
-a versioned rollback rule and continuous post-promotion monitoring.
+exact candidate-decision and canonical-outcome lineage for both arms, a
+versioned rollback rule and continuous post-promotion monitoring. Missing,
+ambiguous or conflicting joins remain coverage/conflict evidence and may never
+be converted to neutral or winning outcomes. Descriptive deltas may be shown
+before the gate is met, but they must carry `quality_improvement_claimed=false`
+and have no live ranking or publication effect.
 
 ### Recommendation quality and promotion standard
 

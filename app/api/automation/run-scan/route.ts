@@ -98,6 +98,8 @@ import { persistRecommendationSnapshot } from "@/lib/server/recommendation-snaps
 import { enqueueInternalPaperDecisionHandoff } from "@/lib/server/internal-paper-handoff-persistence";
 import {
   buildCandidateDecisionRecord,
+  candidateDecisionCandidateId,
+  CANDIDATE_DECISION_SNAPSHOT_LINKAGE_VERSION,
   type CandidateDecisionCapture,
   type CandidateDecisionRecord,
 } from "@/lib/candidate-decision-record";
@@ -2210,6 +2212,9 @@ function buildSnapshotFromRecommendation({
     .filter((item): item is string => typeof item === "string" && item.length > 0)
     .join(" ");
   const ticker = recommendationTicker(recommendation);
+  const candidateDecisionId = ticker
+    ? candidateDecisionCandidateId(scanRunId, ticker)
+    : null;
   const scannerCandidate =
     scanLog.real_scanner_candidate_generation?.candidates.find(
       (candidate) => candidate.ticker === ticker,
@@ -2343,6 +2348,16 @@ function buildSnapshotFromRecommendation({
       candle_timestamp: dataTimestamp,
       quote_timestamp: null,
       scan_run_fingerprint: scanRunId,
+      candidate_id: candidateDecisionId,
+      candidate_decision_id: candidateDecisionId,
+      candidate_decision_disposition: "published",
+      candidate_decision_linkage_version:
+        candidateDecisionId
+          ? CANDIDATE_DECISION_SNAPSHOT_LINKAGE_VERSION
+          : null,
+      candidate_decision_linkage_status: candidateDecisionId
+        ? "verified"
+        : "incomplete",
       batch_fingerprint: batchFingerprint,
       scan_window: scanWindow,
       market_session_phase: marketSession.phase,
