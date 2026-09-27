@@ -281,6 +281,18 @@ Work is selected in this order:
 5. promote only a demonstrated winner as one reversible policy change, then
    monitor it against the frozen baseline.
 
+Forward collection must itself be plan-bound rather than improvised during the
+market session. Before a trading day is admitted, Ture must recompute the exact
+opportunity-set, ranked-candidate and distinct-trading-day deficits for each
+frozen partition; validate every prior scan against the declared policy pair,
+market calendar, session timestamp and unique lineage; and emit only the
+predeclared bounded slots and credit ceiling still needed for that day. A
+zero-candidate `no_trade` counts as an opportunity set but never satisfies the
+ranked-candidate minimum. Duplicate, conflicting, out-of-window or policy-drifted
+evidence blocks collection rather than being silently discarded. The admission
+record is read-only planning evidence and grants no scheduler, provider,
+ranking, publication, paper or broker authority.
+
 IF-2b discovery remains a permanent product capability, but it is supporting
 work rather than an automatic queue reset once the active hypothesis has enough
 eligible coverage. Reliability, scheduler, dashboard, schema and execution work

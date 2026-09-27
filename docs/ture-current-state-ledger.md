@@ -91,6 +91,24 @@ status surface, receipt, schema or automation is supporting work only and cannot
 displace the next missing quality link unless a reproduced defect makes the
 evidence untrustworthy, unsafe or impossible to collect.
 
+**Locally implemented and provider-free verified CLOSED slice — frozen-cohort
+daily collection admission:** the active clock-neutral plan now has an
+executable read-only admission that validates the exact frozen plan and policy
+pair, uses the pinned verified US-equity calendar, counts opportunity sets,
+ranked identities, explicit zero-candidate opportunities and distinct trading
+days separately in held-out and walk-forward partitions, and derives only the
+remaining first-hour slots under a fixed four-attempt/32-credit daily ceiling.
+Duplicate fingerprints or IDs, malformed comparison evidence, policy drift,
+date/session mismatch and out-of-window evidence fail closed. Reaching a daily
+cap or all partition minimums emits no new collection. The contract explicitly
+has no schedule, provider, ranking, publication, paper or broker authority.
+Focused acceptance is 7/7 admission tests, 23/23 combined forward-cohort
+regressions, strict non-incremental TypeScript, changed-file lint and a complete
+Next.js production build. This is local/PR-bound implementation evidence only:
+it has not yet merged, deployed, activated a schedule, consumed a provider
+credit or improved recommendation quality. The next OPEN action remains a
+separately admitted bounded observation against the frozen cohort.
+
 **Merged and production-verified CLOSED scorecard denominator foundation:** PR
 [#681](https://github.com/willyvalentin/trade/pull/681) merged as
 `ae194370c1d05e3c997ba60a186b0685e73395e2`. Netlify production deploy

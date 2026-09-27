@@ -368,6 +368,15 @@ baseline policy/version segment. Ture owns the charter, K, cohort dates, sample
 minimums, trading-day coverage and decision boundaries. No UI, API caller or
 operator may weaken them after seeing evidence.
 
+Daily collection is governed by the same precommitment. A versioned admission
+must derive its partition and bounded slots from the frozen plan plus the
+verified exchange calendar, account for already accepted opportunity sets and
+fail closed on duplicate identity, timestamp/session mismatch or policy drift.
+It may reduce work when a daily cap or partition minimum is reached; it may not
+add attempts because a session produced no candidate or because observed
+results are disappointing. Collection admission is not execution authority:
+provider requests and schedule activation remain separate OPEN controls.
+
 Do not reset the queue to generic discovery, scheduler, dashboard, paper or
 broker work merely because an operational task is available. Reopen those
 surfaces only for a reproduced defect that threatens the selected cohort's
