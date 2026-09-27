@@ -351,17 +351,38 @@ service-role-only RPC grants, zero direct table grants and zero public, anon or
 authenticated RPC grants. This proves durable experiment auditability, not
 recommendation quality or a favorable forward decision.
 
-**Next selected intelligence step — predeclared forward cohort activation and
-readback:** bind one exact clock-neutral plan to the existing durable charter,
-baseline and ranking versions before its held-out window; preserve the same
-population and canonical outcome path across held-out then walk-forward data;
-and make the eventual `continue`, `narrow` or `reject` decision replayable from
-the stored plan and exact receipts. CLOSED work must first prove the plan can be
-recorded and read idempotently through the deployed server boundary without
-provider, ranking, publication or broker authority. OPEN observations may then
-collect only the frozen cohort's attributable evidence under existing budget
-and freshness guards. No candidate quota, threshold relaxation or early policy
-promotion is permitted.
+**Active CLOSED delivery — authenticated forward-plan activation and exact
+readback:** the isolated branch now adds an authenticated, origin-guarded
+server boundary that accepts only the cohort definition and obtains owner,
+durable charter, baseline and baseline-ranking identity on the server. It
+rejects caller-supplied authority fields, any ranking challenger other than the
+versioned clock-neutral policy, a non-current baseline ranking, charter/baseline
+drift, future-dated durable evidence and cohort minima weaker than the recorded
+evaluation charter. A write is accepted only after exact owner-bound durable
+readback; replay of the same immutable definition returns the original receipt
+without a second write, while a conflicting definition fails closed. The
+response explicitly grants no provider request or credit reservation, live
+ranking/publication change, policy promotion, candidate publication or broker
+authority.
+
+Current evidence is local only: 24/24 focused activation, receipt, canonical
+projection and forward-decision regressions pass; changed-file lint and diff
+checks pass; and a complete Next.js 16.3.4 webpack production build compiles,
+type-checks and emits the dynamic application route. The default Turbopack
+build cannot run from this isolated checkout because its shared `node_modules`
+symlink points outside Turbopack's filesystem root; this is a local worktree
+constraint, not a successful Turbopack build claim. The delivery is not yet
+merged, production-deployed or environment-behavior-verified and no production
+plan has been recorded.
+
+**Next selected intelligence step — freeze and observe the exact forward
+cohort:** after protected delivery and provider-free route verification, bind
+one exact clock-neutral plan to the existing durable charter, baseline and
+ranking versions before its held-out window. OPEN observations may then collect
+only that frozen cohort's same-population canonical outcome evidence under
+existing budget and freshness guards, followed by its walk-forward partition
+and replayable `continue`, `narrow` or `reject` decision. No candidate quota,
+threshold relaxation or early policy promotion is permitted.
 
 ### Continuous-observation technical direction — 2026-09-24
 
