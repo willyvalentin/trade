@@ -375,7 +375,12 @@ fail closed on duplicate identity, timestamp/session mismatch or policy drift.
 It may reduce work when a daily cap or partition minimum is reached; it may not
 add attempts because a session produced no candidate or because observed
 results are disappointing. Collection admission is not execution authority:
-provider requests and schedule activation remain separate OPEN controls.
+provider requests and schedule activation remain separate OPEN controls. Its
+operational readback must require the authenticated owner, use the smallest
+bounded complete scan-row set needed for the decision, derive the trading date
+in `America/New_York`, remain uncached and expose no mutation method. Missing,
+ambiguous, truncated or malformed durable evidence fails closed before any
+admission is calculated.
 
 Do not reset the queue to generic discovery, scheduler, dashboard, paper or
 broker work merely because an operational task is available. Reopen those

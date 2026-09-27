@@ -286,6 +286,7 @@ const intelligenceTests = [
   "tests/e2e/scanner-clock-prior-shadow-forward-evaluation-service.spec.ts",
   "tests/e2e/scanner-clock-prior-shadow-forward-evaluation-readback.spec.ts",
   "tests/e2e/scanner-clock-prior-shadow-forward-collection-admission.spec.ts",
+  "tests/e2e/scanner-clock-prior-shadow-forward-collection-admission-service.spec.ts",
   "tests/e2e/recommendation-engine-graduation-governance.spec.ts",
 ];
 
