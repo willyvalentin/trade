@@ -313,6 +313,7 @@ const intelligenceTests = [
   "tests/e2e/action-664j-foundation-review-remediation.spec.ts",
   "tests/e2e/scanner-clock-prior-shadow-forward-decision-receipts.spec.ts",
   "tests/e2e/scanner-clock-prior-shadow-forward-evaluation-service.spec.ts",
+  "tests/e2e/scanner-clock-prior-shadow-forward-evaluation-readback.spec.ts",
 ];
 
 const shardNames = [

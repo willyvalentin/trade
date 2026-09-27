@@ -10,6 +10,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { ApplicationLogoutButton } from "@/app/application-logout-button";
+import { ClockPriorForwardEvaluationPanel } from "@/app/clock-prior-forward-evaluation-panel";
 import {
   getIntradayScanWindow,
   getIntradayScanWindowLabel,
@@ -317,6 +318,11 @@ import { scannerClockPriorShadowForwardPlanProfile } from "@/lib/scanner-clock-p
 import type { RecommendationLearningBaselineFreeze } from "@/lib/recommendation-learning-baseline-freeze-store";
 import type { RecommendationEvaluationCharter } from "@/lib/recommendation-evaluation-charter";
 import type { ScannerClockPriorShadowForwardDecisionPlanReceipt } from "@/lib/scanner-clock-prior-shadow-forward-decision-store";
+import {
+  scannerClockPriorShadowForwardEvaluationReadbackFromUnknown,
+  unavailableScannerClockPriorShadowForwardEvaluationReadback,
+  type ScannerClockPriorShadowForwardEvaluationReadback,
+} from "@/lib/scanner-clock-prior-shadow-forward-evaluation-readback";
 import {
   marketWideDiscoveryReadbackFromScheduledAttempt,
   marketWideDiscoveryReadbackFromScanRun,
@@ -2854,6 +2860,25 @@ async function postClockPriorExperimentActivation(segmentKey: string) {
       status: null,
       error: "Clock-neutral experiment activation is unavailable.",
     };
+  }
+}
+
+async function fetchClockPriorForwardEvaluationReadback() {
+  try {
+    const response = await fetch(
+      "/api/app/scanner-clock-prior-shadow-forward-evaluation",
+      { cache: "no-store" },
+    );
+    const payload = (await response.json().catch(() => null)) as unknown;
+    return scannerClockPriorShadowForwardEvaluationReadbackFromUnknown(
+      payload,
+      response.status,
+    );
+  } catch {
+    return unavailableScannerClockPriorShadowForwardEvaluationReadback(
+      "unavailable",
+      "clock_prior_forward_evaluation_network_unavailable",
+    );
   }
 }
 
@@ -9092,6 +9117,8 @@ export function TradeApp({
     useState(false);
   const [isActivatingClockPriorExperiment, setIsActivatingClockPriorExperiment] =
     useState(false);
+  const [clockPriorForwardEvaluationReadback, setClockPriorForwardEvaluationReadback] =
+    useState<ScannerClockPriorShadowForwardEvaluationReadback | null>(null);
   const [recommendationSnapshotDiagnostics] =
     useState<RecommendationSnapshotDiagnostics>({
       snapshotsStoredToday: 0,
@@ -9488,9 +9515,14 @@ export function TradeApp({
     const demoClosedPositions = readDemoClosedPositions();
 
     try {
-      const [dashboardResult, marketStatusResult] = await Promise.all([
+      const [
+        dashboardResult,
+        marketStatusResult,
+        clockPriorForwardEvaluationResult,
+      ] = await Promise.all([
         fetchApplicationDashboard(),
         fetchMarketStatusForUi(),
+        fetchClockPriorForwardEvaluationReadback(),
       ]);
       const dashboard = dashboardResult.data;
       const dashboardError = dashboardResult.error;
@@ -10269,6 +10301,10 @@ export function TradeApp({
         setMarketStatus(marketStatusResult.marketStatus);
         setMarketStatusError("");
       }
+
+      setClockPriorForwardEvaluationReadback(
+        clockPriorForwardEvaluationResult,
+      );
 
       if (!isInitialLoad) {
         setLastAutoRefreshAt(refreshStartedAt);
@@ -17488,6 +17524,10 @@ export function TradeApp({
               isActivatingClockPriorExperiment={isActivatingClockPriorExperiment}
               onRecord={recordRecommendationEvaluationCharter}
               onActivateClockPriorExperiment={activateClockPriorExperiment}
+            />
+
+            <ClockPriorForwardEvaluationPanel
+              readback={clockPriorForwardEvaluationReadback}
             />
 
             <RecommendationLearningBaselineReadinessPanel
