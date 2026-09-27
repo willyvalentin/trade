@@ -91,8 +91,12 @@ status surface, receipt, schema or automation is supporting work only and cannot
 displace the next missing quality link unless a reproduced defect makes the
 evidence untrustworthy, unsafe or impossible to collect.
 
-**Locally implemented and provider-free verified CLOSED slice — frozen-cohort
-daily collection admission:** the active clock-neutral plan now has an
+**Merged and production-verified CLOSED slice — frozen-cohort daily collection
+admission:** PR [#693](https://github.com/willyvalentin/trade/pull/693) merged as
+`8d00018912c12384a0fb9a5b84e0ae8eb8ba4205`; all protected PR CI shards are
+green and Netlify production deploy `6ab99da3a1c1eb0009d64e30` is `ready`,
+Git-connected, branch `main` and carries that exact revision. The active
+clock-neutral plan now has an
 executable read-only admission that validates the exact frozen plan and policy
 pair, uses the pinned verified US-equity calendar, counts opportunity sets,
 ranked identities, explicit zero-candidate opportunities and distinct trading
@@ -102,12 +106,26 @@ Duplicate fingerprints or IDs, malformed comparison evidence, policy drift,
 date/session mismatch and out-of-window evidence fail closed. Reaching a daily
 cap or all partition minimums emits no new collection. The contract explicitly
 has no schedule, provider, ranking, publication, paper or broker authority.
-Focused acceptance is 7/7 admission tests, 23/23 combined forward-cohort
+Focused acceptance before merge was 7/7 admission tests, 23/23 combined forward-cohort
 regressions, strict non-incremental TypeScript, changed-file lint and a complete
-Next.js production build. This is local/PR-bound implementation evidence only:
-it has not yet merged, deployed, activated a schedule, consumed a provider
-credit or improved recommendation quality. The next OPEN action remains a
-separately admitted bounded observation against the frozen cohort.
+Next.js production build. Merge and deploy did not activate a schedule, consume
+a provider credit or improve recommendation quality. The next OPEN action
+remains a separately admitted bounded observation against the frozen cohort.
+
+**Locally implemented and provider-free verified CLOSED slice — owner-bound
+collection-admission readback:** a server-only service now reads exactly one
+owner-bound frozen plan and the smallest bounded complete scan-row denominator,
+derives the target trading date in `America/New_York`, calculates the versioned
+admission and exposes it through an authenticated uncached GET route. Missing or
+ambiguous plans and failed, truncated or malformed scan evidence fail closed;
+blocked admission reasons remain visible rather than being converted to an
+availability error. The route has no mutation method, and all scheduler,
+provider, credit, ranking, publication, promotion, paper and broker authorities
+remain false. Focused acceptance is 14/14 admission/readback tests plus strict
+non-incremental TypeScript and changed-file lint. This is local implementation
+evidence only until a focused PR merges and deploys. It has made no provider
+request, reserved no credit, changed no policy and does not prove better
+recommendations.
 
 **Merged and production-verified CLOSED scorecard denominator foundation:** PR
 [#681](https://github.com/willyvalentin/trade/pull/681) merged as

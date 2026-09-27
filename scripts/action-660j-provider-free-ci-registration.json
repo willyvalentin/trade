@@ -272,6 +272,7 @@
   "tests/e2e/scanner-clock-prior-shadow-forward-evaluation-service.spec.ts",
   "tests/e2e/scanner-clock-prior-shadow-forward-evaluation-readback.spec.ts",
   "tests/e2e/scanner-clock-prior-shadow-forward-collection-admission.spec.ts",
+  "tests/e2e/scanner-clock-prior-shadow-forward-collection-admission-service.spec.ts",
   "tests/e2e/recommendation-engine-graduation-governance.spec.ts",
   "tests/e2e/action-666m-predictive-outcome-explanation.spec.ts",
   "tests/e2e/action-666cj-current-main-predictive-explanation-freeze.spec.ts",

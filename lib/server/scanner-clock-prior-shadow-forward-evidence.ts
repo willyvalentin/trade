@@ -59,6 +59,23 @@ export type ScannerClockPriorShadowForwardEvidenceReadResult =
       safe_blocker: string;
     };
 
+export type ScannerClockPriorShadowForwardCollectionEvidenceReadResult =
+  | {
+      status: "available";
+      scanRuns: LearningBaselineScanRun[];
+      source_counts: {
+        window_scan_rows: number;
+        clock_prior_scan_rows: number;
+      };
+      safe_blocker: null;
+    }
+  | {
+      status: "unavailable" | "failed";
+      scanRuns: null;
+      source_counts: null;
+      safe_blocker: string;
+    };
+
 function record(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -102,6 +119,80 @@ function failed(
   safeBlocker: string,
 ): ScannerClockPriorShadowForwardEvidenceReadResult {
   return { status: "failed", evidence: null, safe_blocker: safeBlocker };
+}
+
+/**
+ * Reads the smallest exact owner-bound evidence set needed to decide whether
+ * the frozen forward cohort may collect another predeclared observation. It
+ * deliberately does not read outcomes or request current market data.
+ */
+export async function readScannerClockPriorShadowForwardCollectionEvidence(
+  ownerUserId: string,
+  plan: ScannerClockPriorShadowForwardDecisionPlan,
+): Promise<ScannerClockPriorShadowForwardCollectionEvidenceReadResult> {
+  const owner = normalizeApplicationOwnerUserId(ownerUserId);
+  const { client } = getServerSupabaseClient();
+  if (!client || !owner || plan.owner_user_id !== owner) {
+    return {
+      status: "unavailable",
+      scanRuns: null,
+      source_counts: null,
+      safe_blocker: "clock_prior_forward_collection_evidence_store_unavailable",
+    };
+  }
+
+  const scanQuery = await client
+    .from("recommendation_scan_runs")
+    .select("*", { count: "exact" })
+    .eq("owner_user_id", owner)
+    .gte("observed_at", plan.windows.held_out.start_at)
+    .lt("observed_at", plan.windows.walk_forward.end_at)
+    .order("observed_at", { ascending: true })
+    .limit(MAXIMUM_WINDOW_SCAN_ROWS + 1);
+  if (scanQuery.error) {
+    return {
+      status: "failed",
+      scanRuns: null,
+      source_counts: null,
+      safe_blocker: "clock_prior_forward_collection_scan_evidence_read_failed",
+    };
+  }
+  const scanRows = exactRows({
+    data: scanQuery.data,
+    count: scanQuery.count,
+    maximum: MAXIMUM_WINDOW_SCAN_ROWS,
+  });
+  if (!scanRows) {
+    return {
+      status: "failed",
+      scanRuns: null,
+      source_counts: null,
+      safe_blocker:
+        "clock_prior_forward_collection_scan_evidence_incomplete_or_unbounded",
+    };
+  }
+
+  const cohortScanRows = scanRows.filter(hasClockPriorEvidence);
+  const parsedScanRuns = cohortScanRows.map(
+    recommendationScanRunFromPersistenceRow,
+  );
+  if (parsedScanRuns.some((scanRun) => scanRun === null)) {
+    return {
+      status: "failed",
+      scanRuns: null,
+      source_counts: null,
+      safe_blocker: "clock_prior_forward_collection_scan_evidence_malformed",
+    };
+  }
+  return {
+    status: "available",
+    scanRuns: parsedScanRuns as LearningBaselineScanRun[],
+    source_counts: {
+      window_scan_rows: scanRows.length,
+      clock_prior_scan_rows: cohortScanRows.length,
+    },
+    safe_blocker: null,
+  };
 }
 
 /**

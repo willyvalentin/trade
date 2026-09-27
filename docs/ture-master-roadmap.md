@@ -1114,7 +1114,12 @@ Then bind each displacement to immutable decision lineage and exact canonical
 outcomes. Rank movement or a different candidate set is diagnostic only; a
 policy decision requires the declared forward cohort, complete attributable
 coverage and the IF-4 baseline comparison. Do not lower publication thresholds
-or force a candidate while collecting this evidence.
+or force a candidate while collecting this evidence. Daily cohort admission
+must be reconstructed through an owner-bound, uncached, read-only server path
+from the exact frozen plan and a bounded complete scan-row denominator. That
+readback may expose predeclared remaining slots and provider-credit ceilings,
+but it grants no scheduler, provider, ranking, publication, paper or broker
+authority.
 
 #### IF-4 — measured learning dataset
 
