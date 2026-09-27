@@ -17,6 +17,31 @@ const supportedRegimes = new Set<MarketRegimeType>([
   "risk_off",
 ]);
 
+function hasObservedSymbolEvidence(symbol: MarketRegime["spy"]) {
+  return (
+    Number.isFinite(symbol.close) &&
+    symbol.close > 0 &&
+    Number.isFinite(symbol.ma20) &&
+    symbol.ma20 > 0 &&
+    Number.isFinite(symbol.ma50) &&
+    symbol.ma50 > 0 &&
+    Number.isFinite(symbol.change_5d_percent) &&
+    symbol.above_ma20 === (symbol.close > symbol.ma20) &&
+    symbol.above_ma50 === (symbol.close > symbol.ma50)
+  );
+}
+
+export function hasObservedMarketRegimeEvidence(
+  value: MarketRegime | null,
+): value is MarketRegime {
+  return (
+    value !== null &&
+    supportedRegimes.has(value.regime) &&
+    hasObservedSymbolEvidence(value.spy) &&
+    hasObservedSymbolEvidence(value.qqq)
+  );
+}
+
 function recordOrNull(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null && !Array.isArray(value)
     ? (value as Record<string, unknown>)
@@ -33,7 +58,10 @@ export function buildMarketRegimeDecisionContext(input: {
   marketRegime: MarketRegime | null;
   capturedAt: Date;
 }): MarketRegimeDecisionContext | null {
-  if (!input.marketRegime || !Number.isFinite(input.capturedAt.getTime())) {
+  if (
+    !hasObservedMarketRegimeEvidence(input.marketRegime) ||
+    !Number.isFinite(input.capturedAt.getTime())
+  ) {
     return null;
   }
 
