@@ -10,6 +10,7 @@ import {
   observationSeriesEvidenceReadbackFromUnknown,
 } from "../../lib/observation-series-evidence";
 import { buildObservationSeriesEvidenceReadback } from "../../lib/server/observation-series-evidence-builder";
+import { buildScannerClockPriorShadowForwardRuntimeEvidence } from "../../lib/server/scanner-clock-prior-shadow-forward-evidence";
 import {
   buildObservationSeriesSlotAdmission,
   observationSeriesControlFromEnvironment,
@@ -177,6 +178,77 @@ function readback(receipts: ObservationCycleReceipt[]): ObservationCycleReadback
     reason_codes: [],
   };
 }
+
+test("links owner-bound observation receipts to exact finalized scan credits", () => {
+  const slot = "2026-09-28T13:30:00.000Z";
+  const sourceCycle = receipt({ slot });
+  const cycle: ObservationCycleReceipt = {
+    ...sourceCycle,
+    admission: { ...sourceCycle.admission, policy_receipt: null },
+  };
+  const observationRow = {
+    owner_user_id: cycle.owner_user_id,
+    source_attempt_fingerprint: cycle.source_attempt_fingerprint,
+    scan_run_fingerprint: cycle.scan_run_fingerprint,
+    receipt_json: cycle,
+  };
+  const attempt = {
+    ...attemptRow({ slot }),
+    trading_date: "2026-09-28",
+    intraday_scan_window: "continuous",
+    payload_json: {
+      ...attemptRow({ slot }).payload_json,
+      basic_free_scheduled_scan_credit_reservation: {
+        guard_version: "basic_free_scheduled_scan_credit_guard_v1",
+        contract_version: "basic_free_discovery_credit_reservation_v1",
+        scope: "normal_scheduled_scan",
+        status: "provider_execution_allowed",
+        provider_execution_allowed: true,
+        trading_date: "2026-09-28",
+        minute_bucket: slot,
+        requested_credits: 8,
+        declared_daily_credit_budget: 800,
+        declared_per_minute_credit_budget: 8,
+        daily_reserved_credits: 8,
+        daily_remaining_credits: 792,
+        minute_reserved_credits: 8,
+        minute_remaining_credits: 0,
+        idempotent: false,
+        finalization_status: "finalized",
+        finalization_proven: true,
+        safe_blocker: null,
+      },
+    },
+  };
+
+  expect(buildScannerClockPriorShadowForwardRuntimeEvidence({
+    ownerUserId,
+    observationCycleRows: [observationRow],
+    scheduledAttemptRows: [attempt],
+  })).toMatchObject({
+    status: "available",
+    scheduled_observation_cycle_count: 1,
+    linked_scheduled_attempt_count: 1,
+    evidence: [{
+      receipt: { scan_run_fingerprint: cycle.scan_run_fingerprint },
+      credit_readback: {
+        status: "available",
+        reservation: {
+          requested_credits: 8,
+          finalization_proven: true,
+        },
+      },
+    }],
+  });
+  expect(buildScannerClockPriorShadowForwardRuntimeEvidence({
+    ownerUserId: "00000000-0000-4000-8000-000000000099",
+    observationCycleRows: [observationRow],
+    scheduledAttemptRows: [attempt],
+  })).toMatchObject({
+    status: "failed",
+    safe_blocker: "clock_prior_forward_runtime_receipt_malformed_or_unbound",
+  });
+});
 
 test("an expired fully attributed no-trade series passes delivery without claiming quality", () => {
   const currentControl = control();

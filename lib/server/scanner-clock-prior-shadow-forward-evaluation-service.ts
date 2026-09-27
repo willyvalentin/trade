@@ -266,6 +266,7 @@ export function createScannerClockPriorShadowForwardEvaluationService(
       calibrationScanRuns: evidence.evidence.calibrationScanRuns,
       calibrationSnapshots: evidence.evidence.calibrationSnapshots,
       calibrationOutcomes: evidence.evidence.calibrationOutcomes,
+      runtimeEvidence: evidence.evidence.runtimeEvidence,
       bootstrapSeed:
         `clock-prior-forward:${planReceipt.plan.plan_fingerprint}`,
     });

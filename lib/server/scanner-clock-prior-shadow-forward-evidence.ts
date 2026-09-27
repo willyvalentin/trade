@@ -11,12 +11,20 @@ import {
   type RecommendationSnapshot,
 } from "@/lib/recommendation-snapshot";
 import { normalizeApplicationOwnerUserId } from "@/lib/application-session-core";
-import type { ScannerClockPriorShadowForwardDecisionPlan } from "@/lib/server/scanner-clock-prior-shadow-forward-decision";
+import {
+  basicFreeScheduledScanCreditReadbackFromScheduledAttempt,
+} from "@/lib/basic-free-scheduled-scan-credit-readback";
+import { observationCycleReceiptFromUnknown } from "@/lib/observation-cycle-receipt";
+import type {
+  ScannerClockPriorShadowForwardDecisionPlan,
+  ScannerClockPriorShadowForwardRuntimeEvidence,
+} from "@/lib/server/scanner-clock-prior-shadow-forward-decision";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 
 const MAXIMUM_WINDOW_SCAN_ROWS = 1_000;
 const MAXIMUM_WINDOW_SNAPSHOT_ROWS = 10_000;
 const MAXIMUM_WINDOW_OUTCOME_ROWS = 30_000;
+const MAXIMUM_WINDOW_OPERATIONAL_ROWS = 1_000;
 
 export type ScannerClockPriorShadowForwardEvidence = {
   scanRuns: LearningBaselineScanRun[];
@@ -25,6 +33,7 @@ export type ScannerClockPriorShadowForwardEvidence = {
   calibrationScanRuns: LearningBaselineScanRun[];
   calibrationSnapshots: RecommendationSnapshot[];
   calibrationOutcomes: RecommendationOutcome[];
+  runtimeEvidence: ScannerClockPriorShadowForwardRuntimeEvidence[];
   source_counts: {
     window_scan_rows: number;
     clock_prior_scan_rows: number;
@@ -33,6 +42,9 @@ export type ScannerClockPriorShadowForwardEvidence = {
     calibration_scan_rows: number;
     calibration_linked_snapshot_rows: number;
     calibration_linked_outcome_rows: number;
+    owner_observation_cycle_rows: number;
+    scheduled_observation_cycle_rows: number;
+    linked_scheduled_attempt_rows: number;
   };
 };
 
@@ -93,6 +105,89 @@ function failed(
   return { status: "failed", evidence: null, safe_blocker: safeBlocker };
 }
 
+export function buildScannerClockPriorShadowForwardRuntimeEvidence(input: {
+  ownerUserId: string;
+  observationCycleRows: Record<string, unknown>[];
+  scheduledAttemptRows: Record<string, unknown>[];
+}):
+  | {
+      status: "available";
+      evidence: ScannerClockPriorShadowForwardRuntimeEvidence[];
+      scheduled_observation_cycle_count: number;
+      linked_scheduled_attempt_count: number;
+      safe_blocker: null;
+    }
+  | {
+      status: "failed";
+      evidence: null;
+      scheduled_observation_cycle_count: 0;
+      linked_scheduled_attempt_count: 0;
+      safe_blocker: string;
+    } {
+  const parsedObservationCycles = input.observationCycleRows.map((row) => ({
+    row,
+    receipt: observationCycleReceiptFromUnknown(row.receipt_json),
+  }));
+  if (parsedObservationCycles.some(({ row, receipt }) =>
+    receipt === null ||
+    receipt.owner_user_id !== input.ownerUserId ||
+    row.owner_user_id !== receipt.owner_user_id ||
+    row.source_attempt_fingerprint !== receipt.source_attempt_fingerprint ||
+    (row.scan_run_fingerprint ?? null) !== receipt.scan_run_fingerprint
+  )) {
+    return {
+      status: "failed",
+      evidence: null,
+      scheduled_observation_cycle_count: 0,
+      linked_scheduled_attempt_count: 0,
+      safe_blocker: "clock_prior_forward_runtime_receipt_malformed_or_unbound",
+    };
+  }
+  const scheduledObservationCycles = parsedObservationCycles.flatMap(
+    ({ receipt }) =>
+      receipt?.trigger.kind === "netlify_schedule" ? [receipt] : [],
+  );
+  const attemptFingerprints = new Set(
+    scheduledObservationCycles.map(
+      (receipt) => receipt.source_attempt_fingerprint,
+    ),
+  );
+  const linkedScheduledAttemptRows = input.scheduledAttemptRows.filter((row) =>
+    typeof row.attempt_fingerprint === "string" &&
+    attemptFingerprints.has(row.attempt_fingerprint)
+  );
+  const attemptRowsByFingerprint = new Map<string, Record<string, unknown>[]>();
+  for (const row of linkedScheduledAttemptRows) {
+    const fingerprint = row.attempt_fingerprint as string;
+    attemptRowsByFingerprint.set(fingerprint, [
+      ...(attemptRowsByFingerprint.get(fingerprint) ?? []),
+      row,
+    ]);
+  }
+  if ([...attemptRowsByFingerprint.values()].some((values) => values.length > 1)) {
+    return {
+      status: "failed",
+      evidence: null,
+      scheduled_observation_cycle_count: 0,
+      linked_scheduled_attempt_count: 0,
+      safe_blocker: "clock_prior_forward_scheduled_attempt_ambiguous",
+    };
+  }
+  return {
+    status: "available",
+    evidence: scheduledObservationCycles.map((receipt) => ({
+      receipt,
+      credit_readback: basicFreeScheduledScanCreditReadbackFromScheduledAttempt(
+        attemptRowsByFingerprint.get(receipt.source_attempt_fingerprint)?.[0] ??
+          {},
+      ),
+    })),
+    scheduled_observation_cycle_count: scheduledObservationCycles.length,
+    linked_scheduled_attempt_count: linkedScheduledAttemptRows.length,
+    safe_blocker: null,
+  };
+}
+
 /**
  * Reads only the owner-bound rows that can belong to one frozen clock-prior
  * forward cohort. Exact counts and hard bounds make truncation fail closed;
@@ -141,30 +236,6 @@ export async function readScannerClockPriorShadowForwardEvidence(
     return failed("clock_prior_forward_scan_evidence_malformed");
   }
   const scanRuns = parsedScanRuns as LearningBaselineScanRun[];
-  if (scanRuns.length === 0) {
-    return {
-      status: "available",
-      evidence: {
-        scanRuns: [],
-        snapshots: [],
-        outcomes: [],
-        calibrationScanRuns: [],
-        calibrationSnapshots: [],
-        calibrationOutcomes: [],
-        source_counts: {
-          window_scan_rows: scanRows.length,
-          clock_prior_scan_rows: 0,
-          linked_snapshot_rows: 0,
-          linked_outcome_rows: 0,
-          calibration_scan_rows: 0,
-          calibration_linked_snapshot_rows: 0,
-          calibration_linked_outcome_rows: 0,
-        },
-      },
-      safe_blocker: null,
-    };
-  }
-
   const scanIdentities = new Set(
     scanRuns.flatMap((scanRun) => [scanRun.id, scanRun.run_fingerprint]),
   );
@@ -337,6 +408,52 @@ export async function readScannerClockPriorShadowForwardEvidence(
     return failed("clock_prior_calibration_outcome_evidence_malformed");
   }
 
+  const observationCycleQuery = await client
+    .from("observation_cycle_receipts")
+    .select("*", { count: "exact" })
+    .eq("owner_user_id", owner)
+    .gte("route_received_at", startAt)
+    .lt("route_received_at", endAt)
+    .order("route_received_at", { ascending: true })
+    .limit(MAXIMUM_WINDOW_OPERATIONAL_ROWS + 1);
+  if (observationCycleQuery.error) {
+    return failed("clock_prior_forward_runtime_receipt_read_failed");
+  }
+  const observationCycleRows = exactRows({
+    data: observationCycleQuery.data,
+    count: observationCycleQuery.count,
+    maximum: MAXIMUM_WINDOW_OPERATIONAL_ROWS,
+  });
+  if (!observationCycleRows) {
+    return failed("clock_prior_forward_runtime_receipt_incomplete_or_unbounded");
+  }
+  const scheduledAttemptQuery = await client
+    .from("scheduled_scan_attempts")
+    .select("*", { count: "exact" })
+    .gte("utc_timestamp", startAt)
+    .lt("utc_timestamp", endAt)
+    .order("utc_timestamp", { ascending: true })
+    .limit(MAXIMUM_WINDOW_OPERATIONAL_ROWS + 1);
+  if (scheduledAttemptQuery.error) {
+    return failed("clock_prior_forward_scheduled_attempt_read_failed");
+  }
+  const scheduledAttemptRows = exactRows({
+    data: scheduledAttemptQuery.data,
+    count: scheduledAttemptQuery.count,
+    maximum: MAXIMUM_WINDOW_OPERATIONAL_ROWS,
+  });
+  if (!scheduledAttemptRows) {
+    return failed(
+      "clock_prior_forward_scheduled_attempt_incomplete_or_unbounded",
+    );
+  }
+  const operational = buildScannerClockPriorShadowForwardRuntimeEvidence({
+    ownerUserId: owner,
+    observationCycleRows,
+    scheduledAttemptRows,
+  });
+  if (operational.status === "failed") return failed(operational.safe_blocker);
+
   return {
     status: "available",
     evidence: {
@@ -346,6 +463,7 @@ export async function readScannerClockPriorShadowForwardEvidence(
       calibrationScanRuns,
       calibrationSnapshots,
       calibrationOutcomes: parsedCalibrationOutcomes as RecommendationOutcome[],
+      runtimeEvidence: operational.evidence,
       source_counts: {
         window_scan_rows: scanRows.length,
         clock_prior_scan_rows: scanRuns.length,
@@ -354,6 +472,11 @@ export async function readScannerClockPriorShadowForwardEvidence(
         calibration_scan_rows: calibrationScanRuns.length,
         calibration_linked_snapshot_rows: calibrationSnapshots.length,
         calibration_linked_outcome_rows: parsedCalibrationOutcomes.length,
+        owner_observation_cycle_rows: observationCycleRows.length,
+        scheduled_observation_cycle_rows:
+          operational.scheduled_observation_cycle_count,
+        linked_scheduled_attempt_rows:
+          operational.linked_scheduled_attempt_count,
       },
     },
     safe_blocker: null,

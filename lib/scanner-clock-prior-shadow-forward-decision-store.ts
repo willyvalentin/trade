@@ -288,6 +288,71 @@ function probabilityCalibration(value: unknown) {
   return true;
 }
 
+function nonNegativeInteger(value: unknown) {
+  return typeof value === "number" && Number.isInteger(value) && value >= 0;
+}
+
+function runtimeReliability(value: unknown, expectedDecisionCount: number) {
+  if (!record(value)) return false;
+  const integerKeys = [
+    "invocation_count",
+    "admitted_attempt_count",
+    "completed_attempt_count",
+    "terminal_error_count",
+    "active_attempt_count",
+    "admission_rejected_count",
+    "admission_unknown_count",
+    "linked_decision_count",
+    "timeout_error_count",
+    "rate_limit_error_count",
+    "provider_error_count",
+    "other_error_count",
+  ] as const;
+  if (!integerKeys.every((key) => nonNegativeInteger(value[key]))) return false;
+  const admitted = value.admitted_attempt_count as number;
+  const terminalErrors = value.terminal_error_count as number;
+  return admitted > 0 &&
+    value.invocation_count === admitted +
+      (value.admission_rejected_count as number) +
+      (value.admission_unknown_count as number) &&
+    admitted === (value.completed_attempt_count as number) + terminalErrors +
+      (value.active_attempt_count as number) &&
+    terminalErrors === (value.timeout_error_count as number) +
+      (value.rate_limit_error_count as number) +
+      (value.provider_error_count as number) +
+      (value.other_error_count as number) &&
+    value.linked_decision_count === expectedDecisionCount &&
+    proportion(value.reliability) &&
+    record(value.reliability) &&
+    value.reliability.numerator === value.completed_attempt_count &&
+    value.reliability.denominator === admitted;
+}
+
+function providerCost(value: unknown, expectedDecisionCount: number) {
+  if (!record(value)) return false;
+  const integerKeys = [
+    "decision_denominator",
+    "exact_credit_receipt_count",
+    "finalized_credit_receipt_count",
+    "provider_request_attempt_count",
+    "provider_ticker_request_count",
+    "reserved_provider_credits",
+  ] as const;
+  if (!integerKeys.every((key) => nonNegativeInteger(value[key]))) return false;
+  const denominator = value.decision_denominator as number;
+  return denominator >= expectedDecisionCount &&
+    value.exact_credit_receipt_count === denominator &&
+    value.finalized_credit_receipt_count === denominator &&
+    (value.provider_request_attempt_count as number) <= denominator &&
+    typeof value.credits_per_decision === "number" &&
+    Number.isFinite(value.credits_per_decision) &&
+    value.credits_per_decision >= 0 &&
+    Math.abs(
+      value.credits_per_decision -
+        (value.reserved_provider_credits as number) / denominator,
+    ) <= 1e-12;
+}
+
 function partition(
   value: unknown,
 ): value is ScannerClockPriorShadowForwardPartitionResult {
@@ -316,6 +381,8 @@ function partition(
     !proportion(value.evidence_missingness) ||
     !concentration(value.concentration, value.ranked_candidate_count as number) ||
     !probabilityCalibration(value.probability_calibration) ||
+    !runtimeReliability(value.runtime_reliability, opportunitySetCount) ||
+    !providerCost(value.provider_cost, opportunitySetCount) ||
     !record(value.precision_delta)) {
     return false;
   }
