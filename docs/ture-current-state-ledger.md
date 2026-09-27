@@ -12,6 +12,25 @@ integrity, safety or evidence-path defect may interrupt. Repository roadmap,
 governance and this ledger are the only control sources; Notion stays outside
 scope.
 
+### Recommendation-engine graduation gate — `not_met`
+
+The named graduation gate in the master roadmap is not yet passed. Ture has
+production-verified point-in-time lineage, a complete measurable IF-4 charter
+and one frozen clock-neutral baseline/challenger plan, but its predeclared
+forward cohort has not yet completed. Therefore there is no terminal policy
+decision, no IF-5 promotion decision and no separately monitored post-promotion
+period that can demonstrate sustained useful recommendation quality.
+
+The next evidence that can change this status is the exact held-out and
+walk-forward cohort already frozen for the clock-neutral hypothesis, followed by
+its complete charter decision. A `continue` result would still leave reversible
+IF-5 promotion and predeclared post-promotion monitoring outstanding; `narrow`,
+`reject` or `evidence_incomplete` are truthful progress but do not pass the
+gate. Existing paper/execution foundations remain reusable, while new autonomous
+paper, broker or execution product expansion stays blocked from primary
+selection. This gate does not require a candidate every day: a fresh,
+attributable `no_trade` remains a valid decision.
+
 ### Now / Next / Blocked selection — 2026-09-27
 
 - **Now:** collect the exact clock-neutral IF-3b forward cohort without changing

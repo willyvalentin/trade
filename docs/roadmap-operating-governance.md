@@ -50,6 +50,31 @@ market-independent link. Do not wait for OPEN when useful CLOSED work exists,
 and do not spend OPEN capacity on unrelated infrastructure without a reproduced
 blocker.
 
+### Recommendation-engine graduation gate enforcement
+
+The master roadmap's recommendation-engine graduation gate controls when
+autonomous paper or broker work may become a primary product delivery. The
+ledger must keep its status explicit as `not_met`, `evidence_incomplete` or
+`passed` and identify the exact policy, frozen charter, evaluation windows,
+terminal decision, IF-5 promotion decision and post-promotion monitoring period
+that support the status. Never infer a pass from infrastructure readiness or a
+collection of individually green receipts.
+
+While the gate is not passed, choose the first unmet intelligence dimension:
+eligible-universe discovery/data fitness, same-population ranking, canonical
+outcomes, full-charter held-out/walk-forward evaluation, reversible promotion or
+post-promotion monitoring. Paper- or execution-shaped work is supporting work
+only when the ledger names the otherwise unavailable recommendation-quality or
+cost measurement it supplies and no smaller research mechanism can supply it.
+It may not add or activate broker authority.
+
+Freeze each hypothesis's numeric limits and graduation-relevant monitoring
+period before inspecting its results. A failed or inconclusive hypothesis keeps
+the product gate closed but does not stop work: record `reject` or
+`evidence_incomplete`, select the next defect from attributable error, and keep
+the same work order. Changing the graduation criteria to admit the observed
+result is prohibited.
+
 ### Full-charter terminal-decision rule
 
 The durable evaluation charter is one indivisible acceptance contract. A
