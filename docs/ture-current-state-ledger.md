@@ -14,18 +14,19 @@ scope.
 
 ### Now / Next / Blocked selection — 2026-09-27
 
-- **Now:** remove the circular dependency that prevented the clock-neutral
-  IF-3b experiment from starting. A result-based generic learning baseline
-  still requires at least 20 visible primary outcomes and remains mandatory for
-  promotion, but forward shadow collection must first be able to freeze the
-  exact semantic baseline/challenger identity and collect valid `no_trade`
-  evidence. The active CLOSED delivery adds that immutable, explicitly
-  non-quality policy reference without changing live rank, publication or
-  thresholds.
-- **Next:** deliver and apply the additive v2 receipt schema, then freeze one
-  exact clock-neutral held-out/walk-forward cohort before its first OPEN sample.
-  The cohort may then issue one `continue`, `narrow` or `reject` shadow decision;
-  none of those outcomes alone authorizes promotion.
+- **Now:** freeze the exact quality contract for the clock-neutral IF-3b
+  experiment before its first forward sample. The active CLOSED delivery makes
+  the charter server-owned and versioned: exact population and policy segment,
+  60 complete decisions split 30/30 held-out and walk-forward, primary 60m
+  canonical outcome, setup/regime slices and numeric quality, coverage,
+  reliability, cost, concentration and feasibility limits. The caller may
+  select only the exact baseline segment and cannot supply or weaken the
+  charter.
+- **Next:** merge/deploy that charter activation, durably record its exact
+owner-bound receipt, then freeze one time-separated clock-neutral cohort
+  before the first OPEN sample. The completed cohort may issue one `continue`,
+  `narrow` or `reject` shadow decision; none of those outcomes alone authorizes
+  promotion.
 - **Blocked from selection:** live-policy promotion until complete attributable
   held-out/forward evidence exists; new generic scheduler/control-plane work
   without a reproduced integrity or safety defect; paper/broker expansion until
@@ -380,8 +381,9 @@ the expected `401` and `Cache-Control: no-store`, proving the deployed auth
 boundary. No production plan was recorded and no provider, ranking,
 publication, promotion or broker effect occurred.
 
-**Active CLOSED delivery — semantic policy reference for honest forward
-collection:** authenticated production readback found no recorded charter,
+**Merged, production-verified and schema-applied CLOSED delivery — semantic
+policy reference for honest forward collection:** authenticated production
+readback found no recorded charter,
 generic learning baseline or forward plan. Read-only production SQL found 997
 scan runs but only two candidate-decision records; only the 2026-09-25 record
 has complete canonical attribution and both are explicit `no_trade`. The generic
@@ -401,12 +403,38 @@ readback and terminal-result binding; they grant no provider, ranking,
 publication, promotion or broker authority. The generic 20-visible-outcome
 baseline and IF-5 promotion gate are unchanged.
 
-Current evidence is local only: 24/24 focused tests, 168/168 full
-intelligence-foundation tests, changed-file lint, TypeScript and a complete
-Next.js 16.3.4 webpack build pass. The isolated PostgreSQL 17 lifecycle passed
-plan/result writes, exact idempotent replay, service-role-only RPC access and
-immutable-update rejection. The v2 migration is not yet applied, no production
-reference or plan exists and no OPEN quality evidence has been collected.
+PR [#673](https://github.com/willyvalentin/trade/pull/673) merged as exact main
+`387da4ba7dee046de34ceaf7bc4520cef6fdafdf`. Protected PR CI run
+`36301044450` passed all six provider-free shards, aggregate verification and
+merge-candidate provenance; post-merge CI run `36302152516` passed on that exact
+revision. Automatic Git-connected Netlify production deploy
+`6ab8c0c36d931400082e9fae` is `ready`, `production`, branch `main`,
+`manual_deploy=false` and carries the same revision. Supabase production records
+the additive migration as
+`20260927070937_if4_clock_prior_semantic_policy_reference`; readback verifies
+both empty v2 tables with RLS, immutable triggers, four service-role-only RPCs
+and zero direct table grants. A production unauthenticated GET returned `401`
+with `Cache-Control: no-store`. No production reference, charter or plan was
+recorded and no provider, ranking, publication, promotion or broker effect
+occurred. This proves the auditable experiment-start path, not recommendation
+quality.
+
+**Active CLOSED delivery — server-owned clock-neutral evaluation charter:** the
+isolated branch adds one versioned charter profile before any forward evidence
+is read. It declares the ranking-only hypothesis; every admitted setup and
+verified regime plus unavailable-regime missingness; one canonical 60m primary
+outcome with 15m/30m diagnostics; 60 complete decisions split 30/30; absolute
+precision, expectancy, calibration, coverage, missingness, eight-credit,
+reliability and concentration limits; and explicit unavailable spread,
+halt-risk and conservative-slippage inputs that prohibit an executable-quality
+claim. An authenticated, origin-guarded activation accepts only one exact
+baseline segment, recomputes the immutable fingerprint server-side, rejects
+caller-owned charter fields and requires exact durable readback. It grants no
+provider, ranking, publication, promotion, paper or broker authority. Current
+evidence is local only: 5/5 focused tests, strict TypeScript, changed-file lint
+and diff validation plus a complete Next.js 16.3.4 webpack production build
+pass. It is not merged or environment-verified and no production charter has
+been recorded.
 
 ### Continuous-observation technical direction — 2026-09-24
 
