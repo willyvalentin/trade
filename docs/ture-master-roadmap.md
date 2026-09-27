@@ -55,14 +55,22 @@ guardrail, not an alpha claim. OPEN sampling continues in parallel on the
 already frozen policy; CLOSED implementation may not redefine the cohort or
 lower a threshold to obtain a terminal result.
 
-Steps (1) and (2) are production-verified. Step (3) is the selected CLOSED
-delivery: fit a versioned score-to-probability model only from immutable outcomes
-that predate the held-out window, then measure Brier score, fixed-bucket expected
-calibration error and probability coverage only on the later forward partitions.
-Historical fitting rows and forward evaluation rows must remain separately
-read, bounded and attributable; pooling them, fitting after the held-out cutoff
-or interpreting an ordinal score as a probability fails closed. This delivery
-does not change live scores, ranking, publication thresholds or execution.
+Steps (1), (2) and (3) are production-verified. The versioned
+score-to-probability model fits only immutable outcomes that predate the held-out
+window, while Brier score, fixed-bucket expected calibration error and
+probability coverage are measured only on later forward partitions. Historical
+fitting rows and forward evaluation rows remain separately read, bounded and
+attributable; pooling them, fitting after the held-out cutoff or interpreting an
+ordinal score as a probability fails closed. This does not change live scores,
+ranking, publication thresholds or execution and is not evidence of alpha.
+
+Step (4) is now the selected CLOSED delivery. Runtime reliability and provider
+cost must be attributable to the same exact candidate decisions and forward
+partitions, with explicit attempted/completed/error denominators, provider
+requests and credits per decision, timeout/rate-limit classification and no
+silent exclusion of failed runs. Missing or ambiguously attributed operations
+remain `evidence_incomplete`; operational success may not substitute for the
+quality dimensions already closed.
 
 **Definition of recommendation-engine progress.** Ture improves only when a
 versioned challenger changes a declared point-in-time input, feature, score,
