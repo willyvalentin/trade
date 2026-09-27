@@ -30,6 +30,10 @@ import {
   readScannerClockPriorShadowForwardDecisionResults,
   recordScannerClockPriorShadowForwardDecisionResult,
 } from "@/lib/server/scanner-clock-prior-shadow-forward-decision-persistence";
+import {
+  buildScannerClockPriorShadowContextDiagnostic,
+  type ScannerClockPriorShadowContextDiagnostic,
+} from "@/lib/server/scanner-clock-prior-shadow-context-diagnostic";
 import { scannerClockPriorShadowEvaluationCharterDefinition } from "@/lib/server/scanner-clock-prior-shadow-evaluation-charter";
 
 export const scannerClockPriorShadowForwardEvaluationAuthority = {
@@ -71,6 +75,7 @@ type AvailableEvaluation = {
   durable_result_receipt:
     | ScannerClockPriorShadowForwardDecisionResultReceipt
     | null;
+  context_diagnostic: ScannerClockPriorShadowContextDiagnostic | null;
   evidence_counts: ScannerClockPriorShadowForwardEvidence["source_counts"];
   safe_blocker: null;
   authority: typeof scannerClockPriorShadowForwardEvaluationAuthority;
@@ -83,6 +88,7 @@ export type ScannerClockPriorShadowForwardEvaluationReadResult =
       plan_receipt: null;
       evaluation: null;
       durable_result_receipt: null;
+      context_diagnostic: null;
       evidence_counts: null;
       safe_blocker: string;
       authority: typeof scannerClockPriorShadowForwardEvaluationAuthority;
@@ -93,6 +99,7 @@ export type ScannerClockPriorShadowForwardEvaluationFinalizeResult =
       status: "finalized" | "already_finalized";
       receipt: ScannerClockPriorShadowForwardDecisionResultReceipt;
       evaluation: ScannerClockPriorShadowForwardDecisionResult;
+      context_diagnostic: ScannerClockPriorShadowContextDiagnostic | null;
       safe_blocker: null;
       authority: typeof scannerClockPriorShadowForwardEvaluationAuthority;
     }
@@ -100,6 +107,7 @@ export type ScannerClockPriorShadowForwardEvaluationFinalizeResult =
       status: "not_ready" | "conflicting" | "unavailable";
       receipt: null;
       evaluation: ScannerClockPriorShadowForwardDecisionResult | null;
+      context_diagnostic: null;
       safe_blocker: string;
       authority: typeof scannerClockPriorShadowForwardEvaluationAuthority;
     };
@@ -138,6 +146,7 @@ function unavailable(
     plan_receipt: null,
     evaluation: null,
     durable_result_receipt: null,
+    context_diagnostic: null,
     evidence_counts: null,
     safe_blocker: safeBlocker,
     authority: scannerClockPriorShadowForwardEvaluationAuthority,
@@ -295,6 +304,9 @@ export function createScannerClockPriorShadowForwardEvaluationService(
       plan_receipt: planReceipt,
       evaluation,
       durable_result_receipt: durableResult,
+      context_diagnostic: durableResult
+        ? buildScannerClockPriorShadowContextDiagnostic(durableResult)
+        : null,
       evidence_counts: evidence.evidence.source_counts,
       safe_blocker: null,
       authority: scannerClockPriorShadowForwardEvaluationAuthority,
@@ -317,6 +329,7 @@ export function createScannerClockPriorShadowForwardEvaluationService(
           status: assessment.status,
           receipt: null,
           evaluation: null,
+          context_diagnostic: null,
           safe_blocker: assessment.safe_blocker,
           authority: scannerClockPriorShadowForwardEvaluationAuthority,
         };
@@ -326,6 +339,7 @@ export function createScannerClockPriorShadowForwardEvaluationService(
           status: "already_finalized",
           receipt: assessment.durable_result_receipt,
           evaluation: assessment.evaluation,
+          context_diagnostic: assessment.context_diagnostic,
           safe_blocker: null,
           authority: scannerClockPriorShadowForwardEvaluationAuthority,
         };
@@ -341,6 +355,7 @@ export function createScannerClockPriorShadowForwardEvaluationService(
           status: "not_ready",
           receipt: null,
           evaluation: assessment.evaluation,
+          context_diagnostic: null,
           safe_blocker:
             "clock_prior_forward_evaluation_not_ready_for_finalization",
           authority: scannerClockPriorShadowForwardEvaluationAuthority,
@@ -356,6 +371,7 @@ export function createScannerClockPriorShadowForwardEvaluationService(
           status: "conflicting",
           receipt: null,
           evaluation: assessment.evaluation,
+          context_diagnostic: null,
           safe_blocker: write.safe_blocker,
           authority: scannerClockPriorShadowForwardEvaluationAuthority,
         };
@@ -365,6 +381,7 @@ export function createScannerClockPriorShadowForwardEvaluationService(
           status: "unavailable",
           receipt: null,
           evaluation: assessment.evaluation,
+          context_diagnostic: null,
           safe_blocker: write.safe_blocker ??
             "clock_prior_forward_evaluation_finalization_write_unavailable",
           authority: scannerClockPriorShadowForwardEvaluationAuthority,
@@ -383,6 +400,7 @@ export function createScannerClockPriorShadowForwardEvaluationService(
           status: "unavailable",
           receipt: null,
           evaluation: assessment.evaluation,
+          context_diagnostic: null,
           safe_blocker:
             "clock_prior_forward_evaluation_finalization_readback_mismatch",
           authority: scannerClockPriorShadowForwardEvaluationAuthority,
@@ -392,6 +410,9 @@ export function createScannerClockPriorShadowForwardEvaluationService(
         status: write.status === "recorded" ? "finalized" : "already_finalized",
         receipt: exact[0]!,
         evaluation: assessment.evaluation,
+        context_diagnostic: buildScannerClockPriorShadowContextDiagnostic(
+          exact[0]!,
+        ),
         safe_blocker: null,
         authority: scannerClockPriorShadowForwardEvaluationAuthority,
       };

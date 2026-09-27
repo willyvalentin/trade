@@ -22,6 +22,10 @@ import {
   type ScannerClockPriorShadowForwardEvaluationDependencies,
 } from "@/lib/server/scanner-clock-prior-shadow-forward-evaluation-service";
 import {
+  buildScannerClockPriorShadowContextDiagnostic,
+  scannerClockPriorShadowContextDiagnosticVersion,
+} from "@/lib/server/scanner-clock-prior-shadow-context-diagnostic";
+import {
   buildScannerClockPriorShadowForwardDecisionPlan,
   buildScannerClockPriorShadowPolicyReference,
   SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_SCORECARD_METRICS_VERSION,
@@ -400,6 +404,7 @@ test("reads the exact owner-bound cohort through the frozen evaluator", async ()
     plan_receipt: { plan_id: planId },
     evaluation: decision,
     durable_result_receipt: null,
+    context_diagnostic: null,
     evidence_counts: {
       clock_prior_scan_rows: 30,
       linked_snapshot_rows: 84,
@@ -444,8 +449,120 @@ test("persists one terminal result only after exact post-write readback", async 
     status: "finalized",
     receipt: resultReceipt,
     evaluation: decision,
+    context_diagnostic: {
+      contract_version: scannerClockPriorShadowContextDiagnosticVersion,
+      source: {
+        result_id: resultId,
+        result_fingerprint: resultReceipt.result_fingerprint,
+      },
+      status: "no_conservative_regression",
+      priority_context: null,
+      shadow_only: true,
+      live_ranking_effect: false,
+      publication_effect: false,
+    },
   });
   expect(testHarness.recordCalls).toBe(1);
+});
+
+test("derives context triage only from an exact durable terminal result", async () => {
+  const testHarness = harness({
+    async readResults() {
+      return {
+        status: "available",
+        receipts: [resultReceipt],
+        safe_blocker: null,
+      };
+    },
+  });
+  const service = createScannerClockPriorShadowForwardEvaluationService(
+    testHarness.implementation,
+  );
+
+  await expect(service.read(ownerUserId)).resolves.toMatchObject({
+    status: "available",
+    durable_result_receipt: resultReceipt,
+    context_diagnostic: {
+      source: {
+        result_id: resultId,
+        result_fingerprint: resultReceipt.result_fingerprint,
+        plan_id: planId,
+        plan_fingerprint: plan.plan_fingerprint,
+      },
+      status: "no_conservative_regression",
+      pair_counts: {
+        total: 4,
+        eligible: 4,
+        conservative_regression: 0,
+      },
+      authority: {
+        can_select_next_hypothesis_automatically: false,
+        can_change_ranking_or_publication: false,
+        can_promote_policy: false,
+        can_request_provider_data: false,
+        can_execute_broker_action: false,
+      },
+    },
+  });
+});
+
+test("prioritizes a conservative regression deterministically without policy authority", () => {
+  const regressionReceipt = structuredClone(resultReceipt);
+  for (const partitionResult of regressionReceipt.decision_result.partitions) {
+    for (const slice of partitionResult.quality_slices.slices) {
+      const positiveOutcomeCount = slice.arm === "baseline" ? 9 : 1;
+      slice.selected_candidate_count = 10;
+      slice.resolved_outcome_count = 10;
+      slice.positive_outcome_count = positiveOutcomeCount;
+      slice.precision = {
+        value: positiveOutcomeCount / 10,
+        numerator: positiveOutcomeCount,
+        denominator: 10,
+        lower: 0,
+        upper: 1,
+      };
+      slice.r_result_count = 10;
+      slice.expectancy_r = slice.arm === "baseline" ? 0.5 : -0.5;
+    }
+  }
+
+  const first = buildScannerClockPriorShadowContextDiagnostic(
+    regressionReceipt,
+  );
+  const second = buildScannerClockPriorShadowContextDiagnostic(
+    regressionReceipt,
+  );
+
+  expect(first).toMatchObject({
+    status: "conservative_regression_detected",
+    pair_counts: {
+      total: 4,
+      eligible: 4,
+      conservative_regression: 4,
+    },
+    priority_context: {
+      dimension: "setup",
+      key: "setup-fixture",
+      eligibility: "eligible",
+      classification: "conservative_regression",
+      baseline: {
+        resolved_outcome_count: 20,
+        positive_outcome_count: 18,
+      },
+      candidate: {
+        resolved_outcome_count: 20,
+        positive_outcome_count: 2,
+      },
+      expectancy_delta_r: -1,
+    },
+    live_ranking_effect: false,
+    publication_effect: false,
+    causal_improvement_claimed: false,
+  });
+  expect(first?.priority_context?.conservative_regression_gap).toBeGreaterThan(
+    0,
+  );
+  expect(first?.diagnostic_fingerprint).toBe(second?.diagnostic_fingerprint);
 });
 
 test("fails closed when durable terminal evidence drifts from recomputation", async () => {
@@ -482,8 +599,34 @@ test("the app route is owner-bound and cannot run market or broker work", () => 
   expect(route).toContain("session.owner_user_id");
   expect(route).toContain('export const dynamic = "force-dynamic"');
   expect(route).toContain('"Cache-Control": "no-store"');
+  expect(route).toContain("context_diagnostic");
   expect(route).not.toContain("runScan");
   expect(route).not.toContain("provider");
   expect(route).not.toContain("publishCandidate");
   expect(route).not.toContain("broker");
+});
+
+test("governance freezes terminal-only conservative context triage", () => {
+  const roadmap = readFileSync(resolve(
+    process.cwd(),
+    "docs/ture-master-roadmap.md",
+  ), "utf8");
+  const ledger = readFileSync(resolve(
+    process.cwd(),
+    "docs/ture-current-state-ledger.md",
+  ), "utf8");
+  const governance = readFileSync(resolve(
+    process.cwd(),
+    "docs/roadmap-operating-governance.md",
+  ), "utf8");
+
+  for (const document of [roadmap, ledger]) {
+    expect(document).toContain(
+      "scanner_clock_prior_shadow_context_diagnostic_v1",
+    );
+    expect(document).toMatch(/ten\s+resolved\s+outcomes/);
+  }
+  expect(governance).toContain("Context triage must also be frozen");
+  expect(governance).toContain("ticker, sector, setup and regime");
+  expect(governance).toContain("never automatically choose a hypothesis");
 });
