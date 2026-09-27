@@ -3,7 +3,11 @@ import "server-only";
 import { createHash } from "node:crypto";
 
 import { SCANNER_SCORE_PROBABILITY_CALIBRATION_MODEL_VERSION } from "@/lib/scanner-score-probability-calibration";
-import { SCANNER_RANKING_SHADOW_PROBABILITY_CALIBRATION_OBSERVATION_VERSION } from "@/lib/server/scanner-intraday-liquidity-shadow-canonical-evaluation";
+import { RECOMMENDATION_DECISION_FEATURE_VECTOR_VERSION } from "@/lib/recommendation-decision-feature-vector";
+import {
+  SCANNER_RANKING_SHADOW_FEASIBILITY_OBSERVATION_VERSION,
+  SCANNER_RANKING_SHADOW_PROBABILITY_CALIBRATION_OBSERVATION_VERSION,
+} from "@/lib/server/scanner-intraday-liquidity-shadow-canonical-evaluation";
 
 import {
   buildScannerClockPriorShadowForwardDecisionPlan,
@@ -353,6 +357,28 @@ function providerCost(value: unknown, expectedDecisionCount: number) {
     ) <= 1e-12;
 }
 
+function feasibility(value: unknown, expectedCandidateCount: number) {
+  if (!record(value) ||
+    value.observation_version !==
+      SCANNER_RANKING_SHADOW_FEASIBILITY_OBSERVATION_VERSION ||
+    value.denominator !== expectedCandidateCount ||
+    value.decision_feature_vector_version !==
+      RECOMMENDATION_DECISION_FEATURE_VECTOR_VERSION ||
+    !record(value.unavailable_disclosed) ||
+    value.unavailable_disclosed.spread !== true ||
+    value.unavailable_disclosed.halt_risk !== true ||
+    value.unavailable_disclosed.conservative_slippage !== true) return false;
+  return [
+    value.liquidity_coverage,
+    value.volatility_coverage,
+    value.trigger_attainment_coverage,
+  ].every((coverage) =>
+    proportion(coverage) && record(coverage) && coverage.value === 1 &&
+    coverage.numerator === expectedCandidateCount &&
+    coverage.denominator === expectedCandidateCount
+  );
+}
+
 function partition(
   value: unknown,
 ): value is ScannerClockPriorShadowForwardPartitionResult {
@@ -383,6 +409,7 @@ function partition(
     !probabilityCalibration(value.probability_calibration) ||
     !runtimeReliability(value.runtime_reliability, opportunitySetCount) ||
     !providerCost(value.provider_cost, opportunitySetCount) ||
+    !feasibility(value.feasibility, value.ranked_candidate_count as number) ||
     !record(value.precision_delta)) {
     return false;
   }

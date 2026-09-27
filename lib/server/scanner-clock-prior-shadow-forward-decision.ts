@@ -8,6 +8,7 @@ import {
   canonicalQualityRankingKValues,
 } from "@/lib/canonical-quality-metrics";
 import type { RecommendationEvaluationCharter } from "@/lib/recommendation-evaluation-charter";
+import { RECOMMENDATION_DECISION_FEATURE_VECTOR_VERSION } from "@/lib/recommendation-decision-feature-vector";
 import type { LearningBaselineScanRun } from "@/lib/recommendation-learning-baseline-readiness";
 import type { RecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
@@ -38,9 +39,11 @@ import {
   SCANNER_RANKING_SHADOW_CANDIDATE_PERFORMANCE_AT_K_VERSION,
   SCANNER_RANKING_SHADOW_CONCENTRATION_INPUT_VERSION,
   SCANNER_RANKING_SHADOW_DIAGNOSTIC_THRESHOLD_POLICY_VERSION,
+  SCANNER_RANKING_SHADOW_FEASIBILITY_OBSERVATION_VERSION,
   SCANNER_RANKING_SHADOW_PROBABILITY_CALIBRATION_INPUT_VERSION,
   SCANNER_RANKING_SHADOW_PROBABILITY_CALIBRATION_OBSERVATION_VERSION,
   type ScannerRankingShadowConcentrationInput,
+  type ScannerRankingShadowFeasibilityObservation,
   type ScannerRankingShadowProbabilityCalibrationObservation,
 } from "@/lib/server/scanner-intraday-liquidity-shadow-canonical-evaluation";
 import { scannerClockPriorShadowEvaluationCharterDefinition } from "@/lib/server/scanner-clock-prior-shadow-evaluation-charter";
@@ -52,7 +55,7 @@ export const SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_DECISION_VERSION =
 export const SCANNER_CLOCK_PRIOR_SHADOW_POLICY_REFERENCE_VERSION =
   "scanner_clock_prior_shadow_policy_reference_v1" as const;
 export const SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_SCORECARD_METRICS_VERSION =
-  "scanner_clock_prior_shadow_forward_scorecard_metrics_v4" as const;
+  "scanner_clock_prior_shadow_forward_scorecard_metrics_v5" as const;
 
 type RankingK = (typeof canonicalQualityRankingKValues)[number];
 type PartitionName = "held_out" | "walk_forward";
@@ -208,6 +211,21 @@ type ProviderCostSummary = {
   credits_per_decision: number | null;
 };
 
+type FeasibilitySummary = {
+  observation_version:
+    typeof SCANNER_RANKING_SHADOW_FEASIBILITY_OBSERVATION_VERSION;
+  denominator: number;
+  decision_feature_vector_version: string | null;
+  liquidity_coverage: ProportionInterval | null;
+  volatility_coverage: ProportionInterval | null;
+  trigger_attainment_coverage: ProportionInterval | null;
+  unavailable_disclosed: {
+    spread: true;
+    halt_risk: true;
+    conservative_slippage: true;
+  };
+};
+
 export type ScannerClockPriorShadowForwardPartitionResult = {
   scorecard_metrics_version:
     typeof SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_SCORECARD_METRICS_VERSION;
@@ -224,6 +242,7 @@ export type ScannerClockPriorShadowForwardPartitionResult = {
   probability_calibration: ProbabilityCalibrationSummary | null;
   runtime_reliability: RuntimeReliabilitySummary;
   provider_cost: ProviderCostSummary;
+  feasibility: FeasibilitySummary;
   precision_delta: {
     value: number;
     conservative_lower: number;
@@ -643,6 +662,20 @@ function emptyPartition(
       reserved_provider_credits: 0,
       credits_per_decision: null,
     },
+    feasibility: {
+      observation_version:
+        SCANNER_RANKING_SHADOW_FEASIBILITY_OBSERVATION_VERSION,
+      denominator: 0,
+      decision_feature_vector_version: null,
+      liquidity_coverage: null,
+      volatility_coverage: null,
+      trigger_attainment_coverage: null,
+      unavailable_disclosed: {
+        spread: true,
+        halt_risk: true,
+        conservative_slippage: true,
+      },
+    },
     precision_delta: null,
     evidence_complete: false,
     reason_codes: uniqueSorted(reasonCodes),
@@ -895,6 +928,81 @@ function concentrationSummary(input: {
   };
 }
 
+function nonNegativeFinite(value: number | null) {
+  return value !== null && Number.isFinite(value) && value >= 0;
+}
+
+function feasibilitySummary(input: {
+  observations: ScannerRankingShadowFeasibilityObservation[];
+  denominator: number;
+}) {
+  const identities = new Set(
+    input.observations.map((observation) => observation.candidate_id),
+  );
+  const vectorVersions = uniqueSorted(
+    input.observations.map(
+      (observation) => observation.decision_feature_vector_version,
+    ),
+  );
+  const samePopulation = input.denominator > 0 &&
+    input.observations.length === input.denominator &&
+    identities.size === input.denominator;
+  const liquidityCount = input.observations.filter((observation) =>
+    nonNegativeFinite(observation.liquidity.intraday_recent_volume_ratio) &&
+    nonNegativeFinite(observation.liquidity.intraday_latest_volume) &&
+    nonNegativeFinite(observation.liquidity.intraday_average_volume)
+  ).length;
+  const volatilityCount = input.observations.filter((observation) =>
+    nonNegativeFinite(
+      observation.volatility.intraday_average_range_percent,
+    ) &&
+    nonNegativeFinite(observation.volatility.intraday_latest_range_percent) &&
+    nonNegativeFinite(
+      observation.volatility.intraday_range_expansion_ratio,
+    ) &&
+    nonNegativeFinite(observation.volatility.intraday_recent_range_percent)
+  ).length;
+  const triggerAttainmentCount = input.observations.filter(
+    (observation) => typeof observation.trigger_attainment === "boolean",
+  ).length;
+  const unavailableDisclosed = input.observations.every((observation) =>
+    observation.unavailable_disclosed.spread === true &&
+    observation.unavailable_disclosed.halt_risk === true &&
+    observation.unavailable_disclosed.conservative_slippage === true
+  );
+  const summary = {
+    observation_version:
+      SCANNER_RANKING_SHADOW_FEASIBILITY_OBSERVATION_VERSION,
+    denominator: input.denominator,
+    decision_feature_vector_version:
+      vectorVersions.length === 1 ? vectorVersions[0]! : null,
+    liquidity_coverage: input.denominator > 0
+      ? wilson(liquidityCount, input.denominator)
+      : null,
+    volatility_coverage: input.denominator > 0
+      ? wilson(volatilityCount, input.denominator)
+      : null,
+    trigger_attainment_coverage: input.denominator > 0
+      ? wilson(triggerAttainmentCount, input.denominator)
+      : null,
+    unavailable_disclosed: {
+      spread: true,
+      halt_risk: true,
+      conservative_slippage: true,
+    },
+  } satisfies FeasibilitySummary;
+  return {
+    summary,
+    samePopulation,
+    supportedVectorVersion: vectorVersions.length === 1 &&
+      vectorVersions[0] === RECOMMENDATION_DECISION_FEATURE_VECTOR_VERSION,
+    liquidityComplete: liquidityCount === input.denominator,
+    volatilityComplete: volatilityCount === input.denominator,
+    triggerAttainmentComplete: triggerAttainmentCount === input.denominator,
+    unavailableDisclosed,
+  };
+}
+
 function seededUnit(seed: string) {
   let state = createHash("sha256").update(seed).digest().readUInt32BE(0) || 1;
   return () => {
@@ -1087,6 +1195,7 @@ function summarizePartition(input: {
   concentrationObservations: ScannerRankingShadowConcentrationInput[];
   probabilityCalibrationObservations:
     ScannerRankingShadowProbabilityCalibrationObservation[];
+  feasibilityObservations: ScannerRankingShadowFeasibilityObservation[];
   probabilityCalibrationModelFingerprint: string | null;
   runtimeEvidence: ScannerClockPriorShadowForwardRuntimeEvidence[];
   expectedScanFingerprints: Set<string>;
@@ -1182,6 +1291,10 @@ function summarizePartition(input: {
   const probabilityCalibration = probabilityCalibrationSummary({
     observations: input.probabilityCalibrationObservations,
     modelFingerprint: input.probabilityCalibrationModelFingerprint,
+  });
+  const feasibility = feasibilitySummary({
+    observations: input.feasibilityObservations,
+    denominator: expectedOutcomeCount,
   });
   const operational = runtimeAndCostSummary({
     evidence: input.runtimeEvidence,
@@ -1285,9 +1398,26 @@ function summarizePartition(input: {
   ) {
     reasons.push("provider_cost_charter_maximum_exceeded");
   }
-  // Feasibility is the only remaining charter dimension after the exact
-  // runtime and provider-cost evidence is attached to this partition.
-  reasons.push("forward_charter_scorecard_incomplete");
+  if (!feasibility.samePopulation) {
+    reasons.push("candidate_feasibility_denominator_missing_or_mismatched");
+  }
+  if (!feasibility.supportedVectorVersion) {
+    reasons.push(
+      "candidate_feasibility_feature_vector_version_unsupported_or_mixed",
+    );
+  }
+  if (!feasibility.liquidityComplete) {
+    reasons.push("candidate_liquidity_feasibility_evidence_incomplete");
+  }
+  if (!feasibility.volatilityComplete) {
+    reasons.push("candidate_volatility_feasibility_evidence_incomplete");
+  }
+  if (!feasibility.triggerAttainmentComplete) {
+    reasons.push("candidate_trigger_attainment_evidence_incomplete");
+  }
+  if (!feasibility.unavailableDisclosed) {
+    reasons.push("candidate_unavailable_feasibility_not_disclosed");
+  }
   const clusteredInterval = clusteredPrecisionDeltaInterval(
     input.observations,
     input.bootstrapSeed,
@@ -1325,6 +1455,7 @@ function summarizePartition(input: {
     probability_calibration: probabilityCalibration.summary,
     runtime_reliability: operational.reliability,
     provider_cost: operational.cost,
+    feasibility: feasibility.summary,
     precision_delta: delta,
     evidence_complete: reasonCodes.length === 0,
     reason_codes: reasonCodes,
@@ -1424,6 +1555,13 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
   const probabilityCalibrationObservations: Record<
     PartitionName,
     ScannerRankingShadowProbabilityCalibrationObservation[]
+  > = {
+    held_out: [],
+    walk_forward: [],
+  };
+  const feasibilityObservations: Record<
+    PartitionName,
+    ScannerRankingShadowFeasibilityObservation[]
   > = {
     held_out: [],
     walk_forward: [],
@@ -1696,6 +1834,21 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
         );
       }
     }
+    const feasibilityInputs = evaluation.feasibility_observations;
+    if (
+      evaluation.feasibility_observation_version !==
+        SCANNER_RANKING_SHADOW_FEASIBILITY_OBSERVATION_VERSION ||
+      !feasibilityInputs ||
+      feasibilityInputs.length !== evaluation.coverage.expected_candidate_count ||
+      new Set(feasibilityInputs.map((item) => item.candidate_id)).size !==
+        feasibilityInputs.length
+    ) {
+      reasonsByPartition[partition].push(
+        "candidate_feasibility_observations_incomplete",
+      );
+    } else {
+      feasibilityObservations[partition].push(...feasibilityInputs);
+    }
     observations[partition].push({
       decision_at: decisionAt,
       no_trade: false,
@@ -1776,6 +1929,7 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
       concentrationObservations: concentrationObservations[partition],
       probabilityCalibrationObservations:
         probabilityCalibrationObservations[partition],
+      feasibilityObservations: feasibilityObservations[partition],
       probabilityCalibrationModelFingerprint:
         probabilityCalibration?.model_fingerprint ?? null,
       runtimeEvidence: runtimeEvidence[partition],

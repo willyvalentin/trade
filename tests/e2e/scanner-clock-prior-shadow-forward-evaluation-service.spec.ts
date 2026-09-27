@@ -202,6 +202,39 @@ function partition(name: "held_out" | "walk_forward") {
       reserved_provider_credits: 240,
       credits_per_decision: 8,
     },
+    feasibility: {
+      observation_version:
+        "scanner_ranking_shadow_feasibility_observation_v1" as const,
+      denominator: 84,
+      decision_feature_vector_version:
+        "recommendation_decision_feature_vector_v2",
+      liquidity_coverage: {
+        value: 1,
+        numerator: 84,
+        denominator: 84,
+        lower: 0.95,
+        upper: 1,
+      },
+      volatility_coverage: {
+        value: 1,
+        numerator: 84,
+        denominator: 84,
+        lower: 0.95,
+        upper: 1,
+      },
+      trigger_attainment_coverage: {
+        value: 1,
+        numerator: 84,
+        denominator: 84,
+        lower: 0.95,
+        upper: 1,
+      },
+      unavailable_disclosed: {
+        spread: true as const,
+        halt_risk: true as const,
+        conservative_slippage: true as const,
+      },
+    },
     precision_delta: {
       value: 0.1,
       conservative_lower: 0.04,

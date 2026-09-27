@@ -7,6 +7,7 @@ import {
 import { buildCandidateDecisionLearningAttribution } from "@/lib/candidate-decision-learning-attribution";
 import { CANONICAL_OUTCOME_PROVIDER_COVERAGE_RECEIPT_VERSION } from "@/lib/recommendation-outcome-canonical-coverage";
 import { recommendationOutcomeEvaluationAnchorFromSnapshot } from "@/lib/recommendation-outcome-evaluation-anchor";
+import { recommendationDecisionSourceProvenanceFromSnapshot } from "@/lib/recommendation-decision-source-provenance";
 import { computeRecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
 import { buildRecommendationScanRun } from "@/lib/recommendation-scan-run";
 import { buildRecommendationSnapshot } from "@/lib/recommendation-snapshot";
@@ -70,6 +71,9 @@ function scannerCandidate(input: {
     latest_close: 100,
     volume_ratio: 1.8,
     recent_volume_ratio: 1.8,
+    average_range_percent: 2,
+    latest_range_percent: 3,
+    range_expansion_ratio: 1.5,
     proposed_entry_low: 99,
     proposed_entry_high: 100,
     proposed_stop_loss: 96,
@@ -89,8 +93,12 @@ function scannerCandidate(input: {
       volumeTrend: "expanding",
       latestVolume: 1800,
       averageVolume: 1000,
+      recentVolumeRatio: 1.8,
+      recentVolumeBarClosedAtSeconds: Date.parse(decidedAt) / 1000,
+      recentVolumeIntervalSeconds: 5 * 60,
       warnings: [],
     },
+    intraday_indicator_stale: false,
     intraday_indicator_source: "fresh",
     intraday_indicator_cached_at: decidedAt,
     reference_price_timestamp: decidedAt,
@@ -104,6 +112,7 @@ function fixture(input: {
   ticker?: string;
   terminal?: "target" | "stop";
   includeUnselected?: boolean;
+  missingLiquidity?: boolean;
 } = {}) {
   const decidedAt = input.decidedAt ?? DECIDED_AT;
   const terminal = input.terminal ?? "target";
@@ -266,6 +275,20 @@ function fixture(input: {
     const linkedDecision = record!.candidates.find(
       (item) => item.ticker === sourceCandidate.ticker,
     )!;
+    const decisionFeatureVector =
+      recommendationDecisionFeatureVectorFromScannerCandidate(
+        sourceCandidate,
+        Date.parse(decidedAt) / 1000,
+      );
+    if (input.missingLiquidity) {
+      decisionFeatureVector.feature_values.intraday_recent_volume_ratio = null;
+      decisionFeatureVector.explicit_unavailable_feature_names = Array.from(
+        new Set([
+          ...decisionFeatureVector.explicit_unavailable_feature_names,
+          "intraday_recent_volume_ratio" as const,
+        ]),
+      ).sort((left, right) => left.localeCompare(right));
+    }
     const snapshot = buildRecommendationSnapshot({
       recommendation_id: null,
       scan_run_id: scanRun.run_fingerprint,
@@ -307,10 +330,7 @@ function fixture(input: {
           payload_sha256: `sha256:${"1".repeat(64)}`,
           payload_byte_length: 214,
         },
-        decision_feature_vector:
-          recommendationDecisionFeatureVectorFromScannerCandidate(
-            sourceCandidate,
-          ),
+        decision_feature_vector: decisionFeatureVector,
         provider_source: "twelve_data",
         provider_version: "provider_test_v1",
         market_data_adapter_version: "adapter_test_v1",
@@ -1149,6 +1169,14 @@ test("withholds a complete cohort until the full recommendation-quality charter 
         maximum_single_setup_share: expect.objectContaining({ value: 1 }),
         maximum_single_regime_share: expect.objectContaining({ value: 1 }),
       },
+      feasibility: expect.objectContaining({
+        denominator: 10,
+        decision_feature_vector_version:
+          "recommendation_decision_feature_vector_v2",
+        liquidity_coverage: expect.objectContaining({ value: 1 }),
+        volatility_coverage: expect.objectContaining({ value: 1 }),
+        trigger_attainment_coverage: expect.objectContaining({ value: 1 }),
+      }),
       evidence_complete: false,
     }),
     expect.objectContaining({
@@ -1168,7 +1196,6 @@ test("withholds a complete cohort until the full recommendation-quality charter 
   expect(result.reason_codes).toEqual(expect.arrayContaining([
     "candidate_calibrated_probability_semantics_missing",
     "candidate_precision_charter_minimum_not_met",
-    "forward_charter_scorecard_incomplete",
     "regime_concentration_charter_maximum_exceeded",
     "sector_concentration_charter_maximum_exceeded",
     "setup_concentration_charter_maximum_exceeded",
@@ -1255,7 +1282,18 @@ test("measures forward calibration only from a prior immutable training window",
   expect(result.reason_codes).not.toContain(
     "candidate_calibration_error_charter_maximum_exceeded",
   );
-  expect(result.reason_codes).toContain("forward_charter_scorecard_incomplete");
+  expect(result.reason_codes).not.toContain(
+    "candidate_feasibility_denominator_missing_or_mismatched",
+  );
+  expect(result.reason_codes).not.toContain(
+    "candidate_liquidity_feasibility_evidence_incomplete",
+  );
+  expect(result.reason_codes).not.toContain(
+    "candidate_volatility_feasibility_evidence_incomplete",
+  );
+  expect(result.reason_codes).not.toContain(
+    "candidate_trigger_attainment_evidence_incomplete",
+  );
 });
 
 test("fails the frozen charter when forward calibration error is too large", () => {
@@ -1454,7 +1492,6 @@ test("withholds a complete cohort whose candidate expectancy misses the charter"
   expect(result.reason_codes).toEqual(expect.arrayContaining([
     "candidate_expectancy_charter_minimum_not_met",
     "candidate_precision_charter_minimum_not_met",
-    "forward_charter_scorecard_incomplete",
   ]));
 });
 
@@ -1540,6 +1577,73 @@ test("measures missing immutable snapshots against the same candidate denominato
     "evidence_missingness_charter_maximum_exceeded",
     "outcome_coverage_charter_minimum_not_met",
   ]));
+});
+
+test("fails the scorecard closed when point-in-time liquidity is unavailable", () => {
+  const heldOut = fixture({
+    decidedAt: "2026-09-25T15:00:00.000Z",
+    ticker: "LIQ",
+    missingLiquidity: true,
+    includeUnselected: true,
+  });
+  expect(
+    recommendationDecisionSourceProvenanceFromSnapshot(heldOut.snapshot),
+  ).toMatchObject({
+    status: "admissible",
+    decision_feature_vector: {
+      feature_values: { intraday_recent_volume_ratio: null },
+    },
+  });
+  expect(evaluateScannerClockPriorShadowScan({
+    scanRun: heldOut.persistedRun,
+    snapshots: heldOut.snapshots,
+    outcomes: heldOut.outcomes,
+    bootstrapSeed: "clock-prior:missing-liquidity-seed-v1",
+  })).toMatchObject({
+    status: "probability_semantics_missing",
+    feasibility_observations: expect.arrayContaining([
+      expect.objectContaining({
+        liquidity: expect.objectContaining({
+          intraday_recent_volume_ratio: null,
+        }),
+      }),
+    ]),
+  });
+  const result = evaluateScannerClockPriorShadowForwardDecision({
+    plan: forwardDecisionPlan(),
+    evidenceBindings: forwardEvidenceBindings(),
+    scanRuns: [heldOut.persistedRun],
+    snapshots: heldOut.snapshots,
+    outcomes: heldOut.outcomes,
+    bootstrapSeed: "clock-prior-forward:missing-liquidity-seed-v1",
+  });
+
+  expect(result.status).toBe("evidence_incomplete");
+  expect(result.partitions[0]).toMatchObject({
+    partition: "held_out",
+    feasibility: {
+      denominator: 2,
+      decision_feature_vector_version:
+        "recommendation_decision_feature_vector_v2",
+      liquidity_coverage: { value: 0, numerator: 0, denominator: 2 },
+      volatility_coverage: { value: 1, numerator: 2, denominator: 2 },
+      trigger_attainment_coverage: {
+        value: 1,
+        numerator: 2,
+        denominator: 2,
+      },
+    },
+    evidence_complete: false,
+  });
+  expect(result.reason_codes).toContain(
+    "candidate_liquidity_feasibility_evidence_incomplete",
+  );
+  expect(result.reason_codes).not.toContain(
+    "candidate_volatility_feasibility_evidence_incomplete",
+  );
+  expect(result.reason_codes).not.toContain(
+    "candidate_trigger_attainment_evidence_incomplete",
+  );
 });
 
 test("fails the forward cohort closed on duplicate scans or a changed frozen plan", () => {
@@ -1720,6 +1824,39 @@ test("uses frozen conservative boundaries for continue, narrow and reject", () =
       provider_ticker_request_count: 160,
       reserved_provider_credits: 160,
       credits_per_decision: 8,
+    },
+    feasibility: {
+      observation_version:
+        "scanner_ranking_shadow_feasibility_observation_v1",
+      denominator: 80,
+      decision_feature_vector_version:
+        "recommendation_decision_feature_vector_v2",
+      liquidity_coverage: {
+        value: 1,
+        numerator: 80,
+        denominator: 80,
+        lower: 0.95,
+        upper: 1,
+      },
+      volatility_coverage: {
+        value: 1,
+        numerator: 80,
+        denominator: 80,
+        lower: 0.95,
+        upper: 1,
+      },
+      trigger_attainment_coverage: {
+        value: 1,
+        numerator: 80,
+        denominator: 80,
+        lower: 0.95,
+        upper: 1,
+      },
+      unavailable_disclosed: {
+        spread: true,
+        halt_risk: true,
+        conservative_slippage: true,
+      },
     },
     precision_delta: {
       value: 0.1,

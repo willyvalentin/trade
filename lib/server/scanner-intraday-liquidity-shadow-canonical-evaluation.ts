@@ -25,6 +25,7 @@ import { hasCanonicalOutcomeProviderCoverageWithEvaluationAnchor } from "@/lib/r
 import { recommendationOutcomeEvaluationAnchorFromSnapshot } from "@/lib/recommendation-outcome-evaluation-anchor";
 import type { RecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
 import { recommendationDecisionSourceProvenanceFromSnapshot } from "@/lib/recommendation-decision-source-provenance";
+import type { RecommendationDecisionFeatureVector } from "@/lib/recommendation-decision-feature-vector";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
 import {
   applyScannerScoreProbabilityCalibration,
@@ -62,6 +63,8 @@ export const SCANNER_RANKING_SHADOW_PROBABILITY_CALIBRATION_INPUT_VERSION =
   "scanner_ranking_shadow_probability_calibration_input_v1" as const;
 export const SCANNER_RANKING_SHADOW_PROBABILITY_CALIBRATION_OBSERVATION_VERSION =
   "scanner_ranking_shadow_probability_calibration_observation_v1" as const;
+export const SCANNER_RANKING_SHADOW_FEASIBILITY_OBSERVATION_VERSION =
+  "scanner_ranking_shadow_feasibility_observation_v1" as const;
 
 type ScannerRankingShadowCandidatePerformanceAtK = Record<string, {
   expectancy_r: {
@@ -107,6 +110,31 @@ export type ScannerRankingShadowProbabilityCalibrationObservation = {
   terminal_binary: 0 | 1 | null;
   baseline_probability: number | null;
   candidate_probability: number | null;
+};
+
+export type ScannerRankingShadowFeasibilityObservation = {
+  candidate_id: string;
+  ticker: string;
+  decision_at: string;
+  decision_feature_vector_version:
+    RecommendationDecisionFeatureVector["contract_version"];
+  liquidity: {
+    intraday_recent_volume_ratio: number | null;
+    intraday_latest_volume: number | null;
+    intraday_average_volume: number | null;
+  };
+  volatility: {
+    intraday_average_range_percent: number | null;
+    intraday_latest_range_percent: number | null;
+    intraday_range_expansion_ratio: number | null;
+    intraday_recent_range_percent: number | null;
+  };
+  trigger_attainment: boolean | null;
+  unavailable_disclosed: {
+    spread: true;
+    halt_risk: true;
+    conservative_slippage: true;
+  };
 };
 
 export type ScannerRankingShadowAttribution = {
@@ -179,6 +207,9 @@ export type ScannerRankingShadowCanonicalEvaluationResult<
     typeof SCANNER_RANKING_SHADOW_PROBABILITY_CALIBRATION_OBSERVATION_VERSION;
   probability_calibration_observations:
     ScannerRankingShadowProbabilityCalibrationObservation[] | null;
+  feasibility_observation_version:
+    typeof SCANNER_RANKING_SHADOW_FEASIBILITY_OBSERVATION_VERSION;
+  feasibility_observations: ScannerRankingShadowFeasibilityObservation[] | null;
   threshold_policy_semantics: "diagnostic_all_candidates_only";
   shadow_only: true;
   live_ranking_effect: false;
@@ -204,6 +235,7 @@ type CandidateEvidence = {
   sector: string;
   setup_type: SetupType;
   decision_at: string;
+  decision_feature_vector: RecommendationDecisionFeatureVector;
 };
 
 const supportedDecisionMarketRegimes = new Set([
@@ -412,7 +444,13 @@ function evidenceForCandidate(input: {
   if (!snapshot) {
     return { evidence: null, reason_codes: ["candidate_snapshot_not_exactly_one"] };
   }
-  if (recommendationDecisionSourceProvenanceFromSnapshot(snapshot).status !== "admissible") {
+  const sourceProvenance = recommendationDecisionSourceProvenanceFromSnapshot(
+    snapshot,
+  );
+  if (
+    sourceProvenance.status !== "admissible" ||
+    !sourceProvenance.decision_feature_vector
+  ) {
     return { evidence: null, reason_codes: ["candidate_source_provenance_incomplete"] };
   }
   const linked = input.outcomes.filter(
@@ -524,6 +562,7 @@ function evidenceForCandidate(input: {
       sector,
       setup_type: setupType,
       decision_at: input.decisionTimestamp,
+      decision_feature_vector: sourceProvenance.decision_feature_vector,
     },
     reason_codes: [],
   };
@@ -669,6 +708,7 @@ function terminalResult<AdapterVersion extends string>(input: {
   probabilityCalibrationModel?: ScannerScoreProbabilityCalibrationModel | null;
   probabilityCalibrationInputs?: ScannerRankingShadowProbabilityCalibrationInput[];
   probabilityCalibrationObservations?: ScannerRankingShadowProbabilityCalibrationObservation[];
+  feasibilityObservations?: ScannerRankingShadowFeasibilityObservation[];
 }): ScannerRankingShadowCanonicalEvaluationResult<AdapterVersion> {
   return {
     adapter_version: input.adapterVersion,
@@ -699,6 +739,9 @@ function terminalResult<AdapterVersion extends string>(input: {
       SCANNER_RANKING_SHADOW_PROBABILITY_CALIBRATION_OBSERVATION_VERSION,
     probability_calibration_observations:
       input.probabilityCalibrationObservations ?? null,
+    feasibility_observation_version:
+      SCANNER_RANKING_SHADOW_FEASIBILITY_OBSERVATION_VERSION,
+    feasibility_observations: input.feasibilityObservations ?? null,
     ...safety,
   };
 }
@@ -1163,6 +1206,35 @@ export function evaluateScannerRankingShadowScan<AdapterVersion extends string>(
       candidate_probability: candidateApplication?.probability ?? null,
     } satisfies ScannerRankingShadowProbabilityCalibrationObservation;
   });
+  const feasibilityObservations = orderedEvidence.map((item) => {
+    const features = item.decision_feature_vector.feature_values;
+    return {
+      candidate_id: item.attribution.candidate_id,
+      ticker: item.attribution.ticker,
+      decision_at: item.decision_at,
+      decision_feature_vector_version:
+        item.decision_feature_vector.contract_version,
+      liquidity: {
+        intraday_recent_volume_ratio: features.intraday_recent_volume_ratio,
+        intraday_latest_volume: features.intraday_latest_volume,
+        intraday_average_volume: features.intraday_average_volume,
+      },
+      volatility: {
+        intraday_average_range_percent:
+          features.intraday_average_range_percent,
+        intraday_latest_range_percent: features.intraday_latest_range_percent,
+        intraday_range_expansion_ratio:
+          features.intraday_range_expansion_ratio,
+        intraday_recent_range_percent: features.intraday_recent_range_percent,
+      },
+      trigger_attainment: item.outcome.entry_triggered,
+      unavailable_disclosed: {
+        spread: true,
+        halt_risk: true,
+        conservative_slippage: true,
+      },
+    } satisfies ScannerRankingShadowFeasibilityObservation;
+  });
   return terminalResult({
     adapterVersion: input.adapterVersion,
     status: evaluation.status,
@@ -1190,6 +1262,7 @@ export function evaluateScannerRankingShadowScan<AdapterVersion extends string>(
     probabilityCalibrationModel: input.probabilityCalibration ?? null,
     probabilityCalibrationInputs,
     probabilityCalibrationObservations,
+    feasibilityObservations,
   });
 }
 
