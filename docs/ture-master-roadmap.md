@@ -112,15 +112,19 @@ non-visible candidates, under a bounded fail-closed cap and without extra
 provider work. Only that exact versioned shadow cohort is now admitted through
 the canonical outcome path under the existing provider-credit guards; generic
 hidden research remains blocked and admission grants no provider authority. The
-active successor must keep each scheduled Basic Free snapshot selection within
-the same slot's four-request ceiling and expose versioned before/after backlog
-accounting. A receipt may not imply that selected work completed when the
-snapshot cap, provider budget, persistence or missing candles deferred it.
-Forward observations and outcome-linked baseline comparison then decide whether
-this policy should be promoted, narrowed or rejected. No threshold is lowered to
-create candidates, and neither attribution, snapshot admission, capacity
-alignment, coverage nor a descriptive outcome delta is quality evidence by
-itself.
+Basic Free outcome-capacity contract now keeps each scheduled snapshot selection
+within the same slot's four-request ceiling and exposes versioned before/after
+backlog accounting. A receipt may not imply that selected work completed when
+the snapshot cap, provider budget, persistence or missing candles deferred it.
+
+The active successor is contextual ranking evidence: first preserve the exact
+decision-time market-regime receipt through canonical evaluation, then measure
+the legacy named-window timing, setup boost and warning penalty against the
+same-population IF-3b clock-neutral shadow challenger. Forward observations and
+outcome-linked baseline comparison then decide whether any policy should be
+promoted, narrowed or rejected. No threshold is lowered to create candidates,
+and neither attribution, snapshot admission, capacity alignment, rank movement,
+coverage nor a descriptive outcome delta is quality evidence by itself.
 
 For every recommendation-quality hypothesis, build in this order: admit and
 version the point-in-time input; run the challenger in shadow over the exact
@@ -921,6 +925,29 @@ timestamp, provider and benchmark-completeness boundary fails closed. A later
 provider adapter must carry an explicit budget, persisted point-in-time receipt,
 readback, a versioned ranking-policy change and comparable baseline evaluation
 before its regime can affect candidates.
+
+**IF-3b — evidence-first clock-neutral ranking.** A named opening, midday,
+afternoon or power-hour label is scheduling/session context, not independent
+evidence that one candidate is better than another. Preserve verified-session,
+freshness and separately validated late-entry safety, but measure the current
+timing score, setup-window boost and named-window warning penalty against a
+versioned challenger that ranks the exact same candidate population only from
+the admitted point-in-time price, trend, momentum, volatility, liquidity,
+risk/reward, regime, source and data-quality evidence. Missing feature
+breakdown, duplicate identity or population drift makes the comparison
+conflicting. The challenger remains shadow-only and must state
+`live_ranking_effect=false`, `publication_effect=false` and
+`execution_effect=false` until IF-4 evidence supports a separate promotion.
+
+**IF-3b acceptance evidence.** Persist per-candidate baseline/challenger rank,
+score, tier, selection and the exact removed clock contribution under frozen
+policy versions. Prove deterministic same-population replay and that changing
+only a named clock label or its legacy warning cannot change the challenger.
+Then bind each displacement to immutable decision lineage and exact canonical
+outcomes. Rank movement or a different candidate set is diagnostic only; a
+policy decision requires the declared forward cohort, complete attributable
+coverage and the IF-4 baseline comparison. Do not lower publication thresholds
+or force a candidate while collecting this evidence.
 
 #### IF-4 — measured learning dataset
 

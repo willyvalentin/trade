@@ -155,31 +155,53 @@ passed all six provider-free shards, aggregate verification and merge-candidate
 provenance. Forward canonical outcomes remain separate evidence; this repairs
 measurability and does not prove the challenger is better.
 
-**Active successor CLOSED slice — Basic Free outcome-capacity alignment:** owner
-Codex on `codex/basic-free-outcome-capacity`, based on exact main
-`c76aea70f9a5319b491127f5c009c69fc05be1f9`. The scheduled outcome function
-selected up to ten pending snapshots while the same slot could reserve and issue
-at most four provider candle requests. The runner failed safely by marking the
-remaining selected snapshots `pending_provider_budget`, but the schedule and
-pre-run backlog diagnostic described more selected work than the slot could
-possibly request. The selected fix shares one versioned Basic Free capacity
-contract, aligns scheduled selection to four snapshots, and emits actual
+**Merged and production-verified CLOSED slice — Basic Free outcome-capacity
+alignment:** PR [#663](https://github.com/willyvalentin/trade/pull/663) merged as
+`6bada420d393b044ba98eea83d026e8d7dd0f991`; Netlify production deploy
+`6ab85afac97ade0008a9eb49` is `ready` on that exact revision. The scheduled
+outcome function previously selected up to ten pending snapshots while the same
+slot could reserve and issue at most four provider candle requests. The merged
+contract aligns scheduled selection to four snapshots and emits truthful
 before/after backlog, snapshot-cap deferral, provider-budget deferral and used
-requests after persistence. It does not raise credits, call a provider, alter
-ranking/publication or claim quality improvement. Current local evidence is
-21/21 focused capacity, credit, revisit and preserved-admission tests, 50/50
-broader outcome/lineage tests, the 166/166 intelligence-foundation suite,
-strict TypeScript, changed-file lint and all scheduled-runtime bundles. The
-complete Next 16.3.4 webpack production build also passes. PR/CI, merge/deploy
-and forward outcomes remain separate evidence.
+requests after persistence. It neither raises the credit budget nor changes
+ranking, publication or execution. Local acceptance included 21/21 focused
+capacity, credit, revisit and preserved-admission tests, 50/50 broader
+outcome/lineage tests, the 166/166 intelligence-foundation suite, strict
+TypeScript, changed-file lint, all scheduled-runtime bundles and a complete Next
+16.3.4 webpack production build. Protected CI run `36279614901` passed. This
+delivery makes outcome collection truthful and bounded; it does not prove a
+ranking or recommendation-quality improvement.
 
-**Next after this slice:** obtain the frozen full-population cohort in a bounded
-regular-session observation, drain its canonical outcomes under the truthful
-capacity/backlog contract, and run the already deployed paired evaluator against
-the frozen baseline. Classify the result continue, narrow or reject; no candidate
-quota or threshold relaxation is permitted. If that OPEN cohort is waiting, the
-next CLOSED slice must improve or test a missing data/context/ranking input for
-the same population rather than reopen generic control-plane work.
+**Merged and production-verified CLOSED slice — decision-time market-regime
+lineage:** PR [#664](https://github.com/willyvalentin/trade/pull/664) merged as
+`0e786c0f727f106746a8c9769741b82555037aca`; Netlify production deploy
+`6ab8668cc8225e000821a4c3` is `ready`, Git-connected, `production`, branch
+`main`, `manual_deploy=false` and carries that exact revision. The delivery
+persists a versioned `market_regime_v1` decision-time receipt through scan-run,
+visible, research, rejected and liquidity-shadow evidence. Canonical adapters
+recover the nested production receipt, and the paired liquidity-shadow
+evaluator now requires exact regime lineage and evaluates the recorded
+`risk_on`, `neutral` or `risk_off` state. Missing, conflicting or the unavailable
+all-zero neutral fallback fails closed. It does not change live ranking,
+publication, provider work or execution. Local acceptance included 27/27
+focused tests, the 168/168 intelligence-foundation suite, strict TypeScript,
+changed-file lint, all scheduled-runtime bundles and a complete Next 16.3.4
+webpack production build. Protected CI run `36281281535` passed all six
+provider-free shards, aggregate verification and merge-candidate provenance.
+Real forward outcomes and any measured quality delta remain separate evidence.
+
+**Active intelligence successor:** complete immutable decision-time context and
+same-population shadow comparisons before changing the live ranker. The current
+sequence is now IF-3b measurement of legacy named-window timing/setup priors
+against an evidence-first clock-neutral challenger, using the completed regime
+lineage as decision context. Each comparison must bind exact policy versions and
+candidate identity to canonical outcomes. It remains shadow-only until the
+declared forward cohort is complete and IF-4 classifies it `continue`, `narrow`
+or `reject`; no candidate quota or threshold relaxation is permitted. A bounded
+regular-session observation is still required to prove the deployed path with
+real forward evidence. While that OPEN evidence waits, CLOSED work must improve
+or test missing data, context, ranking or evaluation inputs rather than reopen
+generic control-plane work without a reproduced safety or integrity defect.
 
 ### Continuous-observation technical direction — 2026-09-24
 
