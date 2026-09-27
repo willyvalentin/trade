@@ -14,16 +14,17 @@ scope.
 
 ### Now / Next / Blocked selection — 2026-09-27
 
-- **Now:** freeze the exact clock-neutral IF-3b experiment before its first
-  forward sample. The charter is deployed and server-owned; the active CLOSED
-  delivery now makes the paired plan server-owned too. The caller may select
-  only the exact baseline segment and cannot supply or weaken K, dates, 30/30
-  minimums, trading-day coverage or `continue`/`reject` boundaries.
-- **Next:** durably record the exact owner-bound charter and forward-plan
-  receipts before the held-out window starts on 2026-09-28 at 13:30Z, then use
-  OPEN observations only for that frozen cohort. The completed cohort may issue
-  one `continue`, `narrow` or `reject` shadow decision; none of those outcomes
-  alone authorizes promotion.
+- **Now:** collect the exact clock-neutral IF-3b forward cohort without changing
+  live ranking or publication. The server-owned charter and plan are durably
+  frozen in production before the first sample: K=3, 30/30 held-out and
+  walk-forward minimums, eight trading days per partition and immutable
+  `continue >= +0.03` / `reject <= 0.00` precision-delta boundaries.
+- **Next:** use OPEN observations only for that frozen cohort from 2026-09-28 at
+  13:30Z, preserving every attributable candidate, rejection and explicit
+  `no_trade` decision plus its canonical outcome. CLOSED work closes only the
+  next missing collection, lineage, outcome or evaluator link for this
+  hypothesis. Complete evidence may issue one `continue`, `narrow` or `reject`
+  shadow decision; none of those outcomes alone authorizes promotion.
 - **Blocked from selection:** live-policy promotion until complete attributable
   held-out/forward evidence exists; new generic scheduler/control-plane work
   without a reproduced integrity or safety defect; paper/broker expansion until
@@ -442,18 +443,52 @@ production POST returned `401` with `Cache-Control: no-store`. No production
 charter or plan has been recorded and no provider, ranking, publication,
 promotion, paper or broker effect occurred.
 
-**Active CLOSED delivery — server-owned clock-neutral forward cohort:** the
+**Merged, production-verified and durably activated CLOSED delivery —
+server-owned clock-neutral forward cohort:** the
 paired plan accepts only the exact baseline segment. Ture owns K=3; held-out
 2026-09-28 through 2026-10-09; walk-forward 2026-10-12 through 2026-10-23; at
 least 30 opportunity sets, 30 ranked identities and eight trading days in each
 partition; and conservative `continue >= +0.03` / `reject <= 0.00` precision
 delta boundaries. It requires the exact server-owned charter fingerprint,
 rejects late activation and caller-owned plan fields, and adds no provider,
-ranking, publication, promotion, paper or broker authority. This is local work
-in progress with 13/13 focused charter/plan tests, 168/168 full
-intelligence-foundation tests, strict non-incremental TypeScript, changed-file
-lint, diff validation and a complete Next.js 16.3.4 webpack production build
-passing. No production receipt has been written.
+ranking, publication, promotion, paper or broker authority.
+
+PR [#675](https://github.com/willyvalentin/trade/pull/675) merged as exact main
+`ea179b1060cbc29fbdc01b6c6541efb6362277a9`. Protected PR CI run
+`36305065981` passed all six provider-free shards, aggregate verification and
+merge-candidate provenance; post-merge run `36306559573` passed on that exact
+revision. Automatic Git-connected Netlify production deploy
+`6ab8d4caa62d650008dded4f` is `ready`, `production`, branch `main`,
+`manual_deploy=false` and carries the same revision. Local acceptance was 13/13
+focused charter/plan tests, 168/168 intelligence-foundation tests, strict
+non-incremental TypeScript, changed-file lint, diff validation and a complete
+Next.js 16.3.4 webpack production build.
+
+Production now contains exactly one owner-bound server-profile charter with
+fingerprint
+`f7ad78a555f9e6a92200e3a95fbf4c098badef80dbbf25b49682805d8fcfd7b3`,
+recorded at `2026-09-27T08:41:01.788903Z`; authenticated application readback
+found exactly one match. The paired plan has fingerprint
+`a08e2345cfe76bbb46a6faa502e1091ddc3a5b13aec299d925d5bc7c3a19b91c`,
+with semantic policy-reference fingerprint
+`ffc47860367373669680016f678279e496dab49e725736149cc6a599c2cdbdab`;
+normal authenticated activation returned `201` and exact application readback
+found one plan. Both responses explicitly deny provider request and credit
+reservation, ranking/publication change, policy promotion, candidate
+publication, paper position and broker action.
+
+The normal charter activation route twice exceeded the production gateway
+timeout while recomputing the full double-read learning source; bounded
+readback proved that neither timeout wrote a row. The exact charter was then
+built by the same checked-in server contract and recorded idempotently through
+the existing service-role-only RPC after the production segment had already
+been verified unique; normal owner-bound application readback verified the
+result. This is a reproduced activation-latency defect, not a quality-evidence
+gap and not authority to bypass the server-owned charter contract again. It may
+be repaired during CLOSED without delaying the already frozen cohort. No
+provider request, ranking/publication change, promotion, paper position or
+broker action occurred. This delivery freezes what Ture will test; it does not
+yet prove that the challenger improves recommendation quality.
 
 ### Continuous-observation technical direction — 2026-09-24
 

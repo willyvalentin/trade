@@ -37,7 +37,7 @@ test("current-state ledger names the active quality chain and its promotion gate
   const ledger = readDoc("docs/ture-current-state-ledger.md");
 
   expect(ledger).toContain("### Now / Next / Blocked selection — 2026-09-27");
-  expect(ledger).toContain("finish the clock-neutral IF-3b hypothesis end to end");
+  expect(ledger).toContain("collect the exact clock-neutral IF-3b forward cohort");
   expect(ledger).toMatch(/live-policy promotion until complete attributable\s+held-out\/forward evidence exists/);
   expect(ledger).toMatch(
     /paper\/broker expansion until\s+IF-5 demonstrates sustained useful recommendation quality/,
