@@ -464,12 +464,11 @@ focused charter/plan tests, 168/168 intelligence-foundation tests, strict
 non-incremental TypeScript, changed-file lint, diff validation and a complete
 Next.js 16.3.4 webpack production build.
 
-Production now contains exactly one owner-bound server-profile charter:
-`4181c8b4-c66b-4e3f-88a0-92b45cb3dd06`, fingerprint
+Production now contains exactly one owner-bound server-profile charter with
+fingerprint
 `f7ad78a555f9e6a92200e3a95fbf4c098badef80dbbf25b49682805d8fcfd7b3`,
 recorded at `2026-09-27T08:41:01.788903Z`; authenticated application readback
-found exactly one match. The paired plan is
-`5dd4b27e-b82b-4b34-8d8a-55c40a88ac64`, fingerprint
+found exactly one match. The paired plan has fingerprint
 `a08e2345cfe76bbb46a6faa502e1091ddc3a5b13aec299d925d5bc7c3a19b91c`,
 with semantic policy-reference fingerprint
 `ffc47860367373669680016f678279e496dab49e725736149cc6a599c2cdbdab`;
