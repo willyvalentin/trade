@@ -124,7 +124,10 @@ versioned server-owned evaluation charter and one time-separated forward cohort
 frozen before sampling. That charter must predeclare the population, primary
 outcome, minimum sample, setup/regime slices, quality, coverage, reliability,
 cost, concentration and feasibility limits; a caller may select the exact
-baseline segment but may not supply or weaken those values. Forward
+baseline segment but may not supply or weaken those values. The paired forward
+plan must be equally server-owned: predeclared K, held-out/walk-forward dates,
+minimum complete populations, trading-day coverage and decision boundaries are
+immutable before the first sample. Forward
 observations and the separate result-based IF-4 baseline comparison must then
 decide whether the challenger is continued, narrowed or rejected before any
 live-policy change. No threshold is lowered to create candidates, and neither

@@ -312,8 +312,11 @@ import {
   buildScannerClockPriorShadowOutcomeProjection,
   type ScannerClockPriorShadowOutcomeProjection,
 } from "@/lib/scanner-ranking-clock-prior-shadow-outcome-projection";
+import { SCANNER_CLOCK_PRIOR_BASELINE_POLICY_VERSION } from "@/lib/scanner-ranking-clock-prior-shadow";
+import { scannerClockPriorShadowForwardPlanProfile } from "@/lib/scanner-clock-prior-shadow-forward-plan-profile";
 import type { RecommendationLearningBaselineFreeze } from "@/lib/recommendation-learning-baseline-freeze-store";
 import type { RecommendationEvaluationCharter } from "@/lib/recommendation-evaluation-charter";
+import type { ScannerClockPriorShadowForwardDecisionPlanReceipt } from "@/lib/scanner-clock-prior-shadow-forward-decision-store";
 import {
   marketWideDiscoveryReadbackFromScheduledAttempt,
   marketWideDiscoveryReadbackFromScanRun,
@@ -2789,6 +2792,67 @@ async function postRecommendationEvaluationCharter({
       charter: null,
       status: null,
       error: "Durable evaluation-charter storage is unavailable.",
+    };
+  }
+}
+
+type ClockPriorExperimentActivationPayload = {
+  status?: string;
+  charter?: RecommendationEvaluationCharter | null;
+  receipt?: ScannerClockPriorShadowForwardDecisionPlanReceipt | null;
+  error?: string;
+  blocker?: string;
+};
+
+async function postClockPriorExperimentActivation(segmentKey: string) {
+  try {
+    const charterResponse = await fetch(
+      "/api/app/scanner-clock-prior-shadow-evaluation-charter",
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ segment_key: segmentKey }),
+      },
+    );
+    const charterPayload = (await charterResponse.json().catch(() => null)) as
+      | ClockPriorExperimentActivationPayload
+      | null;
+    if (!charterResponse.ok || !charterPayload?.charter) {
+      return {
+        charter: null,
+        receipt: null,
+        status: null,
+        error: charterPayload?.error ??
+          "The server-owned clock-neutral charter could not be recorded.",
+      };
+    }
+
+    const planResponse = await fetch(
+      "/api/app/scanner-clock-prior-shadow-forward-decision-plan",
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ segment_key: segmentKey }),
+      },
+    );
+    const planPayload = (await planResponse.json().catch(() => null)) as
+      | ClockPriorExperimentActivationPayload
+      | null;
+    return {
+      charter: charterPayload.charter,
+      receipt: planPayload?.receipt ?? null,
+      status: planPayload?.status ?? null,
+      error: planResponse.ok
+        ? ""
+        : planPayload?.error ??
+          "The server-owned clock-neutral forward cohort could not be frozen.",
+    };
+  } catch {
+    return {
+      charter: null,
+      receipt: null,
+      status: null,
+      error: "Clock-neutral experiment activation is unavailable.",
     };
   }
 }
@@ -9026,6 +9090,8 @@ export function TradeApp({
     useState("");
   const [isRecordingRecommendationEvaluationCharter, setIsRecordingRecommendationEvaluationCharter] =
     useState(false);
+  const [isActivatingClockPriorExperiment, setIsActivatingClockPriorExperiment] =
+    useState(false);
   const [recommendationSnapshotDiagnostics] =
     useState<RecommendationSnapshotDiagnostics>({
       snapshotsStoredToday: 0,
@@ -10316,6 +10382,34 @@ export function TradeApp({
       );
     }
     setIsRecordingRecommendationEvaluationCharter(false);
+  }
+
+  async function activateClockPriorExperiment(segmentKey: string) {
+    if (isActivatingClockPriorExperiment) return;
+    setIsActivatingClockPriorExperiment(true);
+    setRecommendationEvaluationCharterError("");
+    const result = await postClockPriorExperimentActivation(segmentKey);
+    if (result.charter) {
+      setRecommendationEvaluationCharters((current) => [
+        result.charter!,
+        ...current.filter((item) =>
+          item.segment_key !== result.charter!.segment_key
+        ),
+      ]);
+    }
+    if (result.error || !result.receipt) {
+      setRecommendationEvaluationCharterError(
+        result.error ||
+          "The durable clock-neutral experiment did not return a forward-plan receipt.",
+      );
+    } else {
+      setMessage(
+        result.status === "already_activated"
+          ? "The exact clock-neutral charter and forward cohort were already frozen."
+          : "Clock-neutral charter and forward cohort frozen before sampling.",
+      );
+    }
+    setIsActivatingClockPriorExperiment(false);
   }
 
   loadTradeDataRef.current = loadTradeData;
@@ -17391,7 +17485,9 @@ export function TradeApp({
               charters={recommendationEvaluationCharters}
               error={recommendationEvaluationCharterError}
               isRecording={isRecordingRecommendationEvaluationCharter}
+              isActivatingClockPriorExperiment={isActivatingClockPriorExperiment}
               onRecord={recordRecommendationEvaluationCharter}
+              onActivateClockPriorExperiment={activateClockPriorExperiment}
             />
 
             <RecommendationLearningBaselineReadinessPanel
@@ -39124,13 +39220,17 @@ function RecommendationEvaluationCharterPanel({
   charters,
   error,
   isRecording,
+  isActivatingClockPriorExperiment,
   onRecord,
+  onActivateClockPriorExperiment,
 }: {
   segmentation: RecommendationLearningBaselineSegmentation;
   charters: RecommendationEvaluationCharter[];
   error: string;
   isRecording: boolean;
+  isActivatingClockPriorExperiment: boolean;
   onRecord: (segmentKey: string, draftText: string) => void;
+  onActivateClockPriorExperiment: (segmentKey: string) => void;
 }) {
   const draftTemplate = JSON.stringify({
     contract_version: "recommendation_evaluation_charter_v1",
@@ -39182,6 +39282,9 @@ function RecommendationEvaluationCharterPanel({
     JSON.stringify(charter.policy_attribution) ===
       JSON.stringify(selectedSegment.policy_attribution)
   );
+  const isClockPriorBaselineSegment = selectedSegment?.policy_attribution
+    .canonical_evaluation_versions.ranking_version ===
+      SCANNER_CLOCK_PRIOR_BASELINE_POLICY_VERSION;
 
   return (
     <section className="rounded-lg border border-white/10 bg-black/20 p-4">
@@ -39232,6 +39335,70 @@ function RecommendationEvaluationCharterPanel({
         </p>
       )}
 
+      <div className="mt-4 rounded-md border border-cyan-300/20 bg-cyan-300/[0.04] p-3">
+        <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-cyan-100">
+          Active recommendation-quality experiment
+        </h4>
+        <p className="mt-3 text-sm leading-6 text-zinc-300">
+          Ture owns this clock-neutral experiment definition. Select the exact
+          baseline segment; the server freezes the immutable charter, K=3,
+          30/30 held-out and walk-forward cohorts, dates and decision limits.
+          The browser cannot lower them.
+        </p>
+        <p className="mt-2 font-mono text-xs leading-5 text-zinc-500">
+          Held-out {formatDate(
+            scannerClockPriorShadowForwardPlanProfile.windows.held_out.start_at,
+          )}
+          {" → "}{formatDate(
+            scannerClockPriorShadowForwardPlanProfile.windows.held_out.end_at,
+          )}
+          {" · walk-forward "}{formatDate(
+            scannerClockPriorShadowForwardPlanProfile.windows.walk_forward.start_at,
+          )}
+          {" → "}{formatDate(
+            scannerClockPriorShadowForwardPlanProfile.windows.walk_forward.end_at,
+          )}
+          {" · continue ≥ +0.03 · reject ≤ 0.00"}
+        </p>
+        <label className="mt-3 block text-xs leading-5 text-zinc-400">
+          Exact baseline policy/version segment
+          <select
+            value={selectedSegmentKey}
+            onChange={(event) => setSelectedSegmentKey(event.target.value)}
+            className="mt-1 block w-full rounded border border-white/10 bg-black/30 px-2 py-2 font-mono text-xs text-zinc-200"
+          >
+            <option value="">Choose a segment</option>
+            {segmentation.segments.slice(0, 50).map((segment) => (
+              <option key={segment.segment_key} value={segment.segment_key}>
+                {segment.policy_attribution.recommendation_publish_policy_version}
+                {" · "}
+                {segment.policy_attribution.canonical_evaluation_versions.ranking_version}
+                {" · "}{segment.decision_records.count} traceable decisions
+              </option>
+            ))}
+          </select>
+        </label>
+        <button
+          type="button"
+          disabled={
+            !selectedSegment ||
+            !isClockPriorBaselineSegment ||
+            isActivatingClockPriorExperiment
+          }
+          onClick={() => onActivateClockPriorExperiment(selectedSegmentKey)}
+          className="mt-3 rounded-md border border-cyan-300/30 bg-cyan-300/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-cyan-100 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {isActivatingClockPriorExperiment
+            ? "Freezing experiment…"
+            : "Freeze clock-neutral experiment"}
+        </button>
+        {selectedSegment && !isClockPriorBaselineSegment ? (
+          <p className="mt-2 text-xs leading-5 text-amber-200">
+            The selected segment is not the exact clock-prior baseline ranking.
+          </p>
+        ) : null}
+      </div>
+
       <div className="mt-4 rounded-md border border-white/10 bg-white/[0.025] p-3">
         <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
           Record a deliberate charter
@@ -39273,19 +39440,28 @@ function RecommendationEvaluationCharterPanel({
             <p className="mt-2 text-xs leading-5 text-zinc-500">
               Replace every placeholder with a deliberate value before recording.
               An unavailable feasibility input must be explicitly disclosed; it
-              cannot support an executable-performance claim.
+              cannot support an executable-performance claim. The active
+              clock-prior baseline is intentionally restricted to the
+              server-owned experiment control above.
             </p>
             <button
               type="button"
-              disabled={!selectedSegment || alreadyRecorded || isRecording}
+              disabled={
+                !selectedSegment ||
+                isClockPriorBaselineSegment ||
+                alreadyRecorded ||
+                isRecording
+              }
               onClick={() => onRecord(selectedSegmentKey, draftText)}
               className="mt-3 rounded-md border border-cyan-300/30 bg-cyan-300/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-cyan-100 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {alreadyRecorded
-                ? "Immutable charter already recorded"
-                : isRecording
-                  ? "Recording charter…"
-                  : "Record immutable charter"}
+              {isClockPriorBaselineSegment
+                ? "Use server-owned experiment control"
+                : alreadyRecorded
+                  ? "Immutable charter already recorded"
+                  : isRecording
+                    ? "Recording charter…"
+                    : "Record immutable charter"}
             </button>
           </>
         )}

@@ -3,6 +3,8 @@ import "server-only";
 import type {
   RecommendationEvaluationCharterReadResult,
 } from "@/lib/recommendation-evaluation-charter-store";
+import { buildRecommendationEvaluationCharterInput } from "@/lib/recommendation-evaluation-charter";
+import { scannerClockPriorShadowForwardPlanProfile } from "@/lib/scanner-clock-prior-shadow-forward-plan-profile";
 import {
   SCANNER_CLOCK_PRIOR_BASELINE_POLICY_VERSION,
   SCANNER_CLOCK_PRIOR_SHADOW_POLICY_VERSION,
@@ -15,6 +17,7 @@ import type {
 import {
   readRecommendationEvaluationCharters,
 } from "@/lib/server/recommendation-evaluation-charter-persistence";
+import { scannerClockPriorShadowEvaluationCharterDefinition } from "@/lib/server/scanner-clock-prior-shadow-evaluation-charter";
 import {
   readScannerClockPriorShadowForwardDecisionPlans,
   recordScannerClockPriorShadowForwardDecisionPlan,
@@ -28,11 +31,7 @@ import {
 
 type ActivationRequest = Pick<
   ScannerClockPriorShadowForwardDecisionPlanInput,
-  | "segment_key"
-  | "candidate_ranking_version"
-  | "primary_k"
-  | "windows"
-  | "thresholds"
+  "segment_key"
 >;
 
 export const scannerClockPriorShadowForwardPlanActivationAuthority = {
@@ -41,6 +40,7 @@ export const scannerClockPriorShadowForwardPlanActivationAuthority = {
   can_change_ranking_or_publication: false,
   can_promote_policy: false,
   can_publish_candidate: false,
+  can_create_paper_position: false,
   can_execute_broker_action: false,
 } as const;
 
@@ -80,23 +80,6 @@ const productionDependencies: ScannerClockPriorShadowForwardPlanActivationDepend
   recordPlan: recordScannerClockPriorShadowForwardDecisionPlan,
 };
 
-const serverAuthorityFields = new Set([
-  "owner_user_id",
-  "created_at",
-  "plan_fingerprint",
-  "evaluation_charter_id",
-  "evaluation_charter_fingerprint",
-  "policy_reference",
-  "baseline_ranking_version",
-]);
-const activationRequestFields = new Set([
-  "segment_key",
-  "candidate_ranking_version",
-  "primary_k",
-  "windows",
-  "thresholds",
-]);
-
 function record(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -104,59 +87,15 @@ function record(value: unknown): value is Record<string, unknown> {
 function activationRequest(value: unknown): ActivationRequest | null {
   if (
     !record(value) ||
-    Object.keys(value).some((key) =>
-      serverAuthorityFields.has(key) || !activationRequestFields.has(key)
-    )
-  ) {
-    return null;
-  }
-  const windows = record(value.windows) ? value.windows : null;
-  const heldOut = windows && record(windows.held_out)
-    ? windows.held_out
-    : null;
-  const walkForward = windows && record(windows.walk_forward)
-    ? windows.walk_forward
-    : null;
-  const thresholds = record(value.thresholds) ? value.thresholds : null;
-  if (
+    Object.keys(value).length !== 1 ||
     typeof value.segment_key !== "string" ||
-    value.candidate_ranking_version !==
-      SCANNER_CLOCK_PRIOR_SHADOW_POLICY_VERSION ||
-    ![1, 3, 5].includes(value.primary_k as number) ||
-    !heldOut ||
-    !walkForward ||
-    !thresholds
+    value.segment_key.length < 1 ||
+    value.segment_key.length > 16_384
   ) {
     return null;
   }
   return {
     segment_key: value.segment_key,
-    candidate_ranking_version: value.candidate_ranking_version,
-    primary_k: value.primary_k as ActivationRequest["primary_k"],
-    windows: {
-      held_out: {
-        start_at: heldOut.start_at as string,
-        end_at: heldOut.end_at as string,
-        minimum_opportunity_sets: heldOut.minimum_opportunity_sets as number,
-        minimum_ranked_candidates: heldOut.minimum_ranked_candidates as number,
-        minimum_trading_days: heldOut.minimum_trading_days as number,
-      },
-      walk_forward: {
-        start_at: walkForward.start_at as string,
-        end_at: walkForward.end_at as string,
-        minimum_opportunity_sets:
-          walkForward.minimum_opportunity_sets as number,
-        minimum_ranked_candidates:
-          walkForward.minimum_ranked_candidates as number,
-        minimum_trading_days: walkForward.minimum_trading_days as number,
-      },
-    },
-    thresholds: {
-      continue_minimum_precision_delta:
-        thresholds.continue_minimum_precision_delta as number,
-      reject_maximum_precision_delta:
-        thresholds.reject_maximum_precision_delta as number,
-    },
   };
 }
 
@@ -264,12 +203,23 @@ export function createScannerClockPriorShadowForwardPlanActivationService(
         );
       }
 
-      const matchingCharters = charters.charters.filter((charter) =>
-        charter.owner_user_id === ownerUserId &&
-        charter.segment_key === requested.segment_key &&
-        charter.policy_attribution.canonical_evaluation_versions.ranking_version ===
-          SCANNER_CLOCK_PRIOR_BASELINE_POLICY_VERSION
-      );
+      const matchingCharters = charters.charters.filter((charter) => {
+        if (
+          charter.owner_user_id !== ownerUserId ||
+          charter.segment_key !== requested.segment_key ||
+          charter.policy_attribution.canonical_evaluation_versions
+              .ranking_version !== SCANNER_CLOCK_PRIOR_BASELINE_POLICY_VERSION
+        ) {
+          return false;
+        }
+        const expected = buildRecommendationEvaluationCharterInput({
+          ownerUserId,
+          segmentKey: requested.segment_key,
+          policy: charter.policy_attribution,
+          charter: scannerClockPriorShadowEvaluationCharterDefinition,
+        });
+        return expected?.charter_fingerprint === charter.charter_fingerprint;
+      });
       if (matchingCharters.length !== 1) {
         return unavailable(
           "not_ready",
@@ -278,6 +228,17 @@ export function createScannerClockPriorShadowForwardPlanActivationService(
       }
 
       const charter = matchingCharters[0]!;
+      if (
+        now.getTime() >=
+          Date.parse(
+            scannerClockPriorShadowForwardPlanProfile.windows.held_out.start_at,
+          )
+      ) {
+        return unavailable(
+          "not_ready",
+          "clock_prior_forward_decision_plan_profile_window_already_started",
+        );
+      }
       const baselineRankingVersion =
         charter.policy_attribution.canonical_evaluation_versions.ranking_version;
       const policyReference = buildScannerClockPriorShadowPolicyReference({
@@ -305,10 +266,10 @@ export function createScannerClockPriorShadowForwardPlanActivationService(
         evaluation_charter_fingerprint: charter.charter_fingerprint,
         policy_reference: policyReference,
         baseline_ranking_version: baselineRankingVersion,
-        candidate_ranking_version: requested.candidate_ranking_version,
-        primary_k: requested.primary_k,
-        windows: requested.windows,
-        thresholds: requested.thresholds,
+        candidate_ranking_version: SCANNER_CLOCK_PRIOR_SHADOW_POLICY_VERSION,
+        primary_k: scannerClockPriorShadowForwardPlanProfile.primary_k,
+        windows: scannerClockPriorShadowForwardPlanProfile.windows,
+        thresholds: scannerClockPriorShadowForwardPlanProfile.thresholds,
       });
       if (!plan) {
         return unavailable(
@@ -348,7 +309,8 @@ export function createScannerClockPriorShadowForwardPlanActivationService(
         existingPlans.receipts.some((receipt) =>
           receipt.plan.policy_reference.reference_fingerprint ===
             policyReference.reference_fingerprint &&
-          receipt.plan.candidate_ranking_version === requested.candidate_ranking_version
+          receipt.plan.candidate_ranking_version ===
+            SCANNER_CLOCK_PRIOR_SHADOW_POLICY_VERSION
         )
       ) {
         return unavailable(

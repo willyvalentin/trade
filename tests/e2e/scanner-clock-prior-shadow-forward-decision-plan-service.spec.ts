@@ -3,24 +3,30 @@ import { resolve } from "node:path";
 
 import { expect, test } from "@playwright/test";
 
-import type { RecommendationEvaluationCharter } from "@/lib/recommendation-evaluation-charter";
+import {
+  buildRecommendationEvaluationCharterInput,
+  type RecommendationEvaluationCharter,
+} from "@/lib/recommendation-evaluation-charter";
 import type { ScannerClockPriorShadowForwardDecisionPlanReceipt } from "@/lib/scanner-clock-prior-shadow-forward-decision-store";
+import { scannerClockPriorShadowForwardPlanProfile } from "@/lib/scanner-clock-prior-shadow-forward-plan-profile";
+import {
+  SCANNER_CLOCK_PRIOR_BASELINE_POLICY_VERSION,
+  SCANNER_CLOCK_PRIOR_SHADOW_POLICY_VERSION,
+} from "@/lib/scanner-ranking-clock-prior-shadow";
 import {
   createScannerClockPriorShadowForwardPlanActivationService,
   scannerClockPriorShadowForwardPlanActivationAuthority,
   type ScannerClockPriorShadowForwardPlanActivationDependencies,
 } from "@/lib/server/scanner-clock-prior-shadow-forward-decision-plan-service";
 import type { ScannerClockPriorShadowForwardDecisionPlan } from "@/lib/server/scanner-clock-prior-shadow-forward-decision";
+import { scannerClockPriorShadowEvaluationCharterDefinition } from "@/lib/server/scanner-clock-prior-shadow-evaluation-charter";
 
 const ownerUserId = "11111111-1111-4111-8111-111111111111";
 const charterId = "22222222-2222-4222-8222-222222222222";
 const planId = "44444444-4444-4444-8444-444444444444";
-const charterFingerprint = "a".repeat(64);
 const segmentKey = "clock-prior:all-us-equities";
-const baselineRankingVersion = "scanner_candidate_ranking_v1.2";
-const candidateRankingVersion = "scanner_candidate_ranking_clock_neutral_v1";
-const hypothesis =
-  "Removing named clock priors improves canonical top-one ranking precision without changing the eligible population.";
+const baselineRankingVersion = SCANNER_CLOCK_PRIOR_BASELINE_POLICY_VERSION;
+const candidateRankingVersion = SCANNER_CLOCK_PRIOR_SHADOW_POLICY_VERSION;
 const recordedAt = "2026-09-27T08:00:01.000Z";
 
 const policy = {
@@ -38,79 +44,23 @@ const policy = {
   },
 };
 
+const charterInput = buildRecommendationEvaluationCharterInput({
+  ownerUserId,
+  segmentKey,
+  policy,
+  charter: scannerClockPriorShadowEvaluationCharterDefinition,
+});
+if (!charterInput) throw new Error("canonical charter fixture must build");
+const charterFingerprint = charterInput.charter_fingerprint;
+const hypothesis = charterInput.charter.hypothesis;
 const charter: RecommendationEvaluationCharter = {
+  ...charterInput,
   charter_id: charterId,
-  charter_fingerprint: charterFingerprint,
-  owner_user_id: ownerUserId,
-  segment_key: segmentKey,
-  policy_attribution: policy,
-  charter: {
-    contract_version: "recommendation_evaluation_charter_v1",
-    hypothesis,
-    eligible_universe: "US equities admitted by the canonical discovery policy.",
-    setup_slices: ["all_setups"],
-    regime_slices: ["all_regimes"],
-    outcome_rules: {
-      primary_horizon: "60m",
-      diagnostic_horizons: ["15m", "30m", "60m"],
-      semantics: "Compare canonical terminal outcomes without changing live ranking.",
-    },
-    evaluation_window: {
-      minimum_complete_decisions: 10,
-      held_out_decision_count: 5,
-      walk_forward_decision_count: 5,
-    },
-    thresholds: {
-      minimum_precision_at_k: 0.5,
-      minimum_expectancy_r: 0,
-      maximum_calibration_error: 0.2,
-      minimum_outcome_coverage: 0.9,
-      maximum_missingness: 0.1,
-      maximum_provider_credits_per_decision: 8,
-      minimum_reliability: 0.9,
-    },
-    concentration_limits: {
-      maximum_single_ticker_share: 0.25,
-      maximum_single_sector_share: 0.5,
-      maximum_single_setup_share: 1,
-      maximum_single_regime_share: 1,
-    },
-    feasibility_inputs: {
-      spread: "required",
-      liquidity: "required",
-      volatility: "required",
-      halt_risk: "required",
-      trigger_attainment: "required",
-      conservative_slippage: "required",
-    },
-  },
-  created_at: "2026-09-26T08:00:00.000Z",
+  created_at: "2026-09-27T08:00:00.000Z",
 };
 
 const activationRequest = {
   segment_key: segmentKey,
-  candidate_ranking_version: candidateRankingVersion,
-  primary_k: 1,
-  windows: {
-    held_out: {
-      start_at: "2026-09-28T13:30:00.000Z",
-      end_at: "2026-10-05T00:00:00.000Z",
-      minimum_opportunity_sets: 5,
-      minimum_ranked_candidates: 10,
-      minimum_trading_days: 5,
-    },
-    walk_forward: {
-      start_at: "2026-10-05T13:30:00.000Z",
-      end_at: "2026-10-12T00:00:00.000Z",
-      minimum_opportunity_sets: 5,
-      minimum_ranked_candidates: 10,
-      minimum_trading_days: 5,
-    },
-  },
-  thresholds: {
-    continue_minimum_precision_delta: 0.01,
-    reject_maximum_precision_delta: -0.01,
-  },
 };
 
 function receipt(plan: ScannerClockPriorShadowForwardDecisionPlan) {
@@ -197,6 +147,17 @@ test("activates one server-bound plan only after exact durable readback", async 
   expect(result.receipt?.plan.baseline_ranking_version).toBe(
     baselineRankingVersion,
   );
+  expect(result.receipt?.plan.candidate_ranking_version).toBe(
+    candidateRankingVersion,
+  );
+  expect(result.receipt?.plan.primary_k).toBe(3);
+  expect(result.receipt?.plan.windows).toEqual(
+    scannerClockPriorShadowForwardPlanProfile.windows,
+  );
+  expect(result.receipt?.plan.thresholds).toEqual({
+    continue_minimum_precision_delta: 0.03,
+    reject_maximum_precision_delta: 0,
+  });
   expect(result.receipt?.plan.hypothesis).toBe(hypothesis);
   expect(result.authority).toEqual(
     scannerClockPriorShadowForwardPlanActivationAuthority,
@@ -248,38 +209,75 @@ test("rejects caller-supplied ownership or durable evidence authority", async ()
   expect(harness.recordCalls).toBe(0);
 });
 
-test("rejects another candidate policy or a cohort weaker than the charter", async () => {
+test("rejects caller-owned plan fields and activation after sampling starts", async () => {
   const harness = dependencies();
   const service = createScannerClockPriorShadowForwardPlanActivationService(
     harness.implementation,
   );
-  const wrongPolicy = await service.activate({
+  const forgedPlan = await service.activate({
     ownerUserId,
     request: {
       ...activationRequest,
-      candidate_ranking_version: "another_shadow_policy",
-    },
-    now: new Date("2026-09-27T08:00:00.000Z"),
-  });
-  const weakCohort = await service.activate({
-    ownerUserId,
-    request: {
-      ...activationRequest,
-      windows: {
-        ...activationRequest.windows,
-        held_out: {
-          ...activationRequest.windows.held_out,
-          minimum_opportunity_sets: 2,
-        },
+      thresholds: {
+        continue_minimum_precision_delta: 0,
+        reject_maximum_precision_delta: -1,
       },
     },
     now: new Date("2026-09-27T08:00:00.000Z"),
   });
+  const lateActivation = await service.activate({
+    ownerUserId,
+    request: activationRequest,
+    now: new Date("2026-09-28T13:30:00.000Z"),
+  });
 
-  expect(wrongPolicy.status).toBe("invalid_request");
-  expect(weakCohort.status).toBe("invalid_request");
-  expect(weakCohort.safe_blocker).toBe(
-    "clock_prior_forward_decision_plan_weakens_evaluation_charter",
+  expect(forgedPlan.status).toBe("invalid_request");
+  expect(lateActivation.status).toBe("not_ready");
+  expect(lateActivation.safe_blocker).toBe(
+    "clock_prior_forward_decision_plan_profile_window_already_started",
+  );
+  expect(harness.recordCalls).toBe(0);
+});
+
+test("rejects a baseline charter that does not match the server-owned profile", async () => {
+  const differentInput = buildRecommendationEvaluationCharterInput({
+    ownerUserId,
+    segmentKey,
+    policy,
+    charter: {
+      ...scannerClockPriorShadowEvaluationCharterDefinition,
+      thresholds: {
+        ...scannerClockPriorShadowEvaluationCharterDefinition.thresholds,
+        minimum_precision_at_k: 0.5,
+      },
+    },
+  });
+  if (!differentInput) throw new Error("different charter fixture must build");
+  const harness = dependencies({
+    async readCharters() {
+      return {
+        status: "available",
+        charters: [{
+          ...differentInput,
+          charter_id: charterId,
+          created_at: charter.created_at,
+        }],
+        safe_blocker: null,
+      };
+    },
+  });
+  const service = createScannerClockPriorShadowForwardPlanActivationService(
+    harness.implementation,
+  );
+  const result = await service.activate({
+    ownerUserId,
+    request: activationRequest,
+    now: new Date("2026-09-27T08:00:00.000Z"),
+  });
+
+  expect(result.status).toBe("not_ready");
+  expect(result.safe_blocker).toBe(
+    "clock_prior_forward_decision_plan_charter_binding_missing_or_ambiguous",
   );
   expect(harness.recordCalls).toBe(0);
 });
