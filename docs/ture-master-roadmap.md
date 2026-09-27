@@ -55,7 +55,7 @@ guardrail, not an alpha claim. OPEN sampling continues in parallel on the
 already frozen policy; CLOSED implementation may not redefine the cohort or
 lower a threshold to obtain a terminal result.
 
-Steps (1), (2) and (3) are production-verified. The versioned
+Steps (1), (2), (3) and (4) are production-verified. The versioned
 score-to-probability model fits only immutable outcomes that predate the held-out
 window, while Brier score, fixed-bucket expected calibration error and
 probability coverage are measured only on later forward partitions. Historical
@@ -64,13 +64,21 @@ attributable; pooling them, fitting after the held-out cutoff or interpreting an
 ordinal score as a probability fails closed. This does not change live scores,
 ranking, publication thresholds or execution and is not evidence of alpha.
 
-Step (4) is now the selected CLOSED delivery. Runtime reliability and provider
-cost must be attributable to the same exact candidate decisions and forward
-partitions, with explicit attempted/completed/error denominators, provider
-requests and credits per decision, timeout/rate-limit classification and no
-silent exclusion of failed runs. Missing or ambiguously attributed operations
-remain `evidence_incomplete`; operational success may not substitute for the
-quality dimensions already closed.
+The forward scorecard now also binds each decision to its exact observation
+cycle and scheduled attempt, counts admitted failures in the reliability
+denominator, classifies timeout, rate-limit, provider and other errors, and
+measures finalized provider credits per decision. Missing, conflicting or
+unfinalized runtime evidence remains `evidence_incomplete`; operational success
+may not substitute for the quality dimensions already closed.
+
+Step (5), disclosed feasibility, is now the selected CLOSED delivery. It must
+measure `liquidity`, `volatility` and `trigger_attainment` on the same exact
+point-in-time candidate denominator used by the other scorecard dimensions.
+`spread`, `halt_risk` and `conservative_slippage` remain explicitly
+`unavailable_disclosed`; Ture must not invent them, silently treat them as pass
+or claim executable-quality evidence. Missing required feasibility is
+`evidence_incomplete`. This delivery remains shadow-only and may not change live
+ranking, publication or execution.
 
 **Definition of recommendation-engine progress.** Ture improves only when a
 versioned challenger changes a declared point-in-time input, feature, score,
@@ -82,6 +90,16 @@ is decided, select the next measured discovery/data-fitness or contextual-rankin
 defect with the largest plausible quality impact; do not begin a generic
 "intelligence" platform, another scheduling project or autonomous execution
 work in place of a testable recommendation hypothesis.
+
+**Work order after scorecard completeness.** Once disclosed feasibility is
+production-verified, CLOSED work must be selected from a measured discovery or
+contextual-ranking defect with an explicit point-in-time input, expected quality
+effect, frozen baseline/challenger and attributable forward metric. OPEN work
+collects only the missing evidence for the active frozen hypothesis. Do not open
+another reliability, scheduling, schema, dashboard, paper or broker project
+unless a reproduced defect blocks or corrupts that path. The objective is not
+to maximize infrastructure or candidate count; it is to increase useful,
+calibrated recommendations while preserving honest `no_trade` decisions.
 
 **2026-09-23 market-timing decision.** The former named morning/midday/power-hour
 publication windows are historical operating constraints, not a product

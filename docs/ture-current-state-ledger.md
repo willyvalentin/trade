@@ -21,9 +21,12 @@ scope.
   are production-verified on the same denominator. Explicit
   score-to-probability semantics and forward calibration error are also
   production-verified, with immutable pre-window fitting evidence kept separate
-  from held-out and walk-forward evaluation. The selected CLOSED link is now
-  attributable runtime reliability and provider cost per decision on that same
-  frozen population. The server-owned charter and
+  from held-out and walk-forward evaluation. Attributable runtime reliability
+  and finalized provider cost per decision are production-verified on that same
+  frozen population. The selected CLOSED link is now disclosed feasibility:
+  exact point-in-time liquidity, volatility and trigger-attainment evidence,
+  while unavailable spread, halt-risk and conservative-slippage remain explicit
+  limitations rather than invented passes. The server-owned charter and
   plan are durably frozen in production before the first sample: K=3, 30/30 held-out and
   walk-forward minimums, eight trading days per partition and immutable
   `continue >= +0.03` / `reject <= 0.00` precision-delta boundaries. Those
@@ -36,10 +39,11 @@ scope.
   next missing collection, lineage, outcome or evaluator link for this
   hypothesis. Calibration must preserve distinct historical-training and
   forward-evaluation denominators, reject post-cutoff leakage or model drift and
-  remain non-authoritative for live policy. Close attributable runtime
-  reliability/provider cost and then disclosed feasibility. Complete evidence
-  may issue one `continue`, `narrow` or `reject` shadow decision; none of those
-  outcomes alone authorizes promotion.
+  remain non-authoritative for live policy. Close disclosed feasibility, then
+  use measured cohort errors to select one discovery/data-fitness or contextual-
+  ranking challenger with a frozen baseline and attributable quality metric.
+  Complete evidence may issue one `continue`, `narrow` or `reject` shadow
+  decision; none of those outcomes alone authorizes promotion.
 - **Blocked from selection:** live-policy promotion until complete attributable
   held-out/forward evidence exists and the complete charter scorecard passes;
   new generic scheduler/control-plane work
@@ -62,8 +66,9 @@ post-merge CI run `36322101176` is green. The forward evaluator now measures
 canonical outcome coverage and immutable-snapshot missingness on the same exact
 candidate denominator used by the paired ranking cohort; incomplete evidence
 cannot be hidden as zero. This closes two charter dimensions but does not prove
-alpha or recommendation quality. Calibration, reliability, provider cost and
-feasibility remain terminal scorecard gaps.
+alpha or recommendation quality. At the time of that delivery, calibration,
+reliability, provider cost and feasibility were still terminal scorecard gaps;
+later entries below supersede that status.
 
 **Merged and production-verified CLOSED scorecard concentration:** PR
 [#682](https://github.com/willyvalentin/trade/pull/682) merged as
@@ -90,8 +95,25 @@ expected calibration error; leakage, duplicate identities, under-sampled
 buckets, fingerprint drift and incomplete probability evidence fail closed.
 Live scores, ranking, publication and execution remain unchanged. This closes
 the scorecard's probability semantics and error measurement, but does not prove
-alpha or that recommendations have improved. Attributable runtime reliability,
-provider cost and disclosed feasibility remain terminal scorecard gaps.
+alpha or that recommendations have improved. Later entries below close
+attributable runtime reliability and provider cost; disclosed feasibility is the
+remaining terminal scorecard gap.
+
+**Merged and production-verified CLOSED scorecard runtime reliability and
+provider cost:** PR [#685](https://github.com/willyvalentin/trade/pull/685)
+merged as `e8f28483cd62e2064deacc50e3f232f4116d8e00`. Protected PR CI run
+`36332294248` and exact-main post-merge run `36333794297` are green. Automatic
+Git-connected Netlify production deploy `6ab945c61edc280008a75750` is `ready`,
+`production`, branch `main` and carries the exact merge revision. The forward
+scorecard now binds each admitted decision to its exact observation-cycle and
+scheduled-attempt receipt; failed admitted runs remain in the reliability
+denominator, terminal completion requires the exact scan link, timeout,
+rate-limit, provider and other errors are explicit, and exact finalized credits
+are measured per decision. Missing, conflicting or unfinalized operations fail
+closed. Live ranking, publication, provider invocation and broker behavior are
+unchanged. This closes runtime reliability and provider-cost measurement; it
+does not prove alpha or better recommendations. Disclosed feasibility is the
+selected remaining scorecard link.
 
 ### Delivery method — CLOSED readiness, 2026-09-24
 
