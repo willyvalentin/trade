@@ -16,6 +16,7 @@
     "test:e2e": "playwright test",
     "test:e2e:static": "node scripts/action-654-run-static-playwright.mjs",
     "test:intelligence-foundation": "node scripts/action-664j-run-intelligence-foundation-tests.mjs",
+    "test:if4-clock-prior-forward-decision-receipts-local-db": "node scripts/if4-clock-prior-forward-decision-receipts-local-db-test.mjs",
     "test:e2e:headed": "playwright test --headed"
   },
   "dependencies": {

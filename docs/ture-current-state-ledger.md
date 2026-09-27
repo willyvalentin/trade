@@ -285,8 +285,14 @@ claim. Protected CI run `36288986430` passed all six provider-free shards,
 aggregate verification and merge-candidate provenance. This proves the paired
 evaluation path, not that the challenger is better.
 
-**Active intelligence successor — predeclared clock-prior forward decision:**
-the selected CLOSED slice binds exact canonical scan evaluations to one frozen
+**Merged and production-verified CLOSED slice — predeclared clock-prior forward
+decision:** PR #669 was squash-merged as
+`8abc07832fefa743b9513e2afdc5095b5cea8e48`; protected CI run
+`36291867144` passed all six provider-free shards, aggregate verification and
+merge-candidate provenance. Automatic Git-connected Netlify production deploy
+`6ab89676fb0f090008251710` is `ready`, `production`, branch `main`,
+`manual_deploy=false` and bound to that exact merge revision. The selected
+CLOSED slice binds exact canonical scan evaluations to one frozen
 held-out then walk-forward plan. The plan must predate both windows, keep the
 owner, durable evaluation charter and baseline freeze exact, keep the baseline
 and challenger ranking versions distinct, and predeclare primary K, minimum
@@ -311,6 +317,28 @@ production build. No provider request, database write, ranking/publication
 change, policy promotion or broker capability is added. A separately frozen
 OPEN cohort is still required for a real decision; no candidate quota or
 threshold relaxation is permitted.
+
+**Active CLOSED successor — durable clock-prior forward receipts:** retain the
+exact predeclared plan and its eventual one terminal advisory decision as
+owner-bound, append-only server receipts. Recording must prove the existing
+durable evaluation charter and baseline match before the held-out window;
+terminal result recording must wait until the walk-forward window has ended and
+must preserve exact plan/evidence fingerprints. `continue` means continue
+shadow validation only. The store and its RPCs must expose no provider,
+ranking, publication, promotion or broker authority. This makes the frozen
+experiment auditable; it still does not create OPEN evidence or prove that the
+challenger improves recommendation quality.
+
+Local implementation now includes a server-only fail-closed receipt adapter,
+additive RLS-contained migration, read-only production preflight and a disposable
+PostgreSQL 17 lifecycle harness. Local evidence: 17 focused forward-decision and
+canonical-projection tests passed; all 168 intelligence-foundation tests passed;
+the isolated database test passed plan/result recording, exact idempotent retry,
+server-RPC-only privileges and append-only rejection; lint, strict TypeScript,
+all three scheduled-runtime bundles and the full Next.js webpack production
+build passed. This remains local evidence until the focused PR is merged,
+production deploy is exact-revision verified and the additive migration is
+separately applied/read back.
 
 ### Continuous-observation technical direction — 2026-09-24
 
