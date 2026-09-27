@@ -11,9 +11,15 @@ import {
 } from "@/lib/canonical-counterfactual-opportunity-set";
 import {
   CANONICAL_EVALUATION_PROJECTION_CONTRACT_VERSION,
+  canonicalMarketRegimeFromPayload,
   projectRecommendationOutcomeBundle,
 } from "@/lib/canonical-evaluation-projection-adapters";
 import type { LearningBaselineScanRun } from "@/lib/recommendation-learning-baseline-readiness";
+import {
+  marketRegimeDecisionContextFromPayload,
+  marketRegimeValueFromPayload,
+  type MarketRegimeDecisionContext,
+} from "@/lib/market-regime-decision-context";
 import { hasCanonicalOutcomeProviderCoverageWithEvaluationAnchor } from "@/lib/recommendation-outcome-canonical-coverage";
 import { recommendationOutcomeEvaluationAnchorFromSnapshot } from "@/lib/recommendation-outcome-evaluation-anchor";
 import type { RecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
@@ -69,7 +75,14 @@ type CandidateEvidence = {
   snapshot: RecommendationSnapshot;
   outcome: RecommendationOutcome;
   canonical_outcome: CanonicalCandidateOutcome;
+  market_regime: string;
 };
+
+const supportedDecisionMarketRegimes = new Set([
+  "risk_on",
+  "neutral",
+  "risk_off",
+]);
 
 const safety = {
   threshold_policy_semantics: "diagnostic_all_candidates_only" as const,
@@ -207,6 +220,7 @@ function evidenceForCandidate(input: {
   providerContractVersion: string;
   snapshots: RecommendationSnapshot[];
   outcomes: RecommendationOutcome[];
+  expectedMarketRegimeContext: MarketRegimeDecisionContext;
 }): { evidence: CandidateEvidence | null; reason_codes: string[] } {
   const snapshot = exactSnapshotForCandidate({
     candidate: input.candidate,
@@ -260,6 +274,30 @@ function evidenceForCandidate(input: {
     },
   });
   const selected = projected.projection.primary_outcome;
+  const snapshotMarketRegime = projected.projection.context.regime;
+  const snapshotMarketRegimeContext = marketRegimeDecisionContextFromPayload(
+    snapshot.payload_json,
+  );
+  const snapshotMarketRegimeValue = marketRegimeValueFromPayload(
+    snapshot.payload_json,
+  );
+  if (!snapshotMarketRegime || !snapshotMarketRegimeContext) {
+    return {
+      evidence: null,
+      reason_codes: ["candidate_market_regime_context_missing"],
+    };
+  }
+  if (
+    snapshotMarketRegimeValue !== snapshotMarketRegimeContext.regime ||
+    snapshotMarketRegime !== input.expectedMarketRegimeContext.regime ||
+    JSON.stringify(snapshotMarketRegimeContext) !==
+      JSON.stringify(input.expectedMarketRegimeContext)
+  ) {
+    return {
+      evidence: null,
+      reason_codes: ["candidate_market_regime_context_conflicting"],
+    };
+  }
   const outcome =
     selected?.status === "selected"
       ? linked.find((item) => item.id === selected.primary_outcome?.outcome.id) ?? null
@@ -292,6 +330,7 @@ function evidenceForCandidate(input: {
       snapshot,
       outcome,
       canonical_outcome: canonical,
+      market_regime: snapshotMarketRegime,
     },
     reason_codes: [],
   };
@@ -336,7 +375,7 @@ function membership(input: {
     setup: input.evidence.snapshot.type,
     context: {
       window: input.window,
-      regime: input.evidence.snapshot.market_session_phase,
+      regime: input.evidence.market_regime,
       sector: input.evidence.decision.sector,
       strategy: null,
     },
@@ -460,6 +499,15 @@ export function evaluateScannerIntradayLiquidityShadowScan(input: {
   const comparisonIdentity = attribution
     ? `${attribution.scan_run_fingerprint}:${attribution.comparison_version}:${attribution.comparison_generated_at}`
     : null;
+  const decisionMarketRegime = canonicalMarketRegimeFromPayload(
+    input.scanRun.payload_json,
+  );
+  const decisionMarketRegimeValue = marketRegimeValueFromPayload(
+    input.scanRun.payload_json,
+  );
+  const decisionMarketRegimeContext = marketRegimeDecisionContextFromPayload(
+    input.scanRun.payload_json,
+  );
   if (
     !decision ||
     !attribution ||
@@ -484,6 +532,30 @@ export function evaluateScannerIntradayLiquidityShadowScan(input: {
       snapshots: 0,
       outcomes: 0,
       reasons: ["shadow_scan_lineage_or_comparison_conflicting"],
+      comparisonIdentity,
+    });
+  }
+  if (
+    !decisionMarketRegime ||
+    !decisionMarketRegimeContext ||
+    !supportedDecisionMarketRegimes.has(decisionMarketRegime)
+  ) {
+    return terminalResult({
+      status: "insufficient_evidence",
+      expected,
+      snapshots: 0,
+      outcomes: 0,
+      reasons: ["decision_market_regime_context_missing"],
+      comparisonIdentity,
+    });
+  }
+  if (decisionMarketRegimeValue !== decisionMarketRegimeContext.regime) {
+    return terminalResult({
+      status: "conflicting",
+      expected,
+      snapshots: 0,
+      outcomes: 0,
+      reasons: ["decision_market_regime_context_conflicting"],
       comparisonIdentity,
     });
   }
@@ -535,6 +607,7 @@ export function evaluateScannerIntradayLiquidityShadowScan(input: {
       providerContractVersion: versions.provider_contract_version,
       snapshots: input.snapshots,
       outcomes: input.outcomes,
+      expectedMarketRegimeContext: decisionMarketRegimeContext,
     });
     for (const reason of result.reason_codes) reasons.add(reason);
     if (result.evidence) {
