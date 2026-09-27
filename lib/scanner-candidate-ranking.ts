@@ -591,12 +591,16 @@ function scoreSignalStrength(
       gaps.push("Clock-neutral signal evidence is unavailable.");
       return 45;
     }
+    const trendWithoutSetupClassificationPrior = clampScore(
+      breakdown.trend -
+        (candidate.setup_type && candidate.setup_type !== "UNKNOWN" ? 3 : 0),
+    );
 
     return clampScore(
       (breakdown.momentum * 0.2 +
         breakdown.volume * 0.15 +
         breakdown.volatility * 0.12 +
-        breakdown.trend * 0.18 +
+        trendWithoutSetupClassificationPrior * 0.18 +
         breakdown.riskReward * 0.15 +
         breakdown.marketRegime * 0.1) /
         0.9,

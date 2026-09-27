@@ -32,6 +32,7 @@ export type ScannerClockPriorShadowDisplacement = {
   shadow_signal_strength: number;
   baseline_window_fit: number;
   shadow_window_fit: number;
+  legacy_setup_classification_bonus_removed: number;
   legacy_clock_warning_count: number;
   baseline_warnings_penalty: number;
   shadow_warnings_penalty: number;
@@ -265,6 +266,8 @@ export function buildScannerClockPriorShadowComparison({
       shadow_signal_strength: shadowSignal,
       baseline_window_fit: baselineWindow,
       shadow_window_fit: shadowWindow,
+      legacy_setup_classification_bonus_removed:
+        candidate.setup_type && candidate.setup_type !== "UNKNOWN" ? 3 : 0,
       legacy_clock_warning_count: countLegacyClockWarnings(candidate),
       baseline_warnings_penalty: baselineWarningsPenalty,
       shadow_warnings_penalty: shadowWarningsPenalty,

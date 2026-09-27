@@ -91,11 +91,13 @@ function clockCandidate({
   ticker,
   timing,
   setupType,
+  trend = 75,
   warnings = [],
 }: {
   ticker: string;
   timing: number;
   setupType: string;
+  trend?: number;
   warnings?: string[];
 }): RankingCandidate {
   const result: RankingCandidate = {
@@ -106,7 +108,7 @@ function clockCandidate({
       momentum: 80,
       volume: 70,
       volatility: 70,
-      trend: 75,
+      trend,
       riskReward: 80,
       marketRegime: 65,
       timing,
@@ -116,7 +118,7 @@ function clockCandidate({
     80 * 0.2 +
     70 * 0.15 +
     70 * 0.12 +
-    75 * 0.18 +
+    trend * 0.18 +
     80 * 0.15 +
     65 * 0.1 +
     timing * 0.1;
@@ -346,6 +348,7 @@ test("keeps the clock-neutral result stable across named scan windows", () => {
       ticker: "ZZZ",
       timing: 75,
       setupType: "HIGH_OF_DAY_BREAKOUT",
+      trend: 78,
     }),
     clockCandidate({
       ticker: "AAA",
@@ -357,7 +360,8 @@ test("keeps the clock-neutral result stable across named scan windows", () => {
     clockCandidate({
       ticker: "ZZZ",
       timing: 32,
-      setupType: "HIGH_OF_DAY_BREAKOUT",
+      setupType: "UNKNOWN",
+      trend: 75,
       warnings: ["Midday window increases chop risk."],
     }),
     clockCandidate({
