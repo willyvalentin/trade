@@ -12,6 +12,7 @@ import {
 import {
   evaluateScannerRankingShadowScan,
   SCANNER_RANKING_SHADOW_CANDIDATE_PERFORMANCE_AT_K_VERSION,
+  SCANNER_RANKING_SHADOW_CONCENTRATION_INPUT_VERSION,
   type ScannerRankingShadowCanonicalEvaluationResult,
 } from "@/lib/server/scanner-intraday-liquidity-shadow-canonical-evaluation";
 
@@ -47,6 +48,9 @@ function incompleteClockPriorCapture(input: {
     candidate_performance_at_k_version:
       SCANNER_RANKING_SHADOW_CANDIDATE_PERFORMANCE_AT_K_VERSION,
     candidate_performance_at_k: null,
+    concentration_input_version:
+      SCANNER_RANKING_SHADOW_CONCENTRATION_INPUT_VERSION,
+    concentration_inputs: null,
     threshold_policy_semantics: "diagnostic_all_candidates_only",
     shadow_only: true,
     live_ranking_effect: false,

@@ -2513,6 +2513,8 @@ function buildSnapshotFromResearchSample({
     payload: {
       market_regime: marketRegime,
       market_regime_context: marketRegimeContext,
+      sector: sample.sector,
+      setup_type: sample.setup_type,
       visibility_status: "research_only",
       not_live_signal: true,
       not_live_trade_signal: true,

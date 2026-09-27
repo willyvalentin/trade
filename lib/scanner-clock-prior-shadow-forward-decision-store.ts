@@ -232,6 +232,29 @@ function proportion(value: unknown) {
     value.upper <= 1;
 }
 
+function concentrationShare(value: unknown, denominator: number) {
+  return record(value) &&
+    typeof value.key === "string" && value.key.trim().length > 0 &&
+    value.key.length <= 256 &&
+    typeof value.value === "number" && Number.isFinite(value.value) &&
+    value.value > 0 && value.value <= 1 &&
+    typeof value.numerator === "number" && Number.isInteger(value.numerator) &&
+    value.numerator >= 1 && value.numerator <= denominator &&
+    value.denominator === denominator &&
+    Math.abs(value.value - value.numerator / denominator) <= 1e-12;
+}
+
+function concentration(value: unknown, expectedDenominator: number) {
+  if (!record(value) || value.denominator !== expectedDenominator ||
+    !Number.isInteger(value.denominator) || value.denominator < 1) return false;
+  return [
+    "maximum_single_ticker_share",
+    "maximum_single_sector_share",
+    "maximum_single_setup_share",
+    "maximum_single_regime_share",
+  ].every((key) => concentrationShare(value[key], expectedDenominator));
+}
+
 function partition(
   value: unknown,
 ): value is ScannerClockPriorShadowForwardPartitionResult {
@@ -258,6 +281,7 @@ function partition(
     !proportion(value.candidate_precision) ||
     !proportion(value.outcome_coverage) ||
     !proportion(value.evidence_missingness) ||
+    !concentration(value.concentration, value.ranked_candidate_count as number) ||
     !record(value.precision_delta)) {
     return false;
   }

@@ -13,6 +13,7 @@ function candidate(
     ticker: "REJ",
     company_name: "Rejected Incorporated",
     sector: "Technology",
+    setup_type: "VWAP_RECLAIM",
     tier: "rejected",
     score: { value: 54, tier: "rejected", reasons: [], warnings: [] },
     signals: [],
@@ -68,6 +69,8 @@ test("selects only a fresh, exact rejected candidate with pre-existing valid sca
     expect.objectContaining({
       candidate_id: "scanner_candidate:v1:scan-1:REJ",
       ticker: "REJ",
+      sector: "Technology",
+      setup_type: "VWAP_RECLAIM",
       entry: 99.5,
       stop: 96,
       target: 106,

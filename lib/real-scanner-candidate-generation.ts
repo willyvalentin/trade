@@ -7,6 +7,7 @@ import {
   type RecommendationDecisionFeatureVector,
 } from "@/lib/recommendation-decision-feature-vector";
 import type { TwelveDataResponseIdentity } from "@/lib/twelve-data-response-identity";
+import { normalizeSetupType, type SetupType } from "@/lib/setup-types";
 import {
   getScheduledScannerUniverseRotationBatch,
   scannerUniverseSelectionToBaseCandidates,
@@ -59,6 +60,7 @@ export type RealScannerCandidate = {
   ticker: string;
   company_name: string;
   sector: string;
+  setup_type?: SetupType;
   tier: RealScannerCandidateTier;
   score: RealScannerCandidateScore;
   signals: RealScannerCandidateSignal[];
@@ -118,6 +120,7 @@ export type RealScannerCandidateGenerationSummary = {
 };
 
 type CandidateWithOptionalScore = ScannerCandidate & {
+  setup_type?: string;
   local_score?: number;
   local_score_reasons?: string[];
   local_score_warnings?: string[];
@@ -408,6 +411,7 @@ function toRealScannerCandidate(
     ticker: candidate.ticker,
     company_name: candidate.company_name,
     sector: candidate.sector,
+    setup_type: normalizeSetupType(candidate.setup_type),
     tier,
     score: {
       value: scoreValue,

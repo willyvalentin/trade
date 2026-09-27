@@ -26,6 +26,11 @@ import { recommendationOutcomeEvaluationAnchorFromSnapshot } from "@/lib/recomme
 import type { RecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
 import { recommendationDecisionSourceProvenanceFromSnapshot } from "@/lib/recommendation-decision-source-provenance";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
+import {
+  normalizeSetupType,
+  SETUP_TYPES,
+  type SetupType,
+} from "@/lib/setup-types";
 import { buildPreTruncationCandidateCaptureEvidence } from "@/lib/pre-truncation-candidate-capture-evidence";
 import {
   scannerIntradayLiquidityShadowAttributionFromUnknown,
@@ -46,6 +51,8 @@ export const SCANNER_RANKING_SHADOW_DIAGNOSTIC_THRESHOLD_POLICY_VERSION =
   "shadow_rank_only_diagnostic_threshold_v1" as const;
 export const SCANNER_RANKING_SHADOW_CANDIDATE_PERFORMANCE_AT_K_VERSION =
   "scanner_ranking_shadow_candidate_performance_at_k_v1" as const;
+export const SCANNER_RANKING_SHADOW_CONCENTRATION_INPUT_VERSION =
+  "scanner_ranking_shadow_concentration_input_v1" as const;
 
 type ScannerRankingShadowCandidatePerformanceAtK = Record<string, {
   expectancy_r: {
@@ -64,6 +71,14 @@ export type ScannerRankingShadowCandidateAttribution = {
   shadow_rank: number;
   baseline_selected: boolean;
   shadow_selected: boolean;
+};
+
+export type ScannerRankingShadowConcentrationInput = {
+  candidate_id: string;
+  ticker: string;
+  sector: string;
+  setup: SetupType;
+  regime: string;
 };
 
 export type ScannerRankingShadowAttribution = {
@@ -121,6 +136,9 @@ export type ScannerRankingShadowCanonicalEvaluationResult<
     typeof SCANNER_RANKING_SHADOW_CANDIDATE_PERFORMANCE_AT_K_VERSION;
   candidate_performance_at_k:
     ScannerRankingShadowCandidatePerformanceAtK | null;
+  concentration_input_version:
+    typeof SCANNER_RANKING_SHADOW_CONCENTRATION_INPUT_VERSION;
+  concentration_inputs: ScannerRankingShadowConcentrationInput[] | null;
   threshold_policy_semantics: "diagnostic_all_candidates_only";
   shadow_only: true;
   live_ranking_effect: false;
@@ -143,6 +161,8 @@ type CandidateEvidence = {
   outcome: RecommendationOutcome;
   canonical_outcome: CanonicalCandidateOutcome;
   market_regime: string;
+  sector: string;
+  setup_type: SetupType;
 };
 
 const supportedDecisionMarketRegimes = new Set([
@@ -171,6 +191,24 @@ function textOrNull(value: unknown) {
 
 function normalizedTicker(value: string | null | undefined) {
   return value?.trim().toUpperCase() ?? "";
+}
+
+function setupTypeFromSnapshot(snapshot: RecommendationSnapshot) {
+  const payload = snapshot.payload_json;
+  const recommendation = payload.recommendation &&
+      typeof payload.recommendation === "object" &&
+      !Array.isArray(payload.recommendation)
+    ? payload.recommendation as Record<string, unknown>
+    : null;
+  const raw = payload.setup_type ?? recommendation?.setup_type ??
+    (snapshot.source_mode === "research_only" ? null : snapshot.type);
+  const explicit = textOrNull(raw);
+  if (!explicit) return null;
+  const normalized = normalizeSetupType(explicit);
+  return SETUP_TYPES.includes(normalized) &&
+      (normalized !== "UNKNOWN" || explicit.trim().toUpperCase() === "UNKNOWN")
+    ? normalized
+    : null;
 }
 
 function round(value: number) {
@@ -390,6 +428,14 @@ function evidenceForCandidate(input: {
       reason_codes: ["candidate_market_regime_context_missing"],
     };
   }
+  const sector = textOrNull(input.decision.sector);
+  const setupType = setupTypeFromSnapshot(snapshot);
+  if (!sector || !setupType) {
+    return {
+      evidence: null,
+      reason_codes: ["candidate_concentration_dimensions_missing"],
+    };
+  }
   if (
     snapshotMarketRegimeValue !== snapshotMarketRegimeContext.regime ||
     snapshotMarketRegime !== input.expectedMarketRegimeContext.regime ||
@@ -434,6 +480,8 @@ function evidenceForCandidate(input: {
       outcome,
       canonical_outcome: canonical,
       market_regime: snapshotMarketRegime,
+      sector,
+      setup_type: setupType,
     },
     reason_codes: [],
   };
@@ -476,7 +524,7 @@ function membership(input: {
     tie_break_key:
       input.evidence.decision.ranking?.tie_break_key ??
       input.evidence.attribution.ticker,
-    setup: input.evidence.snapshot.type,
+    setup: input.evidence.setup_type,
     context: {
       window: input.window,
       regime: input.evidence.market_regime,
@@ -566,6 +614,7 @@ function terminalResult<AdapterVersion extends string>(input: {
   reasons: Iterable<string>;
   comparisonIdentity?: string | null;
   candidatePerformanceAtK?: ScannerRankingShadowCandidatePerformanceAtK;
+  concentrationInputs?: ScannerRankingShadowConcentrationInput[];
 }): ScannerRankingShadowCanonicalEvaluationResult<AdapterVersion> {
   return {
     adapter_version: input.adapterVersion,
@@ -581,6 +630,9 @@ function terminalResult<AdapterVersion extends string>(input: {
     candidate_performance_at_k_version:
       SCANNER_RANKING_SHADOW_CANDIDATE_PERFORMANCE_AT_K_VERSION,
     candidate_performance_at_k: input.candidatePerformanceAtK ?? null,
+    concentration_input_version:
+      SCANNER_RANKING_SHADOW_CONCENTRATION_INPUT_VERSION,
+    concentration_inputs: input.concentrationInputs ?? null,
     ...safety,
   };
 }
@@ -1012,6 +1064,19 @@ export function evaluateScannerRankingShadowScan<AdapterVersion extends string>(
     ],
     comparisonIdentity,
     candidatePerformanceAtK: candidatePerformanceAtK(evidence),
+    concentrationInputs: [...evidence]
+      .sort((left, right) =>
+        left.attribution.candidate_id.localeCompare(
+          right.attribution.candidate_id,
+        )
+      )
+      .map((item) => ({
+        candidate_id: item.attribution.candidate_id,
+        ticker: item.attribution.ticker,
+        sector: item.sector,
+        setup: item.setup_type,
+        regime: item.market_regime,
+      })),
   });
 }
 

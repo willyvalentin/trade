@@ -23,6 +23,7 @@ function candidate(
     ticker,
     company_name: `${ticker} Corp`,
     sector: "Technology",
+    setup_type: "VWAP_RECLAIM",
     tier: "valid",
     score: {
       value: 76,
@@ -209,6 +210,8 @@ test("enabled mode persists below-threshold valid candidates as research-only sa
 
   expect(selection.samples.map((sample) => sample.ticker)).toEqual(["MSFT"]);
   expect(selection.samples[0]).toMatchObject({
+    sector: "Technology",
+    setup_type: "VWAP_RECLAIM",
     rejection_publish_reason: "research_overflow_not_visible_selected",
     sample_quality: "good",
   });

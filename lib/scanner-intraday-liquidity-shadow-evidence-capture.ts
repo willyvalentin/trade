@@ -382,6 +382,8 @@ export function buildScannerIntradayLiquidityShadowEvidenceCapturePlan({
       candidate_id: decisionCandidate.candidate_id,
       ticker,
       company_name: candidate.company_name,
+      sector: candidate.sector,
+      setup_type: candidate.setup_type ?? "UNKNOWN",
       tier: candidate.tier,
       score: displacement.baseline_score,
       rank: displacement.baseline_rank,
