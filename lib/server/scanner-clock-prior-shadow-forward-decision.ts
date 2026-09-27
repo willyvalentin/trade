@@ -3,6 +3,7 @@ import "server-only";
 import { createHash } from "node:crypto";
 
 import {
+  canonicalQualityCalibrationBuckets,
   canonicalQualityPublishabilityPolicy,
   canonicalQualityRankingKValues,
 } from "@/lib/canonical-quality-metrics";
@@ -10,6 +11,11 @@ import type { RecommendationEvaluationCharter } from "@/lib/recommendation-evalu
 import type { LearningBaselineScanRun } from "@/lib/recommendation-learning-baseline-readiness";
 import type { RecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
+import {
+  SCANNER_SCORE_PROBABILITY_CALIBRATION_MODEL_VERSION,
+  buildScannerScoreProbabilityCalibrationModel,
+  type ScannerScoreProbabilityCalibrationTrainingInput,
+} from "@/lib/scanner-score-probability-calibration";
 import {
   SCANNER_CLOCK_PRIOR_BASELINE_POLICY_VERSION,
   SCANNER_CLOCK_PRIOR_SHADOW_POLICY_VERSION,
@@ -29,7 +35,10 @@ import {
   SCANNER_RANKING_SHADOW_CANDIDATE_PERFORMANCE_AT_K_VERSION,
   SCANNER_RANKING_SHADOW_CONCENTRATION_INPUT_VERSION,
   SCANNER_RANKING_SHADOW_DIAGNOSTIC_THRESHOLD_POLICY_VERSION,
+  SCANNER_RANKING_SHADOW_PROBABILITY_CALIBRATION_INPUT_VERSION,
+  SCANNER_RANKING_SHADOW_PROBABILITY_CALIBRATION_OBSERVATION_VERSION,
   type ScannerRankingShadowConcentrationInput,
+  type ScannerRankingShadowProbabilityCalibrationObservation,
 } from "@/lib/server/scanner-intraday-liquidity-shadow-canonical-evaluation";
 import { scannerClockPriorShadowEvaluationCharterDefinition } from "@/lib/server/scanner-clock-prior-shadow-evaluation-charter";
 
@@ -40,7 +49,7 @@ export const SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_DECISION_VERSION =
 export const SCANNER_CLOCK_PRIOR_SHADOW_POLICY_REFERENCE_VERSION =
   "scanner_clock_prior_shadow_policy_reference_v1" as const;
 export const SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_SCORECARD_METRICS_VERSION =
-  "scanner_clock_prior_shadow_forward_scorecard_metrics_v2" as const;
+  "scanner_clock_prior_shadow_forward_scorecard_metrics_v3" as const;
 
 type RankingK = (typeof canonicalQualityRankingKValues)[number];
 type PartitionName = "held_out" | "walk_forward";
@@ -153,6 +162,23 @@ type ConcentrationSummary = {
   maximum_single_regime_share: ConcentrationShare | null;
 };
 
+type CalibrationArmSummary = {
+  brier_score: number;
+  expected_calibration_error: number;
+};
+
+type ProbabilityCalibrationSummary = {
+  model_version: typeof SCANNER_SCORE_PROBABILITY_CALIBRATION_MODEL_VERSION;
+  model_fingerprint: string;
+  observation_version:
+    typeof SCANNER_RANKING_SHADOW_PROBABILITY_CALIBRATION_OBSERVATION_VERSION;
+  binary_outcome_count: number;
+  probability_coverage: ProportionInterval;
+  baseline: CalibrationArmSummary;
+  candidate: CalibrationArmSummary;
+  bucket_policy: "fixed_calibration_buckets_v1";
+};
+
 export type ScannerClockPriorShadowForwardPartitionResult = {
   scorecard_metrics_version:
     typeof SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_SCORECARD_METRICS_VERSION;
@@ -166,6 +192,7 @@ export type ScannerClockPriorShadowForwardPartitionResult = {
   outcome_coverage: ProportionInterval | null;
   evidence_missingness: ProportionInterval | null;
   concentration: ConcentrationSummary;
+  probability_calibration: ProbabilityCalibrationSummary | null;
   precision_delta: {
     value: number;
     conservative_lower: number;
@@ -560,6 +587,7 @@ function emptyPartition(
       maximum_single_setup_share: null,
       maximum_single_regime_share: null,
     },
+    probability_calibration: null,
     precision_delta: null,
     evidence_complete: false,
     reason_codes: uniqueSorted(reasonCodes),
@@ -649,6 +677,114 @@ type PartitionCoverageObservation = {
   exact_snapshot_count: number;
   canonical_primary_outcome_count: number;
 };
+
+function rounded(value: number) {
+  return Math.round(value * 1e12) / 1e12;
+}
+
+function calibrationError(
+  rows: Array<{ probability: number; actual: 0 | 1 }>,
+) {
+  let value = 0;
+  for (const bucket of canonicalQualityCalibrationBuckets) {
+    const members = rows.filter(
+      (row) =>
+        row.probability >= bucket.lower &&
+        (row.probability < bucket.upper ||
+          (bucket.include_upper && row.probability === bucket.upper)),
+    );
+    if (members.length === 0) continue;
+    const averageProbability = members.reduce(
+      (sum, row) => sum + row.probability,
+      0,
+    ) / members.length;
+    const observedRate = members.reduce(
+      (sum, row) => sum + row.actual,
+      0,
+    ) / members.length;
+    value += Math.abs(averageProbability - observedRate) *
+      (members.length / rows.length);
+  }
+  return rounded(value);
+}
+
+function calibrationArmSummary(
+  rows: Array<{ probability: number; actual: 0 | 1 }>,
+): CalibrationArmSummary {
+  return {
+    brier_score: rounded(
+      rows.reduce(
+        (sum, row) => sum + (row.probability - row.actual) ** 2,
+        0,
+      ) / rows.length,
+    ),
+    expected_calibration_error: calibrationError(rows),
+  };
+}
+
+function probabilityCalibrationSummary(input: {
+  observations: ScannerRankingShadowProbabilityCalibrationObservation[];
+  modelFingerprint: string | null;
+}) {
+  const binaryRows = input.observations.filter(
+    (observation): observation is
+      ScannerRankingShadowProbabilityCalibrationObservation & {
+        terminal_binary: 0 | 1;
+      } => observation.terminal_binary === 0 || observation.terminal_binary === 1,
+  );
+  const uniqueIdentities = new Set(
+    binaryRows.map((observation) => observation.candidate_id),
+  );
+  const probabilityRows = binaryRows.filter(
+    (observation): observation is typeof observation & {
+      baseline_probability: number;
+      candidate_probability: number;
+    } =>
+      finite(observation.baseline_probability) &&
+      observation.baseline_probability >= 0 &&
+      observation.baseline_probability <= 1 &&
+      finite(observation.candidate_probability) &&
+      observation.candidate_probability >= 0 &&
+      observation.candidate_probability <= 1,
+  );
+  const denominator = binaryRows.length;
+  const probabilityCoverage = denominator > 0
+    ? wilson(probabilityRows.length, denominator)
+    : null;
+  const modelFingerprint = input.modelFingerprint;
+  const complete =
+    validFingerprint(modelFingerprint) &&
+    denominator >= canonicalQualityPublishabilityPolicy
+      .minimum_calibration_identities &&
+    uniqueIdentities.size === denominator &&
+    probabilityRows.length === denominator &&
+    probabilityCoverage !== null;
+  if (!complete || !validFingerprint(modelFingerprint) || !probabilityCoverage) {
+    return { summary: null, complete: false };
+  }
+  const baselineRows = probabilityRows.map((observation) => ({
+    probability: observation.baseline_probability,
+    actual: observation.terminal_binary,
+  }));
+  const candidateRows = probabilityRows.map((observation) => ({
+    probability: observation.candidate_probability,
+    actual: observation.terminal_binary,
+  }));
+  return {
+    summary: {
+      model_version: SCANNER_SCORE_PROBABILITY_CALIBRATION_MODEL_VERSION,
+      model_fingerprint: modelFingerprint,
+      observation_version:
+        SCANNER_RANKING_SHADOW_PROBABILITY_CALIBRATION_OBSERVATION_VERSION,
+      binary_outcome_count: denominator,
+      probability_coverage: probabilityCoverage,
+      baseline: calibrationArmSummary(baselineRows),
+      candidate: calibrationArmSummary(candidateRows),
+      bucket_policy: "fixed_calibration_buckets_v1" as const,
+    } satisfies ProbabilityCalibrationSummary,
+    complete: true,
+  };
+}
 
 function maximumConcentrationShare(
   values: string[],
@@ -769,6 +905,9 @@ function summarizePartition(input: {
   observations: PartitionObservation[];
   coverageObservations: PartitionCoverageObservation[];
   concentrationObservations: ScannerRankingShadowConcentrationInput[];
+  probabilityCalibrationObservations:
+    ScannerRankingShadowProbabilityCalibrationObservation[];
+  probabilityCalibrationModelFingerprint: string | null;
   window: ScannerClockPriorShadowForwardWindow;
   evaluationReasons: string[];
   bootstrapSeed: string;
@@ -858,6 +997,10 @@ function summarizePartition(input: {
     observations: input.concentrationObservations,
     denominator: expectedOutcomeCount,
   });
+  const probabilityCalibration = probabilityCalibrationSummary({
+    observations: input.probabilityCalibrationObservations,
+    modelFingerprint: input.probabilityCalibrationModelFingerprint,
+  });
   const charterThresholds =
     scannerClockPriorShadowEvaluationCharterDefinition.thresholds;
   if (
@@ -914,9 +1057,17 @@ function summarizePartition(input: {
   for (const [share, maximum, reason] of concentrationChecks) {
     if (share === null || share.value > maximum) reasons.push(reason);
   }
-  // Precision, expectancy, outcome coverage and missingness are now measurable
-  // from the exact same cohort, but the remaining frozen charter dimensions
-  // are not yet assembled here.
+  if (!probabilityCalibration.complete || !probabilityCalibration.summary) {
+    reasons.push("candidate_probability_calibration_evidence_incomplete");
+  } else if (
+    probabilityCalibration.summary.candidate.expected_calibration_error >
+      charterThresholds.maximum_calibration_error
+  ) {
+    reasons.push("candidate_calibration_error_charter_maximum_exceeded");
+  }
+  // Precision, expectancy, calibration, outcome coverage, missingness and
+  // concentration are now measurable from the exact same forward cohort, but
+  // reliability, provider cost and feasibility are not yet assembled here.
   // Keep terminal authority closed until the complete scorecard is wired.
   reasons.push("forward_charter_scorecard_incomplete");
   const clusteredInterval = clusteredPrecisionDeltaInterval(
@@ -953,6 +1104,7 @@ function summarizePartition(input: {
     outcome_coverage: outcomeCoverage,
     evidence_missingness: evidenceMissingness,
     concentration: concentration.summary,
+    probability_calibration: probabilityCalibration.summary,
     precision_delta: delta,
     evidence_complete: reasonCodes.length === 0,
     reason_codes: reasonCodes,
@@ -998,6 +1150,9 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
   scanRuns: LearningBaselineScanRun[];
   snapshots: RecommendationSnapshot[];
   outcomes: RecommendationOutcome[];
+  calibrationScanRuns?: LearningBaselineScanRun[];
+  calibrationSnapshots?: RecommendationSnapshot[];
+  calibrationOutcomes?: RecommendationOutcome[];
   bootstrapSeed: string;
 }): ScannerClockPriorShadowForwardDecisionResult {
   const plan = verifiedPlan(input.plan);
@@ -1017,7 +1172,12 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
   if (!boundedText(input.bootstrapSeed, 1, 512) ||
     input.scanRuns.length > MAXIMUM_SCAN_RUNS ||
     input.snapshots.length > MAXIMUM_SNAPSHOTS_OR_OUTCOMES ||
-    input.outcomes.length > MAXIMUM_SNAPSHOTS_OR_OUTCOMES) {
+    input.outcomes.length > MAXIMUM_SNAPSHOTS_OR_OUTCOMES ||
+    (input.calibrationScanRuns?.length ?? 0) > MAXIMUM_SCAN_RUNS ||
+    (input.calibrationSnapshots?.length ?? 0) >
+      MAXIMUM_SNAPSHOTS_OR_OUTCOMES ||
+    (input.calibrationOutcomes?.length ?? 0) >
+      MAXIMUM_SNAPSHOTS_OR_OUTCOMES) {
     return terminalResult({
       status: "conflicting",
       plan,
@@ -1039,6 +1199,13 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
     held_out: [],
     walk_forward: [],
   };
+  const probabilityCalibrationObservations: Record<
+    PartitionName,
+    ScannerRankingShadowProbabilityCalibrationObservation[]
+  > = {
+    held_out: [],
+    walk_forward: [],
+  };
   const reasonsByPartition: Record<PartitionName, string[]> = {
     held_out: [],
     walk_forward: [],
@@ -1046,7 +1213,49 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
   const globalReasons: string[] = [];
   const seenScanFingerprints = new Set<string>();
   const seenEvaluationIdentities = new Set<string>();
+  const seenCalibrationCandidateIds = new Set<string>();
   let versionCohortIdentity: string | null = null;
+  const calibrationTrainingInputs: ScannerScoreProbabilityCalibrationTrainingInput[] = [];
+  const calibrationWindowEndAt = plan.windows.held_out.start_at;
+  const calibrationWindowStartAt = new Date(
+    Date.parse(calibrationWindowEndAt) - 30 * 24 * 60 * 60 * 1_000,
+  ).toISOString();
+  for (const scanRun of input.calibrationScanRuns ?? []) {
+    if (
+      Date.parse(scanRun.observed_at) < Date.parse(calibrationWindowStartAt) ||
+      Date.parse(scanRun.observed_at) >= Date.parse(calibrationWindowEndAt)
+    ) continue;
+    const comparison = scannerClockPriorShadowComparisonFromUnknown(
+      scanRun.payload_json.scanner_clock_prior_shadow_comparison,
+    );
+    if (
+      !comparison ||
+      comparison.baseline_policy_version !== plan.baseline_ranking_version ||
+      comparison.shadow_policy_version !== plan.candidate_ranking_version
+    ) continue;
+    const calibrationEvaluation = evaluateScannerClockPriorShadowScan({
+      scanRun,
+      snapshots: input.calibrationSnapshots ?? [],
+      outcomes: input.calibrationOutcomes ?? [],
+      bootstrapSeed:
+        `${input.bootstrapSeed}:calibration:${scanRun.run_fingerprint}`,
+    });
+    if (
+      calibrationEvaluation.probability_calibration_input_version ===
+        SCANNER_RANKING_SHADOW_PROBABILITY_CALIBRATION_INPUT_VERSION &&
+      calibrationEvaluation.probability_calibration_inputs
+    ) {
+      calibrationTrainingInputs.push(
+        ...calibrationEvaluation.probability_calibration_inputs,
+      );
+    }
+  }
+  const probabilityCalibration = buildScannerScoreProbabilityCalibrationModel({
+    fittedAt: calibrationWindowEndAt,
+    trainingStartAt: calibrationWindowStartAt,
+    trainingEndAt: calibrationWindowEndAt,
+    observations: calibrationTrainingInputs,
+  });
 
   for (const scanRun of input.scanRuns) {
     const decisionAt = scanRun.observed_at;
@@ -1074,6 +1283,7 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
       snapshots: input.snapshots,
       outcomes: input.outcomes,
       bootstrapSeed: `${input.bootstrapSeed}:${scanRun.run_fingerprint}`,
+      probabilityCalibration,
     });
     const coverage = evaluation.coverage;
     if (
@@ -1223,6 +1433,40 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
         "candidate_calibrated_probability_semantics_missing",
       );
     }
+    const calibrationObservations =
+      evaluation.probability_calibration_observations;
+    if (
+      evaluation.probability_calibration_observation_version !==
+        SCANNER_RANKING_SHADOW_PROBABILITY_CALIBRATION_OBSERVATION_VERSION ||
+      !calibrationObservations ||
+      calibrationObservations.length !==
+        evaluation.coverage.expected_candidate_count ||
+      (probabilityCalibration && (
+        evaluation.probability_calibration_model_version !==
+          SCANNER_SCORE_PROBABILITY_CALIBRATION_MODEL_VERSION ||
+        evaluation.probability_calibration_model_fingerprint !==
+          probabilityCalibration.model_fingerprint
+      ))
+    ) {
+      reasonsByPartition[partition].push(
+        "candidate_probability_calibration_observations_incomplete",
+      );
+    } else {
+      let duplicateIdentity = false;
+      for (const calibrationObservation of calibrationObservations) {
+        if (seenCalibrationCandidateIds.has(calibrationObservation.candidate_id)) {
+          duplicateIdentity = true;
+        }
+        seenCalibrationCandidateIds.add(calibrationObservation.candidate_id);
+      }
+      if (duplicateIdentity) {
+        globalReasons.push("duplicate_probability_calibration_candidate_identity");
+      } else {
+        probabilityCalibrationObservations[partition].push(
+          ...calibrationObservations,
+        );
+      }
+    }
     observations[partition].push({
       decision_at: decisionAt,
       no_trade: false,
@@ -1249,6 +1493,10 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
       observations: observations[partition],
       coverageObservations: coverageObservations[partition],
       concentrationObservations: concentrationObservations[partition],
+      probabilityCalibrationObservations:
+        probabilityCalibrationObservations[partition],
+      probabilityCalibrationModelFingerprint:
+        probabilityCalibration?.model_fingerprint ?? null,
       window: plan.windows[partition],
       evaluationReasons: reasonsByPartition[partition],
       bootstrapSeed: `${input.bootstrapSeed}:${plan.plan_fingerprint}:${partition}`,

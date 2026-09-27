@@ -2,6 +2,9 @@ import "server-only";
 
 import { createHash } from "node:crypto";
 
+import { SCANNER_SCORE_PROBABILITY_CALIBRATION_MODEL_VERSION } from "@/lib/scanner-score-probability-calibration";
+import { SCANNER_RANKING_SHADOW_PROBABILITY_CALIBRATION_OBSERVATION_VERSION } from "@/lib/server/scanner-intraday-liquidity-shadow-canonical-evaluation";
+
 import {
   buildScannerClockPriorShadowForwardDecisionPlan,
   SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_DECISION_VERSION,
@@ -255,6 +258,36 @@ function concentration(value: unknown, expectedDenominator: number) {
   ].every((key) => concentrationShare(value[key], expectedDenominator));
 }
 
+function calibrationArm(value: unknown) {
+  return record(value) &&
+    typeof value.brier_score === "number" &&
+    Number.isFinite(value.brier_score) && value.brier_score >= 0 &&
+    value.brier_score <= 1 &&
+    typeof value.expected_calibration_error === "number" &&
+    Number.isFinite(value.expected_calibration_error) &&
+    value.expected_calibration_error >= 0 &&
+    value.expected_calibration_error <= 1;
+}
+
+function probabilityCalibration(value: unknown) {
+  if (!record(value) ||
+    value.model_version !== SCANNER_SCORE_PROBABILITY_CALIBRATION_MODEL_VERSION ||
+    !hash(value.model_fingerprint) ||
+    value.observation_version !==
+      SCANNER_RANKING_SHADOW_PROBABILITY_CALIBRATION_OBSERVATION_VERSION ||
+    value.bucket_policy !== "fixed_calibration_buckets_v1" ||
+    !Number.isInteger(value.binary_outcome_count) ||
+    (value.binary_outcome_count as number) < 10 ||
+    !proportion(value.probability_coverage) ||
+    !record(value.probability_coverage) ||
+    value.probability_coverage.numerator !== value.binary_outcome_count ||
+    value.probability_coverage.denominator !== value.binary_outcome_count ||
+    !calibrationArm(value.baseline) || !calibrationArm(value.candidate)) {
+    return false;
+  }
+  return true;
+}
+
 function partition(
   value: unknown,
 ): value is ScannerClockPriorShadowForwardPartitionResult {
@@ -282,6 +315,7 @@ function partition(
     !proportion(value.outcome_coverage) ||
     !proportion(value.evidence_missingness) ||
     !concentration(value.concentration, value.ranked_candidate_count as number) ||
+    !probabilityCalibration(value.probability_calibration) ||
     !record(value.precision_delta)) {
     return false;
   }

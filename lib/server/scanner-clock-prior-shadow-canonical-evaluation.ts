@@ -3,6 +3,7 @@ import "server-only";
 import type { LearningBaselineScanRun } from "@/lib/recommendation-learning-baseline-readiness";
 import type { RecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
+import type { ScannerScoreProbabilityCalibrationModel } from "@/lib/scanner-score-probability-calibration";
 import { scannerClockPriorShadowAttributionFromUnknown } from "@/lib/scanner-ranking-clock-prior-shadow-attribution";
 import { scannerClockPriorShadowComparisonFromUnknown } from "@/lib/scanner-ranking-clock-prior-shadow";
 import {
@@ -13,6 +14,8 @@ import {
   evaluateScannerRankingShadowScan,
   SCANNER_RANKING_SHADOW_CANDIDATE_PERFORMANCE_AT_K_VERSION,
   SCANNER_RANKING_SHADOW_CONCENTRATION_INPUT_VERSION,
+  SCANNER_RANKING_SHADOW_PROBABILITY_CALIBRATION_INPUT_VERSION,
+  SCANNER_RANKING_SHADOW_PROBABILITY_CALIBRATION_OBSERVATION_VERSION,
   type ScannerRankingShadowCanonicalEvaluationResult,
 } from "@/lib/server/scanner-intraday-liquidity-shadow-canonical-evaluation";
 
@@ -51,6 +54,14 @@ function incompleteClockPriorCapture(input: {
     concentration_input_version:
       SCANNER_RANKING_SHADOW_CONCENTRATION_INPUT_VERSION,
     concentration_inputs: null,
+    probability_calibration_model_version: null,
+    probability_calibration_model_fingerprint: null,
+    probability_calibration_input_version:
+      SCANNER_RANKING_SHADOW_PROBABILITY_CALIBRATION_INPUT_VERSION,
+    probability_calibration_inputs: null,
+    probability_calibration_observation_version:
+      SCANNER_RANKING_SHADOW_PROBABILITY_CALIBRATION_OBSERVATION_VERSION,
+    probability_calibration_observations: null,
     threshold_policy_semantics: "diagnostic_all_candidates_only",
     shadow_only: true,
     live_ranking_effect: false,
@@ -69,6 +80,7 @@ export function evaluateScannerClockPriorShadowScan(input: {
   snapshots: RecommendationSnapshot[];
   outcomes: RecommendationOutcome[];
   bootstrapSeed: string;
+  probabilityCalibration?: ScannerScoreProbabilityCalibrationModel | null;
 }): ScannerClockPriorShadowCanonicalEvaluationResult {
   const attribution = scannerClockPriorShadowAttributionFromUnknown(
     input.scanRun.payload_json.scanner_clock_prior_shadow_attribution,
@@ -134,5 +146,6 @@ export function evaluateScannerClockPriorShadowScan(input: {
     sourceNamespace: "ture.scanner_clock_prior_shadow",
     attribution,
     comparison,
+    probabilityCalibration: input.probabilityCalibration ?? null,
   });
 }

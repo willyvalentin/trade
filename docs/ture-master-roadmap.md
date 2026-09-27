@@ -55,6 +55,26 @@ guardrail, not an alpha claim. OPEN sampling continues in parallel on the
 already frozen policy; CLOSED implementation may not redefine the cohort or
 lower a threshold to obtain a terminal result.
 
+Steps (1) and (2) are production-verified. Step (3) is the selected CLOSED
+delivery: fit a versioned score-to-probability model only from immutable outcomes
+that predate the held-out window, then measure Brier score, fixed-bucket expected
+calibration error and probability coverage only on the later forward partitions.
+Historical fitting rows and forward evaluation rows must remain separately
+read, bounded and attributable; pooling them, fitting after the held-out cutoff
+or interpreting an ordinal score as a probability fails closed. This delivery
+does not change live scores, ranking, publication thresholds or execution.
+
+**Definition of recommendation-engine progress.** Ture improves only when a
+versioned challenger changes a declared point-in-time input, feature, score,
+rank or selection rule and later beats its frozen baseline on attributable
+outcomes while the complete charter remains inside its limits. More scans, more
+candidates, a higher ordinal score, green CI or a more elaborate control plane
+is not recommendation improvement. After the current clock-neutral hypothesis
+is decided, select the next measured discovery/data-fitness or contextual-ranking
+defect with the largest plausible quality impact; do not begin a generic
+"intelligence" platform, another scheduling project or autonomous execution
+work in place of a testable recommendation hypothesis.
+
 **2026-09-23 market-timing decision.** The former named morning/midday/power-hour
 publication windows are historical operating constraints, not a product
 principle or a recommendation quota. A scheduled tick is a bounded observation
