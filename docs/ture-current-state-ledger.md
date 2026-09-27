@@ -12,6 +12,30 @@ integrity, safety or evidence-path defect may interrupt. Repository roadmap,
 governance and this ledger are the only control sources; Notion stays outside
 scope.
 
+### Now / Next / Blocked selection — 2026-09-27
+
+- **Now:** finish the clock-neutral IF-3b hypothesis end to end. Exact
+  immutable-decision attribution is merged and production-deploy verified in PR
+  #666. Its direct successor, implemented and locally verified on the exact new
+  `main`, projects the same declared cohort through owner-bound canonical
+  outcomes. It changes no live rank, publication rule or threshold.
+- **Next:** deliver the canonical outcome projection, then use the frozen IF-4
+  comparison and declared forward cohort to issue one `continue`, `narrow` or
+  `reject` decision. OPEN observations serve that exact evidence gap; CLOSED
+  work completes the missing evaluator and readback links.
+- **Blocked from selection:** live-policy promotion until complete attributable
+  held-out/forward evidence exists; new generic scheduler/control-plane work
+  without a reproduced integrity or safety defect; paper/broker expansion until
+  IF-5 demonstrates sustained useful recommendation quality. These are scope
+  gates, not reasons to stop independent intelligence work.
+
+The work-selection test is now strict: a primary delivery must improve or
+measure discovery/data fitness, contextual ranking, canonical outcomes,
+comparative evaluation or reversible learning for the active hypothesis. A
+status surface, receipt, schema or automation is supporting work only and cannot
+displace the next missing quality link unless a reproduced defect makes the
+evidence untrustworthy, unsafe or impossible to collect.
+
 ### Delivery method — CLOSED readiness, 2026-09-24
 
 This governance-only update adds no runtime, deployment, OPEN or strategy
@@ -210,14 +234,31 @@ provider-free shards, aggregate verification and merge-candidate provenance.
 This measures clock-prior displacement; it does not prove that removing those
 priors improves recommendations.
 
-**Active intelligence successor:** bind every IF-3b displacement to the exact
-immutable candidate decision, then join only exact owner-bound canonical
-outcomes before changing the live ranker. The selected CLOSED slice adds a
-strict persisted-comparison boundary and versioned attribution receipt over the
-same ranked population. The following slice must project the declared forward
-cohort through canonical outcomes and the frozen IF-4 baseline so the evidence
-can classify the challenger `continue`, `narrow` or `reject`. No candidate quota
-or threshold relaxation is permitted. A bounded regular-session observation is
+**Merged and production-verified CLOSED slice — exact clock-prior outcome
+attribution:** PR [#666](https://github.com/willyvalentin/trade/pull/666)
+merged as `af1350d13312cc139a6e1e04cdb586170f8e8975`; Netlify production deploy
+`6ab87478a52e280008ebb78f` is `ready`, Git-connected, `production`, branch
+`main`, `manual_deploy=false` and carries that exact revision. The selected
+delivery strictly parses the persisted same-population comparison and binds
+every baseline/challenger rank, selection and displacement to one immutable
+candidate decision, scan ID/fingerprint and true decision/comparison chronology.
+Identity, population, duplicate, join, baseline or chronology conflicts fail
+closed. A zero-candidate `no_trade` is represented without inventing outcome
+evidence. Local acceptance included 22/22 focused clock-prior, liquidity-shadow
+and attribution regressions, strict TypeScript, changed-file lint, all scheduled
+runtime bundles and a complete Next 16.3.4 webpack production build. Protected
+CI run `36284924720` passed all six provider-free shards, aggregate verification
+and merge-candidate provenance. This proves exact attribution, not canonical
+outcome coverage or better recommendations.
+
+**Active intelligence successor:** project the attributed clock-neutral cohort
+through only exact owner-bound canonical outcomes before changing the live
+ranker. The selected CLOSED slice reports baseline/challenger coverage, mean R
+and descriptive deltas while returning `no_attribution`, `coverage_incomplete`,
+`conflicting` or `comparable` explicitly and keeping promotion blocked. The
+following frozen IF-4 paired evaluation and declared forward cohort must
+classify the challenger `continue`, `narrow` or `reject`. No candidate quota or
+threshold relaxation is permitted. A bounded regular-session observation is
 still required to prove the deployed path with real forward evidence. While
 that OPEN evidence waits, CLOSED work must improve or test missing data,
 context, ranking or evaluation inputs rather than reopen generic control-plane
