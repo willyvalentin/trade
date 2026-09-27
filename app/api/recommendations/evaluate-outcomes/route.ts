@@ -68,6 +68,11 @@ import {
 import {
   buildBasicFreeScheduledOutcomeCapacityReceipt,
 } from "@/lib/basic-free-scheduled-outcome-capacity";
+import {
+  outcomeEvaluationSeriesInvocationLineageFromUnknown,
+  type OutcomeEvaluationSeriesControl,
+  type OutcomeEvaluationSeriesSlotAdmission,
+} from "@/lib/outcome-evaluation-series-control";
 
 type EvaluateOutcomesRequest = {
   mode?: unknown;
@@ -83,6 +88,8 @@ type EvaluateOutcomesRequest = {
   scheduled_function_fired_at_utc?: unknown;
   scheduled_slot_at_utc?: unknown;
   scheduled_outcome_evaluation_attempt_fingerprint?: unknown;
+  outcome_evaluation_series_control?: unknown;
+  outcome_evaluation_series_slot_admission?: unknown;
 };
 
 type OutcomeSnapshotIneligibleReason =
@@ -143,6 +150,9 @@ type ScheduledOutcomeEvaluationInvocation = {
   attempt_fingerprint: string;
   scheduled_function_fired_at: string;
   scheduled_slot_at: string;
+  outcome_evaluation_series_control: OutcomeEvaluationSeriesControl | null;
+  outcome_evaluation_series_slot_admission:
+    OutcomeEvaluationSeriesSlotAdmission | null;
 };
 
 type ReceiptRun = Pick<
@@ -231,6 +241,11 @@ function parseScheduledOutcomeEvaluationInvocation({
   const normalizedSlot = scheduledSlot
     ? scheduledOutcomeEvaluationSlotStartedAt(new Date(scheduledSlot)).toISOString()
     : null;
+  const seriesLineage = outcomeEvaluationSeriesInvocationLineageFromUnknown({
+    control: body?.outcome_evaluation_series_control,
+    slotAdmission: body?.outcome_evaluation_series_slot_admission,
+    scheduledSlotStartedAtUtc: scheduledSlot,
+  });
 
   if (
     mode !== "official_live_today" ||
@@ -239,7 +254,8 @@ function parseScheduledOutcomeEvaluationInvocation({
     !scheduledSlot ||
     normalizedSlot !== scheduledSlot ||
     !attemptFingerprint ||
-    !/^scheduled_outcome_evaluation_[a-z0-9]+$/.test(attemptFingerprint)
+    !/^scheduled_outcome_evaluation_[a-z0-9]+$/.test(attemptFingerprint) ||
+    seriesLineage.status === "invalid"
   ) {
     return { status: "invalid" };
   }
@@ -250,6 +266,9 @@ function parseScheduledOutcomeEvaluationInvocation({
       attempt_fingerprint: attemptFingerprint,
       scheduled_function_fired_at: firedAt,
       scheduled_slot_at: scheduledSlot,
+      outcome_evaluation_series_control: seriesLineage.control,
+      outcome_evaluation_series_slot_admission:
+        seriesLineage.slot_admission,
     },
   };
 }
@@ -2039,6 +2058,18 @@ export async function POST(request: Request) {
         scheduled_slot_at: scheduledInvocation.invocation.scheduled_slot_at,
         horizons,
         provider_budget_limit: providerBudgetLimit,
+        ...(scheduledInvocation.invocation.outcome_evaluation_series_control &&
+        scheduledInvocation.invocation
+          .outcome_evaluation_series_slot_admission
+          ? {
+              outcome_evaluation_series_control:
+                scheduledInvocation.invocation
+                  .outcome_evaluation_series_control,
+              outcome_evaluation_series_slot_admission:
+                scheduledInvocation.invocation
+                  .outcome_evaluation_series_slot_admission,
+            }
+          : {}),
       },
     });
 

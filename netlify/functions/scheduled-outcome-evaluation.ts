@@ -10,6 +10,12 @@ import {
   BASIC_FREE_SCHEDULED_OUTCOME_MAX_SNAPSHOTS_PER_RUN,
 } from "../../lib/basic-free-scheduled-outcome-capacity";
 import {
+  buildOutcomeEvaluationSeriesSlotAdmission,
+  outcomeEvaluationSeriesControlFromEnvironment,
+  type OutcomeEvaluationSeriesControl,
+  type OutcomeEvaluationSeriesSlotAdmission,
+} from "../../lib/outcome-evaluation-series-control";
+import {
   parseScheduledScanBuildDeploymentIdentity,
   scheduledScanPreflightEventEvidence,
   scheduledScanTimeBoundAdmission,
@@ -36,6 +42,10 @@ const outcomeOneShotDateFlag = "TURE_OUTCOME_EVALUATION_ONE_SHOT_DATE";
 const outcomeOneShotSlotFlag = "TURE_OUTCOME_EVALUATION_ONE_SHOT_SLOT_UTC";
 const normalScanOneShotEnabledFlag = "TURE_NORMAL_SCAN_ONE_SHOT_ENABLED";
 const catalogProbeEnabledFlag = "TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_ENABLED";
+const catalogObservationEnabledFlag =
+  "TURE_BASIC_FREE_CATALOG_OBSERVATION_ONE_SHOT_ENABLED";
+const scanObservationSeriesEnabledFlag = "TURE_OBSERVATION_SERIES_ENABLED";
+const internalPaperWorkerEnabledFlag = "TURE_INTERNAL_PAPER_WORKER_ENABLED";
 
 type OutcomeOneShotControl = Readonly<{
   enabled: boolean;
@@ -64,7 +74,11 @@ export function outcomeOneShotControlFromEnvironment(environment: {
     enabled: environment.get(outcomeOneShotEnabledFlag) === "true",
     conflicting_scan_override_enabled:
       environment.get(normalScanOneShotEnabledFlag) === "true" ||
-      environment.get(catalogProbeEnabledFlag) === "true",
+      environment.get(catalogProbeEnabledFlag) === "true" ||
+      environment.get(catalogObservationEnabledFlag) === "true" ||
+      environment.get(scanObservationSeriesEnabledFlag) === "true" ||
+      environment.get("TURE_OUTCOME_EVALUATION_SERIES_ENABLED") === "true" ||
+      environment.get(internalPaperWorkerEnabledFlag) === "true",
     target_date: dateIsValid ? targetDate : null,
     target_slot_utc: slotIsValid ? targetSlot : null,
   });
@@ -179,11 +193,16 @@ async function invokeScheduledOutcomeRoute({
   firedAtUtc,
   scheduledSlotAtUtc,
   attemptFingerprint,
+  outcomeEvaluationSeriesControl,
+  outcomeEvaluationSeriesSlotAdmission,
 }: {
   automationSecret: string;
   firedAtUtc: string;
   scheduledSlotAtUtc: string;
   attemptFingerprint: string;
+  outcomeEvaluationSeriesControl: OutcomeEvaluationSeriesControl | null;
+  outcomeEvaluationSeriesSlotAdmission:
+    OutcomeEvaluationSeriesSlotAdmission | null;
 }) {
   const routeModule = runtimeRequire(
     "../.generated/scheduled-outcome-evaluation-runtime.cjs",
@@ -208,6 +227,9 @@ async function invokeScheduledOutcomeRoute({
         scheduled_function_fired_at_utc: firedAtUtc,
         scheduled_slot_at_utc: scheduledSlotAtUtc,
         scheduled_outcome_evaluation_attempt_fingerprint: attemptFingerprint,
+        outcome_evaluation_series_control: outcomeEvaluationSeriesControl,
+        outcome_evaluation_series_slot_admission:
+          outcomeEvaluationSeriesSlotAdmission,
       }),
     }),
   );
@@ -236,16 +258,61 @@ function scheduledOutcomeEvaluationSlotFromEvent({
 export default async function handler(request: Request, context: Context) {
   const oneShotControl = outcomeOneShotControlFromEnvironment(Netlify.env);
   const oneShotRequested = oneShotControl.enabled;
+  const outcomeEvaluationSeriesControl =
+    outcomeEvaluationSeriesControlFromEnvironment(Netlify.env);
+  const outcomeEvaluationSeriesRequested =
+    outcomeEvaluationSeriesControl.requested;
   const scheduledFunctionsDisabled = scheduledExecutionIsDisabled();
+
+  if (
+    outcomeEvaluationSeriesRequested &&
+    outcomeEvaluationSeriesControl.status !== "ready"
+  ) {
+    console.error(
+      "[scheduled-outcome-evaluation] Outcome series configuration invalid.",
+      { reason_codes: outcomeEvaluationSeriesControl.reason_codes },
+    );
+    return new Response("Outcome evaluation series configuration invalid", {
+      status: 503,
+    });
+  }
+
+  if (oneShotRequested && outcomeEvaluationSeriesRequested) {
+    console.error(
+      "[scheduled-outcome-evaluation] One-shot conflicts with outcome series.",
+    );
+    return new Response("Outcome evaluation control conflict", { status: 503 });
+  }
 
   if (oneShotRequested && !scheduledFunctionsDisabled) {
     console.error("[scheduled-outcome-evaluation] One-shot conflicts with global scheduler state.");
     return new Response("Outcome one-shot gates unavailable", { status: 503 });
   }
 
+  if (
+    outcomeEvaluationSeriesRequested &&
+    (!scheduledFunctionsDisabled ||
+      Netlify.env.get(normalScanOneShotEnabledFlag) === "true" ||
+      Netlify.env.get(catalogProbeEnabledFlag) === "true" ||
+      Netlify.env.get(catalogObservationEnabledFlag) === "true" ||
+      Netlify.env.get(scanObservationSeriesEnabledFlag) === "true" ||
+      Netlify.env.get(internalPaperWorkerEnabledFlag) === "true")
+  ) {
+    console.error(
+      "[scheduled-outcome-evaluation] Outcome series conflicts with runtime gates.",
+    );
+    return new Response("Outcome evaluation series gates unavailable", {
+      status: 503,
+    });
+  }
+
   // Keep a published staging candidate completely inert when explicitly
   // disabled, except one exact deploy/date/slot-bound outcome delivery.
-  if (scheduledFunctionsDisabled && !oneShotRequested) {
+  if (
+    scheduledFunctionsDisabled &&
+    !oneShotRequested &&
+    !outcomeEvaluationSeriesRequested
+  ) {
     console.log("[scheduled-outcome-evaluation] Execution disabled by environment.");
     return new Response(null, { status: 204 });
   }
@@ -256,6 +323,12 @@ export default async function handler(request: Request, context: Context) {
   const nextRun = payload && typeof payload === "object" && !Array.isArray(payload)
     ? (payload as { next_run?: unknown }).next_run
     : null;
+  const scheduledSlot = scheduledOutcomeEvaluationSlotFromEvent({
+    nextRun,
+    deliveryTime: firedAt,
+  });
+  const scheduledSlotAtUtc = scheduledSlot.toISOString();
+  const buildIdentity = loadPackagedDeploymentIdentity();
   const oneShotAdmission = oneShotRequested
     ? outcomeOneShotAdmission({
         control: oneShotControl,
@@ -263,7 +336,7 @@ export default async function handler(request: Request, context: Context) {
         nextRun,
         deliveryTime: firedAt,
         context,
-        buildIdentity: loadPackagedDeploymentIdentity(),
+        buildIdentity,
         runtimeSiteId: process.env.SITE_ID,
       })
     : null;
@@ -283,11 +356,73 @@ export default async function handler(request: Request, context: Context) {
     return new Response("Outcome one-shot admission unavailable", { status: 503 });
   }
 
-  const scheduledSlot = scheduledOutcomeEvaluationSlotFromEvent({
-    nextRun,
-    deliveryTime: firedAt,
-  });
-  const scheduledSlotAtUtc = scheduledSlot.toISOString();
+  const outcomeEvaluationSeriesSlotAdmission =
+    outcomeEvaluationSeriesRequested
+      ? buildOutcomeEvaluationSeriesSlotAdmission({
+          control: outcomeEvaluationSeriesControl,
+          scheduledSlotStartedAtUtc: scheduledSlotAtUtc,
+        })
+      : null;
+  if (
+    outcomeEvaluationSeriesRequested &&
+    outcomeEvaluationSeriesSlotAdmission?.decision !== "eligible"
+  ) {
+    if (outcomeEvaluationSeriesSlotAdmission?.decision === "no_request") {
+      console.log(
+        "[scheduled-outcome-evaluation] Outcome series slot is not eligible.",
+        { status: outcomeEvaluationSeriesSlotAdmission.status },
+      );
+      return new Response(null, { status: 204 });
+    }
+    console.error(
+      "[scheduled-outcome-evaluation] Outcome series slot admission failed.",
+      {
+        status:
+          outcomeEvaluationSeriesSlotAdmission?.status ??
+          "series_slot_admission_unavailable",
+      },
+    );
+    return new Response("Outcome evaluation series slot unavailable", {
+      status: 503,
+    });
+  }
+  const outcomeEvaluationSeriesTimeBoundAdmission =
+    outcomeEvaluationSeriesRequested && outcomeEvaluationSeriesSlotAdmission
+      ? scheduledScanTimeBoundAdmission({
+          contextIdentity: {
+            deploy_id: context.deploy?.id ?? null,
+            deploy_context: context.deploy?.context ?? null,
+            deploy_published: context.deploy?.published ?? null,
+          },
+          buildIdentity,
+          runtimeSiteId: process.env.SITE_ID,
+          eventEvidence: scheduledScanPreflightEventEvidence({
+            nextRun,
+            deliveryTime: firedAt,
+          }),
+          configuredProbeSlotUtc:
+            outcomeEvaluationSeriesSlotAdmission
+              .scheduled_slot_started_at_utc,
+          configuredProbeDate: outcomeEvaluationSeriesControl.trading_date,
+        })
+      : null;
+  if (
+    outcomeEvaluationSeriesRequested &&
+    !outcomeEvaluationSeriesTimeBoundAdmission?.admitted
+  ) {
+    console.error(
+      "[scheduled-outcome-evaluation] Outcome series time-bound admission failed.",
+      {
+        status:
+          outcomeEvaluationSeriesTimeBoundAdmission?.status ??
+          "series_time_bound_admission_unavailable",
+      },
+    );
+    return new Response("Outcome evaluation series admission unavailable", {
+      status: 503,
+    });
+  }
+
   const automationSecret = process.env.AUTOMATION_SECRET;
   const attemptFingerprint =
     buildScheduledOutcomeEvaluationAttemptFingerprintForSlot(scheduledSlot);
@@ -303,6 +438,10 @@ export default async function handler(request: Request, context: Context) {
     scheduled_outcome_evaluation_attempt_fingerprint: attemptFingerprint,
     horizons: officialIntradayHorizons,
     one_shot_admission: oneShotAdmission?.status ?? null,
+    outcome_evaluation_series_id:
+      outcomeEvaluationSeriesControl.series_id,
+    outcome_evaluation_series_slot_index:
+      outcomeEvaluationSeriesSlotAdmission?.slot_index ?? null,
   });
 
   try {
@@ -311,6 +450,10 @@ export default async function handler(request: Request, context: Context) {
       firedAtUtc,
       scheduledSlotAtUtc,
       attemptFingerprint,
+      outcomeEvaluationSeriesControl: outcomeEvaluationSeriesRequested
+        ? outcomeEvaluationSeriesControl
+        : null,
+      outcomeEvaluationSeriesSlotAdmission,
     });
     const body = await response.text();
 

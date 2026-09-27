@@ -114,6 +114,10 @@ test.describe("outcome one-slot scheduler admission", () => {
     for (const conflictingFlag of [
       "TURE_NORMAL_SCAN_ONE_SHOT_ENABLED",
       "TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_ENABLED",
+      "TURE_BASIC_FREE_CATALOG_OBSERVATION_ONE_SHOT_ENABLED",
+      "TURE_OBSERVATION_SERIES_ENABLED",
+      "TURE_OUTCOME_EVALUATION_SERIES_ENABLED",
+      "TURE_INTERNAL_PAPER_WORKER_ENABLED",
     ]) {
       expect(oneShotAdmission({ control: oneShotControl({ [conflictingFlag]: "true" }) })).toMatchObject({
         admitted: false,

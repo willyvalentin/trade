@@ -33,6 +33,8 @@ const normalScanOneShotFlag = "TURE_NORMAL_SCAN_ONE_SHOT_ENABLED";
 const normalScanOneShotDateFlag = "TURE_NORMAL_SCAN_ONE_SHOT_DATE";
 const normalScanOneShotSlotFlag = "TURE_NORMAL_SCAN_ONE_SHOT_SLOT_UTC";
 const outcomeOneShotEnabledFlag = "TURE_OUTCOME_EVALUATION_ONE_SHOT_ENABLED";
+const outcomeEvaluationSeriesEnabledFlag =
+  "TURE_OUTCOME_EVALUATION_SERIES_ENABLED";
 const internalPaperWorkerEnabledFlag = "TURE_INTERNAL_PAPER_WORKER_ENABLED";
 export const SCHEDULED_SCAN_DEPLOYMENT_IDENTITY_SCHEMA_VERSION =
   "scheduled_scan_deployment_identity_v1" as const;
@@ -837,6 +839,7 @@ export default async function handler(request: Request, context: Context) {
       runtimeConfiguration.basic_free_catalog_capability_probe_enabled ||
       runtimeConfiguration.basic_free_catalog_observation_one_shot_enabled ||
       Netlify.env.get(outcomeOneShotEnabledFlag) === "true" ||
+      Netlify.env.get(outcomeEvaluationSeriesEnabledFlag) === "true" ||
       Netlify.env.get(internalPaperWorkerEnabledFlag) === "true")
   ) {
     console.error("[scheduled-scan] Normal scan control conflicts with runtime gates.");
@@ -857,7 +860,11 @@ export default async function handler(request: Request, context: Context) {
     runtimeConfiguration.scheduled_functions_disabled &&
     runtimeConfiguration.basic_free_catalog_capability_probe_enabled;
 
-  if (disabledProbePreflight && Netlify.env.get(outcomeOneShotEnabledFlag) === "true") {
+  if (
+    disabledProbePreflight &&
+    (Netlify.env.get(outcomeOneShotEnabledFlag) === "true" ||
+      Netlify.env.get(outcomeEvaluationSeriesEnabledFlag) === "true")
+  ) {
     console.error("[scheduled-scan] Catalog probe conflicts with outcome one-shot mode.");
     return new Response("Catalog probe gates unavailable", { status: 503 });
   }

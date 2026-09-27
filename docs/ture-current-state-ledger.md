@@ -530,7 +530,8 @@ started and no owner session was needed for deployment verification. No
 provider request, candidate publication, paper/broker effect, forward sample or
 quality improvement is claimed.
 
-**Active CLOSED slice — explicit clock-prior full-population outcome path:**
+**Merged and production-verified CLOSED slice — explicit clock-prior
+full-population outcome path:**
 runtime inspection found that the frozen clock-prior experiment could evaluate
 its complete candidate population only because the older intraday-liquidity
 experiment happened to capture and admit the same hidden research snapshots.
@@ -551,15 +552,48 @@ execution authority is added. This makes Monday's evidence collection
 independently attributable; it does not claim that clock-neutral ranking is
 better.
 
-Local acceptance on branch `codex/if4-clock-prior-outcome-capture`, based on
-main `69aaafc988b1846b39c279bd8b781b4eeea81ac9`, is 64/64 adjacent
+PR [#678](https://github.com/willyvalentin/trade/pull/678) merged as
+`843016adb1ffffec605c34cc3dc0d9b6ca00602d`; protected post-merge CI run
+`36314255479` passed and Netlify production deploy
+`6ab8f6f1510c050008002839` is `ready` on that exact revision. Local acceptance
+on branch `codex/if4-clock-prior-outcome-capture`, based on main
+`69aaafc988b1846b39c279bd8b781b4eeea81ac9`, was 64/64 adjacent
 clock-prior, full-population, outcome-admission, credit-guard, scheduler-receipt
 and lifecycle tests; 168/168 intelligence-foundation tests including both
 isolated PostgreSQL 17 regressions; strict TypeScript; changed-file lint;
 scheduled-runtime bundling; diff validation; and a complete Next.js 16.3.4
-webpack production build. Merge, production deploy and the first real forward
-observation remain separate evidence. No schema change is required for this
-slice.
+webpack production build. The first real forward observation remains separate
+evidence. No schema change was required for this slice.
+
+**Active CLOSED slice — bounded forward-outcome backlog collection:** the
+Monday scan series can persist more than four exact research snapshots, while
+one Basic Free scheduled outcome run can evaluate at most four snapshots. The
+existing one-shot also conflicts correctly with the active scan series. Without
+a separate bounded follow-up, decision capture can therefore succeed while the
+frozen cohort remains canonically outcome-incomplete.
+
+The selected change adds a default-off outcome-evaluation series that is bound
+to one New York date, a half-open quarter-hour window, one immutable series ID,
+at most 16 attempts and exactly four maximum provider credits per attempt. The
+configured credit cap must equal the worst-case slot budget and is therefore at
+most 64 credits. Global scheduled-function disable remains `true`; scan
+one-shots, scan observation series, catalog modes and the paper worker are
+mutually exclusive with this series. Every admitted slot remains bound to the
+published production deploy, the normal scheduled event, one durable outcome
+attempt and the existing shared daily/minute credit ledger. The route persists
+the exact series control and slot index in the attempt request before snapshot
+or provider work. Empty backlog slots use no provider credit. The capability
+cannot rank, publish, trade or authorize a broker.
+
+Local acceptance on branch
+`codex/if4-forward-cohort-readiness-audit`, based on main
+`843016adb1ffffec605c34cc3dc0d9b6ca00602d`, is 34/34 focused series,
+scheduler, outcome-receipt and Basic Free credit tests; 43/43 adjacent
+observation/clock-prior tests; 168/168 intelligence-foundation tests including
+both isolated PostgreSQL regressions; strict non-incremental TypeScript;
+changed-file lint; scheduled-runtime bundling and diff validation. Merge,
+production deploy, activation and any real provider/outcome receipt remain
+separate evidence. No schema change is required.
 
 ### Continuous-observation technical direction — 2026-09-24
 
