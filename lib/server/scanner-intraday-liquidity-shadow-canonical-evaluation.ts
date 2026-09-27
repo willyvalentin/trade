@@ -9,6 +9,7 @@ import {
   type CanonicalCandidateMembershipInput,
   type CanonicalCandidateOutcome,
 } from "@/lib/canonical-counterfactual-opportunity-set";
+import { canonicalQualityRankingKValues } from "@/lib/canonical-quality-metrics";
 import {
   CANONICAL_EVALUATION_PROJECTION_CONTRACT_VERSION,
   canonicalMarketRegimeFromPayload,
@@ -43,6 +44,17 @@ export const SCANNER_INTRADAY_LIQUIDITY_SHADOW_CANONICAL_EVALUATION_ADAPTER_VERS
   "scanner_intraday_liquidity_shadow_canonical_evaluation_adapter_v1" as const;
 export const SCANNER_RANKING_SHADOW_DIAGNOSTIC_THRESHOLD_POLICY_VERSION =
   "shadow_rank_only_diagnostic_threshold_v1" as const;
+export const SCANNER_RANKING_SHADOW_CANDIDATE_PERFORMANCE_AT_K_VERSION =
+  "scanner_ranking_shadow_candidate_performance_at_k_v1" as const;
+
+type ScannerRankingShadowCandidatePerformanceAtK = Record<string, {
+  expectancy_r: {
+    value: number | null;
+    numerator: number;
+    denominator: number;
+    identity_count: number;
+  };
+}>;
 
 export type ScannerRankingShadowCandidateAttribution = {
   candidate_id: string;
@@ -105,6 +117,10 @@ export type ScannerRankingShadowCanonicalEvaluationResult<
   };
   reason_codes: string[];
   comparison_identity: string | null;
+  candidate_performance_at_k_version:
+    typeof SCANNER_RANKING_SHADOW_CANDIDATE_PERFORMANCE_AT_K_VERSION;
+  candidate_performance_at_k:
+    ScannerRankingShadowCandidatePerformanceAtK | null;
   threshold_policy_semantics: "diagnostic_all_candidates_only";
   shadow_only: true;
   live_ranking_effect: false;
@@ -155,6 +171,42 @@ function textOrNull(value: unknown) {
 
 function normalizedTicker(value: string | null | undefined) {
   return value?.trim().toUpperCase() ?? "";
+}
+
+function round(value: number) {
+  return Number(value.toFixed(12));
+}
+
+function candidatePerformanceAtK(
+  evidence: CandidateEvidence[],
+): ScannerRankingShadowCandidatePerformanceAtK {
+  const ordered = [...evidence].sort(
+    (left, right) =>
+      left.attribution.shadow_rank - right.attribution.shadow_rank ||
+      left.attribution.ticker.localeCompare(right.attribution.ticker),
+  );
+  return Object.fromEntries(
+    canonicalQualityRankingKValues.map((k) => {
+      const selected = ordered.slice(0, k);
+      const values = selected.flatMap((item) =>
+        typeof item.canonical_outcome.r_result === "number" &&
+          Number.isFinite(item.canonical_outcome.r_result)
+          ? [item.canonical_outcome.r_result]
+          : []
+      );
+      const numerator = round(
+        values.reduce((sum, value) => sum + value, 0),
+      );
+      return [String(k), {
+        expectancy_r: {
+          value: values.length > 0 ? round(numerator / values.length) : null,
+          numerator,
+          denominator: values.length,
+          identity_count: selected.length,
+        },
+      }];
+    }),
+  );
 }
 
 function exactSnapshotForCandidate(input: {
@@ -513,6 +565,7 @@ function terminalResult<AdapterVersion extends string>(input: {
   outcomes: number;
   reasons: Iterable<string>;
   comparisonIdentity?: string | null;
+  candidatePerformanceAtK?: ScannerRankingShadowCandidatePerformanceAtK;
 }): ScannerRankingShadowCanonicalEvaluationResult<AdapterVersion> {
   return {
     adapter_version: input.adapterVersion,
@@ -525,6 +578,9 @@ function terminalResult<AdapterVersion extends string>(input: {
     },
     reason_codes: uniqueSorted(input.reasons),
     comparison_identity: input.comparisonIdentity ?? null,
+    candidate_performance_at_k_version:
+      SCANNER_RANKING_SHADOW_CANDIDATE_PERFORMANCE_AT_K_VERSION,
+    candidate_performance_at_k: input.candidatePerformanceAtK ?? null,
     ...safety,
   };
 }
@@ -955,6 +1011,7 @@ export function evaluateScannerRankingShadowScan<AdapterVersion extends string>(
       "threshold_sweep_diagnostic_only",
     ],
     comparisonIdentity,
+    candidatePerformanceAtK: candidatePerformanceAtK(evidence),
   });
 }
 

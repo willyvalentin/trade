@@ -15,10 +15,14 @@ scope.
 ### Now / Next / Blocked selection — 2026-09-27
 
 - **Now:** collect the exact clock-neutral IF-3b forward cohort without changing
-  live ranking or publication. The server-owned charter and plan are durably
+  live ranking or publication, while CLOSED work completes the IF-4 scorecard
+  needed to judge it honestly. The server-owned charter and plan are durably
   frozen in production before the first sample: K=3, 30/30 held-out and
   walk-forward minimums, eight trading days per partition and immutable
-  `continue >= +0.03` / `reject <= 0.00` precision-delta boundaries.
+  `continue >= +0.03` / `reject <= 0.00` precision-delta boundaries. Those
+  relative boundaries are necessary but not sufficient: absolute precision,
+  expectancy, calibrated probability, coverage, reliability, cost,
+  concentration and feasibility remain part of the same charter.
 - **Next:** use OPEN observations only for that frozen cohort from 2026-09-28 at
   13:30Z, preserving every attributable candidate, rejection and explicit
   `no_trade` decision plus its canonical outcome. CLOSED work closes only the
@@ -26,7 +30,8 @@ scope.
   hypothesis. Complete evidence may issue one `continue`, `narrow` or `reject`
   shadow decision; none of those outcomes alone authorizes promotion.
 - **Blocked from selection:** live-policy promotion until complete attributable
-  held-out/forward evidence exists; new generic scheduler/control-plane work
+  held-out/forward evidence exists and the complete charter scorecard passes;
+  new generic scheduler/control-plane work
   without a reproduced integrity or safety defect; paper/broker expansion until
   IF-5 demonstrates sustained useful recommendation quality. These are scope
   gates, not reasons to stop independent intelligence work.
@@ -565,7 +570,8 @@ scheduled-runtime bundling; diff validation; and a complete Next.js 16.3.4
 webpack production build. The first real forward observation remains separate
 evidence. No schema change was required for this slice.
 
-**Active CLOSED slice — bounded forward-outcome backlog collection:** the
+**Merged and production-verified CLOSED slice — bounded forward-outcome backlog
+collection:** the
 Monday scan series can persist more than four exact research snapshots, while
 one Basic Free scheduled outcome run can evaluate at most four snapshots. The
 existing one-shot also conflicts correctly with the active scan series. Without
@@ -591,9 +597,37 @@ Local acceptance on branch
 scheduler, outcome-receipt and Basic Free credit tests; 43/43 adjacent
 observation/clock-prior tests; 168/168 intelligence-foundation tests including
 both isolated PostgreSQL regressions; strict non-incremental TypeScript;
-changed-file lint; scheduled-runtime bundling and diff validation. Merge,
-production deploy, activation and any real provider/outcome receipt remain
-separate evidence. No schema change is required.
+changed-file lint; scheduled-runtime bundling and diff validation. PR
+[#679](https://github.com/willyvalentin/trade/pull/679) merged as exact main
+`584be7382c71bf0251861906f71f42a9a78e2d70`; post-merge CI run
+`36316951440` passed and Git-connected Netlify production deploy
+`6ab902ad84d68c00084c134b` is `ready` on that exact revision. Activation and
+any real provider/outcome receipt remain separate OPEN evidence. No schema
+change was required.
+
+**Active CLOSED slice — fail-closed full-charter forward decision:** source
+inspection reproduced a recommendation-quality governance defect: the frozen
+charter declares absolute precision, expectancy and calibration safeguards,
+while the forward evaluator could previously reach a terminal decision from
+relative precision delta alone. The selected change exposes versioned
+candidate expectancy at K from the same canonical outcomes and requires the
+charter's absolute precision and expectancy floors. It also keeps the decision
+pending when Ture's confidence remains ordinal and therefore cannot satisfy the
+calibrated-probability contract. An explicit scorecard-incomplete gate keeps
+terminal authority closed until every remaining charter dimension is wired. A
+complete cohort with weak expectancy, weak absolute precision, missing
+probability semantics or an incomplete scorecard now remains
+`evidence_incomplete`; thresholds are not relaxed and live ranking/publication
+remain unchanged.
+
+Current local evidence is 56/56 focused canonical evaluator, offline-learning,
+clock-prior outcome and forward-service regressions; the 168/168
+intelligence-foundation suite; strict non-incremental TypeScript; changed-file
+lint; scheduled-runtime packaging; diff validation; and a complete Next.js
+16.3.4 webpack production build. This closes a false-terminal path; it does not
+yet supply calibrated probabilities or the remaining complete charter
+scorecard, and it does not prove better recommendations. Merge, CI and
+production verification remain separate evidence.
 
 ### Continuous-observation technical direction — 2026-09-24
 

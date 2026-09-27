@@ -539,6 +539,15 @@ test("maps the exact clock-neutral cohort into the canonical paired rank evaluat
     exact_snapshot_count: 1,
     canonical_primary_outcome_count: 1,
   });
+  expect(result.candidate_performance_at_k_version).toBe(
+    "scanner_ranking_shadow_candidate_performance_at_k_v1",
+  );
+  expect(result.candidate_performance_at_k?.["1"]?.expectancy_r).toEqual({
+    value: 2,
+    numerator: 2,
+    denominator: 1,
+    identity_count: 1,
+  });
   expect(result.evaluation).toMatchObject({
     status: "probability_semantics_missing",
     shadow_only: true,
@@ -864,7 +873,7 @@ function forwardDecisionPlan() {
   return plan!;
 }
 
-test("classifies a complete predeclared held-out and walk-forward cohort without promoting it", () => {
+test("withholds a complete cohort until the full recommendation-quality charter is satisfied", () => {
   const heldOut = [
     "2026-09-25",
     "2026-09-28",
@@ -900,8 +909,8 @@ test("classifies a complete predeclared held-out and walk-forward cohort without
   });
 
   expect(result).toMatchObject({
-    status: "decision_ready",
-    decision: "narrow",
+    status: "evidence_incomplete",
+    decision: "pending",
     evidence_binding: {
       owner_user_id: FORWARD_OWNER_ID,
       segment_key: FORWARD_SEGMENT_KEY,
@@ -926,19 +935,70 @@ test("classifies a complete predeclared held-out and walk-forward cohort without
       opportunity_set_count: 5,
       ranked_candidate_count: 10,
       trading_day_count: 5,
-      evidence_complete: true,
+      evidence_complete: false,
     }),
     expect.objectContaining({
       partition: "walk_forward",
       opportunity_set_count: 5,
       ranked_candidate_count: 10,
       trading_day_count: 5,
-      evidence_complete: true,
+      evidence_complete: false,
     }),
   ]);
-  expect(result.reason_codes).toEqual([
-    "complete_evidence_does_not_clear_continue_or_reject_boundary",
-  ]);
+  expect(result.reason_codes).toEqual(expect.arrayContaining([
+    "candidate_calibrated_probability_semantics_missing",
+    "candidate_precision_charter_minimum_not_met",
+    "forward_charter_scorecard_incomplete",
+  ]));
+});
+
+test("withholds a complete cohort whose candidate expectancy misses the charter", () => {
+  const heldOut = [
+    "2026-09-25",
+    "2026-09-28",
+    "2026-09-29",
+    "2026-09-30",
+    "2026-10-01",
+  ].map((day, index) => fixture({
+    decidedAt: `${day}T14:30:00.000Z`,
+    ticker: `E${index}H`,
+    terminal: "stop",
+    includeUnselected: true,
+  }));
+  const walkForward = [
+    "2026-10-02",
+    "2026-10-05",
+    "2026-10-06",
+    "2026-10-07",
+    "2026-10-08",
+  ].map((day, index) => fixture({
+    decidedAt: `${day}T14:30:00.000Z`,
+    ticker: `E${index}F`,
+    terminal: "stop",
+    includeUnselected: true,
+  }));
+  const cohort = [...heldOut, ...walkForward];
+  const result = evaluateScannerClockPriorShadowForwardDecision({
+    plan: forwardDecisionPlan(),
+    evidenceBindings: forwardEvidenceBindings(),
+    scanRuns: cohort.map((item) => item.persistedRun),
+    snapshots: cohort.flatMap((item) => item.snapshots),
+    outcomes: cohort.flatMap((item) => item.outcomes),
+    bootstrapSeed: "clock-prior-forward:weak-expectancy-seed-v1",
+  });
+
+  expect(result).toMatchObject({
+    status: "evidence_incomplete",
+    decision: "pending",
+    shadow_only: true,
+    live_ranking_effect: false,
+    publication_effect: false,
+  });
+  expect(result.reason_codes).toEqual(expect.arrayContaining([
+    "candidate_expectancy_charter_minimum_not_met",
+    "candidate_precision_charter_minimum_not_met",
+    "forward_charter_scorecard_incomplete",
+  ]));
 });
 
 test("withholds a forward decision when canonical outcomes or a declared partition are incomplete", () => {

@@ -26,8 +26,10 @@ import {
   SCANNER_CLOCK_PRIOR_SHADOW_CANONICAL_EVALUATION_ADAPTER_VERSION,
 } from "@/lib/server/scanner-clock-prior-shadow-canonical-evaluation";
 import {
+  SCANNER_RANKING_SHADOW_CANDIDATE_PERFORMANCE_AT_K_VERSION,
   SCANNER_RANKING_SHADOW_DIAGNOSTIC_THRESHOLD_POLICY_VERSION,
 } from "@/lib/server/scanner-intraday-liquidity-shadow-canonical-evaluation";
+import { scannerClockPriorShadowEvaluationCharterDefinition } from "@/lib/server/scanner-clock-prior-shadow-evaluation-charter";
 
 export const SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_DECISION_PLAN_VERSION =
   "scanner_clock_prior_shadow_forward_decision_plan_v2" as const;
@@ -603,6 +605,8 @@ type PartitionObservation = {
   baseline_denominator: number;
   candidate_numerator: number;
   candidate_denominator: number;
+  candidate_expectancy_numerator: number;
+  candidate_expectancy_denominator: number;
 };
 
 function seededUnit(seed: string) {
@@ -723,6 +727,35 @@ function summarizePartition(input: {
         candidateDenominator,
       )
     : null;
+  const candidateExpectancyDenominator = ranked.reduce(
+    (sum, observation) => sum + observation.candidate_expectancy_denominator,
+    0,
+  );
+  const candidateExpectancy = candidateExpectancyDenominator > 0
+    ? ranked.reduce(
+        (sum, observation) =>
+          sum + observation.candidate_expectancy_numerator,
+        0,
+      ) / candidateExpectancyDenominator
+    : null;
+  const charterThresholds =
+    scannerClockPriorShadowEvaluationCharterDefinition.thresholds;
+  if (
+    candidate === null ||
+    candidate.value < charterThresholds.minimum_precision_at_k
+  ) {
+    reasons.push("candidate_precision_charter_minimum_not_met");
+  }
+  if (
+    candidateExpectancy === null ||
+    candidateExpectancy < charterThresholds.minimum_expectancy_r
+  ) {
+    reasons.push("candidate_expectancy_charter_minimum_not_met");
+  }
+  // Precision and expectancy are now measurable from the exact same cohort,
+  // but the remaining frozen charter dimensions are not yet assembled here.
+  // Keep terminal authority closed until the complete scorecard is wired.
+  reasons.push("forward_charter_scorecard_incomplete");
   const clusteredInterval = clusteredPrecisionDeltaInterval(
     input.observations,
     input.bootstrapSeed,
@@ -884,6 +917,8 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
         baseline_denominator: 0,
         candidate_numerator: 0,
         candidate_denominator: 0,
+        candidate_expectancy_numerator: 0,
+        candidate_expectancy_denominator: 0,
       });
       continue;
     }
@@ -953,17 +988,29 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
     const key = String(plan.primary_k);
     const baselineMetric = canonical.baseline.ranking.precision_at_k[key];
     const candidateMetric = canonical.candidate.ranking.precision_at_k[key];
+    const candidateExpectancy =
+      evaluation.candidate_performance_at_k?.[key]?.expectancy_r;
     if (!baselineMetric || !candidateMetric ||
       !finite(baselineMetric.numerator) ||
       !finite(candidateMetric.numerator) ||
       !positiveInteger(baselineMetric.denominator) ||
       !positiveInteger(candidateMetric.denominator) ||
       baselineMetric.identity_count !== baselineMetric.denominator ||
-      candidateMetric.identity_count !== candidateMetric.denominator) {
+      candidateMetric.identity_count !== candidateMetric.denominator ||
+      evaluation.candidate_performance_at_k_version !==
+        SCANNER_RANKING_SHADOW_CANDIDATE_PERFORMANCE_AT_K_VERSION ||
+      !candidateExpectancy || !finite(candidateExpectancy.numerator) ||
+      !positiveInteger(candidateExpectancy.denominator) ||
+      candidateExpectancy.identity_count !== candidateExpectancy.denominator) {
       reasonsByPartition[partition].push(
-        "canonical_precision_metric_incomplete",
+        "canonical_precision_or_expectancy_metric_incomplete",
       );
       continue;
+    }
+    if (evaluation.status === "probability_semantics_missing") {
+      reasonsByPartition[partition].push(
+        "candidate_calibrated_probability_semantics_missing",
+      );
     }
     observations[partition].push({
       decision_at: decisionAt,
@@ -973,6 +1020,8 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
       baseline_denominator: baselineMetric.denominator,
       candidate_numerator: candidateMetric.numerator,
       candidate_denominator: candidateMetric.denominator,
+      candidate_expectancy_numerator: candidateExpectancy.numerator,
+      candidate_expectancy_denominator: candidateExpectancy.denominator,
     });
   }
 

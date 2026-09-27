@@ -40,6 +40,19 @@ market-independent link. Do not wait for OPEN when useful CLOSED work exists,
 and do not spend OPEN capacity on unrelated infrastructure without a reproduced
 blocker.
 
+### Full-charter terminal-decision rule
+
+The durable evaluation charter is one indivisible acceptance contract. A
+terminal recommendation-policy decision must be computed from every declared
+quality dimension with versioned semantics; it may not substitute precision
+delta for expectancy, calibration, coverage, reliability, cost, concentration
+or feasibility. If Ture still has ordinal confidence rather than an explicitly
+calibrated probability, calibration is unavailable and the result remains
+`evidence_incomplete`. The same applies when an absolute threshold cannot be
+computed from attributable outcomes. CLOSED work should close these missing
+scorecard links while OPEN collects the frozen cohort. Neither path may change
+the cohort, thresholds or live policy to manufacture a terminal result.
+
 ### Select and finish real product behavior
 
 - Keep one primary 4–16 active-hour vertical slice. Initial investigation is
