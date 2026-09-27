@@ -22,21 +22,35 @@ import {
   evaluateScannerClockPriorShadowScan,
   SCANNER_CLOCK_PRIOR_SHADOW_CANONICAL_EVALUATION_ADAPTER_VERSION,
 } from "@/lib/server/scanner-clock-prior-shadow-canonical-evaluation";
+import {
+  buildScannerClockPriorShadowForwardDecisionPlan,
+  classifyScannerClockPriorShadowForwardPrecisionDecision,
+  evaluateScannerClockPriorShadowForwardDecision,
+  type ScannerClockPriorShadowForwardPartitionResult,
+  type ScannerClockPriorShadowForwardEvidenceBindings,
+} from "@/lib/server/scanner-clock-prior-shadow-forward-decision";
 import type { ScannerClockPriorShadowComparison } from "@/lib/scanner-ranking-clock-prior-shadow";
 import type { ScannerCandidate } from "@/lib/scanner";
 
 const DECIDED_AT = "2026-09-26T14:30:00.000Z";
-const MARKET_REGIME_CONTEXT = {
-  contract_version: "market_regime_decision_context_v1" as const,
-  classifier_version: "market_regime_v1" as const,
-  captured_at: DECIDED_AT,
-  regime: "risk_on" as const,
-};
-
-function scannerCandidate(): ScannerCandidate & { local_score: number } {
+function marketRegimeContext(decidedAt: string) {
   return {
-    ticker: "FIT",
-    company_name: "Fit Incorporated",
+    contract_version: "market_regime_decision_context_v1" as const,
+    classifier_version: "market_regime_v1" as const,
+    captured_at: decidedAt,
+    regime: "risk_on" as const,
+  };
+}
+
+function scannerCandidate(input: {
+  decidedAt?: string;
+  ticker?: string;
+} = {}): ScannerCandidate & { local_score: number } {
+  const decidedAt = input.decidedAt ?? DECIDED_AT;
+  const ticker = input.ticker ?? "FIT";
+  return {
+    ticker,
+    company_name: `${ticker} Incorporated`,
     sector: "Technology",
     mock_current_price: 100,
     mock_trend: "uptrend",
@@ -69,36 +83,61 @@ function scannerCandidate(): ScannerCandidate & { local_score: number } {
       warnings: [],
     },
     intraday_indicator_source: "fresh",
-    intraday_indicator_cached_at: DECIDED_AT,
-    reference_price_timestamp: DECIDED_AT,
+    intraday_indicator_cached_at: decidedAt,
+    reference_price_timestamp: decidedAt,
     reference_price_provider: "twelve_data",
     local_score: 96,
   };
 }
 
-function fixture() {
-  const candidate = scannerCandidate();
+function fixture(input: {
+  decidedAt?: string;
+  ticker?: string;
+  terminal?: "target" | "stop";
+  includeUnselected?: boolean;
+} = {}) {
+  const decidedAt = input.decidedAt ?? DECIDED_AT;
+  const terminal = input.terminal ?? "target";
+  const candidate = scannerCandidate({
+    decidedAt,
+    ticker: input.ticker,
+  });
+  const unselectedCandidate = input.includeUnselected
+    ? {
+        ...scannerCandidate({
+          decidedAt,
+          ticker: `${candidate.ticker}X`,
+        }),
+        local_score: 55,
+      }
+    : null;
+  const candidates = unselectedCandidate
+    ? [candidate, unselectedCandidate]
+    : [candidate];
+  const regimeContext = marketRegimeContext(decidedAt);
+  const isoAfter = (minutes: number) =>
+    new Date(Date.parse(decidedAt) + minutes * 60_000).toISOString();
   const ranking = buildScannerCandidateRankingSummary({
-    candidates: [candidate],
+    candidates,
     targetMin: 1,
     targetMax: 1,
-    now: new Date(DECIDED_AT),
+    now: new Date(decidedAt),
   });
   const scanRun = buildRecommendationScanRun({
-    trading_date: "2026-09-26",
-    observed_at: DECIDED_AT,
-    completed_at: DECIDED_AT,
+    trading_date: decidedAt.slice(0, 10),
+    observed_at: decidedAt,
+    completed_at: decidedAt,
     window: "midday",
     source: "supabase",
-    scanned_ticker_count: 1,
-    raw_candidate_count: 1,
+    scanned_ticker_count: candidates.length,
+    raw_candidate_count: candidates.length,
   });
   const capture = buildCandidateDecisionCapture({
-    captureTimestamp: DECIDED_AT,
-    universe: [candidate],
-    observedCandidates: [candidate],
+    captureTimestamp: decidedAt,
+    universe: candidates,
+    observedCandidates: candidates,
     ranking,
-    eligibleCandidateTickers: [candidate.ticker],
+    eligibleCandidateTickers: candidates.map((item) => item.ticker),
     publishableThreshold: 70,
     publishedTickers: [],
     recommendationBuildPath: "no_publishable_candidate",
@@ -129,13 +168,13 @@ function fixture() {
   const comparison: ScannerClockPriorShadowComparison = {
     comparison_version: "scanner_clock_prior_shadow_comparison_v1",
     comparison_kind: "scanner_clock_prior_shadow_comparison",
-    generated_at: DECIDED_AT,
+    generated_at: decidedAt,
     status: "comparable",
     baseline_policy_version: "scanner_candidate_ranking_v1.2",
     shadow_policy_version: "scanner_candidate_ranking_clock_neutral_v1",
     hypothesis: "named_clock_priors_add_quality_beyond_observed_features",
-    candidate_count: 1,
-    candidate_tickers: [candidate.ticker],
+    candidate_count: candidates.length,
+    candidate_tickers: candidates.map((item) => item.ticker),
     baseline_selected_tickers: [candidate.ticker],
     shadow_selected_tickers: [candidate.ticker],
     selection_changed: false,
@@ -145,30 +184,33 @@ function fixture() {
     quality_improvement_claimed: false,
     quality_evidence_status: "not_evaluated",
     reason_codes: [],
-    displacements: [
-      {
-        ticker: candidate.ticker,
-        baseline_rank: decisionCandidate.ranking!.rank,
-        shadow_rank: 1,
+    displacements: record!.candidates.map((item) => {
+      const sourceCandidate = candidates.find(
+        (source) => source.ticker === item.ticker,
+      )!;
+      return {
+        ticker: item.ticker,
+        baseline_rank: item.ranking!.rank,
+        shadow_rank: item.ranking!.rank,
         rank_change: 0,
-        baseline_score: decisionCandidate.ranking!.score,
-        shadow_score: decisionCandidate.ranking!.score,
+        baseline_score: item.ranking!.score,
+        shadow_score: item.ranking!.score,
         score_change: 0,
-        baseline_tier: decisionCandidate.ranking!.tier,
-        shadow_tier: decisionCandidate.ranking!.tier,
-        baseline_selected: true,
-        shadow_selected: true,
+        baseline_tier: item.ranking!.tier,
+        shadow_tier: item.ranking!.tier,
+        baseline_selected: item.ranking!.selected,
+        shadow_selected: item.ranking!.selected,
         legacy_timing_score: 50,
-        baseline_signal_strength: 96,
-        shadow_signal_strength: 96,
+        baseline_signal_strength: sourceCandidate.local_score,
+        shadow_signal_strength: sourceCandidate.local_score,
         baseline_window_fit: 50,
         shadow_window_fit: 50,
         legacy_setup_classification_bonus_removed: 0,
         legacy_clock_warning_count: 0,
         baseline_warnings_penalty: 0,
         shadow_warnings_penalty: 0,
-      },
-    ],
+      };
+    }),
   };
   const attribution = buildScannerClockPriorShadowAttribution({
     comparison,
@@ -180,117 +222,134 @@ function fixture() {
     payload_json: {
       ...scanRun.payload_json,
       market_regime: { regime: "risk_on" },
-      market_regime_context: MARKET_REGIME_CONTEXT,
+      market_regime_context: regimeContext,
       candidate_decision_record: record,
       scanner_clock_prior_shadow_comparison: comparison,
       scanner_clock_prior_shadow_attribution: attribution,
     },
   };
-  const snapshot = buildRecommendationSnapshot({
-    recommendation_id: null,
-    scan_run_id: scanRun.run_fingerprint,
-    ticker: candidate.ticker,
-    company_name: candidate.company_name,
-    recommended_at: DECIDED_AT,
-    app_timestamp: DECIDED_AT,
-    window: "midday",
-    source_mode: "research_only",
-    data_mode: "research_only",
-    is_visible: false,
-    is_real: true,
-    entry: 100,
-    stop: 96,
-    target: 108,
-    side: "long",
-    confidence: 82,
-    payload: {
-      market_regime: { regime: "risk_on" },
-      market_regime_context: MARKET_REGIME_CONTEXT,
-      visibility_status: "research_only",
-      research_only: true,
-      learning_scope: "research_only",
-      candidate_id: decisionCandidate.candidate_id,
-      candidate_decision_id: decisionCandidate.candidate_id,
-      candidate_decision_disposition: decisionCandidate.disposition,
-      candidate_decision_linkage_version:
-        RESEARCH_SNAPSHOT_CANDIDATE_DECISION_LINKAGE_VERSION,
-      candidate_decision_linkage_status: "verified",
-      data_timestamp: "2026-09-26T14:29:00.000Z",
-      intraday_indicator_response_identity: {
-        contract_version: "twelve_data_response_identity_v1",
-        digest_algorithm: "sha256",
-        payload_sha256: `sha256:${"1".repeat(64)}`,
-        payload_byte_length: 214,
+  const evidence = candidates.map((sourceCandidate) => {
+    const linkedDecision = record!.candidates.find(
+      (item) => item.ticker === sourceCandidate.ticker,
+    )!;
+    const snapshot = buildRecommendationSnapshot({
+      recommendation_id: null,
+      scan_run_id: scanRun.run_fingerprint,
+      ticker: sourceCandidate.ticker,
+      company_name: sourceCandidate.company_name,
+      recommended_at: decidedAt,
+      app_timestamp: decidedAt,
+      window: "midday",
+      source_mode: "research_only",
+      data_mode: "research_only",
+      is_visible: false,
+      is_real: true,
+      entry: 100,
+      stop: 96,
+      target: 108,
+      side: "long",
+      confidence: 82,
+      payload: {
+        market_regime: { regime: "risk_on" },
+        market_regime_context: regimeContext,
+        visibility_status: "research_only",
+        research_only: true,
+        learning_scope: "research_only",
+        candidate_id: linkedDecision.candidate_id,
+        candidate_decision_id: linkedDecision.candidate_id,
+        candidate_decision_disposition: linkedDecision.disposition,
+        candidate_decision_linkage_version:
+          RESEARCH_SNAPSHOT_CANDIDATE_DECISION_LINKAGE_VERSION,
+        candidate_decision_linkage_status: "verified",
+        data_timestamp: isoAfter(-1),
+        intraday_indicator_response_identity: {
+          contract_version: "twelve_data_response_identity_v1",
+          digest_algorithm: "sha256",
+          payload_sha256: `sha256:${"1".repeat(64)}`,
+          payload_byte_length: 214,
+        },
+        decision_feature_vector:
+          recommendationDecisionFeatureVectorFromScannerCandidate(
+            sourceCandidate,
+          ),
+        provider_source: "twelve_data",
+        provider_version: "provider_test_v1",
+        market_data_adapter_version: "adapter_test_v1",
+        build_marker: "test-build-v1",
       },
-      decision_feature_vector:
-        recommendationDecisionFeatureVectorFromScannerCandidate(candidate),
-      provider_source: "twelve_data",
-      provider_version: "provider_test_v1",
-      market_data_adapter_version: "adapter_test_v1",
-      build_marker: "test-build-v1",
-    },
+    });
+    const evaluationAnchor = recommendationOutcomeEvaluationAnchorFromSnapshot(
+      snapshot,
+    );
+    expect(evaluationAnchor).not.toBeNull();
+    const computed = computeRecommendationOutcome({
+      snapshot,
+      horizon: "60m",
+      evaluated_at: isoAfter(65),
+      source: "intraday_candles",
+      provider: "twelve_data",
+      data_completeness: "complete",
+      candles: [
+        {
+          timestamp: isoAfter(1),
+          open: 100,
+          high: 101,
+          low: 99,
+          close: 100,
+        },
+        {
+          timestamp: isoAfter(6),
+          open: 100,
+          high: terminal === "target" ? 108 : 101,
+          low: terminal === "stop" ? 95 : 99,
+          close: terminal === "target" ? 107 : 96,
+        },
+      ],
+    }).outcome;
+    const outcome = {
+      ...computed,
+      payload_json: {
+        ...computed.payload_json,
+        canonical_provider_coverage: {
+          contract_version:
+            CANONICAL_OUTCOME_PROVIDER_COVERAGE_RECEIPT_VERSION,
+          provider_status: "available",
+          freshness: "fresh",
+          expected_candle_count: 2,
+          observed_candle_count: 2,
+          malformed_candle_count: 0,
+          blockers: [],
+          candle_interval: "5min",
+          horizon: "60m",
+          request_start_at: evaluationAnchor!.evaluation_anchor_start_at,
+          request_end_at: isoAfter(60),
+          required_horizon_end_at: isoAfter(60),
+          horizon_elapsed: true,
+          response_status: "available",
+          evaluation_anchor_contract_version:
+            "recommendation_outcome_evaluation_anchor_v1",
+          decision_timestamp: evaluationAnchor!.decision_timestamp,
+          evaluation_anchor_start_at:
+            evaluationAnchor!.evaluation_anchor_start_at,
+          decision_to_anchor_seconds:
+            evaluationAnchor!.decision_to_anchor_seconds,
+          decision_timestamp_interval_aligned:
+            evaluationAnchor!.decision_timestamp_interval_aligned,
+        },
+      },
+    };
+    return { snapshot, outcome };
   });
-  const evaluationAnchor = recommendationOutcomeEvaluationAnchorFromSnapshot(
-    snapshot,
-  );
-  expect(evaluationAnchor).not.toBeNull();
-  const computed = computeRecommendationOutcome({
-    snapshot,
-    horizon: "60m",
-    evaluated_at: "2026-09-26T15:35:00.000Z",
-    source: "intraday_candles",
-    provider: "twelve_data",
-    data_completeness: "complete",
-    candles: [
-      {
-        timestamp: "2026-09-26T14:31:00.000Z",
-        open: 100,
-        high: 101,
-        low: 99,
-        close: 100,
-      },
-      {
-        timestamp: "2026-09-26T14:36:00.000Z",
-        open: 100,
-        high: 108,
-        low: 99,
-        close: 107,
-      },
-    ],
-  }).outcome;
-  const outcome = {
-    ...computed,
-    payload_json: {
-      ...computed.payload_json,
-      canonical_provider_coverage: {
-        contract_version: CANONICAL_OUTCOME_PROVIDER_COVERAGE_RECEIPT_VERSION,
-        provider_status: "available",
-        freshness: "fresh",
-        expected_candle_count: 2,
-        observed_candle_count: 2,
-        malformed_candle_count: 0,
-        blockers: [],
-        candle_interval: "5min",
-        horizon: "60m",
-        request_start_at: evaluationAnchor!.evaluation_anchor_start_at,
-        request_end_at: "2026-09-26T15:30:00.000Z",
-        required_horizon_end_at: "2026-09-26T15:30:00.000Z",
-        horizon_elapsed: true,
-        response_status: "available",
-        evaluation_anchor_contract_version:
-          "recommendation_outcome_evaluation_anchor_v1",
-        decision_timestamp: evaluationAnchor!.decision_timestamp,
-        evaluation_anchor_start_at:
-          evaluationAnchor!.evaluation_anchor_start_at,
-        decision_to_anchor_seconds:
-          evaluationAnchor!.decision_to_anchor_seconds,
-        decision_timestamp_interval_aligned:
-          evaluationAnchor!.decision_timestamp_interval_aligned,
-      },
-    },
-  };
+  const snapshots = evidence.map((item) => item.snapshot);
+  const outcomes = evidence.map((item) => item.outcome);
 
-  return { persistedRun, snapshot, outcome };
+  return {
+    persistedRun,
+    snapshot: snapshots[0]!,
+    outcome: outcomes[0]!,
+    snapshots,
+    outcomes,
+  };
 }
 
 test("compares exact baseline and shadow selections against canonical outcomes", () => {
@@ -599,4 +658,322 @@ test("records zero-candidate no-trade as valid lineage without claiming quality"
     publication_effect: false,
     causal_improvement_claimed: false,
   });
+});
+
+const FORWARD_HYPOTHESIS =
+  "Removing named clock priors improves canonical top-one ranking precision without changing the eligible population.";
+const FORWARD_OWNER_ID = "11111111-1111-4111-8111-111111111111";
+const FORWARD_CHARTER_ID = "22222222-2222-4222-8222-222222222222";
+const FORWARD_BASELINE_ID = "33333333-3333-4333-8333-333333333333";
+const FORWARD_SEGMENT_KEY = "clock-prior:all-us-equities";
+const FORWARD_CHARTER_FINGERPRINT = "a".repeat(64);
+const FORWARD_BASELINE_FINGERPRINT = "b".repeat(64);
+
+function forwardEvidenceBindings(): ScannerClockPriorShadowForwardEvidenceBindings {
+  return {
+    evaluation_charter: {
+      charter_id: FORWARD_CHARTER_ID,
+      charter_fingerprint: FORWARD_CHARTER_FINGERPRINT,
+      owner_user_id: FORWARD_OWNER_ID,
+      segment_key: FORWARD_SEGMENT_KEY,
+      hypothesis: FORWARD_HYPOTHESIS,
+      baseline_ranking_version: "scanner_candidate_ranking_v1.2",
+      created_at: "2026-09-23T12:00:00.000Z",
+    },
+    baseline_freeze: {
+      baseline_id: FORWARD_BASELINE_ID,
+      baseline_fingerprint: FORWARD_BASELINE_FINGERPRINT,
+      owner_user_id: FORWARD_OWNER_ID,
+      segment_key: FORWARD_SEGMENT_KEY,
+      evaluation_charter_fingerprint: FORWARD_CHARTER_FINGERPRINT,
+      baseline_ranking_version: "scanner_candidate_ranking_v1.2",
+      frozen_at: "2026-09-24T11:30:00.000Z",
+    },
+  };
+}
+
+function forwardDecisionPlan() {
+  const plan = buildScannerClockPriorShadowForwardDecisionPlan({
+    created_at: "2026-09-24T12:00:00.000Z",
+    owner_user_id: FORWARD_OWNER_ID,
+    segment_key: FORWARD_SEGMENT_KEY,
+    hypothesis: FORWARD_HYPOTHESIS,
+    evaluation_charter_id: FORWARD_CHARTER_ID,
+    evaluation_charter_fingerprint: FORWARD_CHARTER_FINGERPRINT,
+    baseline_id: FORWARD_BASELINE_ID,
+    baseline_fingerprint: FORWARD_BASELINE_FINGERPRINT,
+    baseline_ranking_version: "scanner_candidate_ranking_v1.2",
+    candidate_ranking_version: "scanner_candidate_ranking_clock_neutral_v1",
+    primary_k: 1,
+    windows: {
+      held_out: {
+        start_at: "2026-09-25T13:30:00.000Z",
+        end_at: "2026-10-02T00:00:00.000Z",
+        minimum_opportunity_sets: 5,
+        minimum_ranked_candidates: 10,
+        minimum_trading_days: 5,
+      },
+      walk_forward: {
+        start_at: "2026-10-02T13:30:00.000Z",
+        end_at: "2026-10-09T00:00:00.000Z",
+        minimum_opportunity_sets: 5,
+        minimum_ranked_candidates: 10,
+        minimum_trading_days: 5,
+      },
+    },
+    thresholds: {
+      continue_minimum_precision_delta: 0.01,
+      reject_maximum_precision_delta: -0.01,
+    },
+  });
+  expect(plan).not.toBeNull();
+  return plan!;
+}
+
+test("classifies a complete predeclared held-out and walk-forward cohort without promoting it", () => {
+  const heldOut = [
+    "2026-09-25",
+    "2026-09-28",
+    "2026-09-29",
+    "2026-09-30",
+    "2026-10-01",
+  ].map((day, index) => fixture({
+    decidedAt: `${day}T14:30:00.000Z`,
+    ticker: `H${index}D`,
+    terminal: index % 2 === 0 ? "target" : "stop",
+    includeUnselected: true,
+  }));
+  const walkForward = [
+    "2026-10-02",
+    "2026-10-05",
+    "2026-10-06",
+    "2026-10-07",
+    "2026-10-08",
+  ].map((day, index) => fixture({
+    decidedAt: `${day}T14:30:00.000Z`,
+    ticker: `F${index}D`,
+    terminal: index % 2 === 0 ? "stop" : "target",
+    includeUnselected: true,
+  }));
+  const cohort = [...heldOut, ...walkForward];
+  const result = evaluateScannerClockPriorShadowForwardDecision({
+    plan: forwardDecisionPlan(),
+    evidenceBindings: forwardEvidenceBindings(),
+    scanRuns: cohort.map((item) => item.persistedRun),
+    snapshots: cohort.flatMap((item) => item.snapshots),
+    outcomes: cohort.flatMap((item) => item.outcomes),
+    bootstrapSeed: "clock-prior-forward:test-seed-v1",
+  });
+
+  expect(result).toMatchObject({
+    status: "decision_ready",
+    decision: "narrow",
+    evidence_binding: {
+      owner_user_id: FORWARD_OWNER_ID,
+      segment_key: FORWARD_SEGMENT_KEY,
+      evaluation_charter_id: FORWARD_CHARTER_ID,
+      evaluation_charter_fingerprint: FORWARD_CHARTER_FINGERPRINT,
+      baseline_id: FORWARD_BASELINE_ID,
+      baseline_fingerprint: FORWARD_BASELINE_FINGERPRINT,
+    },
+    shadow_only: true,
+    live_ranking_effect: false,
+    publication_effect: false,
+    causal_improvement_claimed: false,
+    authority: {
+      can_change_ranking_or_publication: false,
+      can_promote_policy: false,
+      can_request_provider_data: false,
+      can_execute_broker_action: false,
+    },
+  });
+  expect(result.partitions).toEqual([
+    expect.objectContaining({
+      partition: "held_out",
+      opportunity_set_count: 5,
+      ranked_candidate_count: 10,
+      trading_day_count: 5,
+      evidence_complete: true,
+    }),
+    expect.objectContaining({
+      partition: "walk_forward",
+      opportunity_set_count: 5,
+      ranked_candidate_count: 10,
+      trading_day_count: 5,
+      evidence_complete: true,
+    }),
+  ]);
+  expect(result.reason_codes).toEqual([
+    "complete_evidence_does_not_clear_continue_or_reject_boundary",
+  ]);
+});
+
+test("withholds a forward decision when canonical outcomes or a declared partition are incomplete", () => {
+  const heldOut = fixture({
+    decidedAt: "2026-09-25T14:30:00.000Z",
+    ticker: "HLD",
+  });
+  const result = evaluateScannerClockPriorShadowForwardDecision({
+    plan: forwardDecisionPlan(),
+    evidenceBindings: forwardEvidenceBindings(),
+    scanRuns: [heldOut.persistedRun],
+    snapshots: [heldOut.snapshot],
+    outcomes: [],
+    bootstrapSeed: "clock-prior-forward:incomplete-test-seed-v1",
+  });
+
+  expect(result.status).toBe("evidence_incomplete");
+  expect(result.decision).toBe("pending");
+  expect(result.reason_codes).toEqual(expect.arrayContaining([
+    "candidate_primary_outcome_incomplete",
+    "canonical_scan_evaluation_incomplete",
+    "minimum_opportunity_sets_not_met",
+    "minimum_ranked_candidates_not_met",
+  ]));
+});
+
+test("fails the forward cohort closed on duplicate scans or a changed frozen plan", () => {
+  const heldOut = fixture({
+    decidedAt: "2026-09-25T14:30:00.000Z",
+    ticker: "HLD",
+  });
+  const duplicate = evaluateScannerClockPriorShadowForwardDecision({
+    plan: forwardDecisionPlan(),
+    evidenceBindings: forwardEvidenceBindings(),
+    scanRuns: [heldOut.persistedRun, heldOut.persistedRun],
+    snapshots: [heldOut.snapshot],
+    outcomes: [heldOut.outcome],
+    bootstrapSeed: "clock-prior-forward:duplicate-test-seed-v1",
+  });
+  expect(duplicate).toMatchObject({
+    status: "conflicting",
+    decision: "pending",
+    reason_codes: ["duplicate_scan_run_fingerprint"],
+  });
+
+  const changedPlan = {
+    ...forwardDecisionPlan(),
+    thresholds: {
+      continue_minimum_precision_delta: 0,
+      reject_maximum_precision_delta: -0.01,
+    },
+  };
+  expect(evaluateScannerClockPriorShadowForwardDecision({
+    plan: changedPlan,
+    evidenceBindings: forwardEvidenceBindings(),
+    scanRuns: [],
+    snapshots: [],
+    outcomes: [],
+    bootstrapSeed: "clock-prior-forward:changed-plan-test-seed-v1",
+  })).toMatchObject({
+    status: "invalid_plan",
+    decision: "pending",
+    reason_codes: ["forward_decision_plan_invalid_or_changed"],
+  });
+});
+
+test("fails the forward plan closed when its durable charter or baseline binding drifts", () => {
+  const bindings = forwardEvidenceBindings();
+  const result = evaluateScannerClockPriorShadowForwardDecision({
+    plan: forwardDecisionPlan(),
+    evidenceBindings: {
+      ...bindings,
+      baseline_freeze: {
+        ...bindings.baseline_freeze,
+        baseline_fingerprint: "c".repeat(64),
+      },
+    },
+    scanRuns: [],
+    snapshots: [],
+    outcomes: [],
+    bootstrapSeed: "clock-prior-forward:binding-drift-seed-v1",
+  });
+
+  expect(result).toMatchObject({
+    status: "invalid_plan",
+    decision: "pending",
+    reason_codes: ["forward_decision_charter_or_baseline_binding_invalid"],
+  });
+});
+
+test("uses frozen conservative boundaries for continue, narrow and reject", () => {
+  const partition = (
+    name: "held_out" | "walk_forward",
+    lower: number,
+    upper: number,
+  ): ScannerClockPriorShadowForwardPartitionResult => ({
+    partition: name,
+    opportunity_set_count: 20,
+    no_trade_opportunity_set_count: 2,
+    ranked_candidate_count: 80,
+    trading_day_count: 5,
+    baseline_precision: {
+      value: 0.5,
+      numerator: 40,
+      denominator: 80,
+      lower: 0.4,
+      upper: 0.6,
+    },
+    candidate_precision: {
+      value: 0.6,
+      numerator: 48,
+      denominator: 80,
+      lower: 0.5,
+      upper: 0.7,
+    },
+    precision_delta: {
+      value: 0.1,
+      conservative_lower: lower,
+      conservative_upper: upper,
+      interval_method: "seeded_trading_day_cluster_bootstrap_v1",
+      bootstrap_iterations: 1_000,
+      bootstrap_seed: `fixture:${name}`,
+    },
+    evidence_complete: true,
+    reason_codes: [],
+  });
+  const thresholds = {
+    continue_minimum_precision_delta: 0.02,
+    reject_maximum_precision_delta: -0.02,
+  };
+
+  expect(classifyScannerClockPriorShadowForwardPrecisionDecision({
+    partitions: [
+      partition("held_out", 0.03, 0.16),
+      partition("walk_forward", 0.02, 0.12),
+    ],
+    thresholds,
+  })).toBe("continue");
+  expect(classifyScannerClockPriorShadowForwardPrecisionDecision({
+    partitions: [
+      partition("held_out", -0.01, 0.08),
+      partition("walk_forward", -0.01, 0.07),
+    ],
+    thresholds,
+  })).toBe("narrow");
+  expect(classifyScannerClockPriorShadowForwardPrecisionDecision({
+    partitions: [
+      partition("held_out", -0.03, 0.01),
+      partition("walk_forward", -0.15, -0.02),
+    ],
+    thresholds,
+  })).toBe("reject");
+
+  expect(classifyScannerClockPriorShadowForwardPrecisionDecision({
+    partitions: [
+      partition("held_out", 0.03, 0.16),
+      partition("held_out", 0.03, 0.16),
+    ],
+    thresholds,
+  })).toBe("pending");
+  expect(classifyScannerClockPriorShadowForwardPrecisionDecision({
+    partitions: [
+      partition("held_out", 0.03, 0.16),
+      partition("walk_forward", 0.03, 0.16),
+    ],
+    thresholds: {
+      continue_minimum_precision_delta: -0.02,
+      reject_maximum_precision_delta: 0.02,
+    },
+  })).toBe("pending");
 });
