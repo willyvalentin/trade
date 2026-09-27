@@ -22,7 +22,7 @@ const charterFingerprint = "a".repeat(64);
 const baselineFingerprint = "b".repeat(64);
 const recordedAt = "2026-01-20T12:00:00.000Z";
 const migrationPath =
-  "supabase/migrations/20260927041020_if4_clock_prior_forward_decision_receipts.sql";
+  "supabase/migrations/20260927050913_if4_clock_prior_forward_decision_receipts.sql";
 const preflightPath =
   "docs/sql/if4-clock-prior-forward-decision-receipts-production-preflight.sql";
 const localDbHarnessPath =
