@@ -280,10 +280,15 @@ IF-0 through the bounded IF-2 discovery path are sufficiently implemented to
 support the selected experiment. The active primary slice is the IF-3b
 clock-neutral ranking hypothesis moving through IF-4/IF-5: freeze its exact
 server-owned charter and semantic policy pair, freeze one time-separated
-held-out/walk-forward cohort before sampling, collect complete owner-bound
-decision and canonical-outcome evidence, then issue one `continue`, `narrow` or
-`reject` shadow decision. OPEN observations serve only that frozen cohort;
-CLOSED work closes its next missing evidence or evaluation link.
+server-owned held-out/walk-forward cohort before sampling, collect complete
+owner-bound decision and canonical-outcome evidence, then issue one `continue`,
+`narrow` or `reject` shadow decision. OPEN observations serve only that frozen
+cohort; CLOSED work closes its next missing evidence or evaluation link.
+
+For the active experiment, the authenticated caller may select only the exact
+baseline policy/version segment. Ture owns the charter, K, cohort dates, sample
+minimums, trading-day coverage and decision boundaries. No UI, API caller or
+operator may weaken them after seeing evidence.
 
 Do not reset the queue to generic discovery, scheduler, dashboard, paper or
 broker work merely because an operational task is available. Reopen those

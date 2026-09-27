@@ -14,19 +14,16 @@ scope.
 
 ### Now / Next / Blocked selection — 2026-09-27
 
-- **Now:** freeze the exact quality contract for the clock-neutral IF-3b
-  experiment before its first forward sample. The active CLOSED delivery makes
-  the charter server-owned and versioned: exact population and policy segment,
-  60 complete decisions split 30/30 held-out and walk-forward, primary 60m
-  canonical outcome, setup/regime slices and numeric quality, coverage,
-  reliability, cost, concentration and feasibility limits. The caller may
-  select only the exact baseline segment and cannot supply or weaken the
-  charter.
-- **Next:** merge/deploy that charter activation, durably record its exact
-owner-bound receipt, then freeze one time-separated clock-neutral cohort
-  before the first OPEN sample. The completed cohort may issue one `continue`,
-  `narrow` or `reject` shadow decision; none of those outcomes alone authorizes
-  promotion.
+- **Now:** freeze the exact clock-neutral IF-3b experiment before its first
+  forward sample. The charter is deployed and server-owned; the active CLOSED
+  delivery now makes the paired plan server-owned too. The caller may select
+  only the exact baseline segment and cannot supply or weaken K, dates, 30/30
+  minimums, trading-day coverage or `continue`/`reject` boundaries.
+- **Next:** durably record the exact owner-bound charter and forward-plan
+  receipts before the held-out window starts on 2026-09-28 at 13:30Z, then use
+  OPEN observations only for that frozen cohort. The completed cohort may issue
+  one `continue`, `narrow` or `reject` shadow decision; none of those outcomes
+  alone authorizes promotion.
 - **Blocked from selection:** live-policy promotion until complete attributable
   held-out/forward evidence exists; new generic scheduler/control-plane work
   without a reproduced integrity or safety defect; paper/broker expansion until
@@ -419,10 +416,10 @@ recorded and no provider, ranking, publication, promotion or broker effect
 occurred. This proves the auditable experiment-start path, not recommendation
 quality.
 
-**Active CLOSED delivery — server-owned clock-neutral evaluation charter:** the
-isolated branch adds one versioned charter profile before any forward evidence
-is read. It declares the ranking-only hypothesis; every admitted setup and
-verified regime plus unavailable-regime missingness; one canonical 60m primary
+**Merged and production-verified CLOSED delivery — server-owned clock-neutral
+evaluation charter:** the versioned charter profile declares the ranking-only
+hypothesis; every admitted setup and verified regime plus unavailable-regime
+missingness; one canonical 60m primary
 outcome with 15m/30m diagnostics; 60 complete decisions split 30/30; absolute
 precision, expectancy, calibration, coverage, missingness, eight-credit,
 reliability and concentration limits; and explicit unavailable spread,
@@ -431,10 +428,32 @@ claim. An authenticated, origin-guarded activation accepts only one exact
 baseline segment, recomputes the immutable fingerprint server-side, rejects
 caller-owned charter fields and requires exact durable readback. It grants no
 provider, ranking, publication, promotion, paper or broker authority. Current
-evidence is local only: 5/5 focused tests, strict TypeScript, changed-file lint
-and diff validation plus a complete Next.js 16.3.4 webpack production build
-pass. It is not merged or environment-verified and no production charter has
-been recorded.
+evidence includes 5/5 focused tests, 168/168 intelligence-foundation tests,
+strict TypeScript, changed-file lint, diff validation and a complete Next.js
+16.3.4 webpack production build. PR
+[#674](https://github.com/willyvalentin/trade/pull/674) merged as exact main
+`6fc5826bcc39bc455ebf9dcb711cf93d50172f12`; protected PR CI run
+`36302883017` passed all six provider-free shards, aggregate verification and
+merge-candidate provenance, and post-merge run `36304294752` passed on the exact
+merge revision. Automatic Git-connected Netlify production deploy
+`6ab8ca90144ffe0008f05eae` is `ready`, `production`, branch `main`,
+`manual_deploy=false` and carries that same revision. An unauthenticated
+production POST returned `401` with `Cache-Control: no-store`. No production
+charter or plan has been recorded and no provider, ranking, publication,
+promotion, paper or broker effect occurred.
+
+**Active CLOSED delivery — server-owned clock-neutral forward cohort:** the
+paired plan accepts only the exact baseline segment. Ture owns K=3; held-out
+2026-09-28 through 2026-10-09; walk-forward 2026-10-12 through 2026-10-23; at
+least 30 opportunity sets, 30 ranked identities and eight trading days in each
+partition; and conservative `continue >= +0.03` / `reject <= 0.00` precision
+delta boundaries. It requires the exact server-owned charter fingerprint,
+rejects late activation and caller-owned plan fields, and adds no provider,
+ranking, publication, promotion, paper or broker authority. This is local work
+in progress with 13/13 focused charter/plan tests, 168/168 full
+intelligence-foundation tests, strict non-incremental TypeScript, changed-file
+lint, diff validation and a complete Next.js 16.3.4 webpack production build
+passing. No production receipt has been written.
 
 ### Continuous-observation technical direction — 2026-09-24
 

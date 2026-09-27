@@ -75,7 +75,7 @@ export async function POST(request: Request) {
   return NextResponse.json(
     {
       error: result.status === "invalid_request"
-        ? "The forward-plan definition is invalid or contains server-owned fields."
+        ? "Only one exact policy/version segment may be selected; the forward-plan definition is server-owned."
         : result.status === "different_plan_already_recorded"
           ? "A different immutable forward plan already exists for this policy reference and candidate ranking version."
           : result.status === "not_ready"
