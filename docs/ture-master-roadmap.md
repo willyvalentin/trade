@@ -44,6 +44,34 @@ feasibility. Precision lift alone may never produce `continue`, `narrow` or
 the missing measurement or probability semantics before IF-5; do not lower the
 charter to fit the evidence already available.
 
+**Recommendation-engine graduation gate.** “Sustained useful-quality evidence”
+is a product gate, not a subjective milestone. It remains `not_met` until all of
+the following are true for at least one versioned recommendation policy:
+
+1. the eligible discovery population, discovery misses, point-in-time data
+   fitness, freshness and exclusions are measured rather than inferred from the
+   visible shortlist;
+2. a frozen baseline and same-population challenger complete their predeclared
+   held-out and walk-forward windows with exact canonical outcomes and the full
+   recommendation-quality charter;
+3. the terminal result passes both its frozen absolute usefulness limits and
+   relative comparison limits, then completes one reversible IF-5 promotion
+   decision without changing the cohort or thresholds after result inspection;
+4. post-promotion monitoring over a separately predeclared forward period stays
+   within quality, calibration, coverage, reliability, cost, concentration and
+   feasibility limits; and
+5. normal trading-day operation can produce a fresh, attributable ranked
+   decision or an honest `no_trade` within provider and safety budgets. A daily
+   candidate is not required.
+
+Green CI, operational uptime, a single favorable day, candidate count, rank
+movement, paper profit or a complete `no_trade` receipt cannot pass this gate.
+Until it passes, new autonomous paper, broker and execution product work remains
+lower priority. A minimal paper or execution-shaped research component may be
+built only when it is the smallest safe way to obtain an otherwise unavailable
+outcome or cost measurement for the active recommendation hypothesis; it grants
+no broker authority and must not become a parallel product track.
+
 **Active IF-4 scorecard closure order.** Keep the frozen hypothesis and
 candidate population unchanged while closing the missing quality links in this
 order: (1) exact outcome coverage and immutable-evidence missingness on one
