@@ -490,6 +490,32 @@ provider request, ranking/publication change, promotion, paper position or
 broker action occurred. This delivery freezes what Ture will test; it does not
 yet prove that the challenger improves recommendation quality.
 
+**Locally verified CLOSED slice — owner-bound forward-cohort evaluation and
+terminal-result finalization:** Ture now has a bounded application read path
+that selects only clock-prior evidence inside the frozen held-out and
+walk-forward windows, joins snapshots and canonical outcomes through the exact
+scan population, and recomputes the existing deterministic evaluator with a
+plan-bound bootstrap seed. Exact source counts and hard row bounds fail closed
+on truncation or malformed linked evidence. The authenticated GET reports the
+truthful current state, including `evidence_incomplete`; the origin-guarded POST
+can freeze one immutable `continue`, `narrow` or `reject` result only after the
+walk-forward window ends, the evaluator returns `decision_ready` and exact
+post-write readback succeeds. Neither path can request provider data or credits,
+change ranking/publication, promote a policy, create a paper position or reach a
+broker.
+
+This slice also repairs a reproduced persistence contradiction: the evaluator
+always emits one decision-specific terminal reason, while the prior RPC
+accepted only an empty reason list. The additive migration requires the exact
+one-to-one decision/reason mapping in both the table constraint and RPC; missing,
+arbitrary or cross-decision reasons remain rejected. Local acceptance is 30/30
+focused plan/store/evaluator tests, the isolated PostgreSQL 17 lifecycle and
+wrong-reason rejection harness, 168/168 intelligence-foundation tests, strict
+TypeScript, changed-file lint, diff validation and a complete Next.js 16.3.4
+webpack build. Merge/deploy, production migration and authenticated production
+readback remain separate evidence. No forward sample or quality improvement is
+claimed.
+
 ### Continuous-observation technical direction — 2026-09-24
 
 The 2026-09-23 market-timing decision is implemented as a future observation

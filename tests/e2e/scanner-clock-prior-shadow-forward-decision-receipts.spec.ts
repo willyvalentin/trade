@@ -26,6 +26,8 @@ const preflightPath =
   "docs/sql/if4-clock-prior-semantic-policy-reference-production-preflight.sql";
 const localDbHarnessPath =
   "scripts/if4-clock-prior-semantic-policy-reference-local-db-test.mjs";
+const terminalReasonMigrationPath =
+  "supabase/migrations/20260927114500_if4_forward_decision_terminal_reasons.sql";
 
 const policyReference = buildScannerClockPriorShadowPolicyReference({
   createdAt: "2026-01-01T11:00:00.000Z",
@@ -170,7 +172,7 @@ const result: ScannerClockPriorShadowForwardDecisionResult = {
     policy_reference_fingerprint: policyReference.reference_fingerprint,
   },
   partitions: [partition("held_out"), partition("walk_forward")],
-  reason_codes: [],
+  reason_codes: ["both_partitions_clear_continue_boundary"],
   shadow_only: true,
   live_ranking_effect: false,
   publication_effect: false,
@@ -309,6 +311,16 @@ test("records a terminal shadow-only decision and rejects authority or receipt d
     decision_result: authorityDrift,
   })).resolves.toMatchObject({ status: "unavailable" });
 
+  const reasonDrift = {
+    ...result,
+    reason_codes: ["complete_evidence_does_not_clear_continue_or_reject_boundary"],
+  } as ScannerClockPriorShadowForwardDecisionResult;
+  await expect(store.recordResult({
+    owner_user_id: ownerUserId,
+    plan_id: planId,
+    decision_result: reasonDrift,
+  })).resolves.toMatchObject({ status: "unavailable" });
+
   const forgedReceipt = createScannerClockPriorShadowForwardDecisionReceiptStore(database({
     async readResults() {
       return {
@@ -340,6 +352,10 @@ test("migration keeps plans and results owner-bound, append-only and server-only
     resolve(process.cwd(), localDbHarnessPath),
     "utf8",
   );
+  const terminalReasonMigration = readFileSync(
+    resolve(process.cwd(), terminalReasonMigrationPath),
+    "utf8",
+  );
 
   expect(migration).toContain(
     "create table public.scanner_clock_prior_shadow_forward_decision_plans_v2",
@@ -357,6 +373,18 @@ test("migration keeps plans and results owner-bound, append-only and server-only
   expect(migration).toContain("different_clock_prior_forward_decision_result_already_recorded");
   expect(migration).toContain("semantic_identity_not_quality_baseline");
   expect(migration).toContain("generic_learning_baseline_required_for_promotion");
+  expect(terminalReasonMigration).toContain(
+    "both_partitions_clear_continue_boundary",
+  );
+  expect(terminalReasonMigration).toContain(
+    "complete_evidence_does_not_clear_continue_or_reject_boundary",
+  );
+  expect(terminalReasonMigration).toContain(
+    "at_least_one_partition_clears_reject_boundary",
+  );
+  expect(terminalReasonMigration).toContain(
+    "is distinct from",
+  );
   expect(preflight.toLowerCase()).toContain("begin read only");
   expect(preflight.toLowerCase()).toContain("rollback");
   expect(preflight).not.toMatch(
