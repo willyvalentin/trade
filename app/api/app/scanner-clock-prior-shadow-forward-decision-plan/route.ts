@@ -77,9 +77,9 @@ export async function POST(request: Request) {
       error: result.status === "invalid_request"
         ? "The forward-plan definition is invalid or contains server-owned fields."
         : result.status === "different_plan_already_recorded"
-          ? "A different immutable forward plan already exists for this baseline and candidate ranking version."
+          ? "A different immutable forward plan already exists for this policy reference and candidate ranking version."
           : result.status === "not_ready"
-            ? "The durable charter and baseline are not ready for this forward plan."
+            ? "The durable charter and semantic policy reference are not ready for this forward plan."
             : "Durable forward-plan activation is unavailable.",
       blocker: result.safe_blocker,
       authority: result.authority,

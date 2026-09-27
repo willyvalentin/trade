@@ -14,17 +14,18 @@ scope.
 
 ### Now / Next / Blocked selection — 2026-09-27
 
-- **Now:** finish the clock-neutral IF-3b hypothesis end to end. Exact
-  immutable-decision attribution and its owner-bound canonical outcome
-  projection and canonical paired evaluator are merged and production-deploy
-  verified in PRs #666–#668. The active CLOSED successor binds that evaluator
-  to a predeclared, time-separated held-out/forward decision plan with
-  trading-day-clustered uncertainty. It changes no live rank, publication rule
-  or threshold.
-- **Next:** finish and deliver the frozen forward-decision contract, then use a
-  separately declared OPEN cohort to issue one `continue`, `narrow` or `reject`
-  shadow decision. OPEN observations serve that exact evidence gap; CLOSED work
-  completes any remaining evaluator and readback links.
+- **Now:** remove the circular dependency that prevented the clock-neutral
+  IF-3b experiment from starting. A result-based generic learning baseline
+  still requires at least 20 visible primary outcomes and remains mandatory for
+  promotion, but forward shadow collection must first be able to freeze the
+  exact semantic baseline/challenger identity and collect valid `no_trade`
+  evidence. The active CLOSED delivery adds that immutable, explicitly
+  non-quality policy reference without changing live rank, publication or
+  thresholds.
+- **Next:** deliver and apply the additive v2 receipt schema, then freeze one
+  exact clock-neutral held-out/walk-forward cohort before its first OPEN sample.
+  The cohort may then issue one `continue`, `narrow` or `reject` shadow decision;
+  none of those outcomes alone authorizes promotion.
 - **Blocked from selection:** live-policy promotion until complete attributable
   held-out/forward evidence exists; new generic scheduler/control-plane work
   without a reproduced integrity or safety defect; paper/broker expansion until
@@ -351,8 +352,14 @@ service-role-only RPC grants, zero direct table grants and zero public, anon or
 authenticated RPC grants. This proves durable experiment auditability, not
 recommendation quality or a favorable forward decision.
 
-**Active CLOSED delivery — authenticated forward-plan activation and exact
-readback:** the isolated branch now adds an authenticated, origin-guarded
+**Merged and production-verified CLOSED delivery — authenticated forward-plan
+activation and exact readback:** PR
+[#672](https://github.com/willyvalentin/trade/pull/672) was squash-merged as
+`30a50f72afd95316c8e4cb1f1d671b3c061d1cfd`; protected PR CI run
+`36298301975` and post-merge run `36299541870` passed, and automatic
+Git-connected Netlify production deploy `6ab8b46ffb0f0900082c3d66` is `ready`,
+`production`, branch `main`, `manual_deploy=false` on that exact revision. The
+delivery adds an authenticated, origin-guarded
 server boundary that accepts only the cohort definition and obtains owner,
 durable charter, baseline and baseline-ranking identity on the server. It
 rejects caller-supplied authority fields, any ranking challenger other than the
@@ -365,24 +372,41 @@ response explicitly grants no provider request or credit reservation, live
 ranking/publication change, policy promotion, candidate publication or broker
 authority.
 
-Current evidence is local only: 24/24 focused activation, receipt, canonical
-projection and forward-decision regressions pass; changed-file lint and diff
-checks pass; and a complete Next.js 16.3.4 webpack production build compiles,
-type-checks and emits the dynamic application route. The default Turbopack
-build cannot run from this isolated checkout because its shared `node_modules`
-symlink points outside Turbopack's filesystem root; this is a local worktree
-constraint, not a successful Turbopack build claim. The delivery is not yet
-merged, production-deployed or environment-behavior-verified and no production
-plan has been recorded.
+Local evidence was 24/24 focused activation, receipt, canonical projection and
+forward-decision regressions, all 168 intelligence-foundation tests,
+changed-file lint and diff checks, all scheduled runtime bundles and a complete
+Next.js 16.3.4 webpack build. A real production GET without a session returned
+the expected `401` and `Cache-Control: no-store`, proving the deployed auth
+boundary. No production plan was recorded and no provider, ranking,
+publication, promotion or broker effect occurred.
 
-**Next selected intelligence step — freeze and observe the exact forward
-cohort:** after protected delivery and provider-free route verification, bind
-one exact clock-neutral plan to the existing durable charter, baseline and
-ranking versions before its held-out window. OPEN observations may then collect
-only that frozen cohort's same-population canonical outcome evidence under
-existing budget and freshness guards, followed by its walk-forward partition
-and replayable `continue`, `narrow` or `reject` decision. No candidate quota,
-threshold relaxation or early policy promotion is permitted.
+**Active CLOSED delivery — semantic policy reference for honest forward
+collection:** authenticated production readback found no recorded charter,
+generic learning baseline or forward plan. Read-only production SQL found 997
+scan runs but only two candidate-decision records; only the 2026-09-25 record
+has complete canonical attribution and both are explicit `no_trade`. The generic
+baseline correctly requires at least 20 visible primary outcomes. Requiring
+that result-based baseline before starting the forward shadow experiment was
+therefore circular: the experiment needed to collect the exact ranking and
+`no_trade` evidence that its activation prerequisite already demanded.
+
+The isolated branch replaces that activation dependency with a v2 immutable
+semantic policy reference. It freezes the exact canonical baseline and
+clock-neutral version tuples, proves that only `ranking_version` differs, binds
+the durable evaluation charter and source revision, and states
+`quality_evidence_status=not_evaluated` and
+`generic_learning_baseline_required_for_promotion=true`. The additive v2 tables
+and service-role-only RPCs preserve owner isolation, idempotency, immutable
+readback and terminal-result binding; they grant no provider, ranking,
+publication, promotion or broker authority. The generic 20-visible-outcome
+baseline and IF-5 promotion gate are unchanged.
+
+Current evidence is local only: 24/24 focused tests, 168/168 full
+intelligence-foundation tests, changed-file lint, TypeScript and a complete
+Next.js 16.3.4 webpack build pass. The isolated PostgreSQL 17 lifecycle passed
+plan/result writes, exact idempotent replay, service-role-only RPC access and
+immutable-update rejection. The v2 migration is not yet applied, no production
+reference or plan exists and no OPEN quality evidence has been collected.
 
 ### Continuous-observation technical direction — 2026-09-24
 

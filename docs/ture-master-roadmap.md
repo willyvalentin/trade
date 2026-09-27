@@ -991,6 +991,17 @@ outcomes by setup, ticker class, sector, market regime and time window, with
 coverage and concentration visible for every reported aggregate. Rejected and
 `no_trade` samples may not be silently excluded from the evaluation population.
 
+**Experiment start versus quality baseline.** Freeze the exact semantic policy
+pair and evaluation charter before the first held-out or forward observation.
+That immutable experiment reference must identify every evaluation-relevant
+version and permit only the declared challenger difference; it is explicitly
+`not_evaluated` and is not evidence that either arm is good. It may start
+shadow-only collection, including valid `no_trade` samples, without first
+requiring outcomes that the experiment itself is intended to collect. The
+separate result-based learning baseline, minimum-outcome requirements and IF-5
+promotion gates remain mandatory before any live ranking or publication change.
+Never weaken those quality gates to solve an experiment-start dependency.
+
 **IF-4a — after-market outcome and historical-replay workflow.** During the
 market session, Ture captures immutable decision-time evidence. After the
 market, server-owned jobs complete due outcomes, assess outcome coverage and

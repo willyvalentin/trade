@@ -10,6 +10,7 @@ import {
 } from "@/lib/scanner-clock-prior-shadow-forward-decision-store";
 import {
   buildScannerClockPriorShadowForwardDecisionPlan,
+  buildScannerClockPriorShadowPolicyReference,
   type ScannerClockPriorShadowForwardDecisionResult,
 } from "@/lib/server/scanner-clock-prior-shadow-forward-decision";
 
@@ -17,16 +18,81 @@ const ownerUserId = "7d2e0f9a-43db-4f62-9a78-aec2ae34c6d0";
 const planId = "1e98f21d-488a-467a-a1f0-dcc517499835";
 const resultId = "2e98f21d-488a-467a-a1f0-dcc517499835";
 const charterId = "3e98f21d-488a-467a-a1f0-dcc517499835";
-const baselineId = "4e98f21d-488a-467a-a1f0-dcc517499835";
 const charterFingerprint = "a".repeat(64);
-const baselineFingerprint = "b".repeat(64);
 const recordedAt = "2026-01-20T12:00:00.000Z";
 const migrationPath =
-  "supabase/migrations/20260927050913_if4_clock_prior_forward_decision_receipts.sql";
+  "supabase/migrations/20260927090000_if4_clock_prior_semantic_policy_reference.sql";
 const preflightPath =
-  "docs/sql/if4-clock-prior-forward-decision-receipts-production-preflight.sql";
+  "docs/sql/if4-clock-prior-semantic-policy-reference-production-preflight.sql";
 const localDbHarnessPath =
-  "scripts/if4-clock-prior-forward-decision-receipts-local-db-test.mjs";
+  "scripts/if4-clock-prior-semantic-policy-reference-local-db-test.mjs";
+
+const policyReference = buildScannerClockPriorShadowPolicyReference({
+  createdAt: "2026-01-01T11:00:00.000Z",
+  charter: {
+    charter_id: charterId,
+    charter_fingerprint: charterFingerprint,
+    owner_user_id: ownerUserId,
+    segment_key: "clock-prior:all-us-equities",
+    policy_attribution: {
+      recommendation_publish_policy_version: "publish_v1",
+      canonical_evaluation_versions: {
+        engine_version: "engine_v1",
+        scoring_version: "scoring_v1",
+        ranking_version: "scanner_candidate_ranking_v1.2",
+        setup_taxonomy_version: "setup_v1",
+        confidence_contract_version: "confidence_v1",
+        evaluator_version: "evaluator_v1",
+        provider_contract_version: "provider_v1",
+        git_commit: "fixture-commit",
+        build_identity: "fixture-build",
+      },
+    },
+    charter: {
+      contract_version: "recommendation_evaluation_charter_v1",
+      hypothesis:
+        "Removing named clock priors improves canonical top-one ranking precision without changing the eligible population.",
+      eligible_universe: "US equities",
+      setup_slices: ["all_setups"],
+      regime_slices: ["all_regimes"],
+      outcome_rules: {
+        primary_horizon: "60m",
+        diagnostic_horizons: ["15m", "30m", "60m"],
+        semantics: "Canonical terminal outcomes for shadow ranking evaluation.",
+      },
+      evaluation_window: {
+        minimum_complete_decisions: 4,
+        held_out_decision_count: 2,
+        walk_forward_decision_count: 2,
+      },
+      thresholds: {
+        minimum_precision_at_k: 0.5,
+        minimum_expectancy_r: 0,
+        maximum_calibration_error: 0.2,
+        minimum_outcome_coverage: 0.9,
+        maximum_missingness: 0.1,
+        maximum_provider_credits_per_decision: 8,
+        minimum_reliability: 0.9,
+      },
+      concentration_limits: {
+        maximum_single_ticker_share: 0.5,
+        maximum_single_sector_share: 0.5,
+        maximum_single_setup_share: 1,
+        maximum_single_regime_share: 1,
+      },
+      feasibility_inputs: {
+        spread: "required",
+        liquidity: "required",
+        volatility: "required",
+        halt_risk: "required",
+        trigger_attainment: "required",
+        conservative_slippage: "required",
+      },
+    },
+    created_at: "2026-01-01T11:00:00.000Z",
+  },
+});
+if (!policyReference) throw new Error("valid policy reference fixture must build");
 
 const builtPlan = buildScannerClockPriorShadowForwardDecisionPlan({
   created_at: "2026-01-01T12:00:00.000Z",
@@ -36,8 +102,7 @@ const builtPlan = buildScannerClockPriorShadowForwardDecisionPlan({
     "Removing named clock priors improves canonical top-one ranking precision without changing the eligible population.",
   evaluation_charter_id: charterId,
   evaluation_charter_fingerprint: charterFingerprint,
-  baseline_id: baselineId,
-  baseline_fingerprint: baselineFingerprint,
+  policy_reference: policyReference,
   baseline_ranking_version: "scanner_candidate_ranking_v1.2",
   candidate_ranking_version: "scanner_candidate_ranking_clock_neutral_v1",
   primary_k: 1,
@@ -93,7 +158,7 @@ function partition(name: "held_out" | "walk_forward") {
 }
 
 const result: ScannerClockPriorShadowForwardDecisionResult = {
-  contract_version: "scanner_clock_prior_shadow_forward_decision_v1",
+  contract_version: "scanner_clock_prior_shadow_forward_decision_v2",
   status: "decision_ready",
   decision: "continue",
   plan_fingerprint: plan.plan_fingerprint,
@@ -102,8 +167,7 @@ const result: ScannerClockPriorShadowForwardDecisionResult = {
     segment_key: plan.segment_key,
     evaluation_charter_id: charterId,
     evaluation_charter_fingerprint: charterFingerprint,
-    baseline_id: baselineId,
-    baseline_fingerprint: baselineFingerprint,
+    policy_reference_fingerprint: policyReference.reference_fingerprint,
   },
   partitions: [partition("held_out"), partition("walk_forward")],
   reason_codes: [],
@@ -278,10 +342,10 @@ test("migration keeps plans and results owner-bound, append-only and server-only
   );
 
   expect(migration).toContain(
-    "create table public.scanner_clock_prior_shadow_forward_decision_plans",
+    "create table public.scanner_clock_prior_shadow_forward_decision_plans_v2",
   );
   expect(migration).toContain(
-    "create table public.scanner_clock_prior_shadow_forward_decision_results",
+    "create table public.scanner_clock_prior_shadow_forward_decision_results_v2",
   );
   expect(migration).toContain("enable row level security");
   expect(migration).toContain("before update or delete");
@@ -291,6 +355,8 @@ test("migration keeps plans and results owner-bound, append-only and server-only
   expect(migration).toContain("clock_prior_forward_decision_result_window_not_complete");
   expect(migration).toContain("different_clock_prior_forward_decision_plan_already_recorded");
   expect(migration).toContain("different_clock_prior_forward_decision_result_already_recorded");
+  expect(migration).toContain("semantic_identity_not_quality_baseline");
+  expect(migration).toContain("generic_learning_baseline_required_for_promotion");
   expect(preflight.toLowerCase()).toContain("begin read only");
   expect(preflight.toLowerCase()).toContain("rollback");
   expect(preflight).not.toMatch(

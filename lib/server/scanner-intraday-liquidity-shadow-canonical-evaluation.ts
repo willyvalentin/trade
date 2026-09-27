@@ -41,6 +41,8 @@ import {
 
 export const SCANNER_INTRADAY_LIQUIDITY_SHADOW_CANONICAL_EVALUATION_ADAPTER_VERSION =
   "scanner_intraday_liquidity_shadow_canonical_evaluation_adapter_v1" as const;
+export const SCANNER_RANKING_SHADOW_DIAGNOSTIC_THRESHOLD_POLICY_VERSION =
+  "shadow_rank_only_diagnostic_threshold_v1" as const;
 
 export type ScannerRankingShadowCandidateAttribution = {
   candidate_id: string;
@@ -871,7 +873,7 @@ export function evaluateScannerRankingShadowScan<AdapterVersion extends string>(
     ]),
   );
   const diagnosticThresholdPolicy = {
-    version: "shadow_rank_only_diagnostic_threshold_v1",
+    version: SCANNER_RANKING_SHADOW_DIAGNOSTIC_THRESHOLD_POLICY_VERSION,
     dimension: "score" as const,
     thresholds: [0],
   };
