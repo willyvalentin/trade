@@ -32,6 +32,7 @@ import {
   SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_SCORECARD_METRICS_VERSION,
   type ScannerClockPriorShadowForwardPartitionResult,
   type ScannerClockPriorShadowForwardEvidenceBindings,
+  type ScannerClockPriorShadowForwardRuntimeEvidence,
 } from "@/lib/server/scanner-clock-prior-shadow-forward-decision";
 import type { ScannerClockPriorShadowComparison } from "@/lib/scanner-ranking-clock-prior-shadow";
 import type { ScannerCandidate } from "@/lib/scanner";
@@ -956,6 +957,119 @@ function forwardDecisionPlan() {
   return plan!;
 }
 
+function forwardRuntimeEvidence(input: {
+  attempt: string;
+  observedAt: string;
+  scanRunFingerprint: string | null;
+  outcome?: "completed" | "rate_limited";
+}): ScannerClockPriorShadowForwardRuntimeEvidence {
+  const failed = input.outcome === "rate_limited";
+  const finalizedAt = new Date(
+    Date.parse(input.observedAt) + 60_000,
+  ).toISOString();
+  return {
+    receipt: {
+      receipt_version: "observation_cycle_receipt_v1",
+      cycle_fingerprint: input.attempt,
+      owner_user_id: FORWARD_OWNER_ID,
+      source_attempt_fingerprint: input.attempt,
+      cycle_status: failed ? "failed" : "completed",
+      disposition: failed ? "failed" : "no_trade",
+      observation_policy_version: "scheduled_scan_observation_cycle_v1",
+      receipt_generated_at: finalizedAt,
+      finalized_at: finalizedAt,
+      scan_run_fingerprint: input.scanRunFingerprint,
+      trigger: {
+        status: "received",
+        kind: "netlify_schedule",
+        occurred_at: input.observedAt,
+        route_received_at: input.observedAt,
+        scheduled_slot_started_at_utc: input.observedAt,
+        build_deployment_identity: { commit_ref: "a".repeat(40) },
+      },
+      admission: {
+        status: "admitted",
+        policy_version: "observation_cycle_admission_policy_v1",
+        market_status: "open",
+        market_session: "regular",
+        reason_codes: [],
+        policy_receipt: null,
+      },
+      provider_request: {
+        status: "attempted",
+        attempted_tickers: 8,
+        reserved_credits: 8,
+        provider_credit_policy_version:
+          "basic_free_scheduled_scan_credit_guard_v1",
+      },
+      provider_response: {
+        status: failed ? "failed" : "observed",
+        success_count: failed ? 0 : 8,
+        error_count: failed ? 8 : 0,
+        empty_response_count: 0,
+        latest_error_type: failed ? "provider_rate_limited" : null,
+      },
+      freshness: {
+        status: failed ? "unknown" : "fresh",
+        stale_count: 0,
+        reason_codes: [],
+      },
+      discovery_evaluation: {
+        status: failed ? "failed" : "completed",
+        raw_candidate_count: failed ? 0 : 2,
+        ranked_count: failed ? 0 : 2,
+        selected_count: 0,
+        built_count: 0,
+      },
+      publication: {
+        status: failed ? "failed" : "no_trade",
+        published_count: 0,
+        recommendations_created: 0,
+        policy_version: "publish_test_v1",
+        reason_codes: failed ? ["provider_rate_limited"] : [],
+      },
+      decision: {
+        outcome: failed ? "request_failed" : "scanned",
+        reason_codes: failed ? ["provider_rate_limited"] : [],
+      },
+      authority: {
+        can_arm_scheduler: false,
+        can_call_provider: false,
+        can_change_ranking: false,
+        can_publish: false,
+        can_execute_paper: false,
+        can_execute_broker: false,
+      },
+    },
+    credit_readback: {
+      status: "available",
+      source_attempt: {
+        observed_at: input.observedAt,
+        trading_date: input.observedAt.slice(0, 10),
+        window: "continuous",
+      },
+      reservation: {
+        status: "provider_execution_allowed",
+        provider_execution_allowed: true,
+        trading_date: input.observedAt.slice(0, 10),
+        minute_bucket: input.observedAt,
+        requested_credits: 8,
+        declared_daily_credit_budget: 800,
+        declared_per_minute_credit_budget: 8,
+        daily_reserved_credits: 8,
+        daily_remaining_credits: 792,
+        minute_reserved_credits: 8,
+        minute_remaining_credits: 0,
+        idempotent: false,
+        finalization_status: "finalized",
+        finalization_proven: true,
+        safe_blocker: null,
+      },
+      reason_codes: [],
+    },
+  };
+}
+
 test("withholds a complete cohort until the full recommendation-quality charter is satisfied", () => {
   const heldOut = [
     "2026-09-25",
@@ -1190,6 +1304,109 @@ test("fails the frozen charter when forward calibration error is too large", () 
       (partition.probability_calibration?.candidate
         .expected_calibration_error ?? 0) > 0.15,
   )).toBe(true);
+});
+
+test("keeps failed runtime attempts in reliability and provider-cost denominators", () => {
+  const training = Array.from({ length: 15 }, (_, index) => fixture({
+    decidedAt: `2026-09-${String(8 + index).padStart(2, "0")}T14:30:00.000Z`,
+    ticker: `R${index}T`,
+    terminal: index % 2 === 0 ? "target" : "stop",
+    includeUnselected: true,
+  }));
+  const days = [
+    "2026-09-25",
+    "2026-09-28",
+    "2026-09-29",
+    "2026-09-30",
+    "2026-10-01",
+    "2026-10-02",
+    "2026-10-05",
+    "2026-10-06",
+    "2026-10-07",
+    "2026-10-08",
+  ];
+  const cohort = days.map((day, index) => fixture({
+    decidedAt: `${day}T14:30:00.000Z`,
+    ticker: `R${index}E`,
+    terminal: index % 2 === 0 ? "target" : "stop",
+    includeUnselected: true,
+  }));
+  const runtimeEvidence = cohort.map((item) => forwardRuntimeEvidence({
+    attempt: `runtime:${item.persistedRun.run_fingerprint.slice(0, 32)}`,
+    observedAt: item.persistedRun.observed_at,
+    scanRunFingerprint: item.persistedRun.run_fingerprint,
+  }));
+  runtimeEvidence.push(forwardRuntimeEvidence({
+    attempt: "runtime:rate-limit-failure",
+    observedAt: "2026-09-30T15:00:00.000Z",
+    scanRunFingerprint: null,
+    outcome: "rate_limited",
+  }));
+
+  const result = evaluateScannerClockPriorShadowForwardDecision({
+    plan: forwardDecisionPlan(),
+    evidenceBindings: forwardEvidenceBindings(),
+    scanRuns: cohort.map((item) => item.persistedRun),
+    snapshots: cohort.flatMap((item) => item.snapshots),
+    outcomes: cohort.flatMap((item) => item.outcomes),
+    calibrationScanRuns: training.map((item) => item.persistedRun),
+    calibrationSnapshots: training.flatMap((item) => item.snapshots),
+    calibrationOutcomes: training.flatMap((item) => item.outcomes),
+    runtimeEvidence,
+    bootstrapSeed: "clock-prior-forward:runtime-cost-seed-v1",
+  });
+
+  expect(result.status).toBe("evidence_incomplete");
+  expect(result.partitions[0]).toMatchObject({
+    partition: "held_out",
+    runtime_reliability: {
+      invocation_count: 6,
+      admitted_attempt_count: 6,
+      completed_attempt_count: 5,
+      terminal_error_count: 1,
+      linked_decision_count: 5,
+      rate_limit_error_count: 1,
+      timeout_error_count: 0,
+      provider_error_count: 0,
+      other_error_count: 0,
+      reliability: {
+        value: 5 / 6,
+        numerator: 5,
+        denominator: 6,
+      },
+    },
+    provider_cost: {
+      decision_denominator: 6,
+      exact_credit_receipt_count: 6,
+      finalized_credit_receipt_count: 6,
+      provider_request_attempt_count: 6,
+      reserved_provider_credits: 48,
+      credits_per_decision: 8,
+    },
+  });
+  expect(result.partitions[1]).toMatchObject({
+    partition: "walk_forward",
+    runtime_reliability: {
+      admitted_attempt_count: 5,
+      completed_attempt_count: 5,
+      terminal_error_count: 0,
+      linked_decision_count: 5,
+      reliability: { value: 1, numerator: 5, denominator: 5 },
+    },
+    provider_cost: {
+      decision_denominator: 5,
+      reserved_provider_credits: 40,
+      credits_per_decision: 8,
+    },
+  });
+  expect(result.reason_codes).toContain(
+    "runtime_reliability_charter_minimum_not_met",
+  );
+  expect(result.reason_codes).not.toContain("runtime_decision_lineage_incomplete");
+  expect(result.reason_codes).not.toContain("provider_cost_receipt_incomplete");
+  expect(result.reason_codes).not.toContain(
+    "provider_cost_charter_maximum_exceeded",
+  );
 });
 
 test("withholds a complete cohort whose candidate expectancy misses the charter", () => {
@@ -1473,6 +1690,36 @@ test("uses frozen conservative boundaries for continue, narrow and reject", () =
       baseline: { brier_score: 0.24, expected_calibration_error: 0.1 },
       candidate: { brier_score: 0.2, expected_calibration_error: 0.08 },
       bucket_policy: "fixed_calibration_buckets_v1",
+    },
+    runtime_reliability: {
+      invocation_count: 20,
+      admitted_attempt_count: 20,
+      completed_attempt_count: 20,
+      terminal_error_count: 0,
+      active_attempt_count: 0,
+      admission_rejected_count: 0,
+      admission_unknown_count: 0,
+      linked_decision_count: 20,
+      timeout_error_count: 0,
+      rate_limit_error_count: 0,
+      provider_error_count: 0,
+      other_error_count: 0,
+      reliability: {
+        value: 1,
+        numerator: 20,
+        denominator: 20,
+        lower: 0.83,
+        upper: 1,
+      },
+    },
+    provider_cost: {
+      decision_denominator: 20,
+      exact_credit_receipt_count: 20,
+      finalized_credit_receipt_count: 20,
+      provider_request_attempt_count: 20,
+      provider_ticker_request_count: 160,
+      reserved_provider_credits: 160,
+      credits_per_decision: 8,
     },
     precision_delta: {
       value: 0.1,

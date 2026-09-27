@@ -11,6 +11,9 @@ import type { RecommendationEvaluationCharter } from "@/lib/recommendation-evalu
 import type { LearningBaselineScanRun } from "@/lib/recommendation-learning-baseline-readiness";
 import type { RecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
+import type { ObservationCycleReceipt } from "@/lib/observation-cycle-receipt";
+import type { ScannerClockPriorShadowForwardRuntimeEvidence } from "@/lib/scanner-clock-prior-shadow-forward-runtime-evidence";
+export type { ScannerClockPriorShadowForwardRuntimeEvidence } from "@/lib/scanner-clock-prior-shadow-forward-runtime-evidence";
 import {
   SCANNER_SCORE_PROBABILITY_CALIBRATION_MODEL_VERSION,
   buildScannerScoreProbabilityCalibrationModel,
@@ -49,7 +52,7 @@ export const SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_DECISION_VERSION =
 export const SCANNER_CLOCK_PRIOR_SHADOW_POLICY_REFERENCE_VERSION =
   "scanner_clock_prior_shadow_policy_reference_v1" as const;
 export const SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_SCORECARD_METRICS_VERSION =
-  "scanner_clock_prior_shadow_forward_scorecard_metrics_v3" as const;
+  "scanner_clock_prior_shadow_forward_scorecard_metrics_v4" as const;
 
 type RankingK = (typeof canonicalQualityRankingKValues)[number];
 type PartitionName = "held_out" | "walk_forward";
@@ -179,6 +182,32 @@ type ProbabilityCalibrationSummary = {
   bucket_policy: "fixed_calibration_buckets_v1";
 };
 
+type RuntimeReliabilitySummary = {
+  invocation_count: number;
+  admitted_attempt_count: number;
+  completed_attempt_count: number;
+  terminal_error_count: number;
+  active_attempt_count: number;
+  admission_rejected_count: number;
+  admission_unknown_count: number;
+  linked_decision_count: number;
+  timeout_error_count: number;
+  rate_limit_error_count: number;
+  provider_error_count: number;
+  other_error_count: number;
+  reliability: ProportionInterval | null;
+};
+
+type ProviderCostSummary = {
+  decision_denominator: number;
+  exact_credit_receipt_count: number;
+  finalized_credit_receipt_count: number;
+  provider_request_attempt_count: number;
+  provider_ticker_request_count: number;
+  reserved_provider_credits: number;
+  credits_per_decision: number | null;
+};
+
 export type ScannerClockPriorShadowForwardPartitionResult = {
   scorecard_metrics_version:
     typeof SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_SCORECARD_METRICS_VERSION;
@@ -193,6 +222,8 @@ export type ScannerClockPriorShadowForwardPartitionResult = {
   evidence_missingness: ProportionInterval | null;
   concentration: ConcentrationSummary;
   probability_calibration: ProbabilityCalibrationSummary | null;
+  runtime_reliability: RuntimeReliabilitySummary;
+  provider_cost: ProviderCostSummary;
   precision_delta: {
     value: number;
     conservative_lower: number;
@@ -588,6 +619,30 @@ function emptyPartition(
       maximum_single_regime_share: null,
     },
     probability_calibration: null,
+    runtime_reliability: {
+      invocation_count: 0,
+      admitted_attempt_count: 0,
+      completed_attempt_count: 0,
+      terminal_error_count: 0,
+      active_attempt_count: 0,
+      admission_rejected_count: 0,
+      admission_unknown_count: 0,
+      linked_decision_count: 0,
+      timeout_error_count: 0,
+      rate_limit_error_count: 0,
+      provider_error_count: 0,
+      other_error_count: 0,
+      reliability: null,
+    },
+    provider_cost: {
+      decision_denominator: 0,
+      exact_credit_receipt_count: 0,
+      finalized_credit_receipt_count: 0,
+      provider_request_attempt_count: 0,
+      provider_ticker_request_count: 0,
+      reserved_provider_credits: 0,
+      credits_per_decision: null,
+    },
     precision_delta: null,
     evidence_complete: false,
     reason_codes: uniqueSorted(reasonCodes),
@@ -900,6 +955,131 @@ function clusteredPrecisionDeltaInterval(
   };
 }
 
+function runtimeSignalText(receipt: ObservationCycleReceipt) {
+  return [
+    receipt.provider_response.latest_error_type,
+    ...receipt.admission.reason_codes,
+    ...receipt.freshness.reason_codes,
+    ...receipt.publication.reason_codes,
+    ...receipt.decision.reason_codes,
+  ].filter((value): value is string => Boolean(value)).join(" ").toLowerCase();
+}
+
+function runtimeFailureClass(
+  evidence: ScannerClockPriorShadowForwardRuntimeEvidence,
+) {
+  const receipt = evidence.receipt;
+  const signal = runtimeSignalText(receipt);
+  if (signal.includes("timeout") || signal.includes("timed_out")) {
+    return "timeout" as const;
+  }
+  if (
+    signal.includes("rate_limit") ||
+    signal.includes("rate-limit") ||
+    evidence.credit_readback.reservation.safe_blocker ===
+      "per_minute_credit_limit_reached" ||
+    evidence.credit_readback.reservation.safe_blocker ===
+      "daily_credit_limit_reached"
+  ) {
+    return "rate_limit" as const;
+  }
+  if (
+    receipt.provider_response.status === "failed" ||
+    receipt.provider_response.error_count > 0 ||
+    receipt.provider_response.latest_error_type !== null
+  ) {
+    return "provider_error" as const;
+  }
+  return "other_error" as const;
+}
+
+function runtimeAndCostSummary(input: {
+  evidence: ScannerClockPriorShadowForwardRuntimeEvidence[];
+  expectedScanFingerprints: Set<string>;
+}) {
+  const admitted = input.evidence.filter(
+    (item) => item.receipt.admission.status === "admitted",
+  );
+  const completed = admitted.filter(
+    (item) =>
+      item.receipt.cycle_status === "completed" &&
+      item.receipt.scan_run_fingerprint !== null &&
+      input.expectedScanFingerprints.has(item.receipt.scan_run_fingerprint),
+  );
+  const terminalErrors = admitted.filter(
+    (item) =>
+      item.receipt.cycle_status !== "active" &&
+      !completed.includes(item),
+  );
+  const active = admitted.filter(
+    (item) => item.receipt.cycle_status === "active",
+  );
+  const failureClasses = terminalErrors.map(runtimeFailureClass);
+  const exactCreditReceipts = admitted.filter(
+    (item) => item.credit_readback.status === "available",
+  );
+  const finalizedCreditReceipts = exactCreditReceipts.filter((item) => {
+    const reservation = item.credit_readback.reservation;
+    return reservation.status === "not_required" ||
+      reservation.finalization_proven === true;
+  });
+  const reservedProviderCredits = admitted.reduce(
+    (sum, item) => sum + item.receipt.provider_request.reserved_credits,
+    0,
+  );
+  const denominator = admitted.length;
+  const linkedDecisionCount = admitted.filter(
+    (item) =>
+      item.receipt.scan_run_fingerprint !== null &&
+      input.expectedScanFingerprints.has(item.receipt.scan_run_fingerprint),
+  ).length;
+
+  return {
+    reliability: {
+      invocation_count: input.evidence.length,
+      admitted_attempt_count: denominator,
+      completed_attempt_count: completed.length,
+      terminal_error_count: terminalErrors.length,
+      active_attempt_count: active.length,
+      admission_rejected_count: input.evidence.filter(
+        (item) => item.receipt.admission.status === "rejected",
+      ).length,
+      admission_unknown_count: input.evidence.filter(
+        (item) => item.receipt.admission.status === "unknown",
+      ).length,
+      linked_decision_count: linkedDecisionCount,
+      timeout_error_count: failureClasses.filter((value) => value === "timeout")
+        .length,
+      rate_limit_error_count: failureClasses.filter(
+        (value) => value === "rate_limit",
+      ).length,
+      provider_error_count: failureClasses.filter(
+        (value) => value === "provider_error",
+      ).length,
+      other_error_count: failureClasses.filter(
+        (value) => value === "other_error",
+      ).length,
+      reliability: denominator > 0 ? wilson(completed.length, denominator) : null,
+    } satisfies RuntimeReliabilitySummary,
+    cost: {
+      decision_denominator: denominator,
+      exact_credit_receipt_count: exactCreditReceipts.length,
+      finalized_credit_receipt_count: finalizedCreditReceipts.length,
+      provider_request_attempt_count: admitted.filter(
+        (item) => item.receipt.provider_request.status === "attempted",
+      ).length,
+      provider_ticker_request_count: admitted.reduce(
+        (sum, item) => sum + item.receipt.provider_request.attempted_tickers,
+        0,
+      ),
+      reserved_provider_credits: reservedProviderCredits,
+      credits_per_decision: denominator > 0
+        ? rounded(reservedProviderCredits / denominator)
+        : null,
+    } satisfies ProviderCostSummary,
+  };
+}
+
 function summarizePartition(input: {
   partition: PartitionName;
   observations: PartitionObservation[];
@@ -908,6 +1088,8 @@ function summarizePartition(input: {
   probabilityCalibrationObservations:
     ScannerRankingShadowProbabilityCalibrationObservation[];
   probabilityCalibrationModelFingerprint: string | null;
+  runtimeEvidence: ScannerClockPriorShadowForwardRuntimeEvidence[];
+  expectedScanFingerprints: Set<string>;
   window: ScannerClockPriorShadowForwardWindow;
   evaluationReasons: string[];
   bootstrapSeed: string;
@@ -1001,6 +1183,10 @@ function summarizePartition(input: {
     observations: input.probabilityCalibrationObservations,
     modelFingerprint: input.probabilityCalibrationModelFingerprint,
   });
+  const operational = runtimeAndCostSummary({
+    evidence: input.runtimeEvidence,
+    expectedScanFingerprints: input.expectedScanFingerprints,
+  });
   const charterThresholds =
     scannerClockPriorShadowEvaluationCharterDefinition.thresholds;
   if (
@@ -1065,10 +1251,42 @@ function summarizePartition(input: {
   ) {
     reasons.push("candidate_calibration_error_charter_maximum_exceeded");
   }
-  // Precision, expectancy, calibration, outcome coverage, missingness and
-  // concentration are now measurable from the exact same forward cohort, but
-  // reliability, provider cost and feasibility are not yet assembled here.
-  // Keep terminal authority closed until the complete scorecard is wired.
+  if (
+    operational.reliability.reliability === null ||
+    operational.reliability.reliability.value <
+      charterThresholds.minimum_reliability
+  ) {
+    reasons.push("runtime_reliability_charter_minimum_not_met");
+  }
+  if (operational.reliability.active_attempt_count > 0) {
+    reasons.push("runtime_attempts_not_terminal");
+  }
+  if (operational.reliability.admission_unknown_count > 0) {
+    reasons.push("runtime_admission_evidence_unknown");
+  }
+  if (
+    operational.reliability.linked_decision_count !==
+      input.expectedScanFingerprints.size
+  ) {
+    reasons.push("runtime_decision_lineage_incomplete");
+  }
+  if (
+    operational.cost.exact_credit_receipt_count !==
+      operational.cost.decision_denominator ||
+    operational.cost.finalized_credit_receipt_count !==
+      operational.cost.decision_denominator
+  ) {
+    reasons.push("provider_cost_receipt_incomplete");
+  }
+  if (
+    operational.cost.credits_per_decision === null ||
+    operational.cost.credits_per_decision >
+      charterThresholds.maximum_provider_credits_per_decision
+  ) {
+    reasons.push("provider_cost_charter_maximum_exceeded");
+  }
+  // Feasibility is the only remaining charter dimension after the exact
+  // runtime and provider-cost evidence is attached to this partition.
   reasons.push("forward_charter_scorecard_incomplete");
   const clusteredInterval = clusteredPrecisionDeltaInterval(
     input.observations,
@@ -1105,6 +1323,8 @@ function summarizePartition(input: {
     evidence_missingness: evidenceMissingness,
     concentration: concentration.summary,
     probability_calibration: probabilityCalibration.summary,
+    runtime_reliability: operational.reliability,
+    provider_cost: operational.cost,
     precision_delta: delta,
     evidence_complete: reasonCodes.length === 0,
     reason_codes: reasonCodes,
@@ -1153,6 +1373,7 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
   calibrationScanRuns?: LearningBaselineScanRun[];
   calibrationSnapshots?: RecommendationSnapshot[];
   calibrationOutcomes?: RecommendationOutcome[];
+  runtimeEvidence?: ScannerClockPriorShadowForwardRuntimeEvidence[];
   bootstrapSeed: string;
 }): ScannerClockPriorShadowForwardDecisionResult {
   const plan = verifiedPlan(input.plan);
@@ -1177,7 +1398,8 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
     (input.calibrationSnapshots?.length ?? 0) >
       MAXIMUM_SNAPSHOTS_OR_OUTCOMES ||
     (input.calibrationOutcomes?.length ?? 0) >
-      MAXIMUM_SNAPSHOTS_OR_OUTCOMES) {
+      MAXIMUM_SNAPSHOTS_OR_OUTCOMES ||
+    (input.runtimeEvidence?.length ?? 0) > MAXIMUM_SCAN_RUNS) {
     return terminalResult({
       status: "conflicting",
       plan,
@@ -1202,6 +1424,13 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
   const probabilityCalibrationObservations: Record<
     PartitionName,
     ScannerRankingShadowProbabilityCalibrationObservation[]
+  > = {
+    held_out: [],
+    walk_forward: [],
+  };
+  const runtimeEvidence: Record<
+    PartitionName,
+    ScannerClockPriorShadowForwardRuntimeEvidence[]
   > = {
     held_out: [],
     walk_forward: [],
@@ -1480,6 +1709,58 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
     });
   }
 
+  const runtimeAttemptFingerprints = new Set<string>();
+  const runtimeScanFingerprintCounts = new Map<string, number>();
+  for (const item of input.runtimeEvidence ?? []) {
+    const receipt = item.receipt;
+    if (
+      receipt.owner_user_id !== plan.owner_user_id ||
+      receipt.trigger.kind !== "netlify_schedule"
+    ) {
+      globalReasons.push("runtime_evidence_owner_or_trigger_mismatch");
+      continue;
+    }
+    if (runtimeAttemptFingerprints.has(receipt.source_attempt_fingerprint)) {
+      globalReasons.push("duplicate_runtime_attempt_fingerprint");
+      continue;
+    }
+    runtimeAttemptFingerprints.add(receipt.source_attempt_fingerprint);
+    const runtimeTimestamp =
+      receipt.trigger.scheduled_slot_started_at_utc ??
+      receipt.trigger.occurred_at;
+    const partition = partitionForTimestamp(runtimeTimestamp, plan.windows);
+    if (!partition) {
+      globalReasons.push("runtime_attempt_outside_declared_evaluation_windows");
+      continue;
+    }
+    const scanFingerprint = receipt.scan_run_fingerprint;
+    if (scanFingerprint !== null) {
+      if (!seenScanFingerprints.has(scanFingerprint)) {
+        globalReasons.push("runtime_receipt_scan_population_mismatch");
+        continue;
+      }
+      runtimeScanFingerprintCounts.set(
+        scanFingerprint,
+        (runtimeScanFingerprintCounts.get(scanFingerprint) ?? 0) + 1,
+      );
+    }
+    const requestedCredits = item.credit_readback.reservation.requested_credits;
+    if (
+      item.credit_readback.status === "available" &&
+      ((requestedCredits === null &&
+        receipt.provider_request.reserved_credits !== 0) ||
+        (requestedCredits !== null &&
+          receipt.provider_request.reserved_credits > requestedCredits))
+    ) {
+      globalReasons.push("runtime_provider_credit_receipt_conflicting");
+      continue;
+    }
+    runtimeEvidence[partition].push(item);
+  }
+  if ([...runtimeScanFingerprintCounts.values()].some((count) => count !== 1)) {
+    globalReasons.push("duplicate_runtime_decision_lineage");
+  }
+
   if (globalReasons.length > 0) {
     return terminalResult({
       status: "conflicting",
@@ -1497,6 +1778,14 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
         probabilityCalibrationObservations[partition],
       probabilityCalibrationModelFingerprint:
         probabilityCalibration?.model_fingerprint ?? null,
+      runtimeEvidence: runtimeEvidence[partition],
+      expectedScanFingerprints: new Set(
+        input.scanRuns
+          .filter((scanRun) =>
+            partitionForTimestamp(scanRun.observed_at, plan.windows) === partition
+          )
+          .map((scanRun) => scanRun.run_fingerprint),
+      ),
       window: plan.windows[partition],
       evaluationReasons: reasonsByPartition[partition],
       bootstrapSeed: `${input.bootstrapSeed}:${plan.plan_fingerprint}:${partition}`,
