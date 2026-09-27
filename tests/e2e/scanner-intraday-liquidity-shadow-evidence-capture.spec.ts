@@ -145,6 +145,7 @@ function realCandidate(ticker: string, rank: number): RealScannerCandidate {
     ticker,
     company_name: `${ticker} Incorporated`,
     sector: "Technology",
+    setup_type: "VWAP_RECLAIM",
     tier: "valid",
     score: {
       value: 85 - rank,
@@ -216,6 +217,12 @@ test("plans one owner-bound research snapshot for every non-visible ranked candi
     "scanner_candidate:v1:scan-run-1:FIT",
     "scanner_candidate:v1:scan-run-1:RUN",
   ]);
+  expect(plan.samples).toEqual(expect.arrayContaining([
+    expect.objectContaining({
+      sector: "Technology",
+      setup_type: "VWAP_RECLAIM",
+    }),
+  ]));
 });
 
 test("counts a visible candidate only when the immutable decision published it", () => {

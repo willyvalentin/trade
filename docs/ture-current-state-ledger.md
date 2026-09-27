@@ -16,8 +16,11 @@ scope.
 
 - **Now:** collect the exact clock-neutral IF-3b forward cohort without changing
   live ranking or publication, while CLOSED work completes the IF-4 scorecard
-  needed to judge it honestly. The server-owned charter and plan are durably
-  frozen in production before the first sample: K=3, 30/30 held-out and
+  needed to judge it honestly. Exact candidate-outcome coverage and immutable
+  snapshot missingness are production-verified on the same denominator; the
+  selected next CLOSED link is exact ticker, sector, setup and regime
+  concentration against the frozen charter limits. The server-owned charter and
+  plan are durably frozen in production before the first sample: K=3, 30/30 held-out and
   walk-forward minimums, eight trading days per partition and immutable
   `continue >= +0.03` / `reject <= 0.00` precision-delta boundaries. Those
   relative boundaries are necessary but not sufficient: absolute precision,
@@ -27,9 +30,9 @@ scope.
   13:30Z, preserving every attributable candidate, rejection and explicit
   `no_trade` decision plus its canonical outcome. CLOSED work closes only the
   next missing collection, lineage, outcome or evaluator link for this
-  hypothesis. Exact candidate-outcome coverage and evidence missingness are the
-  selected CLOSED scorecard link; they must retain the paired evaluator's same
-  candidate denominator and may not hide an incomplete scan. Complete evidence
+  hypothesis. Concentration must retain the paired evaluator's same complete
+  candidate denominator, preserve explicit setup/sector/regime lineage and fail
+  closed on missing or duplicated dimensions. Complete evidence
   may issue one `continue`, `narrow` or `reject` shadow decision; none of those
   outcomes alone authorizes promotion.
 - **Blocked from selection:** live-policy promotion until complete attributable
@@ -45,6 +48,17 @@ comparative evaluation or reversible learning for the active hypothesis. A
 status surface, receipt, schema or automation is supporting work only and cannot
 displace the next missing quality link unless a reproduced defect makes the
 evidence untrustworthy, unsafe or impossible to collect.
+
+**Merged and production-verified CLOSED scorecard denominator foundation:** PR
+[#681](https://github.com/willyvalentin/trade/pull/681) merged as
+`ae194370c1d05e3c997ba60a186b0685e73395e2`. Netlify production deploy
+`6ab9184e77120e0008f308ab` is `ready` on that exact revision, and protected
+post-merge CI run `36322101176` is green. The forward evaluator now measures
+canonical outcome coverage and immutable-snapshot missingness on the same exact
+candidate denominator used by the paired ranking cohort; incomplete evidence
+cannot be hidden as zero. This closes two charter dimensions but does not prove
+alpha or recommendation quality. Calibration, reliability, provider cost,
+concentration and feasibility remain terminal scorecard gaps.
 
 ### Delivery method — CLOSED readiness, 2026-09-24
 

@@ -116,6 +116,8 @@ const sample = {
   candidate_id: candidateId,
   ticker: "AAPL",
   company_name: "Apple Inc.",
+  sector: "Technology",
+  setup_type: "VWAP_RECLAIM",
   tier: "valid",
   score: 82,
   rank: 1,

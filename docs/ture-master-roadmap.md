@@ -44,6 +44,17 @@ feasibility. Precision lift alone may never produce `continue`, `narrow` or
 the missing measurement or probability semantics before IF-5; do not lower the
 charter to fit the evidence already available.
 
+**Active IF-4 scorecard closure order.** Keep the frozen hypothesis and
+candidate population unchanged while closing the missing quality links in this
+order: (1) exact outcome coverage and immutable-evidence missingness on one
+candidate denominator; (2) exact ticker, sector, setup and regime concentration
+on that same denominator; (3) explicit calibrated-probability semantics and
+error; (4) attributable runtime reliability and provider cost per decision;
+and (5) the charter's disclosed feasibility inputs. A completed link remains a
+guardrail, not an alpha claim. OPEN sampling continues in parallel on the
+already frozen policy; CLOSED implementation may not redefine the cohort or
+lower a threshold to obtain a terminal result.
+
 **2026-09-23 market-timing decision.** The former named morning/midday/power-hour
 publication windows are historical operating constraints, not a product
 principle or a recommendation quota. A scheduled tick is a bounded observation

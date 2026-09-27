@@ -13,6 +13,7 @@ import type {
 } from "@/lib/scanner-candidate-ranking";
 import type { RecommendationDecisionFeatureVector } from "@/lib/recommendation-decision-feature-vector";
 import type { TwelveDataResponseIdentity } from "@/lib/twelve-data-response-identity";
+import type { SetupType } from "@/lib/setup-types";
 
 export type LearningAccelerationEnabledSource =
   | "server_env"
@@ -50,6 +51,8 @@ export type LearningAccelerationModeEvaluation = {
 export type LearningAccelerationResearchSample = {
   ticker: string;
   company_name: string;
+  sector: string;
+  setup_type: SetupType;
   tier: RealScannerCandidateTier | "unknown";
   score: number;
   rank: number | null;
@@ -869,6 +872,8 @@ export function buildLearningAccelerationResearchSelection({
     samples.push({
       ticker,
       company_name: candidate.company_name,
+      sector: candidate.sector,
+      setup_type: candidate.setup_type ?? "UNKNOWN",
       tier,
       score: result.score.normalized_score,
       rank: result.rank,

@@ -128,6 +128,33 @@ function partition(name: "held_out" | "walk_forward") {
       lower: 0,
       upper: 0.05,
     },
+    concentration: {
+      denominator: 84,
+      maximum_single_ticker_share: {
+        key: "AAA",
+        value: 1 / 7,
+        numerator: 12,
+        denominator: 84,
+      },
+      maximum_single_sector_share: {
+        key: "Technology",
+        value: 1 / 3,
+        numerator: 28,
+        denominator: 84,
+      },
+      maximum_single_setup_share: {
+        key: "VWAP_HOLD_CONTINUATION",
+        value: 0.5,
+        numerator: 42,
+        denominator: 84,
+      },
+      maximum_single_regime_share: {
+        key: "risk_on",
+        value: 2 / 3,
+        numerator: 56,
+        denominator: 84,
+      },
+    },
     precision_delta: {
       value: 0.1,
       conservative_lower: 0.04,

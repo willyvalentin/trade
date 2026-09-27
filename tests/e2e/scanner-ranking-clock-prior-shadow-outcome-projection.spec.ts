@@ -48,13 +48,17 @@ function marketRegimeContext(decidedAt: string) {
 function scannerCandidate(input: {
   decidedAt?: string;
   ticker?: string;
-} = {}): ScannerCandidate & { local_score: number } {
+} = {}): ScannerCandidate & {
+  local_score: number;
+  setup_type: "VWAP_HOLD_CONTINUATION";
+} {
   const decidedAt = input.decidedAt ?? DECIDED_AT;
   const ticker = input.ticker ?? "FIT";
   return {
     ticker,
     company_name: `${ticker} Incorporated`,
     sector: "Technology",
+    setup_type: "VWAP_HOLD_CONTINUATION",
     mock_current_price: 100,
     mock_trend: "uptrend",
     mock_volume_context: "expanding volume",
@@ -280,6 +284,8 @@ function fixture(input: {
       payload: {
         market_regime: { regime: "risk_on" },
         market_regime_context: regimeContext,
+        sector: sourceCandidate.sector,
+        setup_type: sourceCandidate.setup_type,
         visibility_status: "research_only",
         research_only: true,
         learning_scope: "research_only",
@@ -593,6 +599,29 @@ test("refuses clock-neutral canonical evaluation without every primary outcome",
     "candidate_primary_outcome_incomplete",
     "complete_candidate_outcome_coverage_required",
   ]);
+});
+
+test("fails closed when an exact research snapshot lacks explicit setup lineage", () => {
+  const { persistedRun, snapshot, outcome } = fixture();
+  const payloadWithoutSetup = { ...snapshot.payload_json };
+  delete payloadWithoutSetup.setup_type;
+  const result = evaluateScannerClockPriorShadowScan({
+    scanRun: persistedRun,
+    snapshots: [{
+      ...snapshot,
+      payload_json: payloadWithoutSetup,
+    }],
+    outcomes: [outcome],
+    bootstrapSeed: "clock-prior-missing-setup-lineage-v1",
+  });
+
+  expect(result).toMatchObject({
+    status: "insufficient_evidence",
+    concentration_inputs: null,
+  });
+  expect(result.reason_codes).toContain(
+    "candidate_concentration_dimensions_missing",
+  );
 });
 
 test("fails clock-neutral canonical evaluation closed on comparison drift", () => {
@@ -946,6 +975,13 @@ test("withholds a complete cohort until the full recommendation-quality charter 
         numerator: 0,
         denominator: 10,
       }),
+      concentration: {
+        denominator: 10,
+        maximum_single_ticker_share: expect.objectContaining({ value: 0.1 }),
+        maximum_single_sector_share: expect.objectContaining({ value: 1 }),
+        maximum_single_setup_share: expect.objectContaining({ value: 1 }),
+        maximum_single_regime_share: expect.objectContaining({ value: 1 }),
+      },
       evidence_complete: false,
     }),
     expect.objectContaining({
@@ -955,6 +991,10 @@ test("withholds a complete cohort until the full recommendation-quality charter 
       trading_day_count: 5,
       outcome_coverage: expect.objectContaining({ value: 1 }),
       evidence_missingness: expect.objectContaining({ value: 0 }),
+      concentration: expect.objectContaining({
+        denominator: 10,
+        maximum_single_sector_share: expect.objectContaining({ value: 1 }),
+      }),
       evidence_complete: false,
     }),
   ]);
@@ -962,6 +1002,9 @@ test("withholds a complete cohort until the full recommendation-quality charter 
     "candidate_calibrated_probability_semantics_missing",
     "candidate_precision_charter_minimum_not_met",
     "forward_charter_scorecard_incomplete",
+    "regime_concentration_charter_maximum_exceeded",
+    "sector_concentration_charter_maximum_exceeded",
+    "setup_concentration_charter_maximum_exceeded",
   ]));
 });
 
@@ -1048,6 +1091,13 @@ test("withholds a forward decision when canonical outcomes or a declared partiti
       value: 0,
       numerator: 0,
       denominator: 1,
+    },
+    concentration: {
+      denominator: 1,
+      maximum_single_ticker_share: null,
+      maximum_single_sector_share: null,
+      maximum_single_setup_share: null,
+      maximum_single_regime_share: null,
     },
   });
 });
@@ -1195,6 +1245,33 @@ test("uses frozen conservative boundaries for continue, narrow and reject", () =
       denominator: 80,
       lower: 0,
       upper: 0.05,
+    },
+    concentration: {
+      denominator: 80,
+      maximum_single_ticker_share: {
+        key: "TICKER",
+        value: 0.125,
+        numerator: 10,
+        denominator: 80,
+      },
+      maximum_single_sector_share: {
+        key: "Technology",
+        value: 0.25,
+        numerator: 20,
+        denominator: 80,
+      },
+      maximum_single_setup_share: {
+        key: "VWAP_HOLD_CONTINUATION",
+        value: 0.5,
+        numerator: 40,
+        denominator: 80,
+      },
+      maximum_single_regime_share: {
+        key: "risk_on",
+        value: 0.6,
+        numerator: 48,
+        denominator: 80,
+      },
     },
     precision_delta: {
       value: 0.1,

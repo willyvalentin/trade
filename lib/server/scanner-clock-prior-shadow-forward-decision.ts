@@ -27,7 +27,9 @@ import {
 } from "@/lib/server/scanner-clock-prior-shadow-canonical-evaluation";
 import {
   SCANNER_RANKING_SHADOW_CANDIDATE_PERFORMANCE_AT_K_VERSION,
+  SCANNER_RANKING_SHADOW_CONCENTRATION_INPUT_VERSION,
   SCANNER_RANKING_SHADOW_DIAGNOSTIC_THRESHOLD_POLICY_VERSION,
+  type ScannerRankingShadowConcentrationInput,
 } from "@/lib/server/scanner-intraday-liquidity-shadow-canonical-evaluation";
 import { scannerClockPriorShadowEvaluationCharterDefinition } from "@/lib/server/scanner-clock-prior-shadow-evaluation-charter";
 
@@ -38,7 +40,7 @@ export const SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_DECISION_VERSION =
 export const SCANNER_CLOCK_PRIOR_SHADOW_POLICY_REFERENCE_VERSION =
   "scanner_clock_prior_shadow_policy_reference_v1" as const;
 export const SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_SCORECARD_METRICS_VERSION =
-  "scanner_clock_prior_shadow_forward_scorecard_metrics_v1" as const;
+  "scanner_clock_prior_shadow_forward_scorecard_metrics_v2" as const;
 
 type RankingK = (typeof canonicalQualityRankingKValues)[number];
 type PartitionName = "held_out" | "walk_forward";
@@ -136,6 +138,21 @@ type ProportionInterval = {
   upper: number;
 };
 
+type ConcentrationShare = {
+  key: string;
+  value: number;
+  numerator: number;
+  denominator: number;
+};
+
+type ConcentrationSummary = {
+  denominator: number;
+  maximum_single_ticker_share: ConcentrationShare | null;
+  maximum_single_sector_share: ConcentrationShare | null;
+  maximum_single_setup_share: ConcentrationShare | null;
+  maximum_single_regime_share: ConcentrationShare | null;
+};
+
 export type ScannerClockPriorShadowForwardPartitionResult = {
   scorecard_metrics_version:
     typeof SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_SCORECARD_METRICS_VERSION;
@@ -148,6 +165,7 @@ export type ScannerClockPriorShadowForwardPartitionResult = {
   candidate_precision: ProportionInterval | null;
   outcome_coverage: ProportionInterval | null;
   evidence_missingness: ProportionInterval | null;
+  concentration: ConcentrationSummary;
   precision_delta: {
     value: number;
     conservative_lower: number;
@@ -535,6 +553,13 @@ function emptyPartition(
     candidate_precision: null,
     outcome_coverage: null,
     evidence_missingness: null,
+    concentration: {
+      denominator: 0,
+      maximum_single_ticker_share: null,
+      maximum_single_sector_share: null,
+      maximum_single_setup_share: null,
+      maximum_single_regime_share: null,
+    },
     precision_delta: null,
     evidence_complete: false,
     reason_codes: uniqueSorted(reasonCodes),
@@ -625,6 +650,60 @@ type PartitionCoverageObservation = {
   canonical_primary_outcome_count: number;
 };
 
+function maximumConcentrationShare(
+  values: string[],
+  denominator: number,
+): ConcentrationShare | null {
+  if (denominator < 1 || values.length !== denominator) return null;
+  const counts = new Map<string, number>();
+  for (const value of values) counts.set(value, (counts.get(value) ?? 0) + 1);
+  const maximum = [...counts.entries()].sort(
+    ([leftKey, leftCount], [rightKey, rightCount]) =>
+      rightCount - leftCount || leftKey.localeCompare(rightKey),
+  )[0];
+  return maximum
+    ? {
+        key: maximum[0],
+        value: maximum[1] / denominator,
+        numerator: maximum[1],
+        denominator,
+      }
+    : null;
+}
+
+function concentrationSummary(input: {
+  observations: ScannerRankingShadowConcentrationInput[];
+  denominator: number;
+}) {
+  const identities = new Set(input.observations.map((item) => item.candidate_id));
+  const complete = input.denominator > 0 &&
+    input.observations.length === input.denominator &&
+    identities.size === input.denominator;
+  const observations = complete ? input.observations : [];
+  return {
+    summary: {
+      denominator: input.denominator,
+      maximum_single_ticker_share: maximumConcentrationShare(
+        observations.map((item) => item.ticker),
+        input.denominator,
+      ),
+      maximum_single_sector_share: maximumConcentrationShare(
+        observations.map((item) => item.sector),
+        input.denominator,
+      ),
+      maximum_single_setup_share: maximumConcentrationShare(
+        observations.map((item) => item.setup),
+        input.denominator,
+      ),
+      maximum_single_regime_share: maximumConcentrationShare(
+        observations.map((item) => item.regime),
+        input.denominator,
+      ),
+    } satisfies ConcentrationSummary,
+    complete,
+  };
+}
+
 function seededUnit(seed: string) {
   let state = createHash("sha256").update(seed).digest().readUInt32BE(0) || 1;
   return () => {
@@ -689,6 +768,7 @@ function summarizePartition(input: {
   partition: PartitionName;
   observations: PartitionObservation[];
   coverageObservations: PartitionCoverageObservation[];
+  concentrationObservations: ScannerRankingShadowConcentrationInput[];
   window: ScannerClockPriorShadowForwardWindow;
   evaluationReasons: string[];
   bootstrapSeed: string;
@@ -774,6 +854,10 @@ function summarizePartition(input: {
   const evidenceMissingness = expectedOutcomeCount > 0
     ? wilson(missingEvidenceCount, expectedOutcomeCount)
     : null;
+  const concentration = concentrationSummary({
+    observations: input.concentrationObservations,
+    denominator: expectedOutcomeCount,
+  });
   const charterThresholds =
     scannerClockPriorShadowEvaluationCharterDefinition.thresholds;
   if (
@@ -799,6 +883,36 @@ function summarizePartition(input: {
     evidenceMissingness.value > charterThresholds.maximum_missingness
   ) {
     reasons.push("evidence_missingness_charter_maximum_exceeded");
+  }
+  const concentrationLimits =
+    scannerClockPriorShadowEvaluationCharterDefinition.concentration_limits;
+  if (!concentration.complete) {
+    reasons.push("candidate_concentration_denominator_missing_or_mismatched");
+  }
+  const concentrationChecks = [
+    [
+      concentration.summary.maximum_single_ticker_share,
+      concentrationLimits.maximum_single_ticker_share,
+      "ticker_concentration_charter_maximum_exceeded",
+    ],
+    [
+      concentration.summary.maximum_single_sector_share,
+      concentrationLimits.maximum_single_sector_share,
+      "sector_concentration_charter_maximum_exceeded",
+    ],
+    [
+      concentration.summary.maximum_single_setup_share,
+      concentrationLimits.maximum_single_setup_share,
+      "setup_concentration_charter_maximum_exceeded",
+    ],
+    [
+      concentration.summary.maximum_single_regime_share,
+      concentrationLimits.maximum_single_regime_share,
+      "regime_concentration_charter_maximum_exceeded",
+    ],
+  ] as const;
+  for (const [share, maximum, reason] of concentrationChecks) {
+    if (share === null || share.value > maximum) reasons.push(reason);
   }
   // Precision, expectancy, outcome coverage and missingness are now measurable
   // from the exact same cohort, but the remaining frozen charter dimensions
@@ -838,6 +952,7 @@ function summarizePartition(input: {
     candidate_precision: candidate,
     outcome_coverage: outcomeCoverage,
     evidence_missingness: evidenceMissingness,
+    concentration: concentration.summary,
     precision_delta: delta,
     evidence_complete: reasonCodes.length === 0,
     reason_codes: reasonCodes,
@@ -914,6 +1029,13 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
     walk_forward: [],
   };
   const coverageObservations: Record<PartitionName, PartitionCoverageObservation[]> = {
+    held_out: [],
+    walk_forward: [],
+  };
+  const concentrationObservations: Record<
+    PartitionName,
+    ScannerRankingShadowConcentrationInput[]
+  > = {
     held_out: [],
     walk_forward: [],
   };
@@ -1081,6 +1203,21 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
       );
       continue;
     }
+    const concentrationInputs = evaluation.concentration_inputs;
+    if (
+      evaluation.concentration_input_version !==
+        SCANNER_RANKING_SHADOW_CONCENTRATION_INPUT_VERSION ||
+      !concentrationInputs ||
+      concentrationInputs.length !== evaluation.coverage.expected_candidate_count ||
+      new Set(concentrationInputs.map((item) => item.candidate_id)).size !==
+        concentrationInputs.length
+    ) {
+      reasonsByPartition[partition].push(
+        "candidate_concentration_inputs_incomplete",
+      );
+    } else {
+      concentrationObservations[partition].push(...concentrationInputs);
+    }
     if (evaluation.status === "probability_semantics_missing") {
       reasonsByPartition[partition].push(
         "candidate_calibrated_probability_semantics_missing",
@@ -1111,6 +1248,7 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
       partition,
       observations: observations[partition],
       coverageObservations: coverageObservations[partition],
+      concentrationObservations: concentrationObservations[partition],
       window: plan.windows[partition],
       evaluationReasons: reasonsByPartition[partition],
       bootstrapSeed: `${input.bootstrapSeed}:${plan.plan_fingerprint}:${partition}`,

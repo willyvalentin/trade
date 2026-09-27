@@ -11,6 +11,8 @@ export type RejectedCandidateResearchSample = {
   candidate_id: string;
   ticker: string;
   company_name: string;
+  sector: string;
+  setup_type: NonNullable<RealScannerCandidate["setup_type"]>;
   tier: RealScannerCandidate["tier"];
   score: number;
   rank: null;
@@ -262,6 +264,8 @@ export function buildRejectedCandidateResearchSelection({
       candidate_id: decisionCandidate.candidate_id,
       ticker: tickerKey(candidate.ticker),
       company_name: candidate.company_name,
+      sector: candidate.sector,
+      setup_type: candidate.setup_type ?? "UNKNOWN",
       tier: candidate.tier,
       score: candidate.score.value,
       rank: null,
