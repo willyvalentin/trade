@@ -76,6 +76,29 @@ export type ScannerClockPriorShadowForwardCollectionEvidenceReadResult =
       safe_blocker: string;
     };
 
+export type ScannerClockPriorShadowForwardOutcomeEvidenceReadResult =
+  | {
+      status: "available";
+      snapshots: RecommendationSnapshot[];
+      outcomes: RecommendationOutcome[];
+      source_counts: {
+        window_scan_rows: number;
+        clock_prior_scan_rows: number;
+        window_snapshot_rows: number;
+        linked_snapshot_rows: number;
+        window_outcome_rows: number;
+        linked_outcome_rows: number;
+      };
+      safe_blocker: null;
+    }
+  | {
+      status: "unavailable" | "failed";
+      snapshots: null;
+      outcomes: null;
+      source_counts: null;
+      safe_blocker: string;
+    };
+
 function record(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -190,6 +213,198 @@ export async function readScannerClockPriorShadowForwardCollectionEvidence(
     source_counts: {
       window_scan_rows: scanRows.length,
       clock_prior_scan_rows: cohortScanRows.length,
+    },
+    safe_blocker: null,
+  };
+}
+
+/**
+ * Reads the exact owner-bound snapshots and outcomes needed to calculate the
+ * pending canonical 60-minute backlog for one frozen forward plan. The query
+ * has no provider, scheduling, ranking or publication authority.
+ */
+export async function readScannerClockPriorShadowForwardOutcomeEvidence(
+  ownerUserId: string,
+  plan: ScannerClockPriorShadowForwardDecisionPlan,
+): Promise<ScannerClockPriorShadowForwardOutcomeEvidenceReadResult> {
+  const owner = normalizeApplicationOwnerUserId(ownerUserId);
+  const { client } = getServerSupabaseClient();
+  if (!client || !owner || plan.owner_user_id !== owner) {
+    return {
+      status: "unavailable",
+      snapshots: null,
+      outcomes: null,
+      source_counts: null,
+      safe_blocker: "clock_prior_forward_outcome_evidence_store_unavailable",
+    };
+  }
+
+  const startAt = plan.windows.held_out.start_at;
+  const endAt = plan.windows.walk_forward.end_at;
+  const scanQuery = await client
+    .from("recommendation_scan_runs")
+    .select("*", { count: "exact" })
+    .eq("owner_user_id", owner)
+    .gte("observed_at", startAt)
+    .lt("observed_at", endAt)
+    .order("observed_at", { ascending: true })
+    .limit(MAXIMUM_WINDOW_SCAN_ROWS + 1);
+  if (scanQuery.error) {
+    return {
+      status: "failed",
+      snapshots: null,
+      outcomes: null,
+      source_counts: null,
+      safe_blocker: "clock_prior_forward_outcome_scan_evidence_read_failed",
+    };
+  }
+  const scanRows = exactRows({
+    data: scanQuery.data,
+    count: scanQuery.count,
+    maximum: MAXIMUM_WINDOW_SCAN_ROWS,
+  });
+  if (!scanRows) {
+    return {
+      status: "failed",
+      snapshots: null,
+      outcomes: null,
+      source_counts: null,
+      safe_blocker:
+        "clock_prior_forward_outcome_scan_evidence_incomplete_or_unbounded",
+    };
+  }
+  const clockPriorScanRows = scanRows.filter(hasClockPriorEvidence);
+  const parsedScanRuns = clockPriorScanRows.map(
+    recommendationScanRunFromPersistenceRow,
+  );
+  if (parsedScanRuns.some((scanRun) => scanRun === null)) {
+    return {
+      status: "failed",
+      snapshots: null,
+      outcomes: null,
+      source_counts: null,
+      safe_blocker: "clock_prior_forward_outcome_scan_evidence_malformed",
+    };
+  }
+  const scanIdentities = new Set(
+    (parsedScanRuns as LearningBaselineScanRun[]).flatMap((scanRun) => [
+      scanRun.id,
+      scanRun.run_fingerprint,
+    ]),
+  );
+
+  const snapshotQuery = await client
+    .from("recommendation_snapshots")
+    .select("*", { count: "exact" })
+    .eq("owner_user_id", owner)
+    .gte("recommended_at", startAt)
+    .lt("recommended_at", endAt)
+    .order("recommended_at", { ascending: true })
+    .limit(MAXIMUM_WINDOW_SNAPSHOT_ROWS + 1);
+  if (snapshotQuery.error) {
+    return {
+      status: "failed",
+      snapshots: null,
+      outcomes: null,
+      source_counts: null,
+      safe_blocker: "clock_prior_forward_outcome_snapshot_evidence_read_failed",
+    };
+  }
+  const snapshotRows = exactRows({
+    data: snapshotQuery.data,
+    count: snapshotQuery.count,
+    maximum: MAXIMUM_WINDOW_SNAPSHOT_ROWS,
+  });
+  if (!snapshotRows) {
+    return {
+      status: "failed",
+      snapshots: null,
+      outcomes: null,
+      source_counts: null,
+      safe_blocker:
+        "clock_prior_forward_outcome_snapshot_evidence_incomplete_or_unbounded",
+    };
+  }
+  const linkedSnapshotRows = snapshotRows.filter((row) =>
+    typeof row.scan_run_id === "string" && scanIdentities.has(row.scan_run_id)
+  );
+  const parsedSnapshots = linkedSnapshotRows.map(
+    recommendationSnapshotFromPersistenceRow,
+  );
+  if (parsedSnapshots.some((snapshot) => snapshot === null)) {
+    return {
+      status: "failed",
+      snapshots: null,
+      outcomes: null,
+      source_counts: null,
+      safe_blocker: "clock_prior_forward_outcome_snapshot_evidence_malformed",
+    };
+  }
+  const snapshots = parsedSnapshots as RecommendationSnapshot[];
+  const snapshotFingerprints = new Set(
+    snapshots.map((snapshot) => snapshot.snapshot_fingerprint),
+  );
+
+  const outcomeQuery = await client
+    .from("recommendation_outcomes")
+    .select("*", { count: "exact" })
+    .eq("owner_user_id", owner)
+    .gte("recommended_at", startAt)
+    .lt("recommended_at", endAt)
+    .order("recommended_at", { ascending: true })
+    .limit(MAXIMUM_WINDOW_OUTCOME_ROWS + 1);
+  if (outcomeQuery.error) {
+    return {
+      status: "failed",
+      snapshots: null,
+      outcomes: null,
+      source_counts: null,
+      safe_blocker: "clock_prior_forward_outcome_row_evidence_read_failed",
+    };
+  }
+  const outcomeRows = exactRows({
+    data: outcomeQuery.data,
+    count: outcomeQuery.count,
+    maximum: MAXIMUM_WINDOW_OUTCOME_ROWS,
+  });
+  if (!outcomeRows) {
+    return {
+      status: "failed",
+      snapshots: null,
+      outcomes: null,
+      source_counts: null,
+      safe_blocker:
+        "clock_prior_forward_outcome_row_evidence_incomplete_or_unbounded",
+    };
+  }
+  const linkedOutcomeRows = outcomeRows.filter((row) =>
+    typeof row.snapshot_fingerprint === "string" &&
+    snapshotFingerprints.has(row.snapshot_fingerprint)
+  );
+  const parsedOutcomes = linkedOutcomeRows.map(
+    recommendationOutcomeFromPersistenceRow,
+  );
+  if (parsedOutcomes.some((outcome) => outcome === null)) {
+    return {
+      status: "failed",
+      snapshots: null,
+      outcomes: null,
+      source_counts: null,
+      safe_blocker: "clock_prior_forward_outcome_row_evidence_malformed",
+    };
+  }
+
+  return {
+    status: "available",
+    snapshots,
+    outcomes: parsedOutcomes as RecommendationOutcome[],
+    source_counts: {
+      window_scan_rows: scanRows.length,
+      clock_prior_scan_rows: clockPriorScanRows.length,
+      window_snapshot_rows: snapshotRows.length,
+      linked_snapshot_rows: linkedSnapshotRows.length,
+      window_outcome_rows: outcomeRows.length,
+      linked_outcome_rows: linkedOutcomeRows.length,
     },
     safe_blocker: null,
   };
