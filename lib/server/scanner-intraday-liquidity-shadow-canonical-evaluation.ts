@@ -65,6 +65,8 @@ export const SCANNER_RANKING_SHADOW_PROBABILITY_CALIBRATION_OBSERVATION_VERSION 
   "scanner_ranking_shadow_probability_calibration_observation_v1" as const;
 export const SCANNER_RANKING_SHADOW_FEASIBILITY_OBSERVATION_VERSION =
   "scanner_ranking_shadow_feasibility_observation_v1" as const;
+export const SCANNER_RANKING_SHADOW_QUALITY_SLICE_OBSERVATION_VERSION =
+  "scanner_ranking_shadow_quality_slice_observation_v1" as const;
 
 type ScannerRankingShadowCandidatePerformanceAtK = Record<string, {
   expectancy_r: {
@@ -135,6 +137,20 @@ export type ScannerRankingShadowFeasibilityObservation = {
     halt_risk: true;
     conservative_slippage: true;
   };
+};
+
+export type ScannerRankingShadowQualitySliceObservation = {
+  candidate_id: string;
+  ticker: string;
+  sector: string;
+  setup: SetupType;
+  regime: string;
+  decision_at: string;
+  baseline_rank: number;
+  candidate_rank: number;
+  positive_outcome: boolean | null;
+  terminal_outcome: CanonicalCandidateOutcome["terminal_outcome"];
+  r_result: number | null;
 };
 
 export type ScannerRankingShadowAttribution = {
@@ -210,6 +226,10 @@ export type ScannerRankingShadowCanonicalEvaluationResult<
   feasibility_observation_version:
     typeof SCANNER_RANKING_SHADOW_FEASIBILITY_OBSERVATION_VERSION;
   feasibility_observations: ScannerRankingShadowFeasibilityObservation[] | null;
+  quality_slice_observation_version:
+    typeof SCANNER_RANKING_SHADOW_QUALITY_SLICE_OBSERVATION_VERSION;
+  quality_slice_observations:
+    ScannerRankingShadowQualitySliceObservation[] | null;
   threshold_policy_semantics: "diagnostic_all_candidates_only";
   shadow_only: true;
   live_ranking_effect: false;
@@ -709,6 +729,7 @@ function terminalResult<AdapterVersion extends string>(input: {
   probabilityCalibrationInputs?: ScannerRankingShadowProbabilityCalibrationInput[];
   probabilityCalibrationObservations?: ScannerRankingShadowProbabilityCalibrationObservation[];
   feasibilityObservations?: ScannerRankingShadowFeasibilityObservation[];
+  qualitySliceObservations?: ScannerRankingShadowQualitySliceObservation[];
 }): ScannerRankingShadowCanonicalEvaluationResult<AdapterVersion> {
   return {
     adapter_version: input.adapterVersion,
@@ -742,6 +763,9 @@ function terminalResult<AdapterVersion extends string>(input: {
     feasibility_observation_version:
       SCANNER_RANKING_SHADOW_FEASIBILITY_OBSERVATION_VERSION,
     feasibility_observations: input.feasibilityObservations ?? null,
+    quality_slice_observation_version:
+      SCANNER_RANKING_SHADOW_QUALITY_SLICE_OBSERVATION_VERSION,
+    quality_slice_observations: input.qualitySliceObservations ?? null,
     ...safety,
   };
 }
@@ -1235,6 +1259,19 @@ export function evaluateScannerRankingShadowScan<AdapterVersion extends string>(
       },
     } satisfies ScannerRankingShadowFeasibilityObservation;
   });
+  const qualitySliceObservations = orderedEvidence.map((item) => ({
+    candidate_id: item.attribution.candidate_id,
+    ticker: item.attribution.ticker,
+    sector: item.sector,
+    setup: item.setup_type,
+    regime: item.market_regime,
+    decision_at: item.decision_at,
+    baseline_rank: item.attribution.baseline_rank,
+    candidate_rank: item.attribution.shadow_rank,
+    positive_outcome: item.canonical_outcome.positive_outcome,
+    terminal_outcome: item.canonical_outcome.terminal_outcome,
+    r_result: item.canonical_outcome.r_result,
+  } satisfies ScannerRankingShadowQualitySliceObservation));
   return terminalResult({
     adapterVersion: input.adapterVersion,
     status: evaluation.status,
@@ -1263,6 +1300,7 @@ export function evaluateScannerRankingShadowScan<AdapterVersion extends string>(
     probabilityCalibrationInputs,
     probabilityCalibrationObservations,
     feasibilityObservations,
+    qualitySliceObservations,
   });
 }
 

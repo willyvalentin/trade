@@ -138,6 +138,36 @@ function proportion(value: number, numerator: number, denominator: number) {
   return { value, numerator, denominator, lower: value - 0.1, upper: value + 0.1 };
 }
 
+function qualitySlices(denominator: number) {
+  const dimensions = ["ticker", "sector", "setup", "regime"] as const;
+  return {
+    observation_version:
+      "scanner_ranking_shadow_quality_slice_observation_v1" as const,
+    primary_k: 1 as const,
+    denominator,
+    dimensions,
+    slices: (["baseline", "candidate"] as const).flatMap((arm) =>
+      dimensions.map((dimension) => ({
+        arm,
+        dimension,
+        key: `${dimension}-fixture`,
+        selected_candidate_count: 1,
+        resolved_outcome_count: 1,
+        positive_outcome_count: 1,
+        precision: {
+          value: 1,
+          numerator: 1,
+          denominator: 1,
+          lower: 0.2,
+          upper: 1,
+        },
+        r_result_count: 1,
+        expectancy_r: 2,
+      }))
+    ),
+  };
+}
+
 function partition(name: "held_out" | "walk_forward") {
   return {
     scorecard_metrics_version:
@@ -270,6 +300,7 @@ function partition(name: "held_out" | "walk_forward") {
         conservative_slippage: true as const,
       },
     },
+    quality_slices: qualitySlices(12),
     precision_delta: {
       value: 1 / 6,
       conservative_lower: 0.05,
@@ -443,6 +474,15 @@ test("records a terminal shadow-only decision and rejects authority or receipt d
     owner_user_id: ownerUserId,
     plan_id: planId,
     decision_result: reasonDrift,
+  })).resolves.toMatchObject({ status: "unavailable" });
+
+  const qualitySliceDrift = structuredClone(result);
+  qualitySliceDrift.partitions[0]!.quality_slices.slices[0]!
+    .positive_outcome_count = 2;
+  await expect(store.recordResult({
+    owner_user_id: ownerUserId,
+    plan_id: planId,
+    decision_result: qualitySliceDrift,
   })).resolves.toMatchObject({ status: "unavailable" });
 
   const forgedReceipt = createScannerClockPriorShadowForwardDecisionReceiptStore(database({

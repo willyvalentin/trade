@@ -15,6 +15,7 @@ import {
   SCANNER_RANKING_SHADOW_CANDIDATE_PERFORMANCE_AT_K_VERSION,
   SCANNER_RANKING_SHADOW_CONCENTRATION_INPUT_VERSION,
   SCANNER_RANKING_SHADOW_FEASIBILITY_OBSERVATION_VERSION,
+  SCANNER_RANKING_SHADOW_QUALITY_SLICE_OBSERVATION_VERSION,
   SCANNER_RANKING_SHADOW_PROBABILITY_CALIBRATION_INPUT_VERSION,
   SCANNER_RANKING_SHADOW_PROBABILITY_CALIBRATION_OBSERVATION_VERSION,
   type ScannerRankingShadowCanonicalEvaluationResult,
@@ -66,6 +67,9 @@ function incompleteClockPriorCapture(input: {
     feasibility_observation_version:
       SCANNER_RANKING_SHADOW_FEASIBILITY_OBSERVATION_VERSION,
     feasibility_observations: null,
+    quality_slice_observation_version:
+      SCANNER_RANKING_SHADOW_QUALITY_SLICE_OBSERVATION_VERSION,
+    quality_slice_observations: null,
     threshold_policy_semantics: "diagnostic_all_candidates_only",
     shadow_only: true,
     live_ranking_effect: false,
