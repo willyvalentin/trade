@@ -5,6 +5,7 @@ import { createHash } from "node:crypto";
 import {
   buildScannerClockPriorShadowForwardDecisionPlan,
   SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_DECISION_VERSION,
+  SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_SCORECARD_METRICS_VERSION,
   type ScannerClockPriorShadowForwardDecisionPlan,
   type ScannerClockPriorShadowForwardDecisionResult,
   type ScannerClockPriorShadowForwardPartitionResult,
@@ -235,6 +236,8 @@ function partition(
   value: unknown,
 ): value is ScannerClockPriorShadowForwardPartitionResult {
   if (!record(value) ||
+    value.scorecard_metrics_version !==
+      SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_SCORECARD_METRICS_VERSION ||
     (value.partition !== "held_out" && value.partition !== "walk_forward") ||
     value.evidence_complete !== true || !stringArray(value.reason_codes) ||
     value.reason_codes.length !== 0) return false;
@@ -252,7 +255,10 @@ function partition(
     value.no_trade_opportunity_set_count as number;
   if (noTradeOpportunitySetCount > opportunitySetCount ||
     !proportion(value.baseline_precision) ||
-    !proportion(value.candidate_precision) || !record(value.precision_delta)) {
+    !proportion(value.candidate_precision) ||
+    !proportion(value.outcome_coverage) ||
+    !proportion(value.evidence_missingness) ||
+    !record(value.precision_delta)) {
     return false;
   }
   const delta = value.precision_delta;

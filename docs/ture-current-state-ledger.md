@@ -27,8 +27,11 @@ scope.
   13:30Z, preserving every attributable candidate, rejection and explicit
   `no_trade` decision plus its canonical outcome. CLOSED work closes only the
   next missing collection, lineage, outcome or evaluator link for this
-  hypothesis. Complete evidence may issue one `continue`, `narrow` or `reject`
-  shadow decision; none of those outcomes alone authorizes promotion.
+  hypothesis. Exact candidate-outcome coverage and evidence missingness are the
+  selected CLOSED scorecard link; they must retain the paired evaluator's same
+  candidate denominator and may not hide an incomplete scan. Complete evidence
+  may issue one `continue`, `narrow` or `reject` shadow decision; none of those
+  outcomes alone authorizes promotion.
 - **Blocked from selection:** live-policy promotion until complete attributable
   held-out/forward evidence exists and the complete charter scorecard passes;
   new generic scheduler/control-plane work

@@ -37,6 +37,8 @@ export const SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_DECISION_VERSION =
   "scanner_clock_prior_shadow_forward_decision_v2" as const;
 export const SCANNER_CLOCK_PRIOR_SHADOW_POLICY_REFERENCE_VERSION =
   "scanner_clock_prior_shadow_policy_reference_v1" as const;
+export const SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_SCORECARD_METRICS_VERSION =
+  "scanner_clock_prior_shadow_forward_scorecard_metrics_v1" as const;
 
 type RankingK = (typeof canonicalQualityRankingKValues)[number];
 type PartitionName = "held_out" | "walk_forward";
@@ -135,6 +137,8 @@ type ProportionInterval = {
 };
 
 export type ScannerClockPriorShadowForwardPartitionResult = {
+  scorecard_metrics_version:
+    typeof SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_SCORECARD_METRICS_VERSION;
   partition: PartitionName;
   opportunity_set_count: number;
   no_trade_opportunity_set_count: number;
@@ -142,6 +146,8 @@ export type ScannerClockPriorShadowForwardPartitionResult = {
   trading_day_count: number;
   baseline_precision: ProportionInterval | null;
   candidate_precision: ProportionInterval | null;
+  outcome_coverage: ProportionInterval | null;
+  evidence_missingness: ProportionInterval | null;
   precision_delta: {
     value: number;
     conservative_lower: number;
@@ -518,6 +524,8 @@ function emptyPartition(
   reasonCodes: string[],
 ): ScannerClockPriorShadowForwardPartitionResult {
   return {
+    scorecard_metrics_version:
+      SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_SCORECARD_METRICS_VERSION,
     partition,
     opportunity_set_count: 0,
     no_trade_opportunity_set_count: 0,
@@ -525,6 +533,8 @@ function emptyPartition(
     trading_day_count: 0,
     baseline_precision: null,
     candidate_precision: null,
+    outcome_coverage: null,
+    evidence_missingness: null,
     precision_delta: null,
     evidence_complete: false,
     reason_codes: uniqueSorted(reasonCodes),
@@ -609,6 +619,12 @@ type PartitionObservation = {
   candidate_expectancy_denominator: number;
 };
 
+type PartitionCoverageObservation = {
+  expected_candidate_count: number;
+  exact_snapshot_count: number;
+  canonical_primary_outcome_count: number;
+};
+
 function seededUnit(seed: string) {
   let state = createHash("sha256").update(seed).digest().readUInt32BE(0) || 1;
   return () => {
@@ -672,6 +688,7 @@ function clusteredPrecisionDeltaInterval(
 function summarizePartition(input: {
   partition: PartitionName;
   observations: PartitionObservation[];
+  coverageObservations: PartitionCoverageObservation[];
   window: ScannerClockPriorShadowForwardWindow;
   evaluationReasons: string[];
   bootstrapSeed: string;
@@ -738,6 +755,25 @@ function summarizePartition(input: {
         0,
       ) / candidateExpectancyDenominator
     : null;
+  const expectedOutcomeCount = input.coverageObservations.reduce(
+    (sum, observation) => sum + observation.expected_candidate_count,
+    0,
+  );
+  const canonicalOutcomeCount = input.coverageObservations.reduce(
+    (sum, observation) => sum + observation.canonical_primary_outcome_count,
+    0,
+  );
+  const exactSnapshotCount = input.coverageObservations.reduce(
+    (sum, observation) => sum + observation.exact_snapshot_count,
+    0,
+  );
+  const missingEvidenceCount = expectedOutcomeCount - exactSnapshotCount;
+  const outcomeCoverage = expectedOutcomeCount > 0
+    ? wilson(canonicalOutcomeCount, expectedOutcomeCount)
+    : null;
+  const evidenceMissingness = expectedOutcomeCount > 0
+    ? wilson(missingEvidenceCount, expectedOutcomeCount)
+    : null;
   const charterThresholds =
     scannerClockPriorShadowEvaluationCharterDefinition.thresholds;
   if (
@@ -752,8 +788,21 @@ function summarizePartition(input: {
   ) {
     reasons.push("candidate_expectancy_charter_minimum_not_met");
   }
-  // Precision and expectancy are now measurable from the exact same cohort,
-  // but the remaining frozen charter dimensions are not yet assembled here.
+  if (
+    outcomeCoverage === null ||
+    outcomeCoverage.value < charterThresholds.minimum_outcome_coverage
+  ) {
+    reasons.push("outcome_coverage_charter_minimum_not_met");
+  }
+  if (
+    evidenceMissingness === null ||
+    evidenceMissingness.value > charterThresholds.maximum_missingness
+  ) {
+    reasons.push("evidence_missingness_charter_maximum_exceeded");
+  }
+  // Precision, expectancy, outcome coverage and missingness are now measurable
+  // from the exact same cohort, but the remaining frozen charter dimensions
+  // are not yet assembled here.
   // Keep terminal authority closed until the complete scorecard is wired.
   reasons.push("forward_charter_scorecard_incomplete");
   const clusteredInterval = clusteredPrecisionDeltaInterval(
@@ -776,6 +825,8 @@ function summarizePartition(input: {
     : null;
   const reasonCodes = uniqueSorted(reasons);
   return {
+    scorecard_metrics_version:
+      SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_SCORECARD_METRICS_VERSION,
     partition: input.partition,
     opportunity_set_count: input.observations.length,
     no_trade_opportunity_set_count: input.observations.filter(
@@ -785,6 +836,8 @@ function summarizePartition(input: {
     trading_day_count: tradingDayCount,
     baseline_precision: baseline,
     candidate_precision: candidate,
+    outcome_coverage: outcomeCoverage,
+    evidence_missingness: evidenceMissingness,
     precision_delta: delta,
     evidence_complete: reasonCodes.length === 0,
     reason_codes: reasonCodes,
@@ -860,6 +913,10 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
     held_out: [],
     walk_forward: [],
   };
+  const coverageObservations: Record<PartitionName, PartitionCoverageObservation[]> = {
+    held_out: [],
+    walk_forward: [],
+  };
   const reasonsByPartition: Record<PartitionName, string[]> = {
     held_out: [],
     walk_forward: [],
@@ -896,6 +953,23 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
       outcomes: input.outcomes,
       bootstrapSeed: `${input.bootstrapSeed}:${scanRun.run_fingerprint}`,
     });
+    const coverage = evaluation.coverage;
+    if (
+      !Number.isInteger(coverage.expected_candidate_count) ||
+      !Number.isInteger(coverage.exact_snapshot_count) ||
+      !Number.isInteger(coverage.canonical_primary_outcome_count) ||
+      coverage.expected_candidate_count < 0 ||
+      coverage.exact_snapshot_count < 0 ||
+      coverage.canonical_primary_outcome_count < 0 ||
+      coverage.exact_snapshot_count > coverage.expected_candidate_count ||
+      coverage.canonical_primary_outcome_count > coverage.exact_snapshot_count
+    ) {
+      globalReasons.push("canonical_scan_coverage_counts_conflicting");
+      continue;
+    }
+    if (evaluation.status !== "conflicting") {
+      coverageObservations[partition].push(coverage);
+    }
     if (
       evaluation.comparison_identity !== null &&
       !evaluation.comparison_identity.startsWith(`${scanRun.run_fingerprint}:`)
@@ -1036,6 +1110,7 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
     (partition) => summarizePartition({
       partition,
       observations: observations[partition],
+      coverageObservations: coverageObservations[partition],
       window: plan.windows[partition],
       evaluationReasons: reasonsByPartition[partition],
       bootstrapSeed: `${input.bootstrapSeed}:${plan.plan_fingerprint}:${partition}`,
