@@ -16,6 +16,10 @@ import {
   scannerClockPriorShadowAttributionFromUnknown,
   type ScannerClockPriorShadowAttribution,
 } from "@/lib/scanner-ranking-clock-prior-shadow-attribution";
+import {
+  scannerClockPriorShadowComparisonFromUnknown,
+  type ScannerClockPriorShadowComparison,
+} from "@/lib/scanner-ranking-clock-prior-shadow";
 
 export const SCANNER_CLOCK_PRIOR_SHADOW_OUTCOME_PROJECTION_VERSION =
   "scanner_clock_prior_shadow_outcome_projection_v1" as const;
@@ -176,6 +180,38 @@ function difference(left: number | null, right: number | null) {
   return left === null || right === null ? null : right - left;
 }
 
+function comparisonMatchesAttribution(
+  comparison: ScannerClockPriorShadowComparison,
+  attribution: ScannerClockPriorShadowAttribution,
+) {
+  if (
+    comparison.status !== "comparable" ||
+    comparison.comparison_version !== attribution.comparison_version ||
+    comparison.generated_at !== attribution.comparison_generated_at ||
+    comparison.baseline_policy_version !==
+      attribution.baseline_policy_version ||
+    comparison.shadow_policy_version !== attribution.shadow_policy_version ||
+    comparison.candidate_count !== attribution.candidate_count ||
+    comparison.displacements.length !== attribution.candidates.length
+  ) {
+    return false;
+  }
+
+  const attributionByTicker = new Map(
+    attribution.candidates.map((candidate) => [candidate.ticker, candidate]),
+  );
+  return comparison.displacements.every((displacement) => {
+    const attributed = attributionByTicker.get(displacement.ticker);
+    return (
+      attributed !== undefined &&
+      attributed.baseline_rank === displacement.baseline_rank &&
+      attributed.shadow_rank === displacement.shadow_rank &&
+      attributed.baseline_selected === displacement.baseline_selected &&
+      attributed.shadow_selected === displacement.shadow_selected
+    );
+  });
+}
+
 /**
  * Compares the persisted baseline and shadow selections against exact,
  * candidate-decision-bound canonical outcomes. Missing evidence remains a
@@ -208,10 +244,15 @@ export function buildScannerClockPriorShadowOutcomeProjection({
 
     const attribution =
       scannerClockPriorShadowAttributionFromUnknown(rawAttribution);
+    const comparison = scannerClockPriorShadowComparisonFromUnknown(
+      scanRun.payload_json.scanner_clock_prior_shadow_comparison,
+    );
     const decisionRecord = candidateDecisionRecordFromScanRun(scanRun);
     if (
       !attribution ||
       attribution.status !== "attributed" ||
+      !comparison ||
+      !comparisonMatchesAttribution(comparison, attribution) ||
       !decisionRecord ||
       attribution.scan_run_id !== decisionRecord.scan_run_id ||
       attribution.scan_run_fingerprint !== decisionRecord.scan_run_fingerprint ||
@@ -383,6 +424,15 @@ export function buildScannerClockPriorShadowOutcomeProjection({
   const baseline = arm(baselineCandidates, evidenceByCandidateId);
   const shadow = arm(shadowCandidates, evidenceByCandidateId);
   const completeOutcomeCount = evidenceByCandidateId.size;
+  const baselinePolicyVersions = uniqueSorted(
+    validAttributions.map((value) => value.baseline_policy_version),
+  );
+  const shadowPolicyVersions = uniqueSorted(
+    validAttributions.map((value) => value.shadow_policy_version),
+  );
+  const mixedPolicyVersions =
+    validAttributions.length > 0 &&
+    (baselinePolicyVersions.length !== 1 || shadowPolicyVersions.length !== 1);
 
   if (receiptsFound > 0 && validAttributions.length === 0) {
     reasonCodes.add("no_valid_clock_prior_attribution_receipt");
@@ -396,9 +446,14 @@ export function buildScannerClockPriorShadowOutcomeProjection({
   ) {
     reasonCodes.add("minimum_forward_outcome_sample_not_met");
   }
+  if (mixedPolicyVersions) {
+    reasonCodes.add("mixed_policy_versions_across_attributed_runs");
+  }
 
   const hasConflict =
-    conflictingOrMalformedRuns > 0 || conflictingCandidateCount > 0;
+    conflictingOrMalformedRuns > 0 ||
+    conflictingCandidateCount > 0 ||
+    mixedPolicyVersions;
   const completeCoverage =
     selectedUnion.length > 0 &&
     incompleteCandidateCount === 0 &&
@@ -423,12 +478,8 @@ export function buildScannerClockPriorShadowOutcomeProjection({
       SCANNER_CLOCK_PRIOR_SHADOW_OUTCOME_PROJECTION_VERSION,
     status,
     policy_pair: {
-      baseline_policy_versions: uniqueSorted(
-        validAttributions.map((value) => value.baseline_policy_version),
-      ),
-      shadow_policy_versions: uniqueSorted(
-        validAttributions.map((value) => value.shadow_policy_version),
-      ),
+      baseline_policy_versions: baselinePolicyVersions,
+      shadow_policy_versions: shadowPolicyVersions,
     },
     coverage: {
       scan_runs_considered: scanRuns.length,

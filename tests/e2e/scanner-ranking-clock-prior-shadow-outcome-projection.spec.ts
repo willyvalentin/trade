@@ -391,3 +391,37 @@ test("fails closed when a persisted attribution receipt is malformed", () => {
     "no_valid_clock_prior_attribution_receipt",
   ]);
 });
+
+test("fails closed when the persisted comparison and attribution disagree", () => {
+  const { persistedRun, snapshot, outcome } = fixture();
+  const comparison = persistedRun.payload_json
+    .scanner_clock_prior_shadow_comparison as ScannerClockPriorShadowComparison;
+  const conflictingRun = {
+    ...persistedRun,
+    payload_json: {
+      ...persistedRun.payload_json,
+      scanner_clock_prior_shadow_comparison: {
+        ...comparison,
+        generated_at: "2026-09-26T14:29:59.000Z",
+      },
+    },
+  };
+  const projection = buildScannerClockPriorShadowOutcomeProjection({
+    scanRuns: [conflictingRun],
+    snapshots: [snapshot],
+    outcomes: [outcome],
+  });
+
+  expect(projection.status).toBe("conflicting");
+  expect(projection.coverage).toMatchObject({
+    attribution_receipts_found: 1,
+    attributed_scan_runs: 0,
+    conflicting_or_malformed_scan_runs: 1,
+    complete_primary_outcome_count: 0,
+  });
+  expect(projection.reason_codes).toEqual([
+    "clock_prior_attribution_or_decision_lineage_conflicting",
+    "minimum_forward_outcome_sample_not_met",
+    "no_valid_clock_prior_attribution_receipt",
+  ]);
+});
