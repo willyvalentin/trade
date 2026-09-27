@@ -116,6 +116,10 @@ import {
   buildScannerIntradayLiquidityShadowEvidenceCapturePlan,
   SCANNER_INTRADAY_LIQUIDITY_SHADOW_EVIDENCE_CAPTURE_VERSION,
 } from "@/lib/scanner-intraday-liquidity-shadow-evidence-capture";
+import {
+  buildScannerClockPriorShadowEvidenceReusePlan,
+  SCANNER_CLOCK_PRIOR_SHADOW_EVIDENCE_REUSE_VERSION,
+} from "@/lib/scanner-clock-prior-shadow-evidence-reuse";
 import { CANONICAL_OUTCOME_EVALUATOR_VERSION } from "@/lib/canonical-recommendation-evaluation";
 import type { ScanPipelineObservabilitySummary } from "@/lib/scan-pipeline-observability";
 import { normalizeUnknownError } from "@/lib/error-logging";
@@ -2422,6 +2426,7 @@ function buildSnapshotFromResearchSample({
   providerPlanProfileMode,
   batchFingerprint,
   researchPurpose = "learning_acceleration",
+  clockPriorEvidenceSample = false,
   marketRegime,
   marketRegimeContext,
 }: {
@@ -2438,6 +2443,7 @@ function buildSnapshotFromResearchSample({
   researchPurpose?:
     | "learning_acceleration"
     | "intraday_liquidity_shadow_full_population";
+  clockPriorEvidenceSample?: boolean;
   marketRegime: MarketRegime | null;
   marketRegimeContext: MarketRegimeDecisionContext | null;
 }) {
@@ -2520,6 +2526,10 @@ function buildSnapshotFromResearchSample({
         researchPurpose === "intraday_liquidity_shadow_full_population"
           ? SCANNER_INTRADAY_LIQUIDITY_SHADOW_EVIDENCE_CAPTURE_VERSION
           : null,
+      clock_prior_shadow_evidence_sample: clockPriorEvidenceSample,
+      clock_prior_shadow_evidence_reuse_version: clockPriorEvidenceSample
+        ? SCANNER_CLOCK_PRIOR_SHADOW_EVIDENCE_REUSE_VERSION
+        : null,
       research_only: true,
       learning_scope: "research_only",
       counterfactual_cohort: rejectedCandidateResearch
@@ -2825,8 +2835,23 @@ async function persistAutomationArtifacts({
       visibleTickers: visibleRecommendationTickers,
       scanWindow,
     });
+  const scannerClockPriorShadowEvidenceReuse =
+    buildScannerClockPriorShadowEvidenceReusePlan({
+      comparison: scanLog.scanner_clock_prior_shadow_comparison ?? null,
+      attribution: scannerClockPriorShadowAttribution,
+      decisionRecord: candidateDecisionRecord,
+      sharedCapture: scannerIntradayLiquidityShadowEvidenceCapture.receipt,
+      sharedSamples: scannerIntradayLiquidityShadowEvidenceCapture.samples,
+    });
   scanRun.payload_json.scanner_intraday_liquidity_shadow_evidence_capture =
     scannerIntradayLiquidityShadowEvidenceCapture.receipt;
+  scanRun.payload_json.scanner_clock_prior_shadow_evidence_reuse =
+    scannerClockPriorShadowEvidenceReuse.receipt;
+  const clockPriorEvidenceCandidateIds = new Set(
+    scannerClockPriorShadowEvidenceReuse.samples.map(
+      (sample) => sample.candidate_id,
+    ),
+  );
   const persistence = {
     scan_run: await persistRecommendationScanRun(scanRun, {
       supabaseClient: serverSupabase.client,
@@ -3001,6 +3026,9 @@ async function persistAutomationArtifacts({
       providerPlanProfileMode,
       batchFingerprint: anticipatedBatchFingerprint,
       researchPurpose: "intraday_liquidity_shadow_full_population",
+      clockPriorEvidenceSample: clockPriorEvidenceCandidateIds.has(
+        sample.candidate_id,
+      ),
       marketRegime,
       marketRegimeContext,
     });
@@ -3237,6 +3265,8 @@ async function persistAutomationArtifacts({
     learning_acceleration: researchSelection,
     scanner_intraday_liquidity_shadow_evidence_capture:
       scannerIntradayLiquidityShadowEvidenceCapture.receipt,
+    scanner_clock_prior_shadow_evidence_reuse:
+      scannerClockPriorShadowEvidenceReuse.receipt,
     rejected_candidate_research: rejectedResearchSelection,
     shadow_snapshot_summary: shadowSnapshotSummary,
     persistence,

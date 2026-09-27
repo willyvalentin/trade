@@ -62,6 +62,10 @@ import {
   SCANNER_INTRADAY_LIQUIDITY_SHADOW_OUTCOME_ADMISSION_VERSION,
 } from "@/lib/scanner-intraday-liquidity-shadow-outcome-admission";
 import {
+  assessScannerClockPriorShadowOutcomeAdmission,
+  SCANNER_CLOCK_PRIOR_SHADOW_OUTCOME_ADMISSION_VERSION,
+} from "@/lib/scanner-clock-prior-shadow-outcome-admission";
+import {
   buildBasicFreeScheduledOutcomeCapacityReceipt,
 } from "@/lib/basic-free-scheduled-outcome-capacity";
 
@@ -93,7 +97,8 @@ type OutcomeSnapshotIneligibleReason =
   | "missing_recommended_at"
   | "missing_batch_membership"
   | "learning_only_disabled"
-  | "intraday_liquidity_shadow_evidence_rejected";
+  | "intraday_liquidity_shadow_evidence_rejected"
+  | "clock_prior_shadow_evidence_rejected";
 
 type OutcomeEligibilityDiagnostics = {
   total_snapshots_loaded_for_batch: number;
@@ -104,6 +109,8 @@ type OutcomeEligibilityDiagnostics = {
   eligible_research_only_snapshot_count: number;
   eligible_intraday_liquidity_shadow_snapshot_count: number;
   rejected_intraday_liquidity_shadow_snapshot_count: number;
+  eligible_clock_prior_shadow_snapshot_count: number;
+  rejected_clock_prior_shadow_snapshot_count: number;
   grow_max_learning_snapshots_included_count: number;
   ineligible_snapshot_count: number;
   ineligible_reasons: Record<string, number>;
@@ -603,6 +610,8 @@ function isOfficialOutcomeEvaluationSnapshot(snapshot: RecommendationSnapshot) {
   return (
     isOfficialLiveSnapshot(snapshot) ||
     assessScannerIntradayLiquidityShadowOutcomeAdmission(snapshot).status ===
+      "admitted" ||
+    assessScannerClockPriorShadowOutcomeAdmission(snapshot).status ===
       "admitted"
   );
 }
@@ -610,11 +619,14 @@ function isOfficialOutcomeEvaluationSnapshot(snapshot: RecommendationSnapshot) {
 function officialEvaluationSnapshot(snapshot: RecommendationSnapshot) {
   const liquidityShadowOutcomeAdmission =
     assessScannerIntradayLiquidityShadowOutcomeAdmission(snapshot);
+  const clockPriorShadowOutcomeAdmission =
+    assessScannerClockPriorShadowOutcomeAdmission(snapshot);
 
   return {
     ...snapshot,
     is_visible:
-      liquidityShadowOutcomeAdmission.status === "admitted"
+      liquidityShadowOutcomeAdmission.status === "admitted" ||
+        clockPriorShadowOutcomeAdmission.status === "admitted"
         ? false
         : snapshot.status !== "hidden" && snapshot.status !== "invalid",
   };
@@ -1576,6 +1588,8 @@ function buildOutcomeEligibility({
   let eligibleResearchOnlySnapshotCount = 0;
   let eligibleIntradayLiquidityShadowSnapshotCount = 0;
   let rejectedIntradayLiquidityShadowSnapshotCount = 0;
+  let eligibleClockPriorShadowSnapshotCount = 0;
+  let rejectedClockPriorShadowSnapshotCount = 0;
   let canonicalVisibleSnapshotsRetainedCount = 0;
   const canonicalization = canonicalizeOutcomeSnapshotsForBatch({
     batchFingerprint,
@@ -1638,17 +1652,27 @@ function buildOutcomeEligibility({
     const learningOnly = !researchOnly && isLearningOnlySnapshot(snapshot);
     const liquidityShadowOutcomeAdmission =
       assessScannerIntradayLiquidityShadowOutcomeAdmission(snapshot);
-    const admittedLiquidityShadowResearch =
-      liquidityShadowOutcomeAdmission.status === "admitted";
+    const clockPriorShadowOutcomeAdmission =
+      assessScannerClockPriorShadowOutcomeAdmission(snapshot);
+    const admittedShadowResearch =
+      liquidityShadowOutcomeAdmission.status !== "rejected" &&
+      clockPriorShadowOutcomeAdmission.status !== "rejected" &&
+      (liquidityShadowOutcomeAdmission.status === "admitted" ||
+        clockPriorShadowOutcomeAdmission.status === "admitted");
 
     if (liquidityShadowOutcomeAdmission.status === "rejected") {
       reasons.push("intraday_liquidity_shadow_evidence_rejected");
       rejectedIntradayLiquidityShadowSnapshotCount += 1;
     }
+    if (clockPriorShadowOutcomeAdmission.status === "rejected") {
+      reasons.push("clock_prior_shadow_evidence_rejected");
+      rejectedClockPriorShadowSnapshotCount += 1;
+    }
 
     if (
       liquidityShadowOutcomeAdmission.status !== "rejected" &&
-      !admittedLiquidityShadowResearch &&
+      clockPriorShadowOutcomeAdmission.status !== "rejected" &&
+      !admittedShadowResearch &&
       !shouldIncludeLearningAccelerationOutcomeSample({
         growMaxLearningModeEnabled,
         learningAccelerationEnabled: growMaxLearningModeEnabled,
@@ -1682,14 +1706,17 @@ function buildOutcomeEligibility({
     if (researchOnly) {
       eligibleResearchOnlySnapshotCount += 1;
     }
-    if (admittedLiquidityShadowResearch) {
+    if (liquidityShadowOutcomeAdmission.status === "admitted") {
       eligibleIntradayLiquidityShadowSnapshotCount += 1;
+    }
+    if (clockPriorShadowOutcomeAdmission.status === "admitted") {
+      eligibleClockPriorShadowSnapshotCount += 1;
     }
 
     eligibleSnapshots.push({
       ...snapshot,
       is_visible:
-        admittedLiquidityShadowResearch ||
+        admittedShadowResearch ||
         (growMaxLearningModeEnabled && (learningOnly || researchOnly))
           ? true
           : snapshot.is_visible,
@@ -1725,6 +1752,10 @@ function buildOutcomeEligibility({
       eligibleIntradayLiquidityShadowSnapshotCount,
     rejected_intraday_liquidity_shadow_snapshot_count:
       rejectedIntradayLiquidityShadowSnapshotCount,
+    eligible_clock_prior_shadow_snapshot_count:
+      eligibleClockPriorShadowSnapshotCount,
+    rejected_clock_prior_shadow_snapshot_count:
+      rejectedClockPriorShadowSnapshotCount,
     grow_max_learning_snapshots_included_count: growMaxLearningModeEnabled
       ? eligibleSnapshots.length
       : 0,
@@ -2246,6 +2277,10 @@ export async function POST(request: Request) {
           .eligible_intraday_liquidity_shadow_snapshot_count,
       intraday_liquidity_shadow_outcome_admission_version:
         SCANNER_INTRADAY_LIQUIDITY_SHADOW_OUTCOME_ADMISSION_VERSION,
+      clock_prior_shadow_samples_evaluated:
+        eligibilityDiagnostics.eligible_clock_prior_shadow_snapshot_count,
+      clock_prior_shadow_outcome_admission_version:
+        SCANNER_CLOCK_PRIOR_SHADOW_OUTCOME_ADMISSION_VERSION,
       server_plan_mode: providerPlanProfile.server_plan_mode,
       public_plan_mode: providerPlanProfile.public_plan_mode,
       plan_mode_mismatch: providerPlanProfile.plan_mode_mismatch,
@@ -2636,6 +2671,10 @@ export async function POST(request: Request) {
       eligibilityDiagnostics.eligible_intraday_liquidity_shadow_snapshot_count,
     intraday_liquidity_shadow_outcome_admission_version:
       SCANNER_INTRADAY_LIQUIDITY_SHADOW_OUTCOME_ADMISSION_VERSION,
+    clock_prior_shadow_samples_evaluated:
+      eligibilityDiagnostics.eligible_clock_prior_shadow_snapshot_count,
+    clock_prior_shadow_outcome_admission_version:
+      SCANNER_CLOCK_PRIOR_SHADOW_OUTCOME_ADMISSION_VERSION,
     server_plan_mode: providerPlanProfile.server_plan_mode,
     public_plan_mode: providerPlanProfile.public_plan_mode,
     plan_mode_mismatch: providerPlanProfile.plan_mode_mismatch,
