@@ -288,8 +288,9 @@ evaluation path, not that the challenger is better.
 **Active intelligence successor — predeclared clock-prior forward decision:**
 the selected CLOSED slice binds exact canonical scan evaluations to one frozen
 held-out then walk-forward plan. The plan must predate both windows, keep the
-baseline and challenger ranking versions distinct, and predeclare primary K,
-minimum opportunity sets, ranked identities, trading days and separate
+owner, durable evaluation charter and baseline freeze exact, keep the baseline
+and challenger ranking versions distinct, and predeclare primary K, minimum
+opportunity sets, ranked identities, trading days and separate
 `continue`/`reject` precision-delta boundaries. Each partition must meet at
 least the canonical publishability floor of two opportunity sets, ten ranked
 identities and three trading days. The evaluator rebuilds each scan from its
@@ -302,8 +303,8 @@ never promotion; complete evidence between the frozen boundaries is `narrow`,
 and a conservative negative partition can be `reject`.
 
 Local evidence on exact base
-`d98b0951afd91e9fd1e3a43c9c9728067e6bc479` is 13/13 focused forward/canonical
-tests, 44/44 combined clock-prior and liquidity-shadow regressions, 168/168
+`d98b0951afd91e9fd1e3a43c9c9728067e6bc479` is 14/14 focused forward/canonical
+tests, 45/45 combined clock-prior and liquidity-shadow regressions, 168/168
 intelligence-foundation tests, strict non-incremental TypeScript and changed-file
 lint, all three scheduled-runtime bundles and a complete Next 16.3.4 webpack
 production build. No provider request, database write, ranking/publication

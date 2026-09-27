@@ -27,6 +27,7 @@ import {
   classifyScannerClockPriorShadowForwardPrecisionDecision,
   evaluateScannerClockPriorShadowForwardDecision,
   type ScannerClockPriorShadowForwardPartitionResult,
+  type ScannerClockPriorShadowForwardEvidenceBindings,
 } from "@/lib/server/scanner-clock-prior-shadow-forward-decision";
 import type { ScannerClockPriorShadowComparison } from "@/lib/scanner-ranking-clock-prior-shadow";
 import type { ScannerCandidate } from "@/lib/scanner";
@@ -659,11 +660,48 @@ test("records zero-candidate no-trade as valid lineage without claiming quality"
   });
 });
 
+const FORWARD_HYPOTHESIS =
+  "Removing named clock priors improves canonical top-one ranking precision without changing the eligible population.";
+const FORWARD_OWNER_ID = "11111111-1111-4111-8111-111111111111";
+const FORWARD_CHARTER_ID = "22222222-2222-4222-8222-222222222222";
+const FORWARD_BASELINE_ID = "33333333-3333-4333-8333-333333333333";
+const FORWARD_SEGMENT_KEY = "clock-prior:all-us-equities";
+const FORWARD_CHARTER_FINGERPRINT = "a".repeat(64);
+const FORWARD_BASELINE_FINGERPRINT = "b".repeat(64);
+
+function forwardEvidenceBindings(): ScannerClockPriorShadowForwardEvidenceBindings {
+  return {
+    evaluation_charter: {
+      charter_id: FORWARD_CHARTER_ID,
+      charter_fingerprint: FORWARD_CHARTER_FINGERPRINT,
+      owner_user_id: FORWARD_OWNER_ID,
+      segment_key: FORWARD_SEGMENT_KEY,
+      hypothesis: FORWARD_HYPOTHESIS,
+      baseline_ranking_version: "scanner_candidate_ranking_v1.2",
+      created_at: "2026-09-23T12:00:00.000Z",
+    },
+    baseline_freeze: {
+      baseline_id: FORWARD_BASELINE_ID,
+      baseline_fingerprint: FORWARD_BASELINE_FINGERPRINT,
+      owner_user_id: FORWARD_OWNER_ID,
+      segment_key: FORWARD_SEGMENT_KEY,
+      evaluation_charter_fingerprint: FORWARD_CHARTER_FINGERPRINT,
+      baseline_ranking_version: "scanner_candidate_ranking_v1.2",
+      frozen_at: "2026-09-24T11:30:00.000Z",
+    },
+  };
+}
+
 function forwardDecisionPlan() {
   const plan = buildScannerClockPriorShadowForwardDecisionPlan({
     created_at: "2026-09-24T12:00:00.000Z",
-    hypothesis:
-      "Removing named clock priors improves canonical top-one ranking precision without changing the eligible population.",
+    owner_user_id: FORWARD_OWNER_ID,
+    segment_key: FORWARD_SEGMENT_KEY,
+    hypothesis: FORWARD_HYPOTHESIS,
+    evaluation_charter_id: FORWARD_CHARTER_ID,
+    evaluation_charter_fingerprint: FORWARD_CHARTER_FINGERPRINT,
+    baseline_id: FORWARD_BASELINE_ID,
+    baseline_fingerprint: FORWARD_BASELINE_FINGERPRINT,
     baseline_ranking_version: "scanner_candidate_ranking_v1.2",
     candidate_ranking_version: "scanner_candidate_ranking_clock_neutral_v1",
     primary_k: 1,
@@ -720,6 +758,7 @@ test("classifies a complete predeclared held-out and walk-forward cohort without
   const cohort = [...heldOut, ...walkForward];
   const result = evaluateScannerClockPriorShadowForwardDecision({
     plan: forwardDecisionPlan(),
+    evidenceBindings: forwardEvidenceBindings(),
     scanRuns: cohort.map((item) => item.persistedRun),
     snapshots: cohort.flatMap((item) => item.snapshots),
     outcomes: cohort.flatMap((item) => item.outcomes),
@@ -729,6 +768,14 @@ test("classifies a complete predeclared held-out and walk-forward cohort without
   expect(result).toMatchObject({
     status: "decision_ready",
     decision: "narrow",
+    evidence_binding: {
+      owner_user_id: FORWARD_OWNER_ID,
+      segment_key: FORWARD_SEGMENT_KEY,
+      evaluation_charter_id: FORWARD_CHARTER_ID,
+      evaluation_charter_fingerprint: FORWARD_CHARTER_FINGERPRINT,
+      baseline_id: FORWARD_BASELINE_ID,
+      baseline_fingerprint: FORWARD_BASELINE_FINGERPRINT,
+    },
     shadow_only: true,
     live_ranking_effect: false,
     publication_effect: false,
@@ -768,6 +815,7 @@ test("withholds a forward decision when canonical outcomes or a declared partiti
   });
   const result = evaluateScannerClockPriorShadowForwardDecision({
     plan: forwardDecisionPlan(),
+    evidenceBindings: forwardEvidenceBindings(),
     scanRuns: [heldOut.persistedRun],
     snapshots: [heldOut.snapshot],
     outcomes: [],
@@ -791,6 +839,7 @@ test("fails the forward cohort closed on duplicate scans or a changed frozen pla
   });
   const duplicate = evaluateScannerClockPriorShadowForwardDecision({
     plan: forwardDecisionPlan(),
+    evidenceBindings: forwardEvidenceBindings(),
     scanRuns: [heldOut.persistedRun, heldOut.persistedRun],
     snapshots: [heldOut.snapshot],
     outcomes: [heldOut.outcome],
@@ -811,6 +860,7 @@ test("fails the forward cohort closed on duplicate scans or a changed frozen pla
   };
   expect(evaluateScannerClockPriorShadowForwardDecision({
     plan: changedPlan,
+    evidenceBindings: forwardEvidenceBindings(),
     scanRuns: [],
     snapshots: [],
     outcomes: [],
@@ -819,6 +869,30 @@ test("fails the forward cohort closed on duplicate scans or a changed frozen pla
     status: "invalid_plan",
     decision: "pending",
     reason_codes: ["forward_decision_plan_invalid_or_changed"],
+  });
+});
+
+test("fails the forward plan closed when its durable charter or baseline binding drifts", () => {
+  const bindings = forwardEvidenceBindings();
+  const result = evaluateScannerClockPriorShadowForwardDecision({
+    plan: forwardDecisionPlan(),
+    evidenceBindings: {
+      ...bindings,
+      baseline_freeze: {
+        ...bindings.baseline_freeze,
+        baseline_fingerprint: "c".repeat(64),
+      },
+    },
+    scanRuns: [],
+    snapshots: [],
+    outcomes: [],
+    bootstrapSeed: "clock-prior-forward:binding-drift-seed-v1",
+  });
+
+  expect(result).toMatchObject({
+    status: "invalid_plan",
+    decision: "pending",
+    reason_codes: ["forward_decision_charter_or_baseline_binding_invalid"],
   });
 });
 

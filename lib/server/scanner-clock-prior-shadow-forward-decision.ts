@@ -39,7 +39,13 @@ export type ScannerClockPriorShadowForwardDecisionPlan = {
     typeof SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_DECISION_PLAN_VERSION;
   plan_fingerprint: string;
   created_at: string;
+  owner_user_id: string;
+  segment_key: string;
   hypothesis: string;
+  evaluation_charter_id: string;
+  evaluation_charter_fingerprint: string;
+  baseline_id: string;
+  baseline_fingerprint: string;
   baseline_ranking_version: string;
   candidate_ranking_version: string;
   primary_k: RankingK;
@@ -54,6 +60,27 @@ export type ScannerClockPriorShadowForwardDecisionPlanInput = Omit<
   ScannerClockPriorShadowForwardDecisionPlan,
   "contract_version" | "plan_fingerprint"
 >;
+
+export type ScannerClockPriorShadowForwardEvidenceBindings = {
+  evaluation_charter: {
+    charter_id: string;
+    charter_fingerprint: string;
+    owner_user_id: string;
+    segment_key: string;
+    hypothesis: string;
+    baseline_ranking_version: string;
+    created_at: string;
+  };
+  baseline_freeze: {
+    baseline_id: string;
+    baseline_fingerprint: string;
+    owner_user_id: string;
+    segment_key: string;
+    evaluation_charter_fingerprint: string;
+    baseline_ranking_version: string;
+    frozen_at: string;
+  };
+};
 
 type ProportionInterval = {
   value: number;
@@ -93,6 +120,14 @@ export type ScannerClockPriorShadowForwardDecisionResult = {
     | "decision_ready";
   decision: "pending" | "continue" | "narrow" | "reject";
   plan_fingerprint: string | null;
+  evidence_binding: {
+    owner_user_id: string;
+    segment_key: string;
+    evaluation_charter_id: string;
+    evaluation_charter_fingerprint: string;
+    baseline_id: string;
+    baseline_fingerprint: string;
+  } | null;
   partitions: ScannerClockPriorShadowForwardPartitionResult[];
   reason_codes: string[];
   shadow_only: true;
@@ -158,6 +193,15 @@ function validIso(value: unknown): value is string {
   return typeof value === "string" && Number.isFinite(Date.parse(value));
 }
 
+function validUuid(value: unknown): value is string {
+  return typeof value === "string" &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+function validFingerprint(value: unknown): value is string {
+  return typeof value === "string" && /^[a-f0-9]{64}$/.test(value);
+}
+
 function boundedText(value: unknown, minimum: number, maximum: number) {
   return typeof value === "string" &&
     value.trim().length >= minimum &&
@@ -184,7 +228,13 @@ function planPayload(input: ScannerClockPriorShadowForwardDecisionPlanInput) {
     contract_version:
       SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_DECISION_PLAN_VERSION,
     created_at: input.created_at,
+    owner_user_id: input.owner_user_id,
+    segment_key: input.segment_key.trim(),
     hypothesis: input.hypothesis.trim(),
+    evaluation_charter_id: input.evaluation_charter_id,
+    evaluation_charter_fingerprint: input.evaluation_charter_fingerprint,
+    baseline_id: input.baseline_id,
+    baseline_fingerprint: input.baseline_fingerprint,
     baseline_ranking_version: input.baseline_ranking_version.trim(),
     candidate_ranking_version: input.candidate_ranking_version.trim(),
     primary_k: input.primary_k,
@@ -198,7 +248,13 @@ export function buildScannerClockPriorShadowForwardDecisionPlan(
 ): ScannerClockPriorShadowForwardDecisionPlan | null {
   if (
     !validIso(input.created_at) ||
+    !validUuid(input.owner_user_id) ||
+    !boundedText(input.segment_key, 1, 16_384) ||
     !boundedText(input.hypothesis, 20, 2_800) ||
+    !validUuid(input.evaluation_charter_id) ||
+    !validFingerprint(input.evaluation_charter_fingerprint) ||
+    !validUuid(input.baseline_id) ||
+    !validFingerprint(input.baseline_fingerprint) ||
     !boundedText(input.baseline_ranking_version, 1, 512) ||
     !boundedText(input.candidate_ranking_version, 1, 512) ||
     input.baseline_ranking_version.trim() ===
@@ -223,6 +279,44 @@ export function buildScannerClockPriorShadowForwardDecisionPlan(
     ...payload,
     plan_fingerprint: fingerprint(payload),
   });
+}
+
+function evidenceBindingsMatchPlan(
+  plan: ScannerClockPriorShadowForwardDecisionPlan,
+  bindings: ScannerClockPriorShadowForwardEvidenceBindings | null,
+) {
+  if (!bindings) return false;
+  const charter = bindings.evaluation_charter;
+  const baseline = bindings.baseline_freeze;
+  return validUuid(charter.charter_id) &&
+    validFingerprint(charter.charter_fingerprint) &&
+    validUuid(charter.owner_user_id) &&
+    boundedText(charter.segment_key, 1, 16_384) &&
+    boundedText(charter.hypothesis, 20, 2_800) &&
+    boundedText(charter.baseline_ranking_version, 1, 512) &&
+    validIso(charter.created_at) &&
+    validUuid(baseline.baseline_id) &&
+    validFingerprint(baseline.baseline_fingerprint) &&
+    validUuid(baseline.owner_user_id) &&
+    boundedText(baseline.segment_key, 1, 16_384) &&
+    validFingerprint(baseline.evaluation_charter_fingerprint) &&
+    boundedText(baseline.baseline_ranking_version, 1, 512) &&
+    validIso(baseline.frozen_at) &&
+    charter.charter_id === plan.evaluation_charter_id &&
+    charter.charter_fingerprint === plan.evaluation_charter_fingerprint &&
+    charter.owner_user_id === plan.owner_user_id &&
+    charter.segment_key === plan.segment_key &&
+    charter.hypothesis.trim() === plan.hypothesis &&
+    charter.baseline_ranking_version === plan.baseline_ranking_version &&
+    baseline.baseline_id === plan.baseline_id &&
+    baseline.baseline_fingerprint === plan.baseline_fingerprint &&
+    baseline.owner_user_id === plan.owner_user_id &&
+    baseline.segment_key === plan.segment_key &&
+    baseline.evaluation_charter_fingerprint ===
+      plan.evaluation_charter_fingerprint &&
+    baseline.baseline_ranking_version === plan.baseline_ranking_version &&
+    Date.parse(charter.created_at) <= Date.parse(plan.created_at) &&
+    Date.parse(baseline.frozen_at) <= Date.parse(plan.created_at);
 }
 
 function verifiedPlan(
@@ -255,7 +349,7 @@ function emptyPartition(
 function terminalResult(input: {
   status: ScannerClockPriorShadowForwardDecisionResult["status"];
   decision?: ScannerClockPriorShadowForwardDecisionResult["decision"];
-  planFingerprint?: string | null;
+  plan?: ScannerClockPriorShadowForwardDecisionPlan | null;
   partitions?: ScannerClockPriorShadowForwardPartitionResult[];
   reasons: Iterable<string>;
 }): ScannerClockPriorShadowForwardDecisionResult {
@@ -264,7 +358,18 @@ function terminalResult(input: {
     contract_version: SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_DECISION_VERSION,
     status: input.status,
     decision: input.decision ?? "pending",
-    plan_fingerprint: input.planFingerprint ?? null,
+    plan_fingerprint: input.plan?.plan_fingerprint ?? null,
+    evidence_binding: input.plan
+      ? {
+          owner_user_id: input.plan.owner_user_id,
+          segment_key: input.plan.segment_key,
+          evaluation_charter_id: input.plan.evaluation_charter_id,
+          evaluation_charter_fingerprint:
+            input.plan.evaluation_charter_fingerprint,
+          baseline_id: input.plan.baseline_id,
+          baseline_fingerprint: input.plan.baseline_fingerprint,
+        }
+      : null,
     partitions: input.partitions ?? [
       emptyPartition("held_out", reasons),
       emptyPartition("walk_forward", reasons),
@@ -505,6 +610,7 @@ export function classifyScannerClockPriorShadowForwardPrecisionDecision(input: {
  */
 export function evaluateScannerClockPriorShadowForwardDecision(input: {
   plan: ScannerClockPriorShadowForwardDecisionPlan | null;
+  evidenceBindings: ScannerClockPriorShadowForwardEvidenceBindings | null;
   scanRuns: LearningBaselineScanRun[];
   snapshots: RecommendationSnapshot[];
   outcomes: RecommendationOutcome[];
@@ -517,13 +623,20 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
       reasons: ["forward_decision_plan_invalid_or_changed"],
     });
   }
+  if (!evidenceBindingsMatchPlan(plan, input.evidenceBindings)) {
+    return terminalResult({
+      status: "invalid_plan",
+      plan,
+      reasons: ["forward_decision_charter_or_baseline_binding_invalid"],
+    });
+  }
   if (!boundedText(input.bootstrapSeed, 1, 512) ||
     input.scanRuns.length > MAXIMUM_SCAN_RUNS ||
     input.snapshots.length > MAXIMUM_SNAPSHOTS_OR_OUTCOMES ||
     input.outcomes.length > MAXIMUM_SNAPSHOTS_OR_OUTCOMES) {
     return terminalResult({
       status: "conflicting",
-      planFingerprint: plan.plan_fingerprint,
+      plan,
       reasons: ["forward_decision_input_bounds_invalid"],
     });
   }
@@ -683,7 +796,7 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
   if (globalReasons.length > 0) {
     return terminalResult({
       status: "conflicting",
-      planFingerprint: plan.plan_fingerprint,
+      plan,
       reasons: globalReasons,
     });
   }
@@ -703,7 +816,7 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
     partitions.some((partition) => !partition.evidence_complete)) {
     return terminalResult({
       status: "evidence_incomplete",
-      planFingerprint: plan.plan_fingerprint,
+      plan,
       partitions,
       reasons: evidenceReasons,
     });
@@ -715,7 +828,7 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
   return terminalResult({
     status: "decision_ready",
     decision,
-    planFingerprint: plan.plan_fingerprint,
+    plan,
     partitions,
     reasons: decision === "continue"
       ? ["both_partitions_clear_continue_boundary"]
