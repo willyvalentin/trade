@@ -190,18 +190,38 @@ webpack production build. Protected CI run `36281281535` passed all six
 provider-free shards, aggregate verification and merge-candidate provenance.
 Real forward outcomes and any measured quality delta remain separate evidence.
 
-**Active intelligence successor:** complete immutable decision-time context and
-same-population shadow comparisons before changing the live ranker. The current
-sequence is now IF-3b measurement of legacy named-window timing/setup priors
-against an evidence-first clock-neutral challenger, using the completed regime
-lineage as decision context. Each comparison must bind exact policy versions and
-candidate identity to canonical outcomes. It remains shadow-only until the
-declared forward cohort is complete and IF-4 classifies it `continue`, `narrow`
-or `reject`; no candidate quota or threshold relaxation is permitted. A bounded
-regular-session observation is still required to prove the deployed path with
-real forward evidence. While that OPEN evidence waits, CLOSED work must improve
-or test missing data, context, ranking or evaluation inputs rather than reopen
-generic control-plane work without a reproduced safety or integrity defect.
+**Merged and production-verified CLOSED slice — evidence-first clock-neutral
+shadow ranking:** PR [#665](https://github.com/willyvalentin/trade/pull/665)
+merged as `f92d0ce397149dacfc9f0c7fc88e107d442b0b90`; Netlify production deploy
+`6ab86d2452e0400008cdcbdb` is `ready`, Git-connected, `production`, branch
+`main`, `manual_deploy=false` and carries that exact revision. The versioned
+challenger removes only the legacy named-window timing score, setup-window boost
+and named-window warning penalty while preserving the exact baseline candidate
+population and admitted price, liquidity, plan, market-regime and data-quality
+evidence. It persists per-candidate rank, score, tier, selection and removed
+clock contribution. Live ranking remains `scanner_candidate_ranking_v1.2`, and
+the receipt explicitly states no live-ranking, publication, execution or
+quality-improvement effect. Local acceptance included 9/9 focused shadow tests,
+70/70 ranking/decision/publication regressions, 168/168 intelligence-foundation
+tests, 9/9 server-only canonical projection tests, strict TypeScript,
+changed-file lint, all scheduled-runtime bundles and a complete Next 16.3.4
+webpack production build. Protected CI run `36283556342` passed all six
+provider-free shards, aggregate verification and merge-candidate provenance.
+This measures clock-prior displacement; it does not prove that removing those
+priors improves recommendations.
+
+**Active intelligence successor:** bind every IF-3b displacement to the exact
+immutable candidate decision, then join only exact owner-bound canonical
+outcomes before changing the live ranker. The selected CLOSED slice adds a
+strict persisted-comparison boundary and versioned attribution receipt over the
+same ranked population. The following slice must project the declared forward
+cohort through canonical outcomes and the frozen IF-4 baseline so the evidence
+can classify the challenger `continue`, `narrow` or `reject`. No candidate quota
+or threshold relaxation is permitted. A bounded regular-session observation is
+still required to prove the deployed path with real forward evidence. While
+that OPEN evidence waits, CLOSED work must improve or test missing data,
+context, ranking or evaluation inputs rather than reopen generic control-plane
+work without a reproduced safety or integrity defect.
 
 ### Continuous-observation technical direction — 2026-09-24
 

@@ -78,6 +78,264 @@ function round(value: number) {
   return Math.round(value * 1_000_000) / 1_000_000;
 }
 
+function recordOrNull(value: unknown): Record<string, unknown> | null {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function textOrNull(value: unknown) {
+  return typeof value === "string" && value.trim().length > 0
+    ? value.trim()
+    : null;
+}
+
+function finiteNumber(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function integer(value: unknown) {
+  return typeof value === "number" && Number.isInteger(value) ? value : null;
+}
+
+function nonNegativeInteger(value: unknown) {
+  const parsed = integer(value);
+  return parsed !== null && parsed >= 0 ? parsed : null;
+}
+
+/**
+ * Strictly reads persisted clock-prior evidence without repairing partial
+ * values or inferring candidate identity from array order. Canonical outcome
+ * evaluation must cross this boundary before using a comparison receipt.
+ */
+export function scannerClockPriorShadowComparisonFromUnknown(
+  value: unknown,
+): ScannerClockPriorShadowComparison | null {
+  const record = recordOrNull(value);
+  if (
+    !record ||
+    record.comparison_version !==
+      SCANNER_CLOCK_PRIOR_SHADOW_COMPARISON_VERSION ||
+    record.comparison_kind !== "scanner_clock_prior_shadow_comparison" ||
+    (record.status !== "comparable" && record.status !== "conflicting") ||
+    record.baseline_policy_version !==
+      SCANNER_CLOCK_PRIOR_BASELINE_POLICY_VERSION ||
+    record.shadow_policy_version !== SCANNER_CLOCK_PRIOR_SHADOW_POLICY_VERSION ||
+    record.hypothesis !==
+      "named_clock_priors_add_quality_beyond_observed_features" ||
+    record.live_ranking_effect !== false ||
+    record.publication_effect !== false ||
+    record.execution_effect !== false ||
+    record.quality_improvement_claimed !== false ||
+    record.quality_evidence_status !== "not_evaluated" ||
+    typeof record.selection_changed !== "boolean" ||
+    !Array.isArray(record.candidate_tickers) ||
+    !Array.isArray(record.baseline_selected_tickers) ||
+    !Array.isArray(record.shadow_selected_tickers) ||
+    !Array.isArray(record.reason_codes) ||
+    !Array.isArray(record.displacements)
+  ) {
+    return null;
+  }
+
+  const generatedAt = textOrNull(record.generated_at);
+  const candidateCount = nonNegativeInteger(record.candidate_count);
+  const textArrays = [
+    record.candidate_tickers,
+    record.baseline_selected_tickers,
+    record.shadow_selected_tickers,
+    record.reason_codes,
+  ] as unknown[][];
+  if (
+    !generatedAt ||
+    !Number.isFinite(Date.parse(generatedAt)) ||
+    candidateCount === null ||
+    textArrays.some((values) =>
+      values.some((item) => textOrNull(item) === null),
+    )
+  ) {
+    return null;
+  }
+
+  const candidateTickers = uniqueSorted(
+    (record.candidate_tickers as string[]).map((ticker) =>
+      ticker.trim().toUpperCase(),
+    ),
+  );
+  const baselineSelectedTickers = uniqueSorted(
+    (record.baseline_selected_tickers as string[]).map((ticker) =>
+      ticker.trim().toUpperCase(),
+    ),
+  );
+  const shadowSelectedTickers = uniqueSorted(
+    (record.shadow_selected_tickers as string[]).map((ticker) =>
+      ticker.trim().toUpperCase(),
+    ),
+  );
+  const candidateTickerSet = new Set(candidateTickers);
+  if (
+    candidateTickers.length !== candidateCount ||
+    baselineSelectedTickers.some((ticker) => !candidateTickerSet.has(ticker)) ||
+    shadowSelectedTickers.some((ticker) => !candidateTickerSet.has(ticker))
+  ) {
+    return null;
+  }
+
+  const displacements = record.displacements.flatMap((value) => {
+    const item = recordOrNull(value);
+    const ticker = textOrNull(item?.ticker)?.toUpperCase() ?? null;
+    const baselineRank = nonNegativeInteger(item?.baseline_rank);
+    const shadowRank = nonNegativeInteger(item?.shadow_rank);
+    const rankChange = integer(item?.rank_change);
+    const baselineScore = finiteNumber(item?.baseline_score);
+    const shadowScore = finiteNumber(item?.shadow_score);
+    const scoreChange = finiteNumber(item?.score_change);
+    const baselineTier = textOrNull(item?.baseline_tier);
+    const shadowTier = textOrNull(item?.shadow_tier);
+    const legacyTimingScore = finiteNumber(item?.legacy_timing_score);
+    const baselineSignalStrength = finiteNumber(
+      item?.baseline_signal_strength,
+    );
+    const shadowSignalStrength = finiteNumber(item?.shadow_signal_strength);
+    const baselineWindowFit = finiteNumber(item?.baseline_window_fit);
+    const shadowWindowFit = finiteNumber(item?.shadow_window_fit);
+    const setupBonus = finiteNumber(
+      item?.legacy_setup_classification_bonus_removed,
+    );
+    const warningCount = nonNegativeInteger(item?.legacy_clock_warning_count);
+    const baselineWarningsPenalty = finiteNumber(
+      item?.baseline_warnings_penalty,
+    );
+    const shadowWarningsPenalty = finiteNumber(item?.shadow_warnings_penalty);
+    if (
+      !item ||
+      !ticker ||
+      baselineRank === null ||
+      baselineRank < 1 ||
+      shadowRank === null ||
+      shadowRank < 1 ||
+      rankChange === null ||
+      baselineScore === null ||
+      shadowScore === null ||
+      scoreChange === null ||
+      !baselineTier ||
+      !shadowTier ||
+      typeof item.baseline_selected !== "boolean" ||
+      typeof item.shadow_selected !== "boolean" ||
+      legacyTimingScore === null ||
+      baselineSignalStrength === null ||
+      shadowSignalStrength === null ||
+      baselineWindowFit === null ||
+      shadowWindowFit === null ||
+      setupBonus === null ||
+      warningCount === null ||
+      baselineWarningsPenalty === null ||
+      shadowWarningsPenalty === null
+    ) {
+      return [];
+    }
+
+    return [
+      {
+        ticker,
+        baseline_rank: baselineRank,
+        shadow_rank: shadowRank,
+        rank_change: rankChange,
+        baseline_score: baselineScore,
+        shadow_score: shadowScore,
+        score_change: scoreChange,
+        baseline_tier: baselineTier,
+        shadow_tier: shadowTier,
+        baseline_selected: item.baseline_selected,
+        shadow_selected: item.shadow_selected,
+        legacy_timing_score: legacyTimingScore,
+        baseline_signal_strength: baselineSignalStrength,
+        shadow_signal_strength: shadowSignalStrength,
+        baseline_window_fit: baselineWindowFit,
+        shadow_window_fit: shadowWindowFit,
+        legacy_setup_classification_bonus_removed: setupBonus,
+        legacy_clock_warning_count: warningCount,
+        baseline_warnings_penalty: baselineWarningsPenalty,
+        shadow_warnings_penalty: shadowWarningsPenalty,
+      },
+    ];
+  });
+
+  if (record.status === "comparable") {
+    const displacementTickers = uniqueSorted(
+      displacements.map((item) => item.ticker),
+    );
+    if (
+      record.reason_codes.length !== 0 ||
+      displacements.length !== record.displacements.length ||
+      displacements.length !== candidateCount ||
+      displacementTickers.join("|") !== candidateTickers.join("|") ||
+      new Set(displacements.map((item) => item.baseline_rank)).size !==
+        displacements.length ||
+      new Set(displacements.map((item) => item.shadow_rank)).size !==
+        displacements.length ||
+      displacements.some(
+        (item) =>
+          item.rank_change !== item.baseline_rank - item.shadow_rank ||
+          Math.abs(
+            item.score_change - (item.shadow_score - item.baseline_score),
+          ) > 0.000001,
+      ) ||
+      baselineSelectedTickers.join("|") !==
+        uniqueSorted(
+          displacements
+            .filter((item) => item.baseline_selected)
+            .map((item) => item.ticker),
+        ).join("|") ||
+      shadowSelectedTickers.join("|") !==
+        uniqueSorted(
+          displacements
+            .filter((item) => item.shadow_selected)
+            .map((item) => item.ticker),
+        ).join("|")
+    ) {
+      return null;
+    }
+  } else if (
+    record.reason_codes.length === 0 ||
+    record.displacements.length !== 0 ||
+    shadowSelectedTickers.length !== 0 ||
+    record.selection_changed !== false
+  ) {
+    return null;
+  }
+
+  if (
+    record.status === "comparable" &&
+    record.selection_changed !==
+      (baselineSelectedTickers.join("|") !== shadowSelectedTickers.join("|"))
+  ) {
+    return null;
+  }
+
+  return {
+    comparison_version: SCANNER_CLOCK_PRIOR_SHADOW_COMPARISON_VERSION,
+    comparison_kind: "scanner_clock_prior_shadow_comparison",
+    generated_at: generatedAt,
+    status: record.status,
+    baseline_policy_version: SCANNER_CLOCK_PRIOR_BASELINE_POLICY_VERSION,
+    shadow_policy_version: SCANNER_CLOCK_PRIOR_SHADOW_POLICY_VERSION,
+    hypothesis: "named_clock_priors_add_quality_beyond_observed_features",
+    candidate_count: candidateCount,
+    candidate_tickers: candidateTickers,
+    baseline_selected_tickers: baselineSelectedTickers,
+    shadow_selected_tickers: shadowSelectedTickers,
+    selection_changed: record.selection_changed,
+    live_ranking_effect: false,
+    publication_effect: false,
+    execution_effect: false,
+    quality_improvement_claimed: false,
+    quality_evidence_status: "not_evaluated",
+    reason_codes: uniqueSorted(record.reason_codes as string[]),
+    displacements,
+  };
+}
+
 function componentScore(
   summary: ScannerCandidateRankingSummary,
   ticker: string,

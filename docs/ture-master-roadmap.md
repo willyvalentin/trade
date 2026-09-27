@@ -117,14 +117,15 @@ within the same slot's four-request ceiling and exposes versioned before/after
 backlog accounting. A receipt may not imply that selected work completed when
 the snapshot cap, provider budget, persistence or missing candles deferred it.
 
-The active successor is contextual ranking evidence: first preserve the exact
-decision-time market-regime receipt through canonical evaluation, then measure
-the legacy named-window timing, setup boost and warning penalty against the
-same-population IF-3b clock-neutral shadow challenger. Forward observations and
-outcome-linked baseline comparison then decide whether any policy should be
-promoted, narrowed or rejected. No threshold is lowered to create candidates,
-and neither attribution, snapshot admission, capacity alignment, rank movement,
-coverage nor a descriptive outcome delta is quality evidence by itself.
+The decision-time market-regime receipt and same-population IF-3b clock-neutral
+shadow challenger are now production-deployed. The active successor is to bind
+every measured clock-prior displacement to its immutable candidate decision,
+then join only exact owner-bound canonical outcomes. Forward observations and
+the frozen IF-4 baseline comparison must then decide whether the challenger is
+continued, narrowed or rejected before any live-policy change. No threshold is
+lowered to create candidates, and neither attribution, snapshot admission,
+capacity alignment, rank movement, coverage nor a descriptive outcome delta is
+quality evidence by itself.
 
 For every recommendation-quality hypothesis, build in this order: admit and
 version the point-in-time input; run the challenger in shadow over the exact

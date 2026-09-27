@@ -111,6 +111,7 @@ import {
 import { buildDecisionLineageReceipt } from "@/lib/decision-lineage-receipt";
 import { buildCandidateDecisionLearningAttribution } from "@/lib/candidate-decision-learning-attribution";
 import { buildScannerIntradayLiquidityShadowAttribution } from "@/lib/scanner-ranking-intraday-liquidity-shadow-attribution";
+import { buildScannerClockPriorShadowAttribution } from "@/lib/scanner-ranking-clock-prior-shadow-attribution";
 import {
   buildScannerIntradayLiquidityShadowEvidenceCapturePlan,
   SCANNER_INTRADAY_LIQUIDITY_SHADOW_EVIDENCE_CAPTURE_VERSION,
@@ -2804,6 +2805,13 @@ async function persistAutomationArtifacts({
     });
   scanRun.payload_json.scanner_intraday_liquidity_shadow_attribution =
     scannerIntradayLiquidityShadowAttribution;
+  const scannerClockPriorShadowAttribution =
+    buildScannerClockPriorShadowAttribution({
+      comparison: scanLog.scanner_clock_prior_shadow_comparison ?? null,
+      decisionRecord: candidateDecisionRecord,
+    });
+  scanRun.payload_json.scanner_clock_prior_shadow_attribution =
+    scannerClockPriorShadowAttribution;
   const visibleRecommendationTickers = recommendations
     .map((recommendation) => recommendationTicker(recommendation))
     .filter((ticker): ticker is string => ticker !== null);
