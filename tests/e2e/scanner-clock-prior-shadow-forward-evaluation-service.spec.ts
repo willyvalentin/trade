@@ -99,25 +99,26 @@ function qualitySlices(denominator: number) {
     primary_k: 3 as const,
     denominator,
     dimensions,
-    slices: (["baseline", "candidate"] as const).flatMap((arm) =>
-      dimensions.map((dimension) => ({
+    slices: (["baseline", "candidate"] as const).flatMap((arm) => {
+      const positiveOutcomeCount = arm === "baseline" ? 42 : 50;
+      return dimensions.map((dimension) => ({
         arm,
         dimension,
         key: `${dimension}-fixture`,
-        selected_candidate_count: 3,
-        resolved_outcome_count: 3,
-        positive_outcome_count: 2,
+        selected_candidate_count: denominator,
+        resolved_outcome_count: denominator,
+        positive_outcome_count: positiveOutcomeCount,
         precision: {
-          value: 2 / 3,
-          numerator: 2,
-          denominator: 3,
+          value: positiveOutcomeCount / denominator,
+          numerator: positiveOutcomeCount,
+          denominator,
           lower: 0.2,
           upper: 0.95,
         },
-        r_result_count: 3,
+        r_result_count: denominator,
         expectancy_r: 0.5,
-      }))
-    ),
+      }));
+    }),
   };
 }
 

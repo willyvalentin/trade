@@ -380,7 +380,25 @@ function feasibility(value: unknown, expectedCandidateCount: number) {
   );
 }
 
-function qualitySlices(value: unknown, expectedCandidateCount: number) {
+type PrecisionCounts = {
+  numerator: number;
+  denominator: number;
+};
+
+function precisionCounts(value: unknown): PrecisionCounts | null {
+  return proportion(value) && record(value)
+    ? {
+        numerator: value.numerator as number,
+        denominator: value.denominator as number,
+      }
+    : null;
+}
+
+function qualitySlices(
+  value: unknown,
+  expectedCandidateCount: number,
+  expectedPrecision: Record<"baseline" | "candidate", PrecisionCounts>,
+) {
   if (!record(value) ||
     value.observation_version !==
       SCANNER_RANKING_SHADOW_QUALITY_SLICE_OBSERVATION_VERSION ||
@@ -391,7 +409,9 @@ function qualitySlices(value: unknown, expectedCandidateCount: number) {
     !Array.isArray(value.slices) || value.slices.length < 8 ||
     value.slices.length > expectedCandidateCount * 8) return false;
 
-  const totals = new Map<string, number>();
+  const selectedTotals = new Map<string, number>();
+  const resolvedTotals = new Map<string, number>();
+  const positiveTotals = new Map<string, number>();
   const identities = new Set<string>();
   for (const item of value.slices) {
     if (!record(item) ||
@@ -413,7 +433,12 @@ function qualitySlices(value: unknown, expectedCandidateCount: number) {
         ? item.precision !== null
         : !proportion(item.precision) || !record(item.precision) ||
           item.precision.numerator !== item.positive_outcome_count ||
-          item.precision.denominator !== item.resolved_outcome_count) ||
+          item.precision.denominator !== item.resolved_outcome_count ||
+          Math.abs(
+            (item.precision.value as number) -
+              (item.positive_outcome_count as number) /
+                (item.resolved_outcome_count as number),
+          ) > 1e-12) ||
       !nonNegativeInteger(item.r_result_count) ||
       (item.r_result_count as number) >
         (item.selected_candidate_count as number) ||
@@ -425,21 +450,38 @@ function qualitySlices(value: unknown, expectedCandidateCount: number) {
     if (identities.has(identity)) return false;
     identities.add(identity);
     const totalIdentity = `${item.arm}:${item.dimension}`;
-    totals.set(
+    selectedTotals.set(
       totalIdentity,
-      (totals.get(totalIdentity) ?? 0) +
+      (selectedTotals.get(totalIdentity) ?? 0) +
         (item.selected_candidate_count as number),
     );
+    resolvedTotals.set(
+      totalIdentity,
+      (resolvedTotals.get(totalIdentity) ?? 0) +
+        (item.resolved_outcome_count as number),
+    );
+    positiveTotals.set(
+      totalIdentity,
+      (positiveTotals.get(totalIdentity) ?? 0) +
+        (item.positive_outcome_count as number),
+    );
   }
-  const expectedTotals = ["baseline", "candidate"].flatMap((arm) =>
+  const totalIdentities = ["baseline", "candidate"].flatMap((arm) =>
     ["ticker", "sector", "setup", "regime"].map(
-      (dimension) => totals.get(`${arm}:${dimension}`) ?? 0,
+      (dimension) => `${arm}:${dimension}`,
     )
+  );
+  const expectedTotals = totalIdentities.map(
+    (identity) => selectedTotals.get(identity) ?? 0,
   );
   return expectedTotals.length === 8 && new Set(expectedTotals).size === 1 &&
     expectedTotals.every(
       (total) => total > 0 && total <= expectedCandidateCount,
-    );
+    ) && totalIdentities.every((identity) => {
+      const arm = identity.startsWith("baseline:") ? "baseline" : "candidate";
+      return resolvedTotals.get(identity) === expectedPrecision[arm].denominator &&
+        positiveTotals.get(identity) === expectedPrecision[arm].numerator;
+    });
 }
 
 function partition(
@@ -463,9 +505,11 @@ function partition(
   const opportunitySetCount = value.opportunity_set_count as number;
   const noTradeOpportunitySetCount =
     value.no_trade_opportunity_set_count as number;
+  const baselinePrecision = precisionCounts(value.baseline_precision);
+  const candidatePrecision = precisionCounts(value.candidate_precision);
   if (noTradeOpportunitySetCount > opportunitySetCount ||
-    !proportion(value.baseline_precision) ||
-    !proportion(value.candidate_precision) ||
+    !baselinePrecision ||
+    !candidatePrecision ||
     !proportion(value.outcome_coverage) ||
     !proportion(value.evidence_missingness) ||
     !concentration(value.concentration, value.ranked_candidate_count as number) ||
@@ -476,6 +520,10 @@ function partition(
     !qualitySlices(
       value.quality_slices,
       value.ranked_candidate_count as number,
+      {
+        baseline: baselinePrecision,
+        candidate: candidatePrecision,
+      },
     ) ||
     !record(value.precision_delta)) {
     return false;
@@ -492,6 +540,16 @@ function partition(
     delta.bootstrap_iterations === 1_000 &&
     typeof delta.bootstrap_seed === "string" &&
     delta.bootstrap_seed.length >= 1 && delta.bootstrap_seed.length <= 512;
+}
+
+function consistentQualitySlicePrimaryK(value: unknown[]) {
+  const primaryKs = value.map((item) =>
+    record(item) && record(item.quality_slices)
+      ? item.quality_slices.primary_k
+      : null
+  );
+  return primaryKs.every((primaryK) => [1, 3, 5].includes(primaryK as number)) &&
+    new Set(primaryKs).size === 1;
 }
 
 function decisionResultFromUnknown(
@@ -514,6 +572,7 @@ function decisionResultFromUnknown(
     !Array.isArray(value.partitions) || value.partitions.length !== 2 ||
     !value.partitions.every(partition) ||
     new Set(value.partitions.map((item) => item.partition)).size !== 2 ||
+    !consistentQualitySlicePrimaryK(value.partitions) ||
     !stringArray(value.reason_codes) || !exactTerminalDecisionReason(value) ||
     value.shadow_only !== true || value.live_ranking_effect !== false ||
     value.publication_effect !== false ||
