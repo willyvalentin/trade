@@ -308,6 +308,10 @@ import {
   buildScannerIntradayLiquidityShadowOutcomeProjection,
   type ScannerIntradayLiquidityShadowOutcomeProjection,
 } from "@/lib/scanner-ranking-intraday-liquidity-shadow-outcome-projection";
+import {
+  buildScannerClockPriorShadowOutcomeProjection,
+  type ScannerClockPriorShadowOutcomeProjection,
+} from "@/lib/scanner-ranking-clock-prior-shadow-outcome-projection";
 import type { RecommendationLearningBaselineFreeze } from "@/lib/recommendation-learning-baseline-freeze-store";
 import type { RecommendationEvaluationCharter } from "@/lib/recommendation-evaluation-charter";
 import {
@@ -14778,6 +14782,12 @@ export function TradeApp({
       snapshots: recommendationBaselineSnapshots,
       outcomes: recommendationBaselineOutcomes,
     });
+  const clockPriorShadowOutcomeProjection =
+    buildScannerClockPriorShadowOutcomeProjection({
+      scanRuns: liveStoredRecommendationScanRuns,
+      snapshots: recommendationBaselineSnapshots,
+      outcomes: recommendationBaselineOutcomes,
+    });
   const recommendationPerformanceStatistics =
     buildRecommendationPerformanceStatistics({
       snapshots: recommendationPerformanceSnapshots,
@@ -17389,6 +17399,7 @@ export function TradeApp({
               segmentation={recommendationLearningBaselineSegmentation}
               evaluationPlans={recommendationLearningEvaluationPlans}
               rankingShadowOutcomeProjection={rankingShadowOutcomeProjection}
+              clockPriorShadowOutcomeProjection={clockPriorShadowOutcomeProjection}
               charters={recommendationEvaluationCharters}
               freeze={learningBaselineFreeze}
               freezeError={learningBaselineFreezeError}
@@ -39291,6 +39302,7 @@ function RecommendationLearningBaselineReadinessPanel({
   segmentation,
   evaluationPlans,
   rankingShadowOutcomeProjection,
+  clockPriorShadowOutcomeProjection,
   charters,
   freeze,
   freezeError,
@@ -39301,6 +39313,7 @@ function RecommendationLearningBaselineReadinessPanel({
   segmentation: RecommendationLearningBaselineSegmentation;
   evaluationPlans: RecommendationLearningEvaluationPlans;
   rankingShadowOutcomeProjection: ScannerIntradayLiquidityShadowOutcomeProjection;
+  clockPriorShadowOutcomeProjection: ScannerClockPriorShadowOutcomeProjection;
   charters: RecommendationEvaluationCharter[];
   freeze: RecommendationLearningBaselineFreeze | null;
   freezeError: string;
@@ -39615,6 +39628,72 @@ function RecommendationLearningBaselineReadinessPanel({
           Promotion {rankingShadowOutcomeProjection.promotion_readiness.replaceAll("_", " ")}.
           {" "}Required complete outcomes before quality review: {rankingShadowOutcomeProjection.coverage.minimum_complete_outcomes_before_quality_review}.
           {" "}Gaps: {rankingShadowOutcomeProjection.reason_codes.join(", ") || "none in the evaluated population"}.
+        </p>
+        <p className="mt-1 text-xs leading-5 text-zinc-500">
+          This is descriptive shadow evidence only. It claims no quality
+          improvement and cannot change ranking, publication, provider usage,
+          execution, or broker behavior.
+        </p>
+      </div>
+
+      <div
+        className="mt-4 rounded-md border border-white/10 bg-white/[0.025] p-3"
+        data-testid="clock-prior-shadow-outcome-projection"
+      >
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+              Clock-neutral ranking outcome evidence
+            </h4>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-zinc-300">
+              Exact candidate-decision joins compare the current ranking with
+              the clock-neutral challenger. Missing snapshots or outcomes
+              remain explicit gaps and are never inferred.
+            </p>
+          </div>
+          <RecommendationDetailsPill
+            label={clockPriorShadowOutcomeProjection.status.replaceAll("_", " ")}
+            tone={
+              clockPriorShadowOutcomeProjection.status === "comparable"
+                ? "positive"
+                : clockPriorShadowOutcomeProjection.status === "conflicting"
+                  ? "danger"
+                  : "warning"
+            }
+          />
+        </div>
+
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <SummaryCard
+            label="Attributed Runs"
+            value={`${clockPriorShadowOutcomeProjection.coverage.attributed_scan_runs}/${clockPriorShadowOutcomeProjection.coverage.attribution_receipts_found}`}
+          />
+          <SummaryCard
+            label="Exact Outcomes"
+            value={`${clockPriorShadowOutcomeProjection.coverage.complete_primary_outcome_count}/${clockPriorShadowOutcomeProjection.coverage.selected_union_candidate_count}`}
+          />
+          <SummaryCard
+            label="Baseline Mean R"
+            value={formatR(clockPriorShadowOutcomeProjection.baseline.mean_current_r)}
+          />
+          <SummaryCard
+            label="Challenger Mean R"
+            value={formatR(clockPriorShadowOutcomeProjection.shadow.mean_current_r)}
+          />
+        </div>
+
+        <p className="mt-3 text-xs leading-5 text-zinc-400">
+          Baseline: {clockPriorShadowOutcomeProjection.baseline.complete_primary_outcome_count}/
+          {clockPriorShadowOutcomeProjection.baseline.selected_candidate_count} selected candidates with complete outcomes;
+          {" "}challenger: {clockPriorShadowOutcomeProjection.shadow.complete_primary_outcome_count}/
+          {clockPriorShadowOutcomeProjection.shadow.selected_candidate_count}. Entry-rate delta {clockPriorShadowOutcomeProjection.observed_deltas.entry_triggered_rate === null
+            ? "not observed"
+            : `${(clockPriorShadowOutcomeProjection.observed_deltas.entry_triggered_rate * 100).toFixed(1)} pp`}; mean-R delta {formatR(clockPriorShadowOutcomeProjection.observed_deltas.mean_current_r)}.
+        </p>
+        <p className="mt-1 text-xs leading-5 text-zinc-500">
+          Promotion {clockPriorShadowOutcomeProjection.promotion_readiness.replaceAll("_", " ")}.
+          {" "}Required complete outcomes before quality review: {clockPriorShadowOutcomeProjection.coverage.minimum_complete_outcomes_before_quality_review}.
+          {" "}Gaps: {clockPriorShadowOutcomeProjection.reason_codes.join(", ") || "none in the evaluated population"}.
         </p>
         <p className="mt-1 text-xs leading-5 text-zinc-500">
           This is descriptive shadow evidence only. It claims no quality

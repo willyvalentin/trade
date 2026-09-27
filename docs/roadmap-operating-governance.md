@@ -10,6 +10,36 @@ MVP and SV implementations remain reusable evidence and infrastructure; their
 historical queues do not override the active intelligence hypothesis. Notion
 remains outside the development workflow.
 
+### Intelligence work-selection gate
+
+Before starting a delivery, name the active hypothesis, the exact missing link
+in `point-in-time input → same-population challenger → immutable decision →
+canonical outcome → frozen paired evaluation → reversible promotion`, and the
+result that can change the next decision. A task is not primary roadmap work if
+it merely adds generic readiness, another dashboard, another receipt shape or
+more automation while the active evidence chain already has an earlier missing
+link.
+
+Select work in this order:
+
+1. a reproduced discovery/data-integrity gap that blocks the active hypothesis;
+2. the hypothesis's ranking/context implementation or same-population shadow;
+3. exact outcome coverage and frozen baseline/held-out evaluation;
+4. reversible promotion and post-promotion monitoring after the gate passes;
+5. supporting control-plane work only when a reproduced reliability, budget,
+   entitlement, security or evidence-integrity defect requires it.
+
+Finish each hypothesis with an explicit `continue`, `narrow` or `reject`
+decision before opening a competing ranking hypothesis. A negative result is
+progress because it prevents an unsupported policy from reaching users. A code
+merge, operational receipt, rank displacement, high score or isolated favorable
+outcome is not recommendation-quality progress unless it closes a declared link
+and preserves the frozen comparison. During OPEN, prefer attributable forward
+evidence for that hypothesis; during CLOSED, implement and verify the next
+market-independent link. Do not wait for OPEN when useful CLOSED work exists,
+and do not spend OPEN capacity on unrelated infrastructure without a reproduced
+blocker.
+
 ### Select and finish real product behavior
 
 - Keep one primary 4–16 active-hour vertical slice. Initial investigation is

@@ -117,11 +117,11 @@ within the same slot's four-request ceiling and exposes versioned before/after
 backlog accounting. A receipt may not imply that selected work completed when
 the snapshot cap, provider budget, persistence or missing candles deferred it.
 
-The decision-time market-regime receipt and same-population IF-3b clock-neutral
-shadow challenger are now production-deployed. The active successor is to bind
-every measured clock-prior displacement to its immutable candidate decision,
-then join only exact owner-bound canonical outcomes. Forward observations and
-the frozen IF-4 baseline comparison must then decide whether the challenger is
+The decision-time market-regime receipt, same-population IF-3b clock-neutral
+shadow challenger and exact immutable-decision attribution are now
+production-deployed. The active successor projects the declared forward cohort
+through only exact owner-bound canonical outcomes. Forward observations and the
+frozen IF-4 baseline comparison must then decide whether the challenger is
 continued, narrowed or rejected before any live-policy change. No threshold is
 lowered to create candidates, and neither attribution, snapshot admission,
 capacity alignment, rank movement, coverage nor a descriptive outcome delta is
@@ -136,6 +136,33 @@ one reversible promotion decision with rollback and post-promotion monitoring.
 A missing link stops the claim, not the rest of product development. Generic
 control-plane, dashboard or execution expansion is lower priority unless a
 reproduced defect threatens data integrity, budget, safety or this evidence path.
+
+#### Recommendation-quality acceleration rule
+
+Until one policy has completed the IF-5 promotion decision, the primary delivery
+must close the next missing link in one frozen recommendation-quality hypothesis.
+Work is selected in this order:
+
+1. repair a measured discovery, coverage, freshness or point-in-time input defect
+   that prevents the hypothesis from being evaluated;
+2. implement one explainable same-population ranking challenger without changing
+   live selection;
+3. complete immutable decision attribution, canonical outcomes and the frozen
+   paired evaluation;
+4. collect the predeclared forward/held-out evidence and decide `continue`,
+   `narrow` or `reject` before selecting another ranking hypothesis;
+5. promote only a demonstrated winner as one reversible policy change, then
+   monitor it against the frozen baseline.
+
+IF-2b discovery remains a permanent product capability, but it is supporting
+work rather than an automatic queue reset once the active hypothesis has enough
+eligible coverage. Reliability, scheduler, dashboard, schema and execution work
+may interrupt this sequence only for a reproduced defect that blocks or corrupts
+the evidence path, violates a budget/entitlement/safety boundary, or makes the
+current product behavior untruthful. OPEN hours prioritize the exact forward
+observations the active hypothesis needs; CLOSED hours build, test and evaluate
+its next missing link. Neither time window authorizes a candidate quota, relaxed
+publication threshold or unbounded provider use.
 
 ### Destination and retained principles
 
