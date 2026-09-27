@@ -1,6 +1,10 @@
 import { expect, test } from "@playwright/test";
 
-import { buildScannerCandidateRankingSummary } from "@/lib/scanner-candidate-ranking";
+import {
+  buildScannerCandidateRankingSummary,
+  type RankingCandidate,
+} from "@/lib/scanner-candidate-ranking";
+import { buildScannerClockPriorShadowComparison } from "@/lib/scanner-ranking-clock-prior-shadow";
 import { buildScannerIntradayLiquidityShadowComparison } from "@/lib/scanner-ranking-intraday-liquidity-shadow";
 import type { ScannerCandidate } from "@/lib/scanner";
 import {
@@ -81,6 +85,42 @@ function comparison(
     scanWindow: "midday",
     now: NOW,
   });
+}
+
+function clockCandidate({
+  ticker,
+  timing,
+  setupType,
+  warnings = [],
+}: {
+  ticker: string;
+  timing: number;
+  setupType: string;
+  warnings?: string[];
+}): RankingCandidate {
+  const result: RankingCandidate = {
+    ...candidate(ticker),
+    setup_type: setupType,
+    local_score_warnings: warnings,
+    local_score_breakdown: {
+      momentum: 80,
+      volume: 70,
+      volatility: 70,
+      trend: 75,
+      riskReward: 80,
+      marketRegime: 65,
+      timing,
+    },
+  };
+  result.local_score =
+    80 * 0.2 +
+    70 * 0.15 +
+    70 * 0.12 +
+    75 * 0.18 +
+    80 * 0.15 +
+    65 * 0.1 +
+    timing * 0.1;
+  return result;
 }
 
 test("captures when daily volume masks missing verified intraday liquidity without changing live selection", () => {
@@ -199,6 +239,29 @@ test("is deterministic and does not mutate the candidate population", () => {
 
 test("preserves the shadow comparison through the durable scan-log envelope", () => {
   const shadowComparison = comparison([candidate()]);
+  const clockCandidates = [
+    clockCandidate({
+      ticker: "ZZZ",
+      timing: 95,
+      setupType: "HIGH_OF_DAY_BREAKOUT",
+    }),
+    clockCandidate({
+      ticker: "AAA",
+      timing: 5,
+      setupType: "VWAP_HOLD_CONTINUATION",
+    }),
+  ];
+  const clockBaseline = buildScannerCandidateRankingSummary({
+    candidates: clockCandidates,
+    scanWindow: "morning_momentum",
+    now: NOW,
+  });
+  const clockComparison = buildScannerClockPriorShadowComparison({
+    candidates: clockCandidates,
+    baseline: clockBaseline,
+    scanWindow: "morning_momentum",
+    now: NOW,
+  });
   const scanLog = {
     created_at: NOW.toISOString(),
     source: "scheduled",
@@ -208,6 +271,7 @@ test("preserves the shadow comparison through the durable scan-log envelope", ()
     message: "No publishable setup.",
     recommendations_created: 0,
     scanner_intraday_liquidity_shadow_comparison: shadowComparison,
+    scanner_clock_prior_shadow_comparison: clockComparison,
   } satisfies ScanLogEntry;
   const message = buildScanLogMessage(scanLog.message, scanLog);
   const parsed = parseScanLogFromMessage({
@@ -220,5 +284,147 @@ test("preserves the shadow comparison through the durable scan-log envelope", ()
   expect(parsed.scanner_intraday_liquidity_shadow_comparison).toEqual(
     shadowComparison,
   );
+  expect(parsed.scanner_clock_prior_shadow_comparison).toEqual(clockComparison);
   expect(parsed.recommendations_created).toBe(0);
+});
+
+test("measures named clock-prior displacement without changing live ranking", () => {
+  const candidates = [
+    clockCandidate({
+      ticker: "ZZZ",
+      timing: 95,
+      setupType: "HIGH_OF_DAY_BREAKOUT",
+    }),
+    clockCandidate({
+      ticker: "AAA",
+      timing: 5,
+      setupType: "VWAP_HOLD_CONTINUATION",
+    }),
+  ];
+  const baseline = buildScannerCandidateRankingSummary({
+    candidates,
+    scanWindow: "morning_momentum",
+    now: NOW,
+  });
+  const result = buildScannerClockPriorShadowComparison({
+    candidates,
+    baseline,
+    scanWindow: "morning_momentum",
+    now: NOW,
+  });
+
+  expect(baseline.results.map((item) => item.ticker)).toEqual(["ZZZ", "AAA"]);
+  expect(result).toMatchObject({
+    status: "comparable",
+    candidate_count: 2,
+    selection_changed: true,
+    live_ranking_effect: false,
+    publication_effect: false,
+    execution_effect: false,
+    quality_improvement_claimed: false,
+    quality_evidence_status: "not_evaluated",
+    reason_codes: [],
+  });
+  expect(result.displacements.map((item) => item.ticker)).toEqual(["AAA", "ZZZ"]);
+  expect(result.displacements.find((item) => item.ticker === "AAA")).toMatchObject({
+    baseline_rank: 2,
+    shadow_rank: 1,
+    shadow_window_fit: 50,
+  });
+  expect(result.displacements.find((item) => item.ticker === "ZZZ")).toMatchObject({
+    baseline_rank: 1,
+    shadow_rank: 2,
+    legacy_timing_score: 95,
+    shadow_window_fit: 50,
+  });
+  expect(baseline.results.map((item) => item.ticker)).toEqual(["ZZZ", "AAA"]);
+});
+
+test("keeps the clock-neutral result stable across named scan windows", () => {
+  const morningCandidates = [
+    clockCandidate({
+      ticker: "ZZZ",
+      timing: 75,
+      setupType: "HIGH_OF_DAY_BREAKOUT",
+    }),
+    clockCandidate({
+      ticker: "AAA",
+      timing: 72,
+      setupType: "VWAP_HOLD_CONTINUATION",
+    }),
+  ];
+  const middayCandidates = [
+    clockCandidate({
+      ticker: "ZZZ",
+      timing: 32,
+      setupType: "HIGH_OF_DAY_BREAKOUT",
+      warnings: ["Midday window increases chop risk."],
+    }),
+    clockCandidate({
+      ticker: "AAA",
+      timing: 36,
+      setupType: "VWAP_HOLD_CONTINUATION",
+      warnings: ["Midday window increases chop risk."],
+    }),
+  ];
+  const morning = buildScannerClockPriorShadowComparison({
+    candidates: morningCandidates,
+    baseline: buildScannerCandidateRankingSummary({
+      candidates: morningCandidates,
+      scanWindow: "morning_momentum",
+      now: NOW,
+    }),
+    scanWindow: "morning_momentum",
+    now: NOW,
+  });
+  const midday = buildScannerClockPriorShadowComparison({
+    candidates: middayCandidates,
+    baseline: buildScannerCandidateRankingSummary({
+      candidates: middayCandidates,
+      scanWindow: "midday",
+      now: NOW,
+    }),
+    scanWindow: "midday",
+    now: NOW,
+  });
+  const shadowProjection = (comparison: typeof morning) =>
+    comparison.displacements.map((item) => ({
+      ticker: item.ticker,
+      rank: item.shadow_rank,
+      score: item.shadow_score,
+      tier: item.shadow_tier,
+      selected: item.shadow_selected,
+      signal: item.shadow_signal_strength,
+      window: item.shadow_window_fit,
+      warningPenalty: item.shadow_warnings_penalty,
+    }));
+
+  expect(shadowProjection(morning)).toEqual(shadowProjection(midday));
+  expect(midday.displacements.every((item) => item.legacy_clock_warning_count === 1)).toBe(
+    true,
+  );
+});
+
+test("fails closed when clock-neutral feature evidence is incomplete", () => {
+  const candidates = [candidate("MISSING")];
+  const baseline = buildScannerCandidateRankingSummary({
+    candidates,
+    scanWindow: "midday",
+    now: NOW,
+  });
+  const result = buildScannerClockPriorShadowComparison({
+    candidates,
+    baseline,
+    scanWindow: "midday",
+    now: NOW,
+  });
+
+  expect(result).toMatchObject({
+    status: "conflicting",
+    reason_codes: ["clock_neutral_feature_breakdown_missing"],
+    displacements: [],
+    live_ranking_effect: false,
+    publication_effect: false,
+    execution_effect: false,
+  });
 });

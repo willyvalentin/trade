@@ -72,6 +72,10 @@ import {
   type ScannerIntradayLiquidityShadowComparison,
 } from "@/lib/scanner-ranking-intraday-liquidity-shadow";
 import {
+  buildScannerClockPriorShadowComparison,
+  type ScannerClockPriorShadowComparison,
+} from "@/lib/scanner-ranking-clock-prior-shadow";
+import {
   buildCandidateDecisionCapture,
   type CandidateDecisionCapture,
   type CandidateDecisionReasonCode,
@@ -284,6 +288,7 @@ export type RecommendationScanLogDetails = {
   market_wide_discovery?: MarketWideDiscoverySummary | null;
   scanner_candidate_ranking?: ScannerCandidateRankingSummary | null;
   scanner_intraday_liquidity_shadow_comparison?: ScannerIntradayLiquidityShadowComparison | null;
+  scanner_clock_prior_shadow_comparison?: ScannerClockPriorShadowComparison | null;
   openai_recommendation_reality_guard?: OpenAiRecommendationRealityGuardSummary | null;
   grow_max_learning_mode?: boolean | null;
   target_ideas_per_window?: number | null;
@@ -3971,6 +3976,14 @@ export async function generateRecommendations({
         universeCoverage: scannerUniverseSelection.coverage,
         now: rankingObservedAt,
       });
+    const scannerClockPriorShadowComparison =
+      buildScannerClockPriorShadowComparison({
+        candidates: initiallyScoredCandidates,
+        baseline: scannerCandidateRankingSummary,
+        scanWindow,
+        universeCoverage: scannerUniverseSelection.coverage,
+        now: rankingObservedAt,
+      });
     activeScanTrace?.markStage("ranking", "completed");
     activeScanTrace?.updateRanking({
       ranking_attempted: true,
@@ -4227,6 +4240,8 @@ export async function generateRecommendations({
           scanner_candidate_ranking: scannerCandidateRankingSummary,
           scanner_intraday_liquidity_shadow_comparison:
             scannerIntradayLiquidityShadowComparison,
+          scanner_clock_prior_shadow_comparison:
+            scannerClockPriorShadowComparison,
           grow_max_learning_mode: growMaxLearningMode,
           target_ideas_per_window: growMaxRecommendationTarget,
           reference_refresh: referenceRefreshDiagnostics,
@@ -4587,6 +4602,8 @@ export async function generateRecommendations({
           scanner_candidate_ranking: scannerCandidateRankingSummary,
           scanner_intraday_liquidity_shadow_comparison:
             scannerIntradayLiquidityShadowComparison,
+          scanner_clock_prior_shadow_comparison:
+            scannerClockPriorShadowComparison,
           grow_max_learning_mode: growMaxLearningMode,
           target_ideas_per_window: growMaxRecommendationTarget,
           openai_recommendation_reality_guard: openAiRealityGuardSummary,
@@ -4683,6 +4700,8 @@ export async function generateRecommendations({
           scanner_candidate_ranking: scannerCandidateRankingSummary,
           scanner_intraday_liquidity_shadow_comparison:
             scannerIntradayLiquidityShadowComparison,
+          scanner_clock_prior_shadow_comparison:
+            scannerClockPriorShadowComparison,
           grow_max_learning_mode: growMaxLearningMode,
           target_ideas_per_window: growMaxRecommendationTarget,
           openai_recommendation_reality_guard: openAiRealityGuardSummary,
@@ -4801,6 +4820,8 @@ export async function generateRecommendations({
         scanner_candidate_ranking: scannerCandidateRankingSummary,
         scanner_intraday_liquidity_shadow_comparison:
           scannerIntradayLiquidityShadowComparison,
+        scanner_clock_prior_shadow_comparison:
+          scannerClockPriorShadowComparison,
         grow_max_learning_mode: growMaxLearningMode,
         target_ideas_per_window: growMaxRecommendationTarget,
         openai_recommendation_reality_guard: openAiRealityGuardSummary,

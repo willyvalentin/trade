@@ -10,6 +10,7 @@ import type { RecommendationServingCadenceSummary } from "@/lib/recommendation-s
 import type { ReferenceRefreshDiagnostics } from "@/lib/reference-refresh-diagnostics";
 import type { ScannerCandidateRankingSummary } from "@/lib/scanner-candidate-ranking";
 import type { ScannerIntradayLiquidityShadowComparison } from "@/lib/scanner-ranking-intraday-liquidity-shadow";
+import type { ScannerClockPriorShadowComparison } from "@/lib/scanner-ranking-clock-prior-shadow";
 import type { RealScannerCandidateGenerationSummary } from "@/lib/real-scanner-candidate-generation";
 import type { SetupType } from "@/lib/setup-types";
 import type { ActiveScanTrace } from "@/lib/active-scan-trace";
@@ -88,6 +89,7 @@ export type ScanLogEntry = {
   basic_free_scheduled_scan_credit_reservation?: Record<string, unknown> | null;
   scanner_candidate_ranking?: ScannerCandidateRankingSummary | null;
   scanner_intraday_liquidity_shadow_comparison?: ScannerIntradayLiquidityShadowComparison | null;
+  scanner_clock_prior_shadow_comparison?: ScannerClockPriorShadowComparison | null;
   openai_recommendation_reality_guard?: OpenAiRecommendationRealityGuardSummary | null;
   ranked_candidates_count?: number | null;
   recommendations_published_count?: number | null;

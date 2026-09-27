@@ -99,6 +99,22 @@ type RankingVolumeEvidencePolicy =
   | "legacy_daily_or_intraday_v1"
   | "verified_intraday_only_v1";
 
+type RankingClockContextPolicy =
+  | "legacy_named_window_v1"
+  | "evidence_only_clock_neutral_v1";
+
+const legacyNamedWindowWarningTexts = new Set([
+  "Opening window has higher volatility; require confirmation.",
+  "Midday window increases chop risk.",
+  "Power hour requires very strict confirmation.",
+  "Pre-market or closed window is not eligible for trade recommendations.",
+  "Setup type boost withheld during restrictive power hour.",
+]);
+
+export function isLegacyNamedWindowWarning(warningText: string) {
+  return legacyNamedWindowWarningTexts.has(warningText.trim());
+}
+
 export function buildScannerCandidateRankingSummary({
   candidates,
   scanWindow = "unknown",
@@ -122,6 +138,7 @@ export function buildScannerCandidateRankingSummary({
     targetMax,
     now,
     volumeEvidencePolicy: "legacy_daily_or_intraday_v1",
+    clockContextPolicy: "legacy_named_window_v1",
   });
 }
 
@@ -153,6 +170,39 @@ export function buildVerifiedIntradayLiquidityShadowRankingSummary({
     targetMax,
     now,
     volumeEvidencePolicy: "verified_intraday_only_v1",
+    clockContextPolicy: "legacy_named_window_v1",
+  });
+}
+
+/**
+ * Builds a default-off policy that removes named clock-window priors while
+ * preserving every observed candidate feature and the production selection
+ * contract. It is shadow evidence only and cannot be selected by the live API.
+ */
+export function buildClockNeutralShadowRankingSummary({
+  candidates,
+  scanWindow = "unknown",
+  universeCoverage = null,
+  targetMin: legacyTargetMin = 0,
+  targetMax = 3,
+  now = new Date(),
+}: {
+  candidates: RankingCandidate[];
+  scanWindow?: IntradayScanWindow | "unknown";
+  universeCoverage?: ScannerUniverseCoverageSummary | null;
+  targetMin?: number;
+  targetMax?: number;
+  now?: Date;
+}): ScannerCandidateRankingSummary {
+  return buildScannerCandidateRankingSummaryForPolicy({
+    candidates,
+    scanWindow,
+    universeCoverage,
+    targetMin: legacyTargetMin,
+    targetMax,
+    now,
+    volumeEvidencePolicy: "legacy_daily_or_intraday_v1",
+    clockContextPolicy: "evidence_only_clock_neutral_v1",
   });
 }
 
@@ -164,6 +214,7 @@ function buildScannerCandidateRankingSummaryForPolicy({
   targetMax,
   now,
   volumeEvidencePolicy,
+  clockContextPolicy,
 }: {
   candidates: RankingCandidate[];
   scanWindow: IntradayScanWindow | "unknown";
@@ -172,6 +223,7 @@ function buildScannerCandidateRankingSummaryForPolicy({
   targetMax: number;
   now: Date;
   volumeEvidencePolicy: RankingVolumeEvidencePolicy;
+  clockContextPolicy: RankingClockContextPolicy;
 }): ScannerCandidateRankingSummary {
   // Accept the legacy argument so old callers and decision records remain
   // readable, but never let a minimum output quota back into selection.
@@ -184,6 +236,7 @@ function buildScannerCandidateRankingSummaryForPolicy({
         universeCoverage,
         observedAtSeconds: now.getTime() / 1000,
         volumeEvidencePolicy,
+        clockContextPolicy,
       }),
     )
     .sort((first, second) => {
@@ -288,6 +341,7 @@ function rankCandidate(
     universeCoverage: ScannerUniverseCoverageSummary | null;
     observedAtSeconds: number;
     volumeEvidencePolicy: RankingVolumeEvidencePolicy;
+    clockContextPolicy: RankingClockContextPolicy;
   },
 ): Omit<ScannerCandidateRankingResult, "rank"> {
   const warnings: ScannerCandidateRankingWarning[] = [];
@@ -296,7 +350,11 @@ function rankCandidate(
   const dataCompleteness = scoreDataCompleteness(candidate, gaps);
   const freshness = scoreFreshness(candidate, warnings, gaps);
   const pricePlanQuality = scorePricePlanQuality(candidate, warnings, gaps);
-  const signalStrength = scoreSignalStrength(candidate, gaps);
+  const signalStrength = scoreSignalStrength(
+    candidate,
+    gaps,
+    context.clockContextPolicy,
+  );
   const liquidityVolume = scoreLiquidityVolume(
     candidate,
     warnings,
@@ -305,8 +363,17 @@ function rankCandidate(
     context.volumeEvidencePolicy,
   );
   const sourceQuality = scoreSourceQuality(candidate, sourceContribution, warnings);
-  const windowFit = scoreWindowFit(candidate, context.scanWindow, gaps);
-  const warningsPenalty = scoreWarningsPenalty(candidate, warnings);
+  const windowFit = scoreWindowFit(
+    candidate,
+    context.scanWindow,
+    gaps,
+    context.clockContextPolicy,
+  );
+  const warningsPenalty = scoreWarningsPenalty(
+    candidate,
+    warnings,
+    context.clockContextPolicy,
+  );
   const components: ScannerCandidateRankingScore["components"] = [
     component("data_completeness", dataCompleteness, 0.16),
     component("freshness", freshness, 0.14),
@@ -513,7 +580,29 @@ function scorePricePlanQuality(
   return clampScore(score);
 }
 
-function scoreSignalStrength(candidate: RankingCandidate, gaps: string[]) {
+function scoreSignalStrength(
+  candidate: RankingCandidate,
+  gaps: string[],
+  clockContextPolicy: RankingClockContextPolicy,
+) {
+  if (clockContextPolicy === "evidence_only_clock_neutral_v1") {
+    const breakdown = candidate.local_score_breakdown;
+    if (!breakdown) {
+      gaps.push("Clock-neutral signal evidence is unavailable.");
+      return 45;
+    }
+
+    return clampScore(
+      (breakdown.momentum * 0.2 +
+        breakdown.volume * 0.15 +
+        breakdown.volatility * 0.12 +
+        breakdown.trend * 0.18 +
+        breakdown.riskReward * 0.15 +
+        breakdown.marketRegime * 0.1) /
+        0.9,
+    );
+  }
+
   if (typeof candidate.local_score === "number") {
     return clampScore(candidate.local_score);
   }
@@ -613,7 +702,14 @@ function scoreWindowFit(
   candidate: RankingCandidate,
   scanWindow: IntradayScanWindow | "unknown",
   gaps: string[],
+  clockContextPolicy: RankingClockContextPolicy,
 ) {
+  if (clockContextPolicy === "evidence_only_clock_neutral_v1") {
+    // Keep the component neutral and constant so this hypothesis removes the
+    // unsupported clock prior without inventing a replacement preference.
+    return 50;
+  }
+
   const setup = candidate.setup_type ?? "UNKNOWN";
   const breakdown = candidate.local_score_breakdown;
   let score = 50;
@@ -651,8 +747,15 @@ function scoreWindowFit(
 function scoreWarningsPenalty(
   candidate: RankingCandidate,
   warnings: ScannerCandidateRankingWarning[],
+  clockContextPolicy: RankingClockContextPolicy,
 ) {
-  const warningCount = candidate.local_score_warnings?.length ?? 0;
+  const candidateWarnings = candidate.local_score_warnings ?? [];
+  const warningCount =
+    clockContextPolicy === "evidence_only_clock_neutral_v1"
+      ? candidateWarnings.filter(
+          (warningText) => !isLegacyNamedWindowWarning(warningText),
+        ).length
+      : candidateWarnings.length;
   const blockedCount = warnings.filter((item) => item.severity === "blocked").length;
 
   return clampScore(100 - warningCount * 8 - blockedCount * 40);
