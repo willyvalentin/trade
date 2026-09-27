@@ -29,6 +29,16 @@ Select work in this order:
 5. supporting control-plane work only when a reproduced reliability, budget,
    entitlement, security or evidence-integrity defect requires it.
 
+This order is a priority lock, not a list of equally eligible backlogs. While a
+frozen hypothesis has an earlier missing scorecard or evidence link, do not
+select a later infrastructure, paper or execution task merely because it is
+CLOSED-ready. After the full scorecard is measurable, choose the next hypothesis
+from observed discovery misses, stale or partial decision-time inputs,
+contextual ranking errors or miscalibration. Record the exact defect, expected
+quality effect, baseline, challenger and decision-changing metric before coding.
+If a proposed task cannot name that relationship, it is supporting work and may
+not become the primary delivery without a reproduced blocker.
+
 Finish each hypothesis with an explicit `continue`, `narrow` or `reject`
 decision before opening a competing ranking hypothesis. A negative result is
 progress because it prevents an unsupported policy from reaching users. A code
