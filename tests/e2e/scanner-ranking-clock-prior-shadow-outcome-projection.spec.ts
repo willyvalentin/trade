@@ -18,6 +18,10 @@ import {
   buildScannerClockPriorShadowOutcomeProjection,
   SCANNER_CLOCK_PRIOR_SHADOW_OUTCOME_PROJECTION_VERSION,
 } from "@/lib/scanner-ranking-clock-prior-shadow-outcome-projection";
+import {
+  evaluateScannerClockPriorShadowScan,
+  SCANNER_CLOCK_PRIOR_SHADOW_CANONICAL_EVALUATION_ADAPTER_VERSION,
+} from "@/lib/server/scanner-clock-prior-shadow-canonical-evaluation";
 import type { ScannerClockPriorShadowComparison } from "@/lib/scanner-ranking-clock-prior-shadow";
 import type { ScannerCandidate } from "@/lib/scanner";
 
@@ -424,4 +428,175 @@ test("fails closed when the persisted comparison and attribution disagree", () =
     "minimum_forward_outcome_sample_not_met",
     "no_valid_clock_prior_attribution_receipt",
   ]);
+});
+
+test("maps the exact clock-neutral cohort into the canonical paired rank evaluator", () => {
+  const { persistedRun, snapshot, outcome } = fixture();
+  const result = evaluateScannerClockPriorShadowScan({
+    scanRun: persistedRun,
+    snapshots: [snapshot],
+    outcomes: [outcome],
+    bootstrapSeed: "clock-prior-shadow:test-seed-v1",
+  });
+
+  expect(result.adapter_version).toBe(
+    SCANNER_CLOCK_PRIOR_SHADOW_CANONICAL_EVALUATION_ADAPTER_VERSION,
+  );
+  expect(result.status, JSON.stringify(result, null, 2)).toBe(
+    "probability_semantics_missing",
+  );
+  expect(result.coverage).toEqual({
+    expected_candidate_count: 1,
+    exact_snapshot_count: 1,
+    canonical_primary_outcome_count: 1,
+  });
+  expect(result.evaluation).toMatchObject({
+    status: "probability_semantics_missing",
+    shadow_only: true,
+    live_ranking_effect: false,
+    causal_improvement_claimed: false,
+    pairing_evidence: {
+      version_difference_set: {
+        differences: ["ranking_version"],
+      },
+    },
+  });
+  expect(result.reason_codes).toContain(
+    "confidence_is_ordinal_not_probability",
+  );
+  expect(result.reason_codes).toContain("threshold_sweep_diagnostic_only");
+  expect(result).toMatchObject({
+    threshold_policy_semantics: "diagnostic_all_candidates_only",
+    shadow_only: true,
+    live_ranking_effect: false,
+    publication_effect: false,
+    causal_improvement_claimed: false,
+  });
+});
+
+test("refuses clock-neutral canonical evaluation without every primary outcome", () => {
+  const { persistedRun, snapshot } = fixture();
+  const result = evaluateScannerClockPriorShadowScan({
+    scanRun: persistedRun,
+    snapshots: [snapshot],
+    outcomes: [],
+    bootstrapSeed: "clock-prior-shadow:test-seed-v1",
+  });
+
+  expect(result.status).toBe("insufficient_evidence");
+  expect(result.evaluation).toBeNull();
+  expect(result.coverage).toEqual({
+    expected_candidate_count: 1,
+    exact_snapshot_count: 1,
+    canonical_primary_outcome_count: 0,
+  });
+  expect(result.reason_codes).toEqual([
+    "candidate_primary_outcome_incomplete",
+    "complete_candidate_outcome_coverage_required",
+  ]);
+});
+
+test("fails clock-neutral canonical evaluation closed on comparison drift", () => {
+  const { persistedRun, snapshot, outcome } = fixture();
+  const comparison = structuredClone(
+    persistedRun.payload_json
+      .scanner_clock_prior_shadow_comparison as ScannerClockPriorShadowComparison,
+  );
+  comparison.generated_at = "2026-09-26T14:29:59.000Z";
+  const result = evaluateScannerClockPriorShadowScan({
+    scanRun: {
+      ...persistedRun,
+      payload_json: {
+        ...persistedRun.payload_json,
+        scanner_clock_prior_shadow_comparison: comparison,
+      },
+    },
+    snapshots: [snapshot],
+    outcomes: [outcome],
+    bootstrapSeed: "clock-prior-shadow:test-seed-v1",
+  });
+
+  expect(result.status).toBe("conflicting");
+  expect(result.evaluation).toBeNull();
+  expect(result.reason_codes).toEqual([
+    "shadow_scan_lineage_or_comparison_conflicting",
+  ]);
+});
+
+test("fails clock-neutral canonical evaluation closed without decision-time regime", () => {
+  const { persistedRun, snapshot, outcome } = fixture();
+  const result = evaluateScannerClockPriorShadowScan({
+    scanRun: {
+      ...persistedRun,
+      payload_json: {
+        ...persistedRun.payload_json,
+        market_regime: undefined,
+        market_regime_context: undefined,
+      },
+    },
+    snapshots: [snapshot],
+    outcomes: [outcome],
+    bootstrapSeed: "clock-prior-shadow:test-seed-v1",
+  });
+
+  expect(result.status).toBe("insufficient_evidence");
+  expect(result.reason_codes).toEqual([
+    "decision_market_regime_context_missing",
+  ]);
+});
+
+test("records zero-candidate no-trade as valid lineage without claiming quality", () => {
+  const { persistedRun } = fixture();
+  const decisionRecord = structuredClone(
+    persistedRun.payload_json.candidate_decision_record,
+  ) as NonNullable<ReturnType<typeof buildCandidateDecisionRecord>>;
+  decisionRecord.coverage.expected_candidate_count = 0;
+  decisionRecord.coverage.observed_candidate_count = 0;
+  decisionRecord.coverage.ranked_candidate_count = 0;
+  decisionRecord.candidates = [];
+  const comparison = structuredClone(
+    persistedRun.payload_json
+      .scanner_clock_prior_shadow_comparison as ScannerClockPriorShadowComparison,
+  );
+  comparison.candidate_count = 0;
+  comparison.candidate_tickers = [];
+  comparison.baseline_selected_tickers = [];
+  comparison.shadow_selected_tickers = [];
+  comparison.selection_changed = false;
+  comparison.displacements = [];
+  const attribution = buildScannerClockPriorShadowAttribution({
+    comparison,
+    decisionRecord,
+  });
+  expect(attribution?.status).toBe("attributed");
+
+  const result = evaluateScannerClockPriorShadowScan({
+    scanRun: {
+      ...persistedRun,
+      payload_json: {
+        ...persistedRun.payload_json,
+        candidate_decision_record: decisionRecord,
+        scanner_clock_prior_shadow_comparison: comparison,
+        scanner_clock_prior_shadow_attribution: attribution,
+      },
+    },
+    snapshots: [],
+    outcomes: [],
+    bootstrapSeed: "clock-prior-shadow:zero-candidate-test-seed-v1",
+  });
+
+  expect(result).toMatchObject({
+    status: "insufficient_evidence",
+    evaluation: null,
+    coverage: {
+      expected_candidate_count: 0,
+      exact_snapshot_count: 0,
+      canonical_primary_outcome_count: 0,
+    },
+    reason_codes: ["no_ranked_candidates_to_evaluate"],
+    shadow_only: true,
+    live_ranking_effect: false,
+    publication_effect: false,
+    causal_improvement_claimed: false,
+  });
 });

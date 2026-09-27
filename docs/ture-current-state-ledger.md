@@ -15,14 +15,15 @@ scope.
 ### Now / Next / Blocked selection — 2026-09-27
 
 - **Now:** finish the clock-neutral IF-3b hypothesis end to end. Exact
-  immutable-decision attribution is merged and production-deploy verified in PR
-  #666. Its direct successor, implemented and locally verified on the exact new
-  `main`, projects the same declared cohort through owner-bound canonical
-  outcomes. It changes no live rank, publication rule or threshold.
-- **Next:** deliver the canonical outcome projection, then use the frozen IF-4
+  immutable-decision attribution and its owner-bound canonical outcome
+  projection are merged and production-deploy verified in PRs #666 and #667.
+  The active CLOSED successor maps that same declared cohort into the canonical
+  paired-ranking evaluator. It changes no live rank, publication rule or
+  threshold.
+- **Next:** deliver the canonical paired evaluation, then use the frozen IF-4
   comparison and declared forward cohort to issue one `continue`, `narrow` or
   `reject` decision. OPEN observations serve that exact evidence gap; CLOSED
-  work completes the missing evaluator and readback links.
+  work completes any remaining evaluator and readback links.
 - **Blocked from selection:** live-policy promotion until complete attributable
   held-out/forward evidence exists; new generic scheduler/control-plane work
   without a reproduced integrity or safety defect; paper/broker expansion until
@@ -251,18 +252,42 @@ CI run `36284924720` passed all six provider-free shards, aggregate verification
 and merge-candidate provenance. This proves exact attribution, not canonical
 outcome coverage or better recommendations.
 
-**Active intelligence successor:** project the attributed clock-neutral cohort
-through only exact owner-bound canonical outcomes before changing the live
-ranker. The selected CLOSED slice reports baseline/challenger coverage, mean R
-and descriptive deltas while returning `no_attribution`, `coverage_incomplete`,
-`conflicting` or `comparable` explicitly and keeping promotion blocked. The
-following frozen IF-4 paired evaluation and declared forward cohort must
-classify the challenger `continue`, `narrow` or `reject`. No candidate quota or
-threshold relaxation is permitted. A bounded regular-session observation is
-still required to prove the deployed path with real forward evidence. While
-that OPEN evidence waits, CLOSED work must improve or test missing data,
-context, ranking or evaluation inputs rather than reopen generic control-plane
-work without a reproduced safety or integrity defect.
+**Merged and production-verified CLOSED slice — clock-prior canonical outcome
+projection:** PR [#667](https://github.com/willyvalentin/trade/pull/667) merged
+as `58d048d19114460a49748bbb416084a174f1c6b7`; Netlify production deploy
+`6ab87e476fa5b900080d0590` is `ready`, Git-connected, `production`, branch
+`main`, `manual_deploy=false` and carries that exact revision. The projection
+uses only the persisted same-population comparison, exact immutable-decision
+attribution and owner-bound canonical outcomes. It reports both rank-order
+arms, coverage and descriptive deltas while keeping promotion blocked. A final
+hardening check requires the persisted comparison to match attribution exactly
+and rejects mixed policy versions. Local acceptance included 24/24 focused
+ranking/attribution/projection/governance tests, the 168/168
+intelligence-foundation suite, strict TypeScript, changed-file lint, all
+scheduled-runtime bundles and a complete Next 16.3.4 webpack production build.
+Protected CI run `36286945947` passed all six provider-free shards, aggregate
+verification and merge-candidate provenance. This proves attributable outcome
+readback, not a quality improvement.
+
+**Active intelligence successor — clock-prior canonical paired evaluation:**
+the selected CLOSED slice reuses the production-tested canonical opportunity
+set and evaluator to compare the exact clock-neutral cohort against baseline.
+It requires complete candidate-decision, point-in-time provider, market-regime,
+snapshot and canonical-primary-outcome lineage for every ranked candidate;
+partial coverage is `insufficient_evidence` and drift is `conflicting`. A valid
+zero-candidate `no_trade` remains measurable lineage but cannot become a ranking
+quality claim. Local evidence on exact base
+`58d048d19114460a49748bbb416084a174f1c6b7` is 18/18 focused clock-prior and
+existing liquidity-shadow regressions, 168/168 intelligence-foundation tests,
+strict non-incremental TypeScript, changed-file lint, all scheduled-runtime
+bundles and a complete Next 16.3.4 webpack production build. The delivery is
+not yet merged or production-deploy verified. After delivery, a declared
+forward cohort must classify the challenger `continue`, `narrow` or `reject`.
+No candidate quota or threshold relaxation is permitted. A bounded
+regular-session observation is still required for real forward evidence; while
+it waits, CLOSED work must continue on missing data, context, ranking or
+evaluation links rather than generic control-plane work without a reproduced
+safety or integrity defect.
 
 ### Continuous-observation technical direction — 2026-09-24
 

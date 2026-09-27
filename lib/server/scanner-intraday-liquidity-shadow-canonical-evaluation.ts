@@ -28,11 +28,9 @@ import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
 import { buildPreTruncationCandidateCaptureEvidence } from "@/lib/pre-truncation-candidate-capture-evidence";
 import {
   scannerIntradayLiquidityShadowAttributionFromUnknown,
-  type ScannerIntradayLiquidityShadowAttribution,
 } from "@/lib/scanner-ranking-intraday-liquidity-shadow-attribution";
 import {
   scannerIntradayLiquidityShadowComparisonFromUnknown,
-  type ScannerIntradayLiquidityShadowComparison,
 } from "@/lib/scanner-ranking-intraday-liquidity-shadow";
 import {
   buildCanonicalShadowEvaluationArm,
@@ -44,9 +42,55 @@ import {
 export const SCANNER_INTRADAY_LIQUIDITY_SHADOW_CANONICAL_EVALUATION_ADAPTER_VERSION =
   "scanner_intraday_liquidity_shadow_canonical_evaluation_adapter_v1" as const;
 
-export type ScannerIntradayLiquidityShadowCanonicalEvaluationResult = {
-  adapter_version:
-    typeof SCANNER_INTRADAY_LIQUIDITY_SHADOW_CANONICAL_EVALUATION_ADAPTER_VERSION;
+export type ScannerRankingShadowCandidateAttribution = {
+  candidate_id: string;
+  ticker: string;
+  candidate_decision_disposition: string;
+  baseline_rank: number;
+  shadow_rank: number;
+  baseline_selected: boolean;
+  shadow_selected: boolean;
+};
+
+export type ScannerRankingShadowAttribution = {
+  status: "attributed" | "conflicting";
+  scan_run_id: string;
+  scan_run_fingerprint: string;
+  comparison_generated_at: string;
+  candidate_decision_timestamp: string;
+  comparison_version: string;
+  baseline_policy_version: string;
+  shadow_policy_version: string;
+  candidate_count: number;
+  candidates: ScannerRankingShadowCandidateAttribution[];
+};
+
+export type ScannerRankingShadowDisplacement = {
+  ticker: string;
+  baseline_rank: number;
+  shadow_rank: number;
+  baseline_score: number;
+  shadow_score: number;
+  baseline_tier: string;
+  shadow_tier: string;
+  baseline_selected: boolean;
+  shadow_selected: boolean;
+};
+
+export type ScannerRankingShadowComparison = {
+  status: "comparable" | "conflicting";
+  comparison_version: string;
+  generated_at: string;
+  baseline_policy_version: string;
+  shadow_policy_version: string;
+  candidate_count: number;
+  displacements: ScannerRankingShadowDisplacement[];
+};
+
+export type ScannerRankingShadowCanonicalEvaluationResult<
+  AdapterVersion extends string = string,
+> = {
+  adapter_version: AdapterVersion;
   status:
     | CanonicalShadowEvaluationResult["status"]
     | "insufficient_evidence"
@@ -66,9 +110,14 @@ export type ScannerIntradayLiquidityShadowCanonicalEvaluationResult = {
   causal_improvement_claimed: false;
 };
 
+export type ScannerIntradayLiquidityShadowCanonicalEvaluationResult =
+  ScannerRankingShadowCanonicalEvaluationResult<
+    typeof SCANNER_INTRADAY_LIQUIDITY_SHADOW_CANONICAL_EVALUATION_ADAPTER_VERSION
+  >;
+
 type CandidateEvidence = {
-  attribution: ScannerIntradayLiquidityShadowAttribution["candidates"][number];
-  displacement: ScannerIntradayLiquidityShadowComparison["displacements"][number];
+  attribution: ScannerRankingShadowCandidateAttribution;
+  displacement: ScannerRankingShadowDisplacement;
   decision: NonNullable<
     ReturnType<typeof candidateDecisionRecordFromScanRun>
   >["candidates"][number];
@@ -107,7 +156,7 @@ function normalizedTicker(value: string | null | undefined) {
 }
 
 function exactSnapshotForCandidate(input: {
-  candidate: ScannerIntradayLiquidityShadowAttribution["candidates"][number];
+  candidate: ScannerRankingShadowCandidateAttribution;
   scanRunFingerprint: string;
   snapshots: RecommendationSnapshot[];
 }) {
@@ -211,8 +260,8 @@ function canonicalOutcome(input: {
 }
 
 function evidenceForCandidate(input: {
-  candidate: ScannerIntradayLiquidityShadowAttribution["candidates"][number];
-  displacement: ScannerIntradayLiquidityShadowComparison["displacements"][number];
+  candidate: ScannerRankingShadowCandidateAttribution;
+  displacement: ScannerRankingShadowDisplacement;
   decision: CandidateEvidence["decision"];
   scanRunFingerprint: string;
   decisionTimestamp: string;
@@ -344,6 +393,7 @@ function membership(input: {
   thresholdVersion: string;
   rankingVersion: string;
   evaluatorVersion: string;
+  sourceNamespace: string;
   noTrade: boolean;
 }): CanonicalCandidateMembershipInput {
   const selected = input.evidence.attribution.baseline_selected;
@@ -401,7 +451,7 @@ function membership(input: {
     },
     expected_outcome_lineage: {
       lineage_version: CANONICAL_EXPECTED_OUTCOME_LINEAGE_VERSION,
-      lineage_namespace: "ture.scanner_intraday_liquidity_shadow",
+      lineage_namespace: input.sourceNamespace,
       evaluator_contract_version:
         CANONICAL_EVALUATION_PROJECTION_CONTRACT_VERSION,
       evaluator_version: input.evaluatorVersion,
@@ -452,18 +502,18 @@ function observation(
   };
 }
 
-function terminalResult(input: {
-  status: ScannerIntradayLiquidityShadowCanonicalEvaluationResult["status"];
+function terminalResult<AdapterVersion extends string>(input: {
+  adapterVersion: AdapterVersion;
+  status: ScannerRankingShadowCanonicalEvaluationResult["status"];
   evaluation?: CanonicalShadowEvaluationResult["evaluation"];
   expected: number;
   snapshots: number;
   outcomes: number;
   reasons: Iterable<string>;
   comparisonIdentity?: string | null;
-}): ScannerIntradayLiquidityShadowCanonicalEvaluationResult {
+}): ScannerRankingShadowCanonicalEvaluationResult<AdapterVersion> {
   return {
-    adapter_version:
-      SCANNER_INTRADAY_LIQUIDITY_SHADOW_CANONICAL_EVALUATION_ADAPTER_VERSION,
+    adapter_version: input.adapterVersion,
     status: input.status,
     evaluation: input.evaluation ?? null,
     coverage: {
@@ -482,19 +532,19 @@ function terminalResult(input: {
  * canonical paired-ranking evaluator. It is intentionally all-or-nothing:
  * partial candidate coverage cannot produce ranking-quality evidence.
  */
-export function evaluateScannerIntradayLiquidityShadowScan(input: {
+export function evaluateScannerRankingShadowScan<AdapterVersion extends string>(input: {
   scanRun: LearningBaselineScanRun;
   snapshots: RecommendationSnapshot[];
   outcomes: RecommendationOutcome[];
   bootstrapSeed: string;
-}): ScannerIntradayLiquidityShadowCanonicalEvaluationResult {
+  adapterVersion: AdapterVersion;
+  sourceNamespace: string;
+  attribution: ScannerRankingShadowAttribution | null;
+  comparison: ScannerRankingShadowComparison | null;
+}): ScannerRankingShadowCanonicalEvaluationResult<AdapterVersion> {
   const decision = candidateDecisionRecordFromScanRun(input.scanRun);
-  const attribution = scannerIntradayLiquidityShadowAttributionFromUnknown(
-    input.scanRun.payload_json.scanner_intraday_liquidity_shadow_attribution,
-  );
-  const comparison = scannerIntradayLiquidityShadowComparisonFromUnknown(
-    input.scanRun.payload_json.scanner_intraday_liquidity_shadow_comparison,
-  );
+  const attribution = input.attribution;
+  const comparison = input.comparison;
   const expected = attribution?.candidate_count ?? comparison?.candidate_count ?? 0;
   const comparisonIdentity = attribution
     ? `${attribution.scan_run_fingerprint}:${attribution.comparison_version}:${attribution.comparison_generated_at}`
@@ -524,9 +574,13 @@ export function evaluateScannerIntradayLiquidityShadowScan(input: {
     attribution.comparison_generated_at !== comparison.generated_at ||
     attribution.baseline_policy_version !== comparison.baseline_policy_version ||
     attribution.shadow_policy_version !== comparison.shadow_policy_version ||
-    attribution.candidate_count !== comparison.candidate_count
+    attribution.candidate_count !== comparison.candidate_count ||
+    attribution.candidate_count !== attribution.candidates.length ||
+    comparison.candidate_count !== comparison.displacements.length ||
+    attribution.candidate_count !== decision.candidates.length
   ) {
     return terminalResult({
+      adapterVersion: input.adapterVersion,
       status: "conflicting",
       expected,
       snapshots: 0,
@@ -541,6 +595,7 @@ export function evaluateScannerIntradayLiquidityShadowScan(input: {
     !supportedDecisionMarketRegimes.has(decisionMarketRegime)
   ) {
     return terminalResult({
+      adapterVersion: input.adapterVersion,
       status: "insufficient_evidence",
       expected,
       snapshots: 0,
@@ -551,11 +606,23 @@ export function evaluateScannerIntradayLiquidityShadowScan(input: {
   }
   if (decisionMarketRegimeValue !== decisionMarketRegimeContext.regime) {
     return terminalResult({
+      adapterVersion: input.adapterVersion,
       status: "conflicting",
       expected,
       snapshots: 0,
       outcomes: 0,
       reasons: ["decision_market_regime_context_conflicting"],
+      comparisonIdentity,
+    });
+  }
+  if (expected === 0) {
+    return terminalResult({
+      adapterVersion: input.adapterVersion,
+      status: "insufficient_evidence",
+      expected: 0,
+      snapshots: 0,
+      outcomes: 0,
+      reasons: ["no_ranked_candidates_to_evaluate"],
       comparisonIdentity,
     });
   }
@@ -616,6 +683,7 @@ export function evaluateScannerIntradayLiquidityShadowScan(input: {
       result.reason_codes.some((reason) => reason.includes("conflicting"))
     ) {
       return terminalResult({
+        adapterVersion: input.adapterVersion,
         status: "conflicting",
         expected,
         snapshots: exactSnapshots,
@@ -627,6 +695,7 @@ export function evaluateScannerIntradayLiquidityShadowScan(input: {
   }
   if (reasons.has("candidate_ranking_identity_conflicting")) {
     return terminalResult({
+      adapterVersion: input.adapterVersion,
       status: "conflicting",
       expected,
       snapshots: exactSnapshots,
@@ -638,6 +707,7 @@ export function evaluateScannerIntradayLiquidityShadowScan(input: {
   if (evidence.length !== expected) {
     reasons.add("complete_candidate_outcome_coverage_required");
     return terminalResult({
+      adapterVersion: input.adapterVersion,
       status: "insufficient_evidence",
       expected,
       snapshots: exactSnapshots,
@@ -665,6 +735,7 @@ export function evaluateScannerIntradayLiquidityShadowScan(input: {
     )
   ) {
     return terminalResult({
+      adapterVersion: input.adapterVersion,
       status: "insufficient_evidence",
       expected,
       snapshots: exactSnapshots,
@@ -688,6 +759,7 @@ export function evaluateScannerIntradayLiquidityShadowScan(input: {
   });
   if (!capture.ok) {
     return terminalResult({
+      adapterVersion: input.adapterVersion,
       status: "conflicting",
       expected,
       snapshots: exactSnapshots,
@@ -708,11 +780,12 @@ export function evaluateScannerIntradayLiquidityShadowScan(input: {
         decision.learning_attribution.recommendation_publish_policy_version,
       rankingVersion: attribution.baseline_policy_version,
       evaluatorVersion: versions.evaluator_version,
+      sourceNamespace: input.sourceNamespace,
       noTrade,
     }),
   );
   const opportunitySet = buildCanonicalCounterfactualOpportunitySet({
-    source_namespace: "ture.scanner_intraday_liquidity_shadow",
+    source_namespace: input.sourceNamespace,
     scan_identity: decision.scan_run_id,
     decision_identity: decision.scan_run_id,
     decision_timestamp: decision.decision_timestamp,
@@ -781,6 +854,7 @@ export function evaluateScannerIntradayLiquidityShadowScan(input: {
   });
   if (opportunitySet.status !== "built") {
     return terminalResult({
+      adapterVersion: input.adapterVersion,
       status: "conflicting",
       expected,
       snapshots: exactSnapshots,
@@ -847,6 +921,7 @@ export function evaluateScannerIntradayLiquidityShadowScan(input: {
   });
   if (baseline.status !== "built" || candidate.status !== "built") {
     return terminalResult({
+      adapterVersion: input.adapterVersion,
       status: "conflicting",
       expected,
       snapshots: exactSnapshots,
@@ -866,6 +941,7 @@ export function evaluateScannerIntradayLiquidityShadowScan(input: {
     bootstrap_seed: input.bootstrapSeed,
   });
   return terminalResult({
+    adapterVersion: input.adapterVersion,
     status: evaluation.status,
     evaluation: evaluation.evaluation,
     expected,
@@ -877,5 +953,25 @@ export function evaluateScannerIntradayLiquidityShadowScan(input: {
       "threshold_sweep_diagnostic_only",
     ],
     comparisonIdentity,
+  });
+}
+
+export function evaluateScannerIntradayLiquidityShadowScan(input: {
+  scanRun: LearningBaselineScanRun;
+  snapshots: RecommendationSnapshot[];
+  outcomes: RecommendationOutcome[];
+  bootstrapSeed: string;
+}): ScannerIntradayLiquidityShadowCanonicalEvaluationResult {
+  return evaluateScannerRankingShadowScan({
+    ...input,
+    adapterVersion:
+      SCANNER_INTRADAY_LIQUIDITY_SHADOW_CANONICAL_EVALUATION_ADAPTER_VERSION,
+    sourceNamespace: "ture.scanner_intraday_liquidity_shadow",
+    attribution: scannerIntradayLiquidityShadowAttributionFromUnknown(
+      input.scanRun.payload_json.scanner_intraday_liquidity_shadow_attribution,
+    ),
+    comparison: scannerIntradayLiquidityShadowComparisonFromUnknown(
+      input.scanRun.payload_json.scanner_intraday_liquidity_shadow_comparison,
+    ),
   });
 }
