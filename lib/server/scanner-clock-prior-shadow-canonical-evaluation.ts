@@ -11,6 +11,7 @@ import {
 } from "@/lib/scanner-clock-prior-shadow-evidence-reuse";
 import {
   evaluateScannerRankingShadowScan,
+  SCANNER_RANKING_SHADOW_CANDIDATE_PERFORMANCE_AT_K_VERSION,
   type ScannerRankingShadowCanonicalEvaluationResult,
 } from "@/lib/server/scanner-intraday-liquidity-shadow-canonical-evaluation";
 
@@ -43,6 +44,9 @@ function incompleteClockPriorCapture(input: {
     },
     reason_codes: [input.reason],
     comparison_identity: input.comparisonIdentity,
+    candidate_performance_at_k_version:
+      SCANNER_RANKING_SHADOW_CANDIDATE_PERFORMANCE_AT_K_VERSION,
+    candidate_performance_at_k: null,
     threshold_policy_semantics: "diagnostic_all_candidates_only",
     shadow_only: true,
     live_ranking_effect: false,

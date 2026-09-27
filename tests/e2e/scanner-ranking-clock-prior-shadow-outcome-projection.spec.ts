@@ -539,6 +539,15 @@ test("maps the exact clock-neutral cohort into the canonical paired rank evaluat
     exact_snapshot_count: 1,
     canonical_primary_outcome_count: 1,
   });
+  expect(result.candidate_performance_at_k_version).toBe(
+    "scanner_ranking_shadow_candidate_performance_at_k_v1",
+  );
+  expect(result.candidate_performance_at_k?.["1"]?.expectancy_r).toEqual({
+    value: 2,
+    numerator: 2,
+    denominator: 1,
+    identity_count: 1,
+  });
   expect(result.evaluation).toMatchObject({
     status: "probability_semantics_missing",
     shadow_only: true,

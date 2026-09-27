@@ -26,6 +26,7 @@ import {
   SCANNER_CLOCK_PRIOR_SHADOW_CANONICAL_EVALUATION_ADAPTER_VERSION,
 } from "@/lib/server/scanner-clock-prior-shadow-canonical-evaluation";
 import {
+  SCANNER_RANKING_SHADOW_CANDIDATE_PERFORMANCE_AT_K_VERSION,
   SCANNER_RANKING_SHADOW_DIAGNOSTIC_THRESHOLD_POLICY_VERSION,
 } from "@/lib/server/scanner-intraday-liquidity-shadow-canonical-evaluation";
 import { scannerClockPriorShadowEvaluationCharterDefinition } from "@/lib/server/scanner-clock-prior-shadow-evaluation-charter";
@@ -988,7 +989,7 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
     const baselineMetric = canonical.baseline.ranking.precision_at_k[key];
     const candidateMetric = canonical.candidate.ranking.precision_at_k[key];
     const candidateExpectancy =
-      canonical.candidate.performance_at_k[key]?.expectancy_r;
+      evaluation.candidate_performance_at_k?.[key]?.expectancy_r;
     if (!baselineMetric || !candidateMetric ||
       !finite(baselineMetric.numerator) ||
       !finite(candidateMetric.numerator) ||
@@ -996,6 +997,8 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
       !positiveInteger(candidateMetric.denominator) ||
       baselineMetric.identity_count !== baselineMetric.denominator ||
       candidateMetric.identity_count !== candidateMetric.denominator ||
+      evaluation.candidate_performance_at_k_version !==
+        SCANNER_RANKING_SHADOW_CANDIDATE_PERFORMANCE_AT_K_VERSION ||
       !candidateExpectancy || !finite(candidateExpectancy.numerator) ||
       !positiveInteger(candidateExpectancy.denominator) ||
       candidateExpectancy.identity_count !== candidateExpectancy.denominator) {

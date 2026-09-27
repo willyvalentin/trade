@@ -23,8 +23,6 @@ import type {
 
 export const CANONICAL_SHADOW_RANKING_CONFIDENCE_EVALUATION_VERSION =
   "canonical_shadow_ranking_confidence_evaluation_v1" as const;
-export const CANONICAL_SHADOW_RANKING_PERFORMANCE_AT_K_VERSION =
-  "canonical_shadow_ranking_performance_at_k_v1" as const;
 export const CANONICAL_SHADOW_PAIRING_EVIDENCE_VERSION =
   "canonical_shadow_pairing_evidence_v1" as const;
 export const CANONICAL_SHADOW_THRESHOLD_SWEEP_VERSION =
@@ -200,11 +198,6 @@ export type CanonicalShadowThresholdResult = {
 
 export type CanonicalShadowArmMetrics = {
   metrics_policy_version: typeof CANONICAL_QUALITY_METRICS_POLICY_VERSION;
-  performance_at_k_version:
-    typeof CANONICAL_SHADOW_RANKING_PERFORMANCE_AT_K_VERSION;
-  performance_at_k: Record<string, {
-    expectancy_r: CanonicalMetricResult;
-  }>;
   ranking: {
     status: "evaluable";
     precision_at_k: Record<string, CanonicalMetricResult>;
@@ -1131,27 +1124,6 @@ function armMetrics(
     ranking_opportunity_sets: [rankingOpportunitySet(arm)],
     bootstrap_seed: `${bootstrapSeed}:${arm.arm}`,
   });
-  const ordered = orderedArmCandidates(arm);
-  const performanceAtK = Object.fromEntries(
-    canonicalQualityRankingKValues.map((k) => {
-      const selected = new Set(
-        ordered
-          .slice(0, k)
-          .map((candidate) => candidate.canonical_candidate_identity),
-      );
-      const selectedMetrics = computeCanonicalQualityMetrics({
-        cohort: arm.pairing_binding.cohort,
-        candidates: candidates.filter((candidate) =>
-          selected.has(candidate.canonical_identity)
-        ),
-        bootstrap_seed: `${bootstrapSeed}:${arm.arm}:performance-at-${k}`,
-      });
-      return [
-        String(k),
-        { expectancy_r: selectedMetrics.performance.expectancy_r },
-      ];
-    }),
-  );
   const calibrationReady = arm.candidates.every(
     (candidate) =>
       candidate.probability_source === "numeric_confidence" &&
@@ -1160,9 +1132,6 @@ function armMetrics(
   );
   return {
     metrics_policy_version: CANONICAL_QUALITY_METRICS_POLICY_VERSION,
-    performance_at_k_version:
-      CANONICAL_SHADOW_RANKING_PERFORMANCE_AT_K_VERSION,
-    performance_at_k: performanceAtK,
     ranking: {
       status: "evaluable",
       precision_at_k: metrics.ranking.precision_at_k,
