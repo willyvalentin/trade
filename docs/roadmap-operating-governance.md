@@ -276,20 +276,22 @@ that path.
 
 ### Current delivery rule
 
-IF-0 reconciliation and the initial IF-1 decision-record/readback deliveries
-are merged and main-verified. IF-2 bounded market-wide discovery is the active
-slice. Its next acceptance gate is one authorized normal current-market scan
-with a persisted, browser-readable receipt: record provider-response,
-admission, freshness and bounded-selection facts exactly as observed. That
-receipt may be a valid `no_trade`, a blocked admission or a provider failure;
-it is not evidence of market-wide coverage or a better ranking policy by
-itself.
+IF-0 through the bounded IF-2 discovery path are sufficiently implemented to
+support the selected experiment. The active primary slice is the IF-3b
+clock-neutral ranking hypothesis moving through IF-4/IF-5: freeze its exact
+server-owned charter and semantic policy pair, freeze one time-separated
+held-out/walk-forward cohort before sampling, collect complete owner-bound
+decision and canonical-outcome evidence, then issue one `continue`, `narrow` or
+`reject` shadow decision. OPEN observations serve only that frozen cohort;
+CLOSED work closes its next missing evidence or evaluation link.
 
-Until that evidence exists, do not expand provider scope, collect a broad
-catalog, attach a relative-volume adapter, tune a score or promote the
-provider-free IF-3 context contracts into ranking. Treat a day with no
-trade-ready candidate as an observation to explain and measure, never a reason
-to weaken the publication gate.
+Do not reset the queue to generic discovery, scheduler, dashboard, paper or
+broker work merely because an operational task is available. Reopen those
+surfaces only for a reproduced defect that threatens the selected cohort's
+coverage, freshness, ownership, lineage, provider budget or safety. The generic
+learning baseline and every IF-5 promotion gate remain mandatory after sample
+collection. Treat a day with no trade-ready candidate as a measured `no_trade`,
+never as a reason to weaken the charter or publication gate.
 
 ## Historical delivery policy — MVP first, 2026-09-09 (superseded)
 

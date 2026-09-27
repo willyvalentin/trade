@@ -118,14 +118,18 @@ backlog accounting. A receipt may not imply that selected work completed when
 the snapshot cap, provider budget, persistence or missing candles deferred it.
 
 The decision-time market-regime receipt, same-population IF-3b clock-neutral
-shadow challenger and exact immutable-decision attribution are now
-production-deployed. The active successor projects the declared forward cohort
-through only exact owner-bound canonical outcomes. Forward observations and the
-frozen IF-4 baseline comparison must then decide whether the challenger is
-continued, narrowed or rejected before any live-policy change. No threshold is
-lowered to create candidates, and neither attribution, snapshot admission,
-capacity alignment, rank movement, coverage nor a descriptive outcome delta is
-quality evidence by itself.
+shadow challenger, exact immutable-decision attribution and non-quality
+semantic policy reference are now production-deployed. The next gate is one
+versioned server-owned evaluation charter and one time-separated forward cohort
+frozen before sampling. That charter must predeclare the population, primary
+outcome, minimum sample, setup/regime slices, quality, coverage, reliability,
+cost, concentration and feasibility limits; a caller may select the exact
+baseline segment but may not supply or weaken those values. Forward
+observations and the separate result-based IF-4 baseline comparison must then
+decide whether the challenger is continued, narrowed or rejected before any
+live-policy change. No threshold is lowered to create candidates, and neither
+attribution, snapshot admission, capacity alignment, rank movement, coverage
+nor a descriptive outcome delta is quality evidence by itself.
 
 For every recommendation-quality hypothesis, build in this order: admit and
 version the point-in-time input; run the challenger in shadow over the exact
