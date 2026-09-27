@@ -16,6 +16,6 @@ select
 
 select version, name
 from supabase_migrations.schema_migrations
-where version = '20260927041020';
+where version = '20260927050913';
 
 rollback;

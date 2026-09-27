@@ -8,7 +8,7 @@ import { join } from "node:path";
 const container = `ture-if4-forward-receipts-${process.pid}`;
 const sqlPath = join(tmpdir(), `${container}.sql`);
 const migrationPath = new URL(
-  "../supabase/migrations/20260927041020_if4_clock_prior_forward_decision_receipts.sql",
+  "../supabase/migrations/20260927050913_if4_clock_prior_forward_decision_receipts.sql",
   import.meta.url,
 );
 

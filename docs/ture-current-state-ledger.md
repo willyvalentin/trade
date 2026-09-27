@@ -318,7 +318,8 @@ change, policy promotion or broker capability is added. A separately frozen
 OPEN cohort is still required for a real decision; no candidate quota or
 threshold relaxation is permitted.
 
-**Active CLOSED successor — durable clock-prior forward receipts:** retain the
+**Merged, production-verified and schema-applied CLOSED slice — durable
+clock-prior forward receipts:** retain the
 exact predeclared plan and its eventual one terminal advisory decision as
 owner-bound, append-only server receipts. Recording must prove the existing
 durable evaluation charter and baseline match before the held-out window;
@@ -336,9 +337,31 @@ canonical-projection tests passed; all 168 intelligence-foundation tests passed;
 the isolated database test passed plan/result recording, exact idempotent retry,
 server-RPC-only privileges and append-only rejection; lint, strict TypeScript,
 all three scheduled-runtime bundles and the full Next.js webpack production
-build passed. This remains local evidence until the focused PR is merged,
-production deploy is exact-revision verified and the additive migration is
-separately applied/read back.
+build passed. PR [#670](https://github.com/willyvalentin/trade/pull/670) was
+squash-merged as `91b04b3170a707527b9b6837b88f80b4cf8ef60b`; protected
+CI run `36294791516` passed all six provider-free shards, aggregate verification
+and merge-candidate provenance, and post-merge CI run `36296283813` passed on
+that exact revision. Automatic Git-connected Netlify production deploy
+`6ab8a48c250e9f0008b54e64` is `ready`, `production`, branch `main`,
+`manual_deploy=false` and bound to the same revision. Supabase production
+project `ekdyopdrrkphlrsilyoo` records migration
+`20260927050913_if4_clock_prior_forward_decision_receipts`; readback verifies
+both empty receipt tables with RLS enabled, two immutable-write triggers, four
+service-role-only RPC grants, zero direct table grants and zero public, anon or
+authenticated RPC grants. This proves durable experiment auditability, not
+recommendation quality or a favorable forward decision.
+
+**Next selected intelligence step — predeclared forward cohort activation and
+readback:** bind one exact clock-neutral plan to the existing durable charter,
+baseline and ranking versions before its held-out window; preserve the same
+population and canonical outcome path across held-out then walk-forward data;
+and make the eventual `continue`, `narrow` or `reject` decision replayable from
+the stored plan and exact receipts. CLOSED work must first prove the plan can be
+recorded and read idempotently through the deployed server boundary without
+provider, ranking, publication or broker authority. OPEN observations may then
+collect only the frozen cohort's attributable evidence under existing budget
+and freshness guards. No candidate quota, threshold relaxation or early policy
+promotion is permitted.
 
 ### Continuous-observation technical direction — 2026-09-24
 
