@@ -6,7 +6,10 @@ import {
   scannerClockPriorShadowAttributionFromUnknown,
   SCANNER_CLOCK_PRIOR_SHADOW_ATTRIBUTION_VERSION,
 } from "@/lib/scanner-ranking-clock-prior-shadow-attribution";
-import type { ScannerClockPriorShadowComparison } from "@/lib/scanner-ranking-clock-prior-shadow";
+import {
+  scannerClockPriorShadowComparisonFromUnknown,
+  type ScannerClockPriorShadowComparison,
+} from "@/lib/scanner-ranking-clock-prior-shadow";
 
 function comparison(): ScannerClockPriorShadowComparison {
   return {
@@ -162,6 +165,42 @@ test("binds clock-prior displacement to the exact immutable candidate decision",
       },
     ],
   });
+});
+
+test("strictly reads persisted comparable and conflicting clock-prior receipts", () => {
+  const comparable = comparison();
+  expect(scannerClockPriorShadowComparisonFromUnknown(comparable)).toEqual(
+    comparable,
+  );
+  expect(
+    scannerClockPriorShadowComparisonFromUnknown({
+      ...comparable,
+      execution_effect: true,
+    }),
+  ).toBeNull();
+  expect(
+    scannerClockPriorShadowComparisonFromUnknown({
+      ...comparable,
+      displacements: [
+        {
+          ...comparable.displacements[0],
+          score_change: -7,
+        },
+      ],
+    }),
+  ).toBeNull();
+
+  const conflicting: ScannerClockPriorShadowComparison = {
+    ...comparable,
+    status: "conflicting",
+    shadow_selected_tickers: [],
+    selection_changed: false,
+    reason_codes: ["clock_neutral_feature_breakdown_missing"],
+    displacements: [],
+  };
+  expect(scannerClockPriorShadowComparisonFromUnknown(conflicting)).toEqual(
+    conflicting,
+  );
 });
 
 test("compares only the ranked population and accepts pre-ranking filters", () => {
