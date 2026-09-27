@@ -28,6 +28,7 @@ import {
   buildScannerClockPriorShadowPolicyReference,
   classifyScannerClockPriorShadowForwardPrecisionDecision,
   evaluateScannerClockPriorShadowForwardDecision,
+  SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_SCORECARD_METRICS_VERSION,
   type ScannerClockPriorShadowForwardPartitionResult,
   type ScannerClockPriorShadowForwardEvidenceBindings,
 } from "@/lib/server/scanner-clock-prior-shadow-forward-decision";
@@ -935,6 +936,16 @@ test("withholds a complete cohort until the full recommendation-quality charter 
       opportunity_set_count: 5,
       ranked_candidate_count: 10,
       trading_day_count: 5,
+      outcome_coverage: expect.objectContaining({
+        value: 1,
+        numerator: 10,
+        denominator: 10,
+      }),
+      evidence_missingness: expect.objectContaining({
+        value: 0,
+        numerator: 0,
+        denominator: 10,
+      }),
       evidence_complete: false,
     }),
     expect.objectContaining({
@@ -942,6 +953,8 @@ test("withholds a complete cohort until the full recommendation-quality charter 
       opportunity_set_count: 5,
       ranked_candidate_count: 10,
       trading_day_count: 5,
+      outcome_coverage: expect.objectContaining({ value: 1 }),
+      evidence_missingness: expect.objectContaining({ value: 0 }),
       evidence_complete: false,
     }),
   ]);
@@ -1022,6 +1035,59 @@ test("withholds a forward decision when canonical outcomes or a declared partiti
     "canonical_scan_evaluation_incomplete",
     "minimum_opportunity_sets_not_met",
     "minimum_ranked_candidates_not_met",
+    "outcome_coverage_charter_minimum_not_met",
+  ]));
+  expect(result.partitions[0]).toMatchObject({
+    partition: "held_out",
+    outcome_coverage: {
+      value: 0,
+      numerator: 0,
+      denominator: 1,
+    },
+    evidence_missingness: {
+      value: 0,
+      numerator: 0,
+      denominator: 1,
+    },
+  });
+});
+
+test("measures missing immutable snapshots against the same candidate denominator", () => {
+  const heldOut = fixture({
+    decidedAt: "2026-09-25T14:30:00.000Z",
+    ticker: "MISS",
+  });
+  const result = evaluateScannerClockPriorShadowForwardDecision({
+    plan: forwardDecisionPlan(),
+    evidenceBindings: forwardEvidenceBindings(),
+    scanRuns: [heldOut.persistedRun],
+    snapshots: [],
+    outcomes: [],
+    bootstrapSeed: "clock-prior-forward:missing-snapshot-seed-v1",
+  });
+
+  expect(result).toMatchObject({
+    status: "evidence_incomplete",
+    decision: "pending",
+    partitions: [
+      expect.objectContaining({
+        partition: "held_out",
+        scorecard_metrics_version:
+          SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_SCORECARD_METRICS_VERSION,
+        outcome_coverage: expect.objectContaining({ value: 0 }),
+        evidence_missingness: expect.objectContaining({
+          value: 1,
+          numerator: 1,
+          denominator: 1,
+        }),
+      }),
+      expect.objectContaining({ partition: "walk_forward" }),
+    ],
+  });
+  expect(result.reason_codes).toEqual(expect.arrayContaining([
+    "clock_prior_research_snapshot_capture_missing_or_ambiguous",
+    "evidence_missingness_charter_maximum_exceeded",
+    "outcome_coverage_charter_minimum_not_met",
   ]));
 });
 
@@ -1095,6 +1161,8 @@ test("uses frozen conservative boundaries for continue, narrow and reject", () =
     lower: number,
     upper: number,
   ): ScannerClockPriorShadowForwardPartitionResult => ({
+    scorecard_metrics_version:
+      SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_SCORECARD_METRICS_VERSION,
     partition: name,
     opportunity_set_count: 20,
     no_trade_opportunity_set_count: 2,
@@ -1113,6 +1181,20 @@ test("uses frozen conservative boundaries for continue, narrow and reject", () =
       denominator: 80,
       lower: 0.5,
       upper: 0.7,
+    },
+    outcome_coverage: {
+      value: 1,
+      numerator: 80,
+      denominator: 80,
+      lower: 0.95,
+      upper: 1,
+    },
+    evidence_missingness: {
+      value: 0,
+      numerator: 0,
+      denominator: 80,
+      lower: 0,
+      upper: 0.05,
     },
     precision_delta: {
       value: 0.1,

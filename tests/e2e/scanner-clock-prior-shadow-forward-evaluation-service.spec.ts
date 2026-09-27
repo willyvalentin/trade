@@ -24,6 +24,7 @@ import {
 import {
   buildScannerClockPriorShadowForwardDecisionPlan,
   buildScannerClockPriorShadowPolicyReference,
+  SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_SCORECARD_METRICS_VERSION,
   type ScannerClockPriorShadowForwardDecisionResult,
 } from "@/lib/server/scanner-clock-prior-shadow-forward-decision";
 import { scannerClockPriorShadowEvaluationCharterDefinition } from "@/lib/server/scanner-clock-prior-shadow-evaluation-charter";
@@ -92,6 +93,8 @@ const planReceipt: ScannerClockPriorShadowForwardDecisionPlanReceipt = {
 
 function partition(name: "held_out" | "walk_forward") {
   return {
+    scorecard_metrics_version:
+      SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_SCORECARD_METRICS_VERSION,
     partition: name,
     opportunity_set_count: 30,
     no_trade_opportunity_set_count: 2,
@@ -110,6 +113,20 @@ function partition(name: "held_out" | "walk_forward") {
       denominator: 84,
       lower: 0.5,
       upper: 0.7,
+    },
+    outcome_coverage: {
+      value: 1,
+      numerator: 84,
+      denominator: 84,
+      lower: 0.95,
+      upper: 1,
+    },
+    evidence_missingness: {
+      value: 0,
+      numerator: 0,
+      denominator: 84,
+      lower: 0,
+      upper: 0.05,
     },
     precision_delta: {
       value: 0.1,
