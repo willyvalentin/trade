@@ -14,6 +14,7 @@ import { RESEARCH_SNAPSHOT_CANDIDATE_DECISION_LINKAGE_VERSION } from "@/lib/rese
 import { recommendationDecisionFeatureVectorFromScannerCandidate } from "@/lib/recommendation-decision-feature-vector";
 import { buildScannerCandidateRankingSummary } from "@/lib/scanner-candidate-ranking";
 import { buildScannerClockPriorShadowAttribution } from "@/lib/scanner-ranking-clock-prior-shadow-attribution";
+import { SCANNER_CLOCK_PRIOR_SHADOW_EVIDENCE_REUSE_VERSION } from "@/lib/scanner-clock-prior-shadow-evidence-reuse";
 import {
   buildScannerClockPriorShadowOutcomeProjection,
   SCANNER_CLOCK_PRIOR_SHADOW_OUTCOME_PROJECTION_VERSION,
@@ -227,6 +228,31 @@ function fixture(input: {
       candidate_decision_record: record,
       scanner_clock_prior_shadow_comparison: comparison,
       scanner_clock_prior_shadow_attribution: attribution,
+      scanner_clock_prior_shadow_evidence_reuse: {
+        reuse_version: SCANNER_CLOCK_PRIOR_SHADOW_EVIDENCE_REUSE_VERSION,
+        reuse_kind: "scanner_clock_prior_shadow_evidence_reuse",
+        status: "ready",
+        scan_run_id: attribution!.scan_run_id,
+        scan_run_fingerprint: attribution!.scan_run_fingerprint,
+        comparison_version: comparison.comparison_version,
+        baseline_policy_version: comparison.baseline_policy_version,
+        shadow_policy_version: comparison.shadow_policy_version,
+        candidate_count: candidates.length,
+        visible_snapshot_tickers: [],
+        research_snapshot_tickers: candidates.map((item) => item.ticker),
+        missing_snapshot_tickers: [],
+        covered_candidate_count: candidates.length,
+        complete_population_reused: true,
+        source_capture_version:
+          "scanner_intraday_liquidity_shadow_evidence_capture_v1",
+        provider_requests_added: 0,
+        provider_credits_added: 0,
+        live_ranking_effect: false,
+        publication_effect: false,
+        execution_effect: false,
+        quality_improvement_claimed: false,
+        reason_codes: [],
+      },
     },
   };
   const evidence = candidates.map((sourceCandidate) => {
@@ -262,6 +288,9 @@ function fixture(input: {
         candidate_decision_linkage_version:
           RESEARCH_SNAPSHOT_CANDIDATE_DECISION_LINKAGE_VERSION,
         candidate_decision_linkage_status: "verified",
+        clock_prior_shadow_evidence_sample: true,
+        clock_prior_shadow_evidence_reuse_version:
+          SCANNER_CLOCK_PRIOR_SHADOW_EVIDENCE_REUSE_VERSION,
         data_timestamp: isoAfter(-1),
         intraday_indicator_response_identity: {
           contract_version: "twelve_data_response_identity_v1",
@@ -605,6 +634,34 @@ test("fails clock-neutral canonical evaluation closed without decision-time regi
   ]);
 });
 
+test("refuses canonical evaluation without the explicit full-population reuse receipt", () => {
+  const { persistedRun, snapshot, outcome } = fixture();
+
+  const result = evaluateScannerClockPriorShadowScan({
+    scanRun: {
+      ...persistedRun,
+      payload_json: {
+        ...persistedRun.payload_json,
+        scanner_clock_prior_shadow_evidence_reuse: undefined,
+      },
+    },
+    snapshots: [snapshot],
+    outcomes: [outcome],
+    bootstrapSeed: "clock-prior-shadow:missing-capture-v1",
+  });
+
+  expect(result).toMatchObject({
+    status: "insufficient_evidence",
+    reason_codes: [
+      "clock_prior_full_population_capture_missing_or_conflicting",
+    ],
+    shadow_only: true,
+    live_ranking_effect: false,
+    publication_effect: false,
+    causal_improvement_claimed: false,
+  });
+});
+
 test("records zero-candidate no-trade as valid lineage without claiming quality", () => {
   const { persistedRun } = fixture();
   const decisionRecord = structuredClone(
@@ -638,6 +695,16 @@ test("records zero-candidate no-trade as valid lineage without claiming quality"
         candidate_decision_record: decisionRecord,
         scanner_clock_prior_shadow_comparison: comparison,
         scanner_clock_prior_shadow_attribution: attribution,
+        scanner_clock_prior_shadow_evidence_reuse: {
+          ...persistedRun.payload_json
+            .scanner_clock_prior_shadow_evidence_reuse as Record<string, unknown>,
+          candidate_count: 0,
+          visible_snapshot_tickers: [],
+          research_snapshot_tickers: [],
+          missing_snapshot_tickers: [],
+          covered_candidate_count: 0,
+          complete_population_reused: true,
+        },
       },
     },
     snapshots: [],

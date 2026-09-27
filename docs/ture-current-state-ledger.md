@@ -490,8 +490,9 @@ provider request, ranking/publication change, promotion, paper position or
 broker action occurred. This delivery freezes what Ture will test; it does not
 yet prove that the challenger improves recommendation quality.
 
-**Locally verified CLOSED slice — owner-bound forward-cohort evaluation and
-terminal-result finalization:** Ture now has a bounded application read path
+**Merged, production-verified and schema-applied CLOSED slice — owner-bound
+forward-cohort evaluation and terminal-result finalization:** Ture now has a
+bounded application read path
 that selects only clock-prior evidence inside the frozen held-out and
 walk-forward windows, joins snapshots and canonical outcomes through the exact
 scan population, and recomputes the existing deterministic evaluator with a
@@ -504,17 +505,61 @@ post-write readback succeeds. Neither path can request provider data or credits,
 change ranking/publication, promote a policy, create a paper position or reach a
 broker.
 
-This slice also repairs a reproduced persistence contradiction: the evaluator
+This slice also repaired a reproduced persistence contradiction: the evaluator
 always emits one decision-specific terminal reason, while the prior RPC
 accepted only an empty reason list. The additive migration requires the exact
 one-to-one decision/reason mapping in both the table constraint and RPC; missing,
-arbitrary or cross-decision reasons remain rejected. Local acceptance is 30/30
-focused plan/store/evaluator tests, the isolated PostgreSQL 17 lifecycle and
-wrong-reason rejection harness, 168/168 intelligence-foundation tests, strict
-TypeScript, changed-file lint, diff validation and a complete Next.js 16.3.4
-webpack build. Merge/deploy, production migration and authenticated production
-readback remain separate evidence. No forward sample or quality improvement is
-claimed.
+arbitrary or cross-decision reasons remain rejected. PR
+[#677](https://github.com/willyvalentin/trade/pull/677) merged as exact main
+`69aaafc988b1846b39c279bd8b781b4eeea81ac9`; protected PR CI and post-merge CI
+passed, and Git-connected Netlify production deploy
+`6ab8ec1ab47818000872349e` is `ready`, `production`, branch `main`,
+`manual_deploy=false` on that exact revision. Supabase production project
+`ekdyopdrrkphlrsilyoo` records additive migration
+`20260927114500_if4_forward_decision_terminal_reasons`; read-only schema
+verification confirmed the exact one-to-one terminal reason mapping in both
+the v2 table constraint and service-role-only RPC. An unauthenticated
+production route read returned `401` with `Cache-Control: no-store`.
+
+Local acceptance was 33/33 focused plan/store/evaluator tests, the isolated
+PostgreSQL 17 lifecycle and wrong-reason rejection harness, 168/168
+intelligence-foundation tests, strict TypeScript, changed-file lint, diff
+validation and a complete Next.js 16.3.4 webpack build. No authenticated
+production evaluation was performed, because the forward window has not
+started and no owner session was needed for deployment verification. No
+provider request, candidate publication, paper/broker effect, forward sample or
+quality improvement is claimed.
+
+**Active CLOSED slice — explicit clock-prior full-population outcome path:**
+runtime inspection found that the frozen clock-prior experiment could evaluate
+its complete candidate population only because the older intraday-liquidity
+experiment happened to capture and admit the same hidden research snapshots.
+The candidate population is intentionally shared, but that implicit dependency
+made the active hypothesis impossible to audit independently and vulnerable to
+an unrelated experiment being removed or changed.
+
+The selected change adds a versioned, provider-free reuse receipt that proves
+the clock-prior comparison, immutable candidate decisions and existing
+full-population capture have exact scan, population, ticker and candidate
+identity agreement. Matching hidden snapshots receive an explicit clock-prior
+marker; the official outcome route admits only that contained, lineage-complete
+cohort; and the canonical clock-prior evaluator now fails closed if the receipt
+or exact marker is missing or ambiguous. Zero-candidate `no_trade` remains a
+valid complete population without invented snapshots or outcomes. No duplicate
+snapshot, provider request, credit, live-ranking change, publication change or
+execution authority is added. This makes Monday's evidence collection
+independently attributable; it does not claim that clock-neutral ranking is
+better.
+
+Local acceptance on branch `codex/if4-clock-prior-outcome-capture`, based on
+main `69aaafc988b1846b39c279bd8b781b4eeea81ac9`, is 64/64 adjacent
+clock-prior, full-population, outcome-admission, credit-guard, scheduler-receipt
+and lifecycle tests; 168/168 intelligence-foundation tests including both
+isolated PostgreSQL 17 regressions; strict TypeScript; changed-file lint;
+scheduled-runtime bundling; diff validation; and a complete Next.js 16.3.4
+webpack production build. Merge, production deploy and the first real forward
+observation remain separate evidence. No schema change is required for this
+slice.
 
 ### Continuous-observation technical direction — 2026-09-24
 
