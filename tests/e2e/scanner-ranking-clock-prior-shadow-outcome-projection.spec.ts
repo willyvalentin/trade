@@ -24,6 +24,7 @@ import {
 } from "@/lib/server/scanner-clock-prior-shadow-canonical-evaluation";
 import {
   buildScannerClockPriorShadowForwardDecisionPlan,
+  buildScannerClockPriorShadowPolicyReference,
   classifyScannerClockPriorShadowForwardPrecisionDecision,
   evaluateScannerClockPriorShadowForwardDecision,
   type ScannerClockPriorShadowForwardPartitionResult,
@@ -664,10 +665,77 @@ const FORWARD_HYPOTHESIS =
   "Removing named clock priors improves canonical top-one ranking precision without changing the eligible population.";
 const FORWARD_OWNER_ID = "11111111-1111-4111-8111-111111111111";
 const FORWARD_CHARTER_ID = "22222222-2222-4222-8222-222222222222";
-const FORWARD_BASELINE_ID = "33333333-3333-4333-8333-333333333333";
 const FORWARD_SEGMENT_KEY = "clock-prior:all-us-equities";
 const FORWARD_CHARTER_FINGERPRINT = "a".repeat(64);
-const FORWARD_BASELINE_FINGERPRINT = "b".repeat(64);
+
+const builtForwardPolicyReference = buildScannerClockPriorShadowPolicyReference({
+  createdAt: "2026-09-23T12:00:00.000Z",
+  charter: {
+    charter_id: FORWARD_CHARTER_ID,
+    charter_fingerprint: FORWARD_CHARTER_FINGERPRINT,
+    owner_user_id: FORWARD_OWNER_ID,
+    segment_key: FORWARD_SEGMENT_KEY,
+    policy_attribution: {
+      recommendation_publish_policy_version: "publish_v1",
+      canonical_evaluation_versions: {
+        engine_version: "engine_v1",
+        scoring_version: "scoring_v1",
+        ranking_version: "scanner_candidate_ranking_v1.2",
+        setup_taxonomy_version: "setup_v1",
+        confidence_contract_version: "confidence_v1",
+        evaluator_version: "evaluator_v1",
+        provider_contract_version: "provider_v1",
+        git_commit: "fixture-commit",
+        build_identity: "fixture-build",
+      },
+    },
+    charter: {
+      contract_version: "recommendation_evaluation_charter_v1",
+      hypothesis: FORWARD_HYPOTHESIS,
+      eligible_universe: "US equities",
+      setup_slices: ["all_setups"],
+      regime_slices: ["all_regimes"],
+      outcome_rules: {
+        primary_horizon: "60m",
+        diagnostic_horizons: ["15m", "30m", "60m"],
+        semantics: "Canonical terminal outcomes for shadow ranking evaluation.",
+      },
+      evaluation_window: {
+        minimum_complete_decisions: 10,
+        held_out_decision_count: 5,
+        walk_forward_decision_count: 5,
+      },
+      thresholds: {
+        minimum_precision_at_k: 0.5,
+        minimum_expectancy_r: 0,
+        maximum_calibration_error: 0.2,
+        minimum_outcome_coverage: 0.9,
+        maximum_missingness: 0.1,
+        maximum_provider_credits_per_decision: 8,
+        minimum_reliability: 0.9,
+      },
+      concentration_limits: {
+        maximum_single_ticker_share: 0.25,
+        maximum_single_sector_share: 0.5,
+        maximum_single_setup_share: 1,
+        maximum_single_regime_share: 1,
+      },
+      feasibility_inputs: {
+        spread: "required",
+        liquidity: "required",
+        volatility: "required",
+        halt_risk: "required",
+        trigger_attainment: "required",
+        conservative_slippage: "required",
+      },
+    },
+    created_at: "2026-09-23T12:00:00.000Z",
+  },
+});
+if (!builtForwardPolicyReference) {
+  throw new Error("forward policy reference fixture must build");
+}
+const forwardPolicyReference = builtForwardPolicyReference;
 
 function forwardEvidenceBindings(): ScannerClockPriorShadowForwardEvidenceBindings {
   return {
@@ -680,14 +748,14 @@ function forwardEvidenceBindings(): ScannerClockPriorShadowForwardEvidenceBindin
       baseline_ranking_version: "scanner_candidate_ranking_v1.2",
       created_at: "2026-09-23T12:00:00.000Z",
     },
-    baseline_freeze: {
-      baseline_id: FORWARD_BASELINE_ID,
-      baseline_fingerprint: FORWARD_BASELINE_FINGERPRINT,
+    policy_reference: {
+      reference_fingerprint: forwardPolicyReference.reference_fingerprint,
       owner_user_id: FORWARD_OWNER_ID,
       segment_key: FORWARD_SEGMENT_KEY,
       evaluation_charter_fingerprint: FORWARD_CHARTER_FINGERPRINT,
       baseline_ranking_version: "scanner_candidate_ranking_v1.2",
-      frozen_at: "2026-09-24T11:30:00.000Z",
+      candidate_ranking_version: "scanner_candidate_ranking_clock_neutral_v1",
+      created_at: "2026-09-23T12:00:00.000Z",
     },
   };
 }
@@ -700,8 +768,7 @@ function forwardDecisionPlan() {
     hypothesis: FORWARD_HYPOTHESIS,
     evaluation_charter_id: FORWARD_CHARTER_ID,
     evaluation_charter_fingerprint: FORWARD_CHARTER_FINGERPRINT,
-    baseline_id: FORWARD_BASELINE_ID,
-    baseline_fingerprint: FORWARD_BASELINE_FINGERPRINT,
+    policy_reference: forwardPolicyReference,
     baseline_ranking_version: "scanner_candidate_ranking_v1.2",
     candidate_ranking_version: "scanner_candidate_ranking_clock_neutral_v1",
     primary_k: 1,
@@ -773,8 +840,7 @@ test("classifies a complete predeclared held-out and walk-forward cohort without
       segment_key: FORWARD_SEGMENT_KEY,
       evaluation_charter_id: FORWARD_CHARTER_ID,
       evaluation_charter_fingerprint: FORWARD_CHARTER_FINGERPRINT,
-      baseline_id: FORWARD_BASELINE_ID,
-      baseline_fingerprint: FORWARD_BASELINE_FINGERPRINT,
+      policy_reference_fingerprint: forwardPolicyReference.reference_fingerprint,
     },
     shadow_only: true,
     live_ranking_effect: false,
@@ -872,15 +938,15 @@ test("fails the forward cohort closed on duplicate scans or a changed frozen pla
   });
 });
 
-test("fails the forward plan closed when its durable charter or baseline binding drifts", () => {
+test("fails the forward plan closed when its durable charter or policy reference binding drifts", () => {
   const bindings = forwardEvidenceBindings();
   const result = evaluateScannerClockPriorShadowForwardDecision({
     plan: forwardDecisionPlan(),
     evidenceBindings: {
       ...bindings,
-      baseline_freeze: {
-        ...bindings.baseline_freeze,
-        baseline_fingerprint: "c".repeat(64),
+      policy_reference: {
+        ...bindings.policy_reference,
+        reference_fingerprint: "c".repeat(64),
       },
     },
     scanRuns: [],
@@ -892,7 +958,7 @@ test("fails the forward plan closed when its durable charter or baseline binding
   expect(result).toMatchObject({
     status: "invalid_plan",
     decision: "pending",
-    reason_codes: ["forward_decision_charter_or_baseline_binding_invalid"],
+    reason_codes: ["forward_decision_charter_or_policy_reference_binding_invalid"],
   });
 });
 

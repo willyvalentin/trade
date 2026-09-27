@@ -4,7 +4,6 @@ import { resolve } from "node:path";
 import { expect, test } from "@playwright/test";
 
 import type { RecommendationEvaluationCharter } from "@/lib/recommendation-evaluation-charter";
-import type { RecommendationLearningBaselineFreeze } from "@/lib/recommendation-learning-baseline-freeze-store";
 import type { ScannerClockPriorShadowForwardDecisionPlanReceipt } from "@/lib/scanner-clock-prior-shadow-forward-decision-store";
 import {
   createScannerClockPriorShadowForwardPlanActivationService,
@@ -15,10 +14,8 @@ import type { ScannerClockPriorShadowForwardDecisionPlan } from "@/lib/server/sc
 
 const ownerUserId = "11111111-1111-4111-8111-111111111111";
 const charterId = "22222222-2222-4222-8222-222222222222";
-const baselineId = "33333333-3333-4333-8333-333333333333";
 const planId = "44444444-4444-4444-8444-444444444444";
 const charterFingerprint = "a".repeat(64);
-const baselineFingerprint = "b".repeat(64);
 const segmentKey = "clock-prior:all-us-equities";
 const baselineRankingVersion = "scanner_candidate_ranking_v1.2";
 const candidateRankingVersion = "scanner_candidate_ranking_clock_neutral_v1";
@@ -90,30 +87,6 @@ const charter: RecommendationEvaluationCharter = {
   created_at: "2026-09-26T08:00:00.000Z",
 };
 
-const baseline = {
-  baseline_id: baselineId,
-  baseline_fingerprint: baselineFingerprint,
-  owner_user_id: ownerUserId,
-  segment_key: segmentKey,
-  decision_record_fingerprints: ["decision-1"],
-  evaluation_plan: {
-    contract_version: "recommendation_learning_evaluation_plan_v1",
-    segment_key: segmentKey,
-    status: "ready_for_explicit_freeze",
-    policy_attribution: policy,
-    decision_records: {
-      count: 1,
-      scan_run_fingerprints: ["decision-1"],
-    },
-    outcome_population: {},
-    metrics: {},
-    blockers: [],
-    notes: [],
-  },
-  evaluation_charter_fingerprint: charterFingerprint,
-  frozen_at: "2026-09-26T09:00:00.000Z",
-} as unknown as RecommendationLearningBaselineFreeze;
-
 const activationRequest = {
   segment_key: segmentKey,
   candidate_ranking_version: candidateRankingVersion,
@@ -158,9 +131,6 @@ function dependencies(overrides: Partial<
   const implementation: ScannerClockPriorShadowForwardPlanActivationDependencies = {
     async readCharters() {
       return { status: "available", charters: [charter], safe_blocker: null };
-    },
-    async readBaseline() {
-      return { status: "available", freeze: baseline, safe_blocker: null };
     },
     async readPlans() {
       return stored.length > 0
@@ -211,8 +181,19 @@ test("activates one server-bound plan only after exact durable readback", async 
   expect(result.receipt?.plan.evaluation_charter_fingerprint).toBe(
     charterFingerprint,
   );
-  expect(result.receipt?.plan.baseline_id).toBe(baselineId);
-  expect(result.receipt?.plan.baseline_fingerprint).toBe(baselineFingerprint);
+  expect(result.receipt?.plan.policy_reference.evidence_classification).toBe(
+    "semantic_identity_not_quality_baseline",
+  );
+  expect(
+    result.receipt?.plan.policy_reference
+      .generic_learning_baseline_required_for_promotion,
+  ).toBe(true);
+  expect(result.receipt?.plan.policy_reference.quality_evidence_status).toBe(
+    "not_evaluated",
+  );
+  expect(
+    result.receipt?.plan.policy_reference.version_difference_set.differences,
+  ).toEqual(["ranking_version"]);
   expect(result.receipt?.plan.baseline_ranking_version).toBe(
     baselineRankingVersion,
   );
@@ -303,15 +284,12 @@ test("rejects another candidate policy or a cohort weaker than the charter", asy
   expect(harness.recordCalls).toBe(0);
 });
 
-test("fails closed when the charter and baseline are not exactly bound", async () => {
+test("fails closed when the matching charter is ambiguous", async () => {
   const harness = dependencies({
-    async readBaseline() {
+    async readCharters() {
       return {
         status: "available",
-        freeze: {
-          ...baseline,
-          evaluation_charter_fingerprint: "c".repeat(64),
-        },
+        charters: [charter, { ...charter, charter_id: "33333333-3333-4333-8333-333333333333" }],
         safe_blocker: null,
       };
     },
@@ -327,7 +305,7 @@ test("fails closed when the charter and baseline are not exactly bound", async (
 
   expect(result.status).toBe("not_ready");
   expect(result.safe_blocker).toBe(
-    "clock_prior_forward_decision_plan_charter_baseline_binding_mismatch",
+    "clock_prior_forward_decision_plan_charter_binding_missing_or_ambiguous",
   );
   expect(harness.recordCalls).toBe(0);
 });

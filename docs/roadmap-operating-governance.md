@@ -247,6 +247,15 @@ slices, concentration limits and feasibility assumptions. Do this before the
 policy's evaluation data is read; do not tune those values after observing an
 outcome.
 
+Distinguish the experiment's frozen semantic reference from its result-based
+quality baseline. The semantic reference may authorize only shadow evidence
+collection: it binds the charter, baseline/challenger version tuples and exact
+declared difference before sampling, carries `quality_evidence_status=not_evaluated`
+and grants no provider, ranking, publication, promotion or broker authority.
+It must not require the very outcomes the experiment is intended to collect.
+The result-based baseline, minimum complete outcomes and every IF-5 promotion
+gate remain separate and may not be lowered or re-labelled to start a cohort.
+
 Evaluation evidence must include research, rejected and explicit `no_trade`
 decisions as well as visible recommendations. It must separately report
 coverage, missingness and quality by the charter's material setup, ticker,

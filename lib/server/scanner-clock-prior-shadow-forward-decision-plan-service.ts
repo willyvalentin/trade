@@ -1,14 +1,8 @@
 import "server-only";
 
-import {
-  recommendationEvaluationCharterMatchesPolicySegment,
-} from "@/lib/recommendation-evaluation-charter";
 import type {
   RecommendationEvaluationCharterReadResult,
 } from "@/lib/recommendation-evaluation-charter-store";
-import type {
-  RecommendationLearningBaselineFreezeReadResult,
-} from "@/lib/recommendation-learning-baseline-freeze-store";
 import {
   SCANNER_CLOCK_PRIOR_BASELINE_POLICY_VERSION,
   SCANNER_CLOCK_PRIOR_SHADOW_POLICY_VERSION,
@@ -22,14 +16,12 @@ import {
   readRecommendationEvaluationCharters,
 } from "@/lib/server/recommendation-evaluation-charter-persistence";
 import {
-  readRecommendationLearningBaselineFreeze,
-} from "@/lib/server/recommendation-learning-baseline-freeze-persistence";
-import {
   readScannerClockPriorShadowForwardDecisionPlans,
   recordScannerClockPriorShadowForwardDecisionPlan,
 } from "@/lib/server/scanner-clock-prior-shadow-forward-decision-persistence";
 import {
   buildScannerClockPriorShadowForwardDecisionPlan,
+  buildScannerClockPriorShadowPolicyReference,
   type ScannerClockPriorShadowForwardDecisionPlan,
   type ScannerClockPriorShadowForwardDecisionPlanInput,
 } from "@/lib/server/scanner-clock-prior-shadow-forward-decision";
@@ -56,9 +48,6 @@ export type ScannerClockPriorShadowForwardPlanActivationDependencies = {
   readCharters: (
     ownerUserId: string,
   ) => Promise<RecommendationEvaluationCharterReadResult>;
-  readBaseline: (
-    ownerUserId: string,
-  ) => Promise<RecommendationLearningBaselineFreezeReadResult>;
   readPlans: (
     ownerUserId: string,
   ) => Promise<ScannerClockPriorShadowForwardDecisionPlanReadResult>;
@@ -87,7 +76,6 @@ export type ScannerClockPriorShadowForwardPlanActivationResult =
 
 const productionDependencies: ScannerClockPriorShadowForwardPlanActivationDependencies = {
   readCharters: readRecommendationEvaluationCharters,
-  readBaseline: readRecommendationLearningBaselineFreeze,
   readPlans: readScannerClockPriorShadowForwardDecisionPlans,
   recordPlan: recordScannerClockPriorShadowForwardDecisionPlan,
 };
@@ -98,8 +86,7 @@ const serverAuthorityFields = new Set([
   "plan_fingerprint",
   "evaluation_charter_id",
   "evaluation_charter_fingerprint",
-  "baseline_id",
-  "baseline_fingerprint",
+  "policy_reference",
   "baseline_ranking_version",
 ]);
 const activationRequestFields = new Set([
@@ -257,14 +244,12 @@ export function createScannerClockPriorShadowForwardPlanActivationService(
         );
       }
 
-      const [charters, baseline, existingPlans] = await Promise.all([
+      const [charters, existingPlans] = await Promise.all([
         dependencies.readCharters(ownerUserId),
-        dependencies.readBaseline(ownerUserId),
         dependencies.readPlans(ownerUserId),
       ]);
       if (
         charters.status === "unavailable" ||
-        baseline.status === "unavailable" ||
         existingPlans.status === "unavailable"
       ) {
         return unavailable(
@@ -272,46 +257,38 @@ export function createScannerClockPriorShadowForwardPlanActivationService(
           "clock_prior_forward_decision_plan_activation_evidence_unavailable",
         );
       }
-      if (charters.status !== "available" || baseline.status !== "available") {
+      if (charters.status !== "available") {
         return unavailable(
           "not_ready",
           "clock_prior_forward_decision_plan_activation_evidence_not_found",
         );
       }
 
-      const freeze = baseline.freeze;
-      const baselinePolicy = freeze.evaluation_plan.policy_attribution;
       const matchingCharters = charters.charters.filter((charter) =>
         charter.owner_user_id === ownerUserId &&
         charter.segment_key === requested.segment_key &&
-        charter.charter_fingerprint === freeze.evaluation_charter_fingerprint &&
-        recommendationEvaluationCharterMatchesPolicySegment({
-          charter,
-          segmentKey: requested.segment_key,
-          policy: baselinePolicy,
-        })
+        charter.policy_attribution.canonical_evaluation_versions.ranking_version ===
+          SCANNER_CLOCK_PRIOR_BASELINE_POLICY_VERSION
       );
-      if (
-        freeze.owner_user_id !== ownerUserId ||
-        freeze.segment_key !== requested.segment_key ||
-        matchingCharters.length !== 1
-      ) {
+      if (matchingCharters.length !== 1) {
         return unavailable(
           "not_ready",
-          "clock_prior_forward_decision_plan_charter_baseline_binding_mismatch",
+          "clock_prior_forward_decision_plan_charter_binding_missing_or_ambiguous",
         );
       }
 
       const charter = matchingCharters[0]!;
       const baselineRankingVersion =
-        baselinePolicy.canonical_evaluation_versions.ranking_version;
+        charter.policy_attribution.canonical_evaluation_versions.ranking_version;
+      const policyReference = buildScannerClockPriorShadowPolicyReference({
+        charter,
+        createdAt: charter.created_at,
+      });
       if (
-        charter.policy_attribution.canonical_evaluation_versions.ranking_version !==
-          baselineRankingVersion ||
         baselineRankingVersion !==
           SCANNER_CLOCK_PRIOR_BASELINE_POLICY_VERSION ||
         Date.parse(charter.created_at) > now.getTime() ||
-        Date.parse(freeze.frozen_at) > now.getTime()
+        !policyReference
       ) {
         return unavailable(
           "not_ready",
@@ -326,8 +303,7 @@ export function createScannerClockPriorShadowForwardPlanActivationService(
         hypothesis: charter.charter.hypothesis,
         evaluation_charter_id: charter.charter_id,
         evaluation_charter_fingerprint: charter.charter_fingerprint,
-        baseline_id: freeze.baseline_id,
-        baseline_fingerprint: freeze.baseline_fingerprint,
+        policy_reference: policyReference,
         baseline_ranking_version: baselineRankingVersion,
         candidate_ranking_version: requested.candidate_ranking_version,
         primary_k: requested.primary_k,
@@ -370,7 +346,8 @@ export function createScannerClockPriorShadowForwardPlanActivationService(
       if (
         sameExisting.length > 1 ||
         existingPlans.receipts.some((receipt) =>
-          receipt.plan.baseline_id === freeze.baseline_id &&
+          receipt.plan.policy_reference.reference_fingerprint ===
+            policyReference.reference_fingerprint &&
           receipt.plan.candidate_ranking_version === requested.candidate_ranking_version
         )
       ) {

@@ -6,19 +6,35 @@ import {
   canonicalQualityPublishabilityPolicy,
   canonicalQualityRankingKValues,
 } from "@/lib/canonical-quality-metrics";
+import type { RecommendationEvaluationCharter } from "@/lib/recommendation-evaluation-charter";
 import type { LearningBaselineScanRun } from "@/lib/recommendation-learning-baseline-readiness";
 import type { RecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
-import { scannerClockPriorShadowComparisonFromUnknown } from "@/lib/scanner-ranking-clock-prior-shadow";
+import {
+  SCANNER_CLOCK_PRIOR_BASELINE_POLICY_VERSION,
+  SCANNER_CLOCK_PRIOR_SHADOW_POLICY_VERSION,
+  scannerClockPriorShadowComparisonFromUnknown,
+} from "@/lib/scanner-ranking-clock-prior-shadow";
+import {
+  buildCanonicalShadowVersionTuple,
+  deriveCanonicalShadowVersionDifferenceSet,
+  type CanonicalShadowVersionDifferenceSet,
+  type CanonicalShadowVersionTuple,
+} from "@/lib/server/canonical-shadow-ranking-confidence-evaluation";
 import {
   evaluateScannerClockPriorShadowScan,
   SCANNER_CLOCK_PRIOR_SHADOW_CANONICAL_EVALUATION_ADAPTER_VERSION,
 } from "@/lib/server/scanner-clock-prior-shadow-canonical-evaluation";
+import {
+  SCANNER_RANKING_SHADOW_DIAGNOSTIC_THRESHOLD_POLICY_VERSION,
+} from "@/lib/server/scanner-intraday-liquidity-shadow-canonical-evaluation";
 
 export const SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_DECISION_PLAN_VERSION =
-  "scanner_clock_prior_shadow_forward_decision_plan_v1" as const;
+  "scanner_clock_prior_shadow_forward_decision_plan_v2" as const;
 export const SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_DECISION_VERSION =
-  "scanner_clock_prior_shadow_forward_decision_v1" as const;
+  "scanner_clock_prior_shadow_forward_decision_v2" as const;
+export const SCANNER_CLOCK_PRIOR_SHADOW_POLICY_REFERENCE_VERSION =
+  "scanner_clock_prior_shadow_policy_reference_v1" as const;
 
 type RankingK = (typeof canonicalQualityRankingKValues)[number];
 type PartitionName = "held_out" | "walk_forward";
@@ -34,6 +50,33 @@ export type ScannerClockPriorShadowForwardWindow = {
   minimum_trading_days: number;
 };
 
+export type ScannerClockPriorShadowPolicyReference = {
+  contract_version: typeof SCANNER_CLOCK_PRIOR_SHADOW_POLICY_REFERENCE_VERSION;
+  reference_fingerprint: string;
+  created_at: string;
+  owner_user_id: string;
+  segment_key: string;
+  evaluation_charter_id: string;
+  evaluation_charter_fingerprint: string;
+  baseline_version_tuple: CanonicalShadowVersionTuple;
+  candidate_version_tuple: CanonicalShadowVersionTuple;
+  version_difference_set: CanonicalShadowVersionDifferenceSet;
+  source_revision: {
+    recommendation_publish_policy_version: string;
+    git_commit: string;
+    build_identity: string;
+  };
+  evidence_classification: "semantic_identity_not_quality_baseline";
+  quality_evidence_status: "not_evaluated";
+  generic_learning_baseline_required_for_promotion: true;
+  shadow_only: true;
+  live_ranking_effect: false;
+  publication_effect: false;
+  promotion_effect: false;
+  provider_effect: false;
+  broker_effect: false;
+};
+
 export type ScannerClockPriorShadowForwardDecisionPlan = {
   contract_version:
     typeof SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_DECISION_PLAN_VERSION;
@@ -44,8 +87,7 @@ export type ScannerClockPriorShadowForwardDecisionPlan = {
   hypothesis: string;
   evaluation_charter_id: string;
   evaluation_charter_fingerprint: string;
-  baseline_id: string;
-  baseline_fingerprint: string;
+  policy_reference: ScannerClockPriorShadowPolicyReference;
   baseline_ranking_version: string;
   candidate_ranking_version: string;
   primary_k: RankingK;
@@ -71,14 +113,14 @@ export type ScannerClockPriorShadowForwardEvidenceBindings = {
     baseline_ranking_version: string;
     created_at: string;
   };
-  baseline_freeze: {
-    baseline_id: string;
-    baseline_fingerprint: string;
+  policy_reference: {
+    reference_fingerprint: string;
     owner_user_id: string;
     segment_key: string;
     evaluation_charter_fingerprint: string;
     baseline_ranking_version: string;
-    frozen_at: string;
+    candidate_ranking_version: string;
+    created_at: string;
   };
 };
 
@@ -125,8 +167,7 @@ export type ScannerClockPriorShadowForwardDecisionResult = {
     segment_key: string;
     evaluation_charter_id: string;
     evaluation_charter_fingerprint: string;
-    baseline_id: string;
-    baseline_fingerprint: string;
+    policy_reference_fingerprint: string;
   } | null;
   partitions: ScannerClockPriorShadowForwardPartitionResult[];
   reason_codes: string[];
@@ -223,6 +264,138 @@ function validWindow(value: ScannerClockPriorShadowForwardWindow) {
       canonicalQualityPublishabilityPolicy.minimum_trading_days;
 }
 
+function policyReferencePayload(
+  value: Omit<ScannerClockPriorShadowPolicyReference, "reference_fingerprint">,
+) {
+  return {
+    contract_version: SCANNER_CLOCK_PRIOR_SHADOW_POLICY_REFERENCE_VERSION,
+    created_at: value.created_at,
+    owner_user_id: value.owner_user_id,
+    segment_key: value.segment_key.trim(),
+    evaluation_charter_id: value.evaluation_charter_id,
+    evaluation_charter_fingerprint: value.evaluation_charter_fingerprint,
+    baseline_version_tuple: value.baseline_version_tuple,
+    candidate_version_tuple: value.candidate_version_tuple,
+    version_difference_set: value.version_difference_set,
+    source_revision: value.source_revision,
+    evidence_classification: "semantic_identity_not_quality_baseline" as const,
+    quality_evidence_status: "not_evaluated" as const,
+    generic_learning_baseline_required_for_promotion: true as const,
+    shadow_only: true as const,
+    live_ranking_effect: false as const,
+    publication_effect: false as const,
+    promotion_effect: false as const,
+    provider_effect: false as const,
+    broker_effect: false as const,
+  };
+}
+
+export function buildScannerClockPriorShadowPolicyReference({
+  charter,
+  createdAt,
+}: {
+  charter: RecommendationEvaluationCharter;
+  createdAt: string;
+}): ScannerClockPriorShadowPolicyReference | null {
+  const versions = charter.policy_attribution.canonical_evaluation_versions;
+  if (
+    !validIso(createdAt) ||
+    !validUuid(charter.owner_user_id) ||
+    !validUuid(charter.charter_id) ||
+    !validFingerprint(charter.charter_fingerprint) ||
+    !boundedText(charter.segment_key, 1, 16_384) ||
+    versions.ranking_version !== SCANNER_CLOCK_PRIOR_BASELINE_POLICY_VERSION ||
+    Date.parse(charter.created_at) > Date.parse(createdAt)
+  ) {
+    return null;
+  }
+  const shared = {
+    engine_version: versions.engine_version,
+    scoring_version: versions.scoring_version,
+    threshold_policy_version:
+      SCANNER_RANKING_SHADOW_DIAGNOSTIC_THRESHOLD_POLICY_VERSION,
+    setup_taxonomy_version: versions.setup_taxonomy_version,
+    confidence_contract_version: versions.confidence_contract_version,
+    evaluator_version: versions.evaluator_version,
+    provider_contract_version: versions.provider_contract_version,
+  };
+  const baselineVersions = {
+    ...shared,
+    ranking_version: SCANNER_CLOCK_PRIOR_BASELINE_POLICY_VERSION,
+  };
+  const candidateVersions = {
+    ...shared,
+    ranking_version: SCANNER_CLOCK_PRIOR_SHADOW_POLICY_VERSION,
+  };
+  const baseline = buildCanonicalShadowVersionTuple(baselineVersions);
+  const candidate = buildCanonicalShadowVersionTuple(candidateVersions);
+  const differences = deriveCanonicalShadowVersionDifferenceSet({
+    baseline: baselineVersions,
+    candidate: candidateVersions,
+  });
+  if (
+    differences.differences.length !== 1 ||
+    differences.differences[0] !== "ranking_version"
+  ) {
+    return null;
+  }
+  const payload = policyReferencePayload({
+    contract_version: SCANNER_CLOCK_PRIOR_SHADOW_POLICY_REFERENCE_VERSION,
+    created_at: createdAt,
+    owner_user_id: charter.owner_user_id,
+    segment_key: charter.segment_key,
+    evaluation_charter_id: charter.charter_id,
+    evaluation_charter_fingerprint: charter.charter_fingerprint,
+    baseline_version_tuple: baseline,
+    candidate_version_tuple: candidate,
+    version_difference_set: differences,
+    source_revision: {
+      recommendation_publish_policy_version:
+        charter.policy_attribution.recommendation_publish_policy_version,
+      git_commit: versions.git_commit,
+      build_identity: versions.build_identity,
+    },
+    evidence_classification: "semantic_identity_not_quality_baseline",
+    quality_evidence_status: "not_evaluated",
+    generic_learning_baseline_required_for_promotion: true,
+    shadow_only: true,
+    live_ranking_effect: false,
+    publication_effect: false,
+    promotion_effect: false,
+    provider_effect: false,
+    broker_effect: false,
+  });
+  return Object.freeze({
+    ...payload,
+    reference_fingerprint: fingerprint(payload),
+  });
+}
+
+function verifiedPolicyReference(value: ScannerClockPriorShadowPolicyReference) {
+  if (
+    value.contract_version !== SCANNER_CLOCK_PRIOR_SHADOW_POLICY_REFERENCE_VERSION ||
+    !validFingerprint(value.reference_fingerprint) ||
+    value.evidence_classification !== "semantic_identity_not_quality_baseline" ||
+    value.quality_evidence_status !== "not_evaluated" ||
+    value.generic_learning_baseline_required_for_promotion !== true ||
+    value.shadow_only !== true || value.live_ranking_effect !== false ||
+    value.publication_effect !== false || value.promotion_effect !== false ||
+    value.provider_effect !== false || value.broker_effect !== false ||
+    value.baseline_version_tuple.ranking_version !==
+      SCANNER_CLOCK_PRIOR_BASELINE_POLICY_VERSION ||
+    value.candidate_version_tuple.ranking_version !==
+      SCANNER_CLOCK_PRIOR_SHADOW_POLICY_VERSION ||
+    value.version_difference_set.differences.length !== 1 ||
+    value.version_difference_set.differences[0] !== "ranking_version" ||
+    value.version_difference_set.baseline_version_tuple_digest !==
+      value.baseline_version_tuple.semantic_digest ||
+    value.version_difference_set.candidate_version_tuple_digest !==
+      value.candidate_version_tuple.semantic_digest
+  ) return null;
+  const payload = policyReferencePayload(value);
+  return fingerprint(payload) === value.reference_fingerprint ? value : null;
+}
+
 function planPayload(input: ScannerClockPriorShadowForwardDecisionPlanInput) {
   return {
     contract_version:
@@ -233,8 +406,7 @@ function planPayload(input: ScannerClockPriorShadowForwardDecisionPlanInput) {
     hypothesis: input.hypothesis.trim(),
     evaluation_charter_id: input.evaluation_charter_id,
     evaluation_charter_fingerprint: input.evaluation_charter_fingerprint,
-    baseline_id: input.baseline_id,
-    baseline_fingerprint: input.baseline_fingerprint,
+    policy_reference: input.policy_reference,
     baseline_ranking_version: input.baseline_ranking_version.trim(),
     candidate_ranking_version: input.candidate_ranking_version.trim(),
     primary_k: input.primary_k,
@@ -253,12 +425,22 @@ export function buildScannerClockPriorShadowForwardDecisionPlan(
     !boundedText(input.hypothesis, 20, 2_800) ||
     !validUuid(input.evaluation_charter_id) ||
     !validFingerprint(input.evaluation_charter_fingerprint) ||
-    !validUuid(input.baseline_id) ||
-    !validFingerprint(input.baseline_fingerprint) ||
+    !verifiedPolicyReference(input.policy_reference) ||
+    input.policy_reference.owner_user_id !== input.owner_user_id ||
+    input.policy_reference.segment_key !== input.segment_key ||
+    input.policy_reference.evaluation_charter_id !==
+      input.evaluation_charter_id ||
+    input.policy_reference.evaluation_charter_fingerprint !==
+      input.evaluation_charter_fingerprint ||
+    Date.parse(input.policy_reference.created_at) > Date.parse(input.created_at) ||
     !boundedText(input.baseline_ranking_version, 1, 512) ||
     !boundedText(input.candidate_ranking_version, 1, 512) ||
     input.baseline_ranking_version.trim() ===
       input.candidate_ranking_version.trim() ||
+    input.baseline_ranking_version !==
+      input.policy_reference.baseline_version_tuple.ranking_version ||
+    input.candidate_ranking_version !==
+      input.policy_reference.candidate_version_tuple.ranking_version ||
     !canonicalQualityRankingKValues.includes(input.primary_k) ||
     !validWindow(input.windows?.held_out) ||
     !validWindow(input.windows?.walk_forward) ||
@@ -287,7 +469,7 @@ function evidenceBindingsMatchPlan(
 ) {
   if (!bindings) return false;
   const charter = bindings.evaluation_charter;
-  const baseline = bindings.baseline_freeze;
+  const reference = bindings.policy_reference;
   return validUuid(charter.charter_id) &&
     validFingerprint(charter.charter_fingerprint) &&
     validUuid(charter.owner_user_id) &&
@@ -295,28 +477,29 @@ function evidenceBindingsMatchPlan(
     boundedText(charter.hypothesis, 20, 2_800) &&
     boundedText(charter.baseline_ranking_version, 1, 512) &&
     validIso(charter.created_at) &&
-    validUuid(baseline.baseline_id) &&
-    validFingerprint(baseline.baseline_fingerprint) &&
-    validUuid(baseline.owner_user_id) &&
-    boundedText(baseline.segment_key, 1, 16_384) &&
-    validFingerprint(baseline.evaluation_charter_fingerprint) &&
-    boundedText(baseline.baseline_ranking_version, 1, 512) &&
-    validIso(baseline.frozen_at) &&
+    validFingerprint(reference.reference_fingerprint) &&
+    validUuid(reference.owner_user_id) &&
+    boundedText(reference.segment_key, 1, 16_384) &&
+    validFingerprint(reference.evaluation_charter_fingerprint) &&
+    boundedText(reference.baseline_ranking_version, 1, 512) &&
+    boundedText(reference.candidate_ranking_version, 1, 512) &&
+    validIso(reference.created_at) &&
     charter.charter_id === plan.evaluation_charter_id &&
     charter.charter_fingerprint === plan.evaluation_charter_fingerprint &&
     charter.owner_user_id === plan.owner_user_id &&
     charter.segment_key === plan.segment_key &&
     charter.hypothesis.trim() === plan.hypothesis &&
     charter.baseline_ranking_version === plan.baseline_ranking_version &&
-    baseline.baseline_id === plan.baseline_id &&
-    baseline.baseline_fingerprint === plan.baseline_fingerprint &&
-    baseline.owner_user_id === plan.owner_user_id &&
-    baseline.segment_key === plan.segment_key &&
-    baseline.evaluation_charter_fingerprint ===
+    reference.reference_fingerprint ===
+      plan.policy_reference.reference_fingerprint &&
+    reference.owner_user_id === plan.owner_user_id &&
+    reference.segment_key === plan.segment_key &&
+    reference.evaluation_charter_fingerprint ===
       plan.evaluation_charter_fingerprint &&
-    baseline.baseline_ranking_version === plan.baseline_ranking_version &&
+    reference.baseline_ranking_version === plan.baseline_ranking_version &&
+    reference.candidate_ranking_version === plan.candidate_ranking_version &&
     Date.parse(charter.created_at) <= Date.parse(plan.created_at) &&
-    Date.parse(baseline.frozen_at) <= Date.parse(plan.created_at);
+    Date.parse(reference.created_at) <= Date.parse(plan.created_at);
 }
 
 function verifiedPlan(
@@ -366,8 +549,8 @@ function terminalResult(input: {
           evaluation_charter_id: input.plan.evaluation_charter_id,
           evaluation_charter_fingerprint:
             input.plan.evaluation_charter_fingerprint,
-          baseline_id: input.plan.baseline_id,
-          baseline_fingerprint: input.plan.baseline_fingerprint,
+          policy_reference_fingerprint:
+            input.plan.policy_reference.reference_fingerprint,
         }
       : null,
     partitions: input.partitions ?? [
@@ -627,7 +810,7 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
     return terminalResult({
       status: "invalid_plan",
       plan,
-      reasons: ["forward_decision_charter_or_baseline_binding_invalid"],
+      reasons: ["forward_decision_charter_or_policy_reference_binding_invalid"],
     });
   }
   if (!boundedText(input.bootstrapSeed, 1, 512) ||

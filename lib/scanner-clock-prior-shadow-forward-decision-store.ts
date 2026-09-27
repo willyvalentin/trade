@@ -11,15 +11,15 @@ import {
 } from "@/lib/server/scanner-clock-prior-shadow-forward-decision";
 
 export const scannerClockPriorShadowForwardDecisionReceiptContractVersion =
-  "scanner_clock_prior_shadow_forward_decision_receipt_v1" as const;
+  "scanner_clock_prior_shadow_forward_decision_receipt_v2" as const;
 export const scannerClockPriorShadowForwardDecisionPlanRecordRpcName =
-  "record_scanner_clock_prior_shadow_forward_decision_plan" as const;
+  "record_scanner_clock_prior_shadow_forward_decision_plan_v2" as const;
 export const scannerClockPriorShadowForwardDecisionPlanReadRpcName =
-  "read_scanner_clock_prior_shadow_forward_decision_plans" as const;
+  "read_scanner_clock_prior_shadow_forward_decision_plans_v2" as const;
 export const scannerClockPriorShadowForwardDecisionResultRecordRpcName =
-  "record_scanner_clock_prior_shadow_forward_decision_result" as const;
+  "record_scanner_clock_prior_shadow_forward_decision_result_v2" as const;
 export const scannerClockPriorShadowForwardDecisionResultReadRpcName =
-  "read_scanner_clock_prior_shadow_forward_decision_results" as const;
+  "read_scanner_clock_prior_shadow_forward_decision_results_v2" as const;
 
 type PlanWriteRow = {
   write_status: string;
@@ -271,8 +271,7 @@ function decisionResultFromUnknown(
     typeof value.evidence_binding.segment_key !== "string" ||
     !uuid(value.evidence_binding.evaluation_charter_id) ||
     !hash(value.evidence_binding.evaluation_charter_fingerprint) ||
-    !uuid(value.evidence_binding.baseline_id) ||
-    !hash(value.evidence_binding.baseline_fingerprint) ||
+    !hash(value.evidence_binding.policy_reference_fingerprint) ||
     !Array.isArray(value.partitions) || value.partitions.length !== 2 ||
     !value.partitions.every(partition) ||
     new Set(value.partitions.map((item) => item.partition)).size !== 2 ||
