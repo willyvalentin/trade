@@ -18,10 +18,12 @@ scope.
   live ranking or publication, while CLOSED work completes the IF-4 scorecard
   needed to judge it honestly. Exact candidate-outcome coverage and immutable
   snapshot missingness plus exact ticker, sector, setup and regime concentration
-  are production-verified on the same denominator. The selected CLOSED link is
-  explicit score-to-probability semantics and forward calibration error, with
-  immutable pre-window fitting evidence kept separate from held-out and
-  walk-forward evaluation. The server-owned charter and
+  are production-verified on the same denominator. Explicit
+  score-to-probability semantics and forward calibration error are also
+  production-verified, with immutable pre-window fitting evidence kept separate
+  from held-out and walk-forward evaluation. The selected CLOSED link is now
+  attributable runtime reliability and provider cost per decision on that same
+  frozen population. The server-owned charter and
   plan are durably frozen in production before the first sample: K=3, 30/30 held-out and
   walk-forward minimums, eight trading days per partition and immutable
   `continue >= +0.03` / `reject <= 0.00` precision-delta boundaries. Those
@@ -34,8 +36,8 @@ scope.
   next missing collection, lineage, outcome or evaluator link for this
   hypothesis. Calibration must preserve distinct historical-training and
   forward-evaluation denominators, reject post-cutoff leakage or model drift and
-  remain non-authoritative for live policy. After calibration, close attributable
-  runtime reliability/provider cost and then disclosed feasibility. Complete evidence
+  remain non-authoritative for live policy. Close attributable runtime
+  reliability/provider cost and then disclosed feasibility. Complete evidence
   may issue one `continue`, `narrow` or `reject` shadow decision; none of those
   outcomes alone authorizes promotion.
 - **Blocked from selection:** live-policy promotion until complete attributable
@@ -74,6 +76,22 @@ candidate denominator and applies the frozen maximum-share limits. Missing,
 duplicated or incomplete lineage fails closed. This closes concentration
 measurement; it does not establish calibrated probabilities, alpha or better
 recommendations.
+
+**Merged and production-verified CLOSED scorecard calibration semantics:** PR
+[#683](https://github.com/willyvalentin/trade/pull/683) merged as
+`83a0959dad0c6f8c48eed303af69798800b4151b`. Protected PR CI run
+`36326387999` and exact-main post-merge attestation run `36328123381` are green;
+Netlify production deploy `6ab93027b4781800087ce93c` is `ready`,
+Git-connected, branch `main` and carries the exact merge revision. A versioned,
+fingerprinted score-to-probability model can now be fitted only from bounded
+owner-bound outcomes that predate the held-out cutoff. Forward partitions use
+that frozen model and persist probability coverage, Brier score and fixed-bucket
+expected calibration error; leakage, duplicate identities, under-sampled
+buckets, fingerprint drift and incomplete probability evidence fail closed.
+Live scores, ranking, publication and execution remain unchanged. This closes
+the scorecard's probability semantics and error measurement, but does not prove
+alpha or that recommendations have improved. Attributable runtime reliability,
+provider cost and disclosed feasibility remain terminal scorecard gaps.
 
 ### Delivery method — CLOSED readiness, 2026-09-24
 
