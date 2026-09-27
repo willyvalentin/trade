@@ -42,9 +42,11 @@ import {
   SCANNER_RANKING_SHADOW_FEASIBILITY_OBSERVATION_VERSION,
   SCANNER_RANKING_SHADOW_PROBABILITY_CALIBRATION_INPUT_VERSION,
   SCANNER_RANKING_SHADOW_PROBABILITY_CALIBRATION_OBSERVATION_VERSION,
+  SCANNER_RANKING_SHADOW_QUALITY_SLICE_OBSERVATION_VERSION,
   type ScannerRankingShadowConcentrationInput,
   type ScannerRankingShadowFeasibilityObservation,
   type ScannerRankingShadowProbabilityCalibrationObservation,
+  type ScannerRankingShadowQualitySliceObservation,
 } from "@/lib/server/scanner-intraday-liquidity-shadow-canonical-evaluation";
 import { scannerClockPriorShadowEvaluationCharterDefinition } from "@/lib/server/scanner-clock-prior-shadow-evaluation-charter";
 
@@ -55,7 +57,7 @@ export const SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_DECISION_VERSION =
 export const SCANNER_CLOCK_PRIOR_SHADOW_POLICY_REFERENCE_VERSION =
   "scanner_clock_prior_shadow_policy_reference_v1" as const;
 export const SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_SCORECARD_METRICS_VERSION =
-  "scanner_clock_prior_shadow_forward_scorecard_metrics_v5" as const;
+  "scanner_clock_prior_shadow_forward_scorecard_metrics_v6" as const;
 
 type RankingK = (typeof canonicalQualityRankingKValues)[number];
 type PartitionName = "held_out" | "walk_forward";
@@ -226,6 +228,31 @@ type FeasibilitySummary = {
   };
 };
 
+const qualitySliceDimensions = ["ticker", "sector", "setup", "regime"] as const;
+type QualitySliceDimension = (typeof qualitySliceDimensions)[number];
+type QualitySliceArm = "baseline" | "candidate";
+
+type QualitySliceMetric = {
+  arm: QualitySliceArm;
+  dimension: QualitySliceDimension;
+  key: string;
+  selected_candidate_count: number;
+  resolved_outcome_count: number;
+  positive_outcome_count: number;
+  precision: ProportionInterval | null;
+  r_result_count: number;
+  expectancy_r: number | null;
+};
+
+type QualitySlicesSummary = {
+  observation_version:
+    typeof SCANNER_RANKING_SHADOW_QUALITY_SLICE_OBSERVATION_VERSION;
+  primary_k: RankingK;
+  denominator: number;
+  dimensions: typeof qualitySliceDimensions;
+  slices: QualitySliceMetric[];
+};
+
 export type ScannerClockPriorShadowForwardPartitionResult = {
   scorecard_metrics_version:
     typeof SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_SCORECARD_METRICS_VERSION;
@@ -243,6 +270,7 @@ export type ScannerClockPriorShadowForwardPartitionResult = {
   runtime_reliability: RuntimeReliabilitySummary;
   provider_cost: ProviderCostSummary;
   feasibility: FeasibilitySummary;
+  quality_slices: QualitySlicesSummary;
   precision_delta: {
     value: number;
     conservative_lower: number;
@@ -676,6 +704,14 @@ function emptyPartition(
         conservative_slippage: true,
       },
     },
+    quality_slices: {
+      observation_version:
+        SCANNER_RANKING_SHADOW_QUALITY_SLICE_OBSERVATION_VERSION,
+      primary_k: canonicalQualityRankingKValues[0],
+      denominator: 0,
+      dimensions: qualitySliceDimensions,
+      slices: [],
+    },
     precision_delta: null,
     evidence_complete: false,
     reason_codes: uniqueSorted(reasonCodes),
@@ -1003,6 +1039,117 @@ function feasibilitySummary(input: {
   };
 }
 
+function qualitySliceKey(
+  observation: ScannerRankingShadowQualitySliceObservation,
+  dimension: QualitySliceDimension,
+) {
+  return dimension === "ticker"
+    ? observation.ticker
+    : dimension === "sector"
+      ? observation.sector
+      : dimension === "setup"
+        ? observation.setup
+        : observation.regime;
+}
+
+function qualitySlicesSummary(input: {
+  observations: ScannerRankingShadowQualitySliceObservation[];
+  denominator: number;
+  primaryK: RankingK;
+}) {
+  const identities = new Set(
+    input.observations.map((observation) => observation.candidate_id),
+  );
+  const observationsValid = input.observations.every((observation) =>
+    observation.candidate_id.trim().length > 0 &&
+    observation.ticker.trim().length > 0 &&
+    observation.sector.trim().length > 0 &&
+    observation.setup.trim().length > 0 &&
+    observation.regime.trim().length > 0 &&
+    validIso(observation.decision_at) &&
+    positiveInteger(observation.baseline_rank) &&
+    positiveInteger(observation.candidate_rank) &&
+    (observation.positive_outcome === null ||
+      typeof observation.positive_outcome === "boolean") &&
+    (observation.r_result === null || finite(observation.r_result))
+  );
+  const samePopulation = input.denominator > 0 &&
+    input.observations.length === input.denominator &&
+    identities.size === input.denominator && observationsValid;
+  const slices: QualitySliceMetric[] = [];
+
+  if (samePopulation) {
+    for (const arm of ["baseline", "candidate"] as const) {
+      const selected = input.observations.filter((observation) =>
+        (arm === "baseline"
+          ? observation.baseline_rank
+          : observation.candidate_rank) <= input.primaryK
+      );
+      for (const dimension of qualitySliceDimensions) {
+        const grouped = new Map<
+          string,
+          ScannerRankingShadowQualitySliceObservation[]
+        >();
+        for (const observation of selected) {
+          const key = qualitySliceKey(observation, dimension);
+          grouped.set(key, [...(grouped.get(key) ?? []), observation]);
+        }
+        for (const [key, members] of [...grouped.entries()].sort(
+          ([left], [right]) => left.localeCompare(right),
+        )) {
+          const positiveCount = members.filter(
+            (observation) => observation.positive_outcome === true,
+          ).length;
+          const resolvedOutcomeCount = members.filter(
+            (observation) => typeof observation.positive_outcome === "boolean",
+          ).length;
+          const rResults = members.flatMap((observation) =>
+            observation.r_result === null ? [] : [observation.r_result]
+          );
+          slices.push({
+            arm,
+            dimension,
+            key,
+            selected_candidate_count: members.length,
+            resolved_outcome_count: resolvedOutcomeCount,
+            positive_outcome_count: positiveCount,
+            precision: resolvedOutcomeCount > 0
+              ? wilson(positiveCount, resolvedOutcomeCount)
+              : null,
+            r_result_count: rResults.length,
+            expectancy_r: rResults.length > 0
+              ? rounded(
+                  rResults.reduce((sum, value) => sum + value, 0) /
+                    rResults.length,
+                )
+              : null,
+          });
+        }
+      }
+    }
+  }
+
+  const armsAndDimensionsComplete = samePopulation &&
+    (["baseline", "candidate"] as const).every((arm) =>
+      qualitySliceDimensions.every((dimension) =>
+        slices.some(
+          (slice) => slice.arm === arm && slice.dimension === dimension,
+        )
+      )
+    );
+  return {
+    summary: {
+      observation_version:
+        SCANNER_RANKING_SHADOW_QUALITY_SLICE_OBSERVATION_VERSION,
+      primary_k: input.primaryK,
+      denominator: input.denominator,
+      dimensions: qualitySliceDimensions,
+      slices,
+    } satisfies QualitySlicesSummary,
+    complete: armsAndDimensionsComplete,
+  };
+}
+
 function seededUnit(seed: string) {
   let state = createHash("sha256").update(seed).digest().readUInt32BE(0) || 1;
   return () => {
@@ -1196,12 +1343,14 @@ function summarizePartition(input: {
   probabilityCalibrationObservations:
     ScannerRankingShadowProbabilityCalibrationObservation[];
   feasibilityObservations: ScannerRankingShadowFeasibilityObservation[];
+  qualitySliceObservations: ScannerRankingShadowQualitySliceObservation[];
   probabilityCalibrationModelFingerprint: string | null;
   runtimeEvidence: ScannerClockPriorShadowForwardRuntimeEvidence[];
   expectedScanFingerprints: Set<string>;
   window: ScannerClockPriorShadowForwardWindow;
   evaluationReasons: string[];
   bootstrapSeed: string;
+  primaryK: RankingK;
 }) {
   const ranked = input.observations.filter((observation) => !observation.no_trade);
   const rankedCandidateCount = input.observations.reduce(
@@ -1295,6 +1444,11 @@ function summarizePartition(input: {
   const feasibility = feasibilitySummary({
     observations: input.feasibilityObservations,
     denominator: expectedOutcomeCount,
+  });
+  const qualitySlices = qualitySlicesSummary({
+    observations: input.qualitySliceObservations,
+    denominator: expectedOutcomeCount,
+    primaryK: input.primaryK,
   });
   const operational = runtimeAndCostSummary({
     evidence: input.runtimeEvidence,
@@ -1418,6 +1572,9 @@ function summarizePartition(input: {
   if (!feasibility.unavailableDisclosed) {
     reasons.push("candidate_unavailable_feasibility_not_disclosed");
   }
+  if (!qualitySlices.complete) {
+    reasons.push("candidate_quality_slice_evidence_incomplete");
+  }
   const clusteredInterval = clusteredPrecisionDeltaInterval(
     input.observations,
     input.bootstrapSeed,
@@ -1456,6 +1613,7 @@ function summarizePartition(input: {
     runtime_reliability: operational.reliability,
     provider_cost: operational.cost,
     feasibility: feasibility.summary,
+    quality_slices: qualitySlices.summary,
     precision_delta: delta,
     evidence_complete: reasonCodes.length === 0,
     reason_codes: reasonCodes,
@@ -1566,6 +1724,13 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
     held_out: [],
     walk_forward: [],
   };
+  const qualitySliceObservations: Record<
+    PartitionName,
+    ScannerRankingShadowQualitySliceObservation[]
+  > = {
+    held_out: [],
+    walk_forward: [],
+  };
   const runtimeEvidence: Record<
     PartitionName,
     ScannerClockPriorShadowForwardRuntimeEvidence[]
@@ -1581,6 +1746,7 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
   const seenScanFingerprints = new Set<string>();
   const seenEvaluationIdentities = new Set<string>();
   const seenCalibrationCandidateIds = new Set<string>();
+  const seenQualitySliceCandidateIds = new Set<string>();
   let versionCohortIdentity: string | null = null;
   const calibrationTrainingInputs: ScannerScoreProbabilityCalibrationTrainingInput[] = [];
   const calibrationWindowEndAt = plan.windows.held_out.start_at;
@@ -1849,6 +2015,33 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
     } else {
       feasibilityObservations[partition].push(...feasibilityInputs);
     }
+    const qualitySliceInputs = evaluation.quality_slice_observations;
+    if (
+      evaluation.quality_slice_observation_version !==
+        SCANNER_RANKING_SHADOW_QUALITY_SLICE_OBSERVATION_VERSION ||
+      !qualitySliceInputs ||
+      qualitySliceInputs.length !==
+        evaluation.coverage.expected_candidate_count ||
+      new Set(qualitySliceInputs.map((item) => item.candidate_id)).size !==
+        qualitySliceInputs.length
+    ) {
+      reasonsByPartition[partition].push(
+        "candidate_quality_slice_observations_incomplete",
+      );
+    } else {
+      let duplicateIdentity = false;
+      for (const observation of qualitySliceInputs) {
+        if (seenQualitySliceCandidateIds.has(observation.candidate_id)) {
+          duplicateIdentity = true;
+        }
+        seenQualitySliceCandidateIds.add(observation.candidate_id);
+      }
+      if (duplicateIdentity) {
+        globalReasons.push("duplicate_quality_slice_candidate_identity");
+      } else {
+        qualitySliceObservations[partition].push(...qualitySliceInputs);
+      }
+    }
     observations[partition].push({
       decision_at: decisionAt,
       no_trade: false,
@@ -1930,6 +2123,7 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
       probabilityCalibrationObservations:
         probabilityCalibrationObservations[partition],
       feasibilityObservations: feasibilityObservations[partition],
+      qualitySliceObservations: qualitySliceObservations[partition],
       probabilityCalibrationModelFingerprint:
         probabilityCalibration?.model_fingerprint ?? null,
       runtimeEvidence: runtimeEvidence[partition],
@@ -1943,6 +2137,7 @@ export function evaluateScannerClockPriorShadowForwardDecision(input: {
       window: plan.windows[partition],
       evaluationReasons: reasonsByPartition[partition],
       bootstrapSeed: `${input.bootstrapSeed}:${plan.plan_fingerprint}:${partition}`,
+      primaryK: plan.primary_k,
     }),
   );
   const evidenceReasons = uniqueSorted(

@@ -71,14 +71,24 @@ measures finalized provider credits per decision. Missing, conflicting or
 unfinalized runtime evidence remains `evidence_incomplete`; operational success
 may not substitute for the quality dimensions already closed.
 
-Step (5), disclosed feasibility, is now the selected CLOSED delivery. It must
-measure `liquidity`, `volatility` and `trigger_attainment` on the same exact
+Step (5), disclosed feasibility, is production-verified. It measures
+`liquidity`, `volatility` and `trigger_attainment` on the same exact
 point-in-time candidate denominator used by the other scorecard dimensions.
 `spread`, `halt_risk` and `conservative_slippage` remain explicitly
 `unavailable_disclosed`; Ture must not invent them, silently treat them as pass
 or claim executable-quality evidence. Missing required feasibility is
 `evidence_incomplete`. This delivery remains shadow-only and may not change live
 ranking, publication or execution.
+
+The selected CLOSED bridge from this complete scorecard to the next intelligence
+hypothesis is exact outcome-linked quality slicing. On the same frozen
+population, retain baseline and challenger rank, ticker, sector, setup, regime,
+terminal-outcome resolution, precision and expectancy at the declared primary
+K. Missing or duplicated slice lineage fails closed, and unresolved outcomes
+remain explicit rather than being counted as losses. These slices are
+diagnostic: they may select the next measured discovery/data-fitness or
+contextual-ranking defect after the current hypothesis is decided, but they
+cannot change the current charter, rank, publish or promote a policy.
 
 **Definition of recommendation-engine progress.** Ture improves only when a
 versioned challenger changes a declared point-in-time input, feature, score,

@@ -91,6 +91,36 @@ const planReceipt: ScannerClockPriorShadowForwardDecisionPlanReceipt = {
   recorded_at: "2026-09-27T08:02:00.000Z",
 };
 
+function qualitySlices(denominator: number) {
+  const dimensions = ["ticker", "sector", "setup", "regime"] as const;
+  return {
+    observation_version:
+      "scanner_ranking_shadow_quality_slice_observation_v1" as const,
+    primary_k: 3 as const,
+    denominator,
+    dimensions,
+    slices: (["baseline", "candidate"] as const).flatMap((arm) =>
+      dimensions.map((dimension) => ({
+        arm,
+        dimension,
+        key: `${dimension}-fixture`,
+        selected_candidate_count: 3,
+        resolved_outcome_count: 3,
+        positive_outcome_count: 2,
+        precision: {
+          value: 2 / 3,
+          numerator: 2,
+          denominator: 3,
+          lower: 0.2,
+          upper: 0.95,
+        },
+        r_result_count: 3,
+        expectancy_r: 0.5,
+      }))
+    ),
+  };
+}
+
 function partition(name: "held_out" | "walk_forward") {
   return {
     scorecard_metrics_version:
@@ -235,6 +265,7 @@ function partition(name: "held_out" | "walk_forward") {
         conservative_slippage: true as const,
       },
     },
+    quality_slices: qualitySlices(84),
     precision_delta: {
       value: 0.1,
       conservative_lower: 0.04,

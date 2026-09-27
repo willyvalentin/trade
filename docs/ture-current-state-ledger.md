@@ -23,11 +23,15 @@ scope.
   production-verified, with immutable pre-window fitting evidence kept separate
   from held-out and walk-forward evaluation. Attributable runtime reliability
   and finalized provider cost per decision are production-verified on that same
-  frozen population. The selected CLOSED link is now disclosed feasibility:
-  exact point-in-time liquidity, volatility and trigger-attainment evidence,
-  while unavailable spread, halt-risk and conservative-slippage remain explicit
-  limitations rather than invented passes. The server-owned charter and
-  plan are durably frozen in production before the first sample: K=3, 30/30 held-out and
+  frozen population. Disclosed feasibility is production-verified with exact
+  point-in-time liquidity, volatility and trigger-attainment evidence, while
+  unavailable spread, halt-risk and conservative-slippage remain explicit
+  limitations rather than invented passes. The selected CLOSED bridge now
+  preserves exact outcome-linked quality slices for baseline and challenger at
+  primary K by ticker, sector, setup and regime, so the next intelligence
+  hypothesis can be chosen from measured error rather than intuition. The
+  server-owned charter and plan are durably frozen in production before the
+  first sample: K=3, 30/30 held-out and
   walk-forward minimums, eight trading days per partition and immutable
   `continue >= +0.03` / `reject <= 0.00` precision-delta boundaries. Those
   relative boundaries are necessary but not sufficient: absolute precision,
@@ -39,9 +43,10 @@ scope.
   next missing collection, lineage, outcome or evaluator link for this
   hypothesis. Calibration must preserve distinct historical-training and
   forward-evaluation denominators, reject post-cutoff leakage or model drift and
-  remain non-authoritative for live policy. Close disclosed feasibility, then
-  use measured cohort errors to select one discovery/data-fitness or contextual-
-  ranking challenger with a frozen baseline and attributable quality metric.
+  remain non-authoritative for live policy. Preserve the exact quality slices,
+  then use measured cohort errors to select one discovery/data-fitness or
+  contextual-ranking challenger with a frozen baseline and attributable quality
+  metric.
   Complete evidence may issue one `continue`, `narrow` or `reject` shadow
   decision; none of those outcomes alone authorizes promotion.
 - **Blocked from selection:** live-policy promotion until complete attributable
@@ -95,9 +100,9 @@ expected calibration error; leakage, duplicate identities, under-sampled
 buckets, fingerprint drift and incomplete probability evidence fail closed.
 Live scores, ranking, publication and execution remain unchanged. This closes
 the scorecard's probability semantics and error measurement, but does not prove
-alpha or that recommendations have improved. Later entries below close
-attributable runtime reliability and provider cost; disclosed feasibility is the
-remaining terminal scorecard gap.
+alpha or that recommendations have improved. At that delivery, attributable
+runtime reliability, provider cost and disclosed feasibility were still the
+remaining scorecard gaps; later entries below close them.
 
 **Merged and production-verified CLOSED scorecard runtime reliability and
 provider cost:** PR [#685](https://github.com/willyvalentin/trade/pull/685)
@@ -112,8 +117,31 @@ rate-limit, provider and other errors are explicit, and exact finalized credits
 are measured per decision. Missing, conflicting or unfinalized operations fail
 closed. Live ranking, publication, provider invocation and broker behavior are
 unchanged. This closes runtime reliability and provider-cost measurement; it
-does not prove alpha or better recommendations. Disclosed feasibility is the
-selected remaining scorecard link.
+does not prove alpha or better recommendations. The later feasibility entry
+supersedes the then-remaining gap.
+
+**Merged and production-verified CLOSED scorecard feasibility:** PR
+[#687](https://github.com/willyvalentin/trade/pull/687) merged as
+`d65c3299773858522bf44701cbd3803aeca57610`. Protected PR CI run
+`36336687818` and exact-main post-merge run `36338474948` are green; Netlify
+production deploy `6ab95790f8cdc90008eccbcd` is `ready`, Git-connected,
+branch `main` and carries the exact merge revision. The same frozen candidate
+denominator now exposes point-in-time liquidity, volatility and exact entry
+trigger attainment, requires feature-vector v2 and fails closed on incomplete
+coverage. Spread, halt risk and conservative slippage remain explicitly
+unavailable. This closes scorecard measurement, not executable-quality evidence
+or proof that recommendations improved.
+
+**Selected CLOSED bridge — exact outcome-linked quality slices:** preserve each
+canonical candidate outcome together with baseline/challenger rank and its
+ticker, sector, setup and decision-time regime. Aggregate precision, resolved
+outcome count, expectancy and sample count at the plan's declared primary K for
+both arms on the same exact denominator. Missing, duplicated or forged slice
+evidence must fail closed; ambiguous outcomes stay unresolved rather than being
+silently converted to losses. The result is diagnostic and shadow-only. It
+exists to identify the largest measured context error after the frozen
+clock-neutral decision and grants no live-ranking, publication, provider,
+promotion or broker authority.
 
 ### Delivery method — CLOSED readiness, 2026-09-24
 

@@ -577,6 +577,23 @@ test("maps the exact clock-neutral cohort into the canonical paired rank evaluat
     denominator: 1,
     identity_count: 1,
   });
+  expect(result.quality_slice_observation_version).toBe(
+    "scanner_ranking_shadow_quality_slice_observation_v1",
+  );
+  expect(result.quality_slice_observations).toEqual([
+    expect.objectContaining({
+      candidate_id: expect.any(String),
+      ticker: "FIT",
+      sector: "Technology",
+      setup: "VWAP_HOLD_CONTINUATION",
+      regime: "risk_on",
+      baseline_rank: 1,
+      candidate_rank: 1,
+      positive_outcome: true,
+      terminal_outcome: "target_before_stop",
+      r_result: 2,
+    }),
+  ]);
   expect(result.evaluation).toMatchObject({
     status: "probability_semantics_missing",
     shadow_only: true,
@@ -1176,6 +1193,30 @@ test("withholds a complete cohort until the full recommendation-quality charter 
         liquidity_coverage: expect.objectContaining({ value: 1 }),
         volatility_coverage: expect.objectContaining({ value: 1 }),
         trigger_attainment_coverage: expect.objectContaining({ value: 1 }),
+      }),
+      quality_slices: expect.objectContaining({
+        observation_version:
+          "scanner_ranking_shadow_quality_slice_observation_v1",
+        primary_k: 1,
+        denominator: 10,
+        dimensions: ["ticker", "sector", "setup", "regime"],
+        slices: expect.arrayContaining([
+          expect.objectContaining({
+            arm: "candidate",
+            dimension: "sector",
+            key: "Technology",
+            selected_candidate_count: 5,
+            resolved_outcome_count: 5,
+            positive_outcome_count: 3,
+            precision: expect.objectContaining({
+              value: 0.6,
+              numerator: 3,
+              denominator: 5,
+            }),
+            r_result_count: 5,
+            expectancy_r: 0.8,
+          }),
+        ]),
       }),
       evidence_complete: false,
     }),
@@ -1857,6 +1898,34 @@ test("uses frozen conservative boundaries for continue, narrow and reject", () =
         halt_risk: true,
         conservative_slippage: true,
       },
+    },
+    quality_slices: {
+      observation_version:
+        "scanner_ranking_shadow_quality_slice_observation_v1",
+      primary_k: 1,
+      denominator: 80,
+      dimensions: ["ticker", "sector", "setup", "regime"] as const,
+      slices: (["baseline", "candidate"] as const).flatMap((arm) =>
+        (["ticker", "sector", "setup", "regime"] as const).map(
+          (dimension) => ({
+            arm,
+            dimension,
+            key: `${dimension}-fixture`,
+            selected_candidate_count: 20,
+            resolved_outcome_count: 20,
+            positive_outcome_count: 12,
+            precision: {
+              value: 0.6,
+              numerator: 12,
+              denominator: 20,
+              lower: 0.4,
+              upper: 0.8,
+            },
+            r_result_count: 20,
+            expectancy_r: 0.3,
+          }),
+        )
+      ),
     },
     precision_delta: {
       value: 0.1,

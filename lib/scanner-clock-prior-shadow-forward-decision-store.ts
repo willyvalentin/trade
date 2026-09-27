@@ -7,6 +7,7 @@ import { RECOMMENDATION_DECISION_FEATURE_VECTOR_VERSION } from "@/lib/recommenda
 import {
   SCANNER_RANKING_SHADOW_FEASIBILITY_OBSERVATION_VERSION,
   SCANNER_RANKING_SHADOW_PROBABILITY_CALIBRATION_OBSERVATION_VERSION,
+  SCANNER_RANKING_SHADOW_QUALITY_SLICE_OBSERVATION_VERSION,
 } from "@/lib/server/scanner-intraday-liquidity-shadow-canonical-evaluation";
 
 import {
@@ -379,6 +380,68 @@ function feasibility(value: unknown, expectedCandidateCount: number) {
   );
 }
 
+function qualitySlices(value: unknown, expectedCandidateCount: number) {
+  if (!record(value) ||
+    value.observation_version !==
+      SCANNER_RANKING_SHADOW_QUALITY_SLICE_OBSERVATION_VERSION ||
+    ![1, 3, 5].includes(value.primary_k as number) ||
+    value.denominator !== expectedCandidateCount ||
+    !Array.isArray(value.dimensions) ||
+    !same(value.dimensions, ["ticker", "sector", "setup", "regime"]) ||
+    !Array.isArray(value.slices) || value.slices.length < 8 ||
+    value.slices.length > expectedCandidateCount * 8) return false;
+
+  const totals = new Map<string, number>();
+  const identities = new Set<string>();
+  for (const item of value.slices) {
+    if (!record(item) ||
+      (item.arm !== "baseline" && item.arm !== "candidate") ||
+      !["ticker", "sector", "setup", "regime"].includes(
+        item.dimension as string,
+      ) ||
+      typeof item.key !== "string" || item.key.trim().length === 0 ||
+      item.key.length > 512 ||
+      !nonNegativeInteger(item.selected_candidate_count) ||
+      (item.selected_candidate_count as number) < 1 ||
+      !nonNegativeInteger(item.resolved_outcome_count) ||
+      (item.resolved_outcome_count as number) >
+        (item.selected_candidate_count as number) ||
+      !nonNegativeInteger(item.positive_outcome_count) ||
+      (item.positive_outcome_count as number) >
+        (item.resolved_outcome_count as number) ||
+      ((item.resolved_outcome_count as number) === 0
+        ? item.precision !== null
+        : !proportion(item.precision) || !record(item.precision) ||
+          item.precision.numerator !== item.positive_outcome_count ||
+          item.precision.denominator !== item.resolved_outcome_count) ||
+      !nonNegativeInteger(item.r_result_count) ||
+      (item.r_result_count as number) >
+        (item.selected_candidate_count as number) ||
+      ((item.r_result_count as number) === 0
+        ? item.expectancy_r !== null
+        : typeof item.expectancy_r !== "number" ||
+          !Number.isFinite(item.expectancy_r))) return false;
+    const identity = `${item.arm}:${item.dimension}:${item.key}`;
+    if (identities.has(identity)) return false;
+    identities.add(identity);
+    const totalIdentity = `${item.arm}:${item.dimension}`;
+    totals.set(
+      totalIdentity,
+      (totals.get(totalIdentity) ?? 0) +
+        (item.selected_candidate_count as number),
+    );
+  }
+  const expectedTotals = ["baseline", "candidate"].flatMap((arm) =>
+    ["ticker", "sector", "setup", "regime"].map(
+      (dimension) => totals.get(`${arm}:${dimension}`) ?? 0,
+    )
+  );
+  return expectedTotals.length === 8 && new Set(expectedTotals).size === 1 &&
+    expectedTotals.every(
+      (total) => total > 0 && total <= expectedCandidateCount,
+    );
+}
+
 function partition(
   value: unknown,
 ): value is ScannerClockPriorShadowForwardPartitionResult {
@@ -410,6 +473,10 @@ function partition(
     !runtimeReliability(value.runtime_reliability, opportunitySetCount) ||
     !providerCost(value.provider_cost, opportunitySetCount) ||
     !feasibility(value.feasibility, value.ranked_candidate_count as number) ||
+    !qualitySlices(
+      value.quality_slices,
+      value.ranked_candidate_count as number,
+    ) ||
     !record(value.precision_delta)) {
     return false;
   }
