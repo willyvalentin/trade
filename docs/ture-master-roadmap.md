@@ -34,6 +34,16 @@ freshness, provider budget, evidence lineage or safety. The remaining bounded
 A.2 OPEN series is the selected operational exit observation and does not block
 independent intelligence work.
 
+**Recommendation-quality gate.** An IF-4 terminal decision must evaluate the
+whole frozen charter that makes the recommendation useful: absolute precision,
+relative lift, expectancy, calibrated-probability error, outcome coverage,
+missingness, reliability, provider cost, concentration and disclosed
+feasibility. Precision lift alone may never produce `continue`, `narrow` or
+`reject`. A missing metric or invalid semantic contract is
+`evidence_incomplete`, not a neutral score and not permission to promote. Build
+the missing measurement or probability semantics before IF-5; do not lower the
+charter to fit the evidence already available.
+
 **2026-09-23 market-timing decision.** The former named morning/midday/power-hour
 publication windows are historical operating constraints, not a product
 principle or a recommendation quota. A scheduled tick is a bounded observation

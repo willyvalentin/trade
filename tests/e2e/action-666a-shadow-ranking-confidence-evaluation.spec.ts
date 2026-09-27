@@ -56,6 +56,9 @@ test.describe("Action 666A paired ranking and confidence shadow evaluation", () 
     if (!result.evaluation) throw new Error(result.reason_codes.join(","));
 
     expect(result.evaluation).toMatchObject({
+      result_version: "canonical_shadow_evaluation_result_v1",
+      evaluation_version:
+        "canonical_shadow_ranking_confidence_evaluation_v1",
       shadow_only: true,
       live_ranking_effect: false,
       causal_improvement_claimed: false,
@@ -184,6 +187,18 @@ test.describe("Action 666A paired ranking and confidence shadow evaluation", () 
         evaluation.candidate.ranking.precision_at_k[k].value,
       ).not.toBeNull();
       expect(evaluation.precision_delta_at_k[k]).not.toBeNull();
+      for (const arm of [evaluation.baseline, evaluation.candidate]) {
+        expect(arm.performance_at_k_version).toBe(
+          "canonical_shadow_ranking_performance_at_k_v1",
+        );
+        expect(arm.performance_at_k[k].expectancy_r.value).not.toBeNull();
+        expect(arm.performance_at_k[k].expectancy_r.denominator).toBe(
+          Number(k),
+        );
+        expect(arm.performance_at_k[k].expectancy_r.identity_count).toBe(
+          Number(k),
+        );
+      }
     }
     expect(evaluation.candidate_displacement).toHaveLength(10);
     expect(
