@@ -13,6 +13,7 @@ import type { RecommendationOutcome } from "@/lib/recommendation-outcome-tracker
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
 import type { ObservationCycleReceipt } from "@/lib/observation-cycle-receipt";
 import type { ScannerClockPriorShadowForwardRuntimeEvidence } from "@/lib/scanner-clock-prior-shadow-forward-runtime-evidence";
+export type { ScannerClockPriorShadowForwardRuntimeEvidence } from "@/lib/scanner-clock-prior-shadow-forward-runtime-evidence";
 import {
   SCANNER_SCORE_PROBABILITY_CALIBRATION_MODEL_VERSION,
   buildScannerScoreProbabilityCalibrationModel,
