@@ -112,15 +112,19 @@ non-visible candidates, under a bounded fail-closed cap and without extra
 provider work. Only that exact versioned shadow cohort is now admitted through
 the canonical outcome path under the existing provider-credit guards; generic
 hidden research remains blocked and admission grants no provider authority. The
-active successor must keep each scheduled Basic Free snapshot selection within
-the same slot's four-request ceiling and expose versioned before/after backlog
-accounting. A receipt may not imply that selected work completed when the
-snapshot cap, provider budget, persistence or missing candles deferred it.
-Forward observations and outcome-linked baseline comparison then decide whether
-this policy should be promoted, narrowed or rejected. No threshold is lowered to
-create candidates, and neither attribution, snapshot admission, capacity
-alignment, coverage nor a descriptive outcome delta is quality evidence by
-itself.
+Basic Free outcome-capacity contract now keeps each scheduled snapshot selection
+within the same slot's four-request ceiling and exposes versioned before/after
+backlog accounting. A receipt may not imply that selected work completed when
+the snapshot cap, provider budget, persistence or missing candles deferred it.
+
+The active successor is contextual ranking evidence: first preserve the exact
+decision-time market-regime receipt through canonical evaluation, then measure
+the legacy named-window timing, setup boost and warning penalty against the
+same-population IF-3b clock-neutral shadow challenger. Forward observations and
+outcome-linked baseline comparison then decide whether any policy should be
+promoted, narrowed or rejected. No threshold is lowered to create candidates,
+and neither attribution, snapshot admission, capacity alignment, rank movement,
+coverage nor a descriptive outcome delta is quality evidence by itself.
 
 For every recommendation-quality hypothesis, build in this order: admit and
 version the point-in-time input; run the challenger in shadow over the exact
