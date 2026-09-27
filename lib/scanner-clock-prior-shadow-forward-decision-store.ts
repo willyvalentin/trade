@@ -101,7 +101,7 @@ export type ScannerClockPriorShadowForwardDecisionReceiptDatabase = {
   }>;
 };
 
-type PlanWriteResult =
+export type ScannerClockPriorShadowForwardDecisionPlanWriteResult =
   | {
       status: "recorded" | "already_recorded";
       receipt: ScannerClockPriorShadowForwardDecisionPlanReceipt;
@@ -125,7 +125,7 @@ type ResultWriteResult =
       safe_blocker: string;
     };
 
-type PlanReadResult =
+export type ScannerClockPriorShadowForwardDecisionPlanReadResult =
   | {
       status: "available" | "not_found";
       receipts: ScannerClockPriorShadowForwardDecisionPlanReceipt[];
@@ -334,7 +334,7 @@ function resultReceipt(row: ResultWriteRow | ResultReadRow) {
 function unavailablePlan(
   status: "unavailable" | "different_plan_already_recorded" = "unavailable",
   blocker = "clock_prior_forward_decision_plan_store_unavailable",
-): PlanWriteResult {
+): ScannerClockPriorShadowForwardDecisionPlanWriteResult {
   return { status, receipt: null, safe_blocker: blocker };
 }
 
@@ -351,7 +351,7 @@ export function createScannerClockPriorShadowForwardDecisionReceiptStore(
   return {
     async recordPlan(
       value: ScannerClockPriorShadowForwardDecisionPlan,
-    ): Promise<PlanWriteResult> {
+    ): Promise<ScannerClockPriorShadowForwardDecisionPlanWriteResult> {
       const plan = planFromUnknown(value);
       if (!database || !plan) return unavailablePlan();
       try {
@@ -377,7 +377,9 @@ export function createScannerClockPriorShadowForwardDecisionReceiptStore(
       return unavailablePlan();
     },
 
-    async readPlans(ownerUserId: string): Promise<PlanReadResult> {
+    async readPlans(
+      ownerUserId: string,
+    ): Promise<ScannerClockPriorShadowForwardDecisionPlanReadResult> {
       if (!database || !uuid(ownerUserId)) {
         return { status: "unavailable", receipts: [], safe_blocker: "clock_prior_forward_decision_plan_store_unavailable" };
       }
