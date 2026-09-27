@@ -11,6 +11,10 @@ const migrationPath = new URL(
   "../supabase/migrations/20260927090000_if4_clock_prior_semantic_policy_reference.sql",
   import.meta.url,
 );
+const terminalReasonMigrationPath = new URL(
+  "../supabase/migrations/20260927114500_if4_forward_decision_terminal_reasons.sql",
+  import.meta.url,
+);
 
 function docker(...args) {
   return execFileSync("docker", args, {
@@ -159,7 +163,7 @@ const result = {
     policy_reference_fingerprint: referenceFingerprint,
   },
   partitions: [partition("held_out"), partition("walk_forward")],
-  reason_codes: [],
+  reason_codes: ["both_partitions_clear_continue_boundary"],
   shadow_only: true,
   live_ranking_effect: false,
   publication_effect: false,
@@ -197,6 +201,7 @@ try {
     );
   `);
   psql(readFileSync(migrationPath, "utf8"));
+  psql(readFileSync(terminalReasonMigrationPath, "utf8"));
   psql(`
     insert into public.recommendation_evaluation_charters values (
       '${charterId}', '${owner}', '${segment}', '${charterFingerprint}',
@@ -224,15 +229,37 @@ try {
         '${owner}', (select plan_id from first_plan), '${planFingerprint}',
         '${resultFingerprint}', '${JSON.stringify(result)}'::jsonb,
         'scanner_clock_prior_shadow_forward_decision_receipt_v2');
+    create temporary table rejected_reason as
+      select * from public.record_scanner_clock_prior_shadow_forward_decision_result_v2(
+        '${owner}', (select plan_id from first_plan), '${planFingerprint}',
+        '${"2".repeat(64)}',
+        '${JSON.stringify({
+          ...result,
+          reason_codes: [
+            "complete_evidence_does_not_clear_continue_or_reject_boundary",
+          ],
+        })}'::jsonb,
+        'scanner_clock_prior_shadow_forward_decision_receipt_v2');
     reset role;
     do $$ begin
       if (select write_status from first_plan) <> 'plan_recorded'
          or (select write_status from repeated_plan) <> 'plan_already_recorded'
          or not (select idempotent from repeated_plan)
          or (select write_status from first_result) <> 'result_recorded'
+         or (select write_status from rejected_reason) <> 'unavailable'
+         or (select blocker from rejected_reason) <>
+           'clock_prior_forward_decision_result_v2_contract_invalid'
          or (select count(*) from public.scanner_clock_prior_shadow_forward_decision_plans_v2) <> 1
          or (select count(*) from public.scanner_clock_prior_shadow_forward_decision_results_v2) <> 1
-      then raise exception 'durable forward receipt lifecycle did not match contract'; end if;
+      then raise exception
+        'durable forward receipt lifecycle did not match contract: first_plan=%, repeated_plan=%, first_result=%/%, rejected_reason=%/%',
+        (select write_status from first_plan),
+        (select write_status from repeated_plan),
+        (select write_status from first_result),
+        (select blocker from first_result),
+        (select write_status from rejected_reason),
+        (select blocker from rejected_reason);
+      end if;
     end $$;
     do $$ begin
       begin

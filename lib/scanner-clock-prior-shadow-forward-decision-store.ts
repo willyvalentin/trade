@@ -113,7 +113,7 @@ export type ScannerClockPriorShadowForwardDecisionPlanWriteResult =
       safe_blocker: string;
     };
 
-type ResultWriteResult =
+export type ScannerClockPriorShadowForwardDecisionResultWriteResult =
   | {
       status: "recorded" | "already_recorded";
       receipt: ScannerClockPriorShadowForwardDecisionResultReceipt;
@@ -133,7 +133,7 @@ export type ScannerClockPriorShadowForwardDecisionPlanReadResult =
     }
   | { status: "unavailable"; receipts: []; safe_blocker: string };
 
-type ResultReadResult =
+export type ScannerClockPriorShadowForwardDecisionResultReadResult =
   | {
       status: "available" | "not_found";
       receipts: ScannerClockPriorShadowForwardDecisionResultReceipt[];
@@ -202,6 +202,20 @@ function stringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.length <= 200 &&
     value.every((item) => typeof item === "string" && item.length <= 512) &&
     new Set(value).size === value.length;
+}
+
+const terminalDecisionReason = {
+  continue: "both_partitions_clear_continue_boundary",
+  narrow: "complete_evidence_does_not_clear_continue_or_reject_boundary",
+  reject: "at_least_one_partition_clears_reject_boundary",
+} as const;
+
+function exactTerminalDecisionReason(value: Record<string, unknown>) {
+  const decision = value.decision;
+  return (decision === "continue" || decision === "narrow" ||
+      decision === "reject") &&
+    Array.isArray(value.reason_codes) && value.reason_codes.length === 1 &&
+    value.reason_codes[0] === terminalDecisionReason[decision];
 }
 
 function proportion(value: unknown) {
@@ -275,7 +289,7 @@ function decisionResultFromUnknown(
     !Array.isArray(value.partitions) || value.partitions.length !== 2 ||
     !value.partitions.every(partition) ||
     new Set(value.partitions.map((item) => item.partition)).size !== 2 ||
-    !stringArray(value.reason_codes) || value.reason_codes.length !== 0 ||
+    !stringArray(value.reason_codes) || !exactTerminalDecisionReason(value) ||
     value.shadow_only !== true || value.live_ranking_effect !== false ||
     value.publication_effect !== false ||
     value.causal_improvement_claimed !== false || !record(value.authority) ||
@@ -340,7 +354,7 @@ function unavailablePlan(
 function unavailableResult(
   status: "unavailable" | "different_result_already_recorded" = "unavailable",
   blocker = "clock_prior_forward_decision_result_store_unavailable",
-): ResultWriteResult {
+): ScannerClockPriorShadowForwardDecisionResultWriteResult {
   return { status, receipt: null, safe_blocker: blocker };
 }
 
@@ -399,7 +413,9 @@ export function createScannerClockPriorShadowForwardDecisionReceiptStore(
       }
     },
 
-    async recordResult(input: ResultRecordInput): Promise<ResultWriteResult> {
+    async recordResult(
+      input: ResultRecordInput,
+    ): Promise<ScannerClockPriorShadowForwardDecisionResultWriteResult> {
       const result = decisionResultFromUnknown(input.decision_result);
       if (!database || !uuid(input.owner_user_id) || !uuid(input.plan_id) ||
         !result || result.evidence_binding?.owner_user_id !== input.owner_user_id) {
@@ -435,7 +451,9 @@ export function createScannerClockPriorShadowForwardDecisionReceiptStore(
       return unavailableResult();
     },
 
-    async readResults(ownerUserId: string): Promise<ResultReadResult> {
+    async readResults(
+      ownerUserId: string,
+    ): Promise<ScannerClockPriorShadowForwardDecisionResultReadResult> {
       if (!database || !uuid(ownerUserId)) {
         return { status: "unavailable", receipts: [], safe_blocker: "clock_prior_forward_decision_result_store_unavailable" };
       }
