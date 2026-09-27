@@ -146,25 +146,26 @@ function qualitySlices(denominator: number) {
     primary_k: 1 as const,
     denominator,
     dimensions,
-    slices: (["baseline", "candidate"] as const).flatMap((arm) =>
-      dimensions.map((dimension) => ({
+    slices: (["baseline", "candidate"] as const).flatMap((arm) => {
+      const positiveOutcomeCount = arm === "baseline" ? 6 : 8;
+      return dimensions.map((dimension) => ({
         arm,
         dimension,
         key: `${dimension}-fixture`,
-        selected_candidate_count: 1,
-        resolved_outcome_count: 1,
-        positive_outcome_count: 1,
+        selected_candidate_count: denominator,
+        resolved_outcome_count: denominator,
+        positive_outcome_count: positiveOutcomeCount,
         precision: {
-          value: 1,
-          numerator: 1,
-          denominator: 1,
+          value: positiveOutcomeCount / denominator,
+          numerator: positiveOutcomeCount,
+          denominator,
           lower: 0.2,
           upper: 1,
         },
-        r_result_count: 1,
+        r_result_count: denominator,
         expectancy_r: 2,
-      }))
-    ),
+      }));
+    }),
   };
 }
 
@@ -483,6 +484,25 @@ test("records a terminal shadow-only decision and rejects authority or receipt d
     owner_user_id: ownerUserId,
     plan_id: planId,
     decision_result: qualitySliceDrift,
+  })).resolves.toMatchObject({ status: "unavailable" });
+
+  const qualitySliceTotalDrift = structuredClone(result);
+  qualitySliceTotalDrift.partitions[0]!.quality_slices.slices[0]!
+    .selected_candidate_count = 11;
+  qualitySliceTotalDrift.partitions[0]!.quality_slices.slices[0]!
+    .resolved_outcome_count = 11;
+  await expect(store.recordResult({
+    owner_user_id: ownerUserId,
+    plan_id: planId,
+    decision_result: qualitySliceTotalDrift,
+  })).resolves.toMatchObject({ status: "unavailable" });
+
+  const qualitySlicePrimaryKDrift = structuredClone(result);
+  qualitySlicePrimaryKDrift.partitions[0]!.quality_slices.primary_k = 3;
+  await expect(store.recordResult({
+    owner_user_id: ownerUserId,
+    plan_id: planId,
+    decision_result: qualitySlicePrimaryKDrift,
   })).resolves.toMatchObject({ status: "unavailable" });
 
   const forgedReceipt = createScannerClockPriorShadowForwardDecisionReceiptStore(database({
