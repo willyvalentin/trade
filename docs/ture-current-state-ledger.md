@@ -29,7 +29,13 @@ scope.
   limitations rather than invented passes. The selected CLOSED bridge now
   preserves exact outcome-linked quality slices for baseline and challenger at
   primary K by ticker, sector, setup and regime, so the next intelligence
-  hypothesis can be chosen from measured error rather than intuition. The
+  hypothesis can be chosen from measured error rather than intuition. A
+  versioned `scanner_clock_prior_shadow_context_diagnostic_v1` terminal-only
+  read model now binds those slices to the exact durable result, requires both
+  arms across both partitions and at least ten resolved outcomes per arm, and
+  flags only Wilson-separated conservative regressions. Its deterministic
+  priority can focus the next human-reviewed hypothesis but has no ranking,
+  publication, provider, promotion or broker authority. The
   server-owned charter and plan are durably frozen in production before the
   first sample: K=3, 30/30 held-out and
   walk-forward minimums, eight trading days per partition and immutable
@@ -44,9 +50,12 @@ scope.
   hypothesis. Calibration must preserve distinct historical-training and
   forward-evaluation denominators, reject post-cutoff leakage or model drift and
   remain non-authoritative for live policy. Preserve the exact quality slices,
-  then use measured cohort errors to select one discovery/data-fitness or
-  contextual-ranking challenger with a frozen baseline and attributable quality
-  metric.
+  then read the terminal context diagnostic. If it identifies a conservative
+  regression, use that context as the first investigation target and freeze one
+  discovery/data-fitness or contextual-ranking challenger with an attributable
+  quality metric; if it reports insufficient evidence or no conservative
+  regression, retain that honest result and review the complete scorecard rather
+  than mining slices or lowering thresholds.
   Complete evidence may issue one `continue`, `narrow` or `reject` shadow
   decision; none of those outcomes alone authorizes promotion.
 - **Blocked from selection:** live-policy promotion until complete attributable

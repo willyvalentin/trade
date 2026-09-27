@@ -27,6 +27,7 @@ export async function GET() {
       plan_receipt: result.plan_receipt,
       evaluation: result.evaluation,
       durable_result_receipt: result.durable_result_receipt,
+      context_diagnostic: result.context_diagnostic,
       evidence_counts: result.evidence_counts,
       authority: result.authority,
     }, { headers: noStore });
@@ -63,6 +64,7 @@ export async function POST(request: Request) {
       status: result.status,
       receipt: result.receipt,
       evaluation: result.evaluation,
+      context_diagnostic: result.context_diagnostic,
       authority: result.authority,
     }, {
       status: result.status === "finalized" ? 201 : 200,

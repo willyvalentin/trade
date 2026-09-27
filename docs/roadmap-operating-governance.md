@@ -81,6 +81,18 @@ Do not select a new data source merely because it is available; name the missing
 decision-time information, expected quality effect, entitlement/cost and exact
 forward metric that could justify retaining it.
 
+Context triage must also be frozen before result inspection. The active rule may
+compare ticker, sector, setup and regime only after one exact terminal result;
+requires both arms in both held-out and walk-forward partitions with at least ten
+resolved outcomes per arm; and calls a conservative regression only when the
+challenger's recomputed 95% Wilson upper bound is strictly below the baseline's
+lower bound. Resolve ties by largest conservative gap, largest minimum arm
+sample, then setup, regime, sector, ticker and lexical key. This output may
+prioritize investigation, never automatically choose a hypothesis or modify
+data acquisition, ranking, publication, promotion or execution. If the rule
+finds no eligible conservative regression, retain that result and use the full
+scorecard; do not mine alternate slices or relax the rule after seeing outcomes.
+
 ### Select and finish real product behavior
 
 - Keep one primary 4–16 active-hour vertical slice. Initial investigation is

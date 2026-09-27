@@ -90,6 +90,21 @@ diagnostic: they may select the next measured discovery/data-fitness or
 contextual-ranking defect after the current hypothesis is decided, but they
 cannot change the current charter, rank, publish or promote a policy.
 
+To prevent post-hoc context selection, the terminal durable result derives one
+versioned `scanner_clock_prior_shadow_context_diagnostic_v1` read model. A
+ticker, sector, setup or regime pair is eligible only when both baseline and
+challenger cover both declared partitions and each arm has at least ten resolved
+outcomes. It is classified as a conservative regression only when the
+challenger's recomputed 95% Wilson upper bound is strictly below the baseline's
+lower bound. Priority is deterministic: largest conservative gap, largest
+minimum arm sample, then setup, regime, sector, ticker and lexical key. The
+diagnostic is bound to the exact durable result and plan fingerprints and is
+available only after terminal finalization. It may identify one context for
+human-reviewed next-hypothesis design; it cannot automatically select that
+hypothesis, request data, alter ranking/publication, promote a policy or reach a
+broker. `insufficient_evidence` and `no_conservative_regression` are truthful
+outcomes and do not authorize exploratory threshold changes.
+
 **Definition of recommendation-engine progress.** Ture improves only when a
 versioned challenger changes a declared point-in-time input, feature, score,
 rank or selection rule and later beats its frozen baseline on attributable
