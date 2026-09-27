@@ -17,9 +17,11 @@ scope.
 - **Now:** collect the exact clock-neutral IF-3b forward cohort without changing
   live ranking or publication, while CLOSED work completes the IF-4 scorecard
   needed to judge it honestly. Exact candidate-outcome coverage and immutable
-  snapshot missingness are production-verified on the same denominator; the
-  selected next CLOSED link is exact ticker, sector, setup and regime
-  concentration against the frozen charter limits. The server-owned charter and
+  snapshot missingness plus exact ticker, sector, setup and regime concentration
+  are production-verified on the same denominator. The selected CLOSED link is
+  explicit score-to-probability semantics and forward calibration error, with
+  immutable pre-window fitting evidence kept separate from held-out and
+  walk-forward evaluation. The server-owned charter and
   plan are durably frozen in production before the first sample: K=3, 30/30 held-out and
   walk-forward minimums, eight trading days per partition and immutable
   `continue >= +0.03` / `reject <= 0.00` precision-delta boundaries. Those
@@ -30,9 +32,10 @@ scope.
   13:30Z, preserving every attributable candidate, rejection and explicit
   `no_trade` decision plus its canonical outcome. CLOSED work closes only the
   next missing collection, lineage, outcome or evaluator link for this
-  hypothesis. Concentration must retain the paired evaluator's same complete
-  candidate denominator, preserve explicit setup/sector/regime lineage and fail
-  closed on missing or duplicated dimensions. Complete evidence
+  hypothesis. Calibration must preserve distinct historical-training and
+  forward-evaluation denominators, reject post-cutoff leakage or model drift and
+  remain non-authoritative for live policy. After calibration, close attributable
+  runtime reliability/provider cost and then disclosed feasibility. Complete evidence
   may issue one `continue`, `narrow` or `reject` shadow decision; none of those
   outcomes alone authorizes promotion.
 - **Blocked from selection:** live-policy promotion until complete attributable
@@ -57,8 +60,20 @@ post-merge CI run `36322101176` is green. The forward evaluator now measures
 canonical outcome coverage and immutable-snapshot missingness on the same exact
 candidate denominator used by the paired ranking cohort; incomplete evidence
 cannot be hidden as zero. This closes two charter dimensions but does not prove
-alpha or recommendation quality. Calibration, reliability, provider cost,
-concentration and feasibility remain terminal scorecard gaps.
+alpha or recommendation quality. Calibration, reliability, provider cost and
+feasibility remain terminal scorecard gaps.
+
+**Merged and production-verified CLOSED scorecard concentration:** PR
+[#682](https://github.com/willyvalentin/trade/pull/682) merged as
+`25fb14571aa2c360ca4d90a695443f1a52cd738d`. Protected CI run
+`36324773161` is green on that exact main revision, and Netlify production
+deploy `6ab923198acfaf0008a51fdd` is `ready`, Git-connected, branch `main` and
+carries the same revision. The forward scorecard now persists exact ticker,
+sector, setup and decision-time regime concentration on the same complete
+candidate denominator and applies the frozen maximum-share limits. Missing,
+duplicated or incomplete lineage fails closed. This closes concentration
+measurement; it does not establish calibrated probabilities, alpha or better
+recommendations.
 
 ### Delivery method — CLOSED readiness, 2026-09-24
 

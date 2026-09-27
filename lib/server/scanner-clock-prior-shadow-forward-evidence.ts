@@ -22,11 +22,17 @@ export type ScannerClockPriorShadowForwardEvidence = {
   scanRuns: LearningBaselineScanRun[];
   snapshots: RecommendationSnapshot[];
   outcomes: RecommendationOutcome[];
+  calibrationScanRuns: LearningBaselineScanRun[];
+  calibrationSnapshots: RecommendationSnapshot[];
+  calibrationOutcomes: RecommendationOutcome[];
   source_counts: {
     window_scan_rows: number;
     clock_prior_scan_rows: number;
     linked_snapshot_rows: number;
     linked_outcome_rows: number;
+    calibration_scan_rows: number;
+    calibration_linked_snapshot_rows: number;
+    calibration_linked_outcome_rows: number;
   };
 };
 
@@ -142,11 +148,17 @@ export async function readScannerClockPriorShadowForwardEvidence(
         scanRuns: [],
         snapshots: [],
         outcomes: [],
+        calibrationScanRuns: [],
+        calibrationSnapshots: [],
+        calibrationOutcomes: [],
         source_counts: {
           window_scan_rows: scanRows.length,
           clock_prior_scan_rows: 0,
           linked_snapshot_rows: 0,
           linked_outcome_rows: 0,
+          calibration_scan_rows: 0,
+          calibration_linked_snapshot_rows: 0,
+          calibration_linked_outcome_rows: 0,
         },
       },
       safe_blocker: null,
@@ -223,17 +235,125 @@ export async function readScannerClockPriorShadowForwardEvidence(
     return failed("clock_prior_forward_outcome_evidence_malformed");
   }
 
+  const calibrationStartAt = new Date(
+    Date.parse(startAt) - 30 * 24 * 60 * 60 * 1_000,
+  ).toISOString();
+  const calibrationScanQuery = await client
+    .from("recommendation_scan_runs")
+    .select("*", { count: "exact" })
+    .eq("owner_user_id", owner)
+    .gte("observed_at", calibrationStartAt)
+    .lt("observed_at", startAt)
+    .order("observed_at", { ascending: true })
+    .limit(MAXIMUM_WINDOW_SCAN_ROWS + 1);
+  if (calibrationScanQuery.error) {
+    return failed("clock_prior_calibration_scan_evidence_read_failed");
+  }
+  const calibrationScanRows = exactRows({
+    data: calibrationScanQuery.data,
+    count: calibrationScanQuery.count,
+    maximum: MAXIMUM_WINDOW_SCAN_ROWS,
+  });
+  if (!calibrationScanRows) {
+    return failed("clock_prior_calibration_scan_evidence_incomplete_or_unbounded");
+  }
+  const parsedCalibrationScanRuns = calibrationScanRows
+    .filter(hasClockPriorEvidence)
+    .map(recommendationScanRunFromPersistenceRow);
+  if (parsedCalibrationScanRuns.some((scanRun) => scanRun === null)) {
+    return failed("clock_prior_calibration_scan_evidence_malformed");
+  }
+  const calibrationScanRuns =
+    parsedCalibrationScanRuns as LearningBaselineScanRun[];
+  const calibrationScanIdentities = new Set(
+    calibrationScanRuns.flatMap((scanRun) => [
+      scanRun.id,
+      scanRun.run_fingerprint,
+    ]),
+  );
+  const calibrationSnapshotQuery = await client
+    .from("recommendation_snapshots")
+    .select("*", { count: "exact" })
+    .eq("owner_user_id", owner)
+    .gte("recommended_at", calibrationStartAt)
+    .lt("recommended_at", startAt)
+    .order("recommended_at", { ascending: true })
+    .limit(MAXIMUM_WINDOW_SNAPSHOT_ROWS + 1);
+  if (calibrationSnapshotQuery.error) {
+    return failed("clock_prior_calibration_snapshot_evidence_read_failed");
+  }
+  const calibrationSnapshotRows = exactRows({
+    data: calibrationSnapshotQuery.data,
+    count: calibrationSnapshotQuery.count,
+    maximum: MAXIMUM_WINDOW_SNAPSHOT_ROWS,
+  });
+  if (!calibrationSnapshotRows) {
+    return failed(
+      "clock_prior_calibration_snapshot_evidence_incomplete_or_unbounded",
+    );
+  }
+  const parsedCalibrationSnapshots = calibrationSnapshotRows
+    .filter((row) =>
+      typeof row.scan_run_id === "string" &&
+      calibrationScanIdentities.has(row.scan_run_id)
+    )
+    .map(recommendationSnapshotFromPersistenceRow);
+  if (parsedCalibrationSnapshots.some((snapshot) => snapshot === null)) {
+    return failed("clock_prior_calibration_snapshot_evidence_malformed");
+  }
+  const calibrationSnapshots =
+    parsedCalibrationSnapshots as RecommendationSnapshot[];
+  const calibrationSnapshotFingerprints = new Set(
+    calibrationSnapshots.map((snapshot) => snapshot.snapshot_fingerprint),
+  );
+  const calibrationOutcomeQuery = await client
+    .from("recommendation_outcomes")
+    .select("*", { count: "exact" })
+    .eq("owner_user_id", owner)
+    .gte("recommended_at", calibrationStartAt)
+    .lt("recommended_at", startAt)
+    .order("recommended_at", { ascending: true })
+    .limit(MAXIMUM_WINDOW_OUTCOME_ROWS + 1);
+  if (calibrationOutcomeQuery.error) {
+    return failed("clock_prior_calibration_outcome_evidence_read_failed");
+  }
+  const calibrationOutcomeRows = exactRows({
+    data: calibrationOutcomeQuery.data,
+    count: calibrationOutcomeQuery.count,
+    maximum: MAXIMUM_WINDOW_OUTCOME_ROWS,
+  });
+  if (!calibrationOutcomeRows) {
+    return failed(
+      "clock_prior_calibration_outcome_evidence_incomplete_or_unbounded",
+    );
+  }
+  const parsedCalibrationOutcomes = calibrationOutcomeRows
+    .filter((row) =>
+      typeof row.snapshot_fingerprint === "string" &&
+      calibrationSnapshotFingerprints.has(row.snapshot_fingerprint)
+    )
+    .map(recommendationOutcomeFromPersistenceRow);
+  if (parsedCalibrationOutcomes.some((outcome) => outcome === null)) {
+    return failed("clock_prior_calibration_outcome_evidence_malformed");
+  }
+
   return {
     status: "available",
     evidence: {
       scanRuns,
       snapshots,
       outcomes: parsedOutcomes as RecommendationOutcome[],
+      calibrationScanRuns,
+      calibrationSnapshots,
+      calibrationOutcomes: parsedCalibrationOutcomes as RecommendationOutcome[],
       source_counts: {
         window_scan_rows: scanRows.length,
         clock_prior_scan_rows: scanRuns.length,
         linked_snapshot_rows: snapshots.length,
         linked_outcome_rows: parsedOutcomes.length,
+        calibration_scan_rows: calibrationScanRuns.length,
+        calibration_linked_snapshot_rows: calibrationSnapshots.length,
+        calibration_linked_outcome_rows: parsedCalibrationOutcomes.length,
       },
     },
     safe_blocker: null,

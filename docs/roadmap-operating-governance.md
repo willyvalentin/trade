@@ -53,6 +53,24 @@ computed from attributable outcomes. CLOSED work should close these missing
 scorecard links while OPEN collects the frozen cohort. Neither path may change
 the cohort, thresholds or live policy to manufacture a terminal result.
 
+Calibration is an out-of-sample contract, not a relabelled score. A score may
+enter a probability metric only through one immutable, fingerprinted model
+fitted on outcomes available before the held-out cutoff. The evaluator must
+retain separate training and forward denominators, expose probability coverage,
+Brier score and fixed-bucket calibration error, and reject duplicate identities,
+under-sampled buckets, model drift or post-cutoff leakage. Forward observations
+may evaluate that frozen model but may never refit it. Passing calibration is
+one charter dimension; it neither proves alpha nor authorizes a live-policy
+change.
+
+After each complete forward decision, choose the next recommendation hypothesis
+from measured error: a discovery miss, stale/partial feature, context omission,
+ranking defect or miscalibration with attributable examples. Freeze one baseline
+and one challenger, then finish or reject it before widening the model surface.
+Do not select a new data source merely because it is available; name the missing
+decision-time information, expected quality effect, entitlement/cost and exact
+forward metric that could justify retaining it.
+
 ### Select and finish real product behavior
 
 - Keep one primary 4–16 active-hour vertical slice. Initial investigation is

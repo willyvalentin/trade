@@ -10,6 +10,7 @@ import { recommendationOutcomeEvaluationAnchorFromSnapshot } from "@/lib/recomme
 import { computeRecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
 import { buildRecommendationScanRun } from "@/lib/recommendation-scan-run";
 import { buildRecommendationSnapshot } from "@/lib/recommendation-snapshot";
+import { buildScannerScoreProbabilityCalibrationModel } from "@/lib/scanner-score-probability-calibration";
 import { RESEARCH_SNAPSHOT_CANDIDATE_DECISION_LINKAGE_VERSION } from "@/lib/research-snapshot-candidate-linkage";
 import { recommendationDecisionFeatureVectorFromScannerCandidate } from "@/lib/recommendation-decision-feature-vector";
 import { buildScannerCandidateRankingSummary } from "@/lib/scanner-candidate-ranking";
@@ -579,6 +580,58 @@ test("maps the exact clock-neutral cohort into the canonical paired rank evaluat
   });
 });
 
+test("opens probability semantics only with a prior-only calibrated score model", () => {
+  const { persistedRun, snapshot, outcome } = fixture();
+  const comparison = persistedRun.payload_json
+    .scanner_clock_prior_shadow_comparison as ScannerClockPriorShadowComparison;
+  const score = comparison.displacements[0]!.baseline_score;
+  const probabilityCalibration = buildScannerScoreProbabilityCalibrationModel({
+    fittedAt: "2026-09-23T13:30:00.000Z",
+    trainingStartAt: "2026-08-23T13:30:00.000Z",
+    trainingEndAt: "2026-09-23T13:30:00.000Z",
+    observations: Array.from({ length: 30 }, (_, index) => {
+      const day = 20 + (index % 3);
+      return {
+        candidate_id: `training-candidate-${index}`,
+        ticker: ["AAPL", "MSFT", "NVDA"][index % 3]!,
+        decision_at: `2026-09-${day}T14:00:00.000Z`,
+        outcome_evaluated_at: `2026-09-${day}T15:05:00.000Z`,
+        baseline_score: score,
+        candidate_score: score,
+        terminal_outcome:
+          index % 2 === 0
+            ? ("target_before_stop" as const)
+            : ("stop_before_target" as const),
+      };
+    }),
+  });
+  expect(probabilityCalibration).not.toBeNull();
+
+  const result = evaluateScannerClockPriorShadowScan({
+    scanRun: persistedRun,
+    snapshots: [snapshot],
+    outcomes: [outcome],
+    bootstrapSeed: "clock-prior-shadow:calibrated-test-seed-v1",
+    probabilityCalibration,
+  });
+
+  expect(result.status).toBe("evaluable");
+  expect(result.probability_calibration_model_version).toBe(
+    "scanner_score_probability_calibration_model_v1",
+  );
+  expect(result.probability_calibration_model_fingerprint).toBe(
+    probabilityCalibration?.model_fingerprint,
+  );
+  expect(result.reason_codes).not.toContain(
+    "confidence_is_ordinal_not_probability",
+  );
+  expect(result.evaluation?.baseline.calibration.status).toBe("evaluable");
+  expect(result.evaluation?.candidate.calibration.status).toBe("evaluable");
+  expect(result.evaluation?.baseline.calibration.metrics.brier_score.value).toBe(
+    0.25,
+  );
+});
+
 test("refuses clock-neutral canonical evaluation without every primary outcome", () => {
   const { persistedRun, snapshot } = fixture();
   const result = evaluateScannerClockPriorShadowScan({
@@ -1008,6 +1061,137 @@ test("withholds a complete cohort until the full recommendation-quality charter 
   ]));
 });
 
+test("measures forward calibration only from a prior immutable training window", () => {
+  const training = Array.from({ length: 15 }, (_, index) => fixture({
+    decidedAt: `2026-09-${String(8 + index).padStart(2, "0")}T14:30:00.000Z`,
+    ticker: `C${index}T`,
+    terminal: index % 2 === 0 ? "target" : "stop",
+    includeUnselected: true,
+  }));
+  const heldOut = [
+    "2026-09-25",
+    "2026-09-28",
+    "2026-09-29",
+    "2026-09-30",
+    "2026-10-01",
+  ].map((day, index) => fixture({
+    decidedAt: `${day}T14:30:00.000Z`,
+    ticker: `P${index}H`,
+    terminal: index % 2 === 0 ? "target" : "stop",
+    includeUnselected: true,
+  }));
+  const walkForward = [
+    "2026-10-02",
+    "2026-10-05",
+    "2026-10-06",
+    "2026-10-07",
+    "2026-10-08",
+  ].map((day, index) => fixture({
+    decidedAt: `${day}T14:30:00.000Z`,
+    ticker: `P${index}F`,
+    terminal: index % 2 === 0 ? "stop" : "target",
+    includeUnselected: true,
+  }));
+  const cohort = [...heldOut, ...walkForward];
+  const result = evaluateScannerClockPriorShadowForwardDecision({
+    plan: forwardDecisionPlan(),
+    evidenceBindings: forwardEvidenceBindings(),
+    scanRuns: cohort.map((item) => item.persistedRun),
+    snapshots: cohort.flatMap((item) => item.snapshots),
+    outcomes: cohort.flatMap((item) => item.outcomes),
+    calibrationScanRuns: training.map((item) => item.persistedRun),
+    calibrationSnapshots: training.flatMap((item) => item.snapshots),
+    calibrationOutcomes: training.flatMap((item) => item.outcomes),
+    bootstrapSeed: "clock-prior-forward:calibration-scorecard-seed-v1",
+  });
+
+  expect(result.status).toBe("evidence_incomplete");
+  expect(result.partitions).toEqual([
+    expect.objectContaining({
+      partition: "held_out",
+      probability_calibration: expect.objectContaining({
+        model_version: "scanner_score_probability_calibration_model_v1",
+        model_fingerprint: expect.stringMatching(/^[a-f0-9]{64}$/),
+        binary_outcome_count: 10,
+        probability_coverage: expect.objectContaining({
+          value: 1,
+          numerator: 10,
+          denominator: 10,
+        }),
+        candidate: expect.objectContaining({
+          brier_score: expect.any(Number),
+          expected_calibration_error: expect.any(Number),
+        }),
+      }),
+    }),
+    expect.objectContaining({
+      partition: "walk_forward",
+      probability_calibration: expect.objectContaining({
+        binary_outcome_count: 10,
+        probability_coverage: expect.objectContaining({ value: 1 }),
+      }),
+    }),
+  ]);
+  expect(result.reason_codes).not.toContain(
+    "candidate_calibrated_probability_semantics_missing",
+  );
+  expect(result.reason_codes).not.toContain(
+    "candidate_probability_calibration_evidence_incomplete",
+  );
+  expect(result.reason_codes).not.toContain(
+    "candidate_calibration_error_charter_maximum_exceeded",
+  );
+  expect(result.reason_codes).toContain("forward_charter_scorecard_incomplete");
+});
+
+test("fails the frozen charter when forward calibration error is too large", () => {
+  const training = Array.from({ length: 15 }, (_, index) => fixture({
+    decidedAt: `2026-09-${String(8 + index).padStart(2, "0")}T15:30:00.000Z`,
+    ticker: `W${index}T`,
+    terminal: "target",
+    includeUnselected: true,
+  }));
+  const cohortDays = [
+    "2026-09-25",
+    "2026-09-28",
+    "2026-09-29",
+    "2026-09-30",
+    "2026-10-01",
+    "2026-10-02",
+    "2026-10-05",
+    "2026-10-06",
+    "2026-10-07",
+    "2026-10-08",
+  ];
+  const cohort = cohortDays.map((day, index) => fixture({
+    decidedAt: `${day}T15:30:00.000Z`,
+    ticker: `W${index}E`,
+    terminal: "stop",
+    includeUnselected: true,
+  }));
+  const result = evaluateScannerClockPriorShadowForwardDecision({
+    plan: forwardDecisionPlan(),
+    evidenceBindings: forwardEvidenceBindings(),
+    scanRuns: cohort.map((item) => item.persistedRun),
+    snapshots: cohort.flatMap((item) => item.snapshots),
+    outcomes: cohort.flatMap((item) => item.outcomes),
+    calibrationScanRuns: training.map((item) => item.persistedRun),
+    calibrationSnapshots: training.flatMap((item) => item.snapshots),
+    calibrationOutcomes: training.flatMap((item) => item.outcomes),
+    bootstrapSeed: "clock-prior-forward:calibration-threshold-seed-v1",
+  });
+
+  expect(result.status).toBe("evidence_incomplete");
+  expect(result.reason_codes).toContain(
+    "candidate_calibration_error_charter_maximum_exceeded",
+  );
+  expect(result.partitions.every(
+    (partition) =>
+      (partition.probability_calibration?.candidate
+        .expected_calibration_error ?? 0) > 0.15,
+  )).toBe(true);
+});
+
 test("withholds a complete cohort whose candidate expectancy misses the charter", () => {
   const heldOut = [
     "2026-09-25",
@@ -1272,6 +1456,23 @@ test("uses frozen conservative boundaries for continue, narrow and reject", () =
         numerator: 48,
         denominator: 80,
       },
+    },
+    probability_calibration: {
+      model_version: "scanner_score_probability_calibration_model_v1",
+      model_fingerprint: "b".repeat(64),
+      observation_version:
+        "scanner_ranking_shadow_probability_calibration_observation_v1",
+      binary_outcome_count: 80,
+      probability_coverage: {
+        value: 1,
+        numerator: 80,
+        denominator: 80,
+        lower: 0.95,
+        upper: 1,
+      },
+      baseline: { brier_score: 0.24, expected_calibration_error: 0.1 },
+      candidate: { brier_score: 0.2, expected_calibration_error: 0.08 },
+      bucket_policy: "fixed_calibration_buckets_v1",
     },
     precision_delta: {
       value: 0.1,

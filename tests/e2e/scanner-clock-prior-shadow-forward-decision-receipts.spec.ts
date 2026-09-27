@@ -190,6 +190,23 @@ function partition(name: "held_out" | "walk_forward") {
         denominator: 12,
       },
     },
+    probability_calibration: {
+      model_version: "scanner_score_probability_calibration_model_v1" as const,
+      model_fingerprint: "b".repeat(64),
+      observation_version:
+        "scanner_ranking_shadow_probability_calibration_observation_v1" as const,
+      binary_outcome_count: 12,
+      probability_coverage: {
+        value: 1,
+        numerator: 12,
+        denominator: 12,
+        lower: 0.8,
+        upper: 1,
+      },
+      baseline: { brier_score: 0.24, expected_calibration_error: 0.1 },
+      candidate: { brier_score: 0.2, expected_calibration_error: 0.08 },
+      bucket_policy: "fixed_calibration_buckets_v1" as const,
+    },
     precision_delta: {
       value: 1 / 6,
       conservative_lower: 0.05,

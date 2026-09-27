@@ -27,6 +27,11 @@ import type { RecommendationOutcome } from "@/lib/recommendation-outcome-tracker
 import { recommendationDecisionSourceProvenanceFromSnapshot } from "@/lib/recommendation-decision-source-provenance";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
 import {
+  applyScannerScoreProbabilityCalibration,
+  SCANNER_SCORE_PROBABILITY_CALIBRATION_MODEL_VERSION,
+  type ScannerScoreProbabilityCalibrationModel,
+} from "@/lib/scanner-score-probability-calibration";
+import {
   normalizeSetupType,
   SETUP_TYPES,
   type SetupType,
@@ -53,6 +58,10 @@ export const SCANNER_RANKING_SHADOW_CANDIDATE_PERFORMANCE_AT_K_VERSION =
   "scanner_ranking_shadow_candidate_performance_at_k_v1" as const;
 export const SCANNER_RANKING_SHADOW_CONCENTRATION_INPUT_VERSION =
   "scanner_ranking_shadow_concentration_input_v1" as const;
+export const SCANNER_RANKING_SHADOW_PROBABILITY_CALIBRATION_INPUT_VERSION =
+  "scanner_ranking_shadow_probability_calibration_input_v1" as const;
+export const SCANNER_RANKING_SHADOW_PROBABILITY_CALIBRATION_OBSERVATION_VERSION =
+  "scanner_ranking_shadow_probability_calibration_observation_v1" as const;
 
 type ScannerRankingShadowCandidatePerformanceAtK = Record<string, {
   expectancy_r: {
@@ -79,6 +88,25 @@ export type ScannerRankingShadowConcentrationInput = {
   sector: string;
   setup: SetupType;
   regime: string;
+};
+
+export type ScannerRankingShadowProbabilityCalibrationInput = {
+  candidate_id: string;
+  ticker: string;
+  decision_at: string;
+  outcome_evaluated_at: string;
+  baseline_score: number;
+  candidate_score: number;
+  terminal_outcome: "target_before_stop" | "stop_before_target";
+};
+
+export type ScannerRankingShadowProbabilityCalibrationObservation = {
+  candidate_id: string;
+  ticker: string;
+  decision_at: string;
+  terminal_binary: 0 | 1 | null;
+  baseline_probability: number | null;
+  candidate_probability: number | null;
 };
 
 export type ScannerRankingShadowAttribution = {
@@ -139,6 +167,18 @@ export type ScannerRankingShadowCanonicalEvaluationResult<
   concentration_input_version:
     typeof SCANNER_RANKING_SHADOW_CONCENTRATION_INPUT_VERSION;
   concentration_inputs: ScannerRankingShadowConcentrationInput[] | null;
+  probability_calibration_model_version:
+    | typeof SCANNER_SCORE_PROBABILITY_CALIBRATION_MODEL_VERSION
+    | null;
+  probability_calibration_model_fingerprint: string | null;
+  probability_calibration_input_version:
+    typeof SCANNER_RANKING_SHADOW_PROBABILITY_CALIBRATION_INPUT_VERSION;
+  probability_calibration_inputs:
+    ScannerRankingShadowProbabilityCalibrationInput[] | null;
+  probability_calibration_observation_version:
+    typeof SCANNER_RANKING_SHADOW_PROBABILITY_CALIBRATION_OBSERVATION_VERSION;
+  probability_calibration_observations:
+    ScannerRankingShadowProbabilityCalibrationObservation[] | null;
   threshold_policy_semantics: "diagnostic_all_candidates_only";
   shadow_only: true;
   live_ranking_effect: false;
@@ -163,6 +203,7 @@ type CandidateEvidence = {
   market_regime: string;
   sector: string;
   setup_type: SetupType;
+  decision_at: string;
 };
 
 const supportedDecisionMarketRegimes = new Set([
@@ -482,6 +523,7 @@ function evidenceForCandidate(input: {
       market_regime: snapshotMarketRegime,
       sector,
       setup_type: setupType,
+      decision_at: input.decisionTimestamp,
     },
     reason_codes: [],
   };
@@ -580,7 +622,17 @@ function observation(
   evidence: CandidateEvidence,
   arm: "baseline" | "candidate",
   canonicalIdentity: string,
+  probabilityCalibration: ScannerScoreProbabilityCalibrationModel | null,
 ): CanonicalShadowCandidateObservation {
+  const score = arm === "baseline"
+    ? evidence.displacement.baseline_score
+    : evidence.displacement.shadow_score;
+  const calibrated = applyScannerScoreProbabilityCalibration({
+    model: probabilityCalibration,
+    arm,
+    score,
+    decisionAt: evidence.decision_at,
+  });
   return {
     canonical_candidate_identity: canonicalIdentity,
     rank:
@@ -588,19 +640,18 @@ function observation(
         ? evidence.attribution.baseline_rank
         : evidence.attribution.shadow_rank,
     tie_break_key: `${arm}:${evidence.attribution.ticker}`,
-    score:
-      arm === "baseline"
-        ? evidence.displacement.baseline_score
-        : evidence.displacement.shadow_score,
+    score,
     tier:
       arm === "baseline"
         ? evidence.displacement.baseline_tier
         : evidence.displacement.shadow_tier,
     evidence_strength: null,
-    numeric_confidence: null,
+    numeric_confidence: calibrated?.probability ?? null,
     confidence_label: null,
-    confidence_semantics: "non_probability_numeric",
-    probability_source: "score",
+    confidence_semantics: calibrated
+      ? "calibrated_probability_0_1"
+      : "non_probability_numeric",
+    probability_source: calibrated ? "numeric_confidence" : "score",
   };
 }
 
@@ -615,6 +666,9 @@ function terminalResult<AdapterVersion extends string>(input: {
   comparisonIdentity?: string | null;
   candidatePerformanceAtK?: ScannerRankingShadowCandidatePerformanceAtK;
   concentrationInputs?: ScannerRankingShadowConcentrationInput[];
+  probabilityCalibrationModel?: ScannerScoreProbabilityCalibrationModel | null;
+  probabilityCalibrationInputs?: ScannerRankingShadowProbabilityCalibrationInput[];
+  probabilityCalibrationObservations?: ScannerRankingShadowProbabilityCalibrationObservation[];
 }): ScannerRankingShadowCanonicalEvaluationResult<AdapterVersion> {
   return {
     adapter_version: input.adapterVersion,
@@ -633,6 +687,18 @@ function terminalResult<AdapterVersion extends string>(input: {
     concentration_input_version:
       SCANNER_RANKING_SHADOW_CONCENTRATION_INPUT_VERSION,
     concentration_inputs: input.concentrationInputs ?? null,
+    probability_calibration_model_version: input.probabilityCalibrationModel
+      ? SCANNER_SCORE_PROBABILITY_CALIBRATION_MODEL_VERSION
+      : null,
+    probability_calibration_model_fingerprint:
+      input.probabilityCalibrationModel?.model_fingerprint ?? null,
+    probability_calibration_input_version:
+      SCANNER_RANKING_SHADOW_PROBABILITY_CALIBRATION_INPUT_VERSION,
+    probability_calibration_inputs: input.probabilityCalibrationInputs ?? null,
+    probability_calibration_observation_version:
+      SCANNER_RANKING_SHADOW_PROBABILITY_CALIBRATION_OBSERVATION_VERSION,
+    probability_calibration_observations:
+      input.probabilityCalibrationObservations ?? null,
     ...safety,
   };
 }
@@ -651,6 +717,7 @@ export function evaluateScannerRankingShadowScan<AdapterVersion extends string>(
   sourceNamespace: string;
   attribution: ScannerRankingShadowAttribution | null;
   comparison: ScannerRankingShadowComparison | null;
+  probabilityCalibration?: ScannerScoreProbabilityCalibrationModel | null;
 }): ScannerRankingShadowCanonicalEvaluationResult<AdapterVersion> {
   const decision = candidateDecisionRecordFromScanRun(input.scanRun);
   const attribution = input.attribution;
@@ -1011,6 +1078,7 @@ export function evaluateScannerRankingShadowScan<AdapterVersion extends string>(
         item,
         "baseline",
         canonicalIdentityByCandidate.get(item.attribution.candidate_id)!,
+        input.probabilityCalibration ?? null,
       ),
     ),
   });
@@ -1026,6 +1094,7 @@ export function evaluateScannerRankingShadowScan<AdapterVersion extends string>(
         item,
         "candidate",
         canonicalIdentityByCandidate.get(item.attribution.candidate_id)!,
+        input.probabilityCalibration ?? null,
       ),
     ),
   });
@@ -1050,6 +1119,50 @@ export function evaluateScannerRankingShadowScan<AdapterVersion extends string>(
     engine_change_intended: false,
     bootstrap_seed: input.bootstrapSeed,
   });
+  const orderedEvidence = [...evidence].sort((left, right) =>
+    left.attribution.candidate_id.localeCompare(right.attribution.candidate_id)
+  );
+  const probabilityCalibrationInputs = orderedEvidence.flatMap((item) => {
+    const terminal = item.canonical_outcome.terminal_outcome;
+    return terminal === "target_before_stop" || terminal === "stop_before_target"
+      ? [{
+          candidate_id: item.attribution.candidate_id,
+          ticker: item.attribution.ticker,
+          decision_at: item.decision_at,
+          outcome_evaluated_at: item.canonical_outcome.evaluated_at,
+          baseline_score: item.displacement.baseline_score,
+          candidate_score: item.displacement.shadow_score,
+          terminal_outcome: terminal,
+        } satisfies ScannerRankingShadowProbabilityCalibrationInput]
+      : [];
+  });
+  const probabilityCalibrationObservations = orderedEvidence.map((item) => {
+    const terminal = item.canonical_outcome.terminal_outcome;
+    const baseline = applyScannerScoreProbabilityCalibration({
+      model: input.probabilityCalibration ?? null,
+      arm: "baseline",
+      score: item.displacement.baseline_score,
+      decisionAt: item.decision_at,
+    });
+    const candidateApplication = applyScannerScoreProbabilityCalibration({
+      model: input.probabilityCalibration ?? null,
+      arm: "candidate",
+      score: item.displacement.shadow_score,
+      decisionAt: item.decision_at,
+    });
+    return {
+      candidate_id: item.attribution.candidate_id,
+      ticker: item.attribution.ticker,
+      decision_at: item.decision_at,
+      terminal_binary: terminal === "target_before_stop"
+        ? 1 as const
+        : terminal === "stop_before_target"
+          ? 0 as const
+          : null,
+      baseline_probability: baseline?.probability ?? null,
+      candidate_probability: candidateApplication?.probability ?? null,
+    } satisfies ScannerRankingShadowProbabilityCalibrationObservation;
+  });
   return terminalResult({
     adapterVersion: input.adapterVersion,
     status: evaluation.status,
@@ -1059,17 +1172,14 @@ export function evaluateScannerRankingShadowScan<AdapterVersion extends string>(
     outcomes: evidence.length,
     reasons: [
       ...evaluation.reason_codes,
-      "confidence_is_ordinal_not_probability",
+      ...(evaluation.status === "probability_semantics_missing"
+        ? ["confidence_is_ordinal_not_probability"]
+        : []),
       "threshold_sweep_diagnostic_only",
     ],
     comparisonIdentity,
     candidatePerformanceAtK: candidatePerformanceAtK(evidence),
-    concentrationInputs: [...evidence]
-      .sort((left, right) =>
-        left.attribution.candidate_id.localeCompare(
-          right.attribution.candidate_id,
-        )
-      )
+    concentrationInputs: orderedEvidence
       .map((item) => ({
         candidate_id: item.attribution.candidate_id,
         ticker: item.attribution.ticker,
@@ -1077,6 +1187,9 @@ export function evaluateScannerRankingShadowScan<AdapterVersion extends string>(
         setup: item.setup_type,
         regime: item.market_regime,
       })),
+    probabilityCalibrationModel: input.probabilityCalibration ?? null,
+    probabilityCalibrationInputs,
+    probabilityCalibrationObservations,
   });
 }
 
