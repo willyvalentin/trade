@@ -12,7 +12,7 @@ import type { LearningBaselineScanRun } from "@/lib/recommendation-learning-base
 import type { RecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
 import type { ObservationCycleReceipt } from "@/lib/observation-cycle-receipt";
-import type { BasicFreeScheduledScanCreditReadback } from "@/lib/basic-free-scheduled-scan-credit-readback";
+import type { ScannerClockPriorShadowForwardRuntimeEvidence } from "@/lib/scanner-clock-prior-shadow-forward-runtime-evidence";
 import {
   SCANNER_SCORE_PROBABILITY_CALIBRATION_MODEL_VERSION,
   buildScannerScoreProbabilityCalibrationModel,
@@ -180,11 +180,6 @@ type ProbabilityCalibrationSummary = {
   candidate: CalibrationArmSummary;
   bucket_policy: "fixed_calibration_buckets_v1";
 };
-
-export type ScannerClockPriorShadowForwardRuntimeEvidence = Readonly<{
-  receipt: ObservationCycleReceipt;
-  credit_readback: BasicFreeScheduledScanCreditReadback;
-}>;
 
 type RuntimeReliabilitySummary = {
   invocation_count: number;

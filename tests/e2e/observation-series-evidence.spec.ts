@@ -10,7 +10,7 @@ import {
   observationSeriesEvidenceReadbackFromUnknown,
 } from "../../lib/observation-series-evidence";
 import { buildObservationSeriesEvidenceReadback } from "../../lib/server/observation-series-evidence-builder";
-import { buildScannerClockPriorShadowForwardRuntimeEvidence } from "../../lib/server/scanner-clock-prior-shadow-forward-evidence";
+import { buildScannerClockPriorShadowForwardRuntimeEvidence } from "../../lib/scanner-clock-prior-shadow-forward-runtime-evidence";
 import {
   buildObservationSeriesSlotAdmission,
   observationSeriesControlFromEnvironment,
