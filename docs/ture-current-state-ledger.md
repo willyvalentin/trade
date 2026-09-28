@@ -133,8 +133,8 @@ TypeScript, scheduled-runtime packaging, `git diff --check` and a complete Next
 16.3.4 production build. Merge and deploy establish the evidence-integrity
 guard; they do not prove recommendation-quality improvement.
 
-**Reproduced production blocker and active CLOSED correction — decision-time
-lineage:** production admission readback after that deploy remained blocked by
+**Merged and production-verified CLOSED correction — decision-time lineage:**
+production admission readback after the PR #699 deploy remained blocked by
 `scan_comparison_invalid_or_policy_mismatched`. The persisted normal scan uses
 the scheduler slot as `observed_at` (`18:15:00.000Z`), creates the clock-prior
 comparison when ranking completes (`18:15:40.408Z`) and freezes the candidate
@@ -143,12 +143,38 @@ incorrectly required comparison time to equal the scheduler slot, making valid
 real scans impossible to admit. The selected v3 correction accepts only the
 causal order `slot <= comparison <= immutable decision`, still fails closed on
 pre-slot or post-decision evidence, and preserves attempt-capacity charging when
-the decision record is missing. Ranking, provider usage, publication thresholds
-and execution remain unchanged. This blocker must be production-verified before
-the next frozen-cohort observation. The observed ranking-to-builder score split
+the decision record is missing. PR [#700](https://github.com/willyvalentin/trade/pull/700)
+merged as `8b4e6232064d818fac8d178fc7c61cc1dfad9aa7`; all protected checks passed and
+Git-connected Netlify production deploy `6abac36edcc680000809a148` is `ready`
+on that exact revision. Authenticated post-deploy admission readback removed
+the false comparison-lineage blocker and returned only the truthful current
+limits: no future predeclared slot on 2026-09-28 and incomplete candidate
+decision coverage. The target day retained two attributable attempts, zero
+accepted attempts and two unused attempt positions, with no provider or policy
+authority in the read model. Ranking, provider usage, publication thresholds
+and execution remain unchanged. The observed ranking-to-builder score split
 (77 versus 59 for NVO) remains a candidate for the next versioned quality
 hypothesis only after the current clock-neutral hypothesis reaches its declared
 terminal decision; it is not authority to open a competing live-ranking change.
+
+**Active CLOSED data-fitness correction — exact candidate-level provider-gap
+attribution:** authenticated readback of the completed 18:15Z scan showed an
+eight-symbol expected universe but only three observed/ranked candidates. The
+five missing identities retained only the aggregate
+`candidate_provider_gap`, while the route-level trace exposed six reserved
+provider calls without identifying whether each missing ticker was blocked by
+the shared credit cap, an empty response, a provider error or stale fallback.
+Source inspection reproduced the ambiguity: daily-history and intraday refresh
+calls share the same six-call scanner budget and are allocated serially, so a
+cold ticker can consume two calls before a later ticker is considered. The
+selected additive receipt records, for every bounded ticker, exact daily and
+intraday source class, reserved-credit count, rankable status and versioned gap
+reasons, plus a terminal summary of full observation, credit-cap gaps, provider
+empty responses, insufficient history, provider errors and stale fallbacks. This
+changes no universe, provider budget, ranking,
+threshold, publication or execution behavior and does not claim better
+recommendations; it makes the next real scan sufficient to choose a measured
+data-fitness correction instead of guessing from aggregate counters.
 
 **Merged and production-verified CLOSED slice — frozen-cohort daily collection
 admission:** PR [#693](https://github.com/willyvalentin/trade/pull/693) merged as

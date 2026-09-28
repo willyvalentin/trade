@@ -18,7 +18,14 @@ import {
 import { getDailyCandles, type DailyCandle } from "@/lib/market-data";
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { throwIfAborted, waitForAbortableDelay } from "@/lib/operation-abort";
-import { errorType, type ActiveScanTraceRecorder } from "@/lib/active-scan-trace";
+import {
+  errorType,
+  SCAN_PROVIDER_CANDIDATE_OBSERVATION_VERSION,
+  summarizeScanProviderCandidateObservations,
+  type ActiveScanTraceRecorder,
+  type ScanProviderCandidateObservation,
+  type ScanProviderCandidateObservationReason,
+} from "@/lib/active-scan-trace";
 import { isProviderRateLimitLikeError } from "@/lib/provider-rate-limit";
 import { measureScanFetchStep } from "@/lib/scan-fetch-timing";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
@@ -658,6 +665,54 @@ async function scanMarketCore(
   });
   throwIfAborted(options.signal);
   const candidates: ScannerCandidate[] = [];
+  const candidateObservations = new Map<string, ScanProviderCandidateObservation>(
+    baseCandidates.map((candidate, tickerIndex) => [
+      candidate.ticker,
+      {
+        observation_version: SCAN_PROVIDER_CANDIDATE_OBSERVATION_VERSION,
+        ticker: candidate.ticker,
+        ticker_index: tickerIndex,
+        status: "pending",
+        daily_data_source: "not_observed",
+        intraday_data_source: "not_observed",
+        provider_credits_reserved: 0,
+        reason_codes: [],
+      },
+    ]),
+  );
+  const publishCandidateObservations = () => {
+    const observations = Array.from(candidateObservations.values()).sort(
+      (first, second) => first.ticker_index - second.ticker_index,
+    );
+    options.activeScanTrace?.updateMarketDataFetch({
+      candidate_observations: observations,
+      candidate_observation_summary:
+        summarizeScanProviderCandidateObservations(observations),
+    });
+  };
+  const updateCandidateObservation = (
+    ticker: string,
+    patch: Partial<ScanProviderCandidateObservation>,
+    optionsPatch: {
+      reservedCreditDelta?: number;
+      reasonCodes?: ScanProviderCandidateObservationReason[];
+    } = {},
+  ) => {
+    const current = candidateObservations.get(ticker);
+    if (!current) return;
+    candidateObservations.set(ticker, {
+      ...current,
+      ...patch,
+      provider_credits_reserved:
+        current.provider_credits_reserved +
+        Math.max(0, optionsPatch.reservedCreditDelta ?? 0),
+      reason_codes: Array.from(
+        new Set([...current.reason_codes, ...(optionsPatch.reasonCodes ?? [])]),
+      ).sort(),
+    });
+    publishCandidateObservations();
+  };
+  publishCandidateObservations();
   const maxFreshProviderCalls = getMaxFreshProviderCalls(options);
   const freshProviderCallPacingMs = getFreshProviderCallPacingMs(options);
   options.activeScanTrace?.updateMarketDataFetch({
@@ -713,6 +768,9 @@ async function scanMarketCore(
         provider_calls_reserved_count: 1,
         intraday_indicator_provider_calls_reserved_count: 1,
       });
+      updateCandidateObservation(candidate.ticker, {}, {
+        reservedCreditDelta: 1,
+      });
       result = await measureScanFetchStep({
         trace: options.activeScanTrace,
         step: "intraday_indicators",
@@ -766,6 +824,28 @@ async function scanMarketCore(
       ? withAdmissibleRecentIntradayVolume(result.indicators, result.stale)
       : null;
     const recentVolumeRatio = intradayIndicators?.recentVolumeRatio ?? null;
+    const intradayDataSource =
+      result.source === "fresh"
+        ? "provider"
+        : result.source === "cache"
+          ? result.stale
+            ? "stale_cache"
+            : "fresh_cache"
+          : "unavailable";
+    const intradayReasonCodes: ScanProviderCandidateObservationReason[] = [
+      ...(result.source === "unavailable"
+        ? (["intraday_provider_unavailable"] as const)
+        : []),
+      ...(result.stale ? (["intraday_stale_cache"] as const) : []),
+      ...(admission.reason_code === "provider_refresh_budget_exhausted"
+        ? (["intraday_refresh_credit_cap_reached"] as const)
+        : []),
+    ];
+    updateCandidateObservation(
+      candidate.ticker,
+      { intraday_data_source: intradayDataSource },
+      { reasonCodes: intradayReasonCodes },
+    );
 
     return {
       candidate: {
@@ -791,6 +871,9 @@ async function scanMarketCore(
 
     if (cachedRow && cachedValues && isCacheFresh(cachedRow, now)) {
       cacheHits.push(baseCandidate.ticker);
+      updateCandidateObservation(baseCandidate.ticker, {
+        daily_data_source: "fresh_cache",
+      });
       options.activeScanTrace?.incrementMarketDataFetch({
         candle_success_count: 1,
       });
@@ -800,6 +883,7 @@ async function scanMarketCore(
         cachedRow,
       );
       candidates.push(candidate);
+      updateCandidateObservation(baseCandidate.ticker, { status: "rankable" });
       continue;
     }
 
@@ -808,6 +892,11 @@ async function scanMarketCore(
     if (freshProviderCallsUsed >= maxFreshProviderCalls) {
       if (cachedValues) {
         staleFallbacks.push(baseCandidate.ticker);
+        updateCandidateObservation(
+          baseCandidate.ticker,
+          { daily_data_source: "stale_cache" },
+          { reasonCodes: ["daily_stale_cache_fallback"] },
+        );
         options.activeScanTrace?.incrementMarketDataFetch({
           candle_success_count: 1,
           stale_count: 1,
@@ -818,8 +907,17 @@ async function scanMarketCore(
           cachedRow,
         );
         candidates.push(candidate);
+        updateCandidateObservation(baseCandidate.ticker, { status: "rankable" });
       } else {
         skippedDueToFreshCallLimit.push(baseCandidate.ticker);
+        updateCandidateObservation(
+          baseCandidate.ticker,
+          {
+            status: "not_rankable",
+            daily_data_source: "unavailable",
+          },
+          { reasonCodes: ["daily_refresh_credit_cap_reached"] },
+        );
       }
 
       continue;
@@ -840,6 +938,9 @@ async function scanMarketCore(
       provider_calls_reserved_count: 1,
       daily_candle_provider_calls_reserved_count: 1,
     });
+    updateCandidateObservation(baseCandidate.ticker, {}, {
+      reservedCreditDelta: 1,
+    });
 
     try {
       const candles = await measureScanFetchStep({
@@ -857,6 +958,22 @@ async function scanMarketCore(
         candle_success_count: candles.length > 0 ? 1 : 0,
         empty_response_count: candles.length > 0 ? 0 : 1,
       });
+      if (candles.length === 0) {
+        updateCandidateObservation(
+          baseCandidate.ticker,
+          { daily_data_source: "unavailable" },
+          { reasonCodes: ["daily_provider_empty"] },
+        );
+      } else {
+        updateCandidateObservation(baseCandidate.ticker, {
+          daily_data_source: "provider",
+        });
+        if (candles.length < 50) {
+          updateCandidateObservation(baseCandidate.ticker, {}, {
+            reasonCodes: ["daily_provider_insufficient_history"],
+          });
+        }
+      }
       const scannerValues = calculateScannerValues(candles);
       await measureScanFetchStep({
         trace: options.activeScanTrace,
@@ -870,6 +987,7 @@ async function scanMarketCore(
         tickerIndex,
       );
       candidates.push(candidate);
+      updateCandidateObservation(baseCandidate.ticker, { status: "rankable" });
     } catch (error) {
       throwIfAborted(options.signal);
       console.error("[scanner] provider_call_error", {
@@ -880,6 +998,26 @@ async function scanMarketCore(
         candle_error_count: 1,
         latest_provider_error_type: errorType(error),
       });
+      const priorObservation = candidateObservations.get(baseCandidate.ticker);
+      updateCandidateObservation(
+        baseCandidate.ticker,
+        {
+          status: cachedValues ? "pending" : "not_rankable",
+          daily_data_source: cachedValues ? "stale_cache" : "unavailable",
+        },
+        {
+          reasonCodes: [
+            ...(priorObservation?.reason_codes.some((reason) =>
+              [
+                "daily_provider_empty",
+                "daily_provider_insufficient_history",
+              ].includes(reason),
+            )
+              ? []
+              : (["daily_provider_error"] as const)),
+          ],
+        },
+      );
 
       // Retrying cannot replenish a provider quota during this scan. Surface a
       // precise, fail-closed outcome to the scheduler instead of timing out
@@ -890,6 +1028,11 @@ async function scanMarketCore(
 
       if (cachedValues) {
         staleFallbacks.push(baseCandidate.ticker);
+        updateCandidateObservation(
+          baseCandidate.ticker,
+          { daily_data_source: "stale_cache" },
+          { reasonCodes: ["daily_stale_cache_fallback"] },
+        );
         options.activeScanTrace?.incrementMarketDataFetch({
           candle_success_count: 1,
           stale_count: 1,
@@ -900,6 +1043,7 @@ async function scanMarketCore(
           cachedRow,
         );
         candidates.push(candidate);
+        updateCandidateObservation(baseCandidate.ticker, { status: "rankable" });
       }
     }
   }
