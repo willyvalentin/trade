@@ -808,6 +808,34 @@ test.describe("candidate decision record", () => {
     ).toBeNull();
   });
 
+  test("does not label an old plan reference fresh because intraday indicators are fresh", () => {
+    const candidates = [
+      {
+        ...candidate(1),
+        reference_price_timestamp: "2026-05-28T13:31:14.866Z",
+        intraday_indicator_cached_at: CAPTURED_AT,
+        intraday_indicator_stale: false,
+      },
+    ];
+    const capture = captureFor({ candidates });
+    const record = buildCandidateDecisionRecord({
+      scanRun: scanRun(candidates.length),
+      capture,
+      scoringVersion: "day_trade_score_v1",
+      buildVersion: "test-build-v1",
+    });
+
+    expect(capture.observed_candidates[0]).toMatchObject({
+      source_timestamp: "2026-05-28T13:31:14.866Z",
+      stale: true,
+      data_gap_codes: ["provider_data_stale"],
+    });
+    expect(record?.candidates[0]?.data).toMatchObject({
+      freshness: "stale",
+      gap_codes: ["provider_data_stale"],
+    });
+  });
+
   test("rejects a versioned payload that cannot support the displayed readback", () => {
     expect(
       candidateDecisionRecordFromUnknown({
@@ -896,7 +924,7 @@ test.describe("candidate decision record", () => {
       comparison_to_previous: {
         candidate_count_delta: 1,
         ranked_candidate_count_delta: 1,
-        fresh_candidate_count_delta: 1,
+        fresh_candidate_count_delta: 2,
         final_disposition_changed: true,
       },
       recurring_no_trade_reasons: [

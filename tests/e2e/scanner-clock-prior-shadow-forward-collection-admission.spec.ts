@@ -76,20 +76,29 @@ function scanRun({
   id,
   observedAt,
   candidateCount = 0,
+  expectedCandidateCount = candidateCount,
+  sourceTimestamp = observedAt,
   tradingDate = observedAt.slice(0, 10),
 }: {
   id: string;
   observedAt: string;
   candidateCount?: number;
+  expectedCandidateCount?: number;
+  sourceTimestamp?: string;
   tradingDate?: string;
 }): LearningBaselineScanRun {
-  const tickers = Array.from(
+  const rankedTickers = Array.from(
     { length: candidateCount },
     (_, index) => `T${String(index).padStart(3, "0")}`,
   );
+  const universeTickers = Array.from(
+    { length: expectedCandidateCount },
+    (_, index) => `T${String(index).padStart(3, "0")}`,
+  );
+  const runFingerprint = `fingerprint-${id}`;
   return {
     id,
-    run_fingerprint: `fingerprint-${id}`,
+    run_fingerprint: runFingerprint,
     trading_date: tradingDate,
     window: "morning",
     observed_at: observedAt,
@@ -103,7 +112,7 @@ function scanRun({
         shadow_policy_version: SCANNER_CLOCK_PRIOR_SHADOW_POLICY_VERSION,
         hypothesis: "named_clock_priors_add_quality_beyond_observed_features",
         candidate_count: candidateCount,
-        candidate_tickers: tickers,
+        candidate_tickers: rankedTickers,
         baseline_selected_tickers: [],
         shadow_selected_tickers: [],
         selection_changed: false,
@@ -113,7 +122,7 @@ function scanRun({
         quality_improvement_claimed: false,
         quality_evidence_status: "not_evaluated",
         reason_codes: [],
-        displacements: tickers.map((ticker, index) => ({
+        displacements: rankedTickers.map((ticker, index) => ({
           ticker,
           baseline_rank: index + 1,
           shadow_rank: index + 1,
@@ -135,6 +144,72 @@ function scanRun({
           baseline_warnings_penalty: 0,
           shadow_warnings_penalty: 0,
         })),
+      },
+      candidate_decision_record: {
+        record_version: "candidate_decision_record_v1",
+        record_kind: "candidate_decision_record",
+        scan_run_id: id,
+        scan_run_fingerprint: runFingerprint,
+        decision_timestamp: observedAt,
+        versions: {
+          scanner_version: "scanner-test-v1",
+          universe_version: "scanner_universe_v1",
+          scoring_version: "day_trade_score_v1",
+          ranking_version: SCANNER_CLOCK_PRIOR_BASELINE_POLICY_VERSION,
+          build_version: "test-build-v1",
+          provider_contract_version: "twelve_data_market_data_v1",
+        },
+        coverage: {
+          expected_candidate_count: expectedCandidateCount,
+          observed_candidate_count: candidateCount,
+          ranked_candidate_count: candidateCount,
+          full_membership_declared: true,
+          full_membership_captured: true,
+          membership_reason_codes: [],
+          pre_truncation_capture_evidence: null,
+        },
+        candidates: universeTickers.map((ticker, index) => {
+          const ranked = index < candidateCount;
+          return {
+            candidate_id: `scanner_candidate:v1:${id}:${ticker}`,
+            ticker,
+            company_name: `${ticker} Incorporated`,
+            sector: "Technology",
+            disposition: ranked ? "ranked_not_selected" : "not_evaluated",
+            eligibility: ranked ? "ineligible" : "unknown",
+            reason_codes: ranked
+              ? ["ranking_not_selected"]
+              : ["candidate_provider_gap"],
+            data: {
+              provider_source: ranked ? "twelve_data" : null,
+              source_timestamp: ranked ? sourceTimestamp : null,
+              freshness: ranked ? "fresh" : "gap",
+              indicator_source: ranked ? "fresh" : "unavailable",
+              gap_codes: ranked ? [] : ["candidate_provider_gap"],
+            },
+            ranking: ranked
+              ? {
+                  rank: index + 1,
+                  score: 80 - index,
+                  tier: "valid",
+                  selected: false,
+                  selection_bucket: "not_selected",
+                  rank_reason: "ranked",
+                  tie_break_key: ticker,
+                  components: [],
+                  warnings: [],
+                  gaps: [],
+                }
+              : null,
+            build: null,
+          };
+        }),
+        final_decision: {
+          disposition: "no_trade",
+          published_tickers: [],
+          no_trade_reason: "no_publishable_candidate",
+          recommendation_build_path: "no_publish",
+        },
       },
     },
   };
@@ -216,6 +291,7 @@ test("counts honest no-trade opportunities and only emits unused future slots", 
     remaining_trading_days: 7,
   });
   expect(result.target_day).toEqual({
+    attributable_attempt_count: 2,
     accepted_attempt_count: 2,
     remaining_attempt_capacity: 2,
     admitted_slots: [
@@ -223,6 +299,65 @@ test("counts honest no-trade opportunities and only emits unused future slots", 
       "2026-09-28T14:15:00.000Z",
     ],
     maximum_provider_credits: 16,
+  });
+});
+
+test("does not count a partial universe as a complete ranked opportunity set", () => {
+  const result = assess(
+    [
+      scanRun({
+        id: "partial-universe",
+        observedAt: "2026-09-28T13:30:00.000Z",
+        candidateCount: 6,
+        expectedCandidateCount: 8,
+      }),
+    ],
+    { evaluatedAt: "2026-09-28T13:35:00.000Z" },
+  );
+
+  expect(result.status).toBe("admitted");
+  expect(result.reason_codes).toEqual([
+    "frozen_partition_evidence_deficit",
+    "scan_candidate_decision_coverage_incomplete",
+  ]);
+  expect(result.progress.held_out).toMatchObject({
+    opportunity_set_count: 0,
+    ranked_candidate_count: 0,
+    trading_day_count: 0,
+  });
+  expect(result.target_day).toMatchObject({
+    attributable_attempt_count: 1,
+    accepted_attempt_count: 0,
+    remaining_attempt_capacity: 3,
+  });
+  expect(result.target_day.admitted_slots).not.toContain(
+    "2026-09-28T13:30:00.000Z",
+  );
+});
+
+test("does not count an old source timestamp even when its stored label says fresh", () => {
+  const result = assess(
+    [
+      scanRun({
+        id: "old-source",
+        observedAt: "2026-09-28T13:30:00.000Z",
+        candidateCount: 1,
+        sourceTimestamp: "2026-05-28T13:31:14.866Z",
+      }),
+    ],
+    { evaluatedAt: "2026-09-28T13:35:00.000Z" },
+  );
+
+  expect(result.status).toBe("admitted");
+  expect(result.reason_codes).toEqual([
+    "frozen_partition_evidence_deficit",
+    "scan_candidate_decision_freshness_incomplete",
+  ]);
+  expect(result.progress.held_out.ranked_candidate_count).toBe(0);
+  expect(result.target_day).toMatchObject({
+    attributable_attempt_count: 1,
+    accepted_attempt_count: 0,
+    remaining_attempt_capacity: 3,
   });
 });
 

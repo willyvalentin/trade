@@ -98,27 +98,42 @@ status surface, receipt, schema or automation is supporting work only and cannot
 displace the next missing quality link unless a reproduced defect makes the
 evidence untrustworthy, unsafe or impossible to collect.
 
-**Active reproduced OPEN-evidence blocker and local CLOSED correction — series
-runtime cadence:** the 2026-09-28 production series on revision
-`b6e1c5fdd568dfd7df412364dccb2ddc88ee6714` produced exactly two attributable
-attempts and one eight-credit reservation with zero candidate, publication,
-paper or broker side effects. The 14:00Z attempt failed before a scan run with
-`timeout_budget_exceeded`; only two provider responses completed. The 14:15Z
-attempt then returned `observation_not_due`. This did not evaluate
-recommendation quality. The reproduced causes were forty seconds of redundant
-inter-call delay inside a 23-second scheduled route despite an atomic Basic Free
-reservation, plus failure backoff anchored to late finalization rather than the
-canonical quarter-hour slot. Branch `codex/series-runtime-cadence-fix` removes
-only that redundant pacing for the atomically reserved eight-credit path and
-anchors scheduled admission to the durable canonical slot while preserving
-strict v1/v2 receipt read compatibility. Ranking, confidence, publication and
-broker rules are unchanged. Local acceptance is 68/68 focused tests,
-changed-file lint, scheduled-runtime bundling and a complete production build.
-The correction is not yet merged, production-deployed or OPEN-verified; it does
-not itself prove stronger recommendations. The next quality-changing evidence
-remains one safely admitted observation on the exact deployed correction,
-followed by the frozen cohort scorecard rather than another infrastructure
-phase.
+**OPEN evidence and active CLOSED correction — truthful quality denominator:**
+PR [#698](https://github.com/willyvalentin/trade/pull/698) merged the exact-series
+cadence ownership correction as
+`53ebb4da7f80603e25a43db800b340081efb6c5d`; Netlify production deploy
+`6aba9c762df742000867dfff` is `ready` on that exact revision. A later frozen
+two-slot series on the same main revision produced two attributable attempts,
+sixteen reserved credits and zero recommendation, publication, paper or broker
+side effects. The 18:00Z attempt exhausted the route timeout after 31.86 seconds
+before universe or provider work. The 18:15Z attempt completed in 16.51 seconds,
+attempted eight tickers, received six successful provider responses, ranked
+three candidates and correctly published none: NVO and SLB reached the ranking
+selection but the builder scored them 59 and 51 against the frozen threshold of
+60. This is useful `no_trade` evidence, but it also reproduces a score-contract
+split because the ranking trace reported a top score of 77. Cleanup deploy
+`6abab00031b2da489df793ee` is `ready` on unchanged exact main with the series
+off and the global scheduler disable still true.
+
+The active CLOSED correction keeps ranking and publication behavior unchanged.
+It overlaps independent schema probes and expiry housekeeping to reduce the
+reproduced pre-provider latency, marks an old plan-reference timestamp stale
+even when an intraday-indicator flag is fresh, and excludes incomplete, stale or
+denominator-mismatched decision captures from frozen-cohort progress while still
+charging their attributable attempt capacity. This prevents a partial six-of-
+eight comparison or stale reference from being misrepresented as quality
+evidence. Local tests and builds must remain separate from merge, production and
+OPEN verification; no recommendation-quality improvement is claimed by this
+integrity correction. The next quality-changing work is a versioned shadow
+hypothesis that reconciles ranking and builder quality semantics and is measured
+against the frozen cohort before any live-policy change.
+
+Local acceptance for the active correction is 29/29 focused behavior tests,
+168/168 provider-free intelligence-foundation tests and 16/16 static
+containment tests, plus changed-file lint, strict TypeScript, scheduled-runtime
+packaging, `git diff --check` and a complete Next 16.3.4 production build. These
+are local implementation checks, not merged, production-verified or OPEN
+behavior evidence.
 
 **Merged and production-verified CLOSED slice — frozen-cohort daily collection
 admission:** PR [#693](https://github.com/willyvalentin/trade/pull/693) merged as
@@ -303,14 +318,14 @@ and global scheduler disable still true. This proves bounded first-slot
 delivery and reproduces a second-slot coordination defect; it does not prove
 recommendation quality.
 
-The active correction on branch `codex/series-same-window-cooldown` gives only
-an exact, eligible bounded-series slot with a current-data request ownership of
-its cadence decision. The legacy cooldown remains authoritative for disabled,
-rejected, no-request and ordinary scheduling paths. Local evidence is 42/42
-focused cadence/series/window tests, changed-file lint, strict TypeScript,
-scheduled-runtime packaging and a complete Next 16.3.4 production build. It is
-not yet merged, production-deployed or OPEN-verified; those states must be
-recorded separately before another bounded series is armed.
+PR [#698](https://github.com/willyvalentin/trade/pull/698) merged that correction
+as `53ebb4da7f80603e25a43db800b340081efb6c5d`. The legacy cooldown remains
+authoritative for disabled, rejected, no-request and ordinary scheduling paths;
+only an exact eligible bounded-series slot with current-data request ownership
+owns its cadence decision. Protected CI passed and production deploy
+`6aba9c762df742000867dfff` is ready on the exact merge revision. The later
+18:00Z/18:15Z series above verifies that the second exact slot is now admitted;
+it does not prove stronger recommendations.
 
 **Merged and production-verified CLOSED slice — verified intraday-liquidity
 shadow ranking:** PR [#657](https://github.com/willyvalentin/trade/pull/657)

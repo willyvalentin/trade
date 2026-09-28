@@ -1,5 +1,7 @@
 import "server-only";
 
+import { candidateDecisionRecordFromScanRun } from "@/lib/candidate-decision-readback";
+import { isFreshLiveReferenceMarketTime } from "@/lib/live-reference-freshness-policy";
 import type { LearningBaselineScanRun } from "@/lib/recommendation-learning-baseline-readiness";
 import { scannerClockPriorShadowForwardPlanProfile } from "@/lib/scanner-clock-prior-shadow-forward-plan-profile";
 import {
@@ -14,9 +16,9 @@ import {
 import { getUsEquityMarketSession } from "@/lib/us-equity-market-calendar";
 
 export const SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_COLLECTION_ADMISSION_VERSION =
-  "scanner_clock_prior_shadow_forward_collection_admission_v1" as const;
+  "scanner_clock_prior_shadow_forward_collection_admission_v2" as const;
 export const SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_COLLECTION_POLICY_VERSION =
-  "scanner_clock_prior_shadow_forward_collection_policy_v1" as const;
+  "scanner_clock_prior_shadow_forward_collection_policy_v2" as const;
 
 const MAXIMUM_ATTEMPTS_PER_TRADING_DAY = 4;
 const PROVIDER_CREDITS_PER_ATTEMPT = 8;
@@ -49,6 +51,7 @@ export type ScannerClockPriorShadowForwardCollectionAdmission = {
   next_eligible_trading_date: string | null;
   progress: Record<PartitionName, PartitionProgress>;
   target_day: {
+    attributable_attempt_count: number;
     accepted_attempt_count: number;
     remaining_attempt_capacity: number;
     admitted_slots: string[];
@@ -210,6 +213,7 @@ export function assessScannerClockPriorShadowForwardCollectionAdmission(
       next_eligible_trading_date: null,
       progress: empty,
       target_day: {
+        attributable_attempt_count: 0,
         accepted_attempt_count: 0,
         remaining_attempt_capacity: 0,
         admitted_slots: [],
@@ -230,7 +234,12 @@ export function assessScannerClockPriorShadowForwardCollectionAdmission(
     PartitionName,
     Array<{ tradingDate: string; observedAt: string; candidateCount: number }>
   > = { held_out: [], walk_forward: [] };
+  const attributableAttempts: Record<
+    PartitionName,
+    Array<{ tradingDate: string; observedAt: string }>
+  > = { held_out: [], walk_forward: [] };
   const evidenceReasons: string[] = [];
+  const excludedEvidenceReasons: string[] = [];
   const fingerprints = new Set<string>();
   const ids = new Set<string>();
   const observedInstants = new Set<string>();
@@ -290,16 +299,76 @@ export function assessScannerClockPriorShadowForwardCollectionAdmission(
       evidenceReasons.push("scan_comparison_invalid_or_policy_mismatched");
       continue;
     }
+    attributableAttempts[partition].push({
+      tradingDate: scanRun.trading_date,
+      observedAt: scanRun.observed_at,
+    });
+
+    const decisionRecord = candidateDecisionRecordFromScanRun(scanRun);
+    if (!decisionRecord) {
+      excludedEvidenceReasons.push("scan_candidate_decision_missing_or_invalid");
+      continue;
+    }
+    const rankedCandidates = decisionRecord.candidates.filter(
+      (candidate) => candidate.ranking !== null,
+    );
+    const coverageIncomplete =
+      !decisionRecord.coverage.full_membership_captured ||
+      decisionRecord.coverage.observed_candidate_count !==
+        decisionRecord.coverage.expected_candidate_count ||
+      decisionRecord.coverage.membership_reason_codes.length > 0 ||
+      decisionRecord.candidates.some(
+        (candidate) => candidate.disposition === "not_evaluated",
+      );
+    if (coverageIncomplete) {
+      excludedEvidenceReasons.push("scan_candidate_decision_coverage_incomplete");
+      continue;
+    }
+
+    const comparisonTickers = uniqueSorted(
+      comparison.candidate_tickers.map((ticker) => ticker.trim().toUpperCase()),
+    );
+    const rankedTickers = uniqueSorted(
+      rankedCandidates.map((candidate) => candidate.ticker.trim().toUpperCase()),
+    );
+    const denominatorMismatch =
+      decisionRecord.coverage.ranked_candidate_count !== rankedCandidates.length ||
+      comparison.candidate_count !== rankedCandidates.length ||
+      comparisonTickers.length !== comparison.candidate_tickers.length ||
+      rankedTickers.length !== rankedCandidates.length ||
+      comparisonTickers.length !== rankedTickers.length ||
+      comparisonTickers.some((ticker, index) => ticker !== rankedTickers[index]);
+    if (denominatorMismatch) {
+      excludedEvidenceReasons.push(
+        "scan_candidate_decision_comparison_denominator_mismatch",
+      );
+      continue;
+    }
+
+    const decisionAt = Date.parse(decisionRecord.decision_timestamp);
+    const freshnessIncomplete = decisionRecord.candidates.some(
+      (candidate) =>
+        candidate.data.freshness !== "fresh" ||
+        candidate.data.gap_codes.length > 0 ||
+        !isFreshLiveReferenceMarketTime(
+          candidate.data.source_timestamp,
+          decisionAt,
+        ),
+    );
+    if (freshnessIncomplete) {
+      excludedEvidenceReasons.push("scan_candidate_decision_freshness_incomplete");
+      continue;
+    }
     accepted[partition].push({
       tradingDate: scanRun.trading_date,
       observedAt: scanRun.observed_at,
-      candidateCount: comparison.candidate_count,
+      candidateCount: rankedCandidates.length,
     });
   }
 
   const attemptsByTradingDate = new Map<string, number>();
   for (const partition of ["held_out", "walk_forward"] as const) {
-    for (const row of accepted[partition]) {
+    for (const row of attributableAttempts[partition]) {
       attemptsByTradingDate.set(
         row.tradingDate,
         (attemptsByTradingDate.get(row.tradingDate) ?? 0) + 1,
@@ -361,6 +430,7 @@ export function assessScannerClockPriorShadowForwardCollectionAdmission(
       next_eligible_trading_date: null,
       progress,
       target_day: {
+        attributable_attempt_count: 0,
         accepted_attempt_count: 0,
         remaining_attempt_capacity: 0,
         admitted_slots: [],
@@ -383,6 +453,7 @@ export function assessScannerClockPriorShadowForwardCollectionAdmission(
       next_eligible_trading_date: null,
       progress,
       target_day: {
+        attributable_attempt_count: 0,
         accepted_attempt_count: 0,
         remaining_attempt_capacity: 0,
         admitted_slots: [],
@@ -400,6 +471,7 @@ export function assessScannerClockPriorShadowForwardCollectionAdmission(
       next_eligible_trading_date: null,
       progress,
       target_day: {
+        attributable_attempt_count: 0,
         accepted_attempt_count: 0,
         remaining_attempt_capacity: 0,
         admitted_slots: [],
@@ -411,9 +483,12 @@ export function assessScannerClockPriorShadowForwardCollectionAdmission(
   const targetRows = accepted[targetPartition].filter(
     (row) => row.tradingDate === input.targetTradingDate,
   );
+  const targetAttempts = attributableAttempts[targetPartition].filter(
+    (row) => row.tradingDate === input.targetTradingDate,
+  );
   const capacity = Math.max(
     0,
-    MAXIMUM_ATTEMPTS_PER_TRADING_DAY - targetRows.length,
+    MAXIMUM_ATTEMPTS_PER_TRADING_DAY - targetAttempts.length,
   );
   const targetProgress = progress[targetPartition];
   const nextDate = targetProgress.minimums_met
@@ -422,16 +497,18 @@ export function assessScannerClockPriorShadowForwardCollectionAdmission(
   if (targetProgress.minimums_met || capacity === 0) {
     return response(input, {
       status: "no_collection_needed",
-      reason_codes: [
+      reason_codes: uniqueSorted([
         targetProgress.minimums_met
           ? "partition_minimums_already_met"
           : "target_day_collection_limit_reached",
-      ],
+        ...excludedEvidenceReasons,
+      ]),
       plan_fingerprint: plan.plan_fingerprint,
       target_partition: targetPartition,
       next_eligible_trading_date: nextDate,
       progress,
       target_day: {
+        attributable_attempt_count: targetAttempts.length,
         accepted_attempt_count: targetRows.length,
         remaining_attempt_capacity: capacity,
         admitted_slots: [],
@@ -440,7 +517,7 @@ export function assessScannerClockPriorShadowForwardCollectionAdmission(
     });
   }
 
-  const existingInstants = new Set(targetRows.map((row) => row.observedAt));
+  const existingInstants = new Set(targetAttempts.map((row) => row.observedAt));
   const evaluatedAt = Date.parse(input.evaluatedAt);
   const sessionClose = Date.parse(targetSession.session_close);
   const slots = Array.from({ length: MAXIMUM_ATTEMPTS_PER_TRADING_DAY }, (_, index) =>
@@ -459,12 +536,16 @@ export function assessScannerClockPriorShadowForwardCollectionAdmission(
   if (slots.length === 0) {
     return response(input, {
       status: "blocked",
-      reason_codes: ["no_future_predeclared_slot_available_for_target_date"],
+      reason_codes: uniqueSorted([
+        "no_future_predeclared_slot_available_for_target_date",
+        ...excludedEvidenceReasons,
+      ]),
       plan_fingerprint: plan.plan_fingerprint,
       target_partition: targetPartition,
       next_eligible_trading_date: nextDate,
       progress,
       target_day: {
+        attributable_attempt_count: targetAttempts.length,
         accepted_attempt_count: targetRows.length,
         remaining_attempt_capacity: capacity,
         admitted_slots: [],
@@ -475,12 +556,16 @@ export function assessScannerClockPriorShadowForwardCollectionAdmission(
 
   return response(input, {
     status: "admitted",
-    reason_codes: ["frozen_partition_evidence_deficit"],
+    reason_codes: uniqueSorted([
+      "frozen_partition_evidence_deficit",
+      ...excludedEvidenceReasons,
+    ]),
     plan_fingerprint: plan.plan_fingerprint,
     target_partition: targetPartition,
     next_eligible_trading_date: nextDate,
     progress,
     target_day: {
+      attributable_attempt_count: targetAttempts.length,
       accepted_attempt_count: targetRows.length,
       remaining_attempt_capacity: capacity,
       admitted_slots: slots,

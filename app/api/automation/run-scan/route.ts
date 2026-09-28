@@ -3757,10 +3757,16 @@ export async function POST(request: Request) {
 
   activeScanTrace.updateProviderEnv();
   const schemaSupabase = getServerSupabaseClient();
-  const schemaCheck = await checkRecommendationLearningSchema({
-    supabaseClient: schemaSupabase.client,
-    unavailableReason: schemaSupabase.unavailable_reason,
-  });
+  const [schemaCheck, expiredRecommendationsResult] = await Promise.all([
+    checkRecommendationLearningSchema({
+      supabaseClient: schemaSupabase.client,
+      unavailableReason: schemaSupabase.unavailable_reason,
+    }),
+    archiveExpiredRecommendations(ownerUserId).then(
+      (value) => ({ status: "fulfilled" as const, value }),
+      (reason: unknown) => ({ status: "rejected" as const, reason }),
+    ),
+  ]);
   activeScanTrace.updateSchemaCheck(schemaCheck);
   activeScanTrace.update({
     interpreted_ny_time: `${dayTradeScanOrchestration.trading_date} ${dayTradeScanOrchestration.ny_time} America/New_York`,
@@ -3845,9 +3851,8 @@ export async function POST(request: Request) {
   let basicFreeScheduledScanCreditReservation: BasicFreeScheduledScanCreditReservationSummary | null =
     null;
 
-  try {
-    expiredRecommendations = await archiveExpiredRecommendations(ownerUserId);
-  } catch (error) {
+  if (expiredRecommendationsResult.status === "rejected") {
+    const error = expiredRecommendationsResult.reason;
     console.error("[automation/run-scan] archive_expired_recommendations_error", {
       scanDate: scanWindow.scanDate,
       sessionType: scanWindow.sessionType,
@@ -3898,6 +3903,8 @@ export async function POST(request: Request) {
       },
       { status },
     );
+  } else {
+    expiredRecommendations = expiredRecommendationsResult.value;
   }
 
   const canRunPreMarketWatchlist =

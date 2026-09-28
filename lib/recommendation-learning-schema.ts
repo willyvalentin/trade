@@ -74,30 +74,27 @@ export async function checkRecommendationLearningSchema({
     };
   }
 
-  for (const table of recommendationLearningTables) {
-    try {
-      const result = await supabaseClient
-        .from(table)
-        .select?.("id", { head: true, count: "exact" })
-        .limit?.(0);
-      const error = result?.error;
+  const probes = await Promise.all(
+    recommendationLearningTables.map(async (table) => {
+      try {
+        const result = await supabaseClient
+          .from(table)
+          .select?.("id", { head: true, count: "exact" })
+          .limit?.(0);
+        return { table, error: result?.error ?? null };
+      } catch (error) {
+        return { table, error };
+      }
+    }),
+  );
 
-      if (!error) {
-        existingTables.push(table);
-        continue;
-      }
-
-      if (isMissingTableError(error)) {
-        missingTables.push(table);
-      } else {
-        lastSchemaError = `${table}:${classifySupabasePersistenceError(error)}:${errorMessage(error)}`;
-      }
-    } catch (error) {
-      if (isMissingTableError(error)) {
-        missingTables.push(table);
-      } else {
-        lastSchemaError = `${table}:${classifySupabasePersistenceError(error)}:${errorMessage(error)}`;
-      }
+  for (const { table, error } of probes) {
+    if (!error) {
+      existingTables.push(table);
+    } else if (isMissingTableError(error)) {
+      missingTables.push(table);
+    } else {
+      lastSchemaError = `${table}:${classifySupabasePersistenceError(error)}:${errorMessage(error)}`;
     }
   }
 
