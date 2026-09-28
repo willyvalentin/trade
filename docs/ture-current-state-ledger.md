@@ -288,6 +288,30 @@ remaining environment receipt does not block independent CLOSED intelligence
 work. Additional generic control-plane work requires a reproduced defect. This
 is a priority change, not a claim that reliability work improved alpha.
 
+**A.2 bounded OPEN series evidence and focused correction, 2026-09-28:** exact
+main `9ac99cc112e2d81f86cd6f7aff8c39cfda4ae13a` and ready activation deploy
+`6aba880709c49cb71c798c57` ran the frozen two-slot series
+`observation_series_3fe85b68cf2c93b7` with at most two attempts and sixteen
+credits. The `16:00Z` slot completed in 13.72 seconds, reserved eight credits,
+ranked six symbols, selected OXY at score 47 and correctly published zero
+recommendations because it was below the frozen publication threshold. The
+`16:15Z` slot had exact lineage and was admitted by both observation policy v3
+and series runtime admission v2, but a later legacy `same_window_cooldown`
+check rejected it before provider work. Cleanup deploy
+`6aba93f5b34bdb134d86ab7e` is ready on unchanged exact main with the series off
+and global scheduler disable still true. This proves bounded first-slot
+delivery and reproduces a second-slot coordination defect; it does not prove
+recommendation quality.
+
+The active correction on branch `codex/series-same-window-cooldown` gives only
+an exact, eligible bounded-series slot with a current-data request ownership of
+its cadence decision. The legacy cooldown remains authoritative for disabled,
+rejected, no-request and ordinary scheduling paths. Local evidence is 42/42
+focused cadence/series/window tests, changed-file lint, strict TypeScript,
+scheduled-runtime packaging and a complete Next 16.3.4 production build. It is
+not yet merged, production-deployed or OPEN-verified; those states must be
+recorded separately before another bounded series is armed.
+
 **Merged and production-verified CLOSED slice — verified intraday-liquidity
 shadow ranking:** PR [#657](https://github.com/willyvalentin/trade/pull/657)
 merged as `5cdeb2cbd0a6b40b0e24639b5df61c5edc0ee027`; Netlify production deploy

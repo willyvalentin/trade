@@ -16,6 +16,8 @@ import type { ObservationSeriesRuntimeAdmission } from "@/lib/observation-series
 
 export const CONTINUOUS_MARKET_SCAN_ADMISSION_VERSION =
   OBSERVATION_CYCLE_ADMISSION_POLICY_VERSION;
+export const CONTINUOUS_MARKET_SCAN_LEGACY_COOLDOWN_COORDINATION_VERSION =
+  "continuous_market_scan_legacy_cooldown_coordination_v1" as const;
 export const CONTINUOUS_MARKET_SCAN_MIN_CADENCE_MINUTES =
   OBSERVATION_CYCLE_MINIMUM_CADENCE_MINUTES;
 // 09:30–16:00 ET contains 26 eligible quarter-hour ticks. This is a
@@ -28,6 +30,26 @@ export type ContinuousMarketScanAdmission = ScheduledOfficialGateDiagnostics & {
   observation_admission: ObservationCycleAdmissionReceipt;
   observation_series_admission: ObservationSeriesRuntimeAdmission;
 };
+
+/**
+ * A bounded observation series owns its exact canonical slot after both the
+ * durable series controller and the current-data admission policy approve it.
+ * The older same-window cooldown remains authoritative for every other path.
+ */
+export function shouldApplyLegacySameWindowCooldown(input: {
+  recentScanWithinCooldown: boolean;
+  observationSeriesAdmission: ObservationSeriesRuntimeAdmission;
+  observationAdmission: ObservationCycleAdmissionReceipt;
+}) {
+  const approvedSeriesSlot =
+    input.observationSeriesAdmission.decision === "allow" &&
+    input.observationSeriesAdmission.status === "eligible" &&
+    input.observationSeriesAdmission.series_id !== null &&
+    input.observationSeriesAdmission.scheduled_slot_started_at_utc !== null &&
+    input.observationAdmission.request_current_data === true;
+
+  return input.recentScanWithinCooldown && !approvedSeriesSlot;
+}
 
 /**
  * The scheduler's quarter-hour event is a sampling opportunity, not a

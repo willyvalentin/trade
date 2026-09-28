@@ -49,6 +49,8 @@ import {
 import { buildMarketSessionEvaluation } from "@/lib/market-session";
 import {
   buildContinuousMarketScanAdmission,
+  CONTINUOUS_MARKET_SCAN_LEGACY_COOLDOWN_COORDINATION_VERSION,
+  shouldApplyLegacySameWindowCooldown,
   type ContinuousMarketScanAdmission,
 } from "@/lib/continuous-market-scan-admission";
 import type {
@@ -4765,14 +4767,20 @@ export async function POST(request: Request) {
     });
     const cooldownMinutes =
       initialServingCadence.background_scan_cadence_minutes.min;
+    const recentScanWithinCooldown = shouldSkipForRecentScan({
+      latestScan: latestSameWindowScan,
+      now,
+      cooldownMinutes,
+    });
 
     if (
       !force &&
       !ignore_existing_run &&
-      shouldSkipForRecentScan({
-        latestScan: latestSameWindowScan,
-        now,
-        cooldownMinutes,
+      shouldApplyLegacySameWindowCooldown({
+        recentScanWithinCooldown,
+        observationSeriesAdmission:
+          scheduledGateDiagnostics.observation_series_admission,
+        observationAdmission: scheduledGateDiagnostics.observation_admission,
       })
     ) {
       const ageMinutes = minutesSince(latestSameWindowScan?.row.created_at, now);
@@ -4806,6 +4814,8 @@ export async function POST(request: Request) {
         details: {
           ...powerHourTrialGate,
           no_publish_reason: "same_window_cooldown",
+          continuous_market_scan_cooldown_coordination_version:
+            CONTINUOUS_MARKET_SCAN_LEGACY_COOLDOWN_COORDINATION_VERSION,
           day_trade_scan_orchestration: dayTradeScanOrchestration,
           recommendation_serving_cadence:
             latestSameWindowScan?.scanLog.recommendation_serving_cadence ??
