@@ -18,6 +18,7 @@ import {
 } from "../../lib/observation-cycle-receipt";
 import { resolveScheduledScanProviderCreditBudget } from "../../lib/scheduled-scan-ticker-cap";
 import { scheduledScanInvocationReceiptFromAttempt } from "../../lib/scheduled-scan-invocation-receipt";
+import type { ScanLogEntry } from "../../lib/scan-log-core";
 
 const ownerUserId = "11111111-1111-4111-8111-111111111111";
 const attemptFingerprint = "scheduled_scan_attempt_receipt_001";
@@ -28,12 +29,14 @@ function buildReceipt({
   allowed = true,
   mode = "scheduled",
   scanRunFingerprint = null,
+  scanLog = null,
   configure,
 }: {
   outcome?: "route_received" | "skipped" | "failed" | "scanned";
   allowed?: boolean;
   mode?: "scheduled" | "manual" | "diagnostic";
   scanRunFingerprint?: string | null;
+  scanLog?: ScanLogEntry | null;
   configure?: (
     recorder: ReturnType<typeof createActiveScanTrace>,
   ) => void;
@@ -90,7 +93,7 @@ function buildReceipt({
     scheduledFunctionFiredAtUtc: "2026-09-25T16:15:00.000Z",
     orchestrationDecision: "continuous_market_scan_admission_v1",
     skipReason: outcome === "skipped" ? "market_closed" : null,
-    scanLog: null,
+    scanLog,
     activeScanTrace: recorder.trace,
     scanRunFingerprint,
     scheduledInvocationReceipt,
@@ -134,6 +137,36 @@ test.describe("SV-A.2 observation-cycle receipts", () => {
   test("records a truthful no-trade after observed data and ranking", () => {
     const record = buildReceipt({
       outcome: "scanned",
+      scanLog: {
+        created_at: "2026-09-25T16:15:08.000Z",
+        source: "scheduled",
+        scan_window: "continuous",
+        market_status: "open",
+        result: "no_high_quality_setup",
+        message: "fixture",
+        recommendations_created: 0,
+        publishable_threshold: 60,
+        scanner_candidate_ranking: {
+          selected_count: 1,
+          results: [
+            {
+              ticker: "NVO",
+              rank: 1,
+              selected: true,
+              score: { normalized_score: 77, tier: "valid" },
+            },
+          ],
+          selection: { selected_tickers: ["NVO"] },
+        },
+        selected_candidate_build_diagnostics: [
+          {
+            ticker: "NVO",
+            score: 59,
+            built: false,
+            rejection_reason: "below_publish_threshold",
+          },
+        ],
+      } as unknown as ScanLogEntry,
       configure(recorder) {
         const candidateObservations: ScanProviderCandidateObservation[] = [
           "NVO",
@@ -187,6 +220,22 @@ test.describe("SV-A.2 observation-cycle receipts", () => {
         expected_candidate_count: 4,
         rankable_candidate_count: 4,
       },
+    });
+    expect(record?.receipt_json.score_gate_alignment).toMatchObject({
+      status: "observed",
+      publishable_threshold: 60,
+      counts: {
+        selected: 1,
+        ranking_qualified_local_block: 1,
+      },
+      candidates: [
+        {
+          ticker: "NVO",
+          ranking_score: 77,
+          local_score: 59,
+          alignment: "ranking_qualified_local_block",
+        },
+      ],
     });
     expect(record?.receipt_json.publication.status).toBe("no_trade");
     expect(record?.receipt_json.publication.reason_codes).toContain(

@@ -7,6 +7,11 @@ import {
   type ScannerProviderCoverageDiagnostic,
 } from "@/lib/scanner-provider-coverage-diagnostic";
 import {
+  scannerScoreGateAlignmentDiagnosticFromScanLog,
+  scannerScoreGateAlignmentDiagnosticFromUnknown,
+  type ScannerScoreGateAlignmentDiagnostic,
+} from "@/lib/scanner-score-gate-alignment-diagnostic";
+import {
   observationCycleAdmissionFromUnknown,
   type ObservationCycleAdmissionReceipt,
   type ObservationCyclePreRunFailure,
@@ -87,6 +92,7 @@ export type ObservationCycleReceipt = Readonly<{
     built_count: number;
   }>;
   provider_candidate_coverage?: ScannerProviderCoverageDiagnostic;
+  score_gate_alignment?: ScannerScoreGateAlignmentDiagnostic;
   publication: Readonly<{
     status: "published" | "no_trade" | "not_attempted" | "rejected" | "failed" | "unknown";
     published_count: number;
@@ -492,6 +498,10 @@ export function buildObservationCycleReceipt(
       classification.trace,
       classification.cycleStatus !== "active",
     ),
+    score_gate_alignment: scannerScoreGateAlignmentDiagnosticFromScanLog(
+      input.scanLog,
+      classification.cycleStatus !== "active",
+    ),
     publication: Object.freeze({
       status: classification.publicationStatus,
       published_count: classification.publishedCount,
@@ -562,6 +572,12 @@ export function observationCycleReceiptFromUnknown(
       ? scannerProviderCoverageDiagnosticFromTrace(null, false)
       : scannerProviderCoverageDiagnosticFromUnknown(
           receipt.provider_candidate_coverage,
+        );
+  const scoreGateAlignment =
+    receipt?.score_gate_alignment === undefined
+      ? scannerScoreGateAlignmentDiagnosticFromScanLog(null, false)
+      : scannerScoreGateAlignmentDiagnosticFromUnknown(
+          receipt.score_gate_alignment,
         );
   const publication = objectOrNull(receipt?.publication);
   const decision = objectOrNull(receipt?.decision);
@@ -785,6 +801,7 @@ export function observationCycleReceiptFromUnknown(
       built_count: builtCount,
     }),
     provider_candidate_coverage: providerCandidateCoverage,
+    score_gate_alignment: scoreGateAlignment,
     publication: Object.freeze({
       status: publicationStatus,
       published_count: publishedCount,

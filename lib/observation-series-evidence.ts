@@ -3,6 +3,10 @@ import {
   scannerProviderCoverageCohortDiagnosticFromUnknown,
   type ScannerProviderCoverageCohortDiagnostic,
 } from "@/lib/scanner-provider-coverage-diagnostic";
+import {
+  scannerScoreGateAlignmentCohortDiagnosticFromUnknown,
+  type ScannerScoreGateAlignmentCohortDiagnostic,
+} from "@/lib/scanner-score-gate-alignment-diagnostic";
 
 export const OBSERVATION_SERIES_EVIDENCE_READBACK_VERSION =
   "observation_series_evidence_readback_v1" as const;
@@ -70,6 +74,7 @@ export type ObservationSeriesEvidenceReadback = Readonly<{
       published_recommendations: number;
       evidence_gaps: readonly string[];
       provider_candidate_coverage: ScannerProviderCoverageCohortDiagnostic;
+      score_gate_alignment: ScannerScoreGateAlignmentCohortDiagnostic;
     }>;
     authority: Readonly<{
       arms_scheduler: false;
@@ -212,6 +217,10 @@ export function observationSeriesEvidenceReadbackFromUnknown(
     scannerProviderCoverageCohortDiagnosticFromUnknown(
       quality?.provider_candidate_coverage,
     );
+  const scoreGateAlignment =
+    scannerScoreGateAlignmentCohortDiagnosticFromUnknown(
+      quality?.score_gate_alignment,
+    );
   const integerKeys = [
     "scheduled_attempts",
     "attributed_receipts",
@@ -279,6 +288,7 @@ export function observationSeriesEvidenceReadbackFromUnknown(
     !operationalReasons ||
     !evidenceGaps ||
     !providerCandidateCoverage ||
+    !scoreGateAlignment ||
     !countsValid ||
     !["pass", "in_progress", "fail", "inconclusive"].includes(classification) ||
     ![
