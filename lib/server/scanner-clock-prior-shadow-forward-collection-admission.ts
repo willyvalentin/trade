@@ -16,9 +16,9 @@ import {
 import { getUsEquityMarketSession } from "@/lib/us-equity-market-calendar";
 
 export const SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_COLLECTION_ADMISSION_VERSION =
-  "scanner_clock_prior_shadow_forward_collection_admission_v2" as const;
+  "scanner_clock_prior_shadow_forward_collection_admission_v3" as const;
 export const SCANNER_CLOCK_PRIOR_SHADOW_FORWARD_COLLECTION_POLICY_VERSION =
-  "scanner_clock_prior_shadow_forward_collection_policy_v2" as const;
+  "scanner_clock_prior_shadow_forward_collection_policy_v3" as const;
 
 const MAXIMUM_ATTEMPTS_PER_TRADING_DAY = 4;
 const PROVIDER_CREDITS_PER_ATTEMPT = 8;
@@ -292,7 +292,8 @@ export function assessScannerClockPriorShadowForwardCollectionAdmission(
     if (
       !comparison ||
       comparison.status !== "comparable" ||
-      comparison.generated_at !== scanRun.observed_at ||
+      !Number.isFinite(Date.parse(comparison.generated_at)) ||
+      Date.parse(comparison.generated_at) < Date.parse(scanRun.observed_at) ||
       comparison.baseline_policy_version !== plan.baseline_ranking_version ||
       comparison.shadow_policy_version !== plan.candidate_ranking_version
     ) {
@@ -307,6 +308,14 @@ export function assessScannerClockPriorShadowForwardCollectionAdmission(
     const decisionRecord = candidateDecisionRecordFromScanRun(scanRun);
     if (!decisionRecord) {
       excludedEvidenceReasons.push("scan_candidate_decision_missing_or_invalid");
+      continue;
+    }
+    const decisionAt = Date.parse(decisionRecord.decision_timestamp);
+    if (
+      !Number.isFinite(decisionAt) ||
+      Date.parse(comparison.generated_at) > decisionAt
+    ) {
+      evidenceReasons.push("scan_comparison_decision_time_lineage_invalid");
       continue;
     }
     const rankedCandidates = decisionRecord.candidates.filter(
@@ -345,7 +354,6 @@ export function assessScannerClockPriorShadowForwardCollectionAdmission(
       continue;
     }
 
-    const decisionAt = Date.parse(decisionRecord.decision_timestamp);
     const freshnessIncomplete = decisionRecord.candidates.some(
       (candidate) =>
         candidate.data.freshness !== "fresh" ||
