@@ -285,6 +285,16 @@ test("an expired fully attributed no-trade series passes delivery without claimi
   expect(result.series?.quality.evidence_gaps).toContain(
     "single_observation_series_cannot_establish_strategy_quality",
   );
+  expect(result.series?.quality.provider_candidate_coverage).toMatchObject({
+    status: "insufficient_evidence",
+    cycle_counts: {
+      total: 2,
+      observed: 0,
+      not_observed: 2,
+      invalid: 0,
+    },
+    investigation_priority: "insufficient_evidence",
+  });
   expect(Object.values(result.series?.authority ?? {}).every((value) => value === false)).toBe(true);
 });
 

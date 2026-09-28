@@ -2,7 +2,12 @@ import { expect, test } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { createActiveScanTrace } from "../../lib/active-scan-trace";
+import {
+  createActiveScanTrace,
+  SCAN_PROVIDER_CANDIDATE_OBSERVATION_VERSION,
+  summarizeScanProviderCandidateObservations,
+  type ScanProviderCandidateObservation,
+} from "../../lib/active-scan-trace";
 import { buildObservationCycleAdmission } from "../../lib/observation-cycle-admission-policy";
 import {
   buildObservationCycleReadback,
@@ -130,16 +135,35 @@ test.describe("SV-A.2 observation-cycle receipts", () => {
     const record = buildReceipt({
       outcome: "scanned",
       configure(recorder) {
+        const candidateObservations: ScanProviderCandidateObservation[] = [
+          "NVO",
+          "SLB",
+          "GS",
+          "RDDT",
+        ].map((ticker, tickerIndex) => ({
+          observation_version: SCAN_PROVIDER_CANDIDATE_OBSERVATION_VERSION,
+          ticker,
+          ticker_index: tickerIndex,
+          status: "rankable",
+          daily_data_source: "provider",
+          intraday_data_source: "not_observed",
+          provider_credits_reserved: 1,
+          reason_codes: [],
+        }));
         recorder.updateMarketDataFetch({
           attempted_tickers: 4,
           provider_calls_reserved_count: 4,
+          daily_candle_provider_calls_reserved_count: 4,
           quote_success_count: 4,
           provider_credit_policy_version: "basic_free_scan_credit_guard_v1",
+          candidate_observations: candidateObservations,
+          candidate_observation_summary:
+            summarizeScanProviderCandidateObservations(candidateObservations),
         });
-        recorder.updateRawCandidates({ raw_candidate_count: 2 });
+        recorder.updateRawCandidates({ raw_candidate_count: 4 });
         recorder.updateRanking({
           ranking_attempted: true,
-          ranked_count: 2,
+          ranked_count: 4,
           selected_count: 1,
         });
         recorder.updateFinal({
@@ -156,6 +180,14 @@ test.describe("SV-A.2 observation-cycle receipts", () => {
     expect(record?.receipt_json.provider_response.status).toBe("observed");
     expect(record?.receipt_json.freshness.status).toBe("fresh");
     expect(record?.receipt_json.discovery_evaluation.status).toBe("completed");
+    expect(record?.receipt_json.provider_candidate_coverage).toMatchObject({
+      status: "observed",
+      daily_provider_credits_reserved: 4,
+      summary: {
+        expected_candidate_count: 4,
+        rankable_candidate_count: 4,
+      },
+    });
     expect(record?.receipt_json.publication.status).toBe("no_trade");
     expect(record?.receipt_json.publication.reason_codes).toContain(
       "below_publish_threshold",

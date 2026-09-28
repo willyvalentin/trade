@@ -18,6 +18,10 @@ import {
   scheduledScanInvocationReceiptFromAttempt,
   type ScheduledScanInvocationReceipt,
 } from "@/lib/scheduled-scan-invocation-receipt";
+import {
+  buildScannerProviderCoverageCohortDiagnostic,
+  scannerProviderCoverageDiagnosticFromTrace,
+} from "@/lib/scanner-provider-coverage-diagnostic";
 
 export const OBSERVATION_SERIES_EVIDENCE_RECEIPT_GRACE_MS = 90_000;
 
@@ -302,6 +306,14 @@ export function buildObservationSeriesEvidenceReadback({
       ? ["candidate_quality_not_observed"]
       : []),
   ]);
+  const providerCandidateCoverage =
+    buildScannerProviderCoverageCohortDiagnostic(
+      receipts.map(
+        (receipt) =>
+          receipt.provider_candidate_coverage ??
+          scannerProviderCoverageDiagnosticFromTrace(null, false),
+      ),
+    );
 
   return Object.freeze({
     readback_version: OBSERVATION_SERIES_EVIDENCE_READBACK_VERSION,
@@ -381,6 +393,7 @@ export function buildObservationSeriesEvidenceReadback({
         completed_evaluation_cycles: completedEvaluationCycles,
         published_recommendations: publishedRecommendations,
         evidence_gaps: Object.freeze(evidenceGaps),
+        provider_candidate_coverage: providerCandidateCoverage,
       }),
       authority: inertAuthority(),
     }),
