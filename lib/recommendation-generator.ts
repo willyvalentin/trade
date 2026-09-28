@@ -162,6 +162,7 @@ export type GenerateRecommendationsInput = {
   diagnosticMaxTickers?: number | null;
   scheduledMaxTickers?: number | null;
   scheduledProviderCreditBudget?: ScheduledScanProviderCreditBudget | null;
+  scheduledProviderCallPacingMs?: number | null;
   growMaxLearningMode?: boolean;
   skipOpenAi?: boolean;
   activeScanTrace?: ActiveScanTraceRecorder | null;
@@ -3180,6 +3181,7 @@ export async function generateRecommendations({
   diagnosticMaxTickers = null,
   scheduledMaxTickers = null,
   scheduledProviderCreditBudget = null,
+  scheduledProviderCallPacingMs = null,
   growMaxLearningMode = false,
   skipOpenAi = false,
   activeScanTrace = null,
@@ -3611,6 +3613,10 @@ export async function generateRecommendations({
         source,
         activeScanTrace,
         maxFreshProviderCalls: scannerFreshProviderCallCap,
+        freshProviderCallPacingMs:
+          source === "scheduled"
+            ? scheduledProviderCallPacingMs ?? undefined
+            : undefined,
         signal,
       },
     );

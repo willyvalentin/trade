@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import {
+  resolveScheduledScanProviderExecutionPlan,
   resolveScheduledScanProviderCreditBudget,
   resolveScheduledScannerProviderCallCap,
   resolveScheduledScanTickerCap,
@@ -86,7 +87,9 @@ test("the scheduled route carries one coherent Free budget through both data sta
   const generator = source("lib/recommendation-generator.ts");
 
   expect(route).toContain("scheduled_provider_credit_budget");
+  expect(route).toContain("scheduled_provider_execution_plan");
   expect(route).toContain("scheduledProviderCreditBudget:");
+  expect(route).toContain("scheduledProviderCallPacingMs:");
   expect(generator).toContain(
     "resolveScheduledScannerProviderCallCap",
   );
@@ -97,6 +100,7 @@ test("the scheduled route carries one coherent Free budget through both data sta
     "provider_credit_policy_version:",
   );
   expect(generator).toContain("scheduledProviderCreditBudget?.policy_version");
+  expect(generator).toContain("freshProviderCallPacingMs:");
   expect(generator).toContain("maxAttempts: referenceRefreshMaxAttempts");
 });
 
@@ -110,6 +114,57 @@ test("the enforced Basic Free allocation cannot strand credits behind ranking", 
   ).toBe(8);
   expect(budget.scanner_credits_reserved).toBeGreaterThan(1);
   expect(budget.reference_refresh_max_attempts).toBe(0);
+});
+
+test("an atomically reserved Basic Free scan removes impossible pacing overhead", () => {
+  const budget = resolveScheduledScanProviderCreditBudget({ planMode: "free" });
+
+  expect(
+    resolveScheduledScanProviderExecutionPlan({
+      budget,
+      routeTimeoutMs: 23_000,
+      cleanupReserveMs: 3_000,
+      defaultInterCallDelayMs: 8_000,
+    }),
+  ).toEqual({
+    policy_version: "scheduled_scan_provider_execution_v1",
+    scanner_provider_call_cap: 6,
+    inter_call_delay_ms: 0,
+    known_pacing_overhead_ms: 0,
+    route_timeout_ms: 23_000,
+    cleanup_reserve_ms: 3_000,
+    usable_route_budget_ms: 20_000,
+    atomic_credit_reservation_required: true,
+    status: "ready",
+  });
+});
+
+test("an unreserved provider path keeps pacing and fails closed without route budget", () => {
+  const budget = resolveScheduledScanProviderCreditBudget({ planMode: "grow" });
+
+  expect(
+    resolveScheduledScanProviderExecutionPlan({
+      budget,
+      routeTimeoutMs: 10_000,
+      cleanupReserveMs: 3_000,
+      defaultInterCallDelayMs: 8_000,
+    }),
+  ).toMatchObject({
+    scanner_provider_call_cap: 1,
+    inter_call_delay_ms: 8_000,
+    known_pacing_overhead_ms: 0,
+    atomic_credit_reservation_required: false,
+    status: "ready",
+  });
+
+  expect(
+    resolveScheduledScanProviderExecutionPlan({
+      budget,
+      routeTimeoutMs: 3_000,
+      cleanupReserveMs: 3_000,
+      defaultInterCallDelayMs: 8_000,
+    }).status,
+  ).toBe("invalid");
 });
 
 test("only the guarded Basic Free profile expands pre-ranking provider calls", () => {

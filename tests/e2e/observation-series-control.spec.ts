@@ -157,7 +157,7 @@ function receipt({
     },
     admission: {
       status: "admitted",
-      policy_version: "observation_cycle_admission_v2",
+      policy_version: "observation_cycle_admission_v3",
       market_status: "open",
       market_session: "regular",
       reason_codes: [],

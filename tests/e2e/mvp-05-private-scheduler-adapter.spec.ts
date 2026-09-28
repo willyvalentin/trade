@@ -65,9 +65,10 @@ test.describe("MVP-05 private scheduled-scan adapter", () => {
     expect(scheduledOutcome).toContain(
       'Netlify.env.get(scheduledFunctionsDisableFlag) === "true"',
     );
-    expect(scheduledOutcome).toContain("if (scheduledFunctionsDisabled && !oneShotRequested)");
+    expect(scheduledOutcome).toContain("scheduledFunctionsDisabled &&");
+    expect(scheduledOutcome).toContain("!outcomeEvaluationSeriesRequested");
     expect(scheduledOutcome).toContain("return new Response(null, { status: 204 })");
-    expect(scheduledOutcome.indexOf("if (scheduledFunctionsDisabled && !oneShotRequested)")).toBeLessThan(
+    expect(scheduledOutcome.indexOf("scheduledFunctionsDisabled &&")).toBeLessThan(
       scheduledOutcome.indexOf("const automationSecret = process.env.AUTOMATION_SECRET"),
     );
   });
@@ -110,7 +111,10 @@ test.describe("MVP-05 private scheduled-scan adapter", () => {
     expect(route).not.toContain("const generationResult = await Promise.race([");
     expect(route).toContain("signal: scheduledAbortController.signal");
     expect(generator).toContain("throwIfAborted(signal)");
-    expect(scanner).toContain("waitForAbortableDelay(FRESH_CALL_DELAY_MS, options.signal)");
+    expect(scanner).toContain(
+      "waitForAbortableDelay(freshProviderCallPacingMs, options.signal)",
+    );
+    expect(route).toContain("scheduled_provider_execution_plan");
     expect(scanner).toContain("{ signal: options.signal }");
     expect(marketData).toContain("signal: options?.signal");
     expect(generator).toContain("marketRegime = await getMarketRegime({ signal })");

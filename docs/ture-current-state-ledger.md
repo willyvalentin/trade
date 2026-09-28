@@ -98,6 +98,28 @@ status surface, receipt, schema or automation is supporting work only and cannot
 displace the next missing quality link unless a reproduced defect makes the
 evidence untrustworthy, unsafe or impossible to collect.
 
+**Active reproduced OPEN-evidence blocker and local CLOSED correction — series
+runtime cadence:** the 2026-09-28 production series on revision
+`b6e1c5fdd568dfd7df412364dccb2ddc88ee6714` produced exactly two attributable
+attempts and one eight-credit reservation with zero candidate, publication,
+paper or broker side effects. The 14:00Z attempt failed before a scan run with
+`timeout_budget_exceeded`; only two provider responses completed. The 14:15Z
+attempt then returned `observation_not_due`. This did not evaluate
+recommendation quality. The reproduced causes were forty seconds of redundant
+inter-call delay inside a 23-second scheduled route despite an atomic Basic Free
+reservation, plus failure backoff anchored to late finalization rather than the
+canonical quarter-hour slot. Branch `codex/series-runtime-cadence-fix` removes
+only that redundant pacing for the atomically reserved eight-credit path and
+anchors scheduled admission to the durable canonical slot while preserving
+strict v1/v2 receipt read compatibility. Ranking, confidence, publication and
+broker rules are unchanged. Local acceptance is 68/68 focused tests,
+changed-file lint, scheduled-runtime bundling and a complete production build.
+The correction is not yet merged, production-deployed or OPEN-verified; it does
+not itself prove stronger recommendations. The next quality-changing evidence
+remains one safely admitted observation on the exact deployed correction,
+followed by the frozen cohort scorecard rather than another infrastructure
+phase.
+
 **Merged and production-verified CLOSED slice — frozen-cohort daily collection
 admission:** PR [#693](https://github.com/willyvalentin/trade/pull/693) merged as
 `8d00018912c12384a0fb9a5b84e0ae8eb8ba4205`; all protected PR CI shards are

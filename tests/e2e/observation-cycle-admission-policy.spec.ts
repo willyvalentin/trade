@@ -127,7 +127,7 @@ function admission(input: {
 test("admits a first bounded observation while retaining an inert authority receipt", () => {
   const result = admission({ now: "2026-09-28T14:00:00.000Z" });
   expect(result).toMatchObject({
-    policy_version: "observation_cycle_admission_v2",
+    policy_version: "observation_cycle_admission_v3",
     decision: "request_current_data",
     request_current_data: true,
     next_eligible_at: null,
@@ -246,6 +246,7 @@ test("derives exponential retry backoff from durable same-day failures", () => {
 test("extends retry backoff from a durable pre-run failure without inventing a scan run", () => {
   const preRunFailure = {
     cycle_fingerprint: "scheduled_scan_attempt_pre_run_failure_001",
+    scheduled_slot_at: "2026-09-28T14:00:00.000Z",
     finalized_at: "2026-09-28T14:00:30.000Z",
   };
 
@@ -255,15 +256,15 @@ test("extends retry backoff from a durable pre-run failure without inventing a s
       preRunFailures: [preRunFailure],
     }),
   ).toMatchObject({
-    policy_version: "observation_cycle_admission_v2",
+    policy_version: "observation_cycle_admission_v3",
     decision: "no_request",
-    next_eligible_at: "2026-09-28T14:15:30.000Z",
+    next_eligible_at: "2026-09-28T14:15:00.000Z",
     facts: {
       freshness: { status: "unknown", latest_observed_at: null },
       retry_backoff: {
         consecutive_retryable_failures: 1,
         delay_minutes: 15,
-        cadence_anchor_at: "2026-09-28T14:00:30.000Z",
+        cadence_anchor_at: "2026-09-28T14:00:00.000Z",
         cadence_anchor_source: "observation_cycle_receipt",
         includes_pre_run_failure: true,
       },
@@ -272,7 +273,7 @@ test("extends retry backoff from a durable pre-run failure without inventing a s
 
   expect(
     admission({
-      now: "2026-09-28T14:15:30.000Z",
+      now: "2026-09-28T14:15:00.000Z",
       preRunFailures: [preRunFailure],
     }),
   ).toMatchObject({
@@ -295,6 +296,7 @@ test("combines scan-run and pre-run failures while a later success resets the ch
   });
   const preRunFailure = {
     cycle_fingerprint: "scheduled_scan_attempt_pre_run_failure_002",
+    scheduled_slot_at: "2026-09-28T14:15:00.000Z",
     finalized_at: "2026-09-28T14:15:20.000Z",
   };
 
@@ -360,6 +362,7 @@ test("fails closed when owner-bound pre-run history is unavailable or malformed"
       preRunFailures: [
         {
           cycle_fingerprint: "scheduled_scan_attempt_future_failure",
+          scheduled_slot_at: "2026-09-28T14:15:00.000Z",
           finalized_at: "2026-09-28T14:15:00.000Z",
         },
       ],
@@ -377,10 +380,12 @@ test("fails closed when owner-bound pre-run history is unavailable or malformed"
       preRunFailures: [
         {
           cycle_fingerprint: "scheduled_scan_attempt_conflicting_failure",
+          scheduled_slot_at: "2026-09-28T14:00:00.000Z",
           finalized_at: "2026-09-28T14:00:00.000Z",
         },
         {
           cycle_fingerprint: "scheduled_scan_attempt_conflicting_failure",
+          scheduled_slot_at: "2026-09-28T14:15:00.000Z",
           finalized_at: "2026-09-28T14:15:00.000Z",
         },
       ],
@@ -418,6 +423,16 @@ test("retains strict read compatibility for persisted v1 admission receipts", ()
       },
     },
   });
+});
+
+test("retains strict read compatibility for persisted v2 admission receipts", () => {
+  const current = admission({ now: "2026-09-28T14:00:00.000Z" });
+  const legacy = {
+    ...current,
+    policy_version: "observation_cycle_admission_v2",
+  };
+
+  expect(observationCycleAdmissionFromUnknown(legacy)).toEqual(legacy);
 });
 
 test("orders valid durable observations by instant rather than timestamp text", () => {
@@ -595,6 +610,16 @@ test("wires the policy before the normal-scan provider path", () => {
     "await prepareBasicFreeScheduledScanCreditGuard({",
   );
   const generation = route.indexOf("generationResult = await generateRecommendations({");
+  const canonicalSlotClock = route.indexOf(
+    "scheduledInvocationReceipt?.scheduled_slot_started_at_utc ?? null",
+  );
+  const schedulerDeliveryClock = route.indexOf(
+    "dateFromIsoOrNull(scheduledFunctionFiredAtUtc)",
+  );
+  const providerPacing = route.indexOf(
+    "scheduledProviderCallPacingMs:",
+    generation,
+  );
 
   expect(route).toContain(
     "providerBudget: scheduledRuntimeConfig.scheduled_provider_credit_budget",
@@ -631,4 +656,7 @@ test("wires the policy before the normal-scan provider path", () => {
   expect(providerEnvironment).toBeGreaterThan(policyGate);
   expect(creditReservation).toBeGreaterThan(providerEnvironment);
   expect(generation).toBeGreaterThan(creditReservation);
+  expect(canonicalSlotClock).toBeGreaterThan(-1);
+  expect(schedulerDeliveryClock).toBeGreaterThan(canonicalSlotClock);
+  expect(providerPacing).toBeGreaterThan(generation);
 });

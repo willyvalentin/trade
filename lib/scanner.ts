@@ -139,6 +139,7 @@ export type ScannerSource = "manual" | "scheduled";
 export type ScanMarketOptions = {
   source: ScannerSource;
   maxFreshProviderCalls?: number;
+  freshProviderCallPacingMs?: number;
   activeScanTrace?: ActiveScanTraceRecorder | null;
   signal?: AbortSignal;
 };
@@ -222,6 +223,20 @@ function getMaxFreshProviderCalls(options: ScanMarketOptions) {
   }
 
   return Math.floor(options.maxFreshProviderCalls);
+}
+
+function getFreshProviderCallPacingMs(options: ScanMarketOptions) {
+  if (
+    options.freshProviderCallPacingMs === undefined ||
+    !Number.isFinite(options.freshProviderCallPacingMs)
+  ) {
+    return FRESH_CALL_DELAY_MS;
+  }
+
+  return Math.max(
+    0,
+    Math.min(FRESH_CALL_DELAY_MS, Math.round(options.freshProviderCallPacingMs)),
+  );
 }
 
 function getCacheAgeMs(row: ScannerCacheRow, now: number) {
@@ -644,6 +659,7 @@ async function scanMarketCore(
   throwIfAborted(options.signal);
   const candidates: ScannerCandidate[] = [];
   const maxFreshProviderCalls = getMaxFreshProviderCalls(options);
+  const freshProviderCallPacingMs = getFreshProviderCallPacingMs(options);
   options.activeScanTrace?.updateMarketDataFetch({
     provider_call_cap: maxFreshProviderCalls,
   });
@@ -809,12 +825,13 @@ async function scanMarketCore(
       continue;
     }
 
-    if (freshProviderCallsUsed > 0) {
+    if (freshProviderCallsUsed > 0 && freshProviderCallPacingMs > 0) {
       await measureScanFetchStep({
         trace: options.activeScanTrace,
         step: "pacing_delay",
         tickerIndex,
-        run: () => waitForAbortableDelay(FRESH_CALL_DELAY_MS, options.signal),
+        run: () =>
+          waitForAbortableDelay(freshProviderCallPacingMs, options.signal),
       });
     }
 
@@ -889,6 +906,7 @@ async function scanMarketCore(
 
   logScanner("source", options.source);
   logScanner("max_fresh_provider_calls", maxFreshProviderCalls);
+  logScanner("fresh_provider_call_pacing_ms", freshProviderCallPacingMs);
   logScanner("cache_hits_count", cacheHits.length);
   logScanner("cache_hits", cacheHits);
   logScanner("cache_misses", cacheMisses);

@@ -156,6 +156,7 @@ import {
 import { canObserveBackgroundDiscoveryBetweenPublicationWindows } from "@/lib/background-discovery-observation-gate";
 import {
   resolveScheduledScanProviderCreditBudget,
+  resolveScheduledScanProviderExecutionPlan,
   resolveScheduledScanTickerCap,
 } from "@/lib/scheduled-scan-ticker-cap";
 import { evaluateGrowMaxLearningMode } from "@/lib/grow-max-learning-mode";
@@ -480,6 +481,13 @@ function scheduledScanRuntimeConfig(body: AutomationRunRequestBody) {
     resolveScheduledScanProviderCreditBudget({
       planMode: providerPlanProfile.effective_mode,
     });
+  const scheduledProviderExecutionPlan =
+    resolveScheduledScanProviderExecutionPlan({
+      budget: scheduledProviderCreditBudget,
+      routeTimeoutMs: scheduledTimeoutMs,
+      cleanupReserveMs: SCHEDULED_TIMEOUT_CLEANUP_RESERVE_MS,
+      defaultInterCallDelayMs: 8_000,
+    });
 
   return {
     live_trial_fast_mode: liveTrialFastMode,
@@ -511,6 +519,7 @@ function scheduledScanRuntimeConfig(body: AutomationRunRequestBody) {
       providerPlanProfile.profile_background_scan_cadence_minutes,
     plan_scan_ticker_cap_applied: scheduledScanTickerCap.plan_cap_applied,
     scheduled_provider_credit_budget: scheduledProviderCreditBudget,
+    scheduled_provider_execution_plan: scheduledProviderExecutionPlan,
     env_scan_ticker_override: envMaxTickersOverride,
     route_scan_ticker_override: routeMaxTickersOverride,
     profile_notes: providerPlanProfile.profile_notes,
@@ -3539,7 +3548,9 @@ export async function POST(request: Request) {
   const routeReceivedAt = new Date();
   const routeReceivedAtUtc = routeReceivedAt.toISOString();
   const scanClock =
-    dateFromIsoOrNull(scheduledFunctionFiredAtUtc) ?? routeReceivedAt;
+    dateFromIsoOrNull(
+      scheduledInvocationReceipt?.scheduled_slot_started_at_utc ?? null,
+    ) ?? dateFromIsoOrNull(scheduledFunctionFiredAtUtc) ?? routeReceivedAt;
   const now = scanClock;
   const marketStatus = await getUsMarketStatus();
   const marketSession = buildMarketSessionEvaluation({
@@ -5076,6 +5087,20 @@ export async function POST(request: Request) {
       });
     }
 
+    if (
+      scheduledRuntimeConfig.scheduled_provider_execution_plan.status !==
+      "ready"
+    ) {
+      throw new RecommendationGenerationError(
+        "Scheduled scan provider execution plan does not fit the bounded route budget.",
+        503,
+        {
+          persistence_error_type:
+            "scheduled_scan_provider_execution_plan_invalid",
+        },
+      );
+    }
+
     const basicFreeScheduledScanCreditGuard =
       await prepareBasicFreeScheduledScanCreditGuard({
         planMode: scheduledRuntimeConfig.provider_plan_profile_mode,
@@ -5136,6 +5161,9 @@ export async function POST(request: Request) {
         scheduledMaxTickers: scheduledRuntimeConfig.scheduled_max_tickers,
         scheduledProviderCreditBudget:
           scheduledRuntimeConfig.scheduled_provider_credit_budget,
+        scheduledProviderCallPacingMs:
+          scheduledRuntimeConfig.scheduled_provider_execution_plan
+            .inter_call_delay_ms,
         growMaxLearningMode: scheduledRuntimeConfig.grow_max_learning_mode,
         skipOpenAi: scheduledRuntimeConfig.scheduled_skip_openai,
         activeScanTrace,
