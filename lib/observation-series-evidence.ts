@@ -1,4 +1,8 @@
 import type { ScheduledScanInvocationReceipt } from "@/lib/scheduled-scan-invocation-receipt";
+import {
+  scannerProviderCoverageCohortDiagnosticFromUnknown,
+  type ScannerProviderCoverageCohortDiagnostic,
+} from "@/lib/scanner-provider-coverage-diagnostic";
 
 export const OBSERVATION_SERIES_EVIDENCE_READBACK_VERSION =
   "observation_series_evidence_readback_v1" as const;
@@ -65,6 +69,7 @@ export type ObservationSeriesEvidenceReadback = Readonly<{
       completed_evaluation_cycles: number;
       published_recommendations: number;
       evidence_gaps: readonly string[];
+      provider_candidate_coverage: ScannerProviderCoverageCohortDiagnostic;
     }>;
     authority: Readonly<{
       arms_scheduler: false;
@@ -203,6 +208,10 @@ export function observationSeriesEvidenceReadbackFromUnknown(
   const buildIdentity = objectOrNull(series?.build_deployment_identity);
   const operationalReasons = stringArrayOrNull(operational?.reason_codes);
   const evidenceGaps = stringArrayOrNull(quality?.evidence_gaps);
+  const providerCandidateCoverage =
+    scannerProviderCoverageCohortDiagnosticFromUnknown(
+      quality?.provider_candidate_coverage,
+    );
   const integerKeys = [
     "scheduled_attempts",
     "attributed_receipts",
@@ -269,6 +278,7 @@ export function observationSeriesEvidenceReadbackFromUnknown(
     !identityIsValid ||
     !operationalReasons ||
     !evidenceGaps ||
+    !providerCandidateCoverage ||
     !countsValid ||
     !["pass", "in_progress", "fail", "inconclusive"].includes(classification) ||
     ![

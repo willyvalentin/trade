@@ -157,8 +157,9 @@ and execution remain unchanged. The observed ranking-to-builder score split
 hypothesis only after the current clock-neutral hypothesis reaches its declared
 terminal decision; it is not authority to open a competing live-ranking change.
 
-**Active CLOSED data-fitness correction — exact candidate-level provider-gap
-attribution:** authenticated readback of the completed 18:15Z scan showed an
+**Merged and production-verified CLOSED data-fitness correction — exact
+candidate-level provider-gap attribution:** authenticated readback of the
+completed 18:15Z scan showed an
 eight-symbol expected universe but only three observed/ranked candidates. The
 five missing identities retained only the aggregate
 `candidate_provider_gap`, while the route-level trace exposed six reserved
@@ -174,7 +175,30 @@ empty responses, insufficient history, provider errors and stale fallbacks. This
 changes no universe, provider budget, ranking,
 threshold, publication or execution behavior and does not claim better
 recommendations; it makes the next real scan sufficient to choose a measured
-data-fitness correction instead of guessing from aggregate counters.
+data-fitness correction instead of guessing from aggregate counters. PR
+[#701](https://github.com/willyvalentin/trade/pull/701) merged as
+`b19ba57d089882e25cdf219080c70e521f2a97f0`; protected CI was green and
+Git-connected Netlify production deploy `6abad1f9fd5297000881ae36` is `ready`
+on that exact revision. Function-scoped production readback retained
+`TURE_DISABLE_SCHEDULED_FUNCTIONS=true` and
+`TURE_OBSERVATION_SERIES_ENABLED=false`. This proves the receipt is deployed,
+not that a real OPEN scan has populated it or that recommendation quality has
+improved.
+
+**Selected CLOSED quality diagnostic — provider-coverage cohort:** the next
+read-only slice carries the exact per-candidate receipt into each owner-bound
+observation-cycle receipt and aggregates only internally consistent terminal
+cycles. It separates credit-cap loss, provider response loss, insufficient
+daily history and stale fallback, preserves daily versus intraday credit use,
+and measures whether credit-cap gaps repeatedly concentrate in later ticker
+indices. Two terminal observed cycles are required before the cohort can name
+an investigation priority; mixed versions, inconsistent summaries, duplicate
+tickers, non-contiguous indices or terminal pending observations fail closed.
+The diagnostic cannot call a provider, reserve credits, change ranking or
+publication, publish a candidate or reach a broker. Its purpose is to let the
+next OPEN series select one measured data-fitness challenger—such as fairer
+credit allocation—only when the exact denominator supports it, rather than
+mistaking infrastructure-induced missingness for weak market setups.
 
 **Merged and production-verified CLOSED slice — frozen-cohort daily collection
 admission:** PR [#693](https://github.com/willyvalentin/trade/pull/693) merged as

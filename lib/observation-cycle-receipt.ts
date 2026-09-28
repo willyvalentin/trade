@@ -2,6 +2,11 @@ import type { ActiveScanTrace } from "@/lib/active-scan-trace";
 import type { ScanLogEntry } from "@/lib/scan-logs";
 import type { ScheduledScanInvocationReceipt } from "@/lib/scheduled-scan-invocation-receipt";
 import {
+  scannerProviderCoverageDiagnosticFromTrace,
+  scannerProviderCoverageDiagnosticFromUnknown,
+  type ScannerProviderCoverageDiagnostic,
+} from "@/lib/scanner-provider-coverage-diagnostic";
+import {
   observationCycleAdmissionFromUnknown,
   type ObservationCycleAdmissionReceipt,
   type ObservationCyclePreRunFailure,
@@ -81,6 +86,7 @@ export type ObservationCycleReceipt = Readonly<{
     selected_count: number;
     built_count: number;
   }>;
+  provider_candidate_coverage?: ScannerProviderCoverageDiagnostic;
   publication: Readonly<{
     status: "published" | "no_trade" | "not_attempted" | "rejected" | "failed" | "unknown";
     published_count: number;
@@ -482,6 +488,10 @@ export function buildObservationCycleReceipt(
         input.scanLog?.recommendations_built_count ??
         0,
     }),
+    provider_candidate_coverage: scannerProviderCoverageDiagnosticFromTrace(
+      classification.trace,
+      classification.cycleStatus !== "active",
+    ),
     publication: Object.freeze({
       status: classification.publicationStatus,
       published_count: classification.publishedCount,
@@ -547,6 +557,12 @@ export function observationCycleReceiptFromUnknown(
   const providerResponse = objectOrNull(receipt?.provider_response);
   const freshness = objectOrNull(receipt?.freshness);
   const discovery = objectOrNull(receipt?.discovery_evaluation);
+  const providerCandidateCoverage =
+    receipt?.provider_candidate_coverage === undefined
+      ? scannerProviderCoverageDiagnosticFromTrace(null, false)
+      : scannerProviderCoverageDiagnosticFromUnknown(
+          receipt.provider_candidate_coverage,
+        );
   const publication = objectOrNull(receipt?.publication);
   const decision = objectOrNull(receipt?.decision);
   const cycleStatus = enumOrNull(receipt?.cycle_status, [
@@ -768,6 +784,7 @@ export function observationCycleReceiptFromUnknown(
       selected_count: selectedCount,
       built_count: builtCount,
     }),
+    provider_candidate_coverage: providerCandidateCoverage,
     publication: Object.freeze({
       status: publicationStatus,
       published_count: publishedCount,
