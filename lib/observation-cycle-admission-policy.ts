@@ -3,6 +3,8 @@ import type { ScheduledScanProviderCreditBudget } from "@/lib/scheduled-scan-tic
 import { getNyMarketTime } from "@/lib/market-session";
 
 export const OBSERVATION_CYCLE_ADMISSION_POLICY_VERSION =
+  "observation_cycle_admission_v3" as const;
+export const LEGACY_OBSERVATION_CYCLE_ADMISSION_POLICY_VERSION_V2 =
   "observation_cycle_admission_v2" as const;
 export const LEGACY_OBSERVATION_CYCLE_ADMISSION_POLICY_VERSION =
   "observation_cycle_admission_v1" as const;
@@ -19,6 +21,7 @@ export type ObservationCycleAdmissionPreconditionReason =
 export type ObservationCycleAdmissionReceipt = Readonly<{
   policy_version:
     | typeof OBSERVATION_CYCLE_ADMISSION_POLICY_VERSION
+    | typeof LEGACY_OBSERVATION_CYCLE_ADMISSION_POLICY_VERSION_V2
     | typeof LEGACY_OBSERVATION_CYCLE_ADMISSION_POLICY_VERSION;
   decision: "request_current_data" | "no_request" | "reject";
   request_current_data: boolean;
@@ -80,6 +83,7 @@ export type ObservationCycleAdmissionReceipt = Readonly<{
 
 export type ObservationCyclePreRunFailure = Readonly<{
   cycle_fingerprint: string;
+  scheduled_slot_at: string;
   finalized_at: string;
 }>;
 
@@ -125,6 +129,17 @@ function isoOrNull(value: unknown) {
   const milliseconds = Date.parse(value);
   return Number.isFinite(milliseconds)
     ? new Date(milliseconds).toISOString()
+    : null;
+}
+
+function canonicalQuarterHourOrNull(value: unknown) {
+  const iso = isoOrNull(value);
+  if (!iso) return null;
+  const date = new Date(iso);
+  return date.getUTCSeconds() === 0 &&
+    date.getUTCMilliseconds() === 0 &&
+    date.getUTCMinutes() % 15 === 0
+    ? iso
     : null;
 }
 
@@ -335,25 +350,35 @@ function sameTradingDatePreRunFailures(
 
   for (const failure of failures) {
     const fingerprint = textOrNull(failure.cycle_fingerprint);
+    const scheduledSlotAt = canonicalQuarterHourOrNull(
+      failure.scheduled_slot_at,
+    );
     const finalizedAt = isoOrNull(failure.finalized_at);
     if (
       !fingerprint ||
       !observationCycleFingerprintPattern.test(fingerprint) ||
+      !scheduledSlotAt ||
       !finalizedAt ||
+      Date.parse(scheduledSlotAt) > Date.parse(finalizedAt) ||
       Date.parse(finalizedAt) > now.getTime()
     ) {
       invalid = true;
       continue;
     }
-    if (getNyMarketTime(new Date(finalizedAt)).ny_date !== nyDate) continue;
+    if (getNyMarketTime(new Date(scheduledSlotAt)).ny_date !== nyDate) continue;
     const previousTimestamp = seen.get(fingerprint);
-    if (previousTimestamp && previousTimestamp !== finalizedAt) {
+    const durableTimestamps = `${scheduledSlotAt}|${finalizedAt}`;
+    if (previousTimestamp && previousTimestamp !== durableTimestamps) {
       invalid = true;
       continue;
     }
     if (previousTimestamp) continue;
-    seen.set(fingerprint, finalizedAt);
-    valid.push({ cycle_fingerprint: fingerprint, finalized_at: finalizedAt });
+    seen.set(fingerprint, durableTimestamps);
+    valid.push({
+      cycle_fingerprint: fingerprint,
+      scheduled_slot_at: scheduledSlotAt,
+      finalized_at: finalizedAt,
+    });
   }
 
   return { valid, invalid };
@@ -377,7 +402,10 @@ function retryHistoryEvents({
     ),
     ...preRunFailures.map(
       (failure): RetryHistoryEvent => ({
-        occurred_at: failure.finalized_at,
+        // Scheduled series cadence is anchored to the canonical sampling
+        // opportunity. Anchoring to terminal persistence time can push a
+        // 14:00 attempt past the 14:15 slot even when the scheduler is exact.
+        occurred_at: failure.scheduled_slot_at,
         retryable_failure: true,
         source: "observation_cycle_receipt",
         fingerprint: failure.cycle_fingerprint,
@@ -575,6 +603,7 @@ export function observationCycleAdmissionFromUnknown(
       : isoOrNull(retryBackoff?.next_eligible_at);
   const policyVersion = enumOrNull(receipt?.policy_version, [
     OBSERVATION_CYCLE_ADMISSION_POLICY_VERSION,
+    LEGACY_OBSERVATION_CYCLE_ADMISSION_POLICY_VERSION_V2,
     LEGACY_OBSERVATION_CYCLE_ADMISSION_POLICY_VERSION,
   ] as const);
   const decision = enumOrNull(receipt?.decision, [

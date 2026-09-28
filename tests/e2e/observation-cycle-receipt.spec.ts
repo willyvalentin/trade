@@ -12,6 +12,7 @@ import {
   observationCycleReceiptFromUnknown,
 } from "../../lib/observation-cycle-receipt";
 import { resolveScheduledScanProviderCreditBudget } from "../../lib/scheduled-scan-ticker-cap";
+import { scheduledScanInvocationReceiptFromAttempt } from "../../lib/scheduled-scan-invocation-receipt";
 
 const ownerUserId = "11111111-1111-4111-8111-111111111111";
 const attemptFingerprint = "scheduled_scan_attempt_receipt_001";
@@ -53,6 +54,24 @@ function buildReceipt({
       planMode: "free",
     }),
   });
+  const scheduledInvocationReceipt =
+    mode === "scheduled"
+      ? scheduledScanInvocationReceiptFromAttempt({
+          source: "netlify_scheduled_function",
+          mode: "scheduled",
+          payload: {
+            scheduled_slot_started_at_utc: "2026-09-25T16:15:00.000Z",
+            scheduled_slot_identity_source: "netlify_event_next_run",
+            build_deployment_identity: {
+              schema_version: "scheduled_scan_deployment_identity_v1",
+              deploy_id: "6ab68ce0a6abfb5a4ca86657",
+              deploy_context: "production",
+              commit_ref: "a".repeat(40),
+              site_id: "2b582e03-ac97-4371-8051-558d9980fb94",
+            },
+          },
+        })
+      : null;
 
   return buildObservationCycleReceipt({
     ownerUserId,
@@ -69,7 +88,7 @@ function buildReceipt({
     scanLog: null,
     activeScanTrace: recorder.trace,
     scanRunFingerprint,
-    scheduledInvocationReceipt: null,
+    scheduledInvocationReceipt,
     observationAdmission,
   });
 }
@@ -83,7 +102,7 @@ test.describe("SV-A.2 observation-cycle receipts", () => {
     expect(record?.disposition).toBe("pending");
     expect(record?.receipt_json.provider_request.status).toBe("unknown");
     expect(record?.receipt_json.admission.policy_receipt).toMatchObject({
-      policy_version: "observation_cycle_admission_v2",
+      policy_version: "observation_cycle_admission_v3",
       decision: "request_current_data",
       request_current_data: true,
     });
@@ -203,6 +222,8 @@ test.describe("SV-A.2 observation-cycle receipts", () => {
     ).toEqual([
       {
         cycle_fingerprint: attemptFingerprint,
+        scheduled_slot_at:
+          preRunFailure?.receipt_json.trigger.scheduled_slot_started_at_utc,
         finalized_at: preRunFailure?.receipt_json.finalized_at,
       },
     ]);

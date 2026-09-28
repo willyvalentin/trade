@@ -804,6 +804,7 @@ export function observationCyclePreRunFailuresFromUnknown(
       receipt.cycle_status !== "failed" ||
       receipt.disposition !== "failed" ||
       receipt.scan_run_fingerprint !== null ||
+      receipt.trigger.scheduled_slot_started_at_utc === null ||
       receipt.finalized_at === null ||
       seen.has(receipt.cycle_fingerprint)
     ) {
@@ -813,6 +814,7 @@ export function observationCyclePreRunFailuresFromUnknown(
     return [
       {
         cycle_fingerprint: receipt.cycle_fingerprint,
+        scheduled_slot_at: receipt.trigger.scheduled_slot_started_at_utc,
         finalized_at: receipt.finalized_at,
       },
     ];

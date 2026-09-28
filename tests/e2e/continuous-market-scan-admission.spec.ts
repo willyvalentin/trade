@@ -94,7 +94,7 @@ test("admits provider-confirmed regular-session scans between former fixed windo
     "2026-09-23T18:30:00.000Z", // 14:30 EDT, former midday/power-hour gap
   ]) {
     expect(admission(instant)).toMatchObject({
-      policy_version: "observation_cycle_admission_v2",
+      policy_version: "observation_cycle_admission_v3",
       scheduled_gate_allowed: true,
       scheduled_gate_block_reason: null,
       official_window_detected: false,
@@ -216,7 +216,7 @@ test("keeps cadence admission separate while a bounded series stop blocks provid
 
 test("does not expand the separate late-session trial gate", () => {
   expect(admission("2026-09-23T19:15:00.000Z")).toMatchObject({
-    policy_version: "observation_cycle_admission_v2",
+    policy_version: "observation_cycle_admission_v3",
     scheduled_gate_window: "power_hour",
     scheduled_gate_allowed: true,
   });
