@@ -2,11 +2,11 @@ import {
   SCAN_PROVIDER_CANDIDATE_OBSERVATION_SUMMARY_VERSION,
   SCAN_PROVIDER_CANDIDATE_OBSERVATION_VERSION,
   summarizeScanProviderCandidateObservations,
-  type ActiveScanTrace,
   type ScanProviderCandidateObservation,
   type ScanProviderCandidateObservationReason,
   type ScanProviderCandidateObservationSummary,
-} from "@/lib/active-scan-trace";
+} from "@/lib/scan-provider-candidate-observation";
+import type { ActiveScanTrace } from "@/lib/active-scan-trace";
 
 export const SCANNER_PROVIDER_COVERAGE_DIAGNOSTIC_VERSION =
   "scanner_provider_coverage_diagnostic_v1" as const;
