@@ -114,7 +114,7 @@ function partitionForTimestamp(
   return null;
 }
 
-function verifiedFrozenPlan(
+export function verifiedScannerClockPriorShadowForwardPlan(
   plan: ScannerClockPriorShadowForwardDecisionPlan | null,
 ) {
   if (!plan) return null;
@@ -223,7 +223,7 @@ export function assessScannerClockPriorShadowForwardCollectionAdmission(
   if (!isoDate(input.targetTradingDate)) {
     return blocked(["target_trading_date_invalid"]);
   }
-  const plan = verifiedFrozenPlan(input.plan);
+  const plan = verifiedScannerClockPriorShadowForwardPlan(input.plan);
   if (!plan) return blocked(["frozen_plan_invalid_or_drifted"]);
 
   const accepted: Record<

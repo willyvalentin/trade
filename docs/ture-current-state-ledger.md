@@ -112,8 +112,12 @@ Next.js production build. Merge and deploy did not activate a schedule, consume
 a provider credit or improve recommendation quality. The next OPEN action
 remains a separately admitted bounded observation against the frozen cohort.
 
-**Locally implemented and provider-free verified CLOSED slice — owner-bound
-collection-admission readback:** a server-only service now reads exactly one
+**Merged and production-verified CLOSED slice — owner-bound
+collection-admission readback:** PR
+[#694](https://github.com/willyvalentin/trade/pull/694) merged as
+`fc07ef0aabe30de93b6cba1b776f063f4ac47204`; protected PR CI and exact-main
+attestation run `36358719219` are green, and Git-connected Netlify production
+deploy `6ab9a63ced13e90008083171` is `ready` on that exact revision. A server-only service reads exactly one
 owner-bound frozen plan and the smallest bounded complete scan-row denominator,
 derives the target trading date in `America/New_York`, calculates the versioned
 admission and exposes it through an authenticated uncached GET route. Missing or
@@ -122,10 +126,27 @@ blocked admission reasons remain visible rather than being converted to an
 availability error. The route has no mutation method, and all scheduler,
 provider, credit, ranking, publication, promotion, paper and broker authorities
 remain false. Focused acceptance is 14/14 admission/readback tests plus strict
-non-incremental TypeScript and changed-file lint. This is local implementation
-evidence only until a focused PR merges and deploys. It has made no provider
-request, reserved no credit, changed no policy and does not prove better
-recommendations.
+non-incremental TypeScript and changed-file lint. The merged capability made no
+provider request, reserved no credit, changed no policy and does not prove
+better recommendations.
+
+**Active CLOSED slice — owner-bound forward-outcome admission:** the bounded
+outcome series limits attempts and provider credits, but that transport control
+alone cannot prove that an attempt is needed for the exact frozen recommendation
+cohort. The selected change adds an authenticated, uncached and read-only
+admission that binds exactly one owner-bound plan to bounded scan, snapshot and
+outcome denominators. It reuses the canonical 60-minute evaluation anchor and
+coverage contract to distinguish completed primary outcomes, horizons that have
+not matured and mature incomplete snapshots. Only the last category contributes
+to a proposed series size; four snapshots per attempt, at most 16 attempts and
+the corresponding worst-case credit ceiling remain explicit. Duplicate outcome
+horizons, conflicting relations, rejected capture lineage, plan drift,
+truncation and a backlog above the bounded series capacity fail closed. The
+readback cannot schedule a series, request data, reserve credits, rank, publish,
+promote, create a paper position or contact a broker. This is local/provider-free
+evidence until protected CI, merge and exact production deployment are verified;
+it does not claim better recommendations or authorize Monday's OPEN work by
+itself.
 
 **Merged and production-verified CLOSED scorecard denominator foundation:** PR
 [#681](https://github.com/willyvalentin/trade/pull/681) merged as
