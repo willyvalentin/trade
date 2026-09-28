@@ -154,6 +154,30 @@ unless a reproduced defect blocks or corrupts that path. The objective is not
 to maximize infrastructure or candidate count; it is to increase useful,
 calibrated recommendations while preserving honest `no_trade` decisions.
 
+**Immediate recommendation-quality build order — 2026-09-28.** Finish the
+current clock-neutral hypothesis before opening a competing ranker hypothesis:
+
+1. collect the already frozen held-out and walk-forward population with exact
+   decisions, rejections, `no_trade` states, canonical outcomes and cost;
+2. run the indivisible IF-4 charter and terminal context diagnostic without
+   changing the population, thresholds or probability model after inspection;
+3. issue the truthful `continue`, `narrow`, `reject` or
+   `evidence_incomplete` result and retain every failed or missing dimension;
+4. select exactly one next discovery/data-fitness or contextual-ranking defect
+   from attributable misses or the frozen diagnostic, then predeclare its
+   point-in-time input, expected effect, same-population baseline/challenger and
+   decision-changing forward metric; and
+5. enter IF-5 only for a challenger that passes the complete charter, using a
+   reversible shadow promotion and a separately frozen monitoring period.
+
+During cohort collection, CLOSED work may repair a reproduced missing link in
+that exact chain or prepare the next measured hypothesis from evidence already
+available. It may not create a speculative intelligence platform, add a data
+source without a named decision-time deficit, or extend scheduling/readback
+infrastructure after the named blocker is demonstrably closed. The exit artifact
+for each primary delivery must be a changed or newly measured recommendation
+capability, not merely safer transport for a future capability.
+
 **2026-09-23 market-timing decision.** The former named morning/midday/power-hour
 publication windows are historical operating constraints, not a product
 principle or a recommendation quota. A scheduled tick is a bounded observation
