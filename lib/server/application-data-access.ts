@@ -61,10 +61,6 @@ export async function readApplicationDashboardData(ownerUserId: string) {
     scheduledScanRuns,
     scheduledScanAttempts,
     observationCycleReceipts,
-    recommendationScanRuns,
-    recommendationBatches,
-    recommendationSnapshots,
-    recommendationOutcomes,
     scheduledOutcomeEvaluationAttempts,
     marketRegime,
     observationSeriesEvidenceReadback,
@@ -116,30 +112,6 @@ export async function readApplicationDashboardData(ownerUserId: string) {
       .order("updated_at", { ascending: false })
       .limit(100),
     client
-      .from("recommendation_scan_runs")
-      .select("*")
-      .eq("owner_user_id", owner)
-      .order("observed_at", { ascending: false })
-      .limit(100),
-    client
-      .from("recommendation_batches")
-      .select("*")
-      .eq("owner_user_id", owner)
-      .order("published_at", { ascending: false, nullsFirst: false })
-      .limit(100),
-    client
-      .from("recommendation_snapshots")
-      .select("*")
-      .eq("owner_user_id", owner)
-      .order("created_at", { ascending: false })
-      .limit(RECENT_RECOMMENDATION_SNAPSHOTS_READ_LIMIT),
-    client
-      .from("recommendation_outcomes")
-      .select("*")
-      .eq("owner_user_id", owner)
-      .order("evaluated_at", { ascending: false })
-      .limit(RECENT_RECOMMENDATION_OUTCOMES_READ_LIMIT),
-    client
       .from("scheduled_outcome_evaluation_attempts")
       .select("*")
       .eq("owner_user_id", owner)
@@ -152,6 +124,40 @@ export async function readApplicationDashboardData(ownerUserId: string) {
       .limit(1)
       .maybeSingle(),
     readLatestObservationSeriesEvidence(owner),
+  ]);
+
+  // These four readbacks contain large, durable JSON evidence. Running all of
+  // them beside every core dashboard query caused PostgREST statement timeouts
+  // once the evidence corpus grew. Keep the complete read limits, but bound
+  // heavy-query concurrency so the read model remains available without
+  // weakening or dropping recommendation-quality evidence.
+  const [recommendationScanRuns, recommendationBatches] = await Promise.all([
+    client
+      .from("recommendation_scan_runs")
+      .select("*")
+      .eq("owner_user_id", owner)
+      .order("observed_at", { ascending: false })
+      .limit(100),
+    client
+      .from("recommendation_batches")
+      .select("*")
+      .eq("owner_user_id", owner)
+      .order("published_at", { ascending: false, nullsFirst: false })
+      .limit(100),
+  ]);
+  const [recommendationSnapshots, recommendationOutcomes] = await Promise.all([
+    client
+      .from("recommendation_snapshots")
+      .select("*")
+      .eq("owner_user_id", owner)
+      .order("created_at", { ascending: false })
+      .limit(RECENT_RECOMMENDATION_SNAPSHOTS_READ_LIMIT),
+    client
+      .from("recommendation_outcomes")
+      .select("*")
+      .eq("owner_user_id", owner)
+      .order("evaluated_at", { ascending: false })
+      .limit(RECENT_RECOMMENDATION_OUTCOMES_READ_LIMIT),
   ]);
 
   const results = [
