@@ -17,6 +17,7 @@ import {
   buildCurrentDecisionStrategyReference,
   type DecisionStrategyReference,
 } from "@/lib/decision-strategy-registry";
+import { isFreshLiveReferenceMarketTime } from "@/lib/live-reference-freshness-policy";
 
 export const CANDIDATE_DECISION_CAPTURE_VERSION =
   "candidate_decision_capture_v1" as const;
@@ -234,6 +235,14 @@ function observationGapCodes(
     gaps.push("provider_data_stale");
   }
 
+  if (
+    observedAtMilliseconds !== null &&
+    observedAtMilliseconds <= captureMilliseconds &&
+    !isFreshLiveReferenceMarketTime(observedAt, captureMilliseconds)
+  ) {
+    gaps.push("provider_data_stale");
+  }
+
   return uniqueSorted(gaps);
 }
 
@@ -319,9 +328,11 @@ export function buildCandidateDecisionCapture({
           source_timestamp: sourceTimestamp(candidate),
           indicator_source: candidate.intraday_indicator_source ?? null,
           stale:
-            typeof candidate.intraday_indicator_stale === "boolean"
-              ? candidate.intraday_indicator_stale
-              : null,
+            dataGapCodes.includes("provider_data_stale")
+              ? true
+              : typeof candidate.intraday_indicator_stale === "boolean"
+                ? candidate.intraday_indicator_stale
+                : null,
           data_gap_codes: dataGapCodes,
         },
       ];
