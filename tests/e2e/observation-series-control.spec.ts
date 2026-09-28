@@ -742,5 +742,12 @@ test("wires series control into the scheduler, route admission and durable attem
   );
   expect(route).toContain("readObservationSeriesScheduledAttemptRows");
   expect(route).toContain("currentAttemptFingerprint: scheduledScanAttemptFingerprint");
+  expect(route).toContain("shouldApplyLegacySameWindowCooldown({");
+  expect(route).toContain(
+    "observationSeriesAdmission:\n          scheduledGateDiagnostics.observation_series_admission",
+  );
+  expect(route).toContain(
+    "observationAdmission: scheduledGateDiagnostics.observation_admission",
+  );
   expect(route).toContain('{ count: "exact" }');
 });

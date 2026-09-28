@@ -2,7 +2,9 @@ import { expect, test } from "@playwright/test";
 
 import {
   buildContinuousMarketScanAdmission,
+  CONTINUOUS_MARKET_SCAN_LEGACY_COOLDOWN_COORDINATION_VERSION,
   CONTINUOUS_MARKET_SCAN_MAX_FULL_SESSION_TICKS,
+  shouldApplyLegacySameWindowCooldown,
 } from "../../lib/continuous-market-scan-admission";
 import { canObserveBackgroundDiscoveryBetweenPublicationWindows } from "../../lib/background-discovery-observation-gate";
 import { buildDayTradeScanOrchestrationSummary } from "../../lib/day-trade-scan-orchestration";
@@ -44,6 +46,15 @@ const disabledObservationSeriesAdmission =
     readback: null,
     perAttemptProviderCredits: 8,
   });
+
+const eligibleObservationSeriesAdmission: ObservationSeriesRuntimeAdmission = {
+  ...disabledObservationSeriesAdmission,
+  decision: "allow",
+  status: "eligible",
+  series_id: "observation_series_0123456789abcdef",
+  scheduled_slot_started_at_utc: "2026-09-23T15:30:00.000Z",
+  reason_codes: ["eligible"],
+};
 
 function admission(
   instant: string,
@@ -212,6 +223,54 @@ test("keeps cadence admission separate while a bounded series stop blocks provid
       status: "series_credit_cap_reached",
     },
   });
+});
+
+test("lets an approved bounded series slot own cadence without weakening the legacy cooldown", () => {
+  const requestCurrentData = admission("2026-09-23T15:30:00.000Z", {
+    observationSeriesAdmission: eligibleObservationSeriesAdmission,
+  }).observation_admission;
+  const noCurrentData = admission("2026-09-23T15:30:00.000Z", {
+    recentScanRuns: [
+      {
+        trading_date: "2026-09-23",
+        status: "completed",
+        observed_at: "2026-09-23T15:20:00.000Z",
+      } as RecommendationScanRun,
+    ],
+    observationSeriesAdmission: eligibleObservationSeriesAdmission,
+  }).observation_admission;
+
+  expect(CONTINUOUS_MARKET_SCAN_LEGACY_COOLDOWN_COORDINATION_VERSION).toBe(
+    "continuous_market_scan_legacy_cooldown_coordination_v1",
+  );
+  expect(
+    shouldApplyLegacySameWindowCooldown({
+      recentScanWithinCooldown: true,
+      observationSeriesAdmission: eligibleObservationSeriesAdmission,
+      observationAdmission: requestCurrentData,
+    }),
+  ).toBe(false);
+  expect(
+    shouldApplyLegacySameWindowCooldown({
+      recentScanWithinCooldown: true,
+      observationSeriesAdmission: disabledObservationSeriesAdmission,
+      observationAdmission: requestCurrentData,
+    }),
+  ).toBe(true);
+  expect(
+    shouldApplyLegacySameWindowCooldown({
+      recentScanWithinCooldown: true,
+      observationSeriesAdmission: eligibleObservationSeriesAdmission,
+      observationAdmission: noCurrentData,
+    }),
+  ).toBe(true);
+  expect(
+    shouldApplyLegacySameWindowCooldown({
+      recentScanWithinCooldown: false,
+      observationSeriesAdmission: disabledObservationSeriesAdmission,
+      observationAdmission: requestCurrentData,
+    }),
+  ).toBe(false);
 });
 
 test("does not expand the separate late-session trial gate", () => {
