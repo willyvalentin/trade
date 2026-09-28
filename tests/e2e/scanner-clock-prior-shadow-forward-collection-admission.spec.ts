@@ -78,6 +78,8 @@ function scanRun({
   candidateCount = 0,
   expectedCandidateCount = candidateCount,
   sourceTimestamp = observedAt,
+  comparisonGeneratedAt = observedAt,
+  decisionTimestamp = comparisonGeneratedAt,
   tradingDate = observedAt.slice(0, 10),
 }: {
   id: string;
@@ -85,6 +87,8 @@ function scanRun({
   candidateCount?: number;
   expectedCandidateCount?: number;
   sourceTimestamp?: string;
+  comparisonGeneratedAt?: string;
+  decisionTimestamp?: string;
   tradingDate?: string;
 }): LearningBaselineScanRun {
   const rankedTickers = Array.from(
@@ -106,7 +110,7 @@ function scanRun({
       scanner_clock_prior_shadow_comparison: {
         comparison_version: "scanner_clock_prior_shadow_comparison_v1",
         comparison_kind: "scanner_clock_prior_shadow_comparison",
-        generated_at: observedAt,
+        generated_at: comparisonGeneratedAt,
         status: "comparable",
         baseline_policy_version: SCANNER_CLOCK_PRIOR_BASELINE_POLICY_VERSION,
         shadow_policy_version: SCANNER_CLOCK_PRIOR_SHADOW_POLICY_VERSION,
@@ -150,7 +154,7 @@ function scanRun({
         record_kind: "candidate_decision_record",
         scan_run_id: id,
         scan_run_fingerprint: runFingerprint,
-        decision_timestamp: observedAt,
+        decision_timestamp: decisionTimestamp,
         versions: {
           scanner_version: "scanner-test-v1",
           universe_version: "scanner_universe_v1",
@@ -299,6 +303,89 @@ test("counts honest no-trade opportunities and only emits unused future slots", 
       "2026-09-28T14:15:00.000Z",
     ],
     maximum_provider_credits: 16,
+  });
+});
+
+test("accepts real scan timing when comparison completes after the slot and before the decision", () => {
+  const result = assess(
+    [
+      scanRun({
+        id: "real-runtime-order",
+        observedAt: "2026-09-28T13:30:00.000Z",
+        comparisonGeneratedAt: "2026-09-28T13:30:40.408Z",
+        decisionTimestamp: "2026-09-28T13:30:40.548Z",
+      }),
+    ],
+    { evaluatedAt: "2026-09-28T13:35:00.000Z" },
+  );
+
+  expect(result.status).toBe("admitted");
+  expect(result.reason_codes).toEqual(["frozen_partition_evidence_deficit"]);
+  expect(result.progress.held_out.opportunity_set_count).toBe(1);
+  expect(result.target_day).toMatchObject({
+    attributable_attempt_count: 1,
+    accepted_attempt_count: 1,
+    remaining_attempt_capacity: 3,
+  });
+});
+
+test("fails closed when comparison timing precedes the scheduled slot", () => {
+  const result = assess([
+    scanRun({
+      id: "comparison-before-slot",
+      observedAt: "2026-09-28T13:30:00.000Z",
+      comparisonGeneratedAt: "2026-09-28T13:29:59.999Z",
+      decisionTimestamp: "2026-09-28T13:30:00.100Z",
+    }),
+  ]);
+
+  expect(result.status).toBe("blocked");
+  expect(result.reason_codes).toEqual([
+    "scan_comparison_invalid_or_policy_mismatched",
+  ]);
+  expect(result.target_day.maximum_provider_credits).toBe(0);
+});
+
+test("fails closed when comparison timing follows the immutable decision", () => {
+  const result = assess([
+    scanRun({
+      id: "comparison-after-decision",
+      observedAt: "2026-09-28T13:30:00.000Z",
+      comparisonGeneratedAt: "2026-09-28T13:30:40.548Z",
+      decisionTimestamp: "2026-09-28T13:30:40.408Z",
+    }),
+  ]);
+
+  expect(result.status).toBe("blocked");
+  expect(result.reason_codes).toEqual([
+    "scan_comparison_decision_time_lineage_invalid",
+  ]);
+  expect(result.target_day.maximum_provider_credits).toBe(0);
+});
+
+test("still charges attempt capacity when the immutable decision record is missing", () => {
+  const complete = scanRun({
+    id: "missing-decision",
+    observedAt: "2026-09-28T13:30:00.000Z",
+    comparisonGeneratedAt: "2026-09-28T13:30:40.408Z",
+  });
+  const payloadJson = { ...complete.payload_json };
+  delete payloadJson.candidate_decision_record;
+  const result = assess(
+    [{ ...complete, payload_json: payloadJson }],
+    { evaluatedAt: "2026-09-28T13:35:00.000Z" },
+  );
+
+  expect(result.status).toBe("admitted");
+  expect(result.reason_codes).toEqual([
+    "frozen_partition_evidence_deficit",
+    "scan_candidate_decision_missing_or_invalid",
+  ]);
+  expect(result.progress.held_out.opportunity_set_count).toBe(0);
+  expect(result.target_day).toMatchObject({
+    attributable_attempt_count: 1,
+    accepted_attempt_count: 0,
+    remaining_attempt_capacity: 3,
   });
 });
 

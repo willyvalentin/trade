@@ -98,7 +98,7 @@ status surface, receipt, schema or automation is supporting work only and cannot
 displace the next missing quality link unless a reproduced defect makes the
 evidence untrustworthy, unsafe or impossible to collect.
 
-**OPEN evidence and active CLOSED correction — truthful quality denominator:**
+**OPEN evidence and merged CLOSED correction — truthful quality denominator:**
 PR [#698](https://github.com/willyvalentin/trade/pull/698) merged the exact-series
 cadence ownership correction as
 `53ebb4da7f80603e25a43db800b340081efb6c5d`; Netlify production deploy
@@ -115,25 +115,40 @@ split because the ranking trace reported a top score of 77. Cleanup deploy
 `6abab00031b2da489df793ee` is `ready` on unchanged exact main with the series
 off and the global scheduler disable still true.
 
-The active CLOSED correction keeps ranking and publication behavior unchanged.
-It overlaps independent schema probes and expiry housekeeping to reduce the
+The CLOSED correction keeps ranking and publication behavior unchanged. It
+overlaps independent schema probes and expiry housekeeping to reduce the
 reproduced pre-provider latency, marks an old plan-reference timestamp stale
 even when an intraday-indicator flag is fresh, and excludes incomplete, stale or
 denominator-mismatched decision captures from frozen-cohort progress while still
 charging their attributable attempt capacity. This prevents a partial six-of-
 eight comparison or stale reference from being misrepresented as quality
-evidence. Local tests and builds must remain separate from merge, production and
-OPEN verification; no recommendation-quality improvement is claimed by this
-integrity correction. The next quality-changing work is a versioned shadow
-hypothesis that reconciles ranking and builder quality semantics and is measured
-against the frozen cohort before any live-policy change.
+evidence. PR [#699](https://github.com/willyvalentin/trade/pull/699) merged as
+`db61a88f808b9054be5120d8a10535704771ab1d`; protected CI was green and
+Git-connected Netlify production deploy `6abab94a26f63b000832687d` is `ready`
+on that exact main revision. Post-deploy readback retained the observation
+series off and global scheduler disable on. Local acceptance before merge was
+29/29 focused behavior tests, 168/168 provider-free intelligence-foundation
+tests and 16/16 static containment tests, plus changed-file lint, strict
+TypeScript, scheduled-runtime packaging, `git diff --check` and a complete Next
+16.3.4 production build. Merge and deploy establish the evidence-integrity
+guard; they do not prove recommendation-quality improvement.
 
-Local acceptance for the active correction is 29/29 focused behavior tests,
-168/168 provider-free intelligence-foundation tests and 16/16 static
-containment tests, plus changed-file lint, strict TypeScript, scheduled-runtime
-packaging, `git diff --check` and a complete Next 16.3.4 production build. These
-are local implementation checks, not merged, production-verified or OPEN
-behavior evidence.
+**Reproduced production blocker and active CLOSED correction — decision-time
+lineage:** production admission readback after that deploy remained blocked by
+`scan_comparison_invalid_or_policy_mismatched`. The persisted normal scan uses
+the scheduler slot as `observed_at` (`18:15:00.000Z`), creates the clock-prior
+comparison when ranking completes (`18:15:40.408Z`) and freezes the candidate
+decision immediately afterwards (`18:15:40.548Z`). The v2 admission contract
+incorrectly required comparison time to equal the scheduler slot, making valid
+real scans impossible to admit. The selected v3 correction accepts only the
+causal order `slot <= comparison <= immutable decision`, still fails closed on
+pre-slot or post-decision evidence, and preserves attempt-capacity charging when
+the decision record is missing. Ranking, provider usage, publication thresholds
+and execution remain unchanged. This blocker must be production-verified before
+the next frozen-cohort observation. The observed ranking-to-builder score split
+(77 versus 59 for NVO) remains a candidate for the next versioned quality
+hypothesis only after the current clock-neutral hypothesis reaches its declared
+terminal decision; it is not authority to open a competing live-ranking change.
 
 **Merged and production-verified CLOSED slice — frozen-cohort daily collection
 admission:** PR [#693](https://github.com/willyvalentin/trade/pull/693) merged as
