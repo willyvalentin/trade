@@ -39,6 +39,14 @@ quality effect, baseline, challenger and decision-changing metric before coding.
 If a proposed task cannot name that relationship, it is supporting work and may
 not become the primary delivery without a reproduced blocker.
 
+Every supporting delivery must name its reproduced blocker, the smallest
+behavior change that removes it, the exact readback or regression that proves
+removal and the intelligence slice that resumes immediately afterward. Once
+that exit condition passes, stop the support stream: do not turn the fix into a
+sequence of generic readiness, schema, observability or automation improvements.
+Any further support change requires a new reproduced blocker and must again
+yield the primary slot to the earliest missing recommendation-quality link.
+
 Finish each hypothesis with an explicit `continue`, `narrow` or `reject`
 decision before opening a competing ranking hypothesis. A negative result is
 progress because it prevents an unsupported policy from reaching users. A code
@@ -49,6 +57,12 @@ evidence for that hypothesis; during CLOSED, implement and verify the next
 market-independent link. Do not wait for OPEN when useful CLOSED work exists,
 and do not spend OPEN capacity on unrelated infrastructure without a reproduced
 blocker.
+
+At handoff, classify delivered work as one of: `recommendation_capability`,
+`quality_measurement`, `hypothesis_evidence` or `supporting_blocker_removal`.
+Only the first three advance the intelligence roadmap. The fourth is necessary
+maintenance and must identify the resumed intelligence delivery; it cannot be
+reported as proof that recommendations improved.
 
 ### Recommendation-engine graduation gate enforcement
 

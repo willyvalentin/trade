@@ -42,6 +42,11 @@ default until the engine has sustained, attributable quality evidence; a
 reproduced integrity, safety or evidence-path blocker may still be fixed. Never
 mistake simulation, a fixture, an operational receipt or paper success for
 accepted recommendation quality or live performance.
+Once a named operational blocker has the minimum verified fix and readback
+needed for the active hypothesis, stop extending that control surface and
+return the primary slice to discovery, point-in-time inputs, contextual ranking,
+canonical outcomes, full-charter evaluation or reversible learning. A chain of
+readiness, receipt, schema or automation PRs is not intelligence progress.
 
 Follow existing user authorization for reversible local implementation and
 checks; do not invent permission gates. Preserve safety, privacy and applicable

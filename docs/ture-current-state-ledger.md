@@ -1,6 +1,6 @@
 # Ture Current-State Ledger
 
-## Active Now / Next / Blocked — 2026-09-27 recommendation intelligence first
+## Active Now / Next / Blocked — 2026-09-28 recommendation intelligence first
 
 The [master roadmap](./ture-master-roadmap.md) retains the full scientific,
 autonomous-paper, options and IBKR destination in SV-A-SV-U, but active work
@@ -31,7 +31,14 @@ paper, broker or execution product expansion stays blocked from primary
 selection. This gate does not require a candidate every day: a fresh,
 attributable `no_trade` remains a valid decision.
 
-### Now / Next / Blocked selection — 2026-09-27
+The active 2026-09-28 OPEN work is collection for that exact frozen cohort, not
+a new infrastructure phase. CLOSED selection during the collection window is
+limited to a reproduced missing link in the same evidence chain or preparation
+of the next measured recommendation hypothesis from already attributable
+evidence. When a support blocker is closed, primary selection returns
+immediately to recommendation capability or quality measurement.
+
+### Now / Next / Blocked selection — 2026-09-28
 
 - **Now:** collect the exact clock-neutral IF-3b forward cohort without changing
   live ranking or publication, while CLOSED work completes the IF-4 scorecard
@@ -130,23 +137,23 @@ non-incremental TypeScript and changed-file lint. The merged capability made no
 provider request, reserved no credit, changed no policy and does not prove
 better recommendations.
 
-**Active CLOSED slice — owner-bound forward-outcome admission:** the bounded
-outcome series limits attempts and provider credits, but that transport control
-alone cannot prove that an attempt is needed for the exact frozen recommendation
-cohort. The selected change adds an authenticated, uncached and read-only
-admission that binds exactly one owner-bound plan to bounded scan, snapshot and
-outcome denominators. It reuses the canonical 60-minute evaluation anchor and
-coverage contract to distinguish completed primary outcomes, horizons that have
-not matured and mature incomplete snapshots. Only the last category contributes
-to a proposed series size; four snapshots per attempt, at most 16 attempts and
-the corresponding worst-case credit ceiling remain explicit. Duplicate outcome
+**Merged and production-verified CLOSED slice — owner-bound forward-outcome
+admission:** PR [#695](https://github.com/willyvalentin/trade/pull/695) merged as
+`b6e1c5fdd568dfd7df412364dccb2ddc88ee6714`; protected PR CI is green and
+Git-connected Netlify production deploy `6ab9b1c76aa52900087102f0` is `ready`
+on that exact revision. The authenticated, uncached read-only admission binds
+exactly one owner-bound plan to bounded scan, snapshot and outcome denominators.
+It reuses the canonical 60-minute evaluation anchor and coverage contract to
+distinguish completed primary outcomes, horizons that have not matured and
+mature incomplete snapshots. Only the last category contributes to a proposed
+series size; four snapshots per attempt, at most 16 attempts and the
+corresponding worst-case credit ceiling remain explicit. Duplicate outcome
 horizons, conflicting relations, rejected capture lineage, plan drift,
-truncation and a backlog above the bounded series capacity fail closed. The
-readback cannot schedule a series, request data, reserve credits, rank, publish,
-promote, create a paper position or contact a broker. This is local/provider-free
-evidence until protected CI, merge and exact production deployment are verified;
-it does not claim better recommendations or authorize Monday's OPEN work by
-itself.
+truncation and a backlog above bounded capacity fail closed. The readback cannot
+schedule a series, request data, reserve credits, rank, publish, promote, create
+a paper position or contact a broker. This closes the selected CLOSED admission
+link; it does not claim better recommendations. Primary work now returns to the
+frozen cohort and its complete recommendation-quality decision.
 
 **Merged and production-verified CLOSED scorecard denominator foundation:** PR
 [#681](https://github.com/willyvalentin/trade/pull/681) merged as
