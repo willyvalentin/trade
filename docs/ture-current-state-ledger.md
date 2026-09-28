@@ -1,6 +1,6 @@
 # Ture Current-State Ledger
 
-## Active Now / Next / Blocked — 2026-09-28 recommendation intelligence first
+## Active Now / Next / Blocked — 2026-09-29 recommendation intelligence first
 
 The [master roadmap](./ture-master-roadmap.md) retains the full scientific,
 autonomous-paper, options and IBKR destination in SV-A-SV-U, but active work
@@ -185,8 +185,8 @@ on that exact revision. Function-scoped production readback retained
 not that a real OPEN scan has populated it or that recommendation quality has
 improved.
 
-**Selected CLOSED quality diagnostic — provider-coverage cohort:** the next
-read-only slice carries the exact per-candidate receipt into each owner-bound
+**Merged and production-verified CLOSED quality diagnostic — provider-coverage
+cohort:** the read-only slice carries the exact per-candidate receipt into each owner-bound
 observation-cycle receipt and aggregates only internally consistent terminal
 cycles. It separates credit-cap loss, provider response loss, insufficient
 daily history and stale fallback, preserves daily versus intraday credit use,
@@ -199,6 +199,31 @@ publication, publish a candidate or reach a broker. Its purpose is to let the
 next OPEN series select one measured data-fitness challenger—such as fairer
 credit allocation—only when the exact denominator supports it, rather than
 mistaking infrastructure-induced missingness for weak market setups.
+PR [#702](https://github.com/willyvalentin/trade/pull/702) merged as
+`15685cc197597d46a0eaed29705b660f6480952e`; protected CI was green and
+Git-connected Netlify production deploy `6abae39c7f53f200082f6fa2` is `ready`,
+production, branch `main` and carries that exact revision. Function-scoped
+production readback retained `TURE_DISABLE_SCHEDULED_FUNCTIONS=true` and
+`TURE_OBSERVATION_SERIES_ENABLED=false`. This proves deployability and readback
+availability only. The next OPEN series must still populate at least two exact
+terminal cycles before the diagnostic may name an investigation priority, and
+that result still does not prove improved recommendation quality.
+
+**Selected CLOSED quality diagnostic — ranking/local-score gate alignment:**
+the reproduced 77-versus-59 split is not merely a presentation difference.
+Source inspection confirms that the versioned candidate ranker orders and
+selects on its normalized multi-component score, while the next publishability
+gate independently requires the older `local_score` to clear the same declared
+threshold. A candidate can therefore be selected as structurally valid by the
+ranker and then be rejected by an incompatible score contract before the
+recommendation builder. The selected read-only diagnostic binds each selected
+ticker's normalized rank score, tier, local score, threshold, build outcome and
+rejection reason, then requires two terminal cycles before it may name repeated
+score-contract divergence. Missing or mismatched selected/build denominators
+fail closed. It cannot change score semantics, ranking, thresholds,
+publication, provider usage or broker behavior. A repeated signal may select a
+future frozen score-semantic challenger only after the active clock-neutral
+cohort is decided; it is not authority to change today's policy.
 
 **Merged and production-verified CLOSED slice — frozen-cohort daily collection
 admission:** PR [#693](https://github.com/willyvalentin/trade/pull/693) merged as

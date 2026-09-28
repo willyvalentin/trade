@@ -295,6 +295,18 @@ test("an expired fully attributed no-trade series passes delivery without claimi
     },
     investigation_priority: "insufficient_evidence",
   });
+  expect(result.series?.quality.score_gate_alignment).toMatchObject({
+    status: "insufficient_evidence",
+    cycle_counts: {
+      total: 2,
+      observed: 0,
+      not_observed: 2,
+      invalid: 0,
+      with_divergence: 0,
+    },
+    signal: "insufficient_evidence",
+    investigation_priority: "observe_more",
+  });
   expect(Object.values(result.series?.authority ?? {}).every((value) => value === false)).toBe(true);
 });
 
