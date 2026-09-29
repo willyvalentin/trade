@@ -30,6 +30,7 @@ const decisionRecord = {
       candidate_id: candidateId,
       ticker: "AAPL",
       disposition: "ranked_not_selected",
+      ranking: { rank: 1 },
     },
   ],
 } as CandidateDecisionRecord;
@@ -191,6 +192,66 @@ test("reuses the exact immutable full population without adding provider work", 
     quality_improvement_claimed: false,
   });
   expect(result.samples).toEqual([sample]);
+});
+
+test("binds the ranked population without treating provider-gap candidates as ranked", () => {
+  const result = buildScannerClockPriorShadowEvidenceReusePlan({
+    comparison,
+    attribution,
+    decisionRecord: {
+      ...decisionRecord,
+      candidates: [
+        ...decisionRecord.candidates,
+        {
+          candidate_id: "scanner_candidate:v1:scan-run-1:MSFT",
+          ticker: "MSFT",
+          disposition: "not_evaluated",
+          ranking: null,
+        },
+      ],
+    } as CandidateDecisionRecord,
+    sharedCapture,
+    sharedSamples: [sample],
+  });
+
+  expect(result.receipt).toMatchObject({
+    status: "ready",
+    candidate_count: 1,
+    research_snapshot_tickers: ["AAPL"],
+    missing_snapshot_tickers: [],
+    covered_candidate_count: 1,
+    complete_population_reused: true,
+    reason_codes: [],
+  });
+  expect(result.samples).toEqual([sample]);
+});
+
+test("fails closed when the ranked decision population drifts from the comparison", () => {
+  const result = buildScannerClockPriorShadowEvidenceReusePlan({
+    comparison,
+    attribution,
+    decisionRecord: {
+      ...decisionRecord,
+      candidates: [
+        ...decisionRecord.candidates,
+        {
+          candidate_id: "scanner_candidate:v1:scan-run-1:MSFT",
+          ticker: "MSFT",
+          disposition: "ranked_not_selected",
+          ranking: { rank: 2 },
+        },
+      ],
+    } as CandidateDecisionRecord,
+    sharedCapture,
+    sharedSamples: [sample],
+  });
+
+  expect(result.receipt).toMatchObject({
+    status: "conflicting",
+    complete_population_reused: false,
+    reason_codes: ["clock_prior_evidence_identity_mismatch"],
+  });
+  expect(result.samples).toEqual([]);
 });
 
 test("fails closed when a shared sample is not the attributed candidate", () => {

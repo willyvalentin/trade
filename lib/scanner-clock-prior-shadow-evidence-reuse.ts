@@ -136,12 +136,26 @@ export function buildScannerClockPriorShadowEvidenceReusePlan({
       "clock_prior_comparison_or_attribution_not_comparable",
     ]);
   }
+  // Keep this boundary identical to the attribution builder: provider gaps and
+  // pre-ranking rejections remain in the complete decision record but are not
+  // members of the ranked comparison population.
+  const rankedDecisionCandidates = decisionRecord.candidates.filter(
+    (candidate) => candidate.ranking !== null,
+  );
+  const rankedDecisionTickers = rankedDecisionCandidates.map((candidate) =>
+    ticker(candidate.ticker),
+  );
+  const attributedTickers = attribution.candidates.map((candidate) =>
+    ticker(candidate.ticker),
+  );
   if (
     attribution.scan_run_id !== decisionRecord.scan_run_id ||
     attribution.scan_run_fingerprint !== decisionRecord.scan_run_fingerprint ||
     attribution.comparison_version !== comparison.comparison_version ||
     attribution.candidate_count !== comparison.candidate_count ||
-    attribution.candidate_count !== decisionRecord.candidates.length
+    attribution.candidate_count !== rankedDecisionCandidates.length ||
+    !sameValues(rankedDecisionTickers, comparison.candidate_tickers) ||
+    !sameValues(attributedTickers, comparison.candidate_tickers)
   ) {
     return terminal("conflicting", ["clock_prior_evidence_identity_mismatch"]);
   }
