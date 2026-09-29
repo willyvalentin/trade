@@ -9,6 +9,7 @@ import type {
   ScannerIntradayLiquidityShadowEvidenceCaptureReceipt,
   ScannerIntradayLiquidityShadowEvidenceSample,
 } from "@/lib/scanner-intraday-liquidity-shadow-evidence-capture";
+import { isScannerIntradayLiquidityShadowEvidenceCaptureVersion } from "@/lib/scanner-intraday-liquidity-shadow-evidence-contract";
 
 export const SCANNER_CLOCK_PRIOR_SHADOW_EVIDENCE_REUSE_VERSION =
   "scanner_clock_prior_shadow_evidence_reuse_v1" as const;
@@ -272,7 +273,11 @@ export function scannerClockPriorShadowEvidenceReuseReceiptFromUnknown(
     receipt.live_ranking_effect !== false ||
     receipt.publication_effect !== false ||
     receipt.execution_effect !== false ||
-    receipt.quality_improvement_claimed !== false
+    receipt.quality_improvement_claimed !== false ||
+    (receipt.source_capture_version !== null &&
+      !isScannerIntradayLiquidityShadowEvidenceCaptureVersion(
+        receipt.source_capture_version,
+      ))
   ) {
     return null;
   }
@@ -303,6 +308,9 @@ export function scannerClockPriorShadowEvidenceReuseReceiptFromUnknown(
   if (
     receipt.status === "ready" &&
     (receipt.complete_population_reused !== true ||
+      !isScannerIntradayLiquidityShadowEvidenceCaptureVersion(
+        receipt.source_capture_version,
+      ) ||
       missing.length > 0 ||
       receipt.covered_candidate_count !== receipt.candidate_count)
   ) {
