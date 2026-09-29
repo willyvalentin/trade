@@ -3,6 +3,10 @@ import { expect, test } from "@playwright/test";
 import type { CandidateDecisionRecord } from "@/lib/candidate-decision-record";
 import type { RealScannerCandidate } from "@/lib/real-scanner-candidate-generation";
 import {
+  buildMarketSessionEvaluation,
+  type MarketSessionStatus,
+} from "@/lib/market-session";
+import {
   buildScannerIntradayLiquidityShadowAttribution,
 } from "@/lib/scanner-ranking-intraday-liquidity-shadow-attribution";
 import {
@@ -13,6 +17,15 @@ import type { ScannerIntradayLiquidityShadowComparison } from "@/lib/scanner-ran
 
 const DECIDED_AT = "2026-09-26T18:00:00.000Z";
 const SOURCE_AT = "2026-09-26T17:59:00.000Z";
+const MARKET_STATUS: MarketSessionStatus = {
+  isOpenDay: true,
+  reason: "regular trading day",
+  date: "2026-09-26",
+  dayType: "trading_day",
+  marketOpenTime: "09:30",
+  marketCloseTime: "16:00",
+  provider: "twelve_data",
+};
 
 function decisionCandidate(ticker: string, rank: number) {
   return {
@@ -184,6 +197,11 @@ function fixture(tickers = ["FIT", "RUN"]) {
     candidates: tickers.map((ticker, index) =>
       realCandidate(ticker, index + 1),
     ),
+    marketStatus: MARKET_STATUS,
+    marketSession: buildMarketSessionEvaluation({
+      now: DECIDED_AT,
+      marketStatus: MARKET_STATUS,
+    }),
   };
 }
 
@@ -253,6 +271,53 @@ test("counts a visible candidate only when the immutable decision published it",
     complete_population_planned: true,
   });
   expect(plan.samples.map((sample) => sample.ticker)).toEqual(["RUN"]);
+});
+
+test("captures attributable research evidence during the afternoon continuous session", () => {
+  const input = fixture();
+  const plan = buildScannerIntradayLiquidityShadowEvidenceCapturePlan({
+    ...input,
+    decisionRecord: input.record,
+    scanWindow: "afternoon",
+  });
+
+  expect(plan.receipt).toMatchObject({
+    status: "ready",
+    candidate_count: 2,
+    covered_candidate_count: 2,
+    complete_population_planned: true,
+    research_snapshot_tickers: ["FIT", "RUN"],
+    missing_snapshot_tickers: [],
+    reason_codes: [],
+  });
+});
+
+test("fails closed when the regular session is not provider confirmed", () => {
+  const input = fixture();
+  const localStatus = {
+    ...input.marketStatus,
+    provider: "local_fallback",
+  };
+  const plan = buildScannerIntradayLiquidityShadowEvidenceCapturePlan({
+    ...input,
+    marketStatus: localStatus,
+    marketSession: buildMarketSessionEvaluation({
+      now: DECIDED_AT,
+      marketStatus: localStatus,
+    }),
+    decisionRecord: input.record,
+    scanWindow: "afternoon",
+  });
+
+  expect(plan.receipt).toMatchObject({
+    status: "incomplete",
+    covered_candidate_count: 0,
+    complete_population_planned: false,
+    research_snapshot_tickers: [],
+    missing_snapshot_tickers: ["FIT", "RUN"],
+    reason_codes: ["market_session_not_provider_confirmed_open"],
+  });
+  expect(plan.samples).toEqual([]);
 });
 
 test("fails closed instead of truncating a ranked population above the cap", () => {

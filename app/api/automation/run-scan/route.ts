@@ -2847,6 +2847,8 @@ async function persistAutomationArtifacts({
       candidates: learningAccelerationCandidateGeneration?.candidates ?? [],
       visibleTickers: visibleRecommendationTickers,
       scanWindow,
+      marketSession,
+      marketStatus,
     });
   const scannerClockPriorShadowEvidenceReuse =
     buildScannerClockPriorShadowEvidenceReusePlan({

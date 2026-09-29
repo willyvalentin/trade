@@ -1,6 +1,10 @@
 import type { CandidateDecisionRecord } from "@/lib/candidate-decision-record";
 import type { IntradayScanWindow } from "@/lib/intraday-scan-window";
 import type { LearningAccelerationResearchSample } from "@/lib/learning-acceleration-mode";
+import type {
+  MarketSessionEvaluation,
+  MarketSessionStatus,
+} from "@/lib/market-session";
 import type { RealScannerCandidate } from "@/lib/real-scanner-candidate-generation";
 import {
   scannerIntradayLiquidityShadowAttributionFromUnknown,
@@ -74,11 +78,38 @@ function exactTimestamp(value: string | null | undefined) {
     : null;
 }
 
-function isOfficialWindow(scanWindow: IntradayScanWindow | "unknown") {
+function isRegularSessionSegment(scanWindow: IntradayScanWindow | "unknown") {
   return (
+    scanWindow === "opening" ||
     scanWindow === "morning_momentum" ||
     scanWindow === "midday" ||
+    scanWindow === "afternoon" ||
     scanWindow === "power_hour"
+  );
+}
+
+function isProviderVerifiedRegularSession({
+  marketSession,
+  marketStatus,
+  scanWindow,
+}: {
+  marketSession: MarketSessionEvaluation;
+  marketStatus: MarketSessionStatus;
+  scanWindow: IntradayScanWindow | "unknown";
+}) {
+  return (
+    isRegularSessionSegment(scanWindow) &&
+    marketSession.market_is_open === true &&
+    marketSession.is_trading_day === true &&
+    marketSession.source === "market_data_provider" &&
+    marketSession.ny_date === marketStatus.date &&
+    marketSession.provider === marketStatus.provider &&
+    marketStatus.isOpenDay === true &&
+    (marketStatus.dayType === "trading_day" ||
+      marketStatus.dayType === "early_close") &&
+    typeof marketStatus.provider === "string" &&
+    marketStatus.provider.trim().length > 0 &&
+    marketStatus.provider !== "local_fallback"
   );
 }
 
@@ -161,6 +192,8 @@ export function buildScannerIntradayLiquidityShadowEvidenceCapturePlan({
   candidates,
   visibleTickers = [],
   scanWindow,
+  marketSession,
+  marketStatus,
   maxPopulationSize =
     SCANNER_INTRADAY_LIQUIDITY_SHADOW_EVIDENCE_MAX_POPULATION,
 }: {
@@ -170,6 +203,8 @@ export function buildScannerIntradayLiquidityShadowEvidenceCapturePlan({
   candidates: RealScannerCandidate[];
   visibleTickers?: string[];
   scanWindow: IntradayScanWindow | "unknown";
+  marketSession: MarketSessionEvaluation;
+  marketStatus: MarketSessionStatus;
   maxPopulationSize?: number;
 }): ScannerIntradayLiquidityShadowEvidenceCapturePlan {
   const comparison =
@@ -223,10 +258,19 @@ export function buildScannerIntradayLiquidityShadowEvidenceCapturePlan({
       comparison.candidate_tickers,
     );
   }
-  if (!isOfficialWindow(scanWindow)) {
+  // A provider-confirmed open regular session is the authority. Legacy named
+  // publication windows must not discard otherwise attributable learning
+  // evidence from opening or afternoon continuous scans.
+  if (
+    !isProviderVerifiedRegularSession({
+      marketSession,
+      marketStatus,
+      scanWindow,
+    })
+  ) {
     return empty(
       "incomplete",
-      ["scan_window_not_regular_session_research_window"],
+      ["market_session_not_provider_confirmed_open"],
       comparison.candidate_tickers,
     );
   }

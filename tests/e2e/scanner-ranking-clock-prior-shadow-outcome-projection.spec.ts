@@ -260,7 +260,7 @@ function fixture(input: {
         covered_candidate_count: candidates.length,
         complete_population_reused: true,
         source_capture_version:
-          "scanner_intraday_liquidity_shadow_evidence_capture_v1",
+          "scanner_intraday_liquidity_shadow_evidence_capture_v2",
         provider_requests_added: 0,
         provider_credits_added: 0,
         live_ranking_effect: false,
