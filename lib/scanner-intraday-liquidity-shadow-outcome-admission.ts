@@ -1,8 +1,8 @@
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
-import { SCANNER_INTRADAY_LIQUIDITY_SHADOW_EVIDENCE_CAPTURE_VERSION } from "@/lib/scanner-intraday-liquidity-shadow-evidence-contract";
+import { isScannerIntradayLiquidityShadowEvidenceCaptureVersion } from "@/lib/scanner-intraday-liquidity-shadow-evidence-contract";
 
 export const SCANNER_INTRADAY_LIQUIDITY_SHADOW_OUTCOME_ADMISSION_VERSION =
-  "scanner_intraday_liquidity_shadow_outcome_admission_v1" as const;
+  "scanner_intraday_liquidity_shadow_outcome_admission_v2" as const;
 
 export type ScannerIntradayLiquidityShadowOutcomeAdmission = {
   admission_version:
@@ -83,8 +83,9 @@ export function assessScannerIntradayLiquidityShadowOutcomeAdmission(
     payload.intraday_liquidity_shadow_evidence_sample !== true ||
     payload.research_purpose !==
       "intraday_liquidity_shadow_full_population" ||
-    payload.intraday_liquidity_shadow_evidence_capture_version !==
-      SCANNER_INTRADAY_LIQUIDITY_SHADOW_EVIDENCE_CAPTURE_VERSION
+    !isScannerIntradayLiquidityShadowEvidenceCaptureVersion(
+      payload.intraday_liquidity_shadow_evidence_capture_version,
+    )
   ) {
     reasons.push("capture_contract_mismatch");
   }
