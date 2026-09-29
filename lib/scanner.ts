@@ -28,6 +28,7 @@ import {
 } from "@/lib/active-scan-trace";
 import { isProviderRateLimitLikeError } from "@/lib/provider-rate-limit";
 import { measureScanFetchStep } from "@/lib/scan-fetch-timing";
+import { bindScannerPlanReference } from "@/lib/scanner-plan-reference-binding";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 import type { TwelveDataResponseIdentity } from "@/lib/twelve-data-response-identity";
 
@@ -823,6 +824,23 @@ async function scanMarketCore(
     const intradayIndicators = result.indicators
       ? withAdmissibleRecentIntradayVolume(result.indicators, result.stale)
       : null;
+    const planReference = bindScannerPlanReference({
+      fallback: {
+        reference_price_used_for_plan:
+          candidate.reference_price_used_for_plan ?? null,
+        reference_price_source: candidate.reference_price_source ?? null,
+        reference_price_timestamp: candidate.reference_price_timestamp ?? null,
+        reference_price_provider: candidate.reference_price_provider ?? null,
+        reference_price_read_path: candidate.reference_price_read_path ?? null,
+      },
+      intraday: {
+        source: result.source,
+        stale: result.stale,
+        latest_price: intradayIndicators?.latestPrice ?? null,
+        latest_candle_timestamp:
+          intradayIndicators?.latestCandleTimestamp ?? null,
+      },
+    });
     const recentVolumeRatio = intradayIndicators?.recentVolumeRatio ?? null;
     const intradayDataSource =
       result.source === "fresh"
@@ -855,6 +873,7 @@ async function scanMarketCore(
         intraday_indicator_cached_at: result.cached_at,
         intraday_indicator_response_identity: result.response_identity,
         intraday_indicator_stale: result.stale,
+        ...planReference,
         // Legacy scanner-cache `recent_volume_ratio` came from daily bars.
         // Only same-session intraday bars from a fresh indicator receipt may
         // populate this ranking/decision feature.
