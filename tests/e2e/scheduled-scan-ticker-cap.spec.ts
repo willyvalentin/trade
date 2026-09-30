@@ -197,20 +197,33 @@ test("only the guarded Basic Free profile expands pre-ranking provider calls", (
 
 test("scanner checks the batched indicator cache before reserving a provider slot", () => {
   const scanner = source("lib/scanner.ts");
-  const attachment = scanner.slice(
+  const snapshot = scanner.slice(
+    scanner.indexOf("const intradayCacheSnapshotByTicker"),
     scanner.indexOf("async function attachIntradayIndicators("),
-    scanner.indexOf("for (const [tickerIndex, baseCandidate] of baseCandidates.entries())"),
+  );
+  const attachmentStart = scanner.indexOf(
+    "async function attachIntradayIndicators(",
+  );
+  const attachment = scanner.slice(
+    attachmentStart,
+    scanner.indexOf(
+      "for (const [tickerIndex, baseCandidate] of baseCandidates.entries())",
+      attachmentStart,
+    ),
   );
 
-  expect(attachment).toContain("getCachedIntradayIndicators(candidate.ticker, cacheOptions)");
+  expect(snapshot).toContain("getCachedIntradayIndicators(baseCandidate.ticker");
+  expect(scanner.indexOf("intradayCacheSnapshotByTicker.set")).toBeLessThan(
+    scanner.indexOf("const providerCreditAllocationPlan ="),
+  );
   expect(attachment).toContain("resolveIntradayIndicatorRefreshAdmission");
-  expect(attachment.indexOf("getCachedIntradayIndicators")).toBeLessThan(
-    attachment.indexOf("freshProviderCallsUsed += 1"),
+  expect(scanner.indexOf("intradayCacheSnapshotByTicker.set")).toBeLessThan(
+    scanner.indexOf("freshProviderCallsUsed += 1"),
   );
   expect(attachment).toMatch(
-    /if \(admission\.reserve_provider_credit\) \{\s+\/\/ A refresh-capable call may reach Twelve Data\.[\s\S]*?freshProviderCallsUsed \+= 1;[\s\S]*?getOrRefreshIntradayIndicators/,
+    /if \(refreshPlanned\) \{\s+\/\/ A refresh-capable call may reach Twelve Data\.[\s\S]*?freshProviderCallsUsed \+= 1;[\s\S]*?getOrRefreshIntradayIndicators/,
   );
-  expect(attachment).toContain("allowFreshFetch: admission.allow_fresh_fetch");
+  expect(attachment).toContain("allowFreshFetch: true");
 });
 
 test("scanner reuses its batched raw cache for indicator reads without changing provider admission", () => {
