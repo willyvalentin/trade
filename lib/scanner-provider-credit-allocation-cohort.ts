@@ -253,6 +253,10 @@ export function scannerProviderCreditAllocationCohortFromUnknown(
   const cycleCounts = objectOrNull(candidate.cycle_counts);
   const aggregate = objectOrNull(candidate.aggregate);
   const assessment = objectOrNull(candidate.assessment);
+  const reasonCodes = Array.isArray(candidate.reason_codes) &&
+    candidate.reason_codes.every((reason) => typeof reason === "string")
+      ? candidate.reason_codes
+      : null;
   const expectedCycleCounts = expected.cycle_counts;
   const expectedAggregate = expected.aggregate;
   const cycleKeys = Object.keys(expectedCycleCounts) as Array<
@@ -265,6 +269,11 @@ export function scannerProviderCreditAllocationCohortFromUnknown(
     !cycleCounts ||
     !aggregate ||
     !assessment ||
+    !reasonCodes ||
+    reasonCodes.length !== expected.reason_codes.length ||
+    reasonCodes.some(
+      (reason, index) => reason !== expected.reason_codes[index],
+    ) ||
     cycleKeys.some(
       (key) =>
         integer(cycleCounts[key]) === null ||

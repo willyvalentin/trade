@@ -118,6 +118,12 @@ test("fails closed on mixed caps and tampered aggregate evidence", () => {
       aggregate: { ...exact.aggregate, candidate_breadth_delta: 999 },
     }),
   ).toBeNull();
+  expect(
+    scannerProviderCreditAllocationCohortFromUnknown({
+      ...exact,
+      reason_codes: ["invented_quality_claim"],
+    }),
+  ).toBeNull();
 });
 
 test("rejects a challenger when two observed cycles project no gain", () => {
