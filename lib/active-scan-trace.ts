@@ -17,6 +17,7 @@ import {
   SCAN_FETCH_TIMING_VERSION,
   type ScanFetchTimingStep,
 } from "@/lib/scan-fetch-timing";
+import type { ScannerProviderCreditAllocationShadow } from "@/lib/scanner-provider-credit-allocation-shadow";
 import {
   SCAN_PROVIDER_CANDIDATE_OBSERVATION_SUMMARY_VERSION,
   SCAN_PROVIDER_CANDIDATE_OBSERVATION_VERSION,
@@ -233,6 +234,7 @@ export type ActiveScanTrace = {
     total_elapsed_ms: number | null;
     candidate_observations: ScanProviderCandidateObservation[];
     candidate_observation_summary: ScanProviderCandidateObservationSummary;
+    provider_credit_allocation_shadow: ScannerProviderCreditAllocationShadow | null;
   };
   raw_candidates: {
     raw_candidate_count: number;
@@ -493,6 +495,7 @@ export function createActiveScanTrace({
       candidate_observations: [],
       candidate_observation_summary:
         summarizeScanProviderCandidateObservations([]),
+      provider_credit_allocation_shadow: null,
     },
     raw_candidates: {
       raw_candidate_count: 0,
