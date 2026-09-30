@@ -318,6 +318,32 @@ TypeScript, changed-file lint, the 168-test intelligence foundation suite, the
 warnings and a zero-vulnerability high-severity npm audit. Merge, production
 deploy and environment readback remain separate evidence until completed.
 
+PR [#710](https://github.com/willyvalentin/trade/pull/710) merged as
+`3ecbd548789141a82c0b34df8e1b367c8fd6be76`; production deploy
+`6abd6123dd16670008d14e59` is `ready` on that exact main revision. The
+authenticated production readback is `available`: both required series are
+valid, all four cycles remain in the denominator, two shadows are observed and
+the retained projection is `+6` first-pass candidate breadth and `-4` late
+wholly unfunded candidates. Recommendation quality remains `unproven`, live
+allocation remains unchanged and all provider/ranking/publication/broker
+authority is false. Production retains
+`TURE_DISABLE_SCHEDULED_FUNCTIONS=true` and
+`TURE_OBSERVATION_SERIES_ENABLED=false`.
+
+**Selected CLOSED delivery — prospective reversible allocation switchback:**
+branch `codex/provider-credit-allocation-live-experiment` freezes
+`scanner_provider_credit_allocation_live_experiment_contract_v1` for six
+balanced baseline/challenger slots on 2026-10-01. Each attempt retains the
+existing six-credit scanner and eight-credit total cap; the full series is at
+most six attempts/48 credits. Exact strategy and rotating symbol-selection
+versions, an eight-candidate expectation, per-attempt population fingerprint,
+non-terminal denominator retention, metrics, stop conditions and baseline
+rollback are fixed before OPEN results exist. The resolver is provider-free,
+revision-bound and default-off. Runtime challenger allocation, durable arm
+receipt, activation preflight/readback and the actual OPEN series remain
+separate acceptance; this slice neither changes scanner behavior nor proves
+recommendation quality.
+
 **Merged and production-verified CLOSED slice — frozen-cohort daily collection
 admission:** PR [#693](https://github.com/willyvalentin/trade/pull/693) merged as
 `8d00018912c12384a0fb9a5b84e0ae8eb8ba4205`; all protected PR CI shards are

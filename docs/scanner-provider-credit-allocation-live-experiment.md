@@ -1,0 +1,50 @@
+# Provider-credit allocation live experiment
+
+`scanner_provider_credit_allocation_live_experiment_contract_v1` freezes the
+first prospective comparison of the current serial provider-credit allocator
+and `candidate_breadth_first_provider_budget_v1`. The contract is a CLOSED,
+provider-free admission boundary. It does not activate the scheduler, call
+Twelve Data or change scanner behavior by itself.
+
+## Frozen switchback
+
+The experiment is bound to the regular 2026-10-01 US session and six declared
+15-minute scheduler slots. Three time pairs reverse arm order to reduce a simple
+early/late ordering bias:
+
+| Pair | Baseline slot | Challenger slot |
+| --- | --- | --- |
+| 1 | 13:45Z | 14:00Z |
+| 2 | 15:30Z | 15:15Z |
+| 3 | 17:00Z | 17:15Z |
+
+Every attempt retains the existing Basic Free ceiling: six scanner credits and
+eight total known provider credits. The whole series is therefore capped at six
+attempts and 48 credits. The deterministic decision strategy, rotating symbol
+selection policy and expected eight-candidate denominator are frozen. Each
+attempt must persist its exact population fingerprint, and failed or
+non-terminal attempts remain in the denominator.
+
+## Decision rule and limits
+
+Primary data-fitness metrics are the rankable-candidate fraction, number of
+candidates receiving a provider credit and late-index candidates left wholly
+unfunded. Credit use, rate limits/timeouts, terminal receipts and any stale or
+incomplete publication are guardrails. Fully rankable coverage and canonical
+outcome coverage are secondary diagnostics.
+
+The experiment is not recommendation-quality evidence. It cannot lower a
+threshold, change ranking/publication, force a candidate or authorize a broker
+action. Promotion requires a later complete quality-charter comparison against
+canonical outcomes.
+
+## Fail-closed activation and rollback
+
+The pure resolver is disabled unless it receives the exact experiment ID,
+declared slot, active 15-minute window and matching 40-character expected and
+deployed revisions. Drift returns the baseline policy and no allocation-policy
+authority. Runtime wiring, durable arm receipts, activation preflight and OPEN
+execution remain separate work. Any credit breach, lineage/population mismatch,
+stale/incomplete publication, revision drift or two consecutive operational
+failures stops the series. Rollback is always
+`serial_shared_provider_budget_v1`.

@@ -216,6 +216,17 @@ the allocator or prove recommendation quality. Missing or drifted lineage fails
 closed. This uses the evidence already collected instead of spending provider
 credits to manufacture an in-series pass.
 
+That retrospective contract is now production-verified and selected one
+prospective switchback experiment. The next CLOSED slice freezes six balanced
+baseline/challenger slots for 2026-10-01, the unchanged six-credit scanner cap,
+the eight-credit total attempt cap, exact strategy/symbol-selection identities,
+population fingerprints, denominator retention, stop conditions and baseline
+rollback. This contract remains provider-free and default-off. It is not ready
+for OPEN activation until the challenger allocator, durable arm receipt and
+activation/readback path are implemented and tested on the exact deployed
+revision. The switchback evaluates data fitness first; it cannot prove
+recommendation quality or alter ranking/publication thresholds.
+
 **2026-09-23 market-timing decision.** The former named morning/midday/power-hour
 publication windows are historical operating constraints, not a product
 principle or a recommendation quota. A scheduled tick is a bounded observation
