@@ -19,6 +19,7 @@ import {
 import { resolveScheduledScanProviderCreditBudget } from "../../lib/scheduled-scan-ticker-cap";
 import { scheduledScanInvocationReceiptFromAttempt } from "../../lib/scheduled-scan-invocation-receipt";
 import { buildScannerProviderCreditAllocationShadow } from "../../lib/scanner-provider-credit-allocation-shadow";
+import { buildScannerProviderCreditAllocationRuntimeAdmission } from "../../lib/scanner-provider-credit-allocation-runtime-admission";
 import type { ScanLogEntry } from "../../lib/scan-log-core";
 
 const ownerUserId = "11111111-1111-4111-8111-111111111111";
@@ -123,6 +124,41 @@ test.describe("SV-A.2 observation-cycle receipts", () => {
       can_execute_paper: false,
       can_execute_broker: false,
     });
+  });
+
+  test("round-trips runtime allocation admission and rejects nested tampering", () => {
+    const admission = buildScannerProviderCreditAllocationRuntimeAdmission({
+      enabled: false,
+      experimentId: null,
+      scheduledInvocationBound: true,
+      scheduledSlotUtc: "2026-09-25T16:15:00.000Z",
+      now: new Date(routeReceivedAtUtc),
+      expectedRevision: null,
+      deployedRevision: "a".repeat(40),
+    });
+    const record = buildReceipt({
+      configure(recorder) {
+        recorder.updateMarketDataFetch({
+          provider_credit_allocation_runtime_admission: admission,
+        });
+      },
+    });
+
+    expect(
+      record?.receipt_json.provider_credit_allocation_runtime_admission,
+    ).toEqual(admission);
+    expect(observationCycleReceiptFromUnknown(record?.receipt_json)).not.toBeNull();
+
+    const altered = structuredClone(record?.receipt_json);
+    if (altered?.provider_credit_allocation_runtime_admission) {
+      const alteredAdmission =
+        altered.provider_credit_allocation_runtime_admission as unknown as Record<
+          string,
+          unknown
+        >;
+      alteredAdmission.admission_fingerprint = "0".repeat(64);
+    }
+    expect(observationCycleReceiptFromUnknown(altered)).toBeNull();
   });
 
   test("distinguishes rejected admission from a provider request", () => {

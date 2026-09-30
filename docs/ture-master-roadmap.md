@@ -231,13 +231,20 @@ PR [#711](https://github.com/willyvalentin/trade/pull/711) merged that frozen
 contract as `c535a68e9659f9c997dd11bf6c771e9b8437b82d`; Git-connected Netlify
 production deploy `6abd72d986103b0009269047` is `ready` on the exact revision
 and the global scheduler disable remains `true`. The selected next CLOSED
-acceptance is one pure, fingerprinted execution planner shared by shadow and
-future runtime. It must deterministically reproduce both policy versions under
-the same cap, treat fresh cache as zero demand, retain the complete normalized
-candidate denominator, reject tampered readback and carry no provider or
-decision authority. Runtime wiring is not admitted until this semantic source
-is protected by CI; durable selected-arm, plan-fingerprint and actual-allocation
-receipts remain the following acceptance before any OPEN activation.
+acceptance was one pure, fingerprinted execution planner shared by shadow and
+future runtime. PR [#712](https://github.com/willyvalentin/trade/pull/712)
+merged that planner as `7f714553e123b018cdb3188c43a9ff2a4bb77352`;
+Git-connected Netlify production deploy `6abd7c94c9f32b0008a8689c` is `ready`
+on the exact revision and the global scheduler disable remains `true`. It
+deterministically reproduces both policy versions under the same cap, treats
+fresh cache as zero demand, retains the complete normalized candidate
+denominator, rejects tampered readback and carries no provider or decision
+authority. The next CLOSED acceptance is exact scheduled-receipt, slot and
+deploy-revision-bound runtime policy admission persisted in active trace and
+the durable observation-cycle receipt. That admission still cannot execute a
+provider request or reserve a credit. Actual planner execution must follow as
+one separate slice with a pre-allocation cache-demand snapshot and durable
+plan-versus-actual reconciliation before any OPEN activation.
 
 **2026-09-23 market-timing decision.** The former named morning/midday/power-hour
 publication windows are historical operating constraints, not a product

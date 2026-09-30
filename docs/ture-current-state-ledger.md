@@ -351,8 +351,11 @@ receipt, activation preflight/readback and the actual OPEN series remain
 separate acceptance; this slice neither changes scanner behavior nor proves
 recommendation quality.
 
-**Selected CLOSED delivery — shared provider-allocation execution plan:**
-branch `codex/provider-credit-allocation-runtime-plan` adds
+**Merged and production-verified CLOSED delivery — shared provider-allocation
+execution plan:** PR [#712](https://github.com/willyvalentin/trade/pull/712)
+merged as `7f714553e123b018cdb3188c43a9ff2a4bb77352`; Git-connected
+Netlify production deploy `6abd7c94c9f32b0008a8689c` is `ready`, production,
+branch `main` and carries that exact revision. The delivery adds
 `scanner_provider_credit_allocation_plan_v1`, a deterministic and fingerprinted
 semantic source for both `serial_shared_provider_budget_v1` and
 `candidate_breadth_first_provider_budget_v1`. The existing shadow projection
@@ -367,11 +370,29 @@ allocation/receipt/series regressions, the 168/168 intelligence-foundation
 suite, strict non-incremental TypeScript, a 33-page production build,
 changed-file lint and full source lint with zero errors/eight pre-existing
 warnings when Netlify's generated build bundles are excluded. Merge,
-production deployment and runtime
-behavior remain separate evidence. The next acceptance is exact runtime policy
-selection and durable arm/plan/allocation receipts behind the frozen experiment
-admission; no OPEN switchback may run before those controls are tested and the
-exact production revision is admitted.
+production deployment and scheduler-disable readback are verified; runtime
+behavior remains separate evidence. The next acceptance is exact runtime policy
+selection and durable arm admission behind the frozen experiment admission;
+actual plan execution and plan-versus-actual allocation reconciliation remain
+the subsequent CLOSED acceptance before any OPEN switchback.
+
+**Selected CLOSED delivery — exact runtime allocation-policy admission:**
+branch `codex/provider-credit-runtime-admission` binds the default-off frozen
+experiment to an exact normal Netlify scheduled-invocation receipt, declared
+slot, expected revision and deployed revision. An admitted receipt may select
+only the baseline or challenger allocation-policy version; manual requests,
+missing invocation receipts, undeclared slots and revision drift fall back to
+the baseline with no selection authority. The canonical fingerprinted result
+is carried in active scan trace and the owner-bound observation-cycle receipt,
+whose strict readback rejects altered or extra fields. This slice cannot call a
+provider, reserve a credit, change ranking/publication, lower a threshold,
+publish a candidate or reach a broker, and it does not yet pass the selected
+policy into scanner execution. Focused admission/receipt tests and strict
+TypeScript currently pass locally. The next sequential CLOSED slice must
+snapshot intraday-cache demand before any daily-cache mutation, execute the
+shared planner once, and persist exact plan-versus-actual allocation evidence;
+until that is merged and production-verified, the 2026-10-01 OPEN switchback is
+not ready to run.
 
 **Merged and production-verified CLOSED slice — frozen-cohort daily collection
 admission:** PR [#693](https://github.com/willyvalentin/trade/pull/693) merged as
