@@ -23,6 +23,10 @@ import {
   scannerProviderCoverageDiagnosticFromTrace,
 } from "@/lib/scanner-provider-coverage-diagnostic";
 import {
+  buildScannerProviderCreditAllocationCohort,
+  unavailableScannerProviderCreditAllocationShadow,
+} from "@/lib/scanner-provider-credit-allocation-cohort";
+import {
   buildScannerScoreGateAlignmentCohortDiagnostic,
   scannerScoreGateAlignmentDiagnosticFromScanLog,
 } from "@/lib/scanner-score-gate-alignment-diagnostic";
@@ -318,6 +322,13 @@ export function buildObservationSeriesEvidenceReadback({
           scannerProviderCoverageDiagnosticFromTrace(null, false),
       ),
     );
+  const providerCreditAllocation = buildScannerProviderCreditAllocationCohort(
+    receipts.map(
+      (receipt) =>
+        receipt.provider_credit_allocation_shadow ??
+        unavailableScannerProviderCreditAllocationShadow(),
+    ),
+  );
   const scoreGateAlignment = buildScannerScoreGateAlignmentCohortDiagnostic(
     receipts.map(
       (receipt) =>
@@ -405,6 +416,7 @@ export function buildObservationSeriesEvidenceReadback({
         published_recommendations: publishedRecommendations,
         evidence_gaps: Object.freeze(evidenceGaps),
         provider_candidate_coverage: providerCandidateCoverage,
+        provider_credit_allocation: providerCreditAllocation,
         score_gate_alignment: scoreGateAlignment,
       }),
       authority: inertAuthority(),

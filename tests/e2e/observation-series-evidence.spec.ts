@@ -15,6 +15,11 @@ import {
   buildObservationSeriesSlotAdmission,
   observationSeriesControlFromEnvironment,
 } from "../../lib/observation-series-control";
+import {
+  SCAN_PROVIDER_CANDIDATE_OBSERVATION_VERSION,
+  type ScanProviderCandidateObservation,
+} from "../../lib/scan-provider-candidate-observation";
+import { buildScannerProviderCreditAllocationShadow } from "../../lib/scanner-provider-credit-allocation-shadow";
 
 const ownerUserId = "00000000-0000-4000-8000-000000000001";
 const buildIdentity = {
@@ -179,6 +184,38 @@ function readback(receipts: ObservationCycleReceipt[]): ObservationCycleReadback
   };
 }
 
+function allocationShadow() {
+  const candidate = (
+    ticker: string,
+    tickerIndex: number,
+    reservedCredits: number,
+  ): ScanProviderCandidateObservation => ({
+    observation_version: SCAN_PROVIDER_CANDIDATE_OBSERVATION_VERSION,
+    ticker,
+    ticker_index: tickerIndex,
+    status: "rankable",
+    daily_data_source: reservedCredits > 0 ? "provider" : "stale_cache",
+    intraday_data_source: reservedCredits > 1 ? "provider" : "stale_cache",
+    provider_credits_reserved: reservedCredits,
+    reason_codes:
+      reservedCredits > 0
+        ? []
+        : ["daily_refresh_credit_cap_reached", "intraday_refresh_credit_cap_reached"],
+  });
+  return buildScannerProviderCreditAllocationShadow({
+    candidateObservations: [
+      candidate("AAA", 0, 2),
+      candidate("BBB", 1, 2),
+      candidate("CCC", 2, 0),
+      candidate("DDD", 3, 0),
+      candidate("EEE", 4, 0),
+      candidate("FFF", 5, 0),
+    ],
+    providerCreditCap: 4,
+    terminal: true,
+  });
+}
+
 test("links owner-bound observation receipts to exact finalized scan credits", () => {
   const slot = "2026-09-28T13:30:00.000Z";
   const sourceCycle = receipt({ slot });
@@ -308,6 +345,52 @@ test("an expired fully attributed no-trade series passes delivery without claimi
     investigation_priority: "observe_more",
   });
   expect(Object.values(result.series?.authority ?? {}).every((value) => value === false)).toBe(true);
+});
+
+test("aggregates exact allocation shadows without granting live policy authority", () => {
+  const currentControl = control();
+  const slots = ["2026-09-28T13:30:00.000Z", "2026-09-28T13:45:00.000Z"];
+  const result = buildObservationSeriesEvidenceReadback({
+    ownerUserId,
+    control: currentControl,
+    scheduledAttemptRows: slots.map((slot) =>
+      attemptRow({ slot, currentControl }),
+    ),
+    observationCycleReadback: readback(
+      slots.map((slot) => ({
+        ...receipt({ slot, reservedCredits: 4 }),
+        provider_credit_allocation_shadow: allocationShadow(),
+      })),
+    ),
+    now: new Date("2026-09-28T14:01:00.000Z"),
+  });
+
+  expect(result.series?.quality.provider_credit_allocation).toMatchObject({
+    status: "available",
+    provider_credit_cap: 4,
+    cycle_counts: {
+      total: 2,
+      observed: 2,
+      breadth_improvement_projected: 2,
+    },
+    aggregate: {
+      candidate_breadth_delta: 4,
+      late_unfunded_candidate_delta: -2,
+    },
+    assessment: {
+      signal: "consistent_breadth_improvement_projected",
+      next_step: "prepare_separate_reversible_live_experiment_contract",
+      recommendation_quality: "unproven",
+    },
+  });
+  expect(
+    Object.values(
+      result.series?.quality.provider_credit_allocation.authority ?? {},
+    ).every((value) => value === false),
+  ).toBe(true);
+  expect(observationSeriesEvidenceReadbackFromUnknown(result).status).toBe(
+    "available",
+  );
 });
 
 test("a publication stops the series but remains insufficient quality evidence", () => {
