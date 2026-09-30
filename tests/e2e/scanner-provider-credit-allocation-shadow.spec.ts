@@ -191,4 +191,21 @@ test("fails closed on incomplete denominators and refuses partial-budget project
       },
     }).status,
   ).toBe("invalid");
+
+  expect(
+    scannerProviderCreditAllocationShadowFromUnknown({
+      ...downstreamNotObserved,
+      reason_codes: ["invented_quality_claim"],
+    }).status,
+  ).toBe("invalid");
+
+  expect(
+    scannerProviderCreditAllocationShadowFromUnknown({
+      ...downstreamNotObserved,
+      challenger: {
+        ...downstreamNotObserved.challenger,
+        unfunded_deficits: 99,
+      },
+    }).status,
+  ).toBe("invalid");
 });

@@ -407,6 +407,28 @@ export function scannerProviderCreditAllocationShadowFromUnknown(
           challengerLate - baselineLate < 0
         ? "mixed_projection"
         : "no_projected_improvement";
+  const expectedReasons = [
+    expectedSignal === "breadth_improvement_projected"
+      ? "candidate_breadth_first_allocation_improves_coverage_proxy"
+      : expectedSignal === "mixed_projection"
+        ? "candidate_breadth_first_allocation_has_mixed_coverage_proxy"
+        : "candidate_breadth_first_allocation_has_no_coverage_proxy_gain",
+    "recommendation_quality_requires_forward_outcomes",
+  ];
+  const allocationCounts = new Map<string, ScannerProviderCreditAllocation[]>();
+  for (const allocation of parsed) {
+    const key = candidateKey(allocation);
+    const current = allocationCounts.get(key) ?? [];
+    current.push(allocation);
+    allocationCounts.set(key, current);
+  }
+  const allocationShapeInvalid = [...allocationCounts.values()].some(
+    (candidateAllocations) =>
+      candidateAllocations.length > 2 ||
+      (candidateAllocations.length === 2 &&
+        (candidateAllocations[0].data_class !== "daily" ||
+          candidateAllocations[1].data_class !== "intraday")),
+  );
   if (
     parsedAllocations.some((item) => item === null) ||
     integerValues.some((item) => item === null) ||
@@ -424,6 +446,12 @@ export function scannerProviderCreditAllocationShadowFromUnknown(
     challengerCandidates > expected ||
     baselineLate > Math.ceil(expected / 2) ||
     challengerLate > Math.ceil(expected / 2) ||
+    (challenger.unfunded_deficits as number) +
+      (challenger.planned_credits as number) >
+      expected * 2 ||
+    allocationShapeInvalid ||
+    reasons.length !== expectedReasons.length ||
+    reasons.some((reason, index) => reason !== expectedReasons[index]) ||
     comparison.candidate_breadth_delta !==
       challengerCandidates - baselineCandidates ||
     comparison.late_unfunded_candidate_delta !== challengerLate - baselineLate ||
