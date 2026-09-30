@@ -7,6 +7,10 @@ import {
   type ObservationSeriesControl,
   type ObservationSeriesSlotAdmission,
 } from "../../lib/observation-series-control";
+import {
+  buildScannerProviderCreditAllocationScheduledSlotAdmission,
+  scannerProviderCreditAllocationActivationControlFromEnvironment,
+} from "../../lib/scanner-provider-credit-allocation-activation";
 
 export const config: Config = {
   // Netlify discovers scheduled functions from this entrypoint. Keep the
@@ -812,6 +816,12 @@ export default async function handler(request: Request, context: Context) {
   const observationSeriesControl =
     observationSeriesControlFromEnvironment(Netlify.env);
   const observationSeriesRequested = observationSeriesControl.requested;
+  const providerCreditAllocationActivationControl =
+    scannerProviderCreditAllocationActivationControlFromEnvironment(
+      Netlify.env,
+    );
+  const providerCreditAllocationExperimentRequested =
+    providerCreditAllocationActivationControl.requested;
 
   if (
     observationSeriesRequested &&
@@ -823,6 +833,20 @@ export default async function handler(request: Request, context: Context) {
     return new Response("Observation series configuration invalid", {
       status: 503,
     });
+  }
+
+  if (
+    providerCreditAllocationExperimentRequested &&
+    providerCreditAllocationActivationControl.status !== "ready"
+  ) {
+    console.error(
+      "[scheduled-scan] Provider-credit allocation experiment configuration invalid.",
+      { reason_codes: providerCreditAllocationActivationControl.reason_codes },
+    );
+    return new Response(
+      "Provider-credit allocation experiment configuration invalid",
+      { status: 503 },
+    );
   }
 
   if (normalScanOneShotRequested && observationSeriesRequested) {
@@ -887,6 +911,15 @@ export default async function handler(request: Request, context: Context) {
     deliveryTime: firedAt,
   });
   const scheduledScanBuildIdentity = loadScheduledScanBuildDeploymentIdentity();
+  const providerCreditAllocationScheduledSlotAdmission =
+    providerCreditAllocationExperimentRequested
+      ? buildScannerProviderCreditAllocationScheduledSlotAdmission({
+          control: providerCreditAllocationActivationControl,
+          scheduledSlotUtc: eventEvidence.scheduled_slot_started_at_utc,
+          now: firedAt,
+          deployedRevision: scheduledScanBuildIdentity?.commit_ref ?? null,
+        })
+      : null;
   const probePreflightAdmission = disabledProbePreflight
     ? scheduledScanTimeBoundAdmission({
         contextIdentity: scheduledScanDeployIdentity(context),
@@ -930,6 +963,33 @@ export default async function handler(request: Request, context: Context) {
         configuredProbeDate: observationSeriesControl.trading_date,
       })
     : null;
+
+  if (
+    providerCreditAllocationExperimentRequested &&
+    providerCreditAllocationScheduledSlotAdmission?.decision !== "eligible"
+  ) {
+    if (
+      providerCreditAllocationScheduledSlotAdmission?.decision === "no_request"
+    ) {
+      console.log(
+        "[scheduled-scan] Provider-credit allocation experiment slot is not declared.",
+        { status: providerCreditAllocationScheduledSlotAdmission.status },
+      );
+      return new Response(null, { status: 204 });
+    }
+    console.error(
+      "[scheduled-scan] Provider-credit allocation experiment slot admission failed.",
+      {
+        status:
+          providerCreditAllocationScheduledSlotAdmission?.status ??
+          "allocation_experiment_slot_admission_unavailable",
+      },
+    );
+    return new Response(
+      "Provider-credit allocation experiment slot admission unavailable",
+      { status: 503 },
+    );
+  }
 
   if (
     observationSeriesRequested &&

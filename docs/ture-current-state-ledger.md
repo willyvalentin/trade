@@ -392,8 +392,13 @@ It cannot call a provider, reserve a credit, change ranking/publication, lower a
 threshold, publish a candidate or reach a broker, and no experiment was
 activated by merge or deploy.
 
-**Selected CLOSED delivery — constraint-aware allocation execution and
-reconciliation:** branch `codex/provider-credit-runtime-execution` snapshots the
+**Merged and production-verified CLOSED delivery — constraint-aware allocation
+execution and reconciliation:** PR
+[#714](https://github.com/willyvalentin/trade/pull/714) merged as
+`74090d1d9c6e07dbc3f60be5f55686776c9266c2`; all protected CI shards passed and
+Git-connected Netlify production deploy `6abd9601426d8a00088dd8cc` is `ready`,
+production, branch `main` and carries that exact revision. Production readback
+retains `TURE_DISABLE_SCHEDULED_FUNCTIONS=true`. The delivery snapshots the
 whole candidate denominator's daily and intraday cache demand before mutation,
 preserves intraday cache while writing daily history and builds
 `scanner_provider_credit_allocation_execution_plan_v2` exactly once. The plan
@@ -410,9 +415,32 @@ observation-cycle receipt. Local evidence is 50/50 provider-allocation,
 admission, receipt and attribution regressions; 168/168 intelligence-foundation
 tests; strict non-incremental TypeScript; changed-file and full-project lint;
 the scheduled-runtime bundle; and a complete 33-page Next.js production build.
-Merge, protected CI, exact-revision production deployment and
-disabled-scheduler readback remain separate evidence. No OPEN experiment,
-provider request or recommendation-quality claim is part of this CLOSED slice.
+Merge, protected CI, exact-revision production deployment and disabled-scheduler
+readback are verified. No OPEN experiment, provider request or
+recommendation-quality claim is part of this CLOSED slice.
+
+**Selected CLOSED delivery — exact sparse-slot activation preflight and
+scheduler guard:** branch
+`codex/provider-credit-allocation-activation-preflight` adds
+`scanner_provider_credit_allocation_activation_v1`, an authenticated uncached
+read-only activation manifest and an early scheduled-function guard for the six
+exact switchback slots. The frozen observation-series window contains ordinary
+15-minute scheduler ticks that are not experiment arms; without this guard they
+could consume the six-attempt budget before the later declared pairs. When the
+experiment is requested, undeclared slots return `204` before database, route
+or provider I/O, while stale experiment metadata, series drift or revision/time
+mismatch fails closed. The manifest reuses the already migrated aggregate-only
+observation-series preflight RPC, binds the full 48-credit window and exact
+packaged production revision, and requires the current experiment plus
+competing workers to remain inert. Its authority is false for configuration
+mutation, scheduler arming, provider calls, credit reservation, ranking,
+publication, paper and broker actions. Local evidence is 20/20 focused
+activation/preflight/runtime tests, 31/31 scheduler-series regressions, 48/48
+combined allocation/series/receipt regressions, 168/168 intelligence-foundation
+tests, strict non-incremental TypeScript, full-project lint, scheduled-runtime
+bundles and a complete 33-page Next.js production build. Merge, protected CI,
+production deploy, authenticated production preflight and any OPEN activation
+remain separate evidence.
 
 **Merged and production-verified CLOSED slice — frozen-cohort daily collection
 admission:** PR [#693](https://github.com/willyvalentin/trade/pull/693) merged as
