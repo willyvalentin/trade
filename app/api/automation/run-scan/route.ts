@@ -133,6 +133,7 @@ import {
   type ActiveScanTrace,
   type ActiveScanTraceRecorder,
 } from "@/lib/active-scan-trace";
+import { scannerProviderCreditAllocationRuntimeAdmissionFromEnvironment } from "@/lib/scanner-provider-credit-allocation-runtime-admission";
 import {
   AUTOMATION_ROUTE_VERSION,
   BUILD_MARKER,
@@ -3678,6 +3679,22 @@ export async function POST(request: Request) {
     routeReceivedAt: routeReceivedAtUtc,
     scheduledFunctionFiredAtUtc,
     scanWindow: scanWindow.scanWindow,
+  });
+  const providerCreditAllocationRuntimeAdmission =
+    scannerProviderCreditAllocationRuntimeAdmissionFromEnvironment({
+      environment: {
+        get: (name) =>
+          requestSource === "netlify_scheduled_function"
+            ? process.env[name]
+            : undefined,
+      },
+      requestSource,
+      scheduledInvocationReceipt,
+      now: scanClock,
+    });
+  activeScanTrace.updateMarketDataFetch({
+    provider_credit_allocation_runtime_admission:
+      providerCreditAllocationRuntimeAdmission,
   });
   let generationBlockReason: string | null = null;
   let initialServingCadence = buildServingCadenceForAutomation({

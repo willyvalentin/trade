@@ -43,7 +43,16 @@ canonical outcomes.
 The pure resolver is disabled unless it receives the exact experiment ID,
 declared slot, active 15-minute window and matching 40-character expected and
 deployed revisions. Drift returns the baseline policy and no allocation-policy
-authority. Runtime wiring, durable arm receipts, activation preflight and OPEN
+authority. `scanner_provider_credit_allocation_plan_v1` is the shared,
+fingerprinted semantic planner used by both shadow and future runtime. The
+runtime-admission layer additionally requires the exact durable Netlify
+scheduled-invocation receipt and carries the selected policy into active trace
+and the owner-bound observation-cycle receipt. That receipt grants policy
+selection only: it cannot call a provider, reserve a credit, change ranking or
+publication, lower a threshold, publish a candidate or reach a broker.
+
+Planner execution, a pre-allocation snapshot of cache demand, durable
+plan-versus-actual allocation reconciliation, activation preflight and OPEN
 execution remain separate work. Any credit breach, lineage/population mismatch,
 stale/incomplete publication, revision drift or two consecutive operational
 failures stops the series. Rollback is always

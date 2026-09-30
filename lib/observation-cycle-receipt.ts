@@ -12,6 +12,10 @@ import {
   type ScannerProviderCreditAllocationShadow,
 } from "@/lib/scanner-provider-credit-allocation-shadow";
 import {
+  scannerProviderCreditAllocationRuntimeAdmissionFromUnknown,
+  type ScannerProviderCreditAllocationRuntimeAdmission,
+} from "@/lib/scanner-provider-credit-allocation-runtime-admission";
+import {
   scannerScoreGateAlignmentDiagnosticFromScanLog,
   scannerScoreGateAlignmentDiagnosticFromUnknown,
   type ScannerScoreGateAlignmentDiagnostic,
@@ -98,6 +102,7 @@ export type ObservationCycleReceipt = Readonly<{
   }>;
   provider_candidate_coverage?: ScannerProviderCoverageDiagnostic;
   provider_credit_allocation_shadow?: ScannerProviderCreditAllocationShadow;
+  provider_credit_allocation_runtime_admission?: ScannerProviderCreditAllocationRuntimeAdmission;
   score_gate_alignment?: ScannerScoreGateAlignmentDiagnostic;
   publication: Readonly<{
     status: "published" | "no_trade" | "not_attempted" | "rejected" | "failed" | "unknown";
@@ -511,6 +516,14 @@ export function buildObservationCycleReceipt(
         providerCreditCap: null,
         terminal: classification.cycleStatus !== "active",
       }),
+    ...(classification.trace?.market_data_fetch
+      .provider_credit_allocation_runtime_admission
+      ? {
+          provider_credit_allocation_runtime_admission:
+            classification.trace.market_data_fetch
+              .provider_credit_allocation_runtime_admission,
+        }
+      : {}),
     score_gate_alignment: scannerScoreGateAlignmentDiagnosticFromScanLog(
       input.scanLog,
       classification.cycleStatus !== "active",
@@ -595,6 +608,12 @@ export function observationCycleReceiptFromUnknown(
         })
       : scannerProviderCreditAllocationShadowFromUnknown(
           receipt.provider_credit_allocation_shadow,
+        );
+  const providerCreditAllocationRuntimeAdmission =
+    receipt?.provider_credit_allocation_runtime_admission === undefined
+      ? undefined
+      : scannerProviderCreditAllocationRuntimeAdmissionFromUnknown(
+          receipt.provider_credit_allocation_runtime_admission,
         );
   const scoreGateAlignment =
     receipt?.score_gate_alignment === undefined
@@ -723,6 +742,8 @@ export function observationCycleReceiptFromUnknown(
     !publicationReasons ||
     !decisionReasons ||
     !decisionOutcome ||
+    (receipt?.provider_credit_allocation_runtime_admission !== undefined &&
+      !providerCreditAllocationRuntimeAdmission) ||
     !authorityIsInert(receipt.authority)
   ) {
     return null;
@@ -825,6 +846,12 @@ export function observationCycleReceiptFromUnknown(
     }),
     provider_candidate_coverage: providerCandidateCoverage,
     provider_credit_allocation_shadow: providerCreditAllocationShadow,
+    ...(providerCreditAllocationRuntimeAdmission
+      ? {
+          provider_credit_allocation_runtime_admission:
+            providerCreditAllocationRuntimeAdmission,
+        }
+      : {}),
     score_gate_alignment: scoreGateAlignment,
     publication: Object.freeze({
       status: publicationStatus,
