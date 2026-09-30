@@ -192,6 +192,20 @@ and any later promotion must still beat the frozen baseline on canonical outcome
 and the complete quality charter. The challenger grants no extra provider,
 ranking, publication, threshold or broker authority.
 
+Two later bounded series on the exact deployed challenger revision each
+produced one terminal, fully exercised six-credit shadow with the same projected
+`+3` candidate first-pass breadth and `-2` late-index fully unfunded candidates.
+Their companion cycles did not produce valid shadows: one was rejected by the
+provider minute limit and another lacked a complete terminal candidate
+denominator. This is repeatable cross-series data-fitness evidence, but it is
+not yet one predeclared two-cycle cohort and it says nothing about fully
+rankable coverage or recommendation quality. The next CLOSED acceptance is a
+versioned cohort reader that requires at least two observed same-cap cycles and
+fails closed on mixed caps or malformed lineage. Until a separately frozen
+contract explicitly admits exact cross-series evidence, the live allocator
+remains unchanged and the result is `insufficient_evidence`; do not spend more
+provider credits merely to manufacture a passing cohort.
+
 **2026-09-23 market-timing decision.** The former named morning/midday/power-hour
 publication windows are historical operating constraints, not a product
 principle or a recommendation quota. A scheduled tick is a bounded observation

@@ -255,6 +255,48 @@ publish, lower a threshold or reach a broker. Its next acceptance is one bounded
 OPEN series on the exact deployed revision; only then may Ture decide whether a
 separate reversible live-allocation experiment is justified.
 
+PR [#708](https://github.com/willyvalentin/trade/pull/708) merged the inert
+allocation shadow as exact main
+`fdadb7c7b163af115642838d353a48ebeb5cefff`; Git-connected Netlify production
+deploy `6abd2cdf77ce970008c05e17` is `ready` on that revision. The first bounded
+series on that build, `observation_series_fa9f47b6a24fc3db`, ended with two
+attributed receipts and eleven finalized provider credits: its first cycle was
+provider-rate-limited, while its second completed `no_trade` and produced one
+observed six-credit shadow. On eight candidates the baseline funded three
+candidates and left four late candidates wholly unfunded; the challenger
+projected six candidates receiving a first-pass request and two late candidates
+wholly unfunded (`+3` / `-2`). It built and published zero recommendations and
+proved no recommendation-quality improvement.
+
+A second preflight-ready series on unchanged exact main,
+`observation_series_15f795345822f5f6`, used activation deploy
+`6abd3ac0efe4ffff6c98098c` for the 17:00Z and 17:15Z slots. Operational readback
+passed with two scheduled attempts, two attributed receipts, no missing,
+orphaned, duplicated or active cycle, eleven finalized credits and zero
+publication, paper or broker effects. The first cycle ranked eight candidates
+and selected two but stopped before persistence/build on the route timeout; its
+terminal six-credit shadow independently repeated the same `+3` / `-2`
+projection. The second cycle was rejected after five credits by Twelve Data's
+minute limit and retained `provider_allocation_candidates_missing`, so the
+series had only one observed shadow. Quality remained `not_evaluated`: zero
+completed evaluation cycles, zero published recommendations and no baseline or
+canonical-outcome comparison. Cleanup deploy `6abd446ef4a1fd4f72e2f23d` is
+`ready` on unchanged exact main; production readback has
+`TURE_OBSERVATION_SERIES_ENABLED=false` and
+`TURE_DISABLE_SCHEDULED_FUNCTIONS=true`.
+
+The selected CLOSED delivery now aggregates exact allocation shadows without
+granting runtime authority. It requires at least two observed cycles under one
+cap, recomputes every aggregate and reason code, and returns
+`insufficient_evidence` for the one-observed/one-not-observed series above. A
+consistent cohort may only select design of a separate reversible live
+experiment; it cannot activate one. Candidate first-pass breadth remains a
+data-fitness proxy, not fully rankable coverage, calibration, expectancy or
+alpha. The two matching observed shadows across separate series are retained
+as useful evidence, but they are not silently pooled after inspection; any
+cross-series admission must first freeze exact revision, policy, cap, period and
+non-observed-cycle treatment.
+
 **Merged and production-verified CLOSED slice — frozen-cohort daily collection
 admission:** PR [#693](https://github.com/willyvalentin/trade/pull/693) merged as
 `8d00018912c12384a0fb9a5b84e0ae8eb8ba4205`; all protected PR CI shards are
