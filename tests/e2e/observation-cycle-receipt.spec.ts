@@ -18,6 +18,7 @@ import {
 } from "../../lib/observation-cycle-receipt";
 import { resolveScheduledScanProviderCreditBudget } from "../../lib/scheduled-scan-ticker-cap";
 import { scheduledScanInvocationReceiptFromAttempt } from "../../lib/scheduled-scan-invocation-receipt";
+import { buildScannerProviderCreditAllocationShadow } from "../../lib/scanner-provider-credit-allocation-shadow";
 import type { ScanLogEntry } from "../../lib/scan-log-core";
 
 const ownerUserId = "11111111-1111-4111-8111-111111111111";
@@ -192,6 +193,12 @@ test.describe("SV-A.2 observation-cycle receipts", () => {
           candidate_observations: candidateObservations,
           candidate_observation_summary:
             summarizeScanProviderCandidateObservations(candidateObservations),
+          provider_credit_allocation_shadow:
+            buildScannerProviderCreditAllocationShadow({
+              candidateObservations,
+              providerCreditCap: 4,
+              terminal: true,
+            }),
         });
         recorder.updateRawCandidates({ raw_candidate_count: 4 });
         recorder.updateRanking({
@@ -219,6 +226,15 @@ test.describe("SV-A.2 observation-cycle receipts", () => {
       summary: {
         expected_candidate_count: 4,
         rankable_candidate_count: 4,
+      },
+    });
+    expect(record?.receipt_json.provider_credit_allocation_shadow).toMatchObject({
+      status: "observed",
+      baseline: { candidates_receiving_credit: 4 },
+      challenger: { candidates_receiving_credit: 4 },
+      comparison: {
+        signal: "no_projected_improvement",
+        recommendation_quality: "unproven",
       },
     });
     expect(record?.receipt_json.score_gate_alignment).toMatchObject({

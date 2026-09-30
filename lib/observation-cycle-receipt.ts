@@ -7,6 +7,11 @@ import {
   type ScannerProviderCoverageDiagnostic,
 } from "@/lib/scanner-provider-coverage-diagnostic";
 import {
+  buildScannerProviderCreditAllocationShadow,
+  scannerProviderCreditAllocationShadowFromUnknown,
+  type ScannerProviderCreditAllocationShadow,
+} from "@/lib/scanner-provider-credit-allocation-shadow";
+import {
   scannerScoreGateAlignmentDiagnosticFromScanLog,
   scannerScoreGateAlignmentDiagnosticFromUnknown,
   type ScannerScoreGateAlignmentDiagnostic,
@@ -92,6 +97,7 @@ export type ObservationCycleReceipt = Readonly<{
     built_count: number;
   }>;
   provider_candidate_coverage?: ScannerProviderCoverageDiagnostic;
+  provider_credit_allocation_shadow?: ScannerProviderCreditAllocationShadow;
   score_gate_alignment?: ScannerScoreGateAlignmentDiagnostic;
   publication: Readonly<{
     status: "published" | "no_trade" | "not_attempted" | "rejected" | "failed" | "unknown";
@@ -498,6 +504,13 @@ export function buildObservationCycleReceipt(
       classification.trace,
       classification.cycleStatus !== "active",
     ),
+    provider_credit_allocation_shadow:
+      classification.trace?.market_data_fetch.provider_credit_allocation_shadow ??
+      buildScannerProviderCreditAllocationShadow({
+        candidateObservations: [],
+        providerCreditCap: null,
+        terminal: classification.cycleStatus !== "active",
+      }),
     score_gate_alignment: scannerScoreGateAlignmentDiagnosticFromScanLog(
       input.scanLog,
       classification.cycleStatus !== "active",
@@ -572,6 +585,16 @@ export function observationCycleReceiptFromUnknown(
       ? scannerProviderCoverageDiagnosticFromTrace(null, false)
       : scannerProviderCoverageDiagnosticFromUnknown(
           receipt.provider_candidate_coverage,
+        );
+  const providerCreditAllocationShadow =
+    receipt?.provider_credit_allocation_shadow === undefined
+      ? buildScannerProviderCreditAllocationShadow({
+          candidateObservations: [],
+          providerCreditCap: null,
+          terminal: false,
+        })
+      : scannerProviderCreditAllocationShadowFromUnknown(
+          receipt.provider_credit_allocation_shadow,
         );
   const scoreGateAlignment =
     receipt?.score_gate_alignment === undefined
@@ -801,6 +824,7 @@ export function observationCycleReceiptFromUnknown(
       built_count: builtCount,
     }),
     provider_candidate_coverage: providerCandidateCoverage,
+    provider_credit_allocation_shadow: providerCreditAllocationShadow,
     score_gate_alignment: scoreGateAlignment,
     publication: Object.freeze({
       status: publicationStatus,

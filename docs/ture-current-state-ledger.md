@@ -225,6 +225,36 @@ publication, provider usage or broker behavior. A repeated signal may select a
 future frozen score-semantic challenger only after the active clock-neutral
 cohort is decided; it is not authority to change today's policy.
 
+**2026-09-30 OPEN result and selected CLOSED data-fitness challenger:** the
+bounded production series `observation_series_9b3ff99a46bbc184` completed two
+attributable regular-session attempts on exact main `6fb443a4`. One cycle timed
+out and one completed with an honest `no_trade`; both retained zero publication,
+paper and broker effects. The exact candidate-level cohort contained sixteen
+expected observations, fourteen rankable observations and six fully observed
+ones. It recorded twelve finalized provider credits (six daily and six
+intraday), ten credit-cap gaps, three provider-response gaps and eight stale
+fallbacks. Eight of ten credit-cap gaps were in the later half of the candidate
+order, for a late gap share of `0.8`; the versioned diagnostic therefore selected
+`provider_credit_allocation`, while the score-gate diagnostic remained
+`insufficient_evidence`. This is measured data-fitness evidence, not alpha or
+recommendation-quality evidence.
+
+PR [#707](https://github.com/willyvalentin/trade/pull/707) subsequently merged
+regular-session full-population learning capture as `42b638e2`; Git-connected
+Netlify production deploy `6abd1b5580edd8000787fa62` is `ready` on that exact
+revision. The cleanup readback retained the global scheduler disable and all
+one-shot workers off. The selected CLOSED implementation now adds the inert
+`candidate_breadth_first_provider_budget_v1` shadow. For the same terminal
+candidate denominator and fully exercised fixed cap, it plans one prerequisite
+request per candidate before any candidate receives a second request, records
+baseline-versus-challenger candidate breadth and late-index unfunded deficits,
+and explicitly keeps recommendation quality `unproven`. Partial budgets,
+pending/non-contiguous candidates and malformed readback fail closed. The shadow
+cannot call a provider, reserve a credit, change live allocation/ranking,
+publish, lower a threshold or reach a broker. Its next acceptance is one bounded
+OPEN series on the exact deployed revision; only then may Ture decide whether a
+separate reversible live-allocation experiment is justified.
+
 **Merged and production-verified CLOSED slice — frozen-cohort daily collection
 admission:** PR [#693](https://github.com/willyvalentin/trade/pull/693) merged as
 `8d00018912c12384a0fb9a5b84e0ae8eb8ba4205`; all protected PR CI shards are

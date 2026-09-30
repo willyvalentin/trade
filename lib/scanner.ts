@@ -29,6 +29,7 @@ import {
 import { isProviderRateLimitLikeError } from "@/lib/provider-rate-limit";
 import { measureScanFetchStep } from "@/lib/scan-fetch-timing";
 import { bindScannerPlanReference } from "@/lib/scanner-plan-reference-binding";
+import { buildScannerProviderCreditAllocationShadow } from "@/lib/scanner-provider-credit-allocation-shadow";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 import type { TwelveDataResponseIdentity } from "@/lib/twelve-data-response-identity";
 
@@ -1068,6 +1069,15 @@ async function scanMarketCore(
   }
 
   logScanner("source", options.source);
+  const providerCreditAllocationShadow =
+    buildScannerProviderCreditAllocationShadow({
+      candidateObservations: Array.from(candidateObservations.values()),
+      providerCreditCap: maxFreshProviderCalls,
+      terminal: true,
+    });
+  options.activeScanTrace?.updateMarketDataFetch({
+    provider_credit_allocation_shadow: providerCreditAllocationShadow,
+  });
   logScanner("max_fresh_provider_calls", maxFreshProviderCalls);
   logScanner("fresh_provider_call_pacing_ms", freshProviderCallPacingMs);
   logScanner("cache_hits_count", cacheHits.length);
@@ -1078,6 +1088,10 @@ async function scanMarketCore(
   logScanner(
     "intraday_indicator_refresh_allocation_policy_version",
     INTRADAY_INDICATOR_REFRESH_ALLOCATION_POLICY_VERSION,
+  );
+  logScanner(
+    "provider_credit_allocation_shadow",
+    providerCreditAllocationShadow,
   );
   logScanner("indicator_sources", indicatorSources);
   logScanner("stale_cache_fallbacks", staleFallbacks);

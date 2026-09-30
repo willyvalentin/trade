@@ -178,6 +178,20 @@ infrastructure after the named blocker is demonstrably closed. The exit artifact
 for each primary delivery must be a changed or newly measured recommendation
 capability, not merely safer transport for a future capability.
 
+**2026-09-30 measured data-fitness selection.** Two attributable regular-session
+cycles reproduced a late-index provider-credit concentration under the existing
+shared serial budget. The selected next challenger is
+`candidate_breadth_first_provider_budget_v1`: allocate at most one request per
+candidate before allocating a second request to any candidate, with daily history
+as the prerequisite deficit. It must first run as an inert, versioned shadow on
+the exact live candidate denominator and the same fixed credit cap. Its first
+decision metric is candidate breadth and late-index unfunded deficits; these are
+data-fitness proxies, not recommendation-quality proof. Live allocation may
+change only after bounded OPEN evidence confirms the projected coverage effect,
+and any later promotion must still beat the frozen baseline on canonical outcomes
+and the complete quality charter. The challenger grants no extra provider,
+ranking, publication, threshold or broker authority.
+
 **2026-09-23 market-timing decision.** The former named morning/midday/power-hour
 publication windows are historical operating constraints, not a product
 principle or a recommendation quota. A scheduled tick is a bounded observation
