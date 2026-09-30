@@ -330,8 +330,15 @@ authority is false. Production retains
 `TURE_DISABLE_SCHEDULED_FUNCTIONS=true` and
 `TURE_OBSERVATION_SERIES_ENABLED=false`.
 
-**Selected CLOSED delivery — prospective reversible allocation switchback:**
-branch `codex/provider-credit-allocation-live-experiment` freezes
+**Merged and production-verified CLOSED delivery — prospective reversible
+allocation switchback:** PR
+[#711](https://github.com/willyvalentin/trade/pull/711) merged as
+`c535a68e9659f9c997dd11bf6c771e9b8437b82d`; all protected CI shards and
+merge-candidate provenance are green. Git-connected Netlify production deploy
+`6abd72d986103b0009269047` is `ready`, production, branch `main` and carries
+that exact revision. Production readback retains
+`TURE_DISABLE_SCHEDULED_FUNCTIONS=true`, so the merge did not activate a scan.
+The delivery freezes
 `scanner_provider_credit_allocation_live_experiment_contract_v1` for six
 balanced baseline/challenger slots on 2026-10-01. Each attempt retains the
 existing six-credit scanner and eight-credit total cap; the full series is at
@@ -343,6 +350,28 @@ revision-bound and default-off. Runtime challenger allocation, durable arm
 receipt, activation preflight/readback and the actual OPEN series remain
 separate acceptance; this slice neither changes scanner behavior nor proves
 recommendation quality.
+
+**Selected CLOSED delivery — shared provider-allocation execution plan:**
+branch `codex/provider-credit-allocation-runtime-plan` adds
+`scanner_provider_credit_allocation_plan_v1`, a deterministic and fingerprinted
+semantic source for both `serial_shared_provider_budget_v1` and
+`candidate_breadth_first_provider_budget_v1`. The existing shadow projection
+now delegates to the same breadth-first planner, eliminating a separate
+shadow-only algorithm before runtime wiring. The plan retains the normalized
+candidate denominator, exact daily/intraday deficits and allocations, treats
+fresh cache as zero demand, reports funded candidates/unfunded deficits and
+strictly rejects altered or extra readback fields. It has no provider, credit,
+ranking, publication, threshold or broker authority. Local evidence is 14/14
+focused planner/shadow/protected-CI registration tests, 40/40 broader
+allocation/receipt/series regressions, the 168/168 intelligence-foundation
+suite, strict non-incremental TypeScript, a 33-page production build,
+changed-file lint and full source lint with zero errors/eight pre-existing
+warnings when Netlify's generated build bundles are excluded. Merge,
+production deployment and runtime
+behavior remain separate evidence. The next acceptance is exact runtime policy
+selection and durable arm/plan/allocation receipts behind the frozen experiment
+admission; no OPEN switchback may run before those controls are tested and the
+exact production revision is admitted.
 
 **Merged and production-verified CLOSED slice — frozen-cohort daily collection
 admission:** PR [#693](https://github.com/willyvalentin/trade/pull/693) merged as

@@ -227,6 +227,18 @@ activation/readback path are implemented and tested on the exact deployed
 revision. The switchback evaluates data fitness first; it cannot prove
 recommendation quality or alter ranking/publication thresholds.
 
+PR [#711](https://github.com/willyvalentin/trade/pull/711) merged that frozen
+contract as `c535a68e9659f9c997dd11bf6c771e9b8437b82d`; Git-connected Netlify
+production deploy `6abd72d986103b0009269047` is `ready` on the exact revision
+and the global scheduler disable remains `true`. The selected next CLOSED
+acceptance is one pure, fingerprinted execution planner shared by shadow and
+future runtime. It must deterministically reproduce both policy versions under
+the same cap, treat fresh cache as zero demand, retain the complete normalized
+candidate denominator, reject tampered readback and carry no provider or
+decision authority. Runtime wiring is not admitted until this semantic source
+is protected by CI; durable selected-arm, plan-fingerprint and actual-allocation
+receipts remain the following acceptance before any OPEN activation.
+
 **2026-09-23 market-timing decision.** The former named morning/midday/power-hour
 publication windows are historical operating constraints, not a product
 principle or a recommendation quota. A scheduled tick is a bounded observation
