@@ -16,6 +16,14 @@ import {
   type ScannerProviderCreditAllocationRuntimeAdmission,
 } from "@/lib/scanner-provider-credit-allocation-runtime-admission";
 import {
+  scannerProviderCreditAllocationExecutionPlanFromUnknown,
+  type ScannerProviderCreditAllocationExecutionPlan,
+} from "@/lib/scanner-provider-credit-allocation-plan";
+import {
+  scannerProviderCreditAllocationReconciliationFromUnknown,
+  type ScannerProviderCreditAllocationReconciliation,
+} from "@/lib/scanner-provider-credit-allocation-reconciliation";
+import {
   scannerScoreGateAlignmentDiagnosticFromScanLog,
   scannerScoreGateAlignmentDiagnosticFromUnknown,
   type ScannerScoreGateAlignmentDiagnostic,
@@ -103,6 +111,8 @@ export type ObservationCycleReceipt = Readonly<{
   provider_candidate_coverage?: ScannerProviderCoverageDiagnostic;
   provider_credit_allocation_shadow?: ScannerProviderCreditAllocationShadow;
   provider_credit_allocation_runtime_admission?: ScannerProviderCreditAllocationRuntimeAdmission;
+  provider_credit_allocation_execution_plan?: ScannerProviderCreditAllocationExecutionPlan;
+  provider_credit_allocation_reconciliation?: ScannerProviderCreditAllocationReconciliation;
   score_gate_alignment?: ScannerScoreGateAlignmentDiagnostic;
   publication: Readonly<{
     status: "published" | "no_trade" | "not_attempted" | "rejected" | "failed" | "unknown";
@@ -524,6 +534,22 @@ export function buildObservationCycleReceipt(
               .provider_credit_allocation_runtime_admission,
         }
       : {}),
+    ...(classification.trace?.market_data_fetch
+      .provider_credit_allocation_execution_plan
+      ? {
+          provider_credit_allocation_execution_plan:
+            classification.trace.market_data_fetch
+              .provider_credit_allocation_execution_plan,
+        }
+      : {}),
+    ...(classification.trace?.market_data_fetch
+      .provider_credit_allocation_reconciliation
+      ? {
+          provider_credit_allocation_reconciliation:
+            classification.trace.market_data_fetch
+              .provider_credit_allocation_reconciliation,
+        }
+      : {}),
     score_gate_alignment: scannerScoreGateAlignmentDiagnosticFromScanLog(
       input.scanLog,
       classification.cycleStatus !== "active",
@@ -614,6 +640,18 @@ export function observationCycleReceiptFromUnknown(
       ? undefined
       : scannerProviderCreditAllocationRuntimeAdmissionFromUnknown(
           receipt.provider_credit_allocation_runtime_admission,
+        );
+  const providerCreditAllocationExecutionPlan =
+    receipt?.provider_credit_allocation_execution_plan === undefined
+      ? undefined
+      : scannerProviderCreditAllocationExecutionPlanFromUnknown(
+          receipt.provider_credit_allocation_execution_plan,
+        );
+  const providerCreditAllocationReconciliation =
+    receipt?.provider_credit_allocation_reconciliation === undefined
+      ? undefined
+      : scannerProviderCreditAllocationReconciliationFromUnknown(
+          receipt.provider_credit_allocation_reconciliation,
         );
   const scoreGateAlignment =
     receipt?.score_gate_alignment === undefined
@@ -744,6 +782,23 @@ export function observationCycleReceiptFromUnknown(
     !decisionOutcome ||
     (receipt?.provider_credit_allocation_runtime_admission !== undefined &&
       !providerCreditAllocationRuntimeAdmission) ||
+    (receipt?.provider_credit_allocation_execution_plan !== undefined &&
+      providerCreditAllocationExecutionPlan?.status !== "planned") ||
+    (receipt?.provider_credit_allocation_reconciliation !== undefined &&
+      !providerCreditAllocationReconciliation) ||
+    (providerCreditAllocationExecutionPlan?.status === "planned" &&
+      (providerCreditAllocationRuntimeAdmission?.status !== "admitted" ||
+        !providerCreditAllocationRuntimeAdmission.authority
+          .can_select_allocation_policy ||
+        providerCreditAllocationRuntimeAdmission.selected_policy_version !==
+          providerCreditAllocationExecutionPlan.policy_version)) ||
+    (providerCreditAllocationReconciliation &&
+      (providerCreditAllocationExecutionPlan?.status !== "planned" ||
+        providerCreditAllocationRuntimeAdmission?.status !== "admitted" ||
+        providerCreditAllocationExecutionPlan.plan_fingerprint !==
+          providerCreditAllocationReconciliation.plan_fingerprint ||
+        providerCreditAllocationRuntimeAdmission.admission_fingerprint !==
+          providerCreditAllocationReconciliation.admission_fingerprint)) ||
     !authorityIsInert(receipt.authority)
   ) {
     return null;
@@ -850,6 +905,18 @@ export function observationCycleReceiptFromUnknown(
       ? {
           provider_credit_allocation_runtime_admission:
             providerCreditAllocationRuntimeAdmission,
+        }
+      : {}),
+    ...(providerCreditAllocationExecutionPlan?.status === "planned"
+      ? {
+          provider_credit_allocation_execution_plan:
+            providerCreditAllocationExecutionPlan,
+        }
+      : {}),
+    ...(providerCreditAllocationReconciliation
+      ? {
+          provider_credit_allocation_reconciliation:
+            providerCreditAllocationReconciliation,
         }
       : {}),
     score_gate_alignment: scoreGateAlignment,

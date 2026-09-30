@@ -17,6 +17,7 @@ import {
   scanMarket,
   type ScannerCandidate,
 } from "@/lib/scanner";
+import type { ScannerProviderCreditAllocationRuntimeAdmission } from "@/lib/scanner-provider-credit-allocation-runtime-admission";
 import {
   getOrRefreshIntradayIndicators,
   SCANNER_INDICATOR_MAX_AGE_MINUTES,
@@ -163,6 +164,7 @@ export type GenerateRecommendationsInput = {
   scheduledMaxTickers?: number | null;
   scheduledProviderCreditBudget?: ScheduledScanProviderCreditBudget | null;
   scheduledProviderCallPacingMs?: number | null;
+  providerCreditAllocationRuntimeAdmission?: ScannerProviderCreditAllocationRuntimeAdmission | null;
   growMaxLearningMode?: boolean;
   skipOpenAi?: boolean;
   activeScanTrace?: ActiveScanTraceRecorder | null;
@@ -3182,6 +3184,7 @@ export async function generateRecommendations({
   scheduledMaxTickers = null,
   scheduledProviderCreditBudget = null,
   scheduledProviderCallPacingMs = null,
+  providerCreditAllocationRuntimeAdmission = null,
   growMaxLearningMode = false,
   skipOpenAi = false,
   activeScanTrace = null,
@@ -3617,6 +3620,7 @@ export async function generateRecommendations({
           source === "scheduled"
             ? scheduledProviderCallPacingMs ?? undefined
             : undefined,
+        providerCreditAllocationRuntimeAdmission,
         signal,
       },
     );

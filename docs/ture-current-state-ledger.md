@@ -376,23 +376,43 @@ selection and durable arm admission behind the frozen experiment admission;
 actual plan execution and plan-versus-actual allocation reconciliation remain
 the subsequent CLOSED acceptance before any OPEN switchback.
 
-**Selected CLOSED delivery — exact runtime allocation-policy admission:**
-branch `codex/provider-credit-runtime-admission` binds the default-off frozen
-experiment to an exact normal Netlify scheduled-invocation receipt, declared
-slot, expected revision and deployed revision. An admitted receipt may select
-only the baseline or challenger allocation-policy version; manual requests,
+**Merged and production-verified CLOSED delivery — exact runtime
+allocation-policy admission:** PR
+[#713](https://github.com/willyvalentin/trade/pull/713) merged as
+`7fdd5072c4107cbee68e866dcd4b6a0824712f18`; all protected CI shards passed and
+Git-connected Netlify production deploy `6abd853da27a8e0008aa7a70` is `ready`,
+production, branch `main` and carries that exact revision. Production readback
+retains `TURE_DISABLE_SCHEDULED_FUNCTIONS=true`. The default-off frozen
+experiment is bound to an exact normal Netlify scheduled-invocation receipt,
+declared slot, expected revision and deployed revision. Manual requests,
 missing invocation receipts, undeclared slots and revision drift fall back to
 the baseline with no selection authority. The canonical fingerprinted result
-is carried in active scan trace and the owner-bound observation-cycle receipt,
-whose strict readback rejects altered or extra fields. This slice cannot call a
-provider, reserve a credit, change ranking/publication, lower a threshold,
-publish a candidate or reach a broker, and it does not yet pass the selected
-policy into scanner execution. Focused admission/receipt tests and strict
-TypeScript currently pass locally. The next sequential CLOSED slice must
-snapshot intraday-cache demand before any daily-cache mutation, execute the
-shared planner once, and persist exact plan-versus-actual allocation evidence;
-until that is merged and production-verified, the 2026-10-01 OPEN switchback is
-not ready to run.
+is carried in active scan trace and the owner-bound observation-cycle receipt.
+It cannot call a provider, reserve a credit, change ranking/publication, lower a
+threshold, publish a candidate or reach a broker, and no experiment was
+activated by merge or deploy.
+
+**Selected CLOSED delivery — constraint-aware allocation execution and
+reconciliation:** branch `codex/provider-credit-runtime-execution` snapshots the
+whole candidate denominator's daily and intraday cache demand before mutation,
+preserves intraday cache while writing daily history and builds
+`scanner_provider_credit_allocation_execution_plan_v2` exactly once. The plan
+retains both the six-credit total scanner ceiling and the existing separate
+three-credit intraday ceiling; this avoids silently weakening an existing
+safety constraint merely to execute the v1 shadow semantics. Only an exact
+`admitted` runtime receipt enforces the selected plan. Default-off, manual and
+drifted paths preserve the deployed serial allocator. Exact successful
+reservations are persisted as
+`scanner_provider_credit_allocation_reconciliation_v1`, with missing and
+unexpected allocations treated as visible divergence. Plan and reconciliation
+are fingerprinted, strict-readback fields in active trace and the owner-bound
+observation-cycle receipt. Local evidence is 50/50 provider-allocation,
+admission, receipt and attribution regressions; 168/168 intelligence-foundation
+tests; strict non-incremental TypeScript; changed-file and full-project lint;
+the scheduled-runtime bundle; and a complete 33-page Next.js production build.
+Merge, protected CI, exact-revision production deployment and
+disabled-scheduler readback remain separate evidence. No OPEN experiment,
+provider request or recommendation-quality claim is part of this CLOSED slice.
 
 **Merged and production-verified CLOSED slice — frozen-cohort daily collection
 admission:** PR [#693](https://github.com/willyvalentin/trade/pull/693) merged as

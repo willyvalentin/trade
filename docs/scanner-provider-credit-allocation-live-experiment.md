@@ -51,9 +51,18 @@ and the owner-bound observation-cycle receipt. That receipt grants policy
 selection only: it cannot call a provider, reserve a credit, change ranking or
 publication, lower a threshold, publish a candidate or reach a broker.
 
-Planner execution, a pre-allocation snapshot of cache demand, durable
-plan-versus-actual allocation reconciliation, activation preflight and OPEN
-execution remain separate work. Any credit breach, lineage/population mismatch,
-stale/incomplete publication, revision drift or two consecutive operational
+The execution path uses
+`scanner_provider_credit_allocation_execution_plan_v2`: it snapshots the whole
+candidate denominator's cache demand before mutation and respects both the
+frozen total scanner cap and the existing independent intraday cap. It is
+enforced only for an `admitted` runtime receipt. Exact successful reservations
+are reconciled against the frozen plan and persisted in active trace plus the
+owner-bound observation-cycle receipt; missing or unexpected allocations are
+explicit divergence. This does not activate the experiment or prove improved
+data fitness.
+
+Exact-revision activation preflight and OPEN execution remain separate work.
+Any credit breach, lineage/population mismatch, stale/incomplete publication,
+revision drift, plan-versus-actual divergence or two consecutive operational
 failures stops the series. Rollback is always
 `serial_shared_provider_budget_v1`.

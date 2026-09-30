@@ -239,12 +239,18 @@ on the exact revision and the global scheduler disable remains `true`. It
 deterministically reproduces both policy versions under the same cap, treats
 fresh cache as zero demand, retains the complete normalized candidate
 denominator, rejects tampered readback and carries no provider or decision
-authority. The next CLOSED acceptance is exact scheduled-receipt, slot and
-deploy-revision-bound runtime policy admission persisted in active trace and
-the durable observation-cycle receipt. That admission still cannot execute a
-provider request or reserve a credit. Actual planner execution must follow as
-one separate slice with a pre-allocation cache-demand snapshot and durable
-plan-versus-actual reconciliation before any OPEN activation.
+authority. PR [#713](https://github.com/willyvalentin/trade/pull/713) then
+merged exact scheduled-receipt, slot and deploy-revision-bound runtime policy
+admission as `7fdd5072c4107cbee68e866dcd4b6a0824712f18`; Git-connected Netlify
+production deploy `6abd853da27a8e0008aa7a70` is `ready` on that exact revision
+and the global scheduler disable remains `true`. The admission is persisted in
+active trace and the durable observation-cycle receipt but still cannot execute
+a provider request or reserve a credit. The selected CLOSED acceptance is now
+constraint-aware planner execution: snapshot all cache demand before mutation,
+retain the existing independent intraday cap, execute only after exact admitted
+runtime selection and persist strict plan-versus-successful-reservation
+reconciliation. It must be merged, production-deployed and read back with the
+scheduler still disabled before any OPEN activation.
 
 **2026-09-23 market-timing decision.** The former named morning/midday/power-hour
 publication windows are historical operating constraints, not a product
