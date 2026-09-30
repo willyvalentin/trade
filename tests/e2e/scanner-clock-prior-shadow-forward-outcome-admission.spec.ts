@@ -11,6 +11,7 @@ import { buildCanonicalOutcomeProviderCoverageReceipt } from "@/lib/recommendati
 import { buildRecommendationOutcomeEvaluationAnchor } from "@/lib/recommendation-outcome-evaluation-anchor";
 import type { RecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
+import { SCANNER_INTRADAY_LIQUIDITY_SHADOW_EVIDENCE_CAPTURE_VERSION } from "@/lib/scanner-intraday-liquidity-shadow-evidence-contract";
 import { scannerClockPriorShadowForwardPlanProfile } from "@/lib/scanner-clock-prior-shadow-forward-plan-profile";
 import type { ScannerClockPriorShadowForwardDecisionPlanReceipt } from "@/lib/scanner-clock-prior-shadow-forward-decision-store";
 import { SCANNER_CLOCK_PRIOR_SHADOW_EVIDENCE_REUSE_VERSION } from "@/lib/scanner-clock-prior-shadow-evidence-reuse";
@@ -154,6 +155,10 @@ function snapshot(index: number): RecommendationSnapshot {
       clock_prior_shadow_evidence_sample: true,
       clock_prior_shadow_evidence_reuse_version:
         SCANNER_CLOCK_PRIOR_SHADOW_EVIDENCE_REUSE_VERSION,
+      intraday_liquidity_shadow_evidence_sample: true,
+      intraday_liquidity_shadow_evidence_capture_version:
+        SCANNER_INTRADAY_LIQUIDITY_SHADOW_EVIDENCE_CAPTURE_VERSION,
+      research_purpose: "intraday_liquidity_shadow_full_population",
       candidate_id: candidateId,
       candidate_decision_id: candidateId,
       candidate_decision_disposition: "ranked_not_selected",
@@ -348,6 +353,19 @@ test("fails closed on duplicate canonical rows and rejected cohort lineage", () 
   }])).toMatchObject({
     status: "blocked",
     reason_codes: ["clock_prior_snapshot_admission_rejected"],
+  });
+
+  expect(assess([{
+    ...value,
+    payload_json: {
+      ...value.payload_json,
+      intraday_liquidity_shadow_evidence_capture_version:
+        "scanner_intraday_liquidity_shadow_evidence_capture_v3",
+    },
+  }])).toMatchObject({
+    status: "blocked",
+    reason_codes: ["clock_prior_snapshot_admission_rejected"],
+    series: { required_attempts: 0, maximum_provider_credits: 0 },
   });
 });
 

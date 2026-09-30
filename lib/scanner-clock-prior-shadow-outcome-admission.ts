@@ -1,8 +1,9 @@
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
+import { isScannerIntradayLiquidityShadowEvidenceCaptureVersion } from "@/lib/scanner-intraday-liquidity-shadow-evidence-contract";
 import { SCANNER_CLOCK_PRIOR_SHADOW_EVIDENCE_REUSE_VERSION } from "@/lib/scanner-clock-prior-shadow-evidence-reuse";
 
 export const SCANNER_CLOCK_PRIOR_SHADOW_OUTCOME_ADMISSION_VERSION =
-  "scanner_clock_prior_shadow_outcome_admission_v1" as const;
+  "scanner_clock_prior_shadow_outcome_admission_v2" as const;
 
 export type ScannerClockPriorShadowOutcomeAdmission = {
   admission_version:
@@ -80,7 +81,13 @@ export function assessScannerClockPriorShadowOutcomeAdmission(
   if (
     payload.clock_prior_shadow_evidence_sample !== true ||
     payload.clock_prior_shadow_evidence_reuse_version !==
-      SCANNER_CLOCK_PRIOR_SHADOW_EVIDENCE_REUSE_VERSION
+      SCANNER_CLOCK_PRIOR_SHADOW_EVIDENCE_REUSE_VERSION ||
+    payload.intraday_liquidity_shadow_evidence_sample !== true ||
+    payload.research_purpose !==
+      "intraday_liquidity_shadow_full_population" ||
+    !isScannerIntradayLiquidityShadowEvidenceCaptureVersion(
+      payload.intraday_liquidity_shadow_evidence_capture_version,
+    )
   ) {
     reasons.push("capture_contract_mismatch");
   }

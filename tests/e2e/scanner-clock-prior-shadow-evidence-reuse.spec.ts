@@ -9,6 +9,7 @@ import {
   SCANNER_CLOCK_PRIOR_SHADOW_EVIDENCE_REUSE_VERSION,
 } from "@/lib/scanner-clock-prior-shadow-evidence-reuse";
 import { assessScannerClockPriorShadowOutcomeAdmission } from "@/lib/scanner-clock-prior-shadow-outcome-admission";
+import { SCANNER_INTRADAY_LIQUIDITY_SHADOW_EVIDENCE_CAPTURE_VERSION_V1 } from "@/lib/scanner-intraday-liquidity-shadow-evidence-contract";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
 import type { ScannerClockPriorShadowAttribution } from "@/lib/scanner-ranking-clock-prior-shadow-attribution";
 import type { ScannerClockPriorShadowComparison } from "@/lib/scanner-ranking-clock-prior-shadow";
@@ -298,6 +299,13 @@ test("rejects a ready receipt whose persisted population is duplicated or incomp
       research_snapshot_tickers: [],
     }),
   ).toBeNull();
+  expect(
+    scannerClockPriorShadowEvidenceReuseReceiptFromUnknown({
+      ...receipt,
+      source_capture_version:
+        "scanner_intraday_liquidity_shadow_evidence_capture_v3",
+    }),
+  ).toBeNull();
 });
 
 function researchSnapshot(
@@ -361,6 +369,10 @@ function researchSnapshot(
       clock_prior_shadow_evidence_sample: true,
       clock_prior_shadow_evidence_reuse_version:
         SCANNER_CLOCK_PRIOR_SHADOW_EVIDENCE_REUSE_VERSION,
+      intraday_liquidity_shadow_evidence_sample: true,
+      intraday_liquidity_shadow_evidence_capture_version:
+        SCANNER_INTRADAY_LIQUIDITY_SHADOW_EVIDENCE_CAPTURE_VERSION,
+      research_purpose: "intraday_liquidity_shadow_full_population",
       candidate_id: candidateId,
       candidate_decision_id: candidateId,
       candidate_decision_disposition: "ranked_not_selected",
@@ -395,6 +407,28 @@ test("admits only the exact contained clock-prior research marker", () => {
   expect(
     assessScannerClockPriorShadowOutcomeAdmission(
       researchSnapshot({ clock_prior_shadow_evidence_reuse_version: "drift" }),
+    ),
+  ).toMatchObject({
+    status: "rejected",
+    reason_codes: ["capture_contract_mismatch"],
+  });
+  expect(
+    assessScannerClockPriorShadowOutcomeAdmission(
+      researchSnapshot({
+        intraday_liquidity_shadow_evidence_capture_version:
+          SCANNER_INTRADAY_LIQUIDITY_SHADOW_EVIDENCE_CAPTURE_VERSION_V1,
+      }),
+    ),
+  ).toMatchObject({
+    status: "admitted",
+    reason_codes: [],
+  });
+  expect(
+    assessScannerClockPriorShadowOutcomeAdmission(
+      researchSnapshot({
+        intraday_liquidity_shadow_evidence_capture_version:
+          "scanner_intraday_liquidity_shadow_evidence_capture_v3",
+      }),
     ),
   ).toMatchObject({
     status: "rejected",

@@ -3,7 +3,10 @@ import {
   assessScannerIntradayLiquidityShadowOutcomeAdmission,
   SCANNER_INTRADAY_LIQUIDITY_SHADOW_OUTCOME_ADMISSION_VERSION,
 } from "@/lib/scanner-intraday-liquidity-shadow-outcome-admission";
-import { SCANNER_INTRADAY_LIQUIDITY_SHADOW_EVIDENCE_CAPTURE_VERSION } from "@/lib/scanner-intraday-liquidity-shadow-evidence-capture";
+import {
+  SCANNER_INTRADAY_LIQUIDITY_SHADOW_EVIDENCE_CAPTURE_VERSION,
+  SCANNER_INTRADAY_LIQUIDITY_SHADOW_EVIDENCE_CAPTURE_VERSION_V1,
+} from "@/lib/scanner-intraday-liquidity-shadow-evidence-contract";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -110,6 +113,34 @@ test.describe("intraday liquidity shadow outcome admission", () => {
       execution_effect: false,
       quality_improvement_claimed: false,
     });
+  });
+
+  test("retains outcome admission for immutable v1 snapshots after v2 capture ships", () => {
+    const result = assessScannerIntradayLiquidityShadowOutcomeAdmission(
+      snapshot({}, {
+        intraday_liquidity_shadow_evidence_capture_version:
+          SCANNER_INTRADAY_LIQUIDITY_SHADOW_EVIDENCE_CAPTURE_VERSION_V1,
+      }),
+    );
+
+    expect(result).toMatchObject({
+      admission_version:
+        SCANNER_INTRADAY_LIQUIDITY_SHADOW_OUTCOME_ADMISSION_VERSION,
+      status: "admitted",
+      reason_codes: [],
+    });
+  });
+
+  test("rejects unknown capture versions", () => {
+    const result = assessScannerIntradayLiquidityShadowOutcomeAdmission(
+      snapshot({}, {
+        intraday_liquidity_shadow_evidence_capture_version:
+          "scanner_intraday_liquidity_shadow_evidence_capture_v3",
+      }),
+    );
+
+    expect(result.status).toBe("rejected");
+    expect(result.reason_codes).toContain("capture_contract_mismatch");
   });
 
   test("does not admit unrelated research snapshots", () => {
