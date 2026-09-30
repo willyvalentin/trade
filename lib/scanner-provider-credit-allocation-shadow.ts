@@ -2,21 +2,21 @@ import {
   SCAN_PROVIDER_CANDIDATE_OBSERVATION_VERSION,
   type ScanProviderCandidateObservation,
 } from "@/lib/scan-provider-candidate-observation";
+import {
+  buildScannerProviderCreditAllocationPlan,
+  SCANNER_PROVIDER_CREDIT_BASELINE_POLICY_VERSION,
+  SCANNER_PROVIDER_CREDIT_CHALLENGER_POLICY_VERSION,
+  type ScannerProviderCreditAllocation,
+} from "@/lib/scanner-provider-credit-allocation-plan";
+
+export {
+  SCANNER_PROVIDER_CREDIT_BASELINE_POLICY_VERSION,
+  SCANNER_PROVIDER_CREDIT_CHALLENGER_POLICY_VERSION,
+} from "@/lib/scanner-provider-credit-allocation-plan";
 
 export const SCANNER_PROVIDER_CREDIT_ALLOCATION_SHADOW_VERSION =
   "scanner_provider_credit_allocation_shadow_v1" as const;
-export const SCANNER_PROVIDER_CREDIT_BASELINE_POLICY_VERSION =
-  "serial_shared_provider_budget_v1" as const;
-export const SCANNER_PROVIDER_CREDIT_CHALLENGER_POLICY_VERSION =
-  "candidate_breadth_first_provider_budget_v1" as const;
-
-type DataClass = "daily" | "intraday";
-
-export type ScannerProviderCreditAllocation = Readonly<{
-  ticker: string;
-  ticker_index: number;
-  data_class: DataClass;
-}>;
+export type { ScannerProviderCreditAllocation } from "@/lib/scanner-provider-credit-allocation-plan";
 
 export type ScannerProviderCreditAllocationShadow = Readonly<{
   shadow_version: typeof SCANNER_PROVIDER_CREDIT_ALLOCATION_SHADOW_VERSION;
@@ -126,53 +126,6 @@ function candidateKey(allocation: ScannerProviderCreditAllocation) {
   return `${allocation.ticker_index}:${allocation.ticker}`;
 }
 
-function planBreadthFirst(
-  observations: readonly ScanProviderCandidateObservation[],
-  providerCreditCap: number,
-) {
-  const allocations: ScannerProviderCreditAllocation[] = [];
-  const allocated = new Set<string>();
-
-  const allocate = (
-    observation: ScanProviderCandidateObservation,
-    dataClass: DataClass,
-  ) => {
-    if (allocations.length >= providerCreditCap) return;
-    const key = `${observation.ticker_index}:${observation.ticker}:${dataClass}`;
-    if (allocated.has(key)) return;
-    allocated.add(key);
-    allocations.push(
-      Object.freeze({
-        ticker: observation.ticker,
-        ticker_index: observation.ticker_index,
-        data_class: dataClass,
-      }),
-    );
-  };
-
-  // First give each candidate at most one request. Daily history is the
-  // prerequisite for the base scanner values, so it is the first deficit.
-  for (const observation of observations) {
-    const deficits = refreshDeficits(observation);
-    if (deficits.daily) allocate(observation, "daily");
-    else if (deficits.intraday) allocate(observation, "intraday");
-  }
-
-  // Only after breadth has been attempted may a candidate receive a second
-  // request for its remaining data class.
-  for (const observation of observations) {
-    const deficits = refreshDeficits(observation);
-    const dailyKey = `${observation.ticker_index}:${observation.ticker}:daily`;
-    const intradayKey = `${observation.ticker_index}:${observation.ticker}:intraday`;
-    if (deficits.daily && !allocated.has(dailyKey)) allocate(observation, "daily");
-    if (deficits.intraday && !allocated.has(intradayKey)) {
-      allocate(observation, "intraday");
-    }
-  }
-
-  return Object.freeze(allocations);
-}
-
 export function buildScannerProviderCreditAllocationShadow({
   candidateObservations,
   providerCreditCap,
@@ -232,7 +185,23 @@ export function buildScannerProviderCreditAllocationShadow({
       hasDeficit(item) &&
       item.provider_credits_reserved === 0,
   ).length;
-  const challengerAllocations = planBreadthFirst(sorted, cap);
+  const challengerPlan = buildScannerProviderCreditAllocationPlan({
+    policyVersion: SCANNER_PROVIDER_CREDIT_CHALLENGER_POLICY_VERSION,
+    providerCreditCap: cap,
+    candidateDemands: sorted.map((item) => {
+      const deficits = refreshDeficits(item);
+      return {
+        ticker: item.ticker,
+        ticker_index: item.ticker_index,
+        daily_refresh_required: deficits.daily,
+        intraday_refresh_required: deficits.intraday,
+      };
+    }),
+  });
+  if (challengerPlan.status !== "planned") {
+    return emptyShadow("invalid", "provider_allocation_plan_invalid");
+  }
+  const challengerAllocations = challengerPlan.allocations;
   const challengerCandidateKeys = new Set(
     challengerAllocations.map(candidateKey),
   );
