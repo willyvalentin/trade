@@ -24,52 +24,21 @@ function objectOrNull(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
-/**
- * Reads the latest persisted observation-series claim, then reloads its exact
- * half-open window with count-checked queries. It is deliberately independent
- * of the current environment flags so a cleaned-up series remains auditable.
- */
-export async function readLatestObservationSeriesEvidence(
-  ownerUserId: string,
-): Promise<ObservationSeriesEvidenceReadback> {
-  const owner = normalizeApplicationOwnerUserId(ownerUserId);
+async function readObservationSeriesEvidenceFromAttempt({
+  owner,
+  attempt,
+}: {
+  owner: string;
+  attempt: unknown;
+}): Promise<ObservationSeriesEvidenceReadback> {
   const { client } = getServerSupabaseClient();
-  if (!client || !owner) {
+  if (!client) {
     return unavailableObservationSeriesEvidenceReadback(
       "observation_series_evidence_server_unavailable",
     );
   }
-
-  const latestAttemptResult = await client
-    .from("scheduled_scan_attempts")
-    .select(
-      "attempt_fingerprint,source,mode,scheduled_function_fired_at,utc_timestamp,payload_json",
-    )
-    .eq("source", "netlify_scheduled_function")
-    .eq("mode", "scheduled")
-    .contains("payload_json", {
-      observation_series_control: {
-        control_version: OBSERVATION_SERIES_CONTROL_VERSION,
-      },
-    })
-    .order("scheduled_function_fired_at", {
-      ascending: false,
-      nullsFirst: false,
-    })
-    .limit(1)
-    .maybeSingle();
-  if (latestAttemptResult.error) {
-    return unavailableObservationSeriesEvidenceReadback(
-      "observation_series_latest_claim_read_failed",
-    );
-  }
-  if (!latestAttemptResult.data) {
-    return unavailableObservationSeriesEvidenceReadback(
-      "observation_series_claim_not_retained",
-    );
-  }
-
-  const payload = objectOrNull(latestAttemptResult.data.payload_json);
+  const attemptRow = objectOrNull(attempt);
+  const payload = objectOrNull(attemptRow?.payload_json);
   const control = observationSeriesControlFromUnknown(
     payload?.observation_series_control,
   );
@@ -127,5 +96,102 @@ export async function readLatestObservationSeriesEvidence(
     scheduledAttemptRows: attemptResult.data ?? [],
     observationCycleReadback: cycleReadback,
     now: new Date(),
+  });
+}
+
+/**
+ * Reads the latest persisted observation-series claim, then reloads its exact
+ * half-open window with count-checked queries. It is deliberately independent
+ * of the current environment flags so a cleaned-up series remains auditable.
+ */
+export async function readLatestObservationSeriesEvidence(
+  ownerUserId: string,
+): Promise<ObservationSeriesEvidenceReadback> {
+  const owner = normalizeApplicationOwnerUserId(ownerUserId);
+  const { client } = getServerSupabaseClient();
+  if (!client || !owner) {
+    return unavailableObservationSeriesEvidenceReadback(
+      "observation_series_evidence_server_unavailable",
+    );
+  }
+
+  const latestAttemptResult = await client
+    .from("scheduled_scan_attempts")
+    .select(
+      "attempt_fingerprint,source,mode,scheduled_function_fired_at,utc_timestamp,payload_json",
+    )
+    .eq("source", "netlify_scheduled_function")
+    .eq("mode", "scheduled")
+    .contains("payload_json", {
+      observation_series_control: {
+        control_version: OBSERVATION_SERIES_CONTROL_VERSION,
+      },
+    })
+    .order("scheduled_function_fired_at", {
+      ascending: false,
+      nullsFirst: false,
+    })
+    .limit(1)
+    .maybeSingle();
+  if (latestAttemptResult.error) {
+    return unavailableObservationSeriesEvidenceReadback(
+      "observation_series_latest_claim_read_failed",
+    );
+  }
+  if (!latestAttemptResult.data) {
+    return unavailableObservationSeriesEvidenceReadback(
+      "observation_series_claim_not_retained",
+    );
+  }
+
+  return readObservationSeriesEvidenceFromAttempt({
+    owner,
+    attempt: latestAttemptResult.data,
+  });
+}
+
+export async function readObservationSeriesEvidenceBySeriesId({
+  ownerUserId,
+  seriesId,
+}: {
+  ownerUserId: string;
+  seriesId: string;
+}): Promise<ObservationSeriesEvidenceReadback> {
+  const owner = normalizeApplicationOwnerUserId(ownerUserId);
+  const { client } = getServerSupabaseClient();
+  if (!client || !owner || !/^observation_series_[a-f0-9]{16}$/.test(seriesId)) {
+    return unavailableObservationSeriesEvidenceReadback(
+      "observation_series_evidence_server_unavailable",
+    );
+  }
+  const attemptResult = await client
+    .from("scheduled_scan_attempts")
+    .select(
+      "attempt_fingerprint,source,mode,scheduled_function_fired_at,utc_timestamp,payload_json",
+    )
+    .eq("source", "netlify_scheduled_function")
+    .eq("mode", "scheduled")
+    .contains("payload_json", {
+      observation_series_control: {
+        control_version: OBSERVATION_SERIES_CONTROL_VERSION,
+        series_id: seriesId,
+      },
+    })
+    .order("scheduled_function_fired_at", {
+      ascending: false,
+      nullsFirst: false,
+    })
+    .limit(1)
+    .maybeSingle();
+  if (attemptResult.error || !attemptResult.data) {
+    return unavailableObservationSeriesEvidenceReadback(
+      attemptResult.error
+        ? "observation_series_claim_read_failed"
+        : "observation_series_claim_not_retained",
+    );
+  }
+  return readObservationSeriesEvidenceFromAttempt({
+    owner,
+    attempt: attemptResult.data,
   });
 }

@@ -297,6 +297,27 @@ as useful evidence, but they are not silently pooled after inspection; any
 cross-series admission must first freeze exact revision, policy, cap, period and
 non-observed-cycle treatment.
 
+**Selected CLOSED delivery — explicit retrospective cross-series allocation
+evidence:** branch `codex/provider-credit-allocation-cross-series` adds
+`scanner_provider_credit_allocation_cross_series_contract_v1` and an
+authenticated, uncached, read-only production evidence path. The frozen input
+is exactly series `observation_series_fa9f47b6a24fc3db` and
+`observation_series_15f795345822f5f6`, their exact 2026-09-30 windows, deployed
+revision `fdadb7c7b163af115642838d353a48ebeb5cefff`, the baseline/challenger
+policy pair and a six-credit cap. All four cycles remain in the denominator;
+the two non-observed cycles are not discarded. The two observed shadows sum to
+the already documented `+6` candidate first-pass breadth and `-4` late-index
+fully unfunded projection. This is retrospective data-fitness support only,
+not prospective confirmation or recommendation-quality evidence. Even an
+available readback can only select design of a separately predeclared,
+reversible live-allocation experiment; all provider, allocation, ranking,
+publication, threshold and broker authority remains false. Local focused
+acceptance is seven provider-allocation tests plus strict non-incremental
+TypeScript, changed-file lint, the 168-test intelligence foundation suite, the
+33-page Next.js production build, full lint with the eight pre-existing allowed
+warnings and a zero-vulnerability high-severity npm audit. Merge, production
+deploy and environment readback remain separate evidence until completed.
+
 **Merged and production-verified CLOSED slice — frozen-cohort daily collection
 admission:** PR [#693](https://github.com/willyvalentin/trade/pull/693) merged as
 `8d00018912c12384a0fb9a5b84e0ae8eb8ba4205`; all protected PR CI shards are
