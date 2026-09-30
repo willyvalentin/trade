@@ -1,6 +1,6 @@
 {
   "contract_version": "action_660l_next_security_release_gate_v1",
-  "observed_at": "2026-08-20",
+  "observed_at": "2026-09-30",
   "authority": {
     "base_main_commit": "6ef40e52eb7139e1e8c238f8a1d44385c0d1cf8a",
     "base_main_tree": "2f4d282dd3fc867d96b5dac2dcdcc59c50d6f8a7",
@@ -26,8 +26,8 @@
     "rewrites_present": false
   },
   "candidate": {
-    "next": "16.3.4",
-    "eslint_config_next": "16.3.4",
+    "next": "16.3.8",
+    "eslint_config_next": "16.3.8",
     "sharp": "0.35.4",
     "js_yaml": "4.3.2",
     "postcss": "8.5.23",
@@ -80,8 +80,8 @@
     "registered_exactly_once": true
   },
   "sources": {
-    "package.json": "1a3e7c9d819bbaf143a1174dca1b2de29d894cb197b4ff7806b0fbbd2470ce91",
-    "package-lock.json": "da27024a907f877f9272874e8ccc1a628b63a44f59af207a3d2808b0695249db",
+    "package.json": "591f183cbad2d28dfcbd7e7cd0e350dd8a3fc7512bc07830a0f8ef250655efba",
+    "package-lock.json": "859ed09eed4d3de2e7ade5c74bea78e73770bea57f92d6cb3656224bfcace6f7",
     "netlify.toml": "880562b1f2ccfe1a5bebaa4352098e7af10dde428585e5ad5526e6ae9bdf1ccd",
     "AGENTS.md": "63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb",
     ".github/workflows/milestone-a-ci.yml": "a4973db33a11b79453b7928bf0cb74ecad5847ab8b8c9f06f22d546dfffab55b",
@@ -96,7 +96,7 @@
     "tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts": "8275b7ecfe9486f31ebf36d2f4a48602aba7fb218735d8fafdccd2a53891f8f8",
     "docs/evidence/action-666db-current-main-position-version-schema-reconciliation.json": "1a92b2a5db488179b96b9b798f56b05c026a414ca6ff829d384b14cc33a7a995",
     "tests/e2e/action-666db-current-main-position-version-schema-reconciliation.spec.ts": "a8c481e7204d43976347c300c5ea7381bef355db773c145da91e4ca8d38ca133",
-    "docs/action-660l-next-security-release-gate.md": "0e9856f415f5bd2eeed693e7af452d7e8875ea8d9828978b5d6c70553fdb9210",
+    "docs/action-660l-next-security-release-gate.md": "5502b3851b5f2e5468430543ff6e070167a6eadba2274fa352943915fa02de29",
     "docs/ture-current-state-ledger.md": "04491ae74a9360e02dd9301cec418805796d8002ec5affaeceb90c5c28a5130f",
     "docs/ture-master-roadmap.md": "faf1ef5dcd69bddd4d60cec5a49de6d51c9f4774d71975e584bf3d47b7826b7c"
   },

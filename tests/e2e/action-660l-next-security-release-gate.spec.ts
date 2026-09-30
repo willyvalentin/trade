@@ -16,7 +16,7 @@ const draftCostControlTestPath =
 const registrationPath =
   "scripts/action-660j-provider-free-ci-registration.json";
 const evidenceSha256 =
-  "a4e5123c753bcf85a47595c95eb07736ec0b117ea3846c3e677934ee39291400";
+  "a39d896197c0084d8a05b8834fd8b46bfeb2fcf0af26768662d1491f43547be3";
 const historicalSourceCommit =
   "dbeed25f2074bff4dba8cee7f6d511cb17992efc";
 const successionSourceCommit =
@@ -144,7 +144,7 @@ function releaseSnapshotSources() {
 function expectedEvidence(sources: Record<string, string>) {
   return {
     contract_version: "action_660l_next_security_release_gate_v1",
-    observed_at: "2026-08-20",
+    observed_at: "2026-09-30",
     authority: {
       base_main_commit: "6ef40e52eb7139e1e8c238f8a1d44385c0d1cf8a",
       base_main_tree: "2f4d282dd3fc867d96b5dac2dcdcc59c50d6f8a7",
@@ -171,8 +171,8 @@ function expectedEvidence(sources: Record<string, string>) {
       rewrites_present: false,
     },
     candidate: {
-      next: "16.3.4",
-      eslint_config_next: "16.3.4",
+      next: "16.3.8",
+      eslint_config_next: "16.3.8",
       sharp: "0.35.4",
       js_yaml: "4.3.2",
       postcss: "8.5.23",
@@ -248,9 +248,9 @@ test("pins exact security-release evidence and every governed source", async () 
 
   const packageJson = JSON.parse(await source("package.json"));
   const lock = JSON.parse(await source("package-lock.json"));
-  expect(packageJson.dependencies.next).toBe("16.3.4");
-  expect(packageJson.devDependencies["eslint-config-next"]).toBe("16.3.4");
-  expect(lock.packages["node_modules/next"].version).toBe("16.3.4");
+  expect(packageJson.dependencies.next).toBe("16.3.8");
+  expect(packageJson.devDependencies["eslint-config-next"]).toBe("16.3.8");
+  expect(lock.packages["node_modules/next"].version).toBe("16.3.8");
   expect(lock.packages["node_modules/sharp"].version).toBe("0.35.4");
   expect(lock.packages["node_modules/js-yaml"].version).toBe("4.3.2");
   expect(lock.packages["node_modules/postcss"].version).toBe("8.5.23");

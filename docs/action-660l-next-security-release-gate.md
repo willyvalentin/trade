@@ -10,7 +10,9 @@ to the existing provider-free foundation shard. The current follow-on patch
 advances `next` and `eslint-config-next` from `16.3.1` to `16.3.4`, refreshes
 the exact npm lock graph again, retains that same fail-closed gate, and gives
 Netlify's build process an explicit 4 GB V8 heap for its build-time TypeScript
-check.
+check. A later 2026-09-30 patch advances both packages from `16.3.4` to
+`16.3.8` to close `GHSA-vcvr-r3jv-pc5j`; it preserves the same CI, proxy and
+runtime authority boundaries.
 
 This action does not authorize merge, production deployment, provider-account
 configuration, database mutation, broker execution or runtime activation.
@@ -40,12 +42,12 @@ Server Actions or rewrites were found in the repository.
 
 The original candidate graph pinned Next.js and `eslint-config-next` to
 `16.3.1` and resolved `sharp` `0.35.3`, `postcss` `8.5.23` and `nanoid`
-`3.3.18`. The current follow-on graph pins Next.js and `eslint-config-next` to
-`16.3.4`, resolves `sharp` `0.35.4` and `js-yaml` `4.3.2`, and retains the
-same `postcss` and `nanoid` versions. The installed full audit reports zero
-vulnerabilities. The production build completes with all 33 static pages
-generated; TypeScript passes and lint reports zero errors with the eight
-pre-existing warnings.
+`3.3.18`. The first follow-on graph pinned Next.js and `eslint-config-next` to
+`16.3.4`. The current graph pins both to `16.3.8`, resolves `sharp` `0.35.4`
+and `js-yaml` `4.3.2`, and retains the same `postcss` and `nanoid` versions.
+The installed full audit reports zero vulnerabilities. The production build
+completes with all 33 static pages generated; TypeScript passes and lint
+reports zero errors with the eight pre-existing warnings.
 
 ## Netlify build-memory boundary
 
