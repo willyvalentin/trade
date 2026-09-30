@@ -5200,6 +5200,7 @@ export async function POST(request: Request) {
         scheduledProviderCallPacingMs:
           scheduledRuntimeConfig.scheduled_provider_execution_plan
             .inter_call_delay_ms,
+        providerCreditAllocationRuntimeAdmission,
         growMaxLearningMode: scheduledRuntimeConfig.grow_max_learning_mode,
         skipOpenAi: scheduledRuntimeConfig.scheduled_skip_openai,
         activeScanTrace,

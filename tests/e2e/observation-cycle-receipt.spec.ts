@@ -20,6 +20,11 @@ import { resolveScheduledScanProviderCreditBudget } from "../../lib/scheduled-sc
 import { scheduledScanInvocationReceiptFromAttempt } from "../../lib/scheduled-scan-invocation-receipt";
 import { buildScannerProviderCreditAllocationShadow } from "../../lib/scanner-provider-credit-allocation-shadow";
 import { buildScannerProviderCreditAllocationRuntimeAdmission } from "../../lib/scanner-provider-credit-allocation-runtime-admission";
+import { SCANNER_PROVIDER_CREDIT_ALLOCATION_LIVE_EXPERIMENT_CONTRACT } from "../../lib/scanner-provider-credit-allocation-live-experiment";
+import {
+  buildScannerProviderCreditAllocationExecutionPlan,
+} from "../../lib/scanner-provider-credit-allocation-plan";
+import { buildScannerProviderCreditAllocationReconciliation } from "../../lib/scanner-provider-credit-allocation-reconciliation";
 import type { ScanLogEntry } from "../../lib/scan-log-core";
 
 const ownerUserId = "11111111-1111-4111-8111-111111111111";
@@ -159,6 +164,85 @@ test.describe("SV-A.2 observation-cycle receipts", () => {
       alteredAdmission.admission_fingerprint = "0".repeat(64);
     }
     expect(observationCycleReceiptFromUnknown(altered)).toBeNull();
+  });
+
+  test("round-trips an exact execution plan and plan-to-actual reconciliation", () => {
+    const revision = "a".repeat(40);
+    const admittedAt = "2026-10-01T14:00:04.000Z";
+    const admission = buildScannerProviderCreditAllocationRuntimeAdmission({
+      enabled: true,
+      experimentId:
+        SCANNER_PROVIDER_CREDIT_ALLOCATION_LIVE_EXPERIMENT_CONTRACT.experiment_id,
+      scheduledInvocationBound: true,
+      scheduledSlotUtc: "2026-10-01T14:00:00.000Z",
+      now: new Date(admittedAt),
+      expectedRevision: revision,
+      deployedRevision: revision,
+    });
+    expect(admission.status).toBe("admitted");
+    const plan = buildScannerProviderCreditAllocationExecutionPlan({
+      policyVersion: admission.selected_policy_version,
+      providerCreditCap: 2,
+      intradayProviderCreditCap: 1,
+      candidateDemands: [
+        {
+          ticker: "NVO",
+          ticker_index: 0,
+          daily_refresh_required: true,
+          intraday_refresh_required: true,
+        },
+        {
+          ticker: "SLB",
+          ticker_index: 1,
+          daily_refresh_required: true,
+          intraday_refresh_required: true,
+        },
+      ],
+    });
+    const reconciliation =
+      buildScannerProviderCreditAllocationReconciliation({
+        plan,
+        actualAllocations: plan.allocations,
+        admissionFingerprint: admission.admission_fingerprint,
+      });
+    const record = buildReceipt({
+      configure(recorder) {
+        recorder.updateMarketDataFetch({
+          provider_credit_allocation_runtime_admission: admission,
+          provider_credit_allocation_execution_plan: plan,
+          provider_credit_allocation_reconciliation: reconciliation,
+        });
+      },
+    });
+
+    expect(record?.receipt_json.provider_credit_allocation_execution_plan).toEqual(
+      plan,
+    );
+    expect(record?.receipt_json.provider_credit_allocation_reconciliation).toEqual(
+      reconciliation,
+    );
+    expect(observationCycleReceiptFromUnknown(record?.receipt_json)).not.toBeNull();
+
+    const altered = structuredClone(record?.receipt_json);
+    if (altered?.provider_credit_allocation_reconciliation) {
+      const nested = altered.provider_credit_allocation_reconciliation as unknown as Record<
+        string,
+        unknown
+      >;
+      nested.actual_reserved_credits = 99;
+    }
+    expect(observationCycleReceiptFromUnknown(altered)).toBeNull();
+
+    const wrongAdmission = structuredClone(record?.receipt_json);
+    if (wrongAdmission?.provider_credit_allocation_runtime_admission) {
+      const nestedAdmission =
+        wrongAdmission.provider_credit_allocation_runtime_admission as unknown as Record<
+          string,
+          unknown
+        >;
+      nestedAdmission.admission_fingerprint = "b".repeat(64);
+    }
+    expect(observationCycleReceiptFromUnknown(wrongAdmission)).toBeNull();
   });
 
   test("distinguishes rejected admission from a provider request", () => {

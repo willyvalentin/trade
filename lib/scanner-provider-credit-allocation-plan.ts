@@ -2,6 +2,8 @@ import { createHash } from "node:crypto";
 
 export const SCANNER_PROVIDER_CREDIT_ALLOCATION_PLAN_VERSION =
   "scanner_provider_credit_allocation_plan_v1" as const;
+export const SCANNER_PROVIDER_CREDIT_ALLOCATION_EXECUTION_PLAN_VERSION =
+  "scanner_provider_credit_allocation_execution_plan_v2" as const;
 export const SCANNER_PROVIDER_CREDIT_BASELINE_POLICY_VERSION =
   "serial_shared_provider_budget_v1" as const;
 export const SCANNER_PROVIDER_CREDIT_CHALLENGER_POLICY_VERSION =
@@ -49,6 +51,25 @@ export type ScannerProviderCreditAllocationPlan = Readonly<{
   }>;
 }>;
 
+export type ScannerProviderCreditAllocationExecutionPlan = Readonly<{
+  plan_version: typeof SCANNER_PROVIDER_CREDIT_ALLOCATION_EXECUTION_PLAN_VERSION;
+  status: "planned" | "invalid";
+  reason_codes: readonly string[];
+  policy_version: ScannerProviderCreditAllocationPolicyVersion | null;
+  provider_credit_cap: number | null;
+  intraday_provider_credit_cap: number | null;
+  candidate_count: number;
+  candidate_demands: readonly ScannerProviderCreditDemand[];
+  total_deficits: number;
+  planned_credits: number;
+  planned_intraday_credits: number;
+  candidates_receiving_credit: number;
+  unfunded_deficits: number;
+  allocations: readonly ScannerProviderCreditAllocation[];
+  plan_fingerprint: string | null;
+  authority: ScannerProviderCreditAllocationPlan["authority"];
+}>;
+
 function inertAuthority(): ScannerProviderCreditAllocationPlan["authority"] {
   return Object.freeze({
     can_call_provider: false,
@@ -88,6 +109,29 @@ function invalidPlan(reasonCode: string): ScannerProviderCreditAllocationPlan {
     candidate_demands: Object.freeze([]),
     total_deficits: 0,
     planned_credits: 0,
+    candidates_receiving_credit: 0,
+    unfunded_deficits: 0,
+    allocations: Object.freeze([]),
+    plan_fingerprint: null,
+    authority: inertAuthority(),
+  });
+}
+
+function invalidExecutionPlan(
+  reasonCode: string,
+): ScannerProviderCreditAllocationExecutionPlan {
+  return Object.freeze({
+    plan_version: SCANNER_PROVIDER_CREDIT_ALLOCATION_EXECUTION_PLAN_VERSION,
+    status: "invalid",
+    reason_codes: Object.freeze([reasonCode]),
+    policy_version: null,
+    provider_credit_cap: null,
+    intraday_provider_credit_cap: null,
+    candidate_count: 0,
+    candidate_demands: Object.freeze([]),
+    total_deficits: 0,
+    planned_credits: 0,
+    planned_intraday_credits: 0,
     candidates_receiving_credit: 0,
     unfunded_deficits: 0,
     allocations: Object.freeze([]),
@@ -233,6 +277,70 @@ function breadthFirstAllocations(
   return Object.freeze(allocations);
 }
 
+function constrainedAllocations({
+  candidates,
+  providerCreditCap,
+  intradayProviderCreditCap,
+  policyVersion,
+}: {
+  candidates: readonly ScannerProviderCreditDemand[];
+  providerCreditCap: number;
+  intradayProviderCreditCap: number;
+  policyVersion: ScannerProviderCreditAllocationPolicyVersion;
+}) {
+  const allocations: ScannerProviderCreditAllocation[] = [];
+  const allocated = new Set<string>();
+  let intradayCredits = 0;
+  const tryAllocate = (
+    candidate: ScannerProviderCreditDemand,
+    dataClass: ScannerProviderCreditDataClass,
+  ) => {
+    if (allocations.length >= providerCreditCap) return;
+    if (
+      dataClass === "intraday" &&
+      intradayCredits >= intradayProviderCreditCap
+    ) {
+      return;
+    }
+    const before = allocations.length;
+    allocate(
+      allocations,
+      allocated,
+      candidate,
+      dataClass,
+      providerCreditCap,
+    );
+    if (dataClass === "intraday" && allocations.length > before) {
+      intradayCredits += 1;
+    }
+  };
+
+  if (policyVersion === SCANNER_PROVIDER_CREDIT_BASELINE_POLICY_VERSION) {
+    for (const candidate of candidates) {
+      if (candidate.daily_refresh_required) tryAllocate(candidate, "daily");
+      if (candidate.intraday_refresh_required) {
+        tryAllocate(candidate, "intraday");
+      }
+    }
+  } else {
+    for (const candidate of candidates) {
+      if (candidate.daily_refresh_required) {
+        tryAllocate(candidate, "daily");
+      } else if (candidate.intraday_refresh_required) {
+        tryAllocate(candidate, "intraday");
+      }
+    }
+    for (const candidate of candidates) {
+      if (candidate.daily_refresh_required) tryAllocate(candidate, "daily");
+      if (candidate.intraday_refresh_required) {
+        tryAllocate(candidate, "intraday");
+      }
+    }
+  }
+
+  return Object.freeze(allocations);
+}
+
 export function buildScannerProviderCreditAllocationPlan({
   policyVersion,
   providerCreditCap,
@@ -309,6 +417,92 @@ export function buildScannerProviderCreditAllocationPlan({
   });
 }
 
+export function buildScannerProviderCreditAllocationExecutionPlan({
+  policyVersion,
+  providerCreditCap,
+  intradayProviderCreditCap,
+  candidateDemands,
+}: {
+  policyVersion: ScannerProviderCreditAllocationPolicyVersion;
+  providerCreditCap: number;
+  intradayProviderCreditCap: number;
+  candidateDemands: readonly ScannerProviderCreditDemand[];
+}): ScannerProviderCreditAllocationExecutionPlan {
+  if (!isPolicyVersion(policyVersion)) {
+    return invalidExecutionPlan("provider_allocation_execution_policy_invalid");
+  }
+  if (!validCreditCap(providerCreditCap)) {
+    return invalidExecutionPlan(
+      "provider_allocation_execution_credit_cap_invalid",
+    );
+  }
+  if (!validCreditCap(intradayProviderCreditCap)) {
+    return invalidExecutionPlan(
+      "provider_allocation_execution_intraday_cap_invalid",
+    );
+  }
+  const demands = normalizedDemands(candidateDemands);
+  if (!demands) {
+    return invalidExecutionPlan(
+      "provider_allocation_execution_candidate_demands_invalid",
+    );
+  }
+  const allocations = constrainedAllocations({
+    candidates: demands,
+    providerCreditCap,
+    intradayProviderCreditCap,
+    policyVersion,
+  });
+  const totalDeficits = demands.reduce(
+    (total, candidate) =>
+      total +
+      Number(candidate.daily_refresh_required) +
+      Number(candidate.intraday_refresh_required),
+    0,
+  );
+  const plannedIntradayCredits = allocations.filter(
+    (allocation) => allocation.data_class === "intraday",
+  ).length;
+  const candidatesReceivingCredit = new Set(
+    allocations.map((item) => `${item.ticker_index}:${item.ticker}`),
+  ).size;
+  const unfundedDeficits = Math.max(0, totalDeficits - allocations.length);
+  const reasonCodes = Object.freeze([
+    totalDeficits === 0
+      ? "provider_allocation_execution_no_refresh_deficits"
+      : unfundedDeficits === 0
+        ? "provider_allocation_execution_all_refresh_deficits_funded"
+        : allocations.length >= providerCreditCap
+          ? "provider_allocation_execution_credit_cap_exhausted"
+          : "provider_allocation_execution_intraday_cap_exhausted",
+  ]);
+  const fingerprintBasis = Object.freeze({
+    plan_version: SCANNER_PROVIDER_CREDIT_ALLOCATION_EXECUTION_PLAN_VERSION,
+    policy_version: policyVersion,
+    provider_credit_cap: providerCreditCap,
+    intraday_provider_credit_cap: intradayProviderCreditCap,
+    candidate_count: demands.length,
+    candidate_demands: demands,
+    total_deficits: totalDeficits,
+    planned_credits: allocations.length,
+    planned_intraday_credits: plannedIntradayCredits,
+    candidates_receiving_credit: candidatesReceivingCredit,
+    unfunded_deficits: unfundedDeficits,
+    allocations,
+    reason_codes: reasonCodes,
+  });
+  const planFingerprint = createHash("sha256")
+    .update(canonicalJson(fingerprintBasis), "utf8")
+    .digest("hex");
+
+  return Object.freeze({
+    ...fingerprintBasis,
+    status: "planned",
+    plan_fingerprint: planFingerprint,
+    authority: inertAuthority(),
+  });
+}
+
 function recordOrNull(value: unknown): Record<string, unknown> | null {
   return value !== null && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
@@ -339,6 +533,41 @@ export function scannerProviderCreditAllocationPlanFromUnknown(
     canonicalJson(candidate) !== canonicalJson(rebuilt)
   ) {
     return invalidPlan("provider_allocation_plan_readback_inconsistent");
+  }
+  return rebuilt;
+}
+
+export function scannerProviderCreditAllocationExecutionPlanFromUnknown(
+  value: unknown,
+): ScannerProviderCreditAllocationExecutionPlan {
+  const candidate = recordOrNull(value);
+  if (
+    candidate?.plan_version !==
+      SCANNER_PROVIDER_CREDIT_ALLOCATION_EXECUTION_PLAN_VERSION ||
+    candidate.status !== "planned" ||
+    !isPolicyVersion(candidate.policy_version) ||
+    !validCreditCap(candidate.provider_credit_cap) ||
+    !validCreditCap(candidate.intraday_provider_credit_cap) ||
+    !Array.isArray(candidate.candidate_demands)
+  ) {
+    return invalidExecutionPlan(
+      "provider_allocation_execution_readback_invalid",
+    );
+  }
+  const rebuilt = buildScannerProviderCreditAllocationExecutionPlan({
+    policyVersion: candidate.policy_version,
+    providerCreditCap: candidate.provider_credit_cap,
+    intradayProviderCreditCap: candidate.intraday_provider_credit_cap,
+    candidateDemands:
+      candidate.candidate_demands as ScannerProviderCreditDemand[],
+  });
+  if (
+    rebuilt.status !== "planned" ||
+    canonicalJson(candidate) !== canonicalJson(rebuilt)
+  ) {
+    return invalidExecutionPlan(
+      "provider_allocation_execution_readback_inconsistent",
+    );
   }
   return rebuilt;
 }

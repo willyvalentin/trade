@@ -18,6 +18,8 @@ import {
   type ScanFetchTimingStep,
 } from "@/lib/scan-fetch-timing";
 import type { ScannerProviderCreditAllocationShadow } from "@/lib/scanner-provider-credit-allocation-shadow";
+import type { ScannerProviderCreditAllocationExecutionPlan } from "@/lib/scanner-provider-credit-allocation-plan";
+import type { ScannerProviderCreditAllocationReconciliation } from "@/lib/scanner-provider-credit-allocation-reconciliation";
 import type { ScannerProviderCreditAllocationRuntimeAdmission } from "@/lib/scanner-provider-credit-allocation-runtime-admission";
 import {
   SCAN_PROVIDER_CANDIDATE_OBSERVATION_SUMMARY_VERSION,
@@ -237,6 +239,8 @@ export type ActiveScanTrace = {
     candidate_observation_summary: ScanProviderCandidateObservationSummary;
     provider_credit_allocation_shadow: ScannerProviderCreditAllocationShadow | null;
     provider_credit_allocation_runtime_admission: ScannerProviderCreditAllocationRuntimeAdmission | null;
+    provider_credit_allocation_execution_plan: ScannerProviderCreditAllocationExecutionPlan | null;
+    provider_credit_allocation_reconciliation: ScannerProviderCreditAllocationReconciliation | null;
   };
   raw_candidates: {
     raw_candidate_count: number;
@@ -499,6 +503,8 @@ export function createActiveScanTrace({
         summarizeScanProviderCandidateObservations([]),
       provider_credit_allocation_shadow: null,
       provider_credit_allocation_runtime_admission: null,
+      provider_credit_allocation_execution_plan: null,
+      provider_credit_allocation_reconciliation: null,
     },
     raw_candidates: {
       raw_candidate_count: 0,

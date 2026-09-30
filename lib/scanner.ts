@@ -5,6 +5,7 @@ import {
   getOrRefreshIntradayIndicators,
   MAX_FRESH_INDICATOR_FETCHES_PER_RUN,
   SCANNER_INDICATOR_MAX_AGE_MINUTES,
+  type IntradayIndicatorCacheResult,
 } from "@/lib/intraday-indicator-cache";
 import {
   INTRADAY_INDICATOR_REFRESH_ALLOCATION_POLICY_VERSION,
@@ -29,6 +30,13 @@ import {
 import { isProviderRateLimitLikeError } from "@/lib/provider-rate-limit";
 import { measureScanFetchStep } from "@/lib/scan-fetch-timing";
 import { bindScannerPlanReference } from "@/lib/scanner-plan-reference-binding";
+import {
+  buildScannerProviderCreditAllocationExecutionPlan,
+  SCANNER_PROVIDER_CREDIT_BASELINE_POLICY_VERSION,
+  type ScannerProviderCreditAllocation,
+} from "@/lib/scanner-provider-credit-allocation-plan";
+import { buildScannerProviderCreditAllocationReconciliation } from "@/lib/scanner-provider-credit-allocation-reconciliation";
+import type { ScannerProviderCreditAllocationRuntimeAdmission } from "@/lib/scanner-provider-credit-allocation-runtime-admission";
 import { buildScannerProviderCreditAllocationShadow } from "@/lib/scanner-provider-credit-allocation-shadow";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 import type { TwelveDataResponseIdentity } from "@/lib/twelve-data-response-identity";
@@ -149,6 +157,7 @@ export type ScanMarketOptions = {
   source: ScannerSource;
   maxFreshProviderCalls?: number;
   freshProviderCallPacingMs?: number;
+  providerCreditAllocationRuntimeAdmission?: ScannerProviderCreditAllocationRuntimeAdmission | null;
   activeScanTrace?: ActiveScanTraceRecorder | null;
   signal?: AbortSignal;
 };
@@ -587,7 +596,14 @@ async function getCachedRows(tickers: string[]): Promise<Map<string, ScannerCach
 async function upsertCachedValues(
   baseCandidate: ScannerCandidate,
   scannerValues: ScannerValues,
+  existingRaw: unknown,
 ) {
+  const preservedRaw =
+    existingRaw !== null &&
+    typeof existingRaw === "object" &&
+    !Array.isArray(existingRaw)
+      ? (existingRaw as Record<string, unknown>)
+      : {};
   const { error } = await serverSupabase().from("scanner_cache").upsert(
     {
       ticker: baseCandidate.ticker,
@@ -608,6 +624,7 @@ async function upsertCachedValues(
       trend_context: scannerValues.trend_context,
       volume_context: scannerValues.volume_context,
       raw: {
+        ...preservedRaw,
         ticker: baseCandidate.ticker,
         company_name: baseCandidate.company_name,
         sector: baseCandidate.sector,
@@ -715,6 +732,12 @@ async function scanMarketCore(
     publishCandidateObservations();
   };
   publishCandidateObservations();
+  if (baseCandidates.length === 0) {
+    options.activeScanTrace?.updateMarketDataFetch({
+      provider_call_cap: 0,
+    });
+    return [];
+  }
   const maxFreshProviderCalls = getMaxFreshProviderCalls(options);
   const freshProviderCallPacingMs = getFreshProviderCallPacingMs(options);
   options.activeScanTrace?.updateMarketDataFetch({
@@ -727,6 +750,82 @@ async function scanMarketCore(
   const indicatorSources: Record<string, string> = {};
   let freshProviderCallsUsed = 0;
   let freshIndicatorFetchesUsed = 0;
+  const intradayCacheSnapshotByTicker = new Map<
+    string,
+    IntradayIndicatorCacheResult
+  >();
+
+  for (const [tickerIndex, baseCandidate] of baseCandidates.entries()) {
+    const cachedRow = cachedRowsByTicker.get(baseCandidate.ticker);
+    const cacheSnapshot = await measureScanFetchStep({
+      trace: options.activeScanTrace,
+      step: "intraday_indicators",
+      tickerIndex,
+      run: () =>
+        getCachedIntradayIndicators(baseCandidate.ticker, {
+          source: options.source === "scheduled" ? "scheduled" : "manual",
+          maxAgeMinutes: SCANNER_INDICATOR_MAX_AGE_MINUTES,
+          signal: options.signal,
+          preloadedScannerCacheRaw: cachedRow?.raw ?? null,
+        }),
+    });
+    intradayCacheSnapshotByTicker.set(baseCandidate.ticker, cacheSnapshot);
+  }
+  throwIfAborted(options.signal);
+
+  const runtimeAdmission = options.providerCreditAllocationRuntimeAdmission;
+  const runtimePlanEnforced =
+    runtimeAdmission?.status === "admitted" &&
+    runtimeAdmission.authority.can_select_allocation_policy;
+  const providerCreditAllocationPlan = runtimePlanEnforced
+    ? buildScannerProviderCreditAllocationExecutionPlan({
+      policyVersion:
+        runtimeAdmission?.selected_policy_version ??
+        SCANNER_PROVIDER_CREDIT_BASELINE_POLICY_VERSION,
+      providerCreditCap: maxFreshProviderCalls,
+      intradayProviderCreditCap: MAX_FRESH_INDICATOR_FETCHES_PER_RUN,
+      candidateDemands: baseCandidates.map((candidate, tickerIndex) => {
+        const cachedRow = cachedRowsByTicker.get(candidate.ticker);
+        const cachedValues = cachedRow ? scannerValuesFromCache(cachedRow) : null;
+        const intradayCache = intradayCacheSnapshotByTicker.get(candidate.ticker);
+        return {
+          ticker: candidate.ticker,
+          ticker_index: tickerIndex,
+          daily_refresh_required: !(
+            cachedRow &&
+            cachedValues &&
+            isCacheFresh(cachedRow, now)
+          ),
+          intraday_refresh_required: !(
+            intradayCache?.source === "cache" && !intradayCache.stale
+          ),
+        };
+      }),
+    })
+    : null;
+  if (
+    runtimePlanEnforced &&
+    providerCreditAllocationPlan?.status !== "planned"
+  ) {
+    throw new Error("scanner_provider_credit_allocation_plan_invalid");
+  }
+  const plannedAllocationKeys = new Set(
+    (providerCreditAllocationPlan?.allocations ?? []).map(
+      (allocation) =>
+        `${allocation.ticker_index}:${allocation.ticker}:${allocation.data_class}`,
+    ),
+  );
+  const actualAllocations: ScannerProviderCreditAllocation[] = [];
+  const isPlannedAllocation = (
+    ticker: string,
+    tickerIndex: number,
+    dataClass: "daily" | "intraday",
+  ) => plannedAllocationKeys.has(`${tickerIndex}:${ticker}:${dataClass}`);
+  if (providerCreditAllocationPlan) {
+    options.activeScanTrace?.updateMarketDataFetch({
+      provider_credit_allocation_execution_plan: providerCreditAllocationPlan,
+    });
+  }
 
   async function attachIntradayIndicators(
     candidate: ScannerCandidate,
@@ -742,14 +841,17 @@ async function scanMarketCore(
         ? { preloadedScannerCacheRaw: preloadedScannerCacheRow.raw }
         : {}),
     } as const;
-    const cached = await measureScanFetchStep({
-      trace: options.activeScanTrace,
-      step: "intraday_indicators",
-      tickerIndex,
-      run: () => getCachedIntradayIndicators(candidate.ticker, cacheOptions),
-    });
+    const cached = intradayCacheSnapshotByTicker.get(candidate.ticker) ?? {
+      ticker: candidate.ticker,
+      indicators: null,
+      source: "unavailable" as const,
+      cached_at: null,
+      response_identity: null,
+      stale: true,
+      warnings: ["Intraday indicator cache snapshot unavailable."],
+    };
     throwIfAborted(options.signal);
-    const admission = resolveIntradayIndicatorRefreshAdmission({
+    const legacyAdmission = resolveIntradayIndicatorRefreshAdmission({
       cache: {
         source: cached.source,
         has_indicators: cached.indicators !== null,
@@ -760,12 +862,20 @@ async function scanMarketCore(
       fresh_indicator_fetches_used: freshIndicatorFetchesUsed,
       max_fresh_indicator_fetches: MAX_FRESH_INDICATOR_FETCHES_PER_RUN,
     });
+    const refreshPlanned = runtimePlanEnforced
+      ? isPlannedAllocation(candidate.ticker, tickerIndex, "intraday")
+      : legacyAdmission.reserve_provider_credit;
     let result = cached;
 
-    if (admission.reserve_provider_credit) {
+    if (refreshPlanned) {
       // A refresh-capable call may reach Twelve Data. Reserve the bounded slot
       // immediately before it, including when that refresh later fails.
       freshProviderCallsUsed += 1;
+      actualAllocations.push({
+        ticker: candidate.ticker,
+        ticker_index: tickerIndex,
+        data_class: "intraday",
+      });
       options.activeScanTrace?.incrementMarketDataFetch({
         provider_calls_reserved_count: 1,
         intraday_indicator_provider_calls_reserved_count: 1,
@@ -779,11 +889,11 @@ async function scanMarketCore(
         tickerIndex,
         run: () => getOrRefreshIntradayIndicators(candidate.ticker, {
           ...cacheOptions,
-          allowFreshFetch: admission.allow_fresh_fetch,
+          allowFreshFetch: true,
         }),
       });
       throwIfAborted(options.signal);
-    } else if (admission.disposition === "reuse_fresh_cache") {
+    } else if (cached.source === "cache" && !cached.stale) {
       options.activeScanTrace?.incrementMarketDataFetch({
         intraday_indicator_fresh_cache_reuse_count: 1,
       });
@@ -856,7 +966,7 @@ async function scanMarketCore(
         ? (["intraday_provider_unavailable"] as const)
         : []),
       ...(result.stale ? (["intraday_stale_cache"] as const) : []),
-      ...(admission.reason_code === "provider_refresh_budget_exhausted"
+      ...(!refreshPlanned && result.stale
         ? (["intraday_refresh_credit_cap_reached"] as const)
         : []),
     ];
@@ -909,7 +1019,10 @@ async function scanMarketCore(
 
     cacheMisses.push(baseCandidate.ticker);
 
-    if (freshProviderCallsUsed >= maxFreshProviderCalls) {
+    const dailyRefreshPlanned = runtimePlanEnforced
+      ? isPlannedAllocation(baseCandidate.ticker, tickerIndex, "daily")
+      : freshProviderCallsUsed < maxFreshProviderCalls;
+    if (!dailyRefreshPlanned) {
       if (cachedValues) {
         staleFallbacks.push(baseCandidate.ticker);
         updateCandidateObservation(
@@ -954,6 +1067,11 @@ async function scanMarketCore(
     }
 
     freshProviderCallsUsed += 1;
+    actualAllocations.push({
+      ticker: baseCandidate.ticker,
+      ticker_index: tickerIndex,
+      data_class: "daily",
+    });
     options.activeScanTrace?.incrementMarketDataFetch({
       provider_calls_reserved_count: 1,
       daily_candle_provider_calls_reserved_count: 1,
@@ -999,7 +1117,12 @@ async function scanMarketCore(
         trace: options.activeScanTrace,
         step: "cache_write",
         tickerIndex,
-        run: () => upsertCachedValues(baseCandidate, scannerValues),
+        run: () =>
+          upsertCachedValues(
+            baseCandidate,
+            scannerValues,
+            cachedRow?.raw ?? null,
+          ),
       });
       throwIfAborted(options.signal);
       const { candidate } = await attachIntradayIndicators(
@@ -1075,8 +1198,17 @@ async function scanMarketCore(
       providerCreditCap: maxFreshProviderCalls,
       terminal: true,
     });
+  const providerCreditAllocationReconciliation = providerCreditAllocationPlan
+    ? buildScannerProviderCreditAllocationReconciliation({
+        plan: providerCreditAllocationPlan,
+        actualAllocations,
+        admissionFingerprint: runtimeAdmission?.admission_fingerprint ?? null,
+      })
+    : null;
   options.activeScanTrace?.updateMarketDataFetch({
     provider_credit_allocation_shadow: providerCreditAllocationShadow,
+    provider_credit_allocation_reconciliation:
+      providerCreditAllocationReconciliation,
   });
   logScanner("max_fresh_provider_calls", maxFreshProviderCalls);
   logScanner("fresh_provider_call_pacing_ms", freshProviderCallPacingMs);
@@ -1092,6 +1224,14 @@ async function scanMarketCore(
   logScanner(
     "provider_credit_allocation_shadow",
     providerCreditAllocationShadow,
+  );
+  logScanner(
+    "provider_credit_allocation_execution_plan",
+    providerCreditAllocationPlan,
+  );
+  logScanner(
+    "provider_credit_allocation_reconciliation",
+    providerCreditAllocationReconciliation,
   );
   logScanner("indicator_sources", indicatorSources);
   logScanner("stale_cache_fallbacks", staleFallbacks);
