@@ -206,6 +206,16 @@ contract explicitly admits exact cross-series evidence, the live allocator
 remains unchanged and the result is `insufficient_evidence`; do not spend more
 provider credits merely to manufacture a passing cohort.
 
+The selected follow-up is an explicit retrospective cross-series evidence
+contract over those two exact series. It must bind their IDs, windows, deployed
+revision, baseline/challenger versions and six-credit cap; retain all four
+cycles including the two non-observed cycles; and label any coherent result as
+retrospective design support only. It may select preparation of one separately
+predeclared, reversible live-allocation experiment, but it cannot itself change
+the allocator or prove recommendation quality. Missing or drifted lineage fails
+closed. This uses the evidence already collected instead of spending provider
+credits to manufacture an in-series pass.
+
 **2026-09-23 market-timing decision.** The former named morning/midday/power-hour
 publication windows are historical operating constraints, not a product
 principle or a recommendation quota. A scheduled tick is a bounded observation
