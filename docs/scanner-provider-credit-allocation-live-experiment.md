@@ -61,7 +61,19 @@ owner-bound observation-cycle receipt; missing or unexpected allocations are
 explicit divergence. This does not activate the experiment or prove improved
 data fitness.
 
-Exact-revision activation preflight and OPEN execution remain separate work.
+The activation path uses
+`scanner_provider_credit_allocation_activation_v1`. A read-only authenticated
+preflight binds the complete 48-credit observation-series window, exact
+packaged production revision, inert current configuration and disabled
+competing workers. When activation is requested, the scheduled-function guard
+admits only the six slots in the frozen table; every intermediate 15-minute
+tick returns before database, route or provider I/O. Configuration, revision or
+time drift fails closed. The preflight cannot mutate configuration, arm the
+scheduler, call a provider, reserve a credit, rank, publish, create paper state
+or reach a broker.
+
+Exact-revision merge/deploy/readback of that activation path and OPEN execution
+remain separate work.
 Any credit breach, lineage/population mismatch, stale/incomplete publication,
 revision drift, plan-versus-actual divergence or two consecutive operational
 failures stops the series. Rollback is always

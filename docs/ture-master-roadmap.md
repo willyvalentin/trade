@@ -252,6 +252,23 @@ runtime selection and persist strict plan-versus-successful-reservation
 reconciliation. It must be merged, production-deployed and read back with the
 scheduler still disabled before any OPEN activation.
 
+PR [#714](https://github.com/willyvalentin/trade/pull/714) merged that exact
+runtime execution and reconciliation path as
+`74090d1d9c6e07dbc3f60be5f55686776c9266c2`; all protected CI shards passed
+and Git-connected Netlify production deploy `6abd9601426d8a00088dd8cc` is
+`ready` on that exact `main` revision. Production still has
+`TURE_DISABLE_SCHEDULED_FUNCTIONS=true`, so the merge performed no OPEN
+experiment or provider request. The selected CLOSED acceptance is now one
+read-only, exact-revision activation preflight plus scheduler enforcement of
+the six declared sparse switchback slots. Generic 15-minute observation-series
+admission must not consume the attempt budget in undeclared gap slots. The
+preflight must require the complete 48-credit window, all competing workers
+off, an inert current experiment configuration and the exact deployed build;
+it grants no configuration, scheduler, provider, ranking, publication, paper
+or broker authority. Only after that slice is merged, exact-revision deployed
+and freshly read back as `ready` may the separately bounded OPEN switchback be
+armed.
+
 **2026-09-23 market-timing decision.** The former named morning/midday/power-hour
 publication windows are historical operating constraints, not a product
 principle or a recommendation quota. A scheduled tick is a bounded observation
