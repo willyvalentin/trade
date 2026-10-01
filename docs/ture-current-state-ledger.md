@@ -86,6 +86,38 @@ observation's verified cleanup, then rebase against current main before the
 first coherent push. No baseline freeze, calibration, policy promotion or
 alpha improvement is claimed.
 
+**Broader local review and upstream-version integrity correction — 2026-10-02:**
+The complete provider-free `foundation` shard passes locally on exact
+`319134ce36d8375261cbcae8dd2dc135466cc1ea`: lint has zero errors/eight retained
+warnings, strict types and standard production build pass, dependency audit
+reports zero vulnerabilities, all three disposable database lifecycle groups
+pass, and all registered browser/server, authentication, catalog/type-oracle,
+intelligence and frozen improvement groups complete successfully. This is one
+local shard, not protected six-shard CI or main/production verification.
+
+An additional actual cold persisted-source diagnostic changes only snapshot
+`provider_version` to an invented string after outcomes exist. The original
+normalized input archive retained no upstream version, but readiness still
+admits all three outcomes (`3 !== 0`). A preliminary in-memory module launch
+fails before runtime and supplies no behavior evidence; resolving its package
+import enables the actual failing proof. The focused new-basis correction
+rejects a non-null unretained version with
+`completed_input_upstream_version_not_retained` and keeps its verified upstream
+version unavailable/null. It does not change stored payloads or infer a version
+from Ture's adapter. Legacy/published provenance is unchanged.
+
+After this correction, 95 affected readiness, pagination, freeze, packaged
+input/source/outcome/learning, clock/liquidity comparison, governance and shard
+coverage tests pass. The real cold/warm/opening proofs reject the persisted
+metadata mutation and still admit three/six/three valid canonical outcomes on
+the original eight-member populations. Affected lint and a new standard build
+with TypeScript pass; all disposable fixtures are verified removed. Preserve
+the full foundation result as predecessor evidence, not a full-current-source
+rerun. Current protected CI and prospective OPEN learning evidence remain
+required. The delivery stays local, with the same PR #721 prerequisite and
+frozen Oct 2 observation/cleanup integration hold; no production or provider
+operation occurred.
+
 **Retained prerequisite — IF-2b → IF-4 research-source slice, 2026-10-01:**
 Codex owns `codex/input-attributed-outcome-capture` in the isolated
 `/private/tmp/ture-if2b-outcomes.CUZRlz/trade` worktree, starting from verified

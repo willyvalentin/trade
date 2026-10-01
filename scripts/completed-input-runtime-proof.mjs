@@ -443,6 +443,7 @@ try {
         "update recommendation_snapshots set payload_json=jsonb_set(payload_json,'{is_demo}', 'true'::jsonb);",
         "update recommendation_snapshots set payload_json=jsonb_set(payload_json,'{is_mock}', 'true'::jsonb);",
         "update recommendation_snapshots set payload_json=jsonb_set(payload_json,'{provider_source}', '\"wrong_provider\"'::jsonb);",
+        "update recommendation_snapshots set payload_json=jsonb_set(payload_json,'{provider_version}', '\"invented_upstream_version\"'::jsonb);",
         "update recommendation_snapshots set payload_json=jsonb_set(payload_json,'{intraday_indicator_response_identity}', 'null'::jsonb);",
         "update recommendation_snapshots set payload_json=jsonb_set(payload_json,'{decision_feature_vector,feature_values,latest_price}', '999999'::jsonb);",
         "update recommendation_snapshots set payload_json=jsonb_set(payload_json,'{decision_feature_vector,feature_values,intraday_vwap}', '999999'::jsonb);",

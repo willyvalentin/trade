@@ -24,6 +24,7 @@ export const completedInputLearningProvenanceBlockers = [
   "completed_input_snapshot_or_geometry_mismatch",
   "completed_input_response_identity_mismatch",
   "completed_input_feature_vector_mismatch",
+  "completed_input_upstream_version_not_retained",
 ] as const;
 
 export type LearningSourceProvenanceBlocker =
@@ -34,7 +35,7 @@ export type CompletedInputLearningProvenance = Omit<
   contract_version: typeof COMPLETED_INPUT_LEARNING_PROVENANCE_VERSION;
   reproduction_scope: "retained_normalized_inputs_and_original_geometry_only";
   excluded_feature_names: readonly ["scanner_local_score"];
-  upstream_provider_version_status: "reported" | "unavailable";
+  upstream_provider_version_status: "unavailable";
   blockers: LearningSourceProvenanceBlocker[];
 };
 export type LearningSourceProvenance =
@@ -67,6 +68,11 @@ export function recommendationResearchLearningSourceProvenance(
   const blockers: LearningSourceProvenanceBlocker[] = legacy.blockers.filter(
     (blocker: RecommendationDecisionSourceProvenanceBlocker) => blocker !== "provider_version_missing",
   );
+  // This capture contract did not retain an upstream API version. A later
+  // snapshot string cannot supply that missing original evidence.
+  if (legacy.provider_version !== null) {
+    blockers.push("completed_input_upstream_version_not_retained");
+  }
   if (!bound) blockers.push("completed_input_decision_or_lineage_missing_or_ambiguous");
   if (!matchesDecision || snapshot.is_demo === true || snapshot.is_mock === true ||
     legacy.provider_source !== "twelve_data" ||
@@ -111,11 +117,12 @@ export function recommendationResearchLearningSourceProvenance(
   }
   return {
     ...legacy,
+    provider_version: null,
     contract_version: COMPLETED_INPUT_LEARNING_PROVENANCE_VERSION,
     status: blockers.length === 0 ? "admissible" : "incomplete",
     reproduction_scope: "retained_normalized_inputs_and_original_geometry_only",
     excluded_feature_names: ["scanner_local_score"],
-    upstream_provider_version_status: legacy.provider_version ? "reported" : "unavailable",
+    upstream_provider_version_status: "unavailable",
     blockers,
   };
 }
