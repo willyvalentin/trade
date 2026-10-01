@@ -2,24 +2,116 @@
 
 ## Active Now / Next / Blocked — 2026-09-29 recommendation intelligence first
 
-**Current delivery boundary — 2026-10-01:** the primary IF-2b allocation
-switchback v2 is collecting OPEN evidence on frozen main
-`8e243b67a9819eb3f7901b0468cdb3651e099a79` (PR #717). Activation deploy
-`6abe6aa20466c4a3ce6301e7` was ready at 14:14:32.218Z, before the predeclared
-14:15Z deadline. The 14:30Z baseline produced one completed attributable
-`no_trade`: attempt `scheduled_scan_attempt_18xtq19`, scan `rec_scan_run_r1l45`,
-finalized at 14:30:54.226Z. Authoritative readback at 14:32:38.849Z found one
-terminal eight-credit reservation, no active/duplicate/unattributed attempt,
-and zero recommendations or execution records. Independent scanner accounting
-is six credits, not the complete eight-credit attempt budget. Rankable coverage
-is five of eight expected candidates; one provider error and four stale inputs
-remain explicit. The experiment is still `in_progress`; neither a complete
-data-fitness comparison nor recommendation-quality improvement is proved.
-Preserve the exact six slots, revision and configuration through verified
-cleanup. The sole independent CLOSED slice remains the retained PR #716
-evaluator, developed locally and integrated only after that cleanup. The no-go
-and preparation notes below preserve the predecessor history, not an instruction
-to re-arm or retry the active series.
+**Current delivery boundary — 2026-10-01:** allocation switchback v2 is stopped
+after four of six declared slots/two complete pairs, not still collecting.
+A CLOSED reproduction exposed an independent source-time integrity defect:
+`scannerValuesFromCache` substitutes `scanner_cache.updated_at` for absent or
+invalid market time. The unchanged real scanner, Supabase factory/SDK and plan
+freshness resolver, with a synthetic response boundary and zero provider budget,
+accept that old/undated price as fresh despite unavailable intraday evidence.
+This is a reproduced code defect, not proof of an actual stale publication in
+today's series. The source-time regression failed before the fix and passes
+after removing only that fallback; historical context is retained for research,
+and a genuinely fresh source-timed intraday observation can still rescue it.
+No TTL, ranking, score, quality threshold or provider budget was relaxed.
+
+Codex owns the single selected blocker-removal slice on isolated branch
+`codex/cache-market-source-time`, based on verified main and integrated with
+PR #716 main `905afec5b375a61445892cae2d56f4fa31705106`. Acceptance is the real
+scanner/factory/SDK-to-reference regression, including missing/null/invalid,
+old/future source time and genuine fresh-time/intraday-rescue controls, then
+registered protected CI, main deployment and relevant behavior verification.
+On integrated local revision `40082231d688e141227290b8594afd113f2e98ab`,
+affected behavior/evaluator/CI-registration checks pass 43/43 and the complete
+provider-free intelligence foundation passes 168/168, including isolated local
+Postgres capture/readback. Strict TypeScript, the normal Next 16.3.8 Turbopack
+production build and packaged scheduled-function runtime build pass. Source
+lint passes (eight existing warnings; generated local proof artifacts excluded).
+The first broad run's two local Docker-permission failures passed with the
+isolated database accessible; the initial Turbopack dependency-symlink failure
+passed after copying the same locked dependencies inside this worktree, without
+changing product configuration or dependencies. Protected CI, deployment
+and OPEN behavior of the fix remain outstanding. Its handoff class is
+`supporting_blocker_removal`; resume measured IF-2b data fitness immediately
+afterward, specifically fully observed fresh-input coverage rather than merely
+more rankable research names. Do not open another supporting control stream.
+
+Safety cleanup used only the two experiment enable flags and seven created
+production/functions metadata keys. Exactly one unchanged-main cleanup build
+`6abe81f0248dc6a6c5b7fac5`, deploy `6abe81f0248dc6a6c5b7fac7`, is ready at
+15:54:05.790Z on frozen `8e243b67a9819eb3f7901b0468cdb3651e099a79`.
+Authenticated readback at 15:56:01.122Z verifies global scheduler-disable true,
+series/experiment disabled, experiment metadata unset and competing workers
+off; its activation preflight correctly blocks already observed/reserved slots.
+The consumed automation was deleted. The 17:00Z/17:15Z slots are cancelled:
+never re-arm or silently replace them. PR #716 then merged normally with all
+protected checks green and no blocking review on 15:59:09Z as `905afec5...`;
+its automatic production deploy `6abe834f9a8c050008bfc891` is ready/published at
+16:01:05.162Z on exact main `905afec5...`; post-merge CI run `36888523014`
+passes. Authenticated deployed-reader verification at 16:07:51.982Z returns
+HTTP 200/no-store, preserves the observed `8e243b67...` pin, all four valid
+completed receipts, 32 total/24 scanner credits, zero active/invalid/duplicate
+attempts and zero publications. Its `in_progress` / `complete_frozen_switchback`
+fields describe the under-complete frozen evidence, not effective scheduler
+state or authority to resume the cancelled final pair. Every exposed authority
+remains false. This behavior-verifies PR #716's reader against real production
+receipts; it does not production-verify the local cache fix or establish quality.
+
+### V2 retained OPEN evidence — four valid no-trade cycles, incomplete science
+
+Observed source remains the exact activation deploy `6abe6aa20466c4a3ce6301e7`
+on `8e243b67...`, ready at 14:14:32.218Z before the 14:15Z activation deadline.
+Every observed arm retains its exact population/plan/reconciliation identity;
+the reader's observation pin must not become a later reader/fix revision.
+
+| UTC slot / arm | Attempt / scan fingerprint | Fired / route / terminal UTC |
+| --- | --- | --- |
+| 14:30 baseline | `scheduled_scan_attempt_18xtq19` / `rec_scan_run_r1l45` | 14:30:36.572 / 14:30:39.160 / 14:30:54.226 |
+| 14:45 challenger | `scheduled_scan_attempt_16ylj1` / `rec_scan_run_1x4xadx` | 14:45:22.730 / 14:45:24.248 / 14:45:31.643 |
+| 15:30 challenger | `scheduled_scan_attempt_hcjplc` / `rec_scan_run_5fayrp` | 15:30:39.864 / 15:30:42.339 / 15:30:51.777 |
+| 15:45 baseline | `scheduled_scan_attempt_zwdbys` / `rec_scan_run_1d087ud` | 15:45:21.353 / 15:45:23.483 / 15:45:36.385 |
+
+Direct accounting at 15:46:33.510Z, the unchanged PR #716 local real-SDK reader
+at 15:46:36.232Z and authenticated dashboard at 15:46:41.980Z all completed
+inside the 15:46:00Z–15:47:30Z read window. They agree on four completed
+`no_trade` cycles, no active/failed/duplicate/orphan/unattributed cycle, four
+terminal reservations/32 whole-attempt credits and 24 independent scanner
+credits. Owner-bound counts are zero recommendations/outcomes/execution records,
+four scan runs, six research snapshots and one recommendation batch. A batch
+record is not a published recommendation. No extra scan, provider metadata
+request, ranking/publication change, migration or broker action occurred.
+
+| Two balanced pairs | Baseline | Challenger |
+| --- | ---: | ---: |
+| Rankable / expected | 11 / 16 | 14 / 16 |
+| Fully observed | 6 | 0 |
+| Funded candidates / late-unfunded | 6 / 8 | 12 / 4 |
+| Scanner / whole-attempt credits | 12 / 16 | 12 / 16 |
+| Error-or-unavailable / stale-input observations | 3 / 10 | 11 / 16 |
+| Published recommendations | 0 | 0 |
+
+The error counter includes intraday unavailability, not only failed HTTP calls.
+Breadth-first spends all six cold-cache credits on daily history before its
+intraday pass; zero intraday funding reconciles with its declared policy, not a
+broken allocator. Rankable can include stale research fallbacks. Its apparent
+breadth gain is therefore not a fresh trade-ready or recommendation-quality
+gain. Keep the frozen guardrails and missing final pair: scientific decision is
+`evidence_incomplete` / no promotion, baseline retained, quality `unproven`.
+The evaluator can report `in_progress` before its frozen expiry because the two
+remaining receipts are missing; this does not mean the scheduler is still armed.
+After expiry the under-complete result is `inconclusive`, not a manufactured
+three-pair pass, scientific rejection or retrospective change of criteria.
+
+Observer deviations are retained separately: supplemental direct reads at
+14:32:38.849Z and 15:32:38.409Z completed respectively 8.849s and 8.409s after
+their absolute deadlines. Do not count them as in-window acceptance. Dashboard
+reads at 14:32:13.241Z and 15:31:48.119Z and the local reader at 15:31:34.208Z
+were separately in-window. Temporary helpers now enforce the exact frozen
+slot's absolute deadline before login, for request/body completion and before
+evidence emission; expired-window and sanitized-output CLOSED checks pass with
+zero external calls. These are procedural fixes, not motor or policy changes.
+The predecessor no-go/preparation notes below are historical, not current
+instructions to re-arm, merge during an observation or repeat a scan.
 
 **2026-10-01 OPEN no-go and selected CLOSED correction:** before the first
 declared slot, authenticated production readback on activation deploy

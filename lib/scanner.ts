@@ -334,9 +334,10 @@ function scannerValuesFromCache(row: ScannerCacheRow): ScannerValues | null {
     latest_range_percent: parseNumber(rawValues.latest_range_percent) ?? 2,
     range_expansion_ratio: parseNumber(rawValues.range_expansion_ratio) ?? 1,
     intraday_indicators: intradayIndicatorsFromUnknown(rawValues.intraday_indicators),
-    reference_price_timestamp:
-      isoStringOrNull(rawValues.reference_price_timestamp) ??
-      isoStringOrNull(row.updated_at),
+    // Cache persistence time is not market observation time. Legacy or
+    // incomplete history remains research-only until a fresh, source-timed
+    // intraday observation supplies the plan reference below.
+    reference_price_timestamp: isoStringOrNull(rawValues.reference_price_timestamp),
     reference_price_provider: "scanner_cache",
     reference_price_read_path: "scanner_candidate.latest_close",
   };
