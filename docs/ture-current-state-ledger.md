@@ -49,6 +49,48 @@ Oct 2 input test and its verified cleanup; no second development stream or
 generic readiness/capture platform is selected. Next OPEN source/outcome
 acceptance requires a separate prospective card. Graduation remains `not_met`.
 
+**Local vertical implementation evidence — 2026-10-01:** the new
+`completed_input_research_capture_v1` selector retains only unpublished v4
+plans with the exact fresh input archive, response identity, original geometry,
+feature-vector values and decision timestamp. Existing learning enable/sample
+caps still apply. Legacy selectors and frozen clock/liquidity cohorts remain
+unchanged. No new ranking or publication rule, provider call or schema is added.
+
+The packaged isolated runtime also reproduced two downstream blockers: a
+research-only scan did not persist a batch that the outcome loader could find,
+and a locally filtered invalid source could re-enter through the loader's raw
+aggregate. The focused fix persists a separately marked diagnostic/no-trade
+batch with zero recommendations and explicit hidden research membership, reads
+its owner-bound durable decision before admitting a source, and carries only
+validated members into the aggregate. It does not relabel research as official
+recommendations or enable the scheduled outcome worker.
+
+All 15 tests in `scanner-completed-daily-context.spec.ts` pass locally, including
+the actual packaged scheduler/backend/scanner/SDK, disposable PostgreSQL and
+PostgREST, restarted owner readback and actual outcome evaluator. Cold afternoon
+and opening variants retain three sources and persist three outcomes; the warm
+variant retains six and persists four under the existing evaluator request cap,
+leaving two eligible sources pending. Eight decision identities remain in every
+case: five cold/opening and two warm members without a valid source are not
+invented, dropped from the population or treated as losses. Warm setup uses
+sixteen separately counted synthetic requests; the normal scan uses eight;
+future outcome acquisition uses three or four separately counted requests.
+Wrong identity/geometry, stale/future sources, duplicated candidates, changed
+feature vectors and stored source-time tampering are rejected. The actual
+evaluator makes zero requests and persists zero outcomes on the tampered-source
+case; another owner reads no sources. Stored sources remain hidden, and
+recommendation/position writes remain zero.
+
+Affected lint and strict TypeScript pass. The standard Next/Turbopack production
+build passes after replacing this isolated worktree's external dependency
+symlink with its own local copy. An earlier webpack diagnostic is not a passing
+build and is not used as acceptance. Broader provider-free foundation checks
+are still running. This is local `recommendation_capability`/measurement-path
+evidence with explicitly synthetic market and future data, not production
+outcome persistence, a completed baseline comparison or improved alpha. There
+is no PR, push, merge or production change for this slice yet; preserve the
+frozen Oct 2 revision and separate prospective OPEN acceptance.
+
 **IF-2b integration exit — 2026-10-01:** PR #720 is normally squash-merged
 after protected CI `36914848106` succeeds on
 `87e8f0ee795e651463b0e13a0385b6b3a73f8bd3`. Its foundation job runs the real

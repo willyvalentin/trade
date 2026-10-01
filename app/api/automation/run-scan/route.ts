@@ -2462,6 +2462,8 @@ function buildSnapshotFromResearchSample({
 }) {
   const rejectedCandidateResearch =
     candidateDecisionLink.candidate_disposition === "filtered_before_ranking";
+  const inputResearchEvidence = "input_research_evidence" in sample ? sample.input_research_evidence : undefined;
+  const snapshotTime = inputResearchEvidence ? new Date(inputResearchEvidence.decision_timestamp) : now;
   const riskPerShare = sample.entry - sample.stop;
   const rewardPerShare = sample.target - sample.entry;
   const researchBatchFingerprint =
@@ -2486,8 +2488,8 @@ function buildSnapshotFromResearchSample({
     scan_run_id: scanRunId,
     ticker: sample.ticker,
     company_name: sample.company_name,
-    recommended_at: now,
-    app_timestamp: now,
+    recommended_at: snapshotTime,
+    app_timestamp: snapshotTime,
     window: scanWindow,
     market_session_phase: marketSession.phase,
     market_session_risk: marketSession.risk_level,
@@ -2519,11 +2521,18 @@ function buildSnapshotFromResearchSample({
     catalyst: sample.ranking_reason,
     primary_risk: sample.ranking_warnings[0] ?? sample.rejection_publish_reason,
     freshness: sample.market_data_timestamp ? "fresh" : "unknown",
-    data_age_minutes: 0,
+    data_age_minutes: inputResearchEvidence && sample.market_data_timestamp
+      ? (snapshotTime.getTime() - Date.parse(sample.market_data_timestamp)) / 60000 : 0,
     quality: {
       scan_observability_summary: scanObservability,
     },
     payload: {
+      ...(inputResearchEvidence ? {
+        research_capture_version: inputResearchEvidence.capture_version,
+        scanner_input_policy_version: inputResearchEvidence.input_snapshot.input_policy_version,
+        scanner_decision_input_snapshot: inputResearchEvidence.input_snapshot,
+        decision_timestamp: inputResearchEvidence.decision_timestamp,
+      } : {}),
       market_regime: marketRegime,
       market_regime_context: marketRegimeContext,
       sector: sample.sector,
@@ -2904,8 +2913,11 @@ async function persistAutomationArtifacts({
       marketRegimeContext,
     }),
   );
+  const inputResearchOnlyBatch = candidateDecisionRecord?.record_version === "candidate_decision_record_v4" &&
+    recommendations.length === 0 && learningAccelerationMode.learning_acceleration_enabled;
   const anticipatedBatchFingerprint =
     preliminarySnapshots.length > 0 ||
+    (candidateDecisionRecord?.record_version === "candidate_decision_record_v4" && learningAccelerationMode.learning_acceleration_enabled) ||
     servingCadence.no_trade_valid ||
     servingCadence.batch_status === "no_trade_valid"
       ? buildRecommendationBatchFingerprint({
@@ -2914,7 +2926,7 @@ async function persistAutomationArtifacts({
           published_at: servingCadence.latest_official_batch_published_at,
           served_at: servingCadence.served_at,
           window: servingCadence.serving_window,
-          batch_type: servingCadence.batch_type,
+          batch_type: inputResearchOnlyBatch ? "diagnostic" : servingCadence.batch_type,
           snapshots: preliminarySnapshots,
           scan_run: scanRun,
           scan_run_id: scanRun.id,
@@ -2954,6 +2966,7 @@ async function persistAutomationArtifacts({
   });
   const snapshots: RecommendationSnapshot[] = [];
   const researchSelection = buildLearningAccelerationResearchSelection({
+    record: candidateDecisionRecord,
     enabled: learningAccelerationMode.learning_acceleration_enabled,
     candidates: learningAccelerationCandidateGeneration?.candidates ?? [],
     ranking: learningAccelerationRanking,
@@ -2971,7 +2984,8 @@ async function persistAutomationArtifacts({
     inputSourceHint: learningAccelerationInputSource,
   });
   const rejectedResearchSelection = buildRejectedCandidateResearchSelection({
-    enabled: learningAccelerationMode.learning_acceleration_enabled,
+    enabled: learningAccelerationMode.learning_acceleration_enabled &&
+      candidateDecisionRecord?.record_version !== "candidate_decision_record_v4",
     record: candidateDecisionRecord,
     candidates: learningAccelerationCandidateGeneration?.candidates ?? [],
     scanWindow,
@@ -3061,11 +3075,15 @@ async function persistAutomationArtifacts({
   }
 
   for (const sample of researchSelection.samples) {
+    const candidateDecisionLink = linkResearchSnapshotToCandidateDecision({
+      record: candidateDecisionRecord, ticker: sample.ticker,
+    });
+    if (sample.input_research_evidence && (
+      candidateDecisionLink.linkage_status !== "verified" ||
+      candidateDecisionLink.candidate_id !== sample.input_research_evidence.candidate_id
+    )) continue;
     const snapshot = buildSnapshotFromResearchSample({
-      candidateDecisionLink: linkResearchSnapshotToCandidateDecision({
-        record: candidateDecisionRecord,
-        ticker: sample.ticker,
-      }),
+      candidateDecisionLink,
       sample,
       scanRunId: scanRun.run_fingerprint,
       scanWindow,
@@ -3224,6 +3242,7 @@ async function persistAutomationArtifacts({
 
   if (
     snapshots.length > 0 ||
+    (candidateDecisionRecord?.record_version === "candidate_decision_record_v4" && persistedResearchSnapshotCount > 0) ||
     servingCadence.no_trade_valid ||
     servingCadence.batch_status === "no_trade_valid"
   ) {
@@ -3233,7 +3252,8 @@ async function persistAutomationArtifacts({
       published_at: servingCadence.latest_official_batch_published_at,
       served_at: servingCadence.served_at,
       window: servingCadence.serving_window,
-      batch_type: servingCadence.batch_type,
+      batch_type: inputResearchOnlyBatch ? "diagnostic" : servingCadence.batch_type,
+      ...(inputResearchOnlyBatch ? { status: "no_trade_valid" } : {}),
       snapshots,
       scan_run: scanRun,
       scan_run_id: scanRun.id,
@@ -3246,6 +3266,10 @@ async function persistAutomationArtifacts({
       market_session_phase: marketSession.phase,
       payload: {
         scan_window: scanWindow,
+        ...(researchSelection.samples.some(sample => sample.input_research_evidence) ? {
+          completed_input_research_capture_version: "completed_input_research_capture_v1",
+          completed_input_research_snapshot_fingerprints: researchSnapshots.map(snapshot => snapshot.snapshot_fingerprint),
+        } : {}),
         scan_reason: orchestration.scan_reason,
         automation_source: "scheduled",
         active_scan_trace: activeScanTrace?.trace ?? null,
