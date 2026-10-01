@@ -2,6 +2,39 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-02, recommendation intelligence first
 
+**Opening composition readback — 2026-10-02:** the same selected input/learning
+delivery is additionally verified at the synthetic 09:45 New York slot with
+three closed five-minute bars and a latest observed zero. Local rehearsal
+`73217b8a281f0b41c9f08d8913d48c05a0b9cda3` retains mean volume 667, an
+unavailable complete-window ratio and the original weak-current-volume warning
+through three hidden sources, canonical outcomes and restarted learning.
+All eight original identities remain; five are unresolved, freeze stays
+`not_ready`, and there is no recommendation, broker or real provider operation.
+The old test reader's fixed twelve-bar expectation fails `667 !== 917`;
+correcting that reader is not an engine fix. A composition-only opening flag is
+also caught when copied into the older standalone proof and removed there.
+The standalone branch instead adds only its three-bar indicator regression:
+all 27 affected checks pass on `ab0bd70bd2317204031eedf60fb160c5080548c9`.
+Production calculator code remains the previously tested `8cddd843`.
+The frozen Oct 2 observation, prerequisite PR #721 and verified-cleanup
+integration hold remain unchanged. This is additional CLOSED coverage, not
+new market evidence or a claim of improved recommendation accuracy.
+
+**Combined foundation verification — 2026-10-02:** the full existing local
+`foundation` shard exits zero on exact rehearsal source `73217b8a`, tree
+`439dcd1376786cd6f8d69ab2773362b10d1c541a`. Full lint has zero errors/eight
+retained warnings; strict types, dependency audit (zero known vulnerabilities),
+standard production build, all three disposable lifecycle groups, 1,024
+containment/input checks, 12 authenticated-boundary checks, catalog/type
+oracles and all intelligence/frozen-improvement groups pass. Source remains
+clean and the input fixture containers/networks are verified removed. This
+uses local macOS/ARM64 Node 26.5.0, not protected Ubuntu/Node 24.19.0 CI.
+The separate existing `snapshot-issuance` shard also exits zero: all 141
+issuance, intake, source/cohort, baseline-readiness/freeze, policy-comparison and
+selective-publication checks pass on that exact source. These two local shards
+are not protected six-shard CI, main, production, real-market or alpha
+acceptance. The integration hold is unchanged.
+
 **Locally complete independent CLOSED IF-2b volume-input integrity slice — 2026-10-02:**
 Codex owns `codex/intraday-volume-observation`, isolated at
 `/private/tmp/ture-volume-observation.zmEmT7/trade` from verified protected main
