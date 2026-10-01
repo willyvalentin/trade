@@ -777,6 +777,24 @@ Oct 2 and no later activation authority. It has a specific 15:46 CEST readback
 wake-up and deletes itself after verified no-go/inert state or cleanup. This
 supersedes the scheduling blocker above, not the exact revision/readiness/card
 guards. No production flag, deploy or provider call is made while scheduling.
+
+**Additional opening readback — 2026-10-02:** standalone source remains the
+tested `8cddd843` correction; test-only revision
+`ab0bd70bd2317204031eedf60fb160c5080548c9` adds the three-bar mean regression,
+with all 27 affected checks passing. The opening flag exists only after the
+PR #721 prerequisite, not in this main-based standalone proof. An intermediate
+attempt to reuse it here fails before assertion and is removed, without changing
+production code.
+The separate learning composition `73217b8a281f0b41c9f08d8913d48c05a0b9cda3`
+verifies an actual persisted 09:45 synthetic observation with latest zero,
+three-bar mean 667, unavailable complete-window ratio and the original
+weak-volume warning through three canonical outcomes/restarted assessments.
+The older twelve-bar reader expectation fails `667 !== 917` and is corrected;
+this is a diagnostic fix, not an additional engine defect. Five identities
+remain unresolved and all freeze/publication/broker gates remain closed.
+The active primary ledger, Oct 2 frozen observation and integration hold
+remain unchanged; no production or real-provider operation occurs.
+
 **Retained local independent IF-2b volume-input correction — 2026-10-02:** the active
 queue is reconciled in `codex/completed-input-learning-admission`; this isolated
 main-based branch is its only selected second CLOSED delivery, owned by Codex
