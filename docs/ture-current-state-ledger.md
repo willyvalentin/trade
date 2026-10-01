@@ -2,6 +2,64 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-02, recommendation intelligence first
 
+**Locally complete independent CLOSED IF-2b volume-input integrity slice — 2026-10-02:**
+Codex owns `codex/intraday-volume-observation`, isolated at
+`/private/tmp/ture-volume-observation.zmEmT7/trade` from verified protected main
+`930d44b6be9ec6fca059adba21addd05d9f9c7de`, with a four-active-hour budget and
+at most four hours of investigation. The completed-input IF-4 slice below is
+locally implemented/tested and held for integration; this is the only selected
+second development slice. It owns the existing intraday volume calculation and
+its regression, not the outcome schema, baseline contract or production flags.
+
+The existing actual packaged scheduler/backend/scanner/SDK/PostgreSQL/PostgREST
+proof with a synthetic latest closed zero-volume bar retains `latestVolume=1000`
+in the persisted v4 decision instead of zero (`1000 !== 0`). Three added unit
+regressions also fail: zero or invalid latest volume is borrowed from an older
+positive bar, and filtering zeros/missingness inflates the twelve-bar mean.
+The first sandbox launch cannot access Docker and supplies no engine evidence;
+the authorized local runtime reproduces the actual failure and cleans up.
+
+Select the smallest point-in-time data-fitness correction: bind latest volume
+to the same original price candle, retain observed zero, preserve the last
+twelve clock positions in the mean and return unknown for invalid/gapped
+inputs. Preserve the existing stricter two-window ratio, freshness, scoring and
+publication thresholds, provider budgets and all archived/frozen evidence.
+Acceptance is positive/zero/invalid/gapped unit behavior plus the exact zero
+and honest mean through actual persisted decision and restarted owner readback,
+eight unchanged credits/identities, no publication/broker effects and cleanup.
+No new provider or quality hypothesis is selected. Source/build revision keeps
+the correction separate from older archives; no persisted evidence is repaired.
+Integrate only after the frozen Oct 2 observation and verified cleanup, after
+PR #721 and the completed-input learning slice, then rebase and run their
+combined runtime regressions. This is recommendation data fitness, not alpha.
+
+The correction is locally committed as
+`8cddd843aae504a77d2217bb6662c964a987823f`. All 65 affected checks, full lint
+(zero errors/eight retained warnings), TypeScript and the standard production
+build pass. The actual cold zero-volume proof retains three fresh v4 inputs
+with `latestVolume=0` and `averageVolume=917`, one attempt/eight synthetic
+scan requests, no recommendations/positions and verified fixture cleanup.
+
+A separate detached local rehearsal composes that correction with the completed
+learning slice at `83217b45`, resolving only the existing proof and ledger
+conflicts. Exact rehearsal revision is
+`60621af4d12d3bdfd159d168caefa78125af7fb2`, tree
+`bfb54680096a55c5d115d893c0926a80715ba0ce`, isolated at
+`/private/tmp/ture-volume-learning-check.CaBqbV/trade`. All 139 combined tests,
+affected lint, strict types and a new standard production build pass. The actual
+zero-volume source → outcome → restarted learning readback retains all three
+original assessments/outcomes, leaves five unresolved identities explicit and
+keeps readiness/metrics/promotion gates closed. Disposable containers/networks
+are verified removed. This is local composition evidence, not protected CI,
+main integration or a production deploy; neither product branch is changed by
+the rehearsal. No third delivery, push, provider or broker operation occurs.
+
+The frozen `930d44b6...` Oct 2 observation remains unchanged and can retain this
+pre-correction volume limitation. Its volume fields cannot establish that this
+specific defect is absent, and older decisions may not be silently recomputed
+with the new calculator. Acceptance of the correction in production and its
+prospective market effect remain separate from that frozen input-delivery test.
+
 **Steering reconciliation — 2026-10-02:** the user's approved roadmap update
 keeps the current completed-input/learning delivery and frozen Oct 2 OPEN card
 selected. The master roadmap now explicitly orders fresh complete inputs,
