@@ -1,4 +1,8 @@
 import { expect, test } from "@playwright/test";
+import { build } from "esbuild";
+import { createRequire } from "node:module";
+import { resolve } from "node:path";
+import { createClient } from "@supabase/supabase-js";
 
 import {
   createActiveScanTrace,
@@ -29,10 +33,11 @@ function secondsAfter(timestamp: string, seconds: number) {
   return new Date(Date.parse(timestamp) + seconds * 1000).toISOString();
 }
 
-function buildTerminalReceipt(
+function buildTerminalRecord(
   slot: (typeof contract.slots)[number],
   overrides: {
     revision?: string;
+    expectedRevision?: string;
     fail?: boolean;
     providerErrors?: number;
     staleInputs?: number;
@@ -46,7 +51,7 @@ function buildTerminalReceipt(
     scheduledInvocationBound: true,
     scheduledSlotUtc: slot.slot_utc,
     now: new Date(routeReceivedAt),
-    expectedRevision: revision,
+    expectedRevision: overrides.expectedRevision ?? revision,
     deployedRevision,
   });
   const demands = tickers.map((ticker, tickerIndex) => ({
@@ -186,7 +191,11 @@ function buildTerminalReceipt(
     observationAdmission,
   });
   expect(record).not.toBeNull();
-  return record!.receipt_json;
+  return record!;
+}
+
+function buildTerminalReceipt(...args: Parameters<typeof buildTerminalRecord>) {
+  return buildTerminalRecord(...args).receipt_json;
 }
 
 function buildScheduledAttemptRow(
@@ -458,4 +467,72 @@ test("rejects undeclared or tampered evidence and never treats it as quality pro
     "live_allocation_experiment_undeclared_slot_receipt",
   );
   expect(evaluation.paired_comparison.recommendation_quality).toBe("unproven");
+});
+
+test("authenticated readback joins database evidence and rejects incomplete or foreign rows", async () => {
+  const observedRevision = "40d671b93a6ca9aa6acf2a40c6949a10663d7d2f";
+  const requests: URL[] = [];
+  let mode: "complete" | "truncated" | "foreign" | "error" = "complete";
+  const client = createClient("https://fixture.invalid", "synthetic-test-key", {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: {
+      fetch: async (input, init) => {
+        expect(init?.method ?? "GET").toBe("GET");
+        const url = new URL(String(input));
+        requests.push(url);
+        const cycles = url.pathname.endsWith("/observation_cycle_receipts");
+        expect(url.searchParams.get("limit")).toBe("100");
+        const timeColumn = cycles ? "scheduled_slot_at" : "scheduled_function_fired_at";
+        expect(url.searchParams.getAll(timeColumn)).toEqual([
+          `gte.${contract.slots[0].slot_utc}`, `lt.${contract.expires_at_utc}`,
+        ]);
+        if (cycles) expect(url.searchParams.get("owner_user_id")).toBe(`eq.${ownerUserId}`);
+        if (mode === "error") return new Response('{"message":"fixture failure"}', { status: 400 });
+        const rows = contract.slots.map((slot) => cycles
+          ? buildTerminalRecord(slot, { revision: observedRevision, expectedRevision: observedRevision })
+          : buildScheduledAttemptRow(slot, observedRevision));
+        if (cycles && mode === "foreign") {
+          Object.assign(rows[0], { owner_user_id: "22222222-2222-4222-8222-222222222222" });
+        }
+        return new Response(JSON.stringify(rows), {
+          headers: { "Content-Type": "application/json", "Content-Range": `0-5/${mode === "truncated" ? 7 : 6}` },
+        });
+      },
+    },
+  });
+  const fixture = { client, authenticated: false, ownerUserId };
+  const bundle = await build({
+    entryPoints: [resolve("app/api/app/provider-credit-allocation-live-evaluation/route.ts")],
+    bundle: true, platform: "node", format: "cjs", write: false,
+    external: ["next/server"],
+    plugins: [{ name: "readback-boundaries", setup(builder) {
+      builder.onResolve({ filter: /^(server-only|@\/lib\/supabase-server|@\/lib\/server\/application-session)$/ },
+        ({ path }) => ({ path, namespace: "fixture" }));
+      builder.onLoad({ filter: /.*/, namespace: "fixture" }, ({ path }) => ({
+        contents: path === "server-only" ? "" : path.endsWith("supabase-server")
+          ? "export const getServerSupabaseClient = () => ({client: fixture.client});"
+          : "export const requireApplicationSession = async () => fixture.authenticated ? {owner_user_id: fixture.ownerUserId} : null; export const applicationSessionUnauthorizedResponse = () => Response.json({error:'unauthenticated'}, {status:401});",
+        loader: "js",
+      }));
+    } }],
+  });
+  const loadedModule = { exports: {} as { GET: () => Promise<Response> } };
+  new Function("require", "module", "exports", "fixture", bundle.outputFiles[0].text)(
+    createRequire(resolve("package.json")), loadedModule, loadedModule.exports, fixture,
+  );
+  expect((await loadedModule.exports.GET()).status).toBe(401);
+  expect(requests).toHaveLength(0);
+  fixture.authenticated = true;
+  const response = await loadedModule.exports.GET();
+  expect(response.status, await response.clone().text()).toBe(200);
+  expect(response.headers.get("cache-control")).toBe("no-store");
+  expect(await response.json()).toMatchObject({ status: "available", evaluation: {
+    status: "available", expected_revision: observedRevision,
+    counts: { completed_slots: 6, total_provider_credits_reserved: 48 },
+  } });
+  for (mode of ["truncated", "foreign", "error"] as const) {
+    const rejected = await loadedModule.exports.GET();
+    expect(rejected.status).toBe(503);
+    expect(await rejected.json()).toMatchObject({ status: "unavailable", evaluation: null });
+  }
 });

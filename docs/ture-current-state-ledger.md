@@ -466,7 +466,14 @@ receipt independently proves actual scanner allocations. It reports
 baseline/challenger rankable coverage, funded
 candidate breadth and late unfunded candidates, but always marks recommendation
 quality `unproven` and grants no provider, allocation, ranking, publication,
-threshold or broker authority. Focused local acceptance is 7/7 tests, including
+threshold or broker authority. The authenticated, uncached
+`GET /api/app/provider-credit-allocation-live-evaluation` reads the fixed
+experiment window with exact row counts and owner-bound cycle validation.
+Its expected observation revision remains frozen after cleanup or later reader
+deployments. Incomplete database reads produce `unavailable` with no evaluation.
+Focused local acceptance is 8/8 tests (14/14 with CI registration), including
+the bundled route through the real Supabase client with synthetic HTTP database
+fixtures, denied unauthenticated access, truncated/error/foreign-row rejection,
 reservation credit retention and revision-drift rejection even when the cycle
 receipt is missing, and
 baseline retention when better coverage accompanies increased provider errors
@@ -474,7 +481,8 @@ or stale inputs, plus
 strict non-incremental TypeScript; broader allocation/receipt/scheduler
 regression is 63/63, intelligence-foundation is 168/168, full lint has zero
 errors/eight pre-existing warnings and the 33-page Next.js production build
-passes. Protected CI, merge and production deploy remain separate; no change
+passes, including the new authenticated route. Production database/route
+behavior remains unverified. Protected CI, merge and production deploy remain separate; no change
 may replace the frozen main revision before the separately authorized OPEN
 switchback is cleaned up.
 

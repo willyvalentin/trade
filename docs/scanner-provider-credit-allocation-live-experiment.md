@@ -100,6 +100,16 @@ as unproven, grants no runtime authority and requires canonical-outcome review
 before any policy promotion.
 
 OPEN execution remains separate work.
+The authenticated `GET /api/app/provider-credit-allocation-live-evaluation`
+reads the fixed experiment window independently of current activation flags.
+It uses count-checked database reads, validates persisted cycle metadata and
+owner identity, and pins the observation revision to
+`40d671b93a6ca9aa6acf2a40c6949a10663d7d2f`. Read failures return HTTP 503
+with no evaluation; invalid experiment evidence returns HTTP 422; a readable
+evaluation returns HTTP 200, including honest incomplete/in-progress results.
+Responses are uncached. This route is locally built and fixture-tested;
+production integration follows the frozen observation's cleanup.
+
 Any credit breach, lineage/population mismatch, stale/incomplete publication,
 revision drift, plan-versus-actual divergence or two consecutive operational
 failures stops the series. Rollback is always
