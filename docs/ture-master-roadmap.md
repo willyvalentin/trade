@@ -34,6 +34,17 @@ freshness, provider budget, evidence lineage or safety. The remaining bounded
 A.2 OPEN series is the selected operational exit observation and does not block
 independent intelligence work.
 
+**2026-10-01 active integrity interruption.** The allocation switchback was
+stopped after four attributable no-trade cycles/two pairs and verified inert
+cleanup. Its final pair is missing, so it establishes no passing data-fitness
+or quality improvement. A separate CLOSED real-scanner/SDK-to-reference proof
+reproduced cache write time substituting for missing market time. Select only
+the small fail-closed correction and its behavior regression; do not relax
+cache TTL, data freshness, ranking or publication to manufacture coverage.
+After this blocker is removed, resume IF-2b fresh, fully observed input coverage
+from the retained evidence, not a new scheduler/dashboard/readiness stream.
+The ledger holds exact revisions, receipts, cleanup and remaining acceptance.
+
 **Recommendation-quality gate.** An IF-4 terminal decision must evaluate the
 whole frozen charter that makes the recommendation useful: absolute precision,
 relative lift, expectancy, calibrated-probability error, outcome coverage,
