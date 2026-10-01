@@ -96,6 +96,15 @@ single Oct 2 observation and its activation/cleanup deploys before retrying that
 operation; do not bypass the rejection with another scheduler or indirect job.
 This does not block independent CLOSED intelligence work.
 
+**Exact operating authority and scheduling — 2026-10-01:** the user then
+explicitly approves the single Oct 2 15:45 CEST observation, its eight-credit
+ceiling and activation/cleanup deploys. The app accepts creation and readback of
+`ture-if-2b-kallstart-2-oktober`, attached to this chat, with a schedule ending
+Oct 2 and no later activation authority. It has a specific 15:46 CEST readback
+wake-up and deletes itself after verified no-go/inert state or cleanup. This
+supersedes the scheduling blocker above, not the exact revision/readiness/card
+guards. No production flag, deploy or provider call is made while scheduling.
+
 **Selected primary IF-2b input slice — 2026-10-01:** Codex owns
 `codex/completed-daily-context`, isolated from verified main
 `4e960cf9ac260821ceb28c909d83c5cad137f353`, with an eight active-hour delivery
