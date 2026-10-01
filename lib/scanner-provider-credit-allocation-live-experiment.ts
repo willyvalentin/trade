@@ -24,22 +24,22 @@ export type ScannerProviderCreditAllocationExperimentArm =
 
 const slots = Object.freeze([
   Object.freeze({
-    slot_utc: "2026-10-01T13:45:00.000Z",
+    slot_utc: "2026-10-01T14:30:00.000Z",
     arm: "baseline" as const,
     pair: 1,
   }),
   Object.freeze({
-    slot_utc: "2026-10-01T14:00:00.000Z",
+    slot_utc: "2026-10-01T14:45:00.000Z",
     arm: "challenger" as const,
     pair: 1,
   }),
   Object.freeze({
-    slot_utc: "2026-10-01T15:15:00.000Z",
+    slot_utc: "2026-10-01T15:30:00.000Z",
     arm: "challenger" as const,
     pair: 2,
   }),
   Object.freeze({
-    slot_utc: "2026-10-01T15:30:00.000Z",
+    slot_utc: "2026-10-01T15:45:00.000Z",
     arm: "baseline" as const,
     pair: 2,
   }),
@@ -59,7 +59,7 @@ export const SCANNER_PROVIDER_CREDIT_ALLOCATION_LIVE_EXPERIMENT_CONTRACT =
   Object.freeze({
     contract_version:
       SCANNER_PROVIDER_CREDIT_ALLOCATION_LIVE_EXPERIMENT_CONTRACT_VERSION,
-    experiment_id: "provider_credit_allocation_switchback_2026_10_01_v1",
+    experiment_id: "provider_credit_allocation_switchback_2026_10_01_v2",
     evidence_mode: "prospective_live_data_fitness_switchback" as const,
     trading_date: "2026-10-01",
     expires_at_utc: "2026-10-01T17:30:00.000Z",

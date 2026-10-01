@@ -8,15 +8,33 @@ Twelve Data or change scanner behavior by itself.
 
 ## Frozen switchback
 
-The experiment is bound to the regular 2026-10-01 US session and six declared
+The original `provider_credit_allocation_switchback_2026_10_01_v1` was
+disarmed before its first slot after the two-failure versus three-failure
+runtime-stop mismatch was found. It remains `no_go`, with zero attempts or
+credits; its declared times were 13:45Z/14:00Z, 15:15Z/15:30Z and 17:00Z/17:15Z.
+Do not blend that original declaration with the replacement below.
+
+The replacement `provider_credit_allocation_switchback_2026_10_01_v2` is
+bound to the regular 2026-10-01 US session and six declared
 15-minute scheduler slots. Three time pairs reverse arm order to reduce a simple
 early/late ordering bias:
 
 | Pair | Baseline slot | Challenger slot |
 | --- | --- | --- |
-| 1 | 13:45Z | 14:00Z |
-| 2 | 15:30Z | 15:15Z |
+| 1 | 14:30Z | 14:45Z |
+| 2 | 15:45Z | 15:30Z |
 | 3 | 17:00Z | 17:15Z |
+
+The first replacement slot is 16:30 CEST / 10:30 America/New_York, not a
+product restriction to a named publication window. Activation is conditional
+on green protected CI, a ready exact-revision production deployment, fresh
+provider-free authenticated preflight and verified remaining daily capacity.
+The activation deploy must be ready by 14:15Z, one full scheduler interval
+before the first slot; otherwise this entire replacement is `no_go`, not a
+partially collected comparison. No retry or manual route is allowed. Freeze
+the final published revision/deploy identity in the ledger before activation,
+keep it unchanged through collection and cleanup, and do not merge a later
+reader or unrelated delivery during that period.
 
 Every attempt retains the existing Basic Free ceiling: six scanner credits and
 eight total known provider credits. The whole series is therefore capped at six
