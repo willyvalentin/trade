@@ -96,6 +96,17 @@ This is local measurement-path evidence only. Protected CI, main integration
 after the PR #721/Oct 2 cleanup hold and prospective OPEN learning acceptance
 are still outstanding; no improvement in recommendation returns is claimed.
 
+**Final local foundation verification — 2026-10-02:** the complete provider-free
+`foundation` shard exits successfully on exact source revision
+`6a818aa8544331063bfe0b3fe67ed1d3bde9a9a7`. Full lint has zero errors/eight
+retained warnings; strict types, dependency audit (zero known vulnerabilities),
+standard production build, all three disposable lifecycle groups, 1,019
+browser/server checks, 12 authenticated-boundary checks and the registered
+catalog/type, intelligence and frozen-improvement groups pass. This replaces
+predecessor-only foundation evidence for the current implementation. It is one
+local shard, not protected six-shard CI, main acceptance or OPEN quality proof.
+No push, merge, production configuration or provider operation occurred.
+
 Acceptance is real persisted cold/warm source-to-outcome-to-learning readback,
 including malformed archives/features/identity/geometry, missing/cross-run
 lineage, ambiguous runs, duplicate outcomes and another owner. Valid canonical
