@@ -2,6 +2,103 @@
 
 ## Active Now / Next / Blocked — 2026-09-29 recommendation intelligence first
 
+**Selected primary IF-2b input slice — 2026-10-01:** Codex owns
+`codex/completed-daily-context`, isolated from verified main
+`4e960cf9ac260821ceb28c909d83c5cad137f353`, with an eight active-hour delivery
+budget and a four-hour initial investigation limit. The independent PR #719
+decoder slice is now merged and production-readback verified (receipt below);
+its support stream is closed. The new slice does not own its old reader modules,
+frozen evaluation plan, outcome schema or production configuration.
+
+Read-only completed-run evidence at 18:00:45.120Z supplies seven retained
+eight-candidate traces from Sep 30–Oct 1; two earlier rows have no such trace.
+Five serial baseline traces each reserve three daily and three intraday credits,
+reuse zero fresh intraday caches and fully observe only two or three candidates.
+The two observed breadth-first traces reserve six daily and zero intraday
+credits and fully observe zero. Preserve those results, missing pairs and exact
+revisions; this is diagnostic evidence, not a passing scientific comparison.
+Changing only the three-refresh ceiling cannot remove the cold two-requests-per-
+candidate requirement. No further identical OPEN retry is selected.
+
+The missing capability is honest separation of completed historical daily
+context from current session evidence. Build one versioned input challenger that
+can persist and reuse validated completed daily history, while requiring fresh
+same-session intraday data for the current price and intraday features. Legacy
+derived cache fields, absent raw history, an unclosed current-day bar, stale or
+unavailable calendar/identity, future evidence and missing history must never
+qualify as completed context. Do not extend the existing 45-minute cache TTL or
+relabel an old market price as fresh. The original serial/breadth-first policies
+and existing frozen receipts remain unchanged.
+
+Acceptance is the real scanner/Supabase SDK/provider boundary with an isolated
+database and controlled clock: first acquire attributable raw history, restart
+and reuse it only for its declared historical role, allocate the unchanged six
+scanner/eight total credit ceiling to fresh intraday evidence, persist exact
+eight-member availability and source-before-decision lineage, and expose the
+actual readback. Keep two unresolved candidates unresolved if six credits cannot
+freshen all eight. Test wrong identity, gaps, malformed/future/partial bars,
+holidays/early close, stale intraday, exhausted credits, abort and restart. The
+challenger must be explicit/versioned and inactive by default, with no quality
+threshold, broker or automatic promotion changes. Protected CI, exact-main
+deployment and separately frozen prospective OPEN coverage/cost evidence remain
+required before claiming production behavior or improved data fitness.
+
+This is a `recommendation_capability` slice, not a new clock-ranking hypothesis.
+Do not reinterpret the old frozen cohort, its four-attempt daily limit or its
+zero accepted samples: a later provider-free replay at 17:51:43.183Z reports
+`daily_collection_limit_exceeded` after today's separate fifth observation.
+The old plan remains incomplete; neither the decoder repair nor this input
+challenger may supply fabricated outcomes or an alpha/promotion claim.
+
+**Implemented/tested locally — IF-2b input assembly, 2026-10-01:** the working
+tree on the above base now implements `completed_daily_intraday_input_v1`,
+inactive unless explicitly selected by the scanner caller. It acquires and
+persists raw completed history with provider-byte identity, verified calendar
+and content digest. Reuse is historical-only and limited to the capture's NY
+day; a later day must reacquire the split-adjusted basis within the same budget.
+`current_session_intraday_v1` separately retains consecutive regular-session
+closed bars, excludes the partial latest bar and supplies today's OHLC, price,
+five-bar shape and same-unit range expansion. Short volume/range/shape windows
+stay unknown. Cache reads recompute from validated raw bars rather than trusting
+mutable derived prices; malformed, future, gapped, wrong-symbol, stale, altered
+or out-of-session evidence cannot supply a fresh plan.
+
+The real bundled scanner and unchanged Supabase SDK pass the restart/acquisition
+flow both with a synthetic HTTP boundary and with disposable PostgreSQL 16 plus
+PostgREST 16.1 using the actual legacy schema/unique upsert. In the explicitly
+synthetic warm-history fixture, six scanner credits yield six fresh intraday
+inputs on the full eight-member population, versus the unchanged legacy
+three-daily/three-intraday allocation; two holes remain holes. The initial
+eight-history acquisition costs sixteen fixture requests and is not hidden as
+free setup or claimed to fit one eight-credit attempt. Fresh durable cache needs
+zero new credits. Raw mutation is rejected; derived-price mutation is ignored
+in favor of recomputation. The first Docker internal-network port failure was
+resolved by a dedicated bridge with loopback-only REST exposure; both temporary
+containers and the network were verified removed after the passing test.
+
+Affected checks pass 32/32, including the real database path; the registered
+Browser/server-containment command passes 1012/1012. Strict TypeScript, affected
+lint, Next 16.3.8 production build and packaged scheduled runtimes pass. These
+are local working-tree evidence, not a completed PR or production capability.
+The exact versioned decision/capture/readback and scheduled runtime integration
+remain unfinished; integrate current main, finish that chain and its full
+isolated-database proof before PR/OPEN. No OPEN scan, actual provider request, migration,
+production flag or quality rule was activated. Engine graduation remains
+`not_met`; fixture coverage is not forward data fitness or recommendation alpha.
+
+**Supporting exit completed — PR #719, 2026-10-01:** protected CI
+`36902470969` passes on `46b05abe...`; normal protected squash merge at
+18:27:40Z produces main `99465dea0aba50946cd0d96fe2267ee0b73c324f`.
+Post-main CI `36906996469` passes on that exact main. Automatic Git-connected
+production deploy `6abea61e6938170008f7a648` is ready/published at
+18:28:29.824Z. Authenticated deployed readback at 18:28:53.575Z verifies exact
+commit/deploy, inert scheduler/worker controls, zero active reservations and
+HTTP 200/no-store from the existing collection reader. It now exposes
+`available` with the truthful `daily_collection_limit_exceeded`, rather than
+invalidating the genuine ordered selection. Old zero accepted samples, the
+four-attempt charter and its fifth-attempt failure remain unchanged. This closes
+only `supporting_blocker_removal`; continue the selected IF-2b input slice.
+
 **Current delivery boundary — 2026-10-01:** allocation switchback v2 is stopped
 after four of six declared slots/two complete pairs, not still collecting.
 A CLOSED reproduction exposed an independent source-time integrity defect:
