@@ -81,11 +81,28 @@ evaluator makes zero requests and persists zero outcomes on the tampered-source
 case; another owner reads no sources. Stored sources remain hidden, and
 recommendation/position writes remain zero.
 
-Affected lint and strict TypeScript pass. The standard Next/Turbopack production
+Final source review also reproduced three admitted sources after removing the
+scan's durable lineage receipt. The outcome loader now requires the existing
+semantic lineage validator as well as the owner-bound decision; a missing or
+cross-run receipt rejects sources before future-data acquisition. A valid
+receipt may truthfully remain `incomplete` for the population's five/two missing
+inputs; the fix does not require inventing complete population data.
+
+All 69 affected input/outcome/legacy-learning tests pass after that correction,
+including the real stored missing-lineage and cross-run-lineage negatives in
+cold, warm and opening variants. Affected lint and strict TypeScript pass.
+The standard Next/Turbopack production
 build passes after replacing this isolated worktree's external dependency
 symlink with its own local copy. An earlier webpack diagnostic is not a passing
-build and is not used as acceptance. Broader provider-free foundation checks
-are still running. This is local `recommendation_capability`/measurement-path
+build and is not used as acceptance. The broader provider-free foundation run
+started before the final lineage guard completes successfully, including 1019
+browser/server checks, 342 intelligence checks, the existing database lifecycle
+proofs, lint with the eight retained warnings, zero-vulnerability dependency
+audit and the remaining registered contract groups. Preserve that as earlier
+working-state evidence, not a full-current-revision rerun. The changed route and
+integrated proof are then reverified by the 69 affected tests, strict types,
+lint and a new successful standard build; protected full CI remains required.
+This is local `recommendation_capability`/measurement-path
 evidence with explicitly synthetic market and future data, not production
 outcome persistence, a completed baseline comparison or improved alpha. There
 is no PR, push, merge or production change for this slice yet; preserve the

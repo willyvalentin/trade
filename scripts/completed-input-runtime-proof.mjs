@@ -332,6 +332,21 @@ try {
       assert.equal(externalRequests,before);
       assert.equal(Number(sql("select count(*) from recommendation_outcomes;")),0);
       for(const row of researchSnapshots) sql(`update recommendation_snapshots set payload_json='${JSON.stringify(row.payload_json).replaceAll("'","''")}'::jsonb where id='${row.id}';`);
+      // A valid source without its exact durable lineage is not attributable.
+      // Missing or cross-run lineage must stop before future candle acquisition.
+      const originalRunPayload=scanRuns[0].payload_json;
+      for(const invalidRunPayload of [
+        Object.fromEntries(Object.entries(originalRunPayload).filter(([name])=>name!=="decision_lineage_receipt")),
+        {...originalRunPayload,decision_lineage_receipt:{...originalRunPayload.decision_lineage_receipt,scan_run_fingerprint:"wrong_run"}},
+      ]) {
+        sql(`update recommendation_scan_runs set payload_json='${JSON.stringify(invalidRunPayload).replaceAll("'","''")}'::jsonb where id='${scanRuns[0].id}';`);
+        const noLineage=await evaluate(),noLineageBody=await noLineage.json();
+        assert.equal(noLineage.status,200);
+        assert.equal(noLineageBody.eligible_snapshot_count,0,"Missing or wrong-run lineage must reject all input-attributed research sources");
+        assert.equal(externalRequests,before);
+        assert.equal(Number(sql("select count(*) from recommendation_outcomes;")),0);
+      }
+      sql(`update recommendation_scan_runs set payload_json='${JSON.stringify(originalRunPayload).replaceAll("'","''")}'::jsonb where id='${scanRuns[0].id}';`);
       const outcomeResponse=await evaluate();
       const outcomeBody=await outcomeResponse.json();
       assert.equal(outcomeResponse.status,200,JSON.stringify({outcomeBody,logs:logs.slice(-5)}));

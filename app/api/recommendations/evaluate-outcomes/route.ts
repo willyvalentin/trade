@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { COMPLETED_INPUT_RESEARCH_CAPTURE_VERSION, completedInputResearchSnapshotMatchesDecision } from "@/lib/completed-input-research-selection";
 import { candidateDecisionRecordFromScanRun } from "@/lib/candidate-decision-readback";
 import { recommendationScanRunFromPersistenceRow } from "@/lib/recommendation-scan-run";
+import { decisionLineageReceiptFromScanRun } from "@/lib/decision-lineage-receipt";
 import { summarizeEntryTypeTriggerDiagnostics } from "@/lib/recommendation-entry-type";
 import { getIntradayCandlesWithDiagnostics } from "@/lib/market-data";
 import { getNewYorkDateString } from "@/lib/intraday-scan-window";
@@ -938,9 +939,11 @@ async function loadOfficialLiveSnapshots({
         if (decisionRows.error) throw new Error("completed_input_research_decision_read_unavailable");
         const sourceRun = decisionRows.data?.length === 1 ? recommendationScanRunFromPersistenceRow(decisionRows.data[0]) : null;
         const decisionRecord = sourceRun ? candidateDecisionRecordFromScanRun(sourceRun) : null;
+        const attributableRecord = sourceRun && decisionRecord && decisionLineageReceiptFromScanRun(sourceRun, decisionRecord)
+          ? decisionRecord : null;
         rawBatchSnapshots = rawBatchSnapshots.filter(snapshot =>
           snapshot.payload_json.research_capture_version === COMPLETED_INPUT_RESEARCH_CAPTURE_VERSION
-            ? completedInputResearchSnapshotMatchesDecision(snapshot, decisionRecord)
+            ? completedInputResearchSnapshotMatchesDecision(snapshot, attributableRecord)
             : batch.batch_type === "official");
       }
       const batchSnapshots = includeGrowMaxLearningSnapshots
