@@ -366,6 +366,29 @@ try {
         separate_synthetic_outcome_requests:externalRequests-before,
         unobservable_population_members:8-researchSnapshots.length,
         outcome_budget_pending_sources:researchSnapshots.length-outcomes.length};
+      // The counts above describe the first four-request pass. Resume after a
+      // route restart: finish only deferred sources, retaining the original
+      // completed rows. A third pass must perform no acquisition or rewrite.
+      delete require.cache[require.resolve(join(generated,"outcome-route.cjs"))];
+      const resumedResponse=await evaluate(),resumedBody=await resumedResponse.json();
+      assert.equal(resumedResponse.status,200,JSON.stringify(resumedBody));
+      const resumedRows=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_outcomes t;"));
+      assert.equal(resumedRows.length,researchSnapshots.length,"Budget-deferred sources must resume");
+      assert.equal(externalRequests-before,researchSnapshots.length,"Completed sources must not acquire data again");
+      for(const initial of outcomes) assert.deepEqual(resumedRows.find(row=>row.id===initial.id),initial);
+      const completedRows=resumedRows.sort((a,b)=>a.id.localeCompare(b.id));
+      delete require.cache[require.resolve(join(generated,"outcome-route.cjs"))];
+      const repeatedResponse=await evaluate(),repeatedBody=await repeatedResponse.json();
+      assert.equal(repeatedResponse.status,200,JSON.stringify(repeatedBody));
+      assert.equal(externalRequests-before,researchSnapshots.length);
+      const repeatedRows=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_outcomes t;"));
+      assert.deepEqual(repeatedRows.sort((a,b)=>a.id.localeCompare(b.id)),completedRows);
+      const resumedRead=await restarted.readRecommendationLearningBaselineSource(owner);
+      assert.equal(resumedRead.data.recommendation_outcomes.length,researchSnapshots.length);
+      assert.equal((await restarted.readRecommendationLearningBaselineSource("00000000-0000-4000-8000-000000000002")).data.recommendation_outcomes.length,0);
+      outcomeChainEvidence.resumption={persisted_outcomes:resumedRows.length,
+        additional_synthetic_outcome_requests:resumedRows.length-outcomes.length,
+        completed_repeat_requests:0,prior_outcomes_unchanged:true};
       externalRequests=before;
       clock=OriginalDate.parse(slot)+20000;
     }

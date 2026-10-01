@@ -104,9 +104,42 @@ integrated proof are then reverified by the 69 affected tests, strict types,
 lint and a new successful standard build; protected full CI remains required.
 This is local `recommendation_capability`/measurement-path
 evidence with explicitly synthetic market and future data, not production
-outcome persistence, a completed baseline comparison or improved alpha. There
-is no PR, push, merge or production change for this slice yet; preserve the
+outcome persistence, a completed baseline comparison or improved alpha. At that
+local-verification boundary there was no PR or production change; preserve the
 frozen Oct 2 revision and separate prospective OPEN acceptance.
+
+**PR submitted / integration held — 2026-10-01:** focused PR #721 now contains
+the source-to-outcome delivery and the evidence-based roadmap reconciliation,
+on head `b7a84db883a7bf86b277a958571401d72b162fa7`. GitHub merge candidate
+`9bf01a3fe155b3a3dfbdaaf5dcdbc4d007013f9c` has the same tracked tree
+`4153ae880f30339c86b3b5c1299d3d667d70a0e8`; initial CI run `36925628991`
+starts all six verification shards. Its foundation job `110582244674` then
+reports 1018 passing tests and one failure: the first isolated input proof cannot
+pull the unchanged PostgREST image because ECR returns `toomanyrequests: Rate
+exceeded`. The later packaged cold/warm/opening proofs pass in that same job.
+This is a registry acquisition failure, not an observed engine or source-joining
+regression; do not skip the failed test or infer CI success. The existing preview
+`6abec9cd3df89300082f609c` is a deploy-preview on the submitted head, not a
+production deploy. No review findings are present at this read, and auto-merge
+is unset. Production readback still pins main `930d44b6...` and published deploy
+`6abeba8b6bea9800095b71d6`. Do not merge before the frozen Oct 2 operating job
+and verified cleanup. This follow-up receipt is local only, not another status
+push. The app's PR attachment call reports its 100-identity capacity limit;
+the actual PR remains accessible in GitHub, and no existing attachment is removed.
+
+**Budget-deferred outcome continuation verified locally — 2026-10-01:** a
+temporary warm-runtime diagnostic against the actual isolated evaluator proves
+that its next pass resumes the two deferred sources: four first-pass outcomes
+become six, with only two additional synthetic candle requests and unchanged
+prior outcome rows. A third restarted route pass performs zero acquisition or
+outcome rewrite. The diagnostic is incorporated in the existing cold, warm and
+opening packaged regressions, not a new capture/control platform. All 69 affected
+tests pass again, with strict TypeScript, affected lint and clean diff checks;
+fixture containers/networks are verified removed. Existing runtime code and
+provider/publication rules are unchanged; the test enhancement is initially
+local and must receive current-revision CI before integration. The two warm
+members without a valid input remain unobservable, not invented outcomes. These
+are synthetic source/outcome continuity facts, not production learning or alpha.
 
 **IF-2b integration exit — 2026-10-01:** PR #720 is normally squash-merged
 after protected CI `36914848106` succeeds on

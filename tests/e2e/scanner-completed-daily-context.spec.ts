@@ -77,6 +77,12 @@ for (const scenario of ["cold", "warm", "opening"]) {
       persisted_outcomes: scenario === "warm" ? 4 : 3,
       unobservable_population_members: scenario === "warm" ? 2 : 5,
       outcome_budget_pending_sources: scenario === "warm" ? 2 : 0,
+      resumption: {
+        persisted_outcomes: scenario === "warm" ? 6 : 3,
+        additional_synthetic_outcome_requests: scenario === "warm" ? 2 : 0,
+        completed_repeat_requests: 0,
+        prior_outcomes_unchanged: true,
+      },
     });
     expect(evidence.scheduled_synthetic_requests).toBe(8);
     expect(evidence.actual_provider_requests).toBe(0);
