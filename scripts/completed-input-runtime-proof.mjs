@@ -269,6 +269,24 @@ try {
         assert.equal(payload.data_timestamp,decision.data.source_timestamp);
         assert.notEqual(payload.clock_prior_shadow_evidence_sample,true);
         assert.notEqual(payload.intraday_liquidity_shadow_evidence_sample,true);
+        const quality=row.intake_quality_json;
+        assert.equal(quality?.result_kind,"recommendation_intake_quality");
+        assert.equal(quality.result_version,"1.1");
+        assert.equal(quality.result_id,`recommendation-intake-research-${payload.candidate_id}`);
+        assert.equal(quality.recommendation_id,null);
+        assert.equal(quality.internal_only,true);
+        assert.equal(quality.ticker,row.ticker);
+        assert.equal(quality.direction,"long");
+        assert.equal(quality.evaluated_at,record.decision_timestamp);
+        assert.equal(quality.data_age_minutes,
+          Math.max(0,Math.round((OriginalDate.parse(record.decision_timestamp)-OriginalDate.parse(payload.data_timestamp))/60000)),
+          "The existing intake v1.1 receipt uses whole minutes; source timestamps remain exact");
+        assert.equal(quality.risk_reward_ratio,(row.target-row.entry)/(row.entry-row.stop));
+        assert.equal(quality.checks.find(check=>check.check_id==="duplicate_risk")?.status,"not_applicable");
+        assert.equal(quality.checks.find(check=>check.check_id==="risk_controls_context")?.status,"not_applicable");
+        const average=payload.scanner_decision_input_snapshot.intraday_indicators.averageVolume;
+        if(average!==null && average>0 && average<50000)
+          assert(quality.warnings.some(warning=>warning.reason_id==="volume_low"),"Original low-volume evidence must survive assessment");
       }
       // Adversarial source admission on the actual persisted v4 decision, not
       // a parallel fabricated decision schema. Full runtime happy path above.
@@ -431,6 +449,27 @@ try {
         return {source,readiness,plans};
       };
       const learning=await learningEvidence();
+      assert.equal(learning.source.snapshots.filter(snapshot=>snapshot.intake_quality_json?.result_kind==="recommendation_intake_quality").length,researchSnapshots.length,
+        "Each retained completed-input research source must keep its original intake assessment through owner readback");
+      assert.equal(learning.readiness.intake_quality_provenance.status,"complete");
+      assert.equal(learning.readiness.intake_quality_provenance.valid_receipt_count,researchSnapshots.length);
+      for(const snapshot of learning.source.snapshots)
+        assert.deepEqual(snapshot.intake_quality_json,researchSnapshots.find(row=>row.id===snapshot.id).intake_quality_json,
+          "Outcome evaluation and restart may not recompute or upgrade the original assessment");
+      // Missing or malformed diagnostics remain measurement gaps, not a reason
+      // to hide canonical outcomes or grant publication/freeze authority.
+      for(const [value,status,blocker] of [
+        ["null","not_recorded","outcome_sample_intake_quality_not_recorded"],
+        ["'{}'::jsonb","incomplete","outcome_sample_intake_quality_incomplete"],
+      ]){
+        sql(`update recommendation_snapshots set intake_quality_json=${value};`);
+        const missing=await learningEvidence();
+        assert.equal(missing.readiness.intake_quality_provenance.status,status);
+        assert(missing.readiness.blockers.includes(blocker));
+        assert.equal(missing.readiness.counterfactual_coverage.research_candidate_outcomes_collected,researchSnapshots.length);
+        for(const row of researchSnapshots)
+          sql(`update recommendation_snapshots set intake_quality_json='${JSON.stringify(row.intake_quality_json).replaceAll("'","''")}'::jsonb where id='${row.id}';`);
+      }
       assert.equal(learning.readiness.counterfactual_coverage.research_candidate_outcomes_collected,researchSnapshots.length,
         "Retained exact-input canonical research outcomes must reach learning without an invented upstream version");
       assert.equal(learning.readiness.decision_time_source_provenance.upstream_provider_version_unavailable_count,researchSnapshots.length);
@@ -482,6 +521,10 @@ try {
         readiness_version:learning.readiness.contract_version,
         plan_version:learning.plans.contract_version,
         canonical_research_outcomes:researchSnapshots.length,
+        retained_intake_assessments:learning.readiness.intake_quality_provenance.valid_receipt_count,
+        intake_assessment_provenance:learning.readiness.intake_quality_provenance.status,
+        intake_assessment_versions:learning.readiness.intake_quality_provenance.result_versions,
+        original_intake_assessments_unchanged:true,
         upstream_provider_version_unavailable:researchSnapshots.length,
         unresolved_population_members:8-researchSnapshots.length,
         freeze_status:learning.readiness.status,

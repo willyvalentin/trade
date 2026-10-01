@@ -2464,6 +2464,42 @@ function buildSnapshotFromResearchSample({
     candidateDecisionLink.candidate_disposition === "filtered_before_ranking";
   const inputResearchEvidence = "input_research_evidence" in sample ? sample.input_research_evidence : undefined;
   const snapshotTime = inputResearchEvidence ? new Date(inputResearchEvidence.decision_timestamp) : now;
+  // Assess only the new completed-input research sources. Reuse the existing
+  // diagnostic at the original decision clock and retained inputs, never at
+  // outcome time or from a refreshed cache. This does not authorize visibility.
+  const researchIntakeQuality = inputResearchEvidence
+    ? {
+        ...buildRecommendationIntakeQualityResult({
+          ticker: sample.ticker,
+          company_name: sample.company_name,
+          direction: "long",
+          entry_price: sample.entry,
+          entry_low: sample.entry_low,
+          entry_high: sample.entry_high,
+          stop_price: sample.stop,
+          target_price: sample.target,
+          current_price: inputResearchEvidence.input_snapshot.features.latest_close,
+          confidence_score: sample.score,
+          setup_type: sample.setup_type,
+          reason_text: sample.ranking_reason,
+          generated_at: snapshotTime,
+          market_data_timestamp: sample.market_data_timestamp,
+          market_data_stale: false,
+          latest_volume: inputResearchEvidence.input_snapshot.intraday_indicators?.latestVolume,
+          average_volume: inputResearchEvidence.input_snapshot.intraday_indicators?.averageVolume,
+          market_session: {
+            phase: marketSession.phase,
+            risk_level: marketSession.risk_level,
+            source: marketSession.source,
+            is_market_open: marketSession.market_is_open,
+          },
+          // Portfolio, spread and risk-control context are not retained here;
+          // leave them unavailable rather than inventing an empty list/pass.
+          now: snapshotTime,
+        }),
+        result_id: `recommendation-intake-research-${candidateDecisionLink.candidate_id}`,
+      }
+    : null;
   const riskPerShare = sample.entry - sample.stop;
   const rewardPerShare = sample.target - sample.entry;
   const researchBatchFingerprint =
@@ -2525,6 +2561,7 @@ function buildSnapshotFromResearchSample({
       ? (snapshotTime.getTime() - Date.parse(sample.market_data_timestamp)) / 60000 : 0,
     quality: {
       scan_observability_summary: scanObservability,
+      ...(researchIntakeQuality ? { intake_quality_result: researchIntakeQuality } : {}),
     },
     payload: {
       ...(inputResearchEvidence ? {

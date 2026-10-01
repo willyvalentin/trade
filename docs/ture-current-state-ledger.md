@@ -48,6 +48,54 @@ members, quality/charter/calibration/minimum-sample gates and freeze authority.
 Use the same gate in existing readiness and canonical evaluation consumers.
 No schema, provider request, ranking/publication rule or production flag changes.
 
+**Reproduced intake-assessment gap within this learning link — 2026-10-02:**
+The actual cold scheduler/backend/scanner/SDK/database proof persists three
+research sources and canonical outcomes, but restarted owner readback retains
+zero intake assessments (`0 !== 3`). The source builder supplies only scan
+observability to the existing snapshot quality field. The new regression fails
+after actual outcome persistence; its disposable containers are verified
+removed. Select the smallest correction in this same slice: reuse the existing
+intake-quality v1.1 assessment only for new completed-input research, with the
+original decision clock, plan, score and retained intraday inputs. Preserve
+legacy/frozen sources and hidden visibility. Missing spread, portfolio and risk
+context remain unavailable, not fabricated passes. Assessment status/grade is
+diagnostic and cannot grant publication, calibration or baseline-freeze authority.
+Acceptance is unchanged original assessment through persisted source, outcome
+and restarted owner readback, with all existing readiness gaps still explicit.
+This remains local `quality_measurement`, not measured recommendation lift.
+
+**Local completed-input intake-assessment evidence — 2026-10-02:**
+The existing v1.1 diagnostic is now persisted only for new completed-input
+research sources, bound to the original candidate identity and decision time.
+It uses original geometry, ordinal score, current-session price and intraday
+volumes, and retains the existing low-volume warning when applicable. Missing
+portfolio/risk-control context remains `not_applicable`; spread is not invented.
+Legacy research, frozen comparison cohorts and live publication stay unchanged.
+The diagnostic's visible-list field is not authority to expose a hidden source.
+
+Actual cold/opening and warm scheduler/backend/scanner/SDK/PostgreSQL/PostgREST
+proofs retain three/six/three assessments with their canonical outcomes through
+restarted owner readback. Every persisted assessment is structurally unchanged
+after future outcome evaluation; candidate IDs and exact original decision
+timestamps agree. Missing/malformed persisted assessments keep their explicit
+readiness blockers without discarding known canonical outcomes. Full eight-member
+denominators, unknown outcomes, prospective-baseline contract, source-cohort,
+calibration and sample gates remain; readiness is `not_ready`, plans are not
+freeze eligible and comparative metrics remain null.
+
+An intermediate local patch-placement error is caught by the real runtime and
+corrected before acceptance. The first expanded test run also catches a test
+expectation using fractional minutes against intake v1.1's existing rounded
+minutes; the assertion is corrected without changing source timestamps,
+freshness thresholds or assessment semantics. The final 81-test affected suite
+and 43 pagination, frozen clock/liquidity comparison, graduation and CI-coverage
+checks pass (124 total). Affected lint and the standard Next production build
+including TypeScript pass. Fixture containers and networks are verified removed.
+There are zero real provider, production or broker actions and zero publication.
+This is local measurement-path evidence only. Protected CI, main integration
+after the PR #721/Oct 2 cleanup hold and prospective OPEN learning acceptance
+are still outstanding; no improvement in recommendation returns is claimed.
+
 Acceptance is real persisted cold/warm source-to-outcome-to-learning readback,
 including malformed archives/features/identity/geometry, missing/cross-run
 lineage, ambiguous runs, duplicate outcomes and another owner. Valid canonical
