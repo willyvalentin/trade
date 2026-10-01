@@ -1,6 +1,21 @@
 # Ture Current-State Ledger
 
-## Active Now / Next / Blocked — 2026-09-29 recommendation intelligence first
+## Active Now / Next / Blocked — reconciled 2026-10-02, recommendation intelligence first
+
+**Steering reconciliation — 2026-10-02:** the user's approved roadmap update
+keeps the current completed-input/learning delivery and frozen Oct 2 OPEN card
+selected. The master roadmap now explicitly orders fresh complete inputs,
+usable canonical learning evidence and one measured contextual-ranking
+challenger, with a bounded evidence-to-next-action loop. Earlier dated "Now"
+and "next CLOSED" selections are retained history, not additional queues or
+permission to restart the stopped allocation experiment. Operational delivery,
+input fitness, learning coverage and recommendation-quality lift stay separate.
+This is a local documentation reconciliation bundled with the selected motor
+delivery, not a main/deploy change or new acceptance result. The PR #721
+prerequisite and observation/verified-cleanup integration hold are unchanged.
+The existing recommendation-engine graduation-governance check passes locally
+(one test), and diff validation is clean. No application behavior changed;
+this check verifies steering consistency, not recommendation quality.
 
 **Now — independent CLOSED IF-4 completed-input outcome admission, 2026-10-02:**
 Codex owns `codex/completed-input-learning-admission` in isolated
@@ -1062,14 +1077,18 @@ paper, broker or execution product expansion stays blocked from primary
 selection. This gate does not require a candidate every day: a fresh,
 attributable `no_trade` remains a valid decision.
 
-The active 2026-09-28 OPEN work is collection for that exact frozen cohort, not
+The then-selected 2026-09-28 OPEN work was collection for that exact frozen cohort, not
 a new infrastructure phase. CLOSED selection during the collection window is
 limited to a reproduced missing link in the same evidence chain or preparation
 of the next measured recommendation hypothesis from already attributable
 evidence. When a support blocker is closed, primary selection returns
 immediately to recommendation capability or quality measurement.
 
-### Now / Next / Blocked selection — 2026-09-28
+### Retained Now / Next / Blocked selection — 2026-09-28, superseded for work selection
+
+The active queue at the top of this ledger supersedes this dated selection.
+Keep its frozen charter and evidence intact; these historical slots and "Next"
+statements do not authorize another observation or select a development slice.
 
 - **Now:** collect the exact clock-neutral IF-3b forward cohort without changing
   live ranking or publication, while CLOSED work completes the IF-4 scorecard
