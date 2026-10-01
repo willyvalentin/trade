@@ -52,6 +52,50 @@ is a passing CLOSED regression for truthful failure handling, not a passing
 experiment or evidence that data fitness improved. The source-only and real
 isolated-database proofs preserve the generic series behavior.
 
+**Prepared replacement OPEN card — 2026-10-01, not armed:** Codex owns
+`provider_credit_allocation_switchback_2026_10_01_v2`, the continuation of the
+IF-2b provider-credit allocation hypothesis, not a new ranking hypothesis.
+Question: under the same six-scanner/eight-total-credit cap and unchanged
+strategy/rotating selection versions, does breadth-first allocation improve
+rankable-candidate fraction and funded breadth while reducing wholly unfunded
+late candidates compared with the serial baseline? Freeze three reversed-order
+pairs: 14:30Z baseline / 14:45Z challenger; 15:30Z challenger / 15:45Z baseline;
+17:00Z baseline / 17:15Z challenger. Expiry is 17:30Z (19:30 CEST). Retain all
+attempts, failures, exclusions and exact candidate-population fingerprints;
+maximum six attempts/48 credits, eight total credits per attempt, six scanner
+credits and the independent three-intraday-credit ceiling. No retry, no manual
+route and no overlapping workers are authorized by this card.
+
+Before arming, record the exact ready main revision/deploy from fresh
+authenticated preflight in this ledger, verify account and reservation-ledger
+remaining capacity for the complete series, disabled competing controls,
+verified regular New York session and the full declared window. The activation
+deploy must be ready by 14:15Z or the entire replacement is `no_go`; do not
+drop an arm or silently shift the frozen slots. Global scheduler-disable stays
+true throughout. Normal scheduler -> exact runtime admission -> provider
+reservation -> frozen allocation plan/reconciliation -> decision/lineage ->
+owner-bound cycle and scheduled-attempt readback is the evidence chain.
+
+Pass for a descriptive data-fitness signal requires all three complete pairs,
+positive challenger-minus-baseline rankable-fraction and funded-breadth deltas,
+negative late-unfunded delta, non-positive provider-error/stale-input/total-cost
+deltas, and zero stale/incomplete publication. Budget, lineage, population,
+revision or plan-versus-actual divergence is `fail`; missing, active, stopped
+or under-complete evidence is `inconclusive`, never a manufactured improvement.
+A complete non-improving or mixed comparison retains baseline. Every result
+keeps recommendation quality `unproven`; canonical-outcome/full-charter evidence
+and reversible promotion remain separate requirements.
+
+Runtime enforces the declared slot whitelist, budgets, expiry, two-failure latch
+and immediate integrity stop. Codex's separate monitoring/cleanup mechanism
+reads attributable evidence after each slot, stops on a terminal/unsafe result,
+and regardless of outcome disables series and experiment, clears only their
+metadata and verifies exactly one unchanged-revision Git-connected cleanup
+deploy plus authenticated inert readback. The observer is not the technical
+expiry/stop mechanism. PR #716's read-only evaluator is retained for completion
+after cleanup: it must be updated to the replacement contract and exact observed
+revision, not silently merged with its original v1/40d671 observation pin.
+
 The [master roadmap](./ture-master-roadmap.md) retains the full scientific,
 autonomous-paper, options and IBKR destination in SV-A-SV-U, but active work
 selection is recommendation intelligence first. The current queue is IF-2b data

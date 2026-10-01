@@ -83,7 +83,7 @@ function emptyDatabaseDecision() {
       trading_date: contract.trading_date,
       starts_at_utc: contract.slots[0].slot_utc,
       expires_at_utc: contract.expires_at_utc,
-      available_slot_count: 15,
+      available_slot_count: 12,
       requested_max_attempts: contract.max_attempts,
       requested_max_provider_credits: contract.max_total_provider_credits,
       total_reservation_count: 0,
@@ -120,7 +120,7 @@ test("freezes the exact six-slot switchback series control", () => {
   expect(control).toMatchObject({
     status: "ready",
     trading_date: "2026-10-01",
-    starts_at_utc: "2026-10-01T13:45:00.000Z",
+    starts_at_utc: "2026-10-01T14:30:00.000Z",
     expires_at_utc: "2026-10-01T17:30:00.000Z",
     max_attempts: 6,
     max_provider_credits: 48,
@@ -167,7 +167,7 @@ test("scheduler admission permits only declared slots on the exact revision", ()
     buildScannerProviderCreditAllocationScheduledSlotAdmission({
       control,
       scheduledSlotUtc: contract.slots[0].slot_utc,
-      now: new Date("2026-10-01T13:45:30.000Z"),
+      now: new Date("2026-10-01T14:30:30.000Z"),
       deployedRevision: "b".repeat(40),
     }),
   ).toMatchObject({
@@ -194,7 +194,7 @@ test("activation control rejects any experiment or observation-series drift", ()
     activationValues({ TURE_OBSERVATION_SERIES_MAX_ATTEMPTS: "5" }),
     activationValues({
       TURE_OBSERVATION_SERIES_START_SLOT_UTC:
-        "2026-10-01T14:00:00.000Z",
+        "2026-10-01T14:45:00.000Z",
     }),
   ]) {
     expect(
@@ -247,12 +247,12 @@ test("scheduled function keeps gap slots and invalid activation inert before I/O
       TURE_OBSERVATION_SERIES_MAX_PROVIDER_CREDITS: "40",
     };
     const invalidResponse = await withFixedDate(
-      "2026-10-01T13:45:20.000Z",
+      "2026-10-01T14:30:20.000Z",
       () =>
         scheduledScanHandler(
           new Request("https://scheduled.example", {
             method: "POST",
-            body: JSON.stringify({ next_run: "2026-10-01T14:00:00.000Z" }),
+            body: JSON.stringify({ next_run: "2026-10-01T14:45:00.000Z" }),
           }),
           {} as Parameters<typeof scheduledScanHandler>[1],
         ),

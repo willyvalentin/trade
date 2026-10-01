@@ -22,8 +22,8 @@ function resolveExperiment(
     enabled: true,
     experimentId:
       SCANNER_PROVIDER_CREDIT_ALLOCATION_LIVE_EXPERIMENT_CONTRACT.experiment_id,
-    scheduledSlotUtc: "2026-10-01T13:45:00.000Z",
-    now: new Date("2026-10-01T13:45:30.000Z"),
+    scheduledSlotUtc: "2026-10-01T14:30:00.000Z",
+    now: new Date("2026-10-01T14:30:30.000Z"),
     expectedRevision: revision,
     deployedRevision: revision,
     ...overrides,
@@ -34,6 +34,7 @@ test("freezes a balanced prospective switchback under the existing provider cap"
   const contract =
     SCANNER_PROVIDER_CREDIT_ALLOCATION_LIVE_EXPERIMENT_CONTRACT;
   expect(contract).toMatchObject({
+    experiment_id: "provider_credit_allocation_switchback_2026_10_01_v2",
     evidence_mode: "prospective_live_data_fitness_switchback",
     trading_date: "2026-10-01",
     scanner_provider_credit_cap: 6,
@@ -52,6 +53,11 @@ test("freezes a balanced prospective switchback under the existing provider cap"
   });
   expect(contract.slots.filter((slot) => slot.arm === "baseline")).toHaveLength(3);
   expect(contract.slots.filter((slot) => slot.arm === "challenger")).toHaveLength(3);
+  expect(contract.slots.map((slot) => slot.slot_utc)).toEqual([
+    "2026-10-01T14:30:00.000Z", "2026-10-01T14:45:00.000Z",
+    "2026-10-01T15:30:00.000Z", "2026-10-01T15:45:00.000Z",
+    "2026-10-01T17:00:00.000Z", "2026-10-01T17:15:00.000Z",
+  ]);
   expect(contract.slots.map((slot) => `${slot.pair}:${slot.arm}`)).toEqual([
     "1:baseline",
     "1:challenger",
@@ -88,8 +94,8 @@ test("admits only the exact revision-bound slot assignment", () => {
   });
   expect(
     resolveExperiment({
-      scheduledSlotUtc: "2026-10-01T14:00:00.000Z",
-      now: new Date("2026-10-01T14:02:00.000Z"),
+      scheduledSlotUtc: "2026-10-01T14:45:00.000Z",
+      now: new Date("2026-10-01T14:47:00.000Z"),
     }),
   ).toMatchObject({
     status: "admitted",
@@ -104,8 +110,9 @@ test("fails closed on undeclared time, expiry, identity or revision drift", () =
       scheduledSlotUtc: "2026-10-01T14:15:00.000Z",
       now: new Date("2026-10-01T14:15:30.000Z"),
     }),
-    resolveExperiment({ now: new Date("2026-10-01T14:00:00.000Z") }),
+    resolveExperiment({ now: new Date("2026-10-01T14:45:00.000Z") }),
     resolveExperiment({ experimentId: "different" }),
+    resolveExperiment({ experimentId: "provider_credit_allocation_switchback_2026_10_01_v1" }),
     resolveExperiment({ deployedRevision: "b".repeat(40) }),
     resolveExperiment({ expectedRevision: null }),
     resolveExperiment({

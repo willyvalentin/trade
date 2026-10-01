@@ -23,7 +23,7 @@ const experimentId =
 const repositoryRoot = path.resolve(__dirname, "../..");
 
 function receipt(
-  slot = "2026-10-01T14:00:00.000Z",
+  slot = "2026-10-01T14:45:00.000Z",
   commit = revision,
 ): ScheduledScanInvocationReceipt {
   return {
@@ -51,7 +51,7 @@ test("defaults to the baseline policy with no runtime authority", () => {
       environment: environment({}),
       requestSource: "netlify_scheduled_function",
       scheduledInvocationReceipt: receipt(),
-      now: new Date("2026-10-01T14:00:30.000Z"),
+      now: new Date("2026-10-01T14:45:30.000Z"),
     });
 
   expect(admission).toMatchObject({
@@ -81,14 +81,14 @@ test("admits the challenger only for the exact scheduler receipt, slot and revis
       }),
       requestSource: "netlify_scheduled_function",
       scheduledInvocationReceipt: receipt(),
-      now: new Date("2026-10-01T14:00:30.000Z"),
+      now: new Date("2026-10-01T14:45:30.000Z"),
     });
 
   expect(admission).toMatchObject({
     status: "admitted",
     arm: "challenger",
     pair: 1,
-    scheduled_slot_utc: "2026-10-01T14:00:00.000Z",
+    scheduled_slot_utc: "2026-10-01T14:45:00.000Z",
     selected_policy_version: SCANNER_PROVIDER_CREDIT_CHALLENGER_POLICY_VERSION,
     expected_revision: revision,
     deployed_revision: revision,
@@ -109,22 +109,22 @@ test("fails closed to baseline for manual source, missing receipt or revision dr
       environment: environment(enabled),
       requestSource: "manual",
       scheduledInvocationReceipt: receipt(),
-      now: new Date("2026-10-01T14:00:30.000Z"),
+      now: new Date("2026-10-01T14:45:30.000Z"),
     }),
     scannerProviderCreditAllocationRuntimeAdmissionFromEnvironment({
       environment: environment(enabled),
       requestSource: "netlify_scheduled_function",
       scheduledInvocationReceipt: null,
-      now: new Date("2026-10-01T14:00:30.000Z"),
+      now: new Date("2026-10-01T14:45:30.000Z"),
     }),
     scannerProviderCreditAllocationRuntimeAdmissionFromEnvironment({
       environment: environment(enabled),
       requestSource: "netlify_scheduled_function",
       scheduledInvocationReceipt: receipt(
-        "2026-10-01T14:00:00.000Z",
+        "2026-10-01T14:45:00.000Z",
         "b".repeat(40),
       ),
-      now: new Date("2026-10-01T14:00:30.000Z"),
+      now: new Date("2026-10-01T14:45:30.000Z"),
     }),
   ];
 
@@ -147,8 +147,8 @@ test("strict readback rejects any altered or extra runtime admission field", () 
     enabled: true,
     experimentId,
     scheduledInvocationBound: true,
-    scheduledSlotUtc: "2026-10-01T13:45:00.000Z",
-    now: new Date("2026-10-01T13:45:30.000Z"),
+    scheduledSlotUtc: "2026-10-01T14:30:00.000Z",
+    now: new Date("2026-10-01T14:30:30.000Z"),
     expectedRevision: revision,
     deployedRevision: revision,
   });
