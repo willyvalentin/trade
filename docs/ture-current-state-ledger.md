@@ -75,6 +75,16 @@ with null version. No extra scan, configuration change or deployment was made
 for this local decoder slice; replay provider calls and production writes are
 zero. Production behavior of these corrected readers remains outstanding.
 
+PR #719 at `2b15461ddc881c958b79639f2e10909beba92146` encountered one
+documentation-only CI defect in run `36900590053`: the full public Netlify site
+identifier in the frozen card triggered six existing ledger UUID privacy
+assertions. Local reproduction failed the same six checks; abbreviating only
+that public identifier preserves the card's revision/deploy evidence and all
+privacy guards. The thirteen affected checks now pass, and the exact registered
+Browser and server containment command passes all 1,004 tests. This does not
+change code, ranking, admission or production configuration; protected CI on
+the follow-up revision and deployed reader verification remain required.
+
 **Current delivery boundary — 2026-10-01:** allocation switchback v2 is stopped
 after four of six declared slots/two complete pairs, not still collecting.
 A CLOSED reproduction exposed an independent source-time integrity defect:
@@ -158,7 +168,7 @@ baseline observation, not continuation or replacement of the stopped v2 pair.
 Question: does the deployed normal scan retain honest market-source availability
 and source-before-decision lineage after removing the cache-write-time fallback?
 Freeze main `4e960cf9ac260821ceb28c909d83c5cad137f353`, site trade-vl
-`2b582e03-ac97-4371-8051-558d9980fb94`, Supabase `ekdyopdrrkphlrsilyoo` and
+`2b582e03...fb94`, Supabase `ekdyopdrrkphlrsilyoo` and
 series `observation_series_84450229bfec0407`: one ordinary scheduler slot
 17:30Z (19:30 CEST / 13:30 New York), half-open window [17:30Z,17:45Z).
 Activation must be ready on unchanged main by 17:15Z; otherwise no_go/cleanup,
