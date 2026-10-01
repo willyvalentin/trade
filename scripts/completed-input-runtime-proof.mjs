@@ -13,6 +13,7 @@ import { buildSync } from "esbuild";
 const root = process.cwd();
 const cold = process.argv.includes("--cold");
 const wrongPolicy = process.argv.includes("--wrong-policy");
+const diagnoseOutcomes = process.argv.includes("--diagnose-outcomes");
 const directory = mkdtempSync(join(tmpdir(), "ture-input-runtime-proof-"));
 const database = `ture-input-runtime-db-${process.pid}`;
 const api = `ture-input-runtime-api-${process.pid}`;
@@ -83,6 +84,7 @@ try {
     TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_ENABLED: "false",
     TURE_NORMAL_SCAN_ONE_SHOT_ENABLED: "false", TURE_OUTCOME_EVALUATION_ONE_SHOT_ENABLED: "false",
     TURE_INTERNAL_PAPER_WORKER_ENABLED: "false",
+    TURE_LEARNING_ACCELERATION_ENABLED: diagnoseOutcomes ? "true" : "false",
     TURE_BASIC_FREE_CATALOG_DAILY_CREDIT_BUDGET: "800", TURE_BASIC_FREE_CATALOG_PER_MINUTE_CREDIT_BUDGET: "8",
     TWELVE_DATA_API_KEY: "synthetic-boundary-only",
     OPENAI_API_KEY: "synthetic-boundary-only-no-ai-calls-permitted",
@@ -207,6 +209,7 @@ try {
   const record = scanRuns[0]?.payload_json.candidate_decision_record;
   const lineage = scanRuns[0]?.payload_json.decision_lineage_receipt;
   const claims=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from basic_free_discovery_credit_reservations t;"));
+  const researchSnapshots=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_snapshots t;"));
   if(wrongPolicy) {
     assert.equal(response.status,503);
     assert.equal(externalRequests,0);
@@ -266,7 +269,21 @@ try {
     setup_synthetic_requests:setupRequests,scheduled_synthetic_requests:externalRequests,
     attempts:rows.length,cycles:receipts.length,claims:claims.length,decision_version:record?.record_version,
     fresh_inputs:record?.candidates.filter(c=>c.data.freshness==="fresh").length,
+    ...(diagnoseOutcomes ? {outcome_chain_diagnostic:{learning_acceleration_enabled:true,
+      candidate_population:record?.candidates.length,
+      research_snapshot_count:researchSnapshots.length,
+      research_snapshots:researchSnapshots.map(row=>({ticker:row.ticker,
+        candidate_id:row.payload_json?.candidate_id??null,
+        input_policy_version:row.payload_json?.scanner_input_policy_version??null,
+        research_purpose:row.payload_json?.research_purpose??null,
+        decision_input_snapshot_present:row.payload_json?.scanner_decision_input_snapshot!==undefined,
+        source_timestamp:row.payload_json?.data_timestamp??null,
+        freshness:row.payload_json?.freshness??null}))}} : {}),
     actual_provider_requests:0,production_actions:0,publications:0,broker_actions:0,cleanup:"inert"}));
+  if(diagnoseOutcomes && !wrongPolicy) {
+    assert.equal(researchSnapshots.length,cold?3:6,
+      "Fresh, non-published versioned inputs must retain research outcome sources during a regular afternoon session");
+  }
 
 } catch (error) {
   try { originalLog(docker("inspect", "--format", "{{json .HostConfig.PortBindings}} {{json .NetworkSettings.Ports}} {{.State.Status}} {{.State.Error}}", api)); } catch { /* May not exist. */ }

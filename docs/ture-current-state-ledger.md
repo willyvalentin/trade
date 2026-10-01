@@ -2,6 +2,53 @@
 
 ## Active Now / Next / Blocked — 2026-09-29 recommendation intelligence first
 
+**Now — independent CLOSED IF-2b → IF-4 research-source slice, 2026-10-01:**
+Codex owns `codex/input-attributed-outcome-capture` in the isolated
+`/private/tmp/ture-if2b-outcomes.CUZRlz/trade` worktree, starting from verified
+main `930d44b6be9ec6fca059adba21addd05d9f9c7de`. Delivery budget is seven active
+hours, initial investigation at most four. The prior input-code slice is
+integrated; its authorized Oct 2 OPEN operating job remains separate below.
+
+The existing packaged scheduler/backend/scanner/generator/SDK proof against
+disposable PostgreSQL 16/PostgREST 16.1 reproduces a missing learning link:
+with learning acceleration explicitly enabled, the cold afternoon attempt
+retains eight decision identities/three fresh inputs but zero research
+snapshots. The warm-history variant retains six fresh inputs and still zero
+snapshots, with sixteen separately counted synthetic setup requests, eight
+scheduled requests and zero recommendation/position writes. Its explicit
+research-source regression fails `0 !== 6`; the ordinary input-delivery checks
+pass. The source gate in both research selectors admits only morning momentum,
+midday and power hour, excluding the normal afternoon and opening windows.
+These are synthetic CLOSED results, not a production gap frequency or alpha
+comparison. Both proofs' containers and networks are verified removed.
+
+Selected behavior: give the new versioned v4 input decisions an explicitly
+versioned, hidden research capture path throughout the verified regular session,
+using only their already acquired, fresh, decision-bound scanner geometry.
+Keep legacy capture and frozen clock/liquidity cohorts unchanged. Preserve
+the eight-member denominator and unobservable candidates; do not invent plans
+or outcomes for missing inputs. Bind snapshot cutoff to the actual decision,
+not the scheduler start, and require exact source/identity/geometry continuity.
+Keep existing research sample caps, provider budgets, publication thresholds,
+ranking, outcome-worker disable and broker isolation. No schema, raw provider
+archive, new data source or autonomous-paper scope is selected.
+
+Acceptance is the same real isolated runtime and restarted owner readback:
+fresh unpublished v4 sources survive outside the old clock windows, with exact
+decision/source versions and point-in-time identities; stale/future/missing,
+wrong geometry/identity, duplicates and another owner remain rejected or
+explicitly unresolved. Legacy behavior remains unchanged. Exercise the actual
+outcome evaluator on those persisted research sources using a separately
+declared synthetic future boundary, preserving unresolved population members;
+no real provider calls or production outcomes. This closes a
+`recommendation_capability`/measurement link, not demonstrated quality lift.
+
+Integration order: implement/test locally, then one coherent PR with protected
+CI. Do not merge or change the observed production revision before the frozen
+Oct 2 input test and its verified cleanup; no second development stream or
+generic readiness/capture platform is selected. Next OPEN source/outcome
+acceptance requires a separate prospective card. Graduation remains `not_met`.
+
 **IF-2b integration exit — 2026-10-01:** PR #720 is normally squash-merged
 after protected CI `36914848106` succeeds on
 `87e8f0ee795e651463b0e13a0385b6b3a73f8bd3`. Its foundation job runs the real
