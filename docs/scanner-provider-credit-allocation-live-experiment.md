@@ -100,6 +100,11 @@ as unproven, grants no runtime authority and requires canonical-outcome review
 before any policy promotion.
 
 OPEN execution remains separate work.
+After expiry, an incomplete evaluation directs evidence review before any new
+experiment; it must not suggest completing or retrying the expired frozen series.
+The local expiry-guidance correction passed all eight evaluator/readback tests,
+changed-file lint and the Next 16.3.8 production build on 2026-10-01. It is not
+part of the frozen observation revision and does not authorize another attempt.
 The authenticated `GET /api/app/provider-credit-allocation-live-evaluation`
 reads the fixed experiment window independently of current activation flags.
 It uses count-checked database reads, validates persisted cycle metadata and

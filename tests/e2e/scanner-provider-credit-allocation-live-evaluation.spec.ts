@@ -340,6 +340,7 @@ test("retains missing slots as in-progress before expiry and inconclusive after"
   expect(active.status).toBe("in_progress");
   expect(active.counts).toMatchObject({ completed_slots: 2, missing_slots: 4 });
   expect(active.paired_comparison.signal).toBe("insufficient_evidence");
+  expect(active.paired_comparison.next_step).toBe("complete_frozen_switchback");
 
   const expired = buildScannerProviderCreditAllocationLiveEvaluation({
     receipts,
@@ -350,6 +351,9 @@ test("retains missing slots as in-progress before expiry and inconclusive after"
     evaluatedAt: new Date("2026-10-01T17:31:00.000Z"),
   });
   expect(expired.status).toBe("inconclusive");
+  expect(expired.paired_comparison.next_step).toBe(
+    "review_incomplete_evidence_before_new_experiment",
+  );
   expect(expired.reason_codes).toContain(
     "live_allocation_experiment_expired_incomplete",
   );

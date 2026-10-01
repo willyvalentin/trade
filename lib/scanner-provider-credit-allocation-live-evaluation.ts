@@ -136,6 +136,7 @@ export type ScannerProviderCreditAllocationLiveEvaluation = Readonly<{
     recommendation_quality: "unproven";
     next_step:
       | "complete_frozen_switchback"
+      | "review_incomplete_evidence_before_new_experiment"
       | "repair_or_reject_experiment_evidence"
       | "retain_baseline"
       | "evaluate_canonical_outcomes_before_any_promotion";
@@ -798,6 +799,8 @@ export function buildScannerProviderCreditAllocationLiveEvaluation({
         : ("mixed_primary_proxies" as const);
   const nextStep = hardFailure
     ? ("repair_or_reject_experiment_evidence" as const)
+    : status === "inconclusive"
+      ? ("review_incomplete_evidence_before_new_experiment" as const)
     : status !== "available"
       ? ("complete_frozen_switchback" as const)
       : signal === "challenger_better_on_all_primary_proxies"
