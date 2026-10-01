@@ -2,6 +2,25 @@
 
 ## Active Now / Next / Blocked — 2026-09-29 recommendation intelligence first
 
+**Current delivery boundary — 2026-10-01:** the primary IF-2b allocation
+switchback v2 is collecting OPEN evidence on frozen main
+`8e243b67a9819eb3f7901b0468cdb3651e099a79` (PR #717). Activation deploy
+`6abe6aa20466c4a3ce6301e7` was ready at 14:14:32.218Z, before the predeclared
+14:15Z deadline. The 14:30Z baseline produced one completed attributable
+`no_trade`: attempt `scheduled_scan_attempt_18xtq19`, scan `rec_scan_run_r1l45`,
+finalized at 14:30:54.226Z. Authoritative readback at 14:32:38.849Z found one
+terminal eight-credit reservation, no active/duplicate/unattributed attempt,
+and zero recommendations or execution records. Independent scanner accounting
+is six credits, not the complete eight-credit attempt budget. Rankable coverage
+is five of eight expected candidates; one provider error and four stale inputs
+remain explicit. The experiment is still `in_progress`; neither a complete
+data-fitness comparison nor recommendation-quality improvement is proved.
+Preserve the exact six slots, revision and configuration through verified
+cleanup. The sole independent CLOSED slice remains the retained PR #716
+evaluator, developed locally and integrated only after that cleanup. The no-go
+and preparation notes below preserve the predecessor history, not an instruction
+to re-arm or retry the active series.
+
 **2026-10-01 OPEN no-go and selected CLOSED correction:** before the first
 declared slot, authenticated production readback on activation deploy
 `6abe57ef01c2be3918b15f9b` (exact main
@@ -608,6 +627,42 @@ including disposable-PostgreSQL capture and canonical-quality readback. The
 first sandboxed run had 166 passes and two Docker socket permission denials;
 the same suite passed with authorized local container access. This is CLOSED
 fixture/database evidence, not production or recommendation-quality evidence.
+
+The retained reader now also has a real isolated-database integration proof,
+`scripts/allocation-live-evaluation-readback-proof.mjs`. It reuses the existing
+authenticated bundled-route test and the actual Supabase client against
+loopback PostgREST/PostgreSQL using the existing migrations. Six synthetic
+scheduled attempts and seven cycle rows (six owned plus one valid foreign-owner
+row) yield exactly six completed owned slots and 48 explicitly fixture-only
+credits. The database owner filter excludes the foreign row; the existing
+unauthenticated, truncated, foreign-response and query-error negatives remain
+fail-closed. The proof passed locally on 2026-10-01, as did all 11 focused
+evaluator tests, changed-file lint and the full production build including
+TypeScript. Named disposable containers/network were removed and verified
+absent. No production database write, provider request, credit reservation,
+publication or broker action occurred. This closes the reader's CLOSED
+database-integration gap, not its production behavior or the OPEN experiment;
+protected PR CI and integration still follow verified observation cleanup.
+The subsequent broad rerun reproduced a time-dependent fixture error: the real
+receipt builder selected wall-clock finalization for a synthetic failed cycle,
+which became future evidence relative to the test's frozen evaluation time.
+Fixture construction now uses the existing controlled-Date pattern around the
+real trace and receipt builders, restores the global clock, and verifies the
+same terminal timestamp even under an outer 2099 clock. Production timestamp
+handling and the evaluator's future-evidence rejection are unchanged. A local
+database rerun also exposed the image's temporary Unix-socket initialization
+server shutting down after a premature readiness pass. The proof now follows
+the retained runtime proof's final-server loopback TCP connection; its real
+database integration passed again. Neither correction changes production,
+provider allocation, experiment acceptance or recommendation thresholds.
+Final verification after these fixture/startup corrections passed all 60
+allocation/evaluation/runtime/series/receipt regressions and all 168
+intelligence-foundation tests, including their real disposable-database checks.
+Changed-file lint and the full 33-page Next production build passed; the latter
+completed its TypeScript stage. This is locally tested quality-measurement
+capability only. The standalone isolated readback proof was rerun successfully
+after the TCP readiness fix; no evidence from its synthetic six-slot population
+is pooled into the live experiment.
 
 **Merged and production-verified CLOSED slice — frozen-cohort daily collection
 admission:** PR [#693](https://github.com/willyvalentin/trade/pull/693) merged as

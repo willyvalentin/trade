@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { build } from "esbuild";
 import { createRequire } from "node:module";
+import { execFileSync } from "node:child_process";
 import { resolve } from "node:path";
 import { createClient } from "@supabase/supabase-js";
 
@@ -33,6 +34,20 @@ function secondsAfter(timestamp: string, seconds: number) {
   return new Date(Date.parse(timestamp) + seconds * 1000).toISOString();
 }
 
+function withFixtureClock<T>(timestamp: string, callback: () => T) {
+  const OriginalDate = globalThis.Date;
+  const fixedTimestamp = new OriginalDate(timestamp).getTime();
+  class FixedDate extends OriginalDate {
+    constructor(value?: string | number | Date) {
+      super(value === undefined ? fixedTimestamp
+        : value instanceof OriginalDate ? value.getTime() : value);
+    }
+    static now() { return fixedTimestamp; }
+  }
+  globalThis.Date = FixedDate as DateConstructor;
+  try { return callback(); } finally { globalThis.Date = OriginalDate; }
+}
+
 function buildTerminalRecord(
   slot: (typeof contract.slots)[number],
   overrides: {
@@ -42,8 +57,12 @@ function buildTerminalRecord(
     providerErrors?: number;
     staleInputs?: number;
     diverged?: boolean;
+    ownerUserId?: string;
   } = {},
 ) {
+  // Exercise the real trace/receipt builders at the declared CLOSED fixture
+  // time, including failed cycles without a scan log. Never use wall-clock now.
+  return withFixtureClock(secondsAfter(slot.slot_utc, 8), () => {
   const deployedRevision = overrides.revision ?? revision;
   const routeReceivedAt = secondsAfter(slot.slot_utc, 4);
   const admission = buildScannerProviderCreditAllocationRuntimeAdmission({
@@ -164,7 +183,7 @@ function buildTerminalRecord(
     },
   });
   const record = buildObservationCycleReceipt({
-    ownerUserId,
+    ownerUserId: overrides.ownerUserId ?? ownerUserId,
     attemptFingerprint: `attempt_${slot.pair}_${slot.arm}`,
     source: "netlify_scheduled_function",
     mode: "scheduled",
@@ -193,6 +212,7 @@ function buildTerminalRecord(
   });
   expect(record).not.toBeNull();
   return record!;
+  });
 }
 
 function buildTerminalReceipt(...args: Parameters<typeof buildTerminalRecord>) {
@@ -434,8 +454,14 @@ test("preserves a failed allocation-integrity result even before the operational
 
 test("keeps incomplete scientific evidence separate from integrity failure at the stop", () => {
   const first = contract.slots[0];
+  const originalClock = globalThis.Date;
+  const failure = withFixtureClock("2099-10-01T18:00:00.000Z", () =>
+    buildTerminalReceipt(first, { fail: true }));
+  expect(globalThis.Date).toBe(originalClock);
+  expect(failure.finalized_at).toBe(secondsAfter(first.slot_utc, 8));
+  expect(failure.receipt_generated_at).toBe(secondsAfter(first.slot_utc, 8));
   const single = buildScannerProviderCreditAllocationLiveEvaluation({
-    receipts: [buildTerminalReceipt(first, { fail: true })],
+    receipts: [failure],
     scheduledAttemptRows: [buildScheduledAttemptRow(first)],
     expectedRevision: revision,
     evaluatedAt: new Date(secondsAfter(first.slot_utc, 60)),
@@ -564,9 +590,35 @@ test("rejects future terminal evidence instead of reporting observed coverage", 
 
 test("authenticated readback joins database evidence and rejects incomplete or foreign rows", async () => {
   const observedRevision = "8e243b67a9819eb3f7901b0468cdb3651e099a79";
+  const localOrigin = process.env.TURE_TASK_EVALUATION_LOCAL_API_ORIGIN;
+  const database = process.env.TURE_TASK_EVALUATION_LOCAL_DATABASE;
+  if (localOrigin) {
+    expect(new URL(localOrigin).hostname).toBe("127.0.0.1");
+    expect(database).toMatch(/^ture-allocation-reader-db-[0-9]+$/);
+    const records = contract.slots.map(slot => buildTerminalRecord(slot, {
+      revision: observedRevision, expectedRevision: observedRevision,
+    }));
+    records.push(buildTerminalRecord(contract.slots[0], {
+      revision: observedRevision, expectedRevision: observedRevision,
+      ownerUserId: "22222222-2222-4222-8222-222222222222",
+    }));
+    const statements = records.map(record => {
+      const columns = Object.keys(record).join(",");
+      const json = JSON.stringify(record).replaceAll("'", "''");
+      return `insert into observation_cycle_receipts(${columns}) select ${columns} from jsonb_populate_record(null::observation_cycle_receipts,'${json}'::jsonb);`;
+    });
+    for (const slot of contract.slots) {
+      const row = { ...buildScheduledAttemptRow(slot, observedRevision), scheduled_function_fired_at: slot.slot_utc };
+      const columns = Object.keys(row).join(",");
+      const json = JSON.stringify(row).replaceAll("'", "''");
+      statements.push(`insert into scheduled_scan_attempts(${columns}) select ${columns} from jsonb_populate_record(null::scheduled_scan_attempts,'${json}'::jsonb);`);
+    }
+    execFileSync("docker", ["exec", "-i", database!, "psql", "-U", "postgres", "-d", "postgres", "-v", "ON_ERROR_STOP=1"],
+      { input: statements.join("\n"), stdio: ["pipe", "pipe", "pipe"] });
+  }
   const requests: URL[] = [];
   let mode: "complete" | "truncated" | "foreign" | "error" = "complete";
-  const client = createClient("https://fixture.invalid", "synthetic-test-key", {
+  const client = createClient("https://fixture.invalid", process.env.TURE_TASK_EVALUATION_LOCAL_SERVICE_KEY ?? "synthetic-test-key", {
     auth: { persistSession: false, autoRefreshToken: false },
     global: {
       fetch: async (input, init) => {
@@ -580,6 +632,11 @@ test("authenticated readback joins database evidence and rejects incomplete or f
           `gte.${contract.slots[0].slot_utc}`, `lt.${contract.expires_at_utc}`,
         ]);
         if (cycles) expect(url.searchParams.get("owner_user_id")).toBe(`eq.${ownerUserId}`);
+        if (localOrigin && mode === "complete") {
+          const target = new URL(url.pathname.replace(/^\/rest\/v1/, "") + url.search, localOrigin);
+          expect(target.origin).toBe(localOrigin);
+          return fetch(target, init);
+        }
         if (mode === "error") return new Response('{"message":"fixture failure"}', { status: 400 });
         const rows = contract.slots.map((slot) => cycles
           ? buildTerminalRecord(slot, { revision: observedRevision, expectedRevision: observedRevision })
