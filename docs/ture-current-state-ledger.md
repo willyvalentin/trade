@@ -795,6 +795,16 @@ remain unresolved and all freeze/publication/broker gates remain closed.
 The active primary ledger, Oct 2 frozen observation and integration hold
 remain unchanged; no production or real-provider operation occurs.
 
+The complete existing local `foundation` shard and all 141 existing
+`snapshot-issuance` checks pass on exact composition source `73217b8a`,
+tree `439dcd1376786cd6f8d69ab2773362b10d1c541a`. Foundation covers lint,
+strict types, audit, build, disposable database lifecycle, 1,024 containment/
+input checks, authenticated readback and retained intelligence/evaluation
+contracts. The source stays clean and input fixture containers/networks are
+verified removed. This is macOS/ARM64 Node 26.5.0 local verification, not
+protected six-shard CI or production acceptance; integrate in the declared
+order only after the frozen Oct 2 observation and verified cleanup.
+
 **Retained local independent IF-2b volume-input correction — 2026-10-02:** the active
 queue is reconciled in `codex/completed-input-learning-admission`; this isolated
 main-based branch is its only selected second CLOSED delivery, owned by Codex

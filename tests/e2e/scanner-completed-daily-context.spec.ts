@@ -52,7 +52,8 @@ function bars(last = "2026-09-30", count = 60) {
 
 test("packaged scheduled input policy reaches the real isolated database and owner readback", () => {
   test.setTimeout(180000);
-  for (const arguments_ of [[], ["--cold"], ["--wrong-policy"], ["--cold", "--zero-latest-volume"]]) {
+  for (const arguments_ of [[], ["--cold"], ["--wrong-policy"], ["--cold", "--zero-latest-volume"],
+    ["--cold", "--opening", "--zero-latest-volume"]]) {
     const proof = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", ...arguments_],
       { cwd: process.cwd(), encoding: "utf8", timeout: 55000 });
     expect(proof.status, `${proof.stdout}\n${proof.stderr}`).toBe(0);
@@ -70,11 +71,12 @@ test("packaged scheduled input policy reaches the real isolated database and own
   }
 });
 
-for (const scenario of ["cold", "warm", "opening"]) {
+for (const scenario of ["cold", "warm", "opening", "opening_zero"]) {
   test(`packaged ${scenario} inputs retain hidden research plans and real isolated outcome persistence`, () => {
     test.setTimeout(90000);
     const proof = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--diagnose-outcomes",
-      ...(scenario !== "warm" ? ["--cold"] : []), ...(scenario === "opening" ? ["--opening"] : [])],
+      ...(scenario !== "warm" ? ["--cold"] : []), ...(scenario.startsWith("opening") ? ["--opening"] : []),
+      ...(scenario === "opening_zero" ? ["--zero-latest-volume"] : [])],
       { cwd: process.cwd(), encoding: "utf8", timeout: 80000 });
     expect(proof.status, `${proof.stdout}\n${proof.stderr}`).toBe(0);
     const evidence = JSON.parse(proof.stdout.trim().split("\n").at(-1)!);

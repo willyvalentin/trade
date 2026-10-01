@@ -297,6 +297,9 @@ try {
         const average=payload.scanner_decision_input_snapshot.intraday_indicators.averageVolume;
         if(average!==null && average>0 && average<50000)
           assert(quality.warnings.some(warning=>warning.reason_id==="volume_low"),"Original low-volume evidence must survive assessment");
+        if(zeroLatestVolume)
+          assert(quality.warnings.some(warning=>warning.reason_id==="volume_contracting"),
+            "Original latest zero must reach intake as weak current volume, not an older positive bar");
       }
       // Adversarial source admission on the actual persisted v4 decision, not
       // a parallel fabricated decision schema. Full runtime happy path above.
@@ -337,7 +340,9 @@ try {
       for (const candidate of fresh) {
         const indicators = candidate.data.input_snapshot.intraday_indicators;
         assert.equal(indicators.latestVolume, 0, "Original latest zero volume must survive persisted decision inputs");
-        assert.equal(indicators.averageVolume, 917, "The twelve-bar mean must retain its zero observation");
+        const meanBars = opening ? 3 : 12;
+        assert.equal(indicators.averageVolume, Math.round(1000 * (meanBars - 1) / meanBars),
+          "The mean must retain zero and the actual opening/later observation count");
         assert.equal(indicators.recentVolumeRatio, null);
         assert.equal(indicators.volumeTrend, "unknown");
       }
