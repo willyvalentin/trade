@@ -243,7 +243,8 @@ export function decisionLineageReceiptFromScanRun(
     decisionTimestamp === null ||
     (raw?.decision_record_version !== "candidate_decision_record_v1" &&
       raw?.decision_record_version !== "candidate_decision_record_v2" &&
-      raw?.decision_record_version !== "candidate_decision_record_v3") ||
+      raw?.decision_record_version !== "candidate_decision_record_v3" &&
+      raw?.decision_record_version !== "candidate_decision_record_v4") ||
     !categories ||
     !finiteNonNegative(categories.published_candidate_count) ||
     !finiteNonNegative(categories.rejected_candidate_count) ||

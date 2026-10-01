@@ -25,6 +25,17 @@ export type DailyCandle = {
 
 export type IntradayCandle = DailyCandle;
 
+export type DailyCandleResponse = {
+  contract_version: "daily_candle_response_v1";
+  symbol: string;
+  interval: "1day";
+  exchange_timezone: "America/New_York";
+  price_adjustment: "splits";
+  captured_at: string;
+  response_identity: TwelveDataResponseIdentity;
+  candles: DailyCandle[];
+};
+
 export type IntradayCandleRequestDiagnostics = {
   provider: "twelve_data";
   interval: "5min" | "15min";
@@ -43,6 +54,7 @@ export type IntradayCandleRequestDiagnostics = {
   response_structurally_valid: true;
   retry_count: 0;
   rate_limited: false;
+  response_metadata_verified?: true;
 };
 
 export type MarketQuote = {
@@ -98,6 +110,7 @@ type TwelveDataTimeSeriesValue = {
 
 type TwelveDataTimeSeriesResponse = TwelveDataErrorResponse & {
   values?: unknown;
+  meta?: unknown;
 };
 
 type TwelveDataQuoteResponse = TwelveDataErrorResponse & {
@@ -413,6 +426,60 @@ export async function getDailyCandles(
     .sort((left, right) => left.timestamp - right.timestamp);
 }
 
+/** Raw daily history for the explicit completed-context input challenger only.
+ * The legacy API above deliberately keeps its original behavior and callers.
+ * Daily datetime is an exchange date label; timezone cannot convert it into a
+ * live market timestamp. Metadata and byte identity are retained, not inferred.
+ */
+export async function getDailyCandlesWithIdentity(
+  symbol: string,
+  days: number,
+  options?: { signal?: AbortSignal },
+): Promise<DailyCandleResponse> {
+  if (!Number.isInteger(days) || days < 50 || days > 60) {
+    throw new Error("Completed daily context requires 50–60 requested bars.");
+  }
+  const normalized = normalizeSymbol(symbol);
+  const result = await fetchTwelveDataDetailed<TwelveDataTimeSeriesResponse>(
+    "/time_series", { symbol: normalized, interval: "1day", outputsize: days,
+      order: "ASC", adjust: "splits" }, options,
+  );
+  const meta = result.data.meta;
+  if (!meta || typeof meta !== "object" || Array.isArray(meta) ||
+    (meta as Record<string, unknown>).symbol !== normalized ||
+    (meta as Record<string, unknown>).interval !== "1day" ||
+    (meta as Record<string, unknown>).exchange_timezone !== "America/New_York" ||
+    !Array.isArray(result.data.values) || result.data.values.length > days) {
+    throw new MarketDataProviderResponseError("Daily history identity or structure is invalid.", true);
+  }
+  const candles = result.data.values.map((raw, index) => {
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+      throw new MarketDataProviderResponseError("Daily history bar is invalid.", true);
+    }
+    const candle = raw as TwelveDataTimeSeriesValue;
+    const date = candle.datetime;
+    if (typeof date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(date) ||
+      !Number.isFinite(Date.parse(`${date}T00:00:00.000Z`)) ||
+      new Date(`${date}T00:00:00.000Z`).toISOString().slice(0, 10) !== date) {
+      throw new MarketDataProviderResponseError("Daily history date label is invalid.", true);
+    }
+    const value = (key: "open" | "high" | "low" | "close" | "volume") => {
+      if (typeof candle[key] === "string" && !(candle[key] as string).trim()) {
+        throw new MarketDataProviderResponseError("Daily history number is missing.", true);
+      }
+      return numberField(candle[key], `daily candle ${index + 1} ${key}`);
+    };
+    return { timestamp: Date.parse(`${date}T00:00:00.000Z`) / 1000,
+      open: value("open"), high: value("high"), low: value("low"),
+      close: value("close"), volume: value("volume") };
+  });
+  throwIfAborted(options?.signal);
+  return { contract_version: "daily_candle_response_v1", symbol: normalized,
+    interval: "1day", exchange_timezone: "America/New_York", price_adjustment: "splits",
+    captured_at: new Date().toISOString(), response_identity: result.responseIdentity,
+    candles };
+}
+
 export async function getIntradayCandles(
   symbol: string,
   interval: "5min" | "15min",
@@ -436,7 +503,7 @@ export async function getIntradayCandlesWithDiagnostics(
   interval: "5min" | "15min",
   start: Date,
   end: Date,
-  options?: { signal?: AbortSignal },
+  options?: { signal?: AbortSignal; requireResponseIdentity?: boolean },
 ): Promise<{
   candles: IntradayCandle[];
   diagnostics: IntradayCandleRequestDiagnostics;
@@ -463,9 +530,18 @@ export async function getIntradayCandlesWithDiagnostics(
   }
 
   const startTimestamp = Math.floor(start.getTime() / 1000);
+  if (options?.requireResponseIdentity) {
+    const meta = data.meta;
+    if (!meta || typeof meta !== "object" || Array.isArray(meta) ||
+      (meta as Record<string, unknown>).symbol !== params.symbol ||
+      (meta as Record<string, unknown>).interval !== interval ||
+      (meta as Record<string, unknown>).exchange_timezone !== timezone) {
+      throw new MarketDataProviderResponseError("Intraday response identity is invalid.", true);
+    }
+  }
   const endTimestamp = Math.floor(end.getTime() / 1000);
 
-  const candles = data.values
+  const parsedCandles = data.values
     .map((value, index) => {
       const candle = value as TwelveDataTimeSeriesValue;
 
@@ -482,17 +558,29 @@ export async function getIntradayCandlesWithDiagnostics(
         volume: numberField(candle.volume, `candle ${index + 1} volume`),
       };
     })
-    .filter(
+    .sort((left, right) => left.timestamp - right.timestamp);
+  if (options?.requireResponseIdentity) {
+    const step = interval === "5min" ? 300 : 900;
+    if (parsedCandles.length === 0 || parsedCandles[0].timestamp !== startTimestamp ||
+      parsedCandles.some((candle, index) =>
+        candle.timestamp > endTimestamp ||
+        (index > 0 && candle.timestamp - parsedCandles[index - 1].timestamp !== step) ||
+        Math.min(candle.open, candle.high, candle.low, candle.close) <= 0 || candle.volume < 0 ||
+        candle.low > Math.min(candle.open, candle.close) || candle.high < Math.max(candle.open, candle.close))) {
+      throw new MarketDataProviderResponseError("Intraday session bars are incomplete or invalid.", true);
+    }
+  }
+  const candles = parsedCandles.filter(
       (candle) =>
         candle.timestamp >= startTimestamp && candle.timestamp <= endTimestamp,
-    )
-    .sort((left, right) => left.timestamp - right.timestamp);
+    );
   const firstCandle = candles[0] ?? null;
   const lastCandle = candles.at(-1) ?? null;
 
   return {
     candles,
     diagnostics: {
+      ...(options?.requireResponseIdentity ? { response_metadata_verified: true as const } : {}),
       provider: "twelve_data",
       interval,
       start_at: start.toISOString(),

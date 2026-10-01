@@ -12,7 +12,7 @@ export type ScanProviderCandidateObservationReason =
   | "intraday_stale_cache";
 
 export type ScanProviderCandidateObservation = {
-  observation_version: typeof SCAN_PROVIDER_CANDIDATE_OBSERVATION_VERSION;
+  observation_version: typeof SCAN_PROVIDER_CANDIDATE_OBSERVATION_VERSION | "scan_provider_candidate_observation_v2";
   ticker: string;
   ticker_index: number;
   status: "pending" | "rankable" | "not_rankable";
@@ -21,6 +21,7 @@ export type ScanProviderCandidateObservation = {
     | "fresh_cache"
     | "stale_cache"
     | "provider"
+    | "completed_context"
     | "unavailable";
   intraday_data_source:
     | "not_observed"
@@ -36,7 +37,7 @@ export const SCAN_PROVIDER_CANDIDATE_OBSERVATION_SUMMARY_VERSION =
   "scan_provider_candidate_observation_summary_v1" as const;
 
 export type ScanProviderCandidateObservationSummary = {
-  summary_version: typeof SCAN_PROVIDER_CANDIDATE_OBSERVATION_SUMMARY_VERSION;
+  summary_version: typeof SCAN_PROVIDER_CANDIDATE_OBSERVATION_SUMMARY_VERSION | "scan_provider_candidate_observation_summary_v2";
   expected_candidate_count: number;
   rankable_candidate_count: number;
   not_rankable_candidate_count: number;
@@ -70,7 +71,8 @@ export function summarizeScanProviderCandidateObservations(
   ) => observation.reason_codes.some((reason) => reasons.includes(reason));
 
   return {
-    summary_version: SCAN_PROVIDER_CANDIDATE_OBSERVATION_SUMMARY_VERSION,
+    summary_version: observations.some(item => item.observation_version === "scan_provider_candidate_observation_v2")
+      ? "scan_provider_candidate_observation_summary_v2" : SCAN_PROVIDER_CANDIDATE_OBSERVATION_SUMMARY_VERSION,
     expected_candidate_count: observations.length,
     rankable_candidate_count: observations.filter(
       (observation) => observation.status === "rankable",
@@ -85,7 +87,8 @@ export function summarizeScanProviderCandidateObservations(
       (observation) =>
         observation.status === "rankable" &&
         (observation.daily_data_source === "fresh_cache" ||
-          observation.daily_data_source === "provider") &&
+          observation.daily_data_source === "provider" ||
+          (observation.observation_version === "scan_provider_candidate_observation_v2" && observation.daily_data_source === "completed_context")) &&
         (observation.intraday_data_source === "fresh_cache" ||
           observation.intraday_data_source === "provider"),
     ).length,

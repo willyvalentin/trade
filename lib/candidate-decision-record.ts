@@ -18,9 +18,18 @@ import {
   type DecisionStrategyReference,
 } from "@/lib/decision-strategy-registry";
 import { isFreshLiveReferenceMarketTime } from "@/lib/live-reference-freshness-policy";
+import {
+  captureScannerDecisionInputSnapshot,
+  isScannerDecisionInputPublishable,
+  COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION,
+  COMPLETED_DAILY_DECISION_SCANNER_VERSION,
+  type ScannerDecisionInputSnapshot,
+} from "@/lib/scanner-decision-input-snapshot";
 
 export const CANDIDATE_DECISION_CAPTURE_VERSION =
   "candidate_decision_capture_v1" as const;
+export const INPUT_ATTRIBUTED_CANDIDATE_DECISION_CAPTURE_VERSION = "candidate_decision_capture_v2" as const;
+export const INPUT_ATTRIBUTED_CANDIDATE_DECISION_RECORD_VERSION = "candidate_decision_record_v4" as const;
 export const LEGACY_CANDIDATE_DECISION_RECORD_VERSION =
   "candidate_decision_record_v1" as const;
 export const ATTRIBUTED_CANDIDATE_DECISION_RECORD_VERSION =
@@ -70,9 +79,10 @@ export type CandidateDecisionReasonCode =
   | "no_trade";
 
 export type CandidateDecisionCapture = {
-  capture_version: typeof CANDIDATE_DECISION_CAPTURE_VERSION;
+  capture_version: typeof CANDIDATE_DECISION_CAPTURE_VERSION | typeof INPUT_ATTRIBUTED_CANDIDATE_DECISION_CAPTURE_VERSION;
   capture_timestamp: string;
-  scanner_version: typeof CANDIDATE_DECISION_SCANNER_VERSION;
+  scanner_version: typeof CANDIDATE_DECISION_SCANNER_VERSION | typeof COMPLETED_DAILY_DECISION_SCANNER_VERSION;
+  input_policy_version?: typeof COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION;
   universe_version: typeof CANDIDATE_DECISION_UNIVERSE_VERSION;
   provider_contract_version: typeof CANDIDATE_DECISION_PROVIDER_CONTRACT_VERSION;
   universe: Array<{
@@ -89,6 +99,7 @@ export type CandidateDecisionCapture = {
     indicator_source: "cache" | "fresh" | "unavailable" | null;
     stale: boolean | null;
     data_gap_codes: CandidateDecisionReasonCode[];
+    input_snapshot?: ScannerDecisionInputSnapshot;
   }>;
   ranking: ScannerCandidateRankingSummary | null;
   eligible_candidate_tickers: string[];
@@ -105,7 +116,8 @@ export type CandidateDecisionRecord = {
   record_version:
     | typeof LEGACY_CANDIDATE_DECISION_RECORD_VERSION
     | typeof ATTRIBUTED_CANDIDATE_DECISION_RECORD_VERSION
-    | typeof CANDIDATE_DECISION_RECORD_VERSION;
+    | typeof CANDIDATE_DECISION_RECORD_VERSION
+    | typeof INPUT_ATTRIBUTED_CANDIDATE_DECISION_RECORD_VERSION;
   record_kind: "candidate_decision_record";
   scan_run_id: string;
   scan_run_fingerprint: string;
@@ -118,6 +130,7 @@ export type CandidateDecisionRecord = {
     ranking_version: string;
     build_version: string;
     provider_contract_version: string;
+    input_policy_version?: typeof COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION;
   };
   learning_attribution: CandidateDecisionLearningAttribution;
   coverage: {
@@ -145,6 +158,7 @@ export type CandidateDecisionRecord = {
       freshness: CandidateDecisionFreshness;
       indicator_source: "cache" | "fresh" | "unavailable" | null;
       gap_codes: CandidateDecisionReasonCode[];
+      input_snapshot?: ScannerDecisionInputSnapshot | null;
     };
     ranking: {
       rank: number;
@@ -268,6 +282,7 @@ export function buildCandidateDecisionCapture({
   captureTimestamp,
   universe,
   observedCandidates,
+  inputPolicyVersion,
   ranking = null,
   eligibleCandidateTickers = [],
   eligibilityRejectionCodes = {},
@@ -281,6 +296,7 @@ export function buildCandidateDecisionCapture({
   captureTimestamp: string;
   universe: ScannerCandidate[];
   observedCandidates: ScannerCandidate[];
+  inputPolicyVersion?: typeof COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION;
   ranking?: ScannerCandidateRankingSummary | null;
   eligibleCandidateTickers?: string[];
   eligibilityRejectionCodes?: Record<string, CandidateDecisionReasonCode[]>;
@@ -298,11 +314,21 @@ export function buildCandidateDecisionCapture({
   const eligibleTickerSet = new Set(
     eligibleCandidateTickers.map(normalizeTicker),
   );
+  const policyVersions = new Set(observedCandidates.map(candidate => candidate.scanner_input_policy_version ?? null));
+  const inputAttributed = inputPolicyVersion === COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION ||
+    policyVersions.has(COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION);
+  if ((inputPolicyVersion !== undefined && inputPolicyVersion !== COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION) ||
+    [...policyVersions].some(version => version !== null && version !== COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION) ||
+    (inputAttributed && [...policyVersions].some(version => version !== COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION))) {
+    throw new Error("candidate_decision_mixed_or_unknown_input_policy");
+  }
+  if (inputAttributed && toIso(captureTimestamp) === null) throw new Error("candidate_decision_input_capture_timestamp_invalid");
 
   return {
-    capture_version: CANDIDATE_DECISION_CAPTURE_VERSION,
+    capture_version: inputAttributed ? INPUT_ATTRIBUTED_CANDIDATE_DECISION_CAPTURE_VERSION : CANDIDATE_DECISION_CAPTURE_VERSION,
     capture_timestamp: normalizedCaptureTimestamp,
-    scanner_version: CANDIDATE_DECISION_SCANNER_VERSION,
+    scanner_version: inputAttributed ? COMPLETED_DAILY_DECISION_SCANNER_VERSION : CANDIDATE_DECISION_SCANNER_VERSION,
+    ...(inputAttributed ? { input_policy_version: COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION } : {}),
     universe_version: CANDIDATE_DECISION_UNIVERSE_VERSION,
     provider_contract_version: CANDIDATE_DECISION_PROVIDER_CONTRACT_VERSION,
     universe: universe.map((candidate) => ({
@@ -334,6 +360,7 @@ export function buildCandidateDecisionCapture({
                 ? candidate.intraday_indicator_stale
                 : null,
           data_gap_codes: dataGapCodes,
+          ...(inputAttributed ? { input_snapshot: captureScannerDecisionInputSnapshot(candidate, normalizedCaptureTimestamp) } : {}),
         },
       ];
     }),
@@ -377,6 +404,14 @@ export function buildCandidateDecisionRecord({
   learningAttribution?: CandidateDecisionLearningAttribution | null;
 }): CandidateDecisionRecord | null {
   if (!capture) return null;
+  const inputAttributed = capture.capture_version === INPUT_ATTRIBUTED_CANDIDATE_DECISION_CAPTURE_VERSION;
+  if (inputAttributed && (capture.scanner_version !== COMPLETED_DAILY_DECISION_SCANNER_VERSION ||
+    capture.input_policy_version !== COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION)) {
+    throw new Error("candidate_decision_input_capture_version_mismatch");
+  }
+  if (!inputAttributed && (capture.scanner_version === COMPLETED_DAILY_DECISION_SCANNER_VERSION || capture.input_policy_version !== undefined)) {
+    throw new Error("candidate_decision_input_capture_version_mismatch");
+  }
 
   const decisionTimestamp =
     toIso(scanRun.completed_at ?? "") ??
@@ -431,9 +466,15 @@ export function buildCandidateDecisionRecord({
       observation?.data_gap_codes ?? ["candidate_provider_gap"];
     const decisionTimestampGapCodes: CandidateDecisionReasonCode[] =
       sourceTimestampIsAfterDecision ? ["candidate_provider_gap"] : [];
+    const sourceExpiredAtDecision = inputAttributed && observation?.source_timestamp !== null &&
+      observation?.source_timestamp !== undefined && !sourceTimestampIsAfterDecision &&
+      (!isFreshLiveReferenceMarketTime(observation.source_timestamp, Date.parse(decisionTimestamp)) ||
+        (!!observation.input_snapshot?.current_session && !isScannerDecisionInputPublishable(
+          observation.input_snapshot, candidate.ticker, new Date(decisionTimestamp))));
     const dataGapCodes = uniqueSorted<CandidateDecisionReasonCode>([
       ...observedDataGapCodes,
       ...decisionTimestampGapCodes,
+      ...(sourceExpiredAtDecision ? ["provider_data_stale" as const] : []),
     ]);
     const reasonCodes: CandidateDecisionReasonCode[] = [
       ...dataGapCodes,
@@ -474,15 +515,19 @@ export function buildCandidateDecisionRecord({
 
     const dataFreshness: CandidateDecisionFreshness = !observation
       ? "gap"
-      : observation.stale === true
+      : observation.stale === true || sourceExpiredAtDecision
         ? "stale"
         : dataGapCodes.includes("candidate_provider_gap")
           ? "gap"
-          : observation.indicator_source === "fresh"
+          : observation.indicator_source === "fresh" || (inputAttributed && observation.stale === false && !!observation.input_snapshot?.current_session)
             ? "fresh"
             : observation.indicator_source === "cache"
               ? "unknown"
               : "unknown";
+    if (inputAttributed && publishedTickerSet.has(candidate.ticker) &&
+      (dataFreshness !== "fresh" || !observation?.input_snapshot?.current_session)) {
+      throw new Error("candidate_decision_publication_input_incomplete");
+    }
 
     return {
       candidate_id: candidateDecisionCandidateId(scanRun.id, candidate.ticker),
@@ -498,6 +543,7 @@ export function buildCandidateDecisionRecord({
         freshness: dataFreshness,
         indicator_source: observation?.indicator_source ?? null,
         gap_codes: dataGapCodes,
+        ...(inputAttributed ? { input_snapshot: observation?.input_snapshot ?? null } : {}),
       },
       ranking: rank
         ? {
@@ -526,7 +572,7 @@ export function buildCandidateDecisionRecord({
   const noTradeReason = published ? null : capture.no_publish_reason ?? "no_trade";
 
   return {
-    record_version: CANDIDATE_DECISION_RECORD_VERSION,
+    record_version: inputAttributed ? INPUT_ATTRIBUTED_CANDIDATE_DECISION_RECORD_VERSION : CANDIDATE_DECISION_RECORD_VERSION,
     record_kind: "candidate_decision_record",
     scan_run_id: scanRun.id,
     scan_run_fingerprint: scanRun.run_fingerprint,
@@ -543,6 +589,7 @@ export function buildCandidateDecisionRecord({
         : "unknown",
       build_version: buildVersion,
       provider_contract_version: capture.provider_contract_version,
+      ...(inputAttributed ? { input_policy_version: COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION } : {}),
     },
     learning_attribution:
       learningAttribution ??

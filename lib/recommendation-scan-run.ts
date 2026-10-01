@@ -525,7 +525,8 @@ export function reconcileRecommendationScanRunTerminalTrace(
     recordKind !== "candidate_decision_record" ||
     (recordVersion !== "candidate_decision_record_v1" &&
       recordVersion !== "candidate_decision_record_v2" &&
-      recordVersion !== "candidate_decision_record_v3")
+      recordVersion !== "candidate_decision_record_v3" &&
+      recordVersion !== "candidate_decision_record_v4")
   ) {
     return scanRun;
   }

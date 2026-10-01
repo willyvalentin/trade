@@ -1,4 +1,5 @@
 import "server-only";
+import { hasCompletedInputBudget } from "@/lib/scheduled-scanner-input-policy";
 
 import OpenAI from "openai";
 
@@ -17,6 +18,12 @@ import {
   scanMarket,
   type ScannerCandidate,
 } from "@/lib/scanner";
+import {
+  COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION,
+  captureScannerDecisionInputSnapshot,
+  isScannerDecisionInputPublishable,
+} from "@/lib/scanner-decision-input-snapshot";
+import { getUsEquityMarketSession } from "@/lib/us-equity-market-calendar";
 import type { ScannerProviderCreditAllocationRuntimeAdmission } from "@/lib/scanner-provider-credit-allocation-runtime-admission";
 import {
   getOrRefreshIntradayIndicators,
@@ -165,6 +172,7 @@ export type GenerateRecommendationsInput = {
   scheduledProviderCreditBudget?: ScheduledScanProviderCreditBudget | null;
   scheduledProviderCallPacingMs?: number | null;
   providerCreditAllocationRuntimeAdmission?: ScannerProviderCreditAllocationRuntimeAdmission | null;
+  scannerInputPolicyVersion?: typeof COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION;
   growMaxLearningMode?: boolean;
   skipOpenAi?: boolean;
   activeScanTrace?: ActiveScanTraceRecorder | null;
@@ -2152,6 +2160,11 @@ function buildOpenAiCandidatePayloads({
       market_data_provider: marketDataProvider,
       market_data_timestamp: candidate.intraday_indicator_cached_at ?? null,
       market_data_stale: candidate.intraday_indicator_stale ?? null,
+      ...(candidate.scanner_input_policy_version === COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION ? {
+        scanner_input_policy_version: candidate.scanner_input_policy_version,
+        historical_context: candidate.daily_context_evidence ?? null,
+        current_session: candidate.current_session_evidence ?? null,
+      } : {}),
       data_freshness: getDataFreshness(candidate),
       warnings: [
         ...candidate.local_score_warnings,
@@ -3185,6 +3198,7 @@ export async function generateRecommendations({
   scheduledProviderCreditBudget = null,
   scheduledProviderCallPacingMs = null,
   providerCreditAllocationRuntimeAdmission = null,
+  scannerInputPolicyVersion,
   growMaxLearningMode = false,
   skipOpenAi = false,
   activeScanTrace = null,
@@ -3192,6 +3206,21 @@ export async function generateRecommendations({
 }: GenerateRecommendationsInput) {
   try {
     throwIfAborted(signal);
+    const inputAttributed = scannerInputPolicyVersion === COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION;
+    if (scannerInputPolicyVersion !== undefined && !inputAttributed) {
+      throw new Error("scanner_input_policy_invalid");
+    }
+    if (inputAttributed) {
+      const now = new Date(), session = getUsEquityMarketSession(now);
+      if (source !== "scheduled" || !hasCompletedInputBudget(scheduledProviderCreditBudget) ||
+        process.env.TURE_MARKET_WIDE_DISCOVERY_ENABLED === "true" ||
+        diagnosticMode || scanWindow === "pre_market" || scanWindow === "closed" ||
+        providerCreditAllocationRuntimeAdmission || session.verification_status !== "verified" ||
+        session.freshness_status !== "current" || !session.session_open || !session.session_close ||
+        now.getTime() < Date.parse(session.session_open) || now.getTime() >= Date.parse(session.session_close)) {
+        throw new Error("completed_context_generator_admission_invalid");
+      }
+    }
     const owner = normalizeApplicationOwnerUserId(ownerUserId);
     if (!owner) {
       throw new RecommendationGenerationError(
@@ -3621,6 +3650,7 @@ export async function generateRecommendations({
             ? scheduledProviderCallPacingMs ?? undefined
             : undefined,
         providerCreditAllocationRuntimeAdmission,
+        completedDailyContextPolicyVersion: scannerInputPolicyVersion,
         signal,
       },
     );
@@ -3663,6 +3693,7 @@ export async function generateRecommendations({
         captureTimestamp: candidateDecisionCaptureTimestamp,
         universe: scannerBaseCandidates,
         observedCandidates: scannerCandidates,
+        inputPolicyVersion: scannerInputPolicyVersion,
         ranking,
         eligibleCandidateTickers,
         eligibilityRejectionCodes: Object.fromEntries(
@@ -3979,7 +4010,7 @@ export async function generateRecommendations({
         now: rankingObservedAt,
       });
     const scannerIntradayLiquidityShadowComparison =
-      buildScannerIntradayLiquidityShadowComparison({
+      inputAttributed ? null : buildScannerIntradayLiquidityShadowComparison({
         candidates: initiallyScoredCandidates,
         baseline: scannerCandidateRankingSummary,
         scanWindow,
@@ -3987,7 +4018,7 @@ export async function generateRecommendations({
         now: rankingObservedAt,
       });
     const scannerClockPriorShadowComparison =
-      buildScannerClockPriorShadowComparison({
+      inputAttributed ? null : buildScannerClockPriorShadowComparison({
         candidates: initiallyScoredCandidates,
         baseline: scannerCandidateRankingSummary,
         scanWindow,
@@ -4073,7 +4104,9 @@ export async function generateRecommendations({
     );
     let candidatesForOpenAI = qualifiedCandidates.slice(0, candidateLimit);
     const referenceRefreshMaxAttempts =
-      source === "scheduled"
+      // A legacy single-price refresh cannot replace the versioned session
+      // inputs used for ranking or silently add requests to this challenger.
+      inputAttributed ? 0 : source === "scheduled"
         ? scheduledProviderCreditBudget?.enforced
           ? Math.max(
               0,
@@ -4286,7 +4319,8 @@ export async function generateRecommendations({
     let modelNoPublish: {
       reason:
         | "openai_zero_recommendations"
-        | "openai_recommendation_validation_failed";
+        | "openai_recommendation_validation_failed"
+        | "current_session_inputs_expired";
       message: string;
     } | null = null;
     let openAiOutputRecommendationCount = 0;
@@ -4423,7 +4457,24 @@ export async function generateRecommendations({
     activeScanTrace?.updateOpenAi({
       parser_rejected_count: sanitizedRecommendations.skippedReasons.length,
     });
-    const recommendationsToInsert = sanitizedRecommendations.recommendations;
+    const publicationCheckedAt = new Date();
+    const recommendationsToInsert = sanitizedRecommendations.recommendations.filter(recommendation => {
+      if (!inputAttributed) return true;
+      const candidate = scannerCandidates.find(candidate => candidate.ticker === recommendation.ticker);
+      const usable = candidate !== undefined && isScannerDecisionInputPublishable(
+        captureScannerDecisionInputSnapshot(candidate, candidateDecisionCaptureTimestamp),
+        recommendation.ticker, publicationCheckedAt,
+      );
+      if (!usable) {
+        recordCandidateEligibilityRejection(recommendation.ticker, "provider_data_stale");
+        sanitizedRecommendations.skippedReasons.push(`${recommendation.ticker}: versioned current-session inputs expired or unavailable before publication.`);
+      }
+      return usable;
+    });
+    if (inputAttributed && recommendationsToInsert.length === 0 && sanitizedRecommendations.recommendations.length > 0) {
+      modelNoPublish = { reason: "current_session_inputs_expired",
+        message: "No trade: current-session inputs expired or became unavailable before publication." };
+    }
 
     const sanitizedPublicationAction =
       resolveSanitizedRecommendationPublicationAction({

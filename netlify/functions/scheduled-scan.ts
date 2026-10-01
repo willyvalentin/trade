@@ -667,6 +667,8 @@ function scheduledScanAttemptPayload({
     scheduled_slot_started_at_utc: scheduledSlotStartedAtUtc,
     scheduled_slot_identity_source: scheduledSlotIdentitySource,
     runtime_configuration: runtimeConfiguration,
+    scanner_input_policy_version:
+      Netlify.env.get("TURE_SCANNER_INPUT_POLICY_VERSION")?.trim() || null,
     netlify_deploy: scheduledScanDeployIdentity(context),
     // The private route may add terminal facts to this exact durable attempt,
     // but it must retain this generated build identity rather than recover a
