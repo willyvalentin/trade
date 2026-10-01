@@ -201,6 +201,9 @@ function fixture() {
     payload: {
       market_regime: { regime: "risk_on" },
       market_regime_context: MARKET_REGIME_CONTEXT,
+      // This synthetic setup is explicit so canonical concentration checks do
+      // not stop before the outcome/probability behavior under test.
+      setup_type: "VWAP_HOLD_CONTINUATION",
       visibility_status: "research_only",
       research_only: true,
       learning_scope: "research_only",
@@ -429,6 +432,19 @@ test("maps a complete persisted scan into the canonical paired rank evaluator", 
     publication_effect: false,
     causal_improvement_claimed: false,
   });
+});
+
+test("requires an explicit setup instead of silently bypassing concentration evidence", () => {
+  const { persistedRun, snapshot, outcome } = fixture();
+  const payload = { ...snapshot.payload_json };
+  delete payload.setup_type;
+  const result = evaluateScannerIntradayLiquidityShadowScan({
+    scanRun: persistedRun, snapshots: [{ ...snapshot, payload_json: payload }],
+    outcomes: [outcome], bootstrapSeed: "intraday-liquidity-shadow:test-seed-v1",
+  });
+  expect(result.status).toBe("insufficient_evidence");
+  expect(result.evaluation).toBeNull();
+  expect(result.reason_codes).toContain("candidate_concentration_dimensions_missing");
 });
 
 test("refuses canonical ranking evaluation when any candidate outcome is missing", () => {

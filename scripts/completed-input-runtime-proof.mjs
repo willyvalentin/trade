@@ -67,6 +67,11 @@ try {
       export { getUsEquityMarketSession } from './lib/us-equity-market-calendar';
       export { getIntradayScanWindow } from './lib/intraday-scan-window';
       export { readRecommendationLearningBaselineSource } from './lib/server/application-data-access';
+      export { parseRecommendationLearningBaselineSource } from './lib/recommendation-learning-baseline-source';
+      export { buildRecommendationLearningBaselineReadiness } from './lib/recommendation-learning-baseline-readiness';
+      export { buildRecommendationLearningBaselineSegmentation } from './lib/recommendation-learning-baseline-segments';
+      export { buildRecommendationLearningEvaluationPlans } from './lib/recommendation-learning-evaluation-plan';
+      export { recommendationDecisionSourceProvenanceFromSnapshot } from './lib/recommendation-decision-source-provenance';
       export { recommendationScanRunFromPersistenceRow } from './lib/recommendation-scan-run';
       export { candidateDecisionRecordFromScanRun } from './lib/candidate-decision-readback';
       export { decisionLineageReceiptFromScanRun } from './lib/decision-lineage-receipt';
@@ -401,6 +406,88 @@ try {
       outcomeChainEvidence.resumption={persisted_outcomes:resumedRows.length,
         additional_synthetic_outcome_requests:resumedRows.length-outcomes.length,
         completed_repeat_requests:0,prior_outcomes_unchanged:true};
+      // Restarted owner read -> actual decoder -> actual baseline/evaluation
+      // consumers. No source-version fabrication or readiness promotion.
+      const learningEvidence=async()=>{
+        const read=await restarted.readRecommendationLearningBaselineSource(owner);
+        const source=restarted.parseRecommendationLearningBaselineSource(read.data);
+        assert(source,"Actual owner read must decode all retained research rows");
+        const readiness=restarted.buildRecommendationLearningBaselineReadiness(source);
+        const segmentation=restarted.buildRecommendationLearningBaselineSegmentation(source);
+        const plans=restarted.buildRecommendationLearningEvaluationPlans({...source,segmentation});
+        assert.equal(plans.plans.length,1);
+        assert.equal(plans.plans[0].outcome_population.research_primary_outcome_count,
+          readiness.counterfactual_coverage.research_candidate_outcomes_collected);
+        assert.equal(readiness.status,"not_ready");
+        assert.equal(plans.plans[0].status,"not_freeze_eligible");
+        assert.equal(plans.plans[0].metrics,null);
+        assert(readiness.blockers.includes("completed_input_research_requires_prospective_baseline_contract"));
+        assert.equal(readiness.decision_population.not_evaluated_candidate_count,
+          record.candidates.filter(candidate=>candidate.disposition==="not_evaluated").length);
+        assert.equal(Object.values(readiness.decision_population).slice(0,4).reduce((sum,count)=>sum+count,0),8,
+          "The full candidate denominator survives; stale rejections are not mislabeled unobserved members");
+        assert.equal(readiness.visible_outcomes.primary_outcome_count,0);
+        assert.equal(readiness.confidence_calibration.numeric_probability_sample_count,0);
+        return {source,readiness,plans};
+      };
+      const learning=await learningEvidence();
+      assert.equal(learning.readiness.counterfactual_coverage.research_candidate_outcomes_collected,researchSnapshots.length,
+        "Retained exact-input canonical research outcomes must reach learning without an invented upstream version");
+      assert.equal(learning.readiness.decision_time_source_provenance.upstream_provider_version_unavailable_count,researchSnapshots.length);
+      assert(learning.source.snapshots.every(snapshot=>snapshot.payload_json.provider_version===null));
+      assert(learning.source.snapshots.every(snapshot=>restarted.recommendationDecisionSourceProvenanceFromSnapshot(snapshot).status==="incomplete"),
+        "Legacy v1 provenance must remain strict");
+      // Persist tampering after outcomes exist, then use actual owner readback.
+      // Stored outcomes cannot re-authorize corrupted original inputs/lineage.
+      const negativeUpdates=[
+        "update recommendation_snapshots set payload_json=jsonb_set(payload_json,'{is_demo}', 'true'::jsonb);",
+        "update recommendation_snapshots set payload_json=jsonb_set(payload_json,'{is_mock}', 'true'::jsonb);",
+        "update recommendation_snapshots set payload_json=jsonb_set(payload_json,'{provider_source}', '\"wrong_provider\"'::jsonb);",
+        "update recommendation_snapshots set payload_json=jsonb_set(payload_json,'{intraday_indicator_response_identity}', 'null'::jsonb);",
+        "update recommendation_snapshots set payload_json=jsonb_set(payload_json,'{decision_feature_vector,feature_values,latest_price}', '999999'::jsonb);",
+        "update recommendation_snapshots set payload_json=jsonb_set(payload_json,'{decision_feature_vector,feature_values,intraday_vwap}', '999999'::jsonb);",
+        "update recommendation_snapshots set payload_json=jsonb_set(payload_json,'{decision_feature_vector,contract_version}', '\"recommendation_decision_feature_vector_v1\"'::jsonb);",
+        "update recommendation_snapshots set payload_json=jsonb_set(payload_json,'{build_marker}', '\"wrong_build\"'::jsonb);",
+        "update recommendation_snapshots set payload_json=jsonb_set(payload_json,'{market_data_adapter_version}', '\"wrong_adapter\"'::jsonb);",
+        "update recommendation_snapshots set payload_json=jsonb_set(payload_json,'{data_timestamp}', '\"2026-10-01T20:00:00.000Z\"'::jsonb);",
+        "update recommendation_snapshots set payload_json=jsonb_set(payload_json,'{scanner_decision_input_snapshot,features,proposed_entry_low}', '999999'::jsonb);",
+        "update recommendation_snapshots set payload_json=jsonb_set(payload_json,'{research_capture_version}', '\"wrong_capture_version\"'::jsonb);",
+      ];
+      for(const update of negativeUpdates){
+        sql(update);
+        assert.equal((await learningEvidence()).readiness.counterfactual_coverage.research_candidate_outcomes_collected,0);
+        for(const row of researchSnapshots) sql(`update recommendation_snapshots set payload_json='${JSON.stringify(row.payload_json).replaceAll("'","''")}'::jsonb where id='${row.id}';`);
+      }
+      for(const invalidRunPayload of [
+        Object.fromEntries(Object.entries(originalRunPayload).filter(([name])=>name!=="decision_lineage_receipt")),
+        {...originalRunPayload,decision_lineage_receipt:{...originalRunPayload.decision_lineage_receipt,scan_run_fingerprint:"wrong_run"}},
+      ]){
+        sql(`update recommendation_scan_runs set payload_json='${JSON.stringify(invalidRunPayload).replaceAll("'","''")}'::jsonb where id='${scanRuns[0].id}';`);
+        assert.equal((await learningEvidence()).readiness.counterfactual_coverage.research_candidate_outcomes_collected,0);
+      }
+      sql(`update recommendation_scan_runs set payload_json='${JSON.stringify(originalRunPayload).replaceAll("'","''")}'::jsonb where id='${scanRuns[0].id}';`);
+      const restoredLearning=await learningEvidence();
+      assert.equal(restoredLearning.readiness.counterfactual_coverage.research_candidate_outcomes_collected,researchSnapshots.length);
+      const duplicateSources={...learning.source,scanRuns:[...learning.source.scanRuns,...learning.source.scanRuns]};
+      assert.equal(restarted.buildRecommendationLearningBaselineReadiness(duplicateSources).counterfactual_coverage.research_candidate_outcomes_collected,0);
+      const duplicateOutcomes={...learning.source,outcomes:[...learning.source.outcomes,...learning.source.outcomes]};
+      assert.equal(restarted.buildRecommendationLearningBaselineReadiness(duplicateOutcomes).counterfactual_coverage.research_candidate_outcomes_collected,0);
+      const otherSource=restarted.parseRecommendationLearningBaselineSource((await restarted.readRecommendationLearningBaselineSource("00000000-0000-4000-8000-000000000002")).data);
+      assert(otherSource);
+      assert.equal(restarted.buildRecommendationLearningBaselineReadiness(otherSource).decision_records.attributable_count,0);
+      assert.equal(externalRequests-before,researchSnapshots.length);
+      assert.deepEqual(JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_outcomes t;")).sort((a,b)=>a.id.localeCompare(b.id)),completedRows);
+      outcomeChainEvidence.learning_admission={
+        readiness_version:learning.readiness.contract_version,
+        plan_version:learning.plans.contract_version,
+        canonical_research_outcomes:researchSnapshots.length,
+        upstream_provider_version_unavailable:researchSnapshots.length,
+        unresolved_population_members:8-researchSnapshots.length,
+        freeze_status:learning.readiness.status,
+        actual_provider_requests:0,
+        legacy_source_gate_unchanged:true,
+        tampered_source_and_lineage_admitted:0,
+      };
       externalRequests=before;
       clock=OriginalDate.parse(slot)+20000;
     }

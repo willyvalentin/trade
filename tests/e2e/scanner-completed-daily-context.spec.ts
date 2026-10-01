@@ -77,6 +77,17 @@ for (const scenario of ["cold", "warm", "opening"]) {
       persisted_outcomes: scenario === "warm" ? 4 : 3,
       unobservable_population_members: scenario === "warm" ? 2 : 5,
       outcome_budget_pending_sources: scenario === "warm" ? 2 : 0,
+      learning_admission: {
+        readiness_version: "recommendation_learning_baseline_readiness_v4",
+        plan_version: "recommendation_learning_evaluation_plan_v2",
+        canonical_research_outcomes: scenario === "warm" ? 6 : 3,
+        upstream_provider_version_unavailable: scenario === "warm" ? 6 : 3,
+        unresolved_population_members: scenario === "warm" ? 2 : 5,
+        freeze_status: "not_ready",
+        actual_provider_requests: 0,
+        legacy_source_gate_unchanged: true,
+        tampered_source_and_lineage_admitted: 0,
+      },
       resumption: {
         persisted_outcomes: scenario === "warm" ? 6 : 3,
         additional_synthetic_outcome_requests: scenario === "warm" ? 2 : 0,

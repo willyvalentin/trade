@@ -2,7 +2,91 @@
 
 ## Active Now / Next / Blocked — 2026-09-29 recommendation intelligence first
 
-**Now — independent CLOSED IF-2b → IF-4 research-source slice, 2026-10-01:**
+**Now — independent CLOSED IF-4 completed-input outcome admission, 2026-10-02:**
+Codex owns `codex/completed-input-learning-admission` in isolated
+`/private/tmp/ture-research-learning.Ir0gkL/trade`, created from verified protected
+main `930d44b6be9ec6fca059adba21addd05d9f9c7de` and fast-forwarded locally to
+the stable PR #721 prerequisite `0676d6396673d2218a0f080c2d454ffcbdc35510`.
+Budget is six active hours, initial investigation at most four. PR #721 has
+completed protected CI run `36927974810` successfully on merge tree
+`6449d14c7439b4cbb04078199d183d6f3647d911`; its integration remains held until
+the frozen Oct 2 observation and verified cleanup. This dependent slice stays
+local until that prerequisite is integrated, with no competing public PR.
+
+The existing cold actual scheduler/backend/scanner/SDK/PostgreSQL/PostgREST
+proof and restarted owner-bound learning reader reproduce three persisted
+research sources and three canonical outcomes, but zero collected research
+outcomes in baseline readiness. The original eight candidate identities remain.
+The narrow source-provenance gate rejects all three because `provider_version`
+is null; response identities, feature vectors, adapter/build versions and source
+times are present. The learning parser retains the scan and all rows, so this
+is not diagnostic filtering. The synthetic diagnostic exits successfully and
+its disposable containers/networks are verified removed. It establishes neither
+production incidence nor recommendation-quality lift.
+
+Selected behavior: admit only new, hidden completed-input research outcomes via
+an explicit versioned normalized-input/geometry provenance basis, verified
+against their owner-bound v4 decision and semantic durable lineage. Never infer
+an upstream provider version or claim raw-provider replay. Preserve legacy v1
+admission, published-source admission, frozen cohorts, all unknown population
+members, quality/charter/calibration/minimum-sample gates and freeze authority.
+Use the same gate in existing readiness and canonical evaluation consumers.
+No schema, provider request, ranking/publication rule or production flag changes.
+
+Acceptance is real persisted cold/warm source-to-outcome-to-learning readback,
+including malformed archives/features/identity/geometry, missing/cross-run
+lineage, ambiguous runs, duplicate outcomes and another owner. Valid canonical
+research outcomes contribute to the original denominator, while unresolved
+members stay explicit and overall readiness stays `not_ready` where its other
+gates are unmet. Preserve the frozen Oct 2 revision and operating job. This is
+`quality_measurement`, not proved alpha or a reason to expand infrastructure.
+
+**Local completed-input learning-admission evidence — 2026-10-02:**
+The actual persisted source → canonical outcome → restarted owner learning
+reader → readiness/evaluation path now admits three cold/opening and six warm
+research outcomes instead of zero. All eight original decision identities
+remain: five cold/opening unobserved members and two warm stale-rejected members
+remain unresolved, not losses. Warm outcome acquisition resumes four → two;
+a completed repeat performs no acquisition or outcome rewrite.
+
+`completed_input_learning_provenance_v1` verifies semantic durable lineage,
+exact retained normalized inputs, response identity, original geometry and all
+17 reconstructed market feature values at the original decision time. The
+ordinal `scanner_local_score` is explicitly excluded from reconstruction.
+Upstream `provider_version` remains null and is disclosed as unavailable;
+this is retained-normalized-input/geometry reproducibility, not raw-provider
+replay. Legacy provenance, published sources and frozen cohorts are unchanged.
+The new readiness v4/evaluation-plan v2 cannot acquire existing v1 freeze
+authority: the prospective-baseline-contract blocker remains explicit, along
+with existing population, intake, charter, calibration and sample gates.
+Readiness remains `not_ready`, the plan is not freeze eligible and comparison
+metrics remain null. This improves evaluability, not proven recommendation
+quality or permission to publish.
+
+The coherent 98-test affected suite and four governance checks pass locally.
+After final provider-continuity review, all three actual cold/warm/opening
+runtime proofs pass again, including persisted corruption, missing/cross-run
+lineage, ambiguous runs, duplicate outcomes, wrong provider and another owner.
+Strict TypeScript, affected lint and the final standard Next production build
+pass; disposable containers and networks are verified removed. Three broader
+legacy liquidity tests initially fail and reproduce unchanged on prerequisite
+`0676d6396673d2218a0f080c2d454ffcbdc35510`: their fixtures lack setup metadata
+needed by an existing concentration gate. Explicit synthetic setup metadata
+and a missing-setup negative repair those fixtures without changing the gate.
+The existing clock/liquidity outcome suites are registered in the regular
+provider-free intelligence CI shard; no required check is removed.
+
+This delivery is locally implemented/tested only on
+`codex/completed-input-learning-admission`, following the exact PR #721
+prerequisite. No child PR, push, main integration, production configuration,
+migration, real provider request or broker action has occurred. Protected CI,
+main verification and prospective OPEN source-to-outcome-to-learning evidence
+remain outstanding. Integrate only after PR #721 and the frozen Oct 2
+observation's verified cleanup, then rebase against current main before the
+first coherent push. No baseline freeze, calibration, policy promotion or
+alpha improvement is claimed.
+
+**Retained prerequisite — IF-2b → IF-4 research-source slice, 2026-10-01:**
 Codex owns `codex/input-attributed-outcome-capture` in the isolated
 `/private/tmp/ture-if2b-outcomes.CUZRlz/trade` worktree, starting from verified
 main `930d44b6be9ec6fca059adba21addd05d9f9c7de`. Delivery budget is seven active
@@ -45,8 +129,9 @@ no real provider calls or production outcomes. This closes a
 
 Integration order: implement/test locally, then one coherent PR with protected
 CI. Do not merge or change the observed production revision before the frozen
-Oct 2 input test and its verified cleanup; no second development stream or
-generic readiness/capture platform is selected. Next OPEN source/outcome
+Oct 2 input test and its verified cleanup; at this selection boundary no second
+development stream or generic readiness/capture platform was selected. The
+subsequent reproduced outcome-admission slice is selected above. Next OPEN source/outcome
 acceptance requires a separate prospective card. Graduation remains `not_met`.
 
 **Local vertical implementation evidence — 2026-10-01:** the new

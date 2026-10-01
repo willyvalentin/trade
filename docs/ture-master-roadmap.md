@@ -59,7 +59,12 @@ frozen Oct 2 input observation separate from later source/outcome verification,
 and do not relax freshness, ranking or publication to manufacture coverage.
 
 The immediate work order is therefore complete fresh decision inputs, exact
-source-to-outcome continuity, then one measured contextual-ranking challenger.
+source-to-outcome continuity through canonical learning admission, then one
+measured contextual-ranking challenger. A stored outcome is not yet usable
+learning evidence: the same original input, plan, decision and outcome must reach
+the evaluator. New normalized-input research provenance must disclose its
+reproduction limits and unavailable upstream version, remain separate from
+legacy frozen contracts, and never silently acquire baseline/promotion authority.
 When those first two links pass their declared acceptance, return the primary
 delivery to the largest attributable recommendation-quality defect; do not
 extend input or outcome infrastructure without a new reproduced blocker.
