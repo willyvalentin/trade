@@ -1,4 +1,5 @@
 import "server-only";
+import { hasCompletedInputBudget } from "@/lib/scheduled-scanner-input-policy";
 
 import OpenAI from "openai";
 
@@ -3211,7 +3212,9 @@ export async function generateRecommendations({
     }
     if (inputAttributed) {
       const now = new Date(), session = getUsEquityMarketSession(now);
-      if (diagnosticMode || scanWindow === "pre_market" || scanWindow === "closed" ||
+      if (source !== "scheduled" || !hasCompletedInputBudget(scheduledProviderCreditBudget) ||
+        process.env.TURE_MARKET_WIDE_DISCOVERY_ENABLED === "true" ||
+        diagnosticMode || scanWindow === "pre_market" || scanWindow === "closed" ||
         providerCreditAllocationRuntimeAdmission || session.verification_status !== "verified" ||
         session.freshness_status !== "current" || !session.session_open || !session.session_close ||
         now.getTime() < Date.parse(session.session_open) || now.getTime() >= Date.parse(session.session_close)) {

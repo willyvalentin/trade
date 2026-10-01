@@ -10,6 +10,9 @@ import { candidateDecisionRecordFromUnknown, candidateDecisionRecordFromScanRun 
 import { buildDecisionLineageReceipt, decisionLineageReceiptFromScanRun } from "@/lib/decision-lineage-receipt";
 import { buildRecommendationScanRun, recommendationScanRunFromPersistenceRow } from "@/lib/recommendation-scan-run";
 import { isScannerDecisionInputPublishable } from "@/lib/scanner-decision-input-snapshot";
+import { scheduledScannerInputPolicy } from "@/lib/scheduled-scanner-input-policy";
+import { resolveScheduledScanProviderCreditBudget } from "@/lib/scheduled-scan-ticker-cap";
+import type { ScheduledScanInvocationReceipt } from "@/lib/scheduled-scan-invocation-receipt";
 import {
   getUsEquityMarketSession,
   usEquityMarketCalendarDataset,
@@ -17,6 +20,22 @@ import {
 
 // Synthetic CLOSED fixtures. No market data, credentials or production writes.
 const at = new Date("2026-10-01T15:50:00.000Z");
+test("scheduled input selection stays default-off and requires a matching claim and exact bounded budget", () => {
+  const policy = "completed_daily_intraday_input_v1";
+  const receipt = { durable_invocation_payload: { scanner_input_policy_version: policy } } as unknown as ScheduledScanInvocationReceipt;
+  const input = { configuredVersion: policy, receipt, requestSource: "netlify_scheduled_function",
+    force: false, budget: resolveScheduledScanProviderCreditBudget({ planMode: "free" }),
+    allocationExperimentEnabled: false, marketWideDiscoveryEnabled: false };
+  expect(scheduledScannerInputPolicy(input)).toBe(policy);
+  expect(scheduledScannerInputPolicy({ ...input, configuredVersion: undefined, receipt: null })).toBeUndefined();
+  for (const patch of [ { configuredVersion: "unknown" }, { configuredVersion: undefined },
+    { receipt: null }, { requestSource: "manual" }, { force: true }, { allocationExperimentEnabled: true },
+    { marketWideDiscoveryEnabled: true }, { budget: null },
+    { budget: { ...input.budget, scanner_credits_reserved: 7 } },
+    { budget: { ...input.budget, reference_refresh_max_attempts: 1 } },
+    { budget: { ...input.budget, max_known_credits_per_scan: 9 } },
+  ]) expect(() => scheduledScannerInputPolicy({ ...input, ...patch })).toThrow("scheduled_scanner_input_policy_unavailable");
+});
 function bars(last = "2026-09-30", count = 60) {
   const result = [];
   const day = new Date(`${last}T00:00:00.000Z`);
@@ -30,6 +49,20 @@ function bars(last = "2026-09-30", count = 60) {
   }
   return result;
 }
+
+test("packaged scheduled input policy reaches the real isolated database and owner readback", () => {
+  test.setTimeout(180000);
+  for (const argument of [null, "--cold", "--wrong-policy"]) {
+    const proof = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", ...(argument ? [argument] : [])],
+      { cwd: process.cwd(), encoding: "utf8", timeout: 55000 });
+    expect(proof.status, `${proof.stdout}\n${proof.stderr}`).toBe(0);
+    const evidence = JSON.parse(proof.stdout.trim().split("\n").at(-1)!);
+    expect(evidence.evidence_mode).toBe("synthetic_closed_packaged_input_runtime_actual_source_schema");
+    expect(evidence.actual_provider_requests).toBe(0);
+    expect(evidence.production_actions).toBe(0);
+    expect(evidence.cleanup).toBe("inert");
+  }
+});
 function receipt(last = "2026-09-30", capturedAt = at.toISOString()) {
   return {
     contract_version: "daily_candle_response_v1", symbol: "SYNTH",

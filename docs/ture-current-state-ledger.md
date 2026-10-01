@@ -141,6 +141,48 @@ publication threshold, outcome cohort or broker action was made by this patch.
 Classification is local `recommendation_capability`; graduation remains
 `not_met` and forward recommendation quality remains unproved.
 
+**Local normal-runtime integration verified — IF-2b, 2026-10-01:** the same
+input slice now reaches the ordinary packaged scheduler/private backend.
+`TURE_SCANNER_INPUT_POLICY_VERSION` is unset by default; selecting
+`completed_daily_intraday_input_v1` requires the identical version retained in
+the durable scheduler claim, a non-forced scheduled invocation and the exact
+existing Free six-scanner/two-regime/eight-total budget. Unknown, missing or
+mismatched selection, unbounded budget, active allocation experiment or extra
+market-wide discovery fails before provider work or credit reservation. This
+selection does not activate the scheduler or alter session/publication gates.
+
+The built scheduler -> actual backend -> scanner/generator -> external fixture
+boundary -> isolated PostgreSQL 16/PostgREST 16.1 -> restarted actual owner
+reader passes with actual source schema/owner constraints/reservation RPCs.
+Warm-history setup acquires sixteen separately counted synthetic requests;
+one normal attempt then uses six intraday plus two regime requests, finalizes
+one eight-credit claim and retains six fresh inputs on all eight identities.
+Cold history uses the same eight-credit ceiling, honestly retaining only three
+fresh inputs. Both return no-trade with decision v4/exact lineage and zero
+recommendation/position writes. Invalid policy retains one terminal delivery
+attempt but no cycle, claim or provider request; it is an admission rejection,
+not a successful engine observation. Duplicate delivery and subsequent inert
+scheduler execution add no work. Another owner sees no scan rows.
+
+Initial proof failures were synthetic descending daily bars despite an ASC
+request, then a midday warm-up population at an actual afternoon slot. Correct
+provider order and selection through the actual session-window resolver removed
+both fixture defects without relaxing product checks. Three standalone scenarios
+and their registered integration test pass. The complete containment suite
+passes 1016/1016; focused input/decision checks pass 30/30, strict TypeScript,
+affected lint, Next production build and three packaged runtimes pass. Additional
+no-trade/source-before-decision assertions and an explicitly synthetic build
+identity pass the full three-scenario integration again. Fixture images may be
+acquired on a fresh CI runner; no production credentials are used.
+
+This finishes the local vertical, not protected CI/main/production or OPEN
+acceptance. Existing fifteen-minute universe rotation does not guarantee warm
+history: six fresh inputs is conditional fixture coverage, not normal-day
+coverage or proven alpha. The regime baseline is unchanged. Next is coherent
+PR/protected integration, then a separately frozen prospective data-fitness/cost
+observation. Old frozen cohorts/limits/results remain untouched. No production
+flag, provider call, migration or broker action was made; graduation is not_met.
+
 **Supporting exit completed — PR #719, 2026-10-01:** protected CI
 `36902470969` passes on `46b05abe...`; normal protected squash merge at
 18:27:40Z produces main `99465dea0aba50946cd0d96fe2267ee0b73c324f`.

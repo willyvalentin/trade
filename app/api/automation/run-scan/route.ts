@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { SCANNER_INPUT_POLICY_ENV, scheduledScannerInputPolicy } from "@/lib/scheduled-scanner-input-policy";
 
 import {
   generateRecommendations,
@@ -3474,7 +3475,24 @@ export async function POST(request: Request) {
 
   const routeStartedAtMs = Date.now();
   const scheduledRuntimeConfig = scheduledScanRuntimeConfig(body);
+  let scannerInputPolicyVersion: ReturnType<typeof scheduledScannerInputPolicy>;
+  try {
+    scannerInputPolicyVersion = scheduledScannerInputPolicy({
+      configuredVersion: process.env[SCANNER_INPUT_POLICY_ENV],
+      requestSource,
+      force,
+      receipt: scheduledInvocationReceipt,
+      budget: scheduledRuntimeConfig.scheduled_provider_credit_budget,
+      allocationExperimentEnabled: process.env.TURE_PROVIDER_CREDIT_ALLOCATION_EXPERIMENT_ENABLED === "true",
+      marketWideDiscoveryEnabled: process.env.TURE_MARKET_WIDE_DISCOVERY_ENABLED === "true",
+    });
+  } catch {
+    return NextResponse.json({ error: "Scheduled scanner input policy is unavailable.",
+      code: "scheduled_scanner_input_policy_unavailable" },
+    { status: 503, headers: { "Cache-Control": "no-store" } });
+  }
   const scheduledRuntimeFields = () => ({
+    scanner_input_policy_version: scannerInputPolicyVersion ?? null,
     live_trial_fast_mode: scheduledRuntimeConfig.live_trial_fast_mode,
     grow_max_learning_mode: scheduledRuntimeConfig.grow_max_learning_mode,
     grow_max_learning_mode_env_raw_present:
@@ -5201,7 +5219,9 @@ export async function POST(request: Request) {
         scheduledProviderCallPacingMs:
           scheduledRuntimeConfig.scheduled_provider_execution_plan
             .inter_call_delay_ms,
-        providerCreditAllocationRuntimeAdmission,
+        providerCreditAllocationRuntimeAdmission: scannerInputPolicyVersion
+          ? null : providerCreditAllocationRuntimeAdmission,
+        scannerInputPolicyVersion,
         growMaxLearningMode: scheduledRuntimeConfig.grow_max_learning_mode,
         skipOpenAi: scheduledRuntimeConfig.scheduled_skip_openai,
         activeScanTrace,
