@@ -2,6 +2,90 @@
 
 ## Active Now / Next / Blocked — 2026-09-29 recommendation intelligence first
 
+**IF-2b integration exit — 2026-10-01:** PR #720 is normally squash-merged
+after protected CI `36914848106` succeeds on
+`87e8f0ee795e651463b0e13a0385b6b3a73f8bd3`. Its foundation job runs the real
+packaged scheduled input-policy/database proof and reports 1016 passing tests;
+all required and provenance checks are green. Merge at 19:54:49Z produces main
+`930d44b6be9ec6fca059adba21addd05d9f9c7de`, with an identical tracked source
+tree. Main CI `36917767733` passes the required summary and post-merge
+provenance attestation; its intentionally skipped shards are not a fresh
+1016-test main rerun. Automatic Git-connected production deploy
+`6abeba8b6bea9800095b71d6` is ready/published at 19:56:16.402Z on that exact
+main. Authenticated deployed readback at 20:00:07.778Z verifies exact build
+identity, inert controls, unset input selector, zero active reservations and
+HTTP 200/no-store health and preflight. Normal login updates existing abuse
+counters; this is not a claim of zero database writes. No provider request,
+scan invocation, configuration change, migration or broker action occurred.
+
+This closes the selected code delivery as `recommendation_capability` with
+default-off deployed integration. It does not close prospective input-fitness,
+outcome-quality or graduation acceptance. Today's last eligible 19:45Z scan
+required activation ready by 19:30Z; CI was still running then. No late scan or
+closing-session bypass was attempted. The old five observations/40 credits and
+incomplete clock-neutral cohort remain unchanged. The receipts below retain
+earlier local states and are superseded only as integration status.
+
+**Next OPEN card, frozen before observation — IF-2b cold input fitness:** Codex
+owns the operating job independently of CLOSED development on
+`codex/if2b-forward-input-evidence`. Target exactly one normal scheduled scan
+on 2026-10-02 at 13:45Z (09:45 America/New_York, 15:45 CEST), expiring at
+14:00Z, with no retry. Pin main and activation/cleanup to the exact revision
+above. The existing verified exchange calendar declares a regular 13:30Z–20:00Z
+session; recheck it and authoritative claims before activation. Default-off
+readback currently reports prospective preflight `ready`, series
+`observation_series_553f65f3488ba448`, zero date claims/attempts and eight
+available credits for this bounded attempt. This is preparation, not activation.
+
+Question: does `completed_daily_intraday_input_v1` acquire genuine completed
+history and separate fresh same-session intraday inputs in the normal runtime,
+preserve all eight selected identities and decision v4 lineage, and finish
+within the unchanged six-scanner/two-regime/eight-total credit ceiling? Source
+is the existing Twelve Data Basic Free private pre-release, internal non-display
+usage; no new source, paid entitlement, redistribution, raw training archive or
+retention extension is authorized. Verify applicable data access and existing
+storage constraints; unknown entitlement or budget is no-go, not permission to
+retry. A read-only cache aggregate at 19:36:22.969161Z on Oct 1 finds 68 rows and
+zero new historical/current-context markers. Do not assume warm history.
+
+Baseline is the retained unchanged serial-allocation diagnostic, not a paired
+alpha comparator. The cold synthetic runtime yields three fresh inputs from
+eight requests; six fresh requires separately acquired same-day history and is
+not this test's pass threshold. Actual Oct 2 selection rotates through seven
+disjoint early populations before any repeat, so an ordinary later tick cannot
+be assumed to reuse history. At 09:45 only three five-minute bars can be closed;
+short-window volume, range or shape features must remain unknown. Do not mix
+this input policy with the old allocation or clock-neutral evaluation cohort.
+
+Before arming, require the exact ready production/main revision, global disable
+true, all conflicting one-shots/workers/experiments off, input selector unset,
+no overlapping/uncertain claims and a fresh authenticated preflight. Change
+only the bounded series fields (date/start/expiry/max attempts 1/max credits 8),
+its enable flag and function-scoped input selector to the exact version. Keep
+global disable true. One unchanged-main Git-connected activation deploy must be
+ready at least a full 15-minute interval before the target (by 13:30Z), otherwise
+restore owned controls and no-go. Never invoke a scan/provider route manually.
+
+Read authoritative attempt, finalized credit claim, exact scanner inputs,
+decision/lineage and publication/broker counts from 13:46Z for at most 90 seconds.
+Delivery pass requires one attributable terminal attempt/scan, at most eight
+credits and correctly bound v4 decision/lineage; valid no-trade is acceptable.
+Data fitness is reported separately: history count/identity, intraday source
+times, fresh and unavailable input counts on eight identities, explicit short
+features, cache reuse and total cost. Wrong role/identity, future evidence,
+budget excess, duplicate work or stale publication is fail; provider/session/
+timeout is inconclusive; absent bounded evidence is missing_result. No single
+coverage count proves superiority, calibrated confidence or recommendation
+quality. Preserve all missingness; no quality thresholds change.
+
+Regardless of outcome, Codex restores only owned series controls to disabled,
+removes owned date/start/expiry/limit metadata and unsets the input selector,
+then verifies one unchanged-main Git-connected cleanup deploy. Never repeat an
+uncertain build request without reconciling its existing handle. Automatic series
+expiry independently limits execution if the operating job cannot wake in time.
+No second slot is authorized by this card; changed revision/question requires
+new readiness and a new prospective card. Graduation remains `not_met`.
+
 **Selected primary IF-2b input slice — 2026-10-01:** Codex owns
 `codex/completed-daily-context`, isolated from verified main
 `4e960cf9ac260821ceb28c909d83c5cad137f353`, with an eight active-hour delivery
