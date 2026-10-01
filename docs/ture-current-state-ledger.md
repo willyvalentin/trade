@@ -2,6 +2,43 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-02, recommendation intelligence first
 
+**Local research microstructure assessment correction — 2026-10-02:** exact
+primary code revision `88610af646b89882036a25e412142ff10f7958b8` passes all
+79 affected checks and the standard Next production build with strict types.
+Full lint has zero errors/eight retained warnings. Two negative regressions
+first reproduce the v1.1 false pass. New hidden completed-input research uses
+intake v1.2: observed all-zero volume is low-volume evidence; missing, negative
+or non-finite volume/spread yields an incomplete microstructure assessment and
+unknown grade, while known weak-volume/wide-spread warnings remain. The exact
+legacy result is unchanged across 512 volume/spread combinations against
+predecessor `5da9f991`; visible/live v1.1 producers and archived results are not
+rewritten. Mixed 1.1/1.2 assessments retain the existing segmented-baseline gate.
+
+Actual packaged cold/warm/opening scheduler → backend → SDK → isolated
+PostgreSQL/PostgREST → canonical outcomes → restarted owner learning retains
+three/six/three original v1.2 assessments unchanged. Receipt provenance is
+complete while assessment status is `incomplete` and grade is `unknown`: stored
+evidence presence must not be reported as observed liquidity/spread feasibility.
+All eight original identities and unresolved outcomes remain, freeze stays
+`not_ready`, and no comparative metrics or promotion authority are granted.
+
+The existing detached composition incorporates the same correction with the
+volume fix at `19f0ce75550f8f6e62b80a3a94c13faa35857acb`, tree
+`49676a767b2ce3e563ca0aaa38fe14bf0bef2e62`. All 80 affected integration/learning
+checks plus 15 volume checks, affected lint and a new standard build/strict
+types pass. The opening-zero runtime preserves latest volume zero, mean 667,
+the original contracting-volume warning and unavailable spread through outcome
+and learning persistence. Only ledger evidence conflicts require resolution;
+no application conflict or third product slice is introduced. Both proofs
+report zero actual provider/production/broker/publication actions and inert
+cleanup; test containers/networks are independently verified removed.
+
+This closes a local `quality_measurement` defect within the selected learning
+delivery, not recommendation-quality lift. Protected CI, integration and
+prospective market learning acceptance remain outstanding. PR #721 stays open
+with all required checks green and no auto-merge; the frozen Oct 2 revision,
+operating job and observation/verified-cleanup integration hold are unchanged.
+
 **Reproduced research intake microstructure gap — 2026-10-02:** within the
 same selected completed-input learning slice, direct execution of intake v1.1
 returns `accepted` / grade A and a passing liquidity/spread check for observed
