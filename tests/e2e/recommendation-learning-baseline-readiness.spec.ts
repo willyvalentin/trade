@@ -1268,40 +1268,42 @@ test.describe("recommendation learning baseline readiness", () => {
     });
   });
 
-  test("keeps mixed intake-quality result versions out of a baseline freeze", () => {
-    const baselineAttribution = completeAttribution();
-    const evidence = Array.from({ length: 20 }, (_, index) =>
-      publishedEvidenceForSegment({
-        index,
-        learningAttribution: baselineAttribution,
-      }),
-    );
-    const snapshots = evidence.map((item, index) =>
-      index === 0
-        ? {
-            ...item.snapshot,
-            intake_quality_json: intakeQualityReceipt({ resultVersion: "1.0" }),
-          }
-        : item.snapshot,
-    );
-    const readiness = buildRecommendationLearningBaselineReadiness({
-      scanRuns: evidence.map((item) => item.run),
-      snapshots,
-      outcomes: evidence.map((item) => item.outcome),
-    });
+  for (const resultVersion of ["1.0", "1.2"]) {
+    test(`keeps mixed intake-quality ${resultVersion}/1.1 versions out of a baseline freeze`, () => {
+      const baselineAttribution = completeAttribution();
+      const evidence = Array.from({ length: 20 }, (_, index) =>
+        publishedEvidenceForSegment({
+          index,
+          learningAttribution: baselineAttribution,
+        }),
+      );
+      const snapshots = evidence.map((item, index) =>
+        index === 0
+          ? {
+              ...item.snapshot,
+              intake_quality_json: intakeQualityReceipt({ resultVersion }),
+            }
+          : item.snapshot,
+      );
+      const readiness = buildRecommendationLearningBaselineReadiness({
+        scanRuns: evidence.map((item) => item.run),
+        snapshots,
+        outcomes: evidence.map((item) => item.outcome),
+      });
 
-    expect(readiness).toMatchObject({
-      status: "not_ready",
-      intake_quality_provenance: {
-        status: "mixed",
-        valid_receipt_count: 20,
-        result_versions: ["1.0", "1.1"],
-      },
+      expect(readiness).toMatchObject({
+        status: "not_ready",
+        intake_quality_provenance: {
+          status: "mixed",
+          valid_receipt_count: 20,
+          result_versions: ["1.1", resultVersion].sort(),
+        },
+      });
+      expect(readiness.blockers).toContain(
+        "multiple_intake_quality_result_versions_require_segmented_baseline",
+      );
     });
-    expect(readiness.blockers).toContain(
-      "multiple_intake_quality_result_versions_require_segmented_baseline",
-    );
-  });
+  }
 
   test("refuses missing, incomplete, and changed source cohorts from a learning baseline", () => {
     const baselineAttribution = completeAttribution();

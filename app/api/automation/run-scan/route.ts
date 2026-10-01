@@ -180,7 +180,10 @@ import {
 } from "@/lib/rejected-candidate-research-selection";
 import { recommendationDecisionFeatureVectorFromUnknown } from "@/lib/recommendation-decision-feature-vector";
 import { twelveDataResponseIdentityFromUnknown } from "@/lib/twelve-data-response-identity";
-import { buildRecommendationIntakeQualityResult } from "@/lib/recommendation-intake-quality";
+import {
+  buildCompletedInputResearchIntakeQualityResult,
+  buildRecommendationIntakeQualityResult,
+} from "@/lib/recommendation-intake-quality";
 
 type ScanWindow = {
   sessionType: SessionType;
@@ -2465,11 +2468,12 @@ function buildSnapshotFromResearchSample({
   const inputResearchEvidence = "input_research_evidence" in sample ? sample.input_research_evidence : undefined;
   const snapshotTime = inputResearchEvidence ? new Date(inputResearchEvidence.decision_timestamp) : now;
   // Assess only the new completed-input research sources. Reuse the existing
-  // diagnostic at the original decision clock and retained inputs, never at
-  // outcome time or from a refreshed cache. This does not authorize visibility.
+  // diagnostic with explicit missing-microstructure semantics at the original
+  // decision clock and retained inputs, never at outcome time or from a
+  // refreshed cache. This does not authorize visibility.
   const researchIntakeQuality = inputResearchEvidence
     ? {
-        ...buildRecommendationIntakeQualityResult({
+        ...buildCompletedInputResearchIntakeQualityResult({
           ticker: sample.ticker,
           company_name: sample.company_name,
           direction: "long",

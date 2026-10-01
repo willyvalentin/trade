@@ -271,7 +271,13 @@ try {
         assert.notEqual(payload.intraday_liquidity_shadow_evidence_sample,true);
         const quality=row.intake_quality_json;
         assert.equal(quality?.result_kind,"recommendation_intake_quality");
-        assert.equal(quality.result_version,"1.1");
+        assert.equal(quality.result_version,"1.2");
+        assert.equal(quality.status,"incomplete");
+        assert.equal(quality.grade,"unknown");
+        assert.equal(quality.accepted_for_visible_list,false);
+        assert.equal(quality.checks.find(check=>check.check_id==="liquidity_spread")?.status,"incomplete");
+        assert(quality.warnings.some(warning=>warning.reason_id==="spread_unavailable"),
+          "Absent original spread must remain unknown, never a passing research liquidity assessment");
         assert.equal(quality.result_id,`recommendation-intake-research-${payload.candidate_id}`);
         assert.equal(quality.recommendation_id,null);
         assert.equal(quality.internal_only,true);
@@ -280,7 +286,7 @@ try {
         assert.equal(quality.evaluated_at,record.decision_timestamp);
         assert.equal(quality.data_age_minutes,
           Math.max(0,Math.round((OriginalDate.parse(record.decision_timestamp)-OriginalDate.parse(payload.data_timestamp))/60000)),
-          "The existing intake v1.1 receipt uses whole minutes; source timestamps remain exact");
+          "Intake diagnostics retain whole-minute age semantics; source timestamps remain exact");
         assert.equal(quality.risk_reward_ratio,(row.target-row.entry)/(row.entry-row.stop));
         assert.equal(quality.checks.find(check=>check.check_id==="duplicate_risk")?.status,"not_applicable");
         assert.equal(quality.checks.find(check=>check.check_id==="risk_controls_context")?.status,"not_applicable");
@@ -524,6 +530,8 @@ try {
         retained_intake_assessments:learning.readiness.intake_quality_provenance.valid_receipt_count,
         intake_assessment_provenance:learning.readiness.intake_quality_provenance.status,
         intake_assessment_versions:learning.readiness.intake_quality_provenance.result_versions,
+        intake_assessment_statuses:learning.readiness.intake_quality_provenance.result_statuses,
+        intake_assessment_grades:learning.readiness.intake_quality_provenance.grades,
         original_intake_assessments_unchanged:true,
         upstream_provider_version_unavailable:researchSnapshots.length,
         unresolved_population_members:8-researchSnapshots.length,

@@ -18,6 +18,10 @@ export type RecommendationIntakeQualityDirection = "long" | "short" | "unknown";
 // the read type because existing persisted decision receipts remain valid
 // historical evidence under their original policy semantics.
 export const RECOMMENDATION_INTAKE_QUALITY_RESULT_VERSION = "1.1" as const;
+// New hidden completed-input research diagnoses missing microstructure instead
+// of treating absence of a warning as evidence of liquidity. Existing producers
+// and archived receipts keep their original 1.0/1.1 semantics.
+export const COMPLETED_INPUT_RESEARCH_INTAKE_QUALITY_RESULT_VERSION = "1.2" as const;
 
 export type RecommendationIntakeQualityCheckStatus =
   | "pass"
@@ -107,7 +111,10 @@ export type RecommendationIntakeQualityInput = {
 
 export type RecommendationIntakeQualityResult = {
   result_id: string;
-  result_version: "1.0" | typeof RECOMMENDATION_INTAKE_QUALITY_RESULT_VERSION;
+  result_version:
+    | "1.0"
+    | typeof RECOMMENDATION_INTAKE_QUALITY_RESULT_VERSION
+    | typeof COMPLETED_INPUT_RESEARCH_INTAKE_QUALITY_RESULT_VERSION;
   result_kind: "recommendation_intake_quality";
   evaluated_at: string;
   recommendation_id: string | null;
@@ -814,13 +821,46 @@ function evaluateConfidence(input: RecommendationIntakeQualityInput): Evaluation
 
 function evaluateMarketMicrostructure(
   input: RecommendationIntakeQualityInput,
+  requireObservedContext = false,
 ): EvaluationChunk {
   const warnings: RecommendationIntakeQualityWarning[] = [];
   const latestVolume = finiteNumber(input.latest_volume);
   const averageVolume = finiteNumber(input.average_volume);
   const spreadPercent = finiteNumber(input.spread_percent);
+  const volumeAvailable =
+    latestVolume !== null && averageVolume !== null &&
+    latestVolume >= 0 && averageVolume >= 0;
+  const spreadAvailable = spreadPercent !== null && spreadPercent >= 0;
+  const incomplete =
+    requireObservedContext && (!volumeAvailable || !spreadAvailable);
 
-  if (latestVolume !== null && averageVolume !== null && averageVolume > 0) {
+  if (requireObservedContext && !volumeAvailable) {
+    warnings.push(
+      warning(
+        "volume_unavailable",
+        "Volume unavailable",
+        "Current and average intraday volume are missing or invalid; liquidity is unknown.",
+        "market_data",
+        "info",
+      ),
+    );
+  }
+  if (requireObservedContext && !spreadAvailable) {
+    warnings.push(
+      warning(
+        "spread_unavailable",
+        "Spread unavailable",
+        "Decision-time spread is missing or invalid; spread feasibility is unknown.",
+        "market_data",
+        "info",
+      ),
+    );
+  }
+
+  if (
+    latestVolume !== null && averageVolume !== null &&
+    (requireObservedContext ? volumeAvailable : averageVolume > 0)
+  ) {
     if (averageVolume < 50000) {
       warnings.push(
         warning(
@@ -832,7 +872,7 @@ function evaluateMarketMicrostructure(
       );
     }
 
-    if (latestVolume / averageVolume < 0.25) {
+    if (averageVolume > 0 && latestVolume / averageVolume < 0.25) {
       warnings.push(
         warning(
           "volume_contracting",
@@ -861,10 +901,12 @@ function evaluateMarketMicrostructure(
       buildCheck(
         "liquidity_spread",
         "Liquidity / spread",
-        warnings.length > 0 ? "warning" : "pass",
-        warnings.length > 0
-          ? "Market microstructure needs review."
-          : "No liquidity or spread warning was detected from available data.",
+        incomplete ? "incomplete" : warnings.length > 0 ? "warning" : "pass",
+        incomplete
+          ? "Volume or spread context is unavailable; market microstructure cannot be fully assessed."
+          : warnings.length > 0
+            ? "Market microstructure needs review."
+            : "No liquidity or spread warning was detected from available data.",
         "market_data",
         [],
         warnings,
@@ -1104,6 +1146,19 @@ function buildSummary(
 export function buildRecommendationIntakeQualityResult(
   input: RecommendationIntakeQualityInput,
 ): RecommendationIntakeQualityResult {
+  return buildIntakeQualityResult(input, false);
+}
+
+export function buildCompletedInputResearchIntakeQualityResult(
+  input: RecommendationIntakeQualityInput,
+): RecommendationIntakeQualityResult {
+  return buildIntakeQualityResult(input, true);
+}
+
+function buildIntakeQualityResult(
+  input: RecommendationIntakeQualityInput,
+  completedInputResearch: boolean,
+): RecommendationIntakeQualityResult {
   const evaluatedAt = (toDate(input.now) ?? new Date()).toISOString();
   const chunks = [
     evaluateRecommendationCompleteness(input),
@@ -1112,7 +1167,7 @@ export function buildRecommendationIntakeQualityResult(
     evaluateRecommendationReasonQuality(input),
     evaluateRecommendationDuplicateRisk(input),
     evaluateConfidence(input),
-    evaluateMarketMicrostructure(input),
+    evaluateMarketMicrostructure(input, completedInputResearch),
     evaluateMarketSession(input),
     evaluateRiskControlsContext(input),
   ];
@@ -1140,7 +1195,9 @@ export function buildRecommendationIntakeQualityResult(
 
   return {
     result_id: `recommendation-intake-${input.recommendation_id ?? "unknown"}`,
-    result_version: RECOMMENDATION_INTAKE_QUALITY_RESULT_VERSION,
+    result_version: completedInputResearch
+      ? COMPLETED_INPUT_RESEARCH_INTAKE_QUALITY_RESULT_VERSION
+      : RECOMMENDATION_INTAKE_QUALITY_RESULT_VERSION,
     result_kind: "recommendation_intake_quality",
     evaluated_at: evaluatedAt,
     recommendation_id: input.recommendation_id ?? null,

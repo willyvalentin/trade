@@ -2,6 +2,20 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-02, recommendation intelligence first
 
+**Reproduced research intake microstructure gap — 2026-10-02:** within the
+same selected completed-input learning slice, direct execution of intake v1.1
+returns `accepted` / grade A and a passing liquidity/spread check for observed
+all-zero volume and for unavailable volume/spread. This is a measurement defect,
+not evidence of live publication or poor market returns. Codex selects a bounded
+same-slice correction: a separate new completed-input research assessment version
+must distinguish observed zero from missing/invalid data and disclose unavailable
+spread; existing v1.0/v1.1 producers and archives stay unchanged. Acceptance is
+the negative regression, preserved legacy behavior and actual persisted original
+assessment through canonical outcomes and restarted owner learning readback.
+Original populations, sample/charter/freeze gates, ranking, publication, budgets
+and the Oct 2 observed revision/integration hold remain unchanged. No third
+development slice, new provider, schema or experiment is selected.
+
 **Opening composition readback — 2026-10-02:** the same selected input/learning
 delivery is additionally verified at the synthetic 09:45 New York slot with
 three closed five-minute bars and a latest observed zero. Local rehearsal
