@@ -31,7 +31,12 @@ function secondsAfter(timestamp: string, seconds: number) {
 
 function buildTerminalReceipt(
   slot: (typeof contract.slots)[number],
-  overrides: { revision?: string; fail?: boolean } = {},
+  overrides: {
+    revision?: string;
+    fail?: boolean;
+    providerErrors?: number;
+    staleInputs?: number;
+  } = {},
 ) {
   const deployedRevision = overrides.revision ?? revision;
   const routeReceivedAt = secondsAfter(slot.slot_utc, 4);
@@ -108,6 +113,8 @@ function buildTerminalReceipt(
       (item) => item.data_class === "intraday",
     ).length,
     quote_success_count: plan.allocations.length,
+    quote_error_count: overrides.providerErrors ?? 0,
+    stale_count: overrides.staleInputs ?? 0,
     provider_credit_policy_version: "basic_free_scan_credit_guard_v1",
     candidate_observations: observations,
     candidate_observation_summary:
@@ -275,6 +282,39 @@ test("compares the complete switchback without authorizing live promotion", () =
     can_execute_broker_action: false,
   });
 });
+
+for (const deficit of ["providerErrors", "staleInputs"] as const) {
+  test(`retains baseline when better coverage comes with more ${deficit}`, () => {
+    const evaluation = buildScannerProviderCreditAllocationLiveEvaluation({
+      receipts: contract.slots.map((slot) =>
+        buildTerminalReceipt(slot, {
+          [deficit]: slot.arm === "challenger" ? 1 : 0,
+        }),
+      ),
+      scheduledAttemptRows: contract.slots.map((slot) =>
+        buildScheduledAttemptRow(slot),
+      ),
+      expectedRevision: revision,
+      evaluatedAt: new Date("2026-10-01T17:31:00.000Z"),
+    });
+
+    expect(evaluation.status).toBe("available");
+    expect(evaluation.paired_comparison.rankable_candidate_fraction_delta)
+      .toBeGreaterThan(0);
+    expect(evaluation.paired_comparison).toMatchObject({
+      signal: "guardrail_regression",
+      guardrails: {
+        passed: false,
+        provider_error_delta: deficit === "providerErrors" ? 3 : 0,
+        stale_input_delta: deficit === "staleInputs" ? 3 : 0,
+      },
+      recommendation_quality: "unproven",
+      next_step: "retain_baseline",
+    });
+    expect(Object.values(evaluation.authority).every((value) => value === false))
+      .toBe(true);
+  });
+}
 
 test("retains missing slots as in-progress before expiry and inconclusive after", () => {
   const receipts = contract.slots.slice(0, 2).map((slot) =>
