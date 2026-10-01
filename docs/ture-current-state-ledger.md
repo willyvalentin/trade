@@ -486,6 +486,20 @@ behavior remains unverified. Protected CI, merge and production deploy remain se
 may replace the frozen main revision before the separately authorized OPEN
 switchback is cleaned up.
 
+**Local evaluator correction — 2026-10-01:** two regression tests first
+reproduced an operational-stop/scientific-failure conflation and an ignored
+divergent reconciliation inside a failed cycle. Evaluation version
+`scanner_provider_credit_allocation_live_evaluation_v2` now treats two
+consecutive operational failures as a latched incomplete `inconclusive`
+comparison, while any supplied divergent reconciliation remains integrity
+`fail`. Failed-attempt credits remain counted and recommendation quality
+remains `unproven`; no runtime, ranking or publication authority changes.
+Local verification passed 32 allocation/evaluation/receipt tests and the full
+33-page production build, including TypeScript. This is an isolated local
+follow-up to PR #716, not merged or production-verified. The reader's original
+experiment/revision binding still needs reconciliation with the separately
+frozen observation after cleanup; do not merge it into an active collection.
+
 **Merged and production-verified CLOSED slice — frozen-cohort daily collection
 admission:** PR [#693](https://github.com/willyvalentin/trade/pull/693) merged as
 `8d00018912c12384a0fb9a5b84e0ae8eb8ba4205`; all protected PR CI shards are

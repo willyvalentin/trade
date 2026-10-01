@@ -19,7 +19,7 @@ import {
 import { scheduledScanInvocationReceiptFromAttempt } from "@/lib/scheduled-scan-invocation-receipt";
 
 export const SCANNER_PROVIDER_CREDIT_ALLOCATION_LIVE_EVALUATION_VERSION =
-  "scanner_provider_credit_allocation_live_evaluation_v1" as const;
+  "scanner_provider_credit_allocation_live_evaluation_v2" as const;
 
 type SlotStatus = "missing" | "active" | "completed" | "failed" | "invalid";
 
@@ -723,6 +723,13 @@ export function buildScannerProviderCreditAllocationLiveEvaluation({
     );
   }).length;
   const consecutiveFailures = maximumConsecutiveFailures(slots);
+  const operationalFailureStop =
+    consecutiveFailures >= contract.stop_conditions.consecutive_operational_failures;
+  const allocationIntegrityBreach = validReceipts.some(receipt =>
+    receipt.provider_credit_allocation_reconciliation !== null &&
+    receipt.provider_credit_allocation_reconciliation !== undefined &&
+    receipt.provider_credit_allocation_reconciliation.status !== "matched",
+  );
   const invalidSlots = slots.filter((slot) => slot.status === "invalid").length;
   const failedSlots = slots.filter((slot) => slot.status === "failed").length;
   const completedSlots = slots.filter(
@@ -746,12 +753,12 @@ export function buildScannerProviderCreditAllocationLiveEvaluation({
     invalidSlots > 0 ||
     totalProviderCredits > contract.max_total_provider_credits ||
     stalePublications > 0 ||
-    consecutiveFailures >= contract.stop_conditions.consecutive_operational_failures;
+    allocationIntegrityBreach;
   const status = hardFailure
     ? ("fail" as const)
     : completedSlots === contract.slots.length
       ? ("available" as const)
-      : expired
+      : expired || operationalFailureStop
         ? ("inconclusive" as const)
         : ("in_progress" as const);
   const baseline = aggregateArm(slots, "baseline");
@@ -841,7 +848,10 @@ export function buildScannerProviderCreditAllocationLiveEvaluation({
     ...(stalePublications > 0
       ? ["live_allocation_experiment_stale_or_incomplete_publication"]
       : []),
-    ...(consecutiveFailures >= contract.stop_conditions.consecutive_operational_failures
+    ...(allocationIntegrityBreach
+      ? ["live_allocation_experiment_allocation_integrity_breach"]
+      : []),
+    ...(operationalFailureStop
       ? ["live_allocation_experiment_consecutive_failure_stop"]
       : []),
     ...(hardFailure
@@ -849,7 +859,10 @@ export function buildScannerProviderCreditAllocationLiveEvaluation({
       : status === "available"
         ? ["live_allocation_experiment_complete"]
         : status === "inconclusive"
-          ? ["live_allocation_experiment_expired_incomplete"]
+          ? [
+              ...(expired ? ["live_allocation_experiment_expired_incomplete"] : []),
+              ...(operationalFailureStop ? ["live_allocation_experiment_operational_stop_incomplete"] : []),
+            ]
           : ["live_allocation_experiment_in_progress"]),
     "recommendation_quality_unproven",
   ];

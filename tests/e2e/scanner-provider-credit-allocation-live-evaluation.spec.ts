@@ -41,6 +41,7 @@ function buildTerminalRecord(
     fail?: boolean;
     providerErrors?: number;
     staleInputs?: number;
+    diverged?: boolean;
   } = {},
 ) {
   const deployedRevision = overrides.revision ?? revision;
@@ -68,7 +69,7 @@ function buildTerminalRecord(
   });
   const reconciliation = buildScannerProviderCreditAllocationReconciliation({
     plan,
-    actualAllocations: plan.allocations,
+    actualAllocations: overrides.diverged ? [] : plan.allocations,
     admissionFingerprint: admission.admission_fingerprint,
   });
   const allocationKeys = new Set(
@@ -359,7 +360,7 @@ test("retains missing slots as in-progress before expiry and inconclusive after"
   );
 });
 
-test("fails closed on duplicates, revision drift and two consecutive failures", () => {
+test("fails closed on invalid evidence but keeps an operational stop inconclusive", () => {
   const duplicate = buildTerminalReceipt(contract.slots[0]);
   expect(
     buildScannerProviderCreditAllocationLiveEvaluation({
@@ -398,7 +399,7 @@ test("fails closed on duplicates, revision drift and two consecutive failures", 
     expectedRevision: revision,
     evaluatedAt: new Date("2026-10-01T14:05:00.000Z"),
   });
-  expect(stopped.status).toBe("fail");
+  expect(stopped.status).toBe("inconclusive");
   expect(stopped.counts).toMatchObject({
     maximum_consecutive_operational_failures: 2,
     scanner_credits_reserved: 12,
@@ -407,6 +408,60 @@ test("fails closed on duplicates, revision drift and two consecutive failures", 
   expect(stopped.reason_codes).toContain(
     "live_allocation_experiment_consecutive_failure_stop",
   );
+  expect(stopped.reason_codes).not.toContain("live_allocation_experiment_expired_incomplete");
+  expect(stopped.paired_comparison).toMatchObject({
+    signal: "insufficient_evidence",
+    recommendation_quality: "unproven",
+    next_step: "review_incomplete_evidence_before_new_experiment",
+  });
+  expect(Object.values(stopped.authority).every(value => value === false)).toBe(true);
+});
+
+test("preserves a failed allocation-integrity result even before the operational stop", () => {
+  const slot = contract.slots[0];
+  const receipt = buildTerminalReceipt(slot, { fail: true, diverged: true });
+  const evaluation = buildScannerProviderCreditAllocationLiveEvaluation({
+    receipts: [receipt],
+    scheduledAttemptRows: [buildScheduledAttemptRow(slot)],
+    expectedRevision: revision,
+    evaluatedAt: new Date(secondsAfter(slot.slot_utc, 60)),
+  });
+  expect(evaluation.counts.invalid_receipts).toBe(0);
+  expect(evaluation.status).toBe("fail");
+  expect(evaluation.reason_codes).toContain("live_allocation_experiment_allocation_integrity_breach");
+  expect(evaluation.paired_comparison.next_step).toBe("repair_or_reject_experiment_evidence");
+});
+
+test("keeps incomplete scientific evidence separate from integrity failure at the stop", () => {
+  const first = contract.slots[0];
+  const single = buildScannerProviderCreditAllocationLiveEvaluation({
+    receipts: [buildTerminalReceipt(first, { fail: true })],
+    scheduledAttemptRows: [buildScheduledAttemptRow(first)],
+    expectedRevision: revision,
+    evaluatedAt: new Date(secondsAfter(first.slot_utc, 60)),
+  });
+  expect(single.status).toBe("in_progress");
+  expect(single.counts.maximum_consecutive_operational_failures).toBe(1);
+
+  const slots = contract.slots.slice(0, 3);
+  const stopped = buildScannerProviderCreditAllocationLiveEvaluation({
+    receipts: slots.map((slot, index) => buildTerminalReceipt(slot, { fail: index < 2 })),
+    scheduledAttemptRows: slots.map(slot => buildScheduledAttemptRow(slot)),
+    expectedRevision: revision,
+    evaluatedAt: new Date(secondsAfter(slots[2].slot_utc, 60)),
+  });
+  expect(stopped.status).toBe("inconclusive");
+  expect(stopped.counts).toMatchObject({ completed_slots: 1, failed_slots: 2, missing_slots: 3 });
+  expect(stopped.paired_comparison.signal).toBe("insufficient_evidence");
+
+  const invalid = buildScannerProviderCreditAllocationLiveEvaluation({
+    receipts: contract.slots.slice(0, 2).map((slot, index) => buildTerminalReceipt(slot, { fail: true, diverged: index === 1 })),
+    scheduledAttemptRows: contract.slots.slice(0, 2).map(slot => buildScheduledAttemptRow(slot)),
+    expectedRevision: revision,
+    evaluatedAt: new Date(secondsAfter(contract.slots[1].slot_utc, 60)),
+  });
+  expect(invalid.status).toBe("fail");
+  expect(invalid.reason_codes).toContain("live_allocation_experiment_allocation_integrity_breach");
 });
 
 test("counts orphan reservations and detects their budget or revision breaches", () => {

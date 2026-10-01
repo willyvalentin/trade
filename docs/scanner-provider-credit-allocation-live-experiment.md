@@ -81,7 +81,7 @@ remained enabled.
 
 ## Provider-free evaluation
 
-`scanner_provider_credit_allocation_live_evaluation_v1` is the strict,
+`scanner_provider_credit_allocation_live_evaluation_v2` is the strict,
 side-effect-free readback boundary for the resulting six observation-cycle
 receipts. It rejects malformed, unattributed, undeclared, duplicate, drifted or
 lineage-inconsistent evidence; joins every cycle to the durable Basic Free
@@ -92,6 +92,14 @@ eight-credit attempt budget while the cycle receipt independently proves actual
 scanner allocations. Completed slots must bind the exact runtime admission,
 arm, policy, candidate population, execution plan and reservation
 reconciliation.
+
+Two consecutive attributable operational failures terminate an incomplete
+comparison as `inconclusive`, not as evidence that either allocation policy
+failed scientifically. This stop remains latched after a later completed slot,
+and all failed-attempt credits remain counted. A supplied allocation
+reconciliation that diverges is instead an integrity `fail`, including when
+its cycle has already failed operationally. Integrity failures take precedence
+over the operational-stop classification. Neither result permits promotion.
 
 Only a complete three-pair series may produce a descriptive data-fitness
 signal. That signal compares rankable-candidate fraction, funded candidate
