@@ -89,6 +89,7 @@ const foundationTests = [
   "tests/e2e/scanner-provider-credit-allocation-runtime-admission.spec.ts",
   "tests/e2e/scanner-provider-credit-allocation-activation.spec.ts",
   "tests/e2e/scanner-provider-credit-allocation-runtime-execution.spec.ts",
+  "tests/e2e/scanner-provider-credit-allocation-live-evaluation.spec.ts",
   "tests/e2e/scanner-provider-coverage-diagnostic.spec.ts",
   "tests/e2e/scanner-score-gate-alignment-diagnostic.spec.ts",
   "tests/e2e/scheduled-scan-ticker-cap.spec.ts",

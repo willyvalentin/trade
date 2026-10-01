@@ -269,6 +269,21 @@ or broker authority. Only after that slice is merged, exact-revision deployed
 and freshly read back as `ready` may the separately bounded OPEN switchback be
 armed.
 
+PR [#715](https://github.com/willyvalentin/trade/pull/715) merged that sparse-slot
+guard and activation preflight as
+`40d671b93a6ca9aa6acf2a40c6949a10663d7d2f`; all protected CI passed and
+Git-connected Netlify production deploy `6abd9e7360059f00081666de` is `ready`
+on the exact revision. Authenticated production preflight returned `ready`
+with the experiment inert, competing workers off, zero prior reservations or
+attempts, 15 available 15-minute slots and the complete six-attempt/48-credit
+window admissible. The next CLOSED acceptance is a pure evaluation/readback
+boundary for the six owner-bound observation-cycle receipts. It must count
+failed, invalid and non-terminal attempts in the frozen denominator and budget,
+reject undeclared slots, duplicates, revision or lineage drift, and report the
+two allocation arms separately. A favorable data-fitness proxy remains
+insufficient for policy promotion until canonical recommendation outcomes pass
+the quality charter.
+
 **2026-09-23 market-timing decision.** The former named morning/midday/power-hour
 publication windows are historical operating constraints, not a product
 principle or a recommendation quota. A scheduled tick is a bounded observation
