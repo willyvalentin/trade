@@ -396,6 +396,34 @@ test("fails closed on duplicates, revision drift and two consecutive failures", 
   );
 });
 
+test("counts orphan reservations and detects their budget or revision breaches", () => {
+  const row = buildScheduledAttemptRow(contract.slots[0]);
+  const evaluate = (attempt: unknown) =>
+    buildScannerProviderCreditAllocationLiveEvaluation({
+      receipts: [],
+      scheduledAttemptRows: [attempt],
+      expectedRevision: revision,
+      evaluatedAt: new Date("2026-10-01T17:31:00.000Z"),
+    });
+  expect(evaluate(row)).toMatchObject({
+    status: "inconclusive",
+    counts: { missing_slots: 6, total_provider_credits_reserved: 8 },
+  });
+  const overBudget = {
+    ...row,
+    payload_json: {
+      ...row.payload_json,
+      basic_free_scheduled_scan_credit_reservation: {
+        ...row.payload_json.basic_free_scheduled_scan_credit_reservation,
+        requested_credits: 9,
+      },
+    },
+  };
+  expect(evaluate(overBudget)).toMatchObject({ status: "fail" });
+  expect(evaluate(buildScheduledAttemptRow(contract.slots[0], "b".repeat(40))))
+    .toMatchObject({ status: "fail" });
+});
+
 test("rejects undeclared or tampered evidence and never treats it as quality proof", () => {
   const validReceipt = buildTerminalReceipt(contract.slots[0]);
   const missingCreditEvidence =

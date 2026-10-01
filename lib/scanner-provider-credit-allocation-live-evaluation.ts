@@ -690,6 +690,9 @@ export function buildScannerProviderCreditAllocationLiveEvaluation({
     (total, attempt) => total + attempt.reserved_credits,
     0,
   );
+  const attemptRevisionMismatch = validAttemptRows.some(
+    (attempt) => attempt.deployed_revision !== revision,
+  );
   const scannerCredits = validReceipts.reduce(
     (total, receipt) =>
       total +
@@ -733,6 +736,7 @@ export function buildScannerProviderCreditAllocationLiveEvaluation({
     !revision ||
     invalidReceiptCount > 0 ||
     invalidAttemptRows > 0 ||
+    attemptRevisionMismatch ||
     unattributedReceipts > 0 ||
     duplicateSlots > 0 ||
     duplicateAttemptSlots > 0 ||
@@ -806,6 +810,9 @@ export function buildScannerProviderCreditAllocationLiveEvaluation({
       : []),
     ...(invalidAttemptRows > 0
       ? ["live_allocation_experiment_attempt_credit_evidence_invalid"]
+      : []),
+    ...(attemptRevisionMismatch
+      ? ["live_allocation_experiment_attempt_revision_mismatch"]
       : []),
     ...(unattributedReceipts > 0
       ? ["live_allocation_experiment_receipt_unattributed"]

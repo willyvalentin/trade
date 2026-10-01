@@ -466,7 +466,9 @@ receipt independently proves actual scanner allocations. It reports
 baseline/challenger rankable coverage, funded
 candidate breadth and late unfunded candidates, but always marks recommendation
 quality `unproven` and grants no provider, allocation, ranking, publication,
-threshold or broker authority. Focused local acceptance is 6/6 tests, including
+threshold or broker authority. Focused local acceptance is 7/7 tests, including
+reservation credit retention and revision-drift rejection even when the cycle
+receipt is missing, and
 baseline retention when better coverage accompanies increased provider errors
 or stale inputs, plus
 strict non-incremental TypeScript; broader allocation/receipt/scheduler
