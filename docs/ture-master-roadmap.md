@@ -58,6 +58,15 @@ their own acceptance; neither is a demonstrated quality improvement. Keep the
 frozen Oct 2 input observation separate from later source/outcome verification,
 and do not relax freshness, ranking or publication to manufacture coverage.
 
+The immediate work order is therefore complete fresh decision inputs, exact
+source-to-outcome continuity, then one measured contextual-ranking challenger.
+When those first two links pass their declared acceptance, return the primary
+delivery to the largest attributable recommendation-quality defect; do not
+extend input or outcome infrastructure without a new reproduced blocker.
+Retain separate results for operational delivery, input fitness, outcome
+coverage and baseline-relative quality. Only the last can establish that the
+recommendations became better, and it still requires the full quality charter.
+
 **Recommendation-quality gate.** An IF-4 terminal decision must evaluate the
 whole frozen charter that makes the recommendation useful: absolute precision,
 relative lift, expectancy, calibrated-probability error, outcome coverage,
