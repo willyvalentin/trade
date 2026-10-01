@@ -162,19 +162,17 @@ export function scannerClockPriorShadowComparisonFromUnknown(
       ticker.trim().toUpperCase(),
     ),
   );
-  const baselineSelectedTickers = uniqueSorted(
-    (record.baseline_selected_tickers as string[]).map((ticker) =>
-      ticker.trim().toUpperCase(),
-    ),
-  );
-  const shadowSelectedTickers = uniqueSorted(
-    (record.shadow_selected_tickers as string[]).map((ticker) =>
-      ticker.trim().toUpperCase(),
-    ),
-  );
+  // Selected identities are a ranked sequence, not an unordered population.
+  // The v1 producer reports a priority change even when membership is unchanged.
+  const baselineSelectedTickers = (record.baseline_selected_tickers as string[])
+    .map((ticker) => ticker.trim().toUpperCase());
+  const shadowSelectedTickers = (record.shadow_selected_tickers as string[])
+    .map((ticker) => ticker.trim().toUpperCase());
   const candidateTickerSet = new Set(candidateTickers);
   if (
     candidateTickers.length !== candidateCount ||
+    new Set(baselineSelectedTickers).size !== baselineSelectedTickers.length ||
+    new Set(shadowSelectedTickers).size !== shadowSelectedTickers.length ||
     baselineSelectedTickers.some((ticker) => !candidateTickerSet.has(ticker)) ||
     shadowSelectedTickers.some((ticker) => !candidateTickerSet.has(ticker))
   ) {
@@ -282,17 +280,15 @@ export function scannerClockPriorShadowComparisonFromUnknown(
           ) > 0.000001,
       ) ||
       baselineSelectedTickers.join("|") !==
-        uniqueSorted(
-          displacements
-            .filter((item) => item.baseline_selected)
-            .map((item) => item.ticker),
-        ).join("|") ||
+        displacements
+          .filter((item) => item.baseline_selected)
+          .sort((left, right) => left.baseline_rank - right.baseline_rank)
+          .map((item) => item.ticker).join("|") ||
       shadowSelectedTickers.join("|") !==
-        uniqueSorted(
-          displacements
-            .filter((item) => item.shadow_selected)
-            .map((item) => item.ticker),
-        ).join("|")
+        displacements
+          .filter((item) => item.shadow_selected)
+          .sort((left, right) => left.shadow_rank - right.shadow_rank)
+          .map((item) => item.ticker).join("|")
     ) {
       return null;
     }
