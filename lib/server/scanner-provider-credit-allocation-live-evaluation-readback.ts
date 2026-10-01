@@ -8,7 +8,7 @@ import { getServerSupabaseClient } from "@/lib/supabase-server";
 
 // Frozen before collection; never infer the observed revision from a later
 // reader deployment, mutable flags or a caller-provided query parameter.
-const OBSERVED_REVISION = "40d671b93a6ca9aa6acf2a40c6949a10663d7d2f";
+const OBSERVED_REVISION = "8e243b67a9819eb3f7901b0468cdb3651e099a79";
 const MAX_ROWS = 100;
 
 function unavailable(reason: string) {

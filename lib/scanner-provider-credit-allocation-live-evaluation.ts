@@ -313,16 +313,27 @@ function deploymentIdentity(receipt: ObservationCycleReceipt) {
     : null;
 }
 
+function hasFutureReceiptEvidence(receipt: ObservationCycleReceipt, evaluatedAtMs: number) {
+  return [
+    receipt.trigger.scheduled_slot_started_at_utc,
+    receipt.trigger.occurred_at,
+    receipt.trigger.route_received_at,
+    receipt.finalized_at,
+  ].some(timestamp => timestamp !== null && Date.parse(timestamp) > evaluatedAtMs);
+}
+
 function evaluateTerminalSlot({
   receipt,
   slot,
   expectedRevision,
   creditEvidence,
+  evaluatedAtMs,
 }: {
   receipt: ObservationCycleReceipt;
   slot: (typeof SCANNER_PROVIDER_CREDIT_ALLOCATION_LIVE_EXPERIMENT_CONTRACT.slots)[number];
   expectedRevision: string;
   creditEvidence: ScheduledAttemptCreditEvidence | null;
+  evaluatedAtMs: number;
 }): ScannerProviderCreditAllocationLiveEvaluationSlot {
   const policy = expectedPolicy(slot.arm);
   const identity = deploymentIdentity(receipt);
@@ -345,6 +356,11 @@ function evaluateTerminalSlot({
   };
 
   const provenanceReasons = [
+    ...(!Number.isFinite(evaluatedAtMs)
+      ? ["live_allocation_experiment_evaluation_clock_invalid"]
+      : hasFutureReceiptEvidence(receipt, evaluatedAtMs)
+        ? ["live_allocation_experiment_future_evidence"]
+        : []),
     ...(identity?.commit_ref === expectedRevision
       ? []
       : ["live_allocation_experiment_revision_mismatch"]),
@@ -607,7 +623,9 @@ export function buildScannerProviderCreditAllocationLiveEvaluation({
 }): ScannerProviderCreditAllocationLiveEvaluation {
   const contract = SCANNER_PROVIDER_CREDIT_ALLOCATION_LIVE_EXPERIMENT_CONTRACT;
   const revision = normalizedRevision(expectedRevision);
-  const evaluatedAtIso = Number.isFinite(evaluatedAt.getTime())
+  const evaluatedAtMs = evaluatedAt.getTime();
+  const evaluationClockInvalid = !Number.isFinite(evaluatedAtMs);
+  const evaluatedAtIso = !evaluationClockInvalid
     ? evaluatedAt.toISOString()
     : new Date(0).toISOString();
   const parsed = receipts.map(observationCycleReceiptFromUnknown);
@@ -675,6 +693,7 @@ export function buildScannerProviderCreditAllocationLiveEvaluation({
       receipt: slotReceipts[0],
       slot,
       expectedRevision: revision,
+      evaluatedAtMs,
       creditEvidence:
         attemptsBySlot.get(slot.slot_utc)?.length === 1
           ? attemptsBySlot.get(slot.slot_utc)![0]
@@ -694,6 +713,8 @@ export function buildScannerProviderCreditAllocationLiveEvaluation({
   const attemptRevisionMismatch = validAttemptRows.some(
     (attempt) => attempt.deployed_revision !== revision,
   );
+  const futureEvidence = validReceipts.some(receipt => hasFutureReceiptEvidence(receipt, evaluatedAtMs)) ||
+    validAttemptRows.some(attempt => Date.parse(attempt.slot_utc) > evaluatedAtMs);
   const scannerCredits = validReceipts.reduce(
     (total, receipt) =>
       total +
@@ -741,6 +762,8 @@ export function buildScannerProviderCreditAllocationLiveEvaluation({
     Number.isFinite(evaluatedAt.getTime()) &&
     evaluatedAt.getTime() >= Date.parse(contract.expires_at_utc);
   const hardFailure =
+    evaluationClockInvalid ||
+    futureEvidence ||
     !revision ||
     invalidReceiptCount > 0 ||
     invalidAttemptRows > 0 ||
@@ -815,6 +838,8 @@ export function buildScannerProviderCreditAllocationLiveEvaluation({
       : ("retain_baseline" as const);
   const reasons = [
     ...(!revision ? ["live_allocation_experiment_expected_revision_invalid"] : []),
+    ...(evaluationClockInvalid ? ["live_allocation_experiment_evaluation_clock_invalid"] : []),
+    ...(futureEvidence ? ["live_allocation_experiment_future_evidence"] : []),
     ...(invalidReceiptCount > 0
       ? ["live_allocation_experiment_receipt_invalid"]
       : []),

@@ -2,6 +2,100 @@
 
 ## Active Now / Next / Blocked — 2026-09-29 recommendation intelligence first
 
+**2026-10-01 OPEN no-go and selected CLOSED correction:** before the first
+declared slot, authenticated production readback on activation deploy
+`6abe57ef01c2be3918b15f9b` (exact main
+`40d671b93a6ca9aa6acf2a40c6949a10663d7d2f`) exposed an automatic-stop mismatch:
+the allocation experiment freezes two consecutive operational failures, but
+`buildObservationSeriesRuntimeAdmission` still uses the generic three-failure
+limit. The observer cannot substitute for that deterministic runtime stop.
+The series was disarmed before any declared slot. Cleanup deploy
+`6abe58dd68a97529511ac4bd` is ready, production, on unchanged exact main;
+authenticated readback at `2026-10-01T12:59:24.243Z` verifies both series and
+experiment disabled, experiment metadata unset, global scheduler disable true,
+competing workers off and zero attempts/reservations/credits for the day/window.
+The consumed automation was removed. Today's original six-slot series is no-go.
+The selected correction is owned by Codex on isolated branch
+`codex/allocation-experiment-failure-stop`: enforce the experiment's two-failure
+stop inside runtime admission before provider work, preserve generic series
+behavior and prove the one-failure/two-failure boundary with attributable history.
+Acceptance requires provider-free behavior tests, protected CI, exact-revision
+deployment and effective readback before freezing any replacement OPEN series.
+
+Local implementation now binds the frozen allocation admission to the current
+slot and deployment revision, enforces its two-failure limit and latches the
+stop across subsequent rejected/no-request receipts; generic series retain
+their existing three-failure behavior. The real route and evidence readback
+share that versioned runtime decision. Local verification on the branch above:
+168 foundation tests, 78 related regression tests, typecheck, production Next
+build and source lint passed (eight pre-existing lint warnings; generated
+runtime bundles excluded from source lint). The provider-free packaged-runtime
+proof (`scripts/allocation-failure-stop-runtime-proof.mjs`) runs the packaged
+scheduler and real route through isolated PostgREST/Postgres with two seeded
+synthetic failures: two subsequent slots both stop, all four attempts retain
+terminal receipts, readback reports `failure_stop_reached`, and no external
+provider request, credit, publication or broker action occurs. Auth/calendar
+inputs are synthetic CLOSED fixtures, not production or market evidence.
+Protected CI, merge, production deployment and effective readback remain
+outstanding; no replacement series is armed and no recommendation-quality
+improvement is claimed by this correction.
+
+The final pre-activation contract audit also reproduced an immediate-stop gap:
+one attributable `diverged` allocation reconciliation still admitted the next
+slot. The focused correction now rejects that history before provider work and
+retains the integrity stop across later rejected receipts. The same packaged
+runtime proof with `--divergence` persists one synthetic divergence and runs two
+later scheduler slots: both reject, all three attempts retain terminal receipts,
+the actual reader truthfully classifies `fail/evidence_invalid`, and external
+provider requests, credits, publications and broker actions remain zero. That
+is a passing CLOSED regression for truthful failure handling, not a passing
+experiment or evidence that data fitness improved. The source-only and real
+isolated-database proofs preserve the generic series behavior.
+
+**Prepared replacement OPEN card — 2026-10-01, not armed:** Codex owns
+`provider_credit_allocation_switchback_2026_10_01_v2`, the continuation of the
+IF-2b provider-credit allocation hypothesis, not a new ranking hypothesis.
+Question: under the same six-scanner/eight-total-credit cap and unchanged
+strategy/rotating selection versions, does breadth-first allocation improve
+rankable-candidate fraction and funded breadth while reducing wholly unfunded
+late candidates compared with the serial baseline? Freeze three reversed-order
+pairs: 14:30Z baseline / 14:45Z challenger; 15:30Z challenger / 15:45Z baseline;
+17:00Z baseline / 17:15Z challenger. Expiry is 17:30Z (19:30 CEST). Retain all
+attempts, failures, exclusions and exact candidate-population fingerprints;
+maximum six attempts/48 credits, eight total credits per attempt, six scanner
+credits and the independent three-intraday-credit ceiling. No retry, no manual
+route and no overlapping workers are authorized by this card.
+
+Before arming, record the exact ready main revision/deploy from fresh
+authenticated preflight in this ledger, verify account and reservation-ledger
+remaining capacity for the complete series, disabled competing controls,
+verified regular New York session and the full declared window. The activation
+deploy must be ready by 14:15Z or the entire replacement is `no_go`; do not
+drop an arm or silently shift the frozen slots. Global scheduler-disable stays
+true throughout. Normal scheduler -> exact runtime admission -> provider
+reservation -> frozen allocation plan/reconciliation -> decision/lineage ->
+owner-bound cycle and scheduled-attempt readback is the evidence chain.
+
+Pass for a descriptive data-fitness signal requires all three complete pairs,
+positive challenger-minus-baseline rankable-fraction and funded-breadth deltas,
+negative late-unfunded delta, non-positive provider-error/stale-input/total-cost
+deltas, and zero stale/incomplete publication. Budget, lineage, population,
+revision or plan-versus-actual divergence is `fail`; missing, active, stopped
+or under-complete evidence is `inconclusive`, never a manufactured improvement.
+A complete non-improving or mixed comparison retains baseline. Every result
+keeps recommendation quality `unproven`; canonical-outcome/full-charter evidence
+and reversible promotion remain separate requirements.
+
+Runtime enforces the declared slot whitelist, budgets, expiry, two-failure latch
+and immediate integrity stop. Codex's separate monitoring/cleanup mechanism
+reads attributable evidence after each slot, stops on a terminal/unsafe result,
+and regardless of outcome disables series and experiment, clears only their
+metadata and verifies exactly one unchanged-revision Git-connected cleanup
+deploy plus authenticated inert readback. The observer is not the technical
+expiry/stop mechanism. PR #716's read-only evaluator is retained for completion
+after cleanup: it must be updated to the replacement contract and exact observed
+revision, not silently merged with its original v1/40d671 observation pin.
+
 The [master roadmap](./ture-master-roadmap.md) retains the full scientific,
 autonomous-paper, options and IBKR destination in SV-A-SV-U, but active work
 selection is recommendation intelligence first. The current queue is IF-2b data
@@ -497,8 +591,17 @@ remains `unproven`; no runtime, ranking or publication authority changes.
 Local verification passed 32 allocation/evaluation/receipt tests and the full
 33-page production build, including TypeScript. This is an isolated local
 follow-up to PR #716, not merged or production-verified. The reader's original
-experiment/revision binding still needs reconciliation with the separately
-frozen observation after cleanup; do not merge it into an active collection.
+experiment/revision binding has now been reconciled locally with v2 and exact
+observed main `8e243b67a9819eb3f7901b0468cdb3651e099a79`, frozen before the first
+slot. A further failing regression reproduced future terminal evidence being
+accepted as observed coverage. The evaluator now rejects future schedule,
+receipt and finalization times or an invalid evaluation clock, retains credits
+conservatively, and excludes those slots from completed coverage. Controlled
+CLOSED fixture time is separate from real market time. The integrated local
+tree passed 58 allocation/evaluation/series/receipt tests, changed-file lint and
+the full 33-page production build including TypeScript. Protected CI, merge and
+production behavior of this reader remain outstanding; integration follows
+collection and verified cleanup, never during the active observation.
 
 **Merged and production-verified CLOSED slice — frozen-cohort daily collection
 admission:** PR [#693](https://github.com/willyvalentin/trade/pull/693) merged as

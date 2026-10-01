@@ -336,7 +336,7 @@ test("retains missing slots as in-progress before expiry and inconclusive after"
       .slice(0, 2)
       .map((slot) => buildScheduledAttemptRow(slot)),
     expectedRevision: revision,
-    evaluatedAt: new Date("2026-10-01T14:05:00.000Z"),
+    evaluatedAt: new Date(secondsAfter(contract.slots[1].slot_utc, 60)),
   });
   expect(active.status).toBe("in_progress");
   expect(active.counts).toMatchObject({ completed_slots: 2, missing_slots: 4 });
@@ -367,7 +367,7 @@ test("fails closed on invalid evidence but keeps an operational stop inconclusiv
       receipts: [duplicate, duplicate],
       scheduledAttemptRows: [buildScheduledAttemptRow(contract.slots[0])],
       expectedRevision: revision,
-      evaluatedAt: new Date("2026-10-01T13:50:00.000Z"),
+      evaluatedAt: new Date(secondsAfter(contract.slots[0].slot_utc, 60)),
     }),
   ).toMatchObject({
     status: "fail",
@@ -384,7 +384,7 @@ test("fails closed on invalid evidence but keeps an operational stop inconclusiv
         buildScheduledAttemptRow(contract.slots[0], "b".repeat(40)),
       ],
       expectedRevision: revision,
-      evaluatedAt: new Date("2026-10-01T13:50:00.000Z"),
+      evaluatedAt: new Date(secondsAfter(contract.slots[0].slot_utc, 60)),
     }).reason_codes,
   ).toContain("live_allocation_experiment_receipt_invalid");
 
@@ -397,7 +397,7 @@ test("fails closed on invalid evidence but keeps an operational stop inconclusiv
       .slice(0, 2)
       .map((slot) => buildScheduledAttemptRow(slot)),
     expectedRevision: revision,
-    evaluatedAt: new Date("2026-10-01T14:05:00.000Z"),
+    evaluatedAt: new Date(secondsAfter(contract.slots[1].slot_utc, 60)),
   });
   expect(stopped.status).toBe("inconclusive");
   expect(stopped.counts).toMatchObject({
@@ -528,8 +528,42 @@ test("rejects undeclared or tampered evidence and never treats it as quality pro
   expect(evaluation.paired_comparison.recommendation_quality).toBe("unproven");
 });
 
+test("rejects future terminal evidence instead of reporting observed coverage", () => {
+  const slot = contract.slots[0];
+  const evaluation = buildScannerProviderCreditAllocationLiveEvaluation({
+    receipts: [buildTerminalReceipt(slot)],
+    scheduledAttemptRows: [buildScheduledAttemptRow(slot)],
+    expectedRevision: revision,
+    evaluatedAt: new Date(Date.parse(slot.slot_utc) - 1000),
+  });
+  expect(evaluation.status).toBe("fail");
+  expect(evaluation.counts.completed_slots).toBe(0);
+  expect(evaluation.reason_codes).toContain("live_allocation_experiment_future_evidence");
+  expect(evaluation.paired_comparison.recommendation_quality).toBe("unproven");
+  const finalizedLater = buildTerminalReceipt(slot);
+  const beforeFinalization = buildScannerProviderCreditAllocationLiveEvaluation({
+    receipts: [finalizedLater],
+    scheduledAttemptRows: [buildScheduledAttemptRow(slot)],
+    expectedRevision: revision,
+    evaluatedAt: new Date(Date.parse(finalizedLater.finalized_at!) - 1),
+  });
+  expect(beforeFinalization).toMatchObject({ status: "fail", counts: { completed_slots: 0 } });
+  const orphanFutureAttempt = buildScannerProviderCreditAllocationLiveEvaluation({
+    receipts: [], scheduledAttemptRows: [buildScheduledAttemptRow(slot)],
+    expectedRevision: revision, evaluatedAt: new Date(Date.parse(slot.slot_utc) - 1),
+  });
+  expect(orphanFutureAttempt.status).toBe("fail");
+  expect(orphanFutureAttempt.counts.total_provider_credits_reserved).toBe(8);
+  const invalidClock = buildScannerProviderCreditAllocationLiveEvaluation({
+    receipts: [], scheduledAttemptRows: [], expectedRevision: revision,
+    evaluatedAt: new Date(Number.NaN),
+  });
+  expect(invalidClock.status).toBe("fail");
+  expect(invalidClock.reason_codes).toContain("live_allocation_experiment_evaluation_clock_invalid");
+});
+
 test("authenticated readback joins database evidence and rejects incomplete or foreign rows", async () => {
-  const observedRevision = "40d671b93a6ca9aa6acf2a40c6949a10663d7d2f";
+  const observedRevision = "8e243b67a9819eb3f7901b0468cdb3651e099a79";
   const requests: URL[] = [];
   let mode: "complete" | "truncated" | "foreign" | "error" = "complete";
   const client = createClient("https://fixture.invalid", "synthetic-test-key", {
@@ -576,8 +610,12 @@ test("authenticated readback joins database evidence and rejects incomplete or f
     } }],
   });
   const loadedModule = { exports: {} as { GET: () => Promise<Response> } };
-  new Function("require", "module", "exports", "fixture", bundle.outputFiles[0].text)(
-    createRequire(resolve("package.json")), loadedModule, loadedModule.exports, fixture,
+  const FixtureDate = class extends Date {
+    constructor(value: string | number = "2026-10-01T17:31:00.000Z") { super(value); }
+    static now() { return Date.parse("2026-10-01T17:31:00.000Z"); }
+  };
+  new Function("require", "module", "exports", "fixture", "Date", bundle.outputFiles[0].text)(
+    createRequire(resolve("package.json")), loadedModule, loadedModule.exports, fixture, FixtureDate,
   );
   expect((await loadedModule.exports.GET()).status).toBe(401);
   expect(requests).toHaveLength(0);

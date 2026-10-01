@@ -3644,6 +3644,18 @@ export async function POST(request: Request) {
     orchestration: dayTradeScanOrchestration,
     scanWindow: scanWindow.scanWindow,
   });
+  const providerCreditAllocationRuntimeAdmission =
+    scannerProviderCreditAllocationRuntimeAdmissionFromEnvironment({
+      environment: {
+        get: (name) =>
+          requestSource === "netlify_scheduled_function"
+            ? process.env[name]
+            : undefined,
+      },
+      requestSource,
+      scheduledInvocationReceipt,
+      now: scanClock,
+    });
   const observationSeriesAdmission =
     buildObservationSeriesRuntimeAdmission({
       control: observationSeriesControl,
@@ -3663,6 +3675,7 @@ export async function POST(request: Request) {
       perAttemptProviderCredits:
         scheduledRuntimeConfig.scheduled_provider_credit_budget
           .max_known_credits_per_scan,
+      providerCreditAllocationRuntimeAdmission,
     });
   const scheduledGateDiagnostics = buildContinuousMarketScanAdmission({
     now: scanClock,
@@ -3680,18 +3693,6 @@ export async function POST(request: Request) {
     scheduledFunctionFiredAtUtc,
     scanWindow: scanWindow.scanWindow,
   });
-  const providerCreditAllocationRuntimeAdmission =
-    scannerProviderCreditAllocationRuntimeAdmissionFromEnvironment({
-      environment: {
-        get: (name) =>
-          requestSource === "netlify_scheduled_function"
-            ? process.env[name]
-            : undefined,
-      },
-      requestSource,
-      scheduledInvocationReceipt,
-      now: scanClock,
-    });
   activeScanTrace.updateMarketDataFetch({
     provider_credit_allocation_runtime_admission:
       providerCreditAllocationRuntimeAdmission,

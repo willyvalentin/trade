@@ -168,13 +168,13 @@ test.describe("SV-A.2 observation-cycle receipts", () => {
 
   test("round-trips an exact execution plan and plan-to-actual reconciliation", () => {
     const revision = "a".repeat(40);
-    const admittedAt = "2026-10-01T14:00:04.000Z";
+    const admittedAt = "2026-10-01T14:45:04.000Z";
     const admission = buildScannerProviderCreditAllocationRuntimeAdmission({
       enabled: true,
       experimentId:
         SCANNER_PROVIDER_CREDIT_ALLOCATION_LIVE_EXPERIMENT_CONTRACT.experiment_id,
       scheduledInvocationBound: true,
-      scheduledSlotUtc: "2026-10-01T14:00:00.000Z",
+      scheduledSlotUtc: "2026-10-01T14:45:00.000Z",
       now: new Date(admittedAt),
       expectedRevision: revision,
       deployedRevision: revision,

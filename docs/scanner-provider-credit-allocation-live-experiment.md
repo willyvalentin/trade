@@ -8,15 +8,33 @@ Twelve Data or change scanner behavior by itself.
 
 ## Frozen switchback
 
-The experiment is bound to the regular 2026-10-01 US session and six declared
+The original `provider_credit_allocation_switchback_2026_10_01_v1` was
+disarmed before its first slot after the two-failure versus three-failure
+runtime-stop mismatch was found. It remains `no_go`, with zero attempts or
+credits; its declared times were 13:45Z/14:00Z, 15:15Z/15:30Z and 17:00Z/17:15Z.
+Do not blend that original declaration with the replacement below.
+
+The replacement `provider_credit_allocation_switchback_2026_10_01_v2` is
+bound to the regular 2026-10-01 US session and six declared
 15-minute scheduler slots. Three time pairs reverse arm order to reduce a simple
 early/late ordering bias:
 
 | Pair | Baseline slot | Challenger slot |
 | --- | --- | --- |
-| 1 | 13:45Z | 14:00Z |
-| 2 | 15:30Z | 15:15Z |
+| 1 | 14:30Z | 14:45Z |
+| 2 | 15:45Z | 15:30Z |
 | 3 | 17:00Z | 17:15Z |
+
+The first replacement slot is 16:30 CEST / 10:30 America/New_York, not a
+product restriction to a named publication window. Activation is conditional
+on green protected CI, a ready exact-revision production deployment, fresh
+provider-free authenticated preflight and verified remaining daily capacity.
+The activation deploy must be ready by 14:15Z, one full scheduler interval
+before the first slot; otherwise this entire replacement is `no_go`, not a
+partially collected comparison. No retry or manual route is allowed. Freeze
+the final published revision/deploy identity in the ledger before activation,
+keep it unchanged through collection and cleanup, and do not merge a later
+reader or unrelated delivery during that period.
 
 Every attempt retains the existing Basic Free ceiling: six scanner credits and
 eight total known provider credits. The whole series is therefore capped at six
@@ -100,6 +118,10 @@ and all failed-attempt credits remain counted. A supplied allocation
 reconciliation that diverges is instead an integrity `fail`, including when
 its cycle has already failed operationally. Integrity failures take precedence
 over the operational-stop classification. Neither result permits promotion.
+Evidence with a scheduled, received or finalized timestamp later than the
+evaluation clock also fails integrity admission; an invalid clock cannot
+produce an accepted comparison. Such credits remain counted conservatively,
+but future terminal receipts never contribute observed completed coverage.
 
 Only a complete three-pair series may produce a descriptive data-fitness
 signal. That signal compares rankable-candidate fraction, funded candidate
@@ -117,7 +139,9 @@ The authenticated `GET /api/app/provider-credit-allocation-live-evaluation`
 reads the fixed experiment window independently of current activation flags.
 It uses count-checked database reads, validates persisted cycle metadata and
 owner identity, and pins the observation revision to
-`40d671b93a6ca9aa6acf2a40c6949a10663d7d2f`. Read failures return HTTP 503
+`8e243b67a9819eb3f7901b0468cdb3651e099a79`, frozen before the first v2 slot.
+The original v1/40d671 observation remains no-go and is not pooled into v2.
+Read failures return HTTP 503
 with no evaluation; invalid experiment evidence returns HTTP 422; a readable
 evaluation returns HTTP 200, including honest incomplete/in-progress results.
 Responses are uncached. This route is locally built and fixture-tested;
