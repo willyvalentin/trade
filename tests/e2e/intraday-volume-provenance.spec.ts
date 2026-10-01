@@ -21,6 +21,15 @@ function candles(volumes: number[], intervalMinutes = 5): IntradayCandle[] {
   }));
 }
 
+test("opening volume mean retains three observed bars without inventing a complete ratio", () => {
+  const observed = observedIndicators([1000, 1000, 0]);
+  expect(observed.latestVolume).toBe(0);
+  expect(observed.averageVolume).toBe(667);
+  expect(observed.recentVolumeRatio).toBeNull();
+  expect(observed.recentVolumeBarClosedAtSeconds).toBeNull();
+  expect(observed.volumeTrend).toBe("unknown");
+});
+
 function observedIndicators(
   volumes: number[],
   observedAtSeconds?: number,
