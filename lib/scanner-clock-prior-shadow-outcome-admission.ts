@@ -44,7 +44,8 @@ export function assessScannerClockPriorShadowOutcomeAdmission(
   const payload = snapshot.payload_json;
   const targetCohort =
     payload.clock_prior_shadow_evidence_sample === true ||
-    payload.clock_prior_shadow_evidence_reuse_version !== undefined;
+    (payload.clock_prior_shadow_evidence_reuse_version !== undefined &&
+      payload.clock_prior_shadow_evidence_reuse_version !== null);
   const base = {
     admission_version: SCANNER_CLOCK_PRIOR_SHADOW_OUTCOME_ADMISSION_VERSION,
     snapshot_fingerprint: text(snapshot.snapshot_fingerprint),
