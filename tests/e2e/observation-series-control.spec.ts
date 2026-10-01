@@ -18,6 +18,8 @@ import { buildContinuousMarketScanAdmission } from "../../lib/continuous-market-
 import { buildMarketSessionEvaluation } from "../../lib/market-session";
 import { getIntradayScanWindow } from "../../lib/intraday-scan-window";
 import { resolveScheduledScanProviderCreditBudget } from "../../lib/scheduled-scan-ticker-cap";
+import { buildScannerProviderCreditAllocationExecutionPlan } from "../../lib/scanner-provider-credit-allocation-plan";
+import { buildScannerProviderCreditAllocationReconciliation } from "../../lib/scanner-provider-credit-allocation-reconciliation";
 
 const ownerUserId = "00000000-0000-4000-8000-000000000001";
 const buildIdentity = {
@@ -340,6 +342,37 @@ function allocationAdmission(slot: string, revision = buildIdentity.commit_ref) 
     deployedRevision: revision,
   });
 }
+
+test("allocation experiment immediately stops on an attributable plan-versus-actual divergence", () => {
+  const [previousSlot, currentSlot] = allocationContract.slots.map((entry) => entry.slot_utc);
+  const previousAdmission = allocationAdmission(previousSlot);
+  const plan = buildScannerProviderCreditAllocationExecutionPlan({
+    policyVersion: previousAdmission.selected_policy_version,
+    providerCreditCap: 6, intradayProviderCreditCap: 3,
+    candidateDemands: Array.from({ length: 8 }, (_, index) => ({
+      ticker: `T${index}`, ticker_index: index,
+      daily_refresh_required: true, intraday_refresh_required: true,
+    })),
+  });
+  const previous = {
+    ...receipt({ slot: previousSlot, reservedCredits: 0 }),
+    provider_credit_allocation_runtime_admission: previousAdmission,
+    provider_credit_allocation_execution_plan: plan,
+    provider_credit_allocation_reconciliation: buildScannerProviderCreditAllocationReconciliation({
+      plan, actualAllocations: [], admissionFingerprint: previousAdmission.admission_fingerprint,
+    }),
+  };
+  expect(previous.provider_credit_allocation_reconciliation.status).toBe("diverged");
+  expect(runtimeAdmission({
+    currentControl: allocationControl(), slot: currentSlot, receipts: [previous],
+    providerCreditAllocationRuntimeAdmission: allocationAdmission(currentSlot),
+  })).toMatchObject({ decision: "reject", status: "series_history_invalid",
+    reason_codes: ["allocation_experiment_reconciliation_diverged"] });
+  // This experiment-specific stop must not redefine generic series behavior.
+  expect(runtimeAdmission({
+    currentControl: allocationControl(), slot: currentSlot, receipts: [previous],
+  })).toMatchObject({ decision: "allow" });
+});
 
 test("the bound allocation experiment stops before current-data work after two failures, not one", () => {
   const slots = allocationContract.slots.map((item) => item.slot_utc);

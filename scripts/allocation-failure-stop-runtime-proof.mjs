@@ -11,6 +11,7 @@ import { join, resolve } from "node:path";
 import { buildSync } from "esbuild";
 
 const root = process.cwd();
+const divergenceScenario = process.argv.includes("--divergence");
 const directory = mkdtempSync(join(tmpdir(), "ture-allocation-stop-proof-"));
 const database = `ture-allocation-stop-db-${process.pid}`;
 const api = `ture-allocation-stop-api-${process.pid}`;
@@ -49,7 +50,10 @@ try {
     contents: `export { observationSeriesControlFromEnvironment, buildObservationSeriesSlotAdmission } from './lib/observation-series-control';
       export { buildObservationCycleReceipt, buildObservationCycleReadback } from './lib/observation-cycle-receipt';
       export { buildObservationSeriesEvidenceReadback } from './lib/server/observation-series-evidence-builder';
-      export { SCANNER_PROVIDER_CREDIT_ALLOCATION_LIVE_EXPERIMENT_CONTRACT as contract } from './lib/scanner-provider-credit-allocation-live-experiment';`,
+      export { SCANNER_PROVIDER_CREDIT_ALLOCATION_LIVE_EXPERIMENT_CONTRACT as contract } from './lib/scanner-provider-credit-allocation-live-experiment';
+      export { buildScannerProviderCreditAllocationRuntimeAdmission } from './lib/scanner-provider-credit-allocation-runtime-admission';
+      export { buildScannerProviderCreditAllocationExecutionPlan } from './lib/scanner-provider-credit-allocation-plan';
+      export { buildScannerProviderCreditAllocationReconciliation } from './lib/scanner-provider-credit-allocation-reconciliation';`,
   }, outfile: join(generated, "reader.cjs") });
   const require = createRequire(import.meta.url);
   const readers = require(join(generated, "reader.cjs"));
@@ -108,7 +112,8 @@ try {
     constructor(...args) { super(...(args.length ? args : [clock])); }
     static now() { return clock; }
   };
-  for (const [index, slotEntry] of contract.slots.slice(0, 2).entries()) {
+  const seededCount = divergenceScenario ? 1 : 2;
+  for (const [index, slotEntry] of contract.slots.slice(0, seededCount).entries()) {
     const slot = slotEntry.slot_utc;
     clock = OriginalDate.parse(slot);
     const fingerprint = `closed_stop_prior_attempt_${index}`;
@@ -116,13 +121,35 @@ try {
       observation_series_control: control, observation_series_slot_admission: readers.buildObservationSeriesSlotAdmission({ control, scheduledSlotStartedAtUtc: slot }) };
     // Populate via Postgres defaults, not jsonb_populate_record's missing NULLs.
     sql(`insert into scheduled_scan_attempts(attempt_fingerprint,source,mode,scheduled_function_fired_at,utc_timestamp,payload_json) values('${fingerprint}','netlify_scheduled_function','scheduled','${slot}','${slot}',${literal(payload)});`);
-    const record = readers.buildObservationCycleReceipt({ ownerUserId: owner, attemptFingerprint: fingerprint,
+    const record = structuredClone(readers.buildObservationCycleReceipt({ ownerUserId: owner, attemptFingerprint: fingerprint,
       source: "netlify_scheduled_function", mode: "scheduled", outcome: "failed", allowed: false,
       routeReceivedAtUtc: slot, scheduledFunctionFiredAtUtc: slot, orchestrationDecision: null, skipReason: "synthetic_closed_operational_failure",
       scanLog: null, activeScanTrace: null, scanRunFingerprint: null,
       scheduledInvocationReceipt: { receipt_version: "scheduled_scan_invocation_receipt_v1", scheduled_slot_started_at_utc: slot,
-        scheduled_slot_identity_source: "netlify_event_next_run", build_deployment_identity: identity, durable_invocation_payload: payload } });
+        scheduled_slot_identity_source: "netlify_event_next_run", build_deployment_identity: identity, durable_invocation_payload: payload } }));
     assert.equal(record.cycle_status, "failed");
+    if (divergenceScenario) {
+      const admission = readers.buildScannerProviderCreditAllocationRuntimeAdmission({
+        enabled: true, experimentId: contract.experiment_id,
+        scheduledInvocationBound: true, scheduledSlotUtc: slot, now: new OriginalDate(clock),
+        expectedRevision: identity.commit_ref, deployedRevision: identity.commit_ref,
+      });
+      const plan = readers.buildScannerProviderCreditAllocationExecutionPlan({
+        policyVersion: admission.selected_policy_version,
+        providerCreditCap: 6, intradayProviderCreditCap: 3,
+        candidateDemands: Array.from({ length: 8 }, (_, tickerIndex) => ({
+          ticker: `T${tickerIndex}`, ticker_index: tickerIndex,
+          daily_refresh_required: true, intraday_refresh_required: true,
+        })),
+      });
+      Object.assign(record.receipt_json, {
+        provider_credit_allocation_runtime_admission: admission,
+        provider_credit_allocation_execution_plan: plan,
+        provider_credit_allocation_reconciliation: readers.buildScannerProviderCreditAllocationReconciliation({
+          plan, actualAllocations: [], admissionFingerprint: admission.admission_fingerprint,
+        }),
+      });
+    }
     const columns = Object.keys(record).join(",");
     sql(`insert into observation_cycle_receipts(${columns}) select ${columns} from jsonb_populate_record(null::observation_cycle_receipts,${literal(record)});`);
   }
@@ -147,27 +174,28 @@ try {
   console.log = (...items) => logs.push(items);
   globalThis.Netlify = { env: { get: (name) => process.env[name] } };
   const scheduler = require(join(directory, "functions/scheduled.cjs")).default;
-  for (const entry of contract.slots.slice(2, 4)) {
+  for (const entry of contract.slots.slice(seededCount, seededCount + 2)) {
     clock = OriginalDate.parse(entry.slot_utc) + 20_000;
     const response = await scheduler(new Request("http://closed-scheduler", { method: "POST", body: JSON.stringify({ next_run: new OriginalDate(clock + 15 * 60_000 - 20_000).toISOString() }) }),
       { deploy: { id: identity.deploy_id, context: "production", published: true } });
     assert.equal(response.status, 200, `scheduler_status=${response.status}; logs=${JSON.stringify(logs).slice(-7000)}`);
     const body = await response.json();
     assert.equal(body.status, "skipped", JSON.stringify(body).slice(0, 1000));
-    assert.equal(body.automation_diagnostics.observation_series_admission.status, "series_failure_stop_reached");
+    assert.equal(body.automation_diagnostics.observation_series_admission.status, divergenceScenario ? "series_history_invalid" : "series_failure_stop_reached");
     assert.equal(body.automation_diagnostics.observation_series_admission.facts.max_consecutive_failures, 2);
   }
   const rows = JSON.parse(sql("select coalesce(jsonb_agg(t), '[]') from scheduled_scan_attempts t;"));
   const receiptRows = JSON.parse(sql("select coalesce(jsonb_agg(t), '[]') from observation_cycle_receipts t;"));
-  assert.equal(rows.length, 4);
+  assert.equal(rows.length, seededCount + 2);
   const readback = readers.buildObservationCycleReadback(receiptRows);
   assert.equal(readback.status, "available", JSON.stringify(readback.reason_codes));
   const evidence = readers.buildObservationSeriesEvidenceReadback({ ownerUserId: owner, control, scheduledAttemptRows: rows, observationCycleReadback: readback, now: new OriginalDate(clock) });
-  assert.equal(evidence.series.operational.terminal_reason, "failure_stop_reached");
+  assert.equal(evidence.series.operational.terminal_reason, divergenceScenario ? "evidence_invalid" : "failure_stop_reached");
+  assert.equal(evidence.series.operational.classification, divergenceScenario ? "fail" : "pass");
   assert.equal(evidence.series.counts.reserved_provider_credits, 0);
   assert.equal(evidence.series.counts.published_recommendations, 0);
   assert.equal(externalRequests, 0);
-  originalLog(JSON.stringify({ evidence_mode: "synthetic_closed_packaged_runtime_with_isolated_postgres", scheduler_slots: 2, seeded_operational_failures: 2,
+  originalLog(JSON.stringify({ evidence_mode: "synthetic_closed_packaged_runtime_with_isolated_postgres", scenario: divergenceScenario ? "allocation_divergence_stop" : "two_failure_stop", scheduler_slots: 2, seeded_operational_failures: seededCount,
     scheduled_attempts: rows.length, terminal_receipts: receiptRows.length, terminal_reason: evidence.series.operational.terminal_reason,
     provider_requests: externalRequests, reserved_credits: 0, publications: 0, broker_actions: 0, production_actions: 0 }));
 } catch (error) {

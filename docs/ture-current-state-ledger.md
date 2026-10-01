@@ -27,7 +27,7 @@ slot and deployment revision, enforces its two-failure limit and latches the
 stop across subsequent rejected/no-request receipts; generic series retain
 their existing three-failure behavior. The real route and evidence readback
 share that versioned runtime decision. Local verification on the branch above:
-168 foundation tests, 69 related regression tests, typecheck, production Next
+168 foundation tests, 78 related regression tests, typecheck, production Next
 build and source lint passed (eight pre-existing lint warnings; generated
 runtime bundles excluded from source lint). The provider-free packaged-runtime
 proof (`scripts/allocation-failure-stop-runtime-proof.mjs`) runs the packaged
@@ -39,6 +39,18 @@ inputs are synthetic CLOSED fixtures, not production or market evidence.
 Protected CI, merge, production deployment and effective readback remain
 outstanding; no replacement series is armed and no recommendation-quality
 improvement is claimed by this correction.
+
+The final pre-activation contract audit also reproduced an immediate-stop gap:
+one attributable `diverged` allocation reconciliation still admitted the next
+slot. The focused correction now rejects that history before provider work and
+retains the integrity stop across later rejected receipts. The same packaged
+runtime proof with `--divergence` persists one synthetic divergence and runs two
+later scheduler slots: both reject, all three attempts retain terminal receipts,
+the actual reader truthfully classifies `fail/evidence_invalid`, and external
+provider requests, credits, publications and broker actions remain zero. That
+is a passing CLOSED regression for truthful failure handling, not a passing
+experiment or evidence that data fitness improved. The source-only and real
+isolated-database proofs preserve the generic series behavior.
 
 The [master roadmap](./ture-master-roadmap.md) retains the full scientific,
 autonomous-paper, options and IBKR destination in SV-A-SV-U, but active work

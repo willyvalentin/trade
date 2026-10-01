@@ -898,6 +898,26 @@ export function buildObservationSeriesRuntimeAdmission({
     ? SCANNER_PROVIDER_CREDIT_ALLOCATION_LIVE_EXPERIMENT_CONTRACT
         .stop_conditions.consecutive_operational_failures
     : OBSERVATION_SERIES_MAX_CONSECUTIVE_FAILURES;
+  // A valid divergence receipt is evidence to retain, not permission for
+  // another allocation-policy attempt. This latch precedes current-cycle
+  // idempotency so the evidence reader reports the same integrity stop.
+  if (allocationExperimentAdmitted && orderedSeriesReceipts.some((receipt) =>
+    receipt.provider_credit_allocation_reconciliation !== undefined &&
+    receipt.provider_credit_allocation_reconciliation.status !== "matched",
+  )) {
+    return runtimeReceipt({
+      admission_version: OBSERVATION_SERIES_RUNTIME_ADMISSION_VERSION,
+      decision: "reject",
+      status: "series_history_invalid",
+      series_id: control.series_id,
+      evaluated_at: evaluatedAt,
+      scheduled_slot_started_at_utc: slotAdmission.scheduled_slot_started_at_utc,
+      next_eligible_at: null,
+      reason_codes: ["allocation_experiment_reconciliation_diverged"],
+      facts: { ...emptyFacts, max_consecutive_failures: failureLimit,
+        allocation_admission_fingerprint: allocationAdmission.admission_fingerprint },
+    });
+  }
   const admittedReceipts = orderedSeriesReceipts.filter(admittedCurrentData);
   const reservedCredits = seriesReceipts.reduce(
     (sum, receipt) => sum + receipt.provider_request.reserved_credits,
