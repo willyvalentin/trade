@@ -4,7 +4,6 @@ import type {
 } from "@/lib/observation-cycle-receipt";
 import {
   buildObservationSeriesRuntimeAdmission,
-  OBSERVATION_SERIES_MAX_CONSECUTIVE_FAILURES,
   OBSERVATION_SERIES_PROVIDER_CREDITS_PER_ATTEMPT,
   type ObservationSeriesControl,
 } from "@/lib/observation-series-control";
@@ -191,6 +190,12 @@ export function buildObservationSeriesEvidenceReadback({
     scheduledAttemptRows,
     currentAttemptFingerprint: latestAttempt.attempt_fingerprint,
     perAttemptProviderCredits: OBSERVATION_SERIES_PROVIDER_CREDITS_PER_ATTEMPT,
+    providerCreditAllocationRuntimeAdmission:
+      receipts.find((receipt) =>
+        receipt.source_attempt_fingerprint === latestAttempt.attempt_fingerprint,
+      )?.provider_credit_allocation_runtime_admission ??
+      objectOrNull(objectOrNull(latestPayload.active_scan_trace)?.market_data_fetch)
+        ?.provider_credit_allocation_runtime_admission,
   });
 
   const attemptsByFingerprint = new Map(
@@ -262,7 +267,7 @@ export function buildObservationSeriesEvidenceReadback({
     ? ("evidence_invalid" as const)
     : publishedRecommendations > 0
       ? ("publication_observed" as const)
-      : failureChain >= OBSERVATION_SERIES_MAX_CONSECUTIVE_FAILURES
+      : runtimeAdmission.facts.failure_stop_reached
         ? ("failure_stop_reached" as const)
         : admittedCurrentDataCycles >= control.max_attempts
           ? ("attempt_cap_reached" as const)

@@ -2,6 +2,44 @@
 
 ## Active Now / Next / Blocked — 2026-09-29 recommendation intelligence first
 
+**2026-10-01 OPEN no-go and selected CLOSED correction:** before the first
+declared slot, authenticated production readback on activation deploy
+`6abe57ef01c2be3918b15f9b` (exact main
+`40d671b93a6ca9aa6acf2a40c6949a10663d7d2f`) exposed an automatic-stop mismatch:
+the allocation experiment freezes two consecutive operational failures, but
+`buildObservationSeriesRuntimeAdmission` still uses the generic three-failure
+limit. The observer cannot substitute for that deterministic runtime stop.
+The series was disarmed before any declared slot. Cleanup deploy
+`6abe58dd68a97529511ac4bd` is ready, production, on unchanged exact main;
+authenticated readback at `2026-10-01T12:59:24.243Z` verifies both series and
+experiment disabled, experiment metadata unset, global scheduler disable true,
+competing workers off and zero attempts/reservations/credits for the day/window.
+The consumed automation was removed. Today's original six-slot series is no-go.
+The selected correction is owned by Codex on isolated branch
+`codex/allocation-experiment-failure-stop`: enforce the experiment's two-failure
+stop inside runtime admission before provider work, preserve generic series
+behavior and prove the one-failure/two-failure boundary with attributable history.
+Acceptance requires provider-free behavior tests, protected CI, exact-revision
+deployment and effective readback before freezing any replacement OPEN series.
+
+Local implementation now binds the frozen allocation admission to the current
+slot and deployment revision, enforces its two-failure limit and latches the
+stop across subsequent rejected/no-request receipts; generic series retain
+their existing three-failure behavior. The real route and evidence readback
+share that versioned runtime decision. Local verification on the branch above:
+168 foundation tests, 69 related regression tests, typecheck, production Next
+build and source lint passed (eight pre-existing lint warnings; generated
+runtime bundles excluded from source lint). The provider-free packaged-runtime
+proof (`scripts/allocation-failure-stop-runtime-proof.mjs`) runs the packaged
+scheduler and real route through isolated PostgREST/Postgres with two seeded
+synthetic failures: two subsequent slots both stop, all four attempts retain
+terminal receipts, readback reports `failure_stop_reached`, and no external
+provider request, credit, publication or broker action occurs. Auth/calendar
+inputs are synthetic CLOSED fixtures, not production or market evidence.
+Protected CI, merge, production deployment and effective readback remain
+outstanding; no replacement series is armed and no recommendation-quality
+improvement is claimed by this correction.
+
 The [master roadmap](./ture-master-roadmap.md) retains the full scientific,
 autonomous-paper, options and IBKR destination in SV-A-SV-U, but active work
 selection is recommendation intelligence first. The current queue is IF-2b data

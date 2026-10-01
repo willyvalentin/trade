@@ -20,6 +20,8 @@ import {
   type ScanProviderCandidateObservation,
 } from "../../lib/scan-provider-candidate-observation";
 import { buildScannerProviderCreditAllocationShadow } from "../../lib/scanner-provider-credit-allocation-shadow";
+import { buildScannerProviderCreditAllocationRuntimeAdmission } from "../../lib/scanner-provider-credit-allocation-runtime-admission";
+import { SCANNER_PROVIDER_CREDIT_ALLOCATION_LIVE_EXPERIMENT_CONTRACT as allocationContract } from "../../lib/scanner-provider-credit-allocation-live-experiment";
 
 const ownerUserId = "00000000-0000-4000-8000-000000000001";
 const buildIdentity = {
@@ -183,6 +185,40 @@ function readback(receipts: ObservationCycleReceipt[]): ObservationCycleReadback
     reason_codes: [],
   };
 }
+
+test("allocation readback reports the bound two-failure stop and retains it after rejection", () => {
+  const slots = allocationContract.slots.map((item) => item.slot_utc);
+  const currentControl = control({
+    TURE_OBSERVATION_SERIES_DATE: allocationContract.trading_date,
+    TURE_OBSERVATION_SERIES_START_SLOT_UTC: slots[0],
+    TURE_OBSERVATION_SERIES_EXPIRES_AT_UTC: allocationContract.expires_at_utc,
+    TURE_OBSERVATION_SERIES_MAX_ATTEMPTS: String(allocationContract.max_attempts),
+    TURE_OBSERVATION_SERIES_MAX_PROVIDER_CREDITS: String(allocationContract.max_total_provider_credits),
+  });
+  const receipts = slots.slice(0, 3).map((slot, index) => ({
+    ...receipt({ slot, cycleStatus: index < 2 ? "failed" : "rejected",
+      disposition: index < 2 ? "failed" : "no_request", reservedCredits: 0 }),
+    provider_credit_allocation_runtime_admission: buildScannerProviderCreditAllocationRuntimeAdmission({
+      enabled: true, experimentId: allocationContract.experiment_id,
+      scheduledInvocationBound: true, scheduledSlotUtc: slot, now: new Date(slot),
+      expectedRevision: buildIdentity.commit_ref, deployedRevision: buildIdentity.commit_ref,
+    }),
+  }));
+  for (const count of [1, 2, 3]) {
+    const result = buildObservationSeriesEvidenceReadback({
+      ownerUserId, control: currentControl,
+      scheduledAttemptRows: slots.slice(0, count).map((slot) => attemptRow({ slot, currentControl })),
+      observationCycleReadback: readback(receipts.slice(0, count)),
+      now: new Date(Date.parse(slots[count - 1]) + 60_000),
+    });
+    expect(result.series?.operational).toMatchObject({
+      classification: count === 1 ? "in_progress" : "pass",
+      terminal_reason: count === 1 ? "not_terminal" : "failure_stop_reached",
+      lineage_status: "attributed",
+    });
+    expect(observationSeriesEvidenceReadbackFromUnknown(result)).not.toBeNull();
+  }
+});
 
 function allocationShadow() {
   const candidate = (

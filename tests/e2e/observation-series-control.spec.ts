@@ -12,6 +12,12 @@ import {
   observationSeriesControlFromEnvironment,
 } from "../../lib/observation-series-control";
 import scheduledScanHandler from "../../netlify/functions/scheduled-scan";
+import { buildScannerProviderCreditAllocationRuntimeAdmission } from "../../lib/scanner-provider-credit-allocation-runtime-admission";
+import { SCANNER_PROVIDER_CREDIT_ALLOCATION_LIVE_EXPERIMENT_CONTRACT as allocationContract } from "../../lib/scanner-provider-credit-allocation-live-experiment";
+import { buildContinuousMarketScanAdmission } from "../../lib/continuous-market-scan-admission";
+import { buildMarketSessionEvaluation } from "../../lib/market-session";
+import { getIntradayScanWindow } from "../../lib/intraday-scan-window";
+import { resolveScheduledScanProviderCreditBudget } from "../../lib/scheduled-scan-ticker-cap";
 
 const ownerUserId = "00000000-0000-4000-8000-000000000001";
 const buildIdentity = {
@@ -264,6 +270,7 @@ function runtimeAdmission({
   slot = "2026-09-28T13:30:00.000Z",
   scheduledAttemptRows,
   currentAttemptFingerprint,
+  providerCreditAllocationRuntimeAdmission,
 }: {
   currentControl?: ReturnType<typeof control>;
   receipts?: ObservationCycleReceipt[];
@@ -271,6 +278,7 @@ function runtimeAdmission({
   slot?: string;
   scheduledAttemptRows?: readonly unknown[] | null;
   currentAttemptFingerprint?: string;
+  providerCreditAllocationRuntimeAdmission?: unknown;
 } = {}) {
   const schedulerSlotAdmission = buildObservationSeriesSlotAdmission({
     control: currentControl,
@@ -307,8 +315,121 @@ function runtimeAdmission({
     currentAttemptFingerprint:
       currentAttemptFingerprint ?? currentAttempt.attempt_fingerprint,
     perAttemptProviderCredits: 8,
+    providerCreditAllocationRuntimeAdmission,
   });
 }
+
+function allocationControl() {
+  return control({
+    TURE_OBSERVATION_SERIES_DATE: allocationContract.trading_date,
+    TURE_OBSERVATION_SERIES_START_SLOT_UTC: allocationContract.slots[0].slot_utc,
+    TURE_OBSERVATION_SERIES_EXPIRES_AT_UTC: allocationContract.expires_at_utc,
+    TURE_OBSERVATION_SERIES_MAX_ATTEMPTS: String(allocationContract.max_attempts),
+    TURE_OBSERVATION_SERIES_MAX_PROVIDER_CREDITS: String(allocationContract.max_total_provider_credits),
+  });
+}
+
+function allocationAdmission(slot: string, revision = buildIdentity.commit_ref) {
+  return buildScannerProviderCreditAllocationRuntimeAdmission({
+    enabled: true,
+    experimentId: allocationContract.experiment_id,
+    scheduledInvocationBound: true,
+    scheduledSlotUtc: slot,
+    now: new Date(slot),
+    expectedRevision: revision,
+    deployedRevision: revision,
+  });
+}
+
+test("the bound allocation experiment stops before current-data work after two failures, not one", () => {
+  const slots = allocationContract.slots.map((item) => item.slot_utc);
+  const failed = slots.slice(0, 2).map((slot) => receipt({
+    slot, status: "failed", disposition: "failed", reservedCredits: 0,
+    admissionDecision: "no_request",
+  }));
+  for (const failureCount of [1, 2]) {
+    const slot = slots[failureCount];
+    const experimentAdmission = allocationAdmission(slot);
+    const seriesAdmission = runtimeAdmission({
+      currentControl: allocationControl(), slot,
+      receipts: failed.slice(0, failureCount),
+      providerCreditAllocationRuntimeAdmission: experimentAdmission,
+    });
+    expect(seriesAdmission).toMatchObject({
+      admission_version: "observation_series_runtime_admission_v3",
+      decision: failureCount === 1 ? "allow" : "no_request",
+      status: failureCount === 1 ? "eligible" : "series_failure_stop_reached",
+      facts: {
+        consecutive_failures: failureCount, max_consecutive_failures: 2,
+        failure_stop_reached: failureCount === 2,
+        allocation_admission_fingerprint: experimentAdmission.admission_fingerprint,
+      },
+    });
+    const now = new Date(slot);
+    const marketStatus = {
+      isOpenDay: true, reason: "Synthetic CLOSED fixture", date: allocationContract.trading_date,
+      dayType: "trading_day" as const, marketOpenTime: "09:30", marketCloseTime: "16:00", provider: "polygon",
+    };
+    const gate = buildContinuousMarketScanAdmission({
+      now, marketStatus, marketSession: buildMarketSessionEvaluation({ now, marketStatus }),
+      scanWindow: getIntradayScanWindow(now), recentScanRuns: [], recentPreRunFailures: [],
+      legacyPowerHourWindowGate: {
+        official_window_detected: false, scheduled_gate_window: getIntradayScanWindow(now),
+        scheduled_gate_allowed: true, scheduled_gate_block_reason: null, schedule_window_mismatch: false,
+      },
+      providerBudget: resolveScheduledScanProviderCreditBudget({ planMode: "free" }),
+      observationSeriesAdmission: seriesAdmission,
+    });
+    expect(gate.scheduled_gate_allowed).toBe(failureCount === 1);
+    if (failureCount === 2) expect(gate.scheduled_gate_block_reason).toBe("series_failure_stop_reached");
+  }
+  // Generic control identity and its historical three-failure rule stay intact.
+  expect(allocationControl().max_consecutive_failures).toBe(3);
+  expect(runtimeAdmission({
+    currentControl: allocationControl(), slot: slots[2], receipts: failed,
+  })).toMatchObject({ decision: "allow", facts: { max_consecutive_failures: 3 } });
+});
+
+test("allocation failure stop remains latched across later rejected slot receipts", () => {
+  const slots = allocationContract.slots.map((item) => item.slot_utc);
+  const failed = slots.slice(0, 2).map((slot) => receipt({
+    slot, status: "failed", disposition: "failed", reservedCredits: 0,
+  }));
+  const rejected = receipt({
+    slot: slots[2], status: "rejected", disposition: "no_request", reservedCredits: 0,
+    admissionDecision: "no_request",
+  });
+  expect(runtimeAdmission({
+    currentControl: allocationControl(), slot: slots[3], receipts: [...failed, rejected],
+    providerCreditAllocationRuntimeAdmission: allocationAdmission(slots[3]),
+  })).toMatchObject({
+    decision: "no_request", status: "series_failure_stop_reached",
+    facts: { consecutive_failures: 0, failure_stop_reached: true },
+  });
+  // Before a stop occurs, a complete no_trade truthfully breaks the chain.
+  expect(runtimeAdmission({
+    currentControl: allocationControl(), slot: slots[3],
+    receipts: [failed[0], receipt({ slot: slots[1], reservedCredits: 0 }),
+      receipt({ slot: slots[2], status: "failed", disposition: "failed", reservedCredits: 0 })],
+    providerCreditAllocationRuntimeAdmission: allocationAdmission(slots[3]),
+  })).toMatchObject({ decision: "allow", facts: { consecutive_failures: 1, failure_stop_reached: false } });
+});
+
+test("allocation failure control rejects tampered, wrong-slot, wrong-revision and blocked admissions", () => {
+  const slot = allocationContract.slots[2].slot_utc;
+  const admission = allocationAdmission(slot);
+  for (const invalid of [
+    { ...admission, admission_fingerprint: "b".repeat(64) },
+    allocationAdmission(allocationContract.slots[1].slot_utc),
+    allocationAdmission(slot, "b".repeat(40)),
+    allocationAdmission("2026-10-01T14:15:00.000Z"),
+  ]) {
+    expect(runtimeAdmission({
+      currentControl: allocationControl(), slot,
+      providerCreditAllocationRuntimeAdmission: invalid,
+    })).toMatchObject({ decision: "reject", status: "allocation_experiment_identity_mismatch" });
+  }
+});
 
 test("is default-off and requires one exact bounded immutable series contract", () => {
   expect(

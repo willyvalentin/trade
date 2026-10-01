@@ -8,13 +8,15 @@ import {
   scheduledScanInvocationReceiptFromAttempt,
   type ScheduledScanInvocationReceipt,
 } from "@/lib/scheduled-scan-invocation-receipt";
+import { scannerProviderCreditAllocationRuntimeAdmissionFromUnknown } from "@/lib/scanner-provider-credit-allocation-runtime-admission";
+import { SCANNER_PROVIDER_CREDIT_ALLOCATION_LIVE_EXPERIMENT_CONTRACT } from "@/lib/scanner-provider-credit-allocation-live-experiment";
 
 export const OBSERVATION_SERIES_CONTROL_VERSION =
   "observation_series_control_v1" as const;
 export const OBSERVATION_SERIES_SLOT_ADMISSION_VERSION =
   "observation_series_slot_admission_v1" as const;
 export const OBSERVATION_SERIES_RUNTIME_ADMISSION_VERSION =
-  "observation_series_runtime_admission_v2" as const;
+  "observation_series_runtime_admission_v3" as const;
 export const OBSERVATION_SERIES_PROVIDER_CREDITS_PER_ATTEMPT = 8;
 export const OBSERVATION_SERIES_MAX_ATTEMPTS = 26;
 export const OBSERVATION_SERIES_MAX_DURATION_MINUTES = 390;
@@ -77,6 +79,7 @@ export type ObservationSeriesRuntimeAdmission = Readonly<{
     | "series_date_mismatch"
     | "series_configuration_invalid"
     | "scheduler_series_identity_mismatch"
+    | "allocation_experiment_identity_mismatch"
     | "series_history_unavailable"
     | "series_history_invalid"
     | "series_current_cycle_already_observed"
@@ -99,6 +102,9 @@ export type ObservationSeriesRuntimeAdmission = Readonly<{
     completed_cycles: number;
     failed_cycles: number;
     consecutive_failures: number;
+    max_consecutive_failures: number;
+    failure_stop_reached: boolean;
+    allocation_admission_fingerprint: string | null;
     published_recommendations: number;
     history_receipt_count: number;
     history_attempt_count: number;
@@ -548,6 +554,20 @@ function consecutiveFailures(receipts: readonly ObservationCycleReceipt[]) {
   return count;
 }
 
+// Once the experiment hits its stop, later rejected/no-request receipts must
+// not re-arm it. Generic series keep their existing latest-chain semantics.
+function experimentFailureStopReached(
+  receipts: readonly ObservationCycleReceipt[],
+  limit: number,
+) {
+  let chain = 0;
+  for (const receipt of [...receipts].reverse()) {
+    chain = receipt.cycle_status === "failed" ? chain + 1 : 0;
+    if (chain >= limit) return true;
+  }
+  return false;
+}
+
 function runtimeReceipt(
   input: Omit<ObservationSeriesRuntimeAdmission, "authority">,
 ): ObservationSeriesRuntimeAdmission {
@@ -570,6 +590,7 @@ export function buildObservationSeriesRuntimeAdmission({
   scheduledAttemptRows,
   currentAttemptFingerprint,
   perAttemptProviderCredits,
+  providerCreditAllocationRuntimeAdmission,
 }: {
   control: ObservationSeriesControl;
   schedulerControl: unknown;
@@ -581,6 +602,7 @@ export function buildObservationSeriesRuntimeAdmission({
   scheduledAttemptRows?: readonly unknown[] | null;
   currentAttemptFingerprint?: string | null;
   perAttemptProviderCredits: number | null;
+  providerCreditAllocationRuntimeAdmission?: unknown;
 }): ObservationSeriesRuntimeAdmission {
   const emptyFacts = {
     attempted_cycles: 0,
@@ -591,6 +613,9 @@ export function buildObservationSeriesRuntimeAdmission({
     completed_cycles: 0,
     failed_cycles: 0,
     consecutive_failures: 0,
+    max_consecutive_failures: OBSERVATION_SERIES_MAX_CONSECUTIVE_FAILURES,
+    failure_stop_reached: false,
+    allocation_admission_fingerprint: null as string | null,
     published_recommendations: 0,
     history_receipt_count: 0,
     history_attempt_count: 0,
@@ -843,6 +868,36 @@ export function buildObservationSeriesRuntimeAdmission({
       },
     });
   }
+  const allocationAdmission = providerCreditAllocationRuntimeAdmission == null
+    ? null
+    : scannerProviderCreditAllocationRuntimeAdmissionFromUnknown(
+        providerCreditAllocationRuntimeAdmission,
+      );
+  if (
+    (providerCreditAllocationRuntimeAdmission != null && !allocationAdmission) ||
+    allocationAdmission?.status === "blocked" ||
+    (allocationAdmission?.status === "admitted" &&
+      (allocationAdmission.scheduled_slot_utc !==
+        slotAdmission.scheduled_slot_started_at_utc ||
+        allocationAdmission.deployed_revision !== currentBuildIdentity?.commit_ref))
+  ) {
+    return runtimeReceipt({
+      admission_version: OBSERVATION_SERIES_RUNTIME_ADMISSION_VERSION,
+      decision: "reject",
+      status: "allocation_experiment_identity_mismatch",
+      series_id: control.series_id,
+      evaluated_at: evaluatedAt,
+      scheduled_slot_started_at_utc: slotAdmission.scheduled_slot_started_at_utc,
+      next_eligible_at: null,
+      reason_codes: ["allocation_experiment_identity_mismatch"],
+      facts: emptyFacts,
+    });
+  }
+  const allocationExperimentAdmitted = allocationAdmission?.status === "admitted";
+  const failureLimit = allocationExperimentAdmitted
+    ? SCANNER_PROVIDER_CREDIT_ALLOCATION_LIVE_EXPERIMENT_CONTRACT
+        .stop_conditions.consecutive_operational_failures
+    : OBSERVATION_SERIES_MAX_CONSECUTIVE_FAILURES;
   const admittedReceipts = orderedSeriesReceipts.filter(admittedCurrentData);
   const reservedCredits = seriesReceipts.reduce(
     (sum, receipt) => sum + receipt.provider_request.reserved_credits,
@@ -862,6 +917,9 @@ export function buildObservationSeriesRuntimeAdmission({
   // ordering all cycle receipts also ensures any successful/no-request cycle
   // truthfully breaks the consecutive-failure chain.
   const failureChain = consecutiveFailures(orderedSeriesReceipts);
+  const failureStopReached = allocationExperimentAdmitted
+    ? experimentFailureStopReached(orderedSeriesReceipts, failureLimit)
+    : failureChain >= failureLimit;
   const publishedRecommendations = seriesReceipts.reduce(
     (sum, receipt) => sum + receipt.publication.published_count,
     0,
@@ -881,6 +939,11 @@ export function buildObservationSeriesRuntimeAdmission({
     completed_cycles: completedCycles,
     failed_cycles: failedCycles,
     consecutive_failures: failureChain,
+    max_consecutive_failures: failureLimit,
+    failure_stop_reached: failureStopReached,
+    allocation_admission_fingerprint: allocationExperimentAdmitted
+      ? allocationAdmission.admission_fingerprint
+      : null,
     published_recommendations: publishedRecommendations,
     history_receipt_count: seriesReceipts.length,
     history_attempt_count: validAttemptLineages.length,
@@ -910,7 +973,7 @@ export function buildObservationSeriesRuntimeAdmission({
     decision = "no_request";
     status = "series_active_cycle_unresolved";
   } else if (
-    failureChain >= OBSERVATION_SERIES_MAX_CONSECUTIVE_FAILURES
+    failureStopReached
   ) {
     decision = "no_request";
     status = "series_failure_stop_reached";
