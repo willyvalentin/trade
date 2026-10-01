@@ -419,9 +419,12 @@ Merge, protected CI, exact-revision production deployment and disabled-scheduler
 readback are verified. No OPEN experiment, provider request or
 recommendation-quality claim is part of this CLOSED slice.
 
-**Selected CLOSED delivery — exact sparse-slot activation preflight and
-scheduler guard:** branch
-`codex/provider-credit-allocation-activation-preflight` adds
+**Merged and production-verified CLOSED delivery — exact sparse-slot activation
+preflight and scheduler guard:** PR
+[#715](https://github.com/willyvalentin/trade/pull/715) merged as
+`40d671b93a6ca9aa6acf2a40c6949a10663d7d2f`; all protected CI passed and
+Git-connected Netlify production deploy `6abd9e7360059f00081666de` is `ready`,
+production, branch `main` and carries that exact revision. The delivery adds
 `scanner_provider_credit_allocation_activation_v1`, an authenticated uncached
 read-only activation manifest and an early scheduled-function guard for the six
 exact switchback slots. The frozen observation-series window contains ordinary
@@ -438,9 +441,38 @@ publication, paper and broker actions. Local evidence is 20/20 focused
 activation/preflight/runtime tests, 31/31 scheduler-series regressions, 48/48
 combined allocation/series/receipt regressions, 168/168 intelligence-foundation
 tests, strict non-incremental TypeScript, full-project lint, scheduled-runtime
-bundles and a complete 33-page Next.js production build. Merge, protected CI,
-production deploy, authenticated production preflight and any OPEN activation
-remain separate evidence.
+bundles and a complete 33-page Next.js production build. Authenticated
+production preflight returned `ready` on the exact deploy with global scheduler
+disable retained, the experiment and competing workers inert, zero prior
+reservations/attempts, 15 available 15-minute slots and the full requested six
+attempts/48 credits admissible. No scan, provider request, publication, paper or
+broker action occurred. OPEN execution and recommendation-quality evidence
+remain separate.
+
+**Selected CLOSED delivery — strict switchback receipt evaluator, 2026-10-01
+(4–8h):** owner Codex on isolated
+`codex/provider-credit-switchback-evaluation`, based on exact frozen main
+`40d671b93a6ca9aa6acf2a40c6949a10663d7d2f`. The local pure evaluator consumes
+only strict owner-bound observation-cycle receipts for the six declared slots,
+binds each terminal result to the exact production revision, runtime admission,
+allocation policy, eight-candidate denominator, execution plan and
+reconciliation, and retains missing, active, failed, invalid, undeclared and
+duplicate evidence explicitly. Credit accounting uses every parseable
+scheduled-attempt reservation/finalization receipt, including operational
+failures, so failed attempts cannot disappear from the 48-credit ceiling. The
+exact eight-credit total comes from that durable Basic Free credit evidence
+bound to the same attempt, slot, site, deploy and revision; the observation
+receipt independently proves actual scanner allocations. It reports
+baseline/challenger rankable coverage, funded
+candidate breadth and late unfunded candidates, but always marks recommendation
+quality `unproven` and grants no provider, allocation, ranking, publication,
+threshold or broker authority. Focused local acceptance is 4/4 tests plus
+strict non-incremental TypeScript; broader allocation/receipt/scheduler
+regression is 63/63, intelligence-foundation is 168/168, full lint has zero
+errors/eight pre-existing warnings and the 33-page Next.js production build
+passes. Protected CI, merge and production deploy remain separate; no change
+may replace the frozen main revision before the separately authorized OPEN
+switchback is cleaned up.
 
 **Merged and production-verified CLOSED slice — frozen-cohort daily collection
 admission:** PR [#693](https://github.com/willyvalentin/trade/pull/693) merged as

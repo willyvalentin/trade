@@ -72,8 +72,34 @@ time drift fails closed. The preflight cannot mutate configuration, arm the
 scheduler, call a provider, reserve a credit, rank, publish, create paper state
 or reach a broker.
 
-Exact-revision merge/deploy/readback of that activation path and OPEN execution
-remain separate work.
+PR [#715](https://github.com/willyvalentin/trade/pull/715) merged this activation
+path as `40d671b93a6ca9aa6acf2a40c6949a10663d7d2f`; production deploy
+`6abd9e7360059f00081666de` is `ready` on the exact revision. Authenticated
+production preflight was `ready` with zero prior reservations/attempts and the
+full six-attempt/48-credit window available while the global scheduler disable
+remained enabled.
+
+## Provider-free evaluation
+
+`scanner_provider_credit_allocation_live_evaluation_v1` is the strict,
+side-effect-free readback boundary for the resulting six observation-cycle
+receipts. It rejects malformed, unattributed, undeclared, duplicate, drifted or
+lineage-inconsistent evidence; joins every cycle to the durable Basic Free
+reservation/finalization receipt for the same attempt, slot, site, deploy and
+revision; retains missing and active slots; and applies the frozen series cap
+and consecutive-failure stop. The reservation receipt proves the full
+eight-credit attempt budget while the cycle receipt independently proves actual
+scanner allocations. Completed slots must bind the exact runtime admission,
+arm, policy, candidate population, execution plan and reservation
+reconciliation.
+
+Only a complete three-pair series may produce a descriptive data-fitness
+signal. That signal compares rankable-candidate fraction, funded candidate
+breadth and late unfunded candidates. It always reports recommendation quality
+as unproven, grants no runtime authority and requires canonical-outcome review
+before any policy promotion.
+
+OPEN execution remains separate work.
 Any credit breach, lineage/population mismatch, stale/incomplete publication,
 revision drift, plan-versus-actual divergence or two consecutive operational
 failures stops the series. Rollback is always
