@@ -4,7 +4,10 @@ import {
   buildScannerCandidateRankingSummary,
   type RankingCandidate,
 } from "@/lib/scanner-candidate-ranking";
-import { buildScannerClockPriorShadowComparison } from "@/lib/scanner-ranking-clock-prior-shadow";
+import {
+  buildScannerClockPriorShadowComparison,
+  scannerClockPriorShadowComparisonFromUnknown,
+} from "@/lib/scanner-ranking-clock-prior-shadow";
 import { buildScannerIntradayLiquidityShadowComparison } from "@/lib/scanner-ranking-intraday-liquidity-shadow";
 import type { ScannerCandidate } from "@/lib/scanner";
 import {
@@ -340,6 +343,63 @@ test("measures named clock-prior displacement without changing live ranking", ()
     shadow_window_fit: 50,
   });
   expect(baseline.results.map((item) => item.ticker)).toEqual(["ZZZ", "AAA"]);
+});
+
+test("round-trips changed clock-neutral priority on the same selected members", () => {
+  const candidates = [
+    clockCandidate({ ticker: "ZZZ", timing: 95, setupType: "HIGH_OF_DAY_BREAKOUT" }),
+    clockCandidate({ ticker: "AAA", timing: 5, setupType: "VWAP_HOLD_CONTINUATION" }),
+  ];
+  const baseline = buildScannerCandidateRankingSummary({
+    candidates,
+    scanWindow: "morning_momentum",
+    now: NOW,
+  });
+  const result = buildScannerClockPriorShadowComparison({
+    candidates,
+    baseline,
+    scanWindow: "morning_momentum",
+    now: NOW,
+  });
+  expect(result.baseline_selected_tickers).toEqual(["ZZZ", "AAA"]);
+  expect(result.shadow_selected_tickers).toEqual(["AAA", "ZZZ"]);
+  expect(result.selection_changed).toBe(true);
+  const persisted = JSON.parse(JSON.stringify(result));
+  expect(scannerClockPriorShadowComparisonFromUnknown(persisted)).toEqual(result);
+  expect(scannerClockPriorShadowComparisonFromUnknown({
+    ...persisted,
+    selection_changed: false,
+  })).toBeNull();
+  expect(scannerClockPriorShadowComparisonFromUnknown({
+    ...persisted,
+    baseline_selected_tickers: ["AAA", "ZZZ"],
+  })).toBeNull();
+  expect(scannerClockPriorShadowComparisonFromUnknown({
+    ...persisted,
+    baseline_selected_tickers: ["ZZZ", "AAA", "AAA"],
+  })).toBeNull();
+  expect(scannerClockPriorShadowComparisonFromUnknown({
+    ...persisted,
+    displacements: [...persisted.displacements].reverse(),
+  })?.baseline_selected_tickers).toEqual(["ZZZ", "AAA"]);
+});
+
+test("retains unchanged nonlexical ranked selections without inventing a change", () => {
+  const candidates = [
+    clockCandidate({ ticker: "ZZZ", timing: 75, trend: 95, setupType: "VWAP_HOLD_CONTINUATION" }),
+    clockCandidate({ ticker: "AAA", timing: 75, trend: 75, setupType: "VWAP_HOLD_CONTINUATION" }),
+  ];
+  const result = buildScannerClockPriorShadowComparison({
+    candidates,
+    baseline: buildScannerCandidateRankingSummary({ candidates, scanWindow: "midday", now: NOW }),
+    scanWindow: "midday",
+    now: NOW,
+  });
+  expect(result.baseline_selected_tickers).toEqual(["ZZZ", "AAA"]);
+  expect(result.shadow_selected_tickers).toEqual(["ZZZ", "AAA"]);
+  expect(result.selection_changed).toBe(false);
+  expect(scannerClockPriorShadowComparisonFromUnknown(JSON.parse(JSON.stringify(result))))
+    .toEqual(result);
 });
 
 test("keeps the clock-neutral result stable across named scan windows", () => {

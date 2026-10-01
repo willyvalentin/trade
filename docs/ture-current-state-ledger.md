@@ -2,6 +2,89 @@
 
 ## Active Now / Next / Blocked — 2026-09-29 recommendation intelligence first
 
+**Selected independent CLOSED slice — 2026-10-01:** Codex owns
+`codex/clock-shadow-ordered-selection`, isolated from verified main
+`4e960cf9ac260821ceb28c909d83c5cad137f353`, with a 4–8 active-hour budget.
+The frozen clock-neutral IF-4 hypothesis remains unchanged. Read-only production
+evidence at 17:05:40.538Z reproduces one invalid comparison among eight:
+`rec_scan_run_1d087ud` selects ASML/RIVN/UNP versus RIVN/ASML/UNP. The producer
+records the changed priority, while its reader sorts selected identities and
+then rejects the true change flag. Changing only that flag in memory makes the
+old parser accept it, proving the exact mismatch without rewriting evidence.
+Collection admission consequently blocks with
+`scan_comparison_invalid_or_policy_mismatched`; outcome admission is also
+blocked, and no outcome quality has been proved. All seven other comparisons
+parse successfully.
+
+Repair only the ordered-selection comparison read boundary, retaining its v1
+producer semantics, rank/identity consistency and fail-closed behavior. No live
+ranking, score, publication, cohort, charter, provider or schema change is
+selected. Acceptance: failing producer → JSON → real parser regression for
+same-member priority swaps, malformed-order/duplicate/false-flag controls,
+downstream attribution/admission tests, then exact retained-receipt replay.
+Classify as `supporting_blocker_removal`; resume fully observed IF-2b input
+coverage and the frozen IF-4 outcome chain rather than extending this reader.
+Integration follows the now completed 17:30Z post-cache-fix observation and its
+verified unchanged-main cleanup below. That OPEN job retained its existing frozen
+revision/configuration; this slice has no operational or broker authority.
+
+The same bounded evidence-path investigation reproduced a second producer/read
+boundary mismatch at 17:14:32.937Z. All fourteen linked snapshots explicitly
+declare clock-prior sample false/reuse version null; they are ordinary liquidity
+research, not the frozen clock-neutral population. The existing admission
+treats null as a present version and rejects the whole outcome read. Extend this
+same decoder slice only to recognize the producer's null absence marker, with
+a failing → passing real forward-admission regression. An explicit true sample
+with missing/null/drifted version must still reject; do not relabel, repair or
+admit those old snapshots, fabricate batch/source/real-data provenance, or
+change the frozen cohort. The research-capture deficits remain separate and
+unresolved. This is a newly reproduced blocker, not a new control-plane stream.
+
+Local acceptance now reproduces the real producer → JSON → parser failure
+before the correction and passes after retaining ordered selections and binding
+them to the explicit baseline/shadow ranks. Wrong flags, misordered selected
+identities and duplicates still fail closed; shuffled displacement storage order
+cannot alter selection priority. After both corrections, the affected chain
+passes 79 tests and the registered provider-free intelligence command passes
+342. TypeScript, affected source lint, Next 16.3.8 build and
+scheduled runtime packaging pass. These are local checks, not main verification.
+
+At 17:08:44.384Z both local parsers read the same eight unchanged production
+comparisons: old accepts seven, corrected accepts eight and preserves every
+original selected priority and change flag. The same-input real cohort-admission
+replay at 17:10:07.295Z retains plan fingerprint `a08e2345...c3a19b91c`.
+Old admission is blocked by the invalid comparison; corrected admission reports
+`no_collection_needed` for today's exhausted four-attempt capacity, with
+`scan_candidate_decision_coverage_incomplete`. Both retain zero accepted
+opportunity sets/candidates/days and all authority false. Thus the decoder
+blocker is removed locally, but the next real bottleneck remains fresh complete
+input coverage, not permission for extra collection or proof of outcomes/alpha.
+Replay provider requests and production writes are zero; no old receipt, rank,
+cohort or charter is rewritten. The correction is not yet in a PR or deployed.
+
+Two earlier authenticated replay reads received HTTP 502 before reading
+production snapshots. After bounded OPEN readback and exact cleanup succeeded,
+the same historical window, explicitly excluding the new 17:30Z observation,
+was replayed at 17:34:32.403Z with exact count-complete owner-bound reads.
+All fourteen linked snapshots retain explicit non-clock sample false/version
+null: old admission rejects fourteen, corrected admission marks fourteen
+`not_applicable`, and both admit zero. No old snapshot is repaired or relabelled.
+The local forward-admission regression additionally proves zero requested
+outcome credits/authority and fail-closed behavior for explicit claimed samples
+with null version. No extra scan, configuration change or deployment was made
+for this local decoder slice; replay provider calls and production writes are
+zero. Production behavior of these corrected readers remains outstanding.
+
+PR #719 at `2b15461ddc881c958b79639f2e10909beba92146` encountered one
+documentation-only CI defect in run `36900590053`: the full public Netlify site
+identifier in the frozen card triggered six existing ledger UUID privacy
+assertions. Local reproduction failed the same six checks; abbreviating only
+that public identifier preserves the card's revision/deploy evidence and all
+privacy guards. The thirteen affected checks now pass, and the exact registered
+Browser and server containment command passes all 1,004 tests. This does not
+change code, ranking, admission or production configuration; protected CI on
+the follow-up revision and deployed reader verification remain required.
+
 **Current delivery boundary — 2026-10-01:** allocation switchback v2 is stopped
 after four of six declared slots/two complete pairs, not still collecting.
 A CLOSED reproduction exposed an independent source-time integrity defect:
@@ -30,11 +113,179 @@ lint passes (eight existing warnings; generated local proof artifacts excluded).
 The first broad run's two local Docker-permission failures passed with the
 isolated database accessible; the initial Turbopack dependency-symlink failure
 passed after copying the same locked dependencies inside this worktree, without
-changing product configuration or dependencies. Protected CI, deployment
-and OPEN behavior of the fix remain outstanding. Its handoff class is
+changing product configuration or dependencies. Protected CI and deployment
+have now passed; the narrow OPEN source-integrity behavior and cleanup are
+verified below. Its handoff class is
 `supporting_blocker_removal`; resume measured IF-2b data fitness immediately
 afterward, specifically fully observed fresh-input coverage rather than merely
 more rankable research names. Do not open another supporting control stream.
+
+The coherent delivery is PR [#718](https://github.com/willyvalentin/trade/pull/718),
+head `3e9ecfd6ff5909935e44b7a3bb3ee81092313e94`, based on main `905afec5...`.
+After that single push, the same head additionally passes both existing packaged
+scheduler/backend/isolated-PostgREST/Postgres/readback safety proofs: two seeded
+failures retain the two-failure stop, and one seeded divergence retains the
+immediate integrity stop. These CLOSED fixtures respectively retain four/three
+terminal receipts with zero provider requests, credits, publications or broker
+actions; they do not exercise a successful fresh-input scan.
+At 16:19:07.997Z, the same local scanner/factory/SDK and plan-reference resolver
+read existing production cache once for 24 securities from today's observed
+population. Twenty-two research cache candidates were available, four without
+market source time; all four remained null/rejected without an intraday rescue.
+Fresh intraday/accepted fresh references were zero at this later read time.
+Provider requests, credit reservations and production writes were all zero.
+This is actual-data provider-free integration, not a new OPEN observation or
+deployed-scheduler behavior. Acceptance evidence is retained in PR comment
+`5935623598`. Protected run `36890098281` passed all required checks and provenance;
+PR #718 merged normally at 16:40:13Z as
+`4e960cf9ac260821ceb28c909d83c5cad137f353`. Post-merge CI `36893733242` passed.
+Git-connected production deploy `6abe8cef5330d30008ec3865` is ready/published at
+16:41:00.299Z on this exact main. The deployed provider-free preflight at
+16:51:24.584Z is ready: four terminal reservations/32 total credits, zero active,
+unresolved, unattributed or overlapping target-window claims/attempts, global
+disable true and every competing worker off. Its five-minute freshness is not
+authority to arm after 16:56:24.584Z; recheck immediately before mutation.
+
+On this merged revision the packaged normal scheduler, real private route,
+real scanner/provider boundary and isolated PostgREST/Postgres persisted exactly
+one attempt, terminal completed cycle, eight-candidate decision v3, lineage v2
+and one finalized local eight-credit claim in each of two CLOSED cases. The
+actual cycle parser and series reader classify attributable operational pass
+while recommendation quality remains insufficient forward evidence. With an
+explicit synthetic provider-unavailable response, all eight market times remain
+null; with synthetic fresh intraday candles, precisely three observations carry
+17:25Z source time and five remain null. Neither substitutes the 17:29Z cache
+write time; no recommendation is published. Boundary calls are eight/five
+synthetic requests, not real provider calls; production/provider/broker effects
+are zero. Local legacy-table fixtures and controlled clock are disclosed
+environment differences, not production schema or current-market proof.
+
+### Frozen post-fix OPEN card — 2026-10-01, completed and cleanup verified
+
+Owner Codex; delivery IF-2b source-time integrity interruption, then return to
+fresh fully observed input coverage. This is one independent post-fix normal
+baseline observation, not continuation or replacement of the stopped v2 pair.
+Question: does the deployed normal scan retain honest market-source availability
+and source-before-decision lineage after removing the cache-write-time fallback?
+Freeze main `4e960cf9ac260821ceb28c909d83c5cad137f353`, site trade-vl
+`2b582e03...fb94`, Supabase `ekdyopdrrkphlrsilyoo` and
+series `observation_series_84450229bfec0407`: one ordinary scheduler slot
+17:30Z (19:30 CEST / 13:30 New York), half-open window [17:30Z,17:45Z).
+Activation must be ready on unchanged main by 17:15Z; otherwise no_go/cleanup,
+never shift the slot or retry. Existing cached Polygon calendar read at
+16:51:12.820Z confirms Oct 1 regular 09:30–16:00 NY; cache updated 14:30:39.621Z.
+
+Keep strategy `intraday_long_multi_setup_quality_ranker@1.0.0`, rotating
+selection `scanner_universe_selection_v1`, bounded `scanner_universe_v1`,
+scanner `scanner_v2_fresh_cache_before_refresh`, score `day_trade_score_v1`,
+ranking `scanner_candidate_ranking_v1.2`, provider `twelve_data_market_data_v1`
+and all existing quality/publication thresholds unchanged. Allocation experiment
+is false with ID/revision unset: use unchanged serial baseline, six scanner
+credits with independent three-refresh ceiling, eight total per attempt.
+Basic Free remains 800 daily/eight minute configured cap; four known finalized
+claims consume 32 today, not evidence of untracked account usage. Fresh cache
+requires no additional credit. No new data source, broker work or manual route.
+
+Set only production/functions series enabled true and its five metadata values:
+date Oct 1, start 17:30Z, expiry 17:45Z, max attempts one, max provider credits
+eight. Keep global scheduler-disable true, normal one-shot/catalog/probe/outcome/
+paper off; no allocation metadata. Exact one-attempt cap and automatic expiry
+must prevent another scan independently of the observer. One Git-connected
+activation deploy and one unchanged-main cleanup deploy; record their IDs on
+verification. No market/provider request is permitted before the scheduled slot.
+
+Read only attributable attempt/cycle, reservation finalization, exact decision/
+lineage and owner-bound series evidence from 17:31Z until no later than 17:32:30Z.
+Stop at terminal receipt or bounded missing result. Operational pass requires
+one correctly pinned completed/empty scan and attributable decision/lineage,
+no duplicate/active/orphan, and at most eight total reserved credits. Missing
+source times must remain null; known market time may not follow decision time.
+Stale/partial/unavailable provider inputs remain data-fitness inconclusive;
+missing bounded receipt is missing_result. Budget, revision or identity mismatch,
+fabricated cache-write source time or stale/incomplete publication is fail.
+Qualified publication is governed only by unchanged normal gates, never required
+for pass. A complete no_trade can pass operationally; neither this single cycle
+nor its candidate count proves recommendation quality or alpha.
+
+The product heartbeat owns bounded observation and immediate cleanup: disable
+only series, remove only the five metadata keys created for this card, leave all
+other flags unchanged, create exactly one normal Git-connected production build
+on the same main and verify ready/inert. Cleanup applies also after no_go,
+timeout, missing_result or technical expiry. Delete the consumed heartbeat.
+
+Activation preparation at 16:55:01.656Z rechecked the ready deployed preflight
+before mutation with unchanged four terminal claims/32 credits and no target
+claim. Only the six declared functions/production series variables changed;
+readback preserved every unrelated variable. Activation build
+`6abe9073c488ad530a03bbfb`, deploy `6abe9073c488ad530a03bbfd`, was started once
+on unchanged main; ready/publication and effective activation were pending at
+that point and are verified below.
+Heartbeat `ture-oct-1-post-cache-fix-observation-and-cleanup` owns this card's
+bounded readback/cleanup. An initial metadata request was rejected for local
+client body-format mismatch; readback verified no metadata or flag changed.
+The corrected body format came from the installed client and was followed by
+new preflight, not a repeated OPEN attempt or repeated build.
+
+Activation deploy `6abe9073c488ad530a03bbfd` is ready/published at
+16:56:01.309Z on exact main `4e960cf9...`, with the ordinary 15-minute scan
+schedule. At 16:58:27.819Z authenticated no-store readback confirms that exact
+deploy identity, series enabled and all competing controls disabled; global
+disable remains true. Preflight truthfully blocks a second activation with
+`observation_series_already_enabled`. Reservation evidence remains four terminal
+claims/32 total credits and zero target-window/active claims. Netlify readback
+at 16:58:29.147Z confirms all five exact metadata values are solely production/
+functions, with experiment ID/revision absent and no normal one-shot date/slot.
+At that pre-slot check the 17:15Z activation deadline was met; the ordinary
+17:30Z observation was still pending, not an OPEN pass or quality claim.
+
+The bounded production read completed at 17:31:31.585Z, inside the frozen
+17:31Z–17:32:30Z interval. Exact activation `6abe9073c488ad530a03bbfd` on
+`4e960cf9...` produced one scheduled attempt `scheduled_scan_attempt_143i4h6`
+(fired 17:30:36.427Z, route received 17:30:38.596Z), scan
+`rec_scan_run_1kprr71` terminal `empty`/decision at 17:30:58.257Z and cycle
+completed `no_trade` at 17:31:00.807Z. Real cycle parsing has zero invalid rows;
+owner-bound series reports attributable operational pass with one completed
+cycle, zero active, missing, orphan, duplicate or failed cycle. The authoritative
+whole-attempt ledger has exactly one window reservation/eight credits, all
+finalized, zero active/unresolved/unattributed attempts; today's total is five
+terminal claims/40 credits. The independent scanner trace consumed six credits
+(three daily and three intraday), not eight scanner requests.
+
+Decision v3 and lineage v2 retain the exact run fingerprint. GS/SLB/NVO have
+fresh 17:25Z market observations; BABA/IONQ retain their stale 00:00Z market
+time with provider-gap/stale codes; RDDT/RIOT/MU retain null market time and
+not-evaluated gaps. There are five observed/rankable candidates, three fully
+observed, three missing source times and zero sources after the decision. The
+lineage truthfully remains `incomplete` for data availability. Exactly zero
+recommendations were created or published; no broker work was enabled or
+invoked. No cache-write timestamp was substituted for market time.
+
+This behavior-verifies the source-time correction on deployed main and passes
+the narrow attributable operational/source-integrity question. Data fitness
+remains inconclusive/partial and recommendation quality remains insufficient
+forward evidence: one independent baseline cycle is not a paired policy test
+or alpha proof. The dominant remaining gap is credit-limited complete fresh
+input coverage, not permission to weaken publication or rerun until positive.
+Two earlier login reads returned HTTP 502, but the bounded observation's
+authenticated no-store owner read succeeded. The transient cause is unproved;
+public runtime health, read-only login database health and activation remained
+available. No login-control reset or extra scan was performed.
+
+Immediately after the terminal read, only series enable and its five owned
+production/functions metadata values were restored. Cleanup build
+`6abe991027237d144cbf45da`, deploy `6abe991027237d144cbf45dc`, was requested
+once at 17:31:59.107Z on unchanged `4e960cf9...`. Global scheduler-disable stays
+true and competing workers remain off. The exact cleanup deploy is
+ready/published at 17:32:47.491Z. Authenticated no-store effective readback at
+17:33:58.641Z verifies that exact main/deploy/site, global disable true, series
+and all competing workers off, the five owned metadata keys absent, consistent
+Basic Free budgets, one finalized target reservation/eight credits and zero
+active/unresolved/unattributed/duplicate attempts. Preflight truthfully blocks
+the already observed/reserved and now-past window; all exposed authority is
+false. The consumed heartbeat was deleted. No second cleanup build, provider
+call, scan retry or broker action occurred. This interruption is finished;
+resume fully observed fresh input coverage, with only the separately reproduced
+clock-shadow decoder slice integrated after this verified cleanup.
 
 Safety cleanup used only the two experiment enable flags and seven created
 production/functions metadata keys. Exactly one unchanged-main cleanup build

@@ -339,6 +339,31 @@ test("ignores outcomes for non-clock-prior snapshots from the same scan", () => 
   });
 });
 
+test("ignores the producer's explicit null version for non-clock-prior research", () => {
+  const ordinary = snapshot(99);
+  ordinary.payload_json.clock_prior_shadow_evidence_sample = false;
+  ordinary.payload_json.clock_prior_shadow_evidence_reuse_version = null;
+  const result = assessScannerClockPriorShadowForwardOutcomeAdmission({
+    evaluatedAt: "2026-09-28T15:00:00.000Z",
+    plan,
+    snapshots: [ordinary],
+    outcomes: [],
+  });
+  expect(result.status).toBe("no_outcome_collection_needed");
+  expect(result.cohort.admitted_snapshot_count).toBe(0);
+  expect(result.series.maximum_provider_credits).toBe(0);
+  expect(Object.values(result.authority)).toEqual(Array(6).fill(false));
+
+  const claimed = structuredClone(ordinary);
+  claimed.payload_json.clock_prior_shadow_evidence_sample = true;
+  expect(assessScannerClockPriorShadowForwardOutcomeAdmission({
+    evaluatedAt: "2026-09-28T15:00:00.000Z",
+    plan,
+    snapshots: [claimed],
+    outcomes: [],
+  }).reason_codes).toContain("clock_prior_snapshot_admission_rejected");
+});
+
 test("fails closed on duplicate canonical rows and rejected cohort lineage", () => {
   const value = snapshot(1);
   const first = completeOutcome(value);
