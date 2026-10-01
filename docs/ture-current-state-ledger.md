@@ -602,6 +602,12 @@ tree passed 58 allocation/evaluation/series/receipt tests, changed-file lint and
 the full 33-page production build including TypeScript. Protected CI, merge and
 production behavior of this reader remain outstanding; integration follows
 collection and verified cleanup, never during the active observation.
+The broader intelligence-foundation verification on local source revision
+`31d8dbcc7a3e8520fa4867f592e42f3ac99a5885` also passed all 168 cases,
+including disposable-PostgreSQL capture and canonical-quality readback. The
+first sandboxed run had 166 passes and two Docker socket permission denials;
+the same suite passed with authorized local container access. This is CLOSED
+fixture/database evidence, not production or recommendation-quality evidence.
 
 **Merged and production-verified CLOSED slice — frozen-cohort daily collection
 admission:** PR [#693](https://github.com/willyvalentin/trade/pull/693) merged as
