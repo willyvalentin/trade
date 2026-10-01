@@ -20,6 +20,8 @@ const slot = opening ? "2026-10-01T13:45:00.000Z" : "2026-10-01T17:30:00.000Z";
 const expiry = new Date(Date.parse(slot) + 900000).toISOString();
 const nextSlot = new Date(Date.parse(expiry) + 900000).toISOString();
 const futureBoundary = new Date(Date.parse(slot) + 1800000).toISOString();
+const zeroLatestVolume = process.argv.includes("--zero-latest-volume");
+assert(!zeroLatestVolume || cold && !wrongPolicy, "Zero-volume proof requires the cold valid-input scenario");
 const directory = mkdtempSync(join(tmpdir(), "ture-input-runtime-proof-"));
 const database = `ture-input-runtime-db-${process.pid}`;
 const api = `ture-input-runtime-api-${process.pid}`;
@@ -177,7 +179,8 @@ try {
         for (let time=OriginalDate.parse("2026-10-01T13:30:00Z"); time<clock; time+=300000) {
           const datetime=new Intl.DateTimeFormat("sv-SE",{timeZone:"America/New_York",
             year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(new OriginalDate(time));
-          values.unshift({datetime,open:"100",high:"101",low:"99",close:"100",volume:"1000"});
+          const volume = zeroLatestVolume && time + 300000 <= clock && time + 600000 > clock ? "0" : "1000";
+          values.unshift({datetime,open:"100",high:"101",low:"99",close:"100",volume});
         }
       } else {
         const day=new OriginalDate("2026-09-30T00:00:00Z");
@@ -327,6 +330,17 @@ try {
       }
       assert.deepEqual(select({...record,record_version:"candidate_decision_record_v3"}),[]);
       assert.deepEqual(select({...record,decision_timestamp:"2026-10-01T20:00:00.000Z"}),[]);
+    }
+    if (zeroLatestVolume) {
+      const fresh = record.candidates.filter(candidate => candidate.data.freshness === "fresh");
+      assert.equal(fresh.length, 3);
+      for (const candidate of fresh) {
+        const indicators = candidate.data.input_snapshot.intraday_indicators;
+        assert.equal(indicators.latestVolume, 0, "Original latest zero volume must survive persisted decision inputs");
+        assert.equal(indicators.averageVolume, 917, "The twelve-bar mean must retain its zero observation");
+        assert.equal(indicators.recentVolumeRatio, null);
+        assert.equal(indicators.volumeTrend, "unknown");
+      }
     }
     // Restart the actual owner reader independently of mutable scanner caches.
     delete require.cache[require.resolve(join(generated,"reader.cjs"))];
@@ -597,6 +611,7 @@ try {
         decision_input_snapshot_present:row.payload_json?.scanner_decision_input_snapshot!==undefined,
         source_timestamp:row.payload_json?.data_timestamp??null,
         freshness:record?.candidates.find(candidate=>candidate.candidate_id===row.payload_json?.candidate_id)?.data.freshness??null}))}} : {}),
+    ...(zeroLatestVolume ? { zero_latest_volume_inputs:record.candidates.filter(candidate=>candidate.data.input_snapshot?.intraday_indicators?.latestVolume===0).length } : {}),
     actual_provider_requests:0,production_actions:0,publications:0,broker_actions:0,cleanup:"inert"}));
   if(diagnoseOutcomes && !wrongPolicy) {
     assert.equal(researchSnapshots.length,cold?3:6,

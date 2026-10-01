@@ -777,6 +777,48 @@ Oct 2 and no later activation authority. It has a specific 15:46 CEST readback
 wake-up and deletes itself after verified no-go/inert state or cleanup. This
 supersedes the scheduling blocker above, not the exact revision/readiness/card
 guards. No production flag, deploy or provider call is made while scheduling.
+**Retained local independent IF-2b volume-input correction — 2026-10-02:** the active
+queue is reconciled in `codex/completed-input-learning-admission`; this isolated
+main-based branch is its only selected second CLOSED delivery, owned by Codex
+at `/private/tmp/ture-volume-observation.zmEmT7/trade`. Four-active-hour budget;
+initial investigation at most four. Base is verified protected main
+`930d44b6be9ec6fca059adba21addd05d9f9c7de`. No schema, outcome, policy-freeze
+or production-configuration ownership overlaps the completed-input IF-4 slice.
+
+Three added regressions and the actual packaged scheduler/backend/scanner/SDK/
+PostgreSQL/PostgREST cold proof reproduce latest zero volume replaced by an
+older positive observation (`1000 !== 0`), and an inflated twelve-bar mean after
+zeros/missingness are removed. The first sandbox launch cannot access Docker;
+it is an environment failure, not engine evidence. The authorized local proof
+reproduces the saved-decision defect and removes its disposable fixtures.
+
+The narrow correction binds latest volume to the same original price candle,
+retains zero and averages the original last twelve clock positions, leaving
+invalid/gapped volume unknown. Available early-session means remain descriptive,
+not complete two-window ratios. The stricter volume ratio, freshness, ranking
+and publication thresholds and eight-credit provider ceiling stay unchanged.
+Historical cached decisions, frozen comparisons and original cohorts are not
+rewritten; the new source/build revision distinguishes future computation.
+
+All 65 affected checks pass, including the actual positive/zero/invalid-policy
+packaged runtime, owner isolation, restart readback, exact price-time binding,
+intake and shadow-ranking regressions. The zero-volume run retains three fresh
+v4 inputs, exact `latestVolume=0`/`averageVolume=917`, one attributable attempt,
+eight identities/eight synthetic requests, zero recommendations/positions and
+inert cleanup. Standard Next 16.3.8 production build and TypeScript pass;
+affected lint and diff checks pass. These are synthetic CLOSED data-fitness
+facts, not production incidence, alpha or improved recommendation returns.
+
+Integration is held for the exact frozen Oct 2 observation and verified cleanup,
+then PR #721 and the completed-input learning slice. Rebase against their
+integrated main and resolve the shared existing runtime-proof regression before
+one coherent PR; do not create a competing public queue or push now. Protected
+CI, main/production verification and real-market effect remain outstanding.
+This correction does not change or activate the frozen operating job. Return
+to its fresh-input/canonical-learning acceptance and measured quality challenger
+after this named integrity gap is closed, not a volume-control platform.
+
+## Retained Sep 29 selection — historical receipts, not an active queue
 
 **Selected primary IF-2b input slice — 2026-10-01:** Codex owns
 `codex/completed-daily-context`, isolated from verified main

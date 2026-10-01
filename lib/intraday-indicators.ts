@@ -312,22 +312,22 @@ export function calculateIntradayIndicators(
         : momentumPercent < MOMENTUM_DOWN_THRESHOLD
           ? "down"
           : "flat";
-  const volumeCandles = sortedCandles.filter(
-    (candle) => isFiniteNumber(candle.volume) && candle.volume > 0,
-  );
-  const latestVolume =
-    volumeCandles.length > 0
-      ? Math.round(volumeCandles[volumeCandles.length - 1].volume)
-      : null;
-  const recentVolumeCandles = volumeCandles.slice(-RECENT_CANDLE_COUNT);
-  const averageVolume =
-    recentVolumeCandles.length > 0
-      ? Math.round(average(recentVolumeCandles.map((candle) => candle.volume)))
-      : null;
+  // Volume must belong to the price candle, never the last positive-volume
+  // predecessor. Zero is an observation; missing/invalid is not zero.
+  const latestVolume = latestCandle && isFiniteNumber(latestCandle.volume) && latestCandle.volume >= 0
+    ? Math.round(latestCandle.volume) : null;
+  // Preserve clock positions instead of compacting across zeros or missing
+  // values. Early-session means use available bars, as before, not a claim of
+  // a complete twelve-bar comparison window.
+  const intervalSeconds = observation.interval === "5min" ? 5 * 60 : 15 * 60;
+  const recentVolumeCandles = sortedCandles.slice(-RECENT_CANDLE_COUNT);
+  const averageVolume = recentVolumeCandles.length > 0 && recentVolumeCandles.every(
+    (candle, index) => isFiniteNumber(candle.volume) && candle.volume >= 0 &&
+      (index === 0 || candle.timestamp - recentVolumeCandles[index - 1].timestamp === intervalSeconds),
+  ) ? Math.round(average(recentVolumeCandles.map((candle) => candle.volume))) : null;
   // Do not compact around missing/zero bars: that would silently compare
   // unequal clock windows. Require two closed, evenly spaced windows from
   // the same regular-session intraday request before ranking this feature.
-  const intervalSeconds = observation.interval === "5min" ? 5 * 60 : 15 * 60;
   const volumeWindow = sortedCandles
     .filter(
       (candle) =>
@@ -370,7 +370,7 @@ export function calculateIntradayIndicators(
       : null;
   const volumeTrend = volumeTrendFromRecentVolumeRatio(recentVolumeRatio);
 
-  if (volumeCandles.length === 0) {
+  if (latestVolume === null || averageVolume === null) {
     warnings.push("Intraday volume unavailable.");
   }
 

@@ -52,8 +52,8 @@ function bars(last = "2026-09-30", count = 60) {
 
 test("packaged scheduled input policy reaches the real isolated database and owner readback", () => {
   test.setTimeout(180000);
-  for (const argument of [null, "--cold", "--wrong-policy"]) {
-    const proof = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", ...(argument ? [argument] : [])],
+  for (const arguments_ of [[], ["--cold"], ["--wrong-policy"], ["--cold", "--zero-latest-volume"]]) {
+    const proof = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", ...arguments_],
       { cwd: process.cwd(), encoding: "utf8", timeout: 55000 });
     expect(proof.status, `${proof.stdout}\n${proof.stderr}`).toBe(0);
     const evidence = JSON.parse(proof.stdout.trim().split("\n").at(-1)!);
@@ -61,6 +61,12 @@ test("packaged scheduled input policy reaches the real isolated database and own
     expect(evidence.actual_provider_requests).toBe(0);
     expect(evidence.production_actions).toBe(0);
     expect(evidence.cleanup).toBe("inert");
+    if (arguments_.includes("--zero-latest-volume")) {
+      expect(evidence.zero_latest_volume_inputs).toBe(3);
+      expect(evidence.scheduled_synthetic_requests).toBe(8);
+      expect(evidence.publications).toBe(0);
+      expect(evidence.broker_actions).toBe(0);
+    }
   }
 });
 

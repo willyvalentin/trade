@@ -147,6 +147,36 @@ test("an incomplete intraday denominator stays unavailable", () => {
   expect(hiddenGap.volumeTrend).toBe("unknown");
 });
 
+test("the latest observed zero volume is not borrowed from an older positive bar", () => {
+  const observed = observedIndicators([...Array(23).fill(1_000), 0]);
+  expect(observed.latestVolume).toBe(0);
+  expect(observed.averageVolume).toBe(917);
+  expect(observed.recentVolumeRatio).toBeNull();
+  expect(observed.volumeTrend).toBe("unknown");
+});
+
+test("a missing or invalid latest volume stays unknown instead of advancing an older observation", () => {
+  for (const invalid of [Number.NaN, -1, Number.POSITIVE_INFINITY]) {
+    const observed = observedIndicators([...Array(23).fill(1_000), invalid]);
+    expect(observed.latestVolume).toBeNull();
+    expect(observed.averageVolume).toBeNull();
+    expect(observed.recentVolumeRatio).toBeNull();
+    expect(observed.volumeTrend).toBe("unknown");
+  }
+});
+
+test("recent mean volume preserves zero bars and missingness on its original clock window", () => {
+  expect(observedIndicators([...Array(12).fill(1_000), ...Array(12).fill(0)]))
+    .toMatchObject({ latestVolume: 0, averageVolume: 0, recentVolumeRatio: null, volumeTrend: "unknown" });
+  expect(observedIndicators([1_000, 0])).toMatchObject({ latestVolume: 0, averageVolume: 500 });
+  expect(observedIndicators([...Array(12).fill(1_000), Number.NaN, ...Array(11).fill(2_000)]))
+    .toMatchObject({ latestVolume: 2_000, averageVolume: null, recentVolumeRatio: null });
+  const gap = candles(Array(24).fill(1_000));
+  gap[15].timestamp += 60;
+  expect(calculateIntradayIndicators(gap, { interval: "5min", observedAtSeconds: gap.at(-1)!.timestamp + 300 }))
+    .toMatchObject({ latestVolume: 1_000, averageVolume: null, recentVolumeRatio: null });
+});
+
 test("a rounded borderline ratio does not become a false expansion", () => {
   const nearThreshold = observedIndicators([
     ...Array(12).fill(10_000),
