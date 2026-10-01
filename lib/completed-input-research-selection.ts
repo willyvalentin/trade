@@ -53,9 +53,13 @@ export function completedInputResearchSnapshotMatchesDecision(snapshot: Recommen
     canonicalJson(input) !== canonicalJson(decision.data.input_snapshot) ||
     p.data_timestamp !== decision.data.source_timestamp || p.data_timestamp !== input.current_session.latest_bar_started_at) return false;
   const f = input.features;
-  return f.proposed_entry_low !== null && f.proposed_entry_high !== null && snapshot.side === "long" &&
+  return f.proposed_entry_low !== null && f.proposed_entry_high !== null &&
+    f.proposed_stop_loss !== null && f.proposed_target_1 !== null && snapshot.side === "long" &&
+    snapshot.entry_low === f.proposed_entry_low && snapshot.entry_high === f.proposed_entry_high &&
     snapshot.entry === (f.proposed_entry_low + f.proposed_entry_high) / 2 && snapshot.stop === f.proposed_stop_loss &&
-    snapshot.target === f.proposed_target_1;
+    snapshot.target === f.proposed_target_1 && snapshot.planned_risk_reward === f.proposed_risk_reward &&
+    snapshot.risk_per_share === snapshot.entry - f.proposed_stop_loss &&
+    snapshot.reward_per_share === f.proposed_target_1 - snapshot.entry;
 }
 
 /** Retain existing decision-time plans throughout the verified regular session.

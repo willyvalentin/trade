@@ -141,6 +141,23 @@ local and must receive current-revision CI before integration. The two warm
 members without a valid input remain unobservable, not invented outcomes. These
 are synthetic source/outcome continuity facts, not production learning or alpha.
 
+**Original-plan integrity review — 2026-10-01:** the actual isolated outcome
+loader admits three sources after their persisted entry-low metadata is changed
+while midpoint and archived inputs remain unchanged (`3 !== 0` regression).
+The v4 capture now retains both entry bounds in its existing JSON payload;
+source admission binds both bounds, planned R and derived risk/reward per share
+to the original archived decision plan before future-data acquisition. Legacy
+capture and outcome paths are unchanged; no schema or production setting changes.
+Cold, warm and opening proofs each reject mutations to all five fields with zero
+future acquisition or outcome writes, then still complete and resume their valid
+sources. All 73 affected checks pass, with strict TypeScript, affected lint and
+the standard Next/Turbopack build. Fixture containers/networks are removed.
+These are synthetic CLOSED integrity/measurement-path results, not production
+learning or recommendation-quality lift. The user-requested roadmap refinement
+and repaired obsolete date assertion are locally committed as `e41e8906` and
+will join this focused PR update; current-revision protected CI is still required.
+The Oct 2 operating revision and its integration hold remain unchanged.
+
 **IF-2b integration exit — 2026-10-01:** PR #720 is normally squash-merged
 after protected CI `36914848106` succeeds on
 `87e8f0ee795e651463b0e13a0385b6b3a73f8bd3`. Its foundation job runs the real

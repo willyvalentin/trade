@@ -2532,6 +2532,8 @@ function buildSnapshotFromResearchSample({
         scanner_input_policy_version: inputResearchEvidence.input_snapshot.input_policy_version,
         scanner_decision_input_snapshot: inputResearchEvidence.input_snapshot,
         decision_timestamp: inputResearchEvidence.decision_timestamp,
+        entry_low: sample.entry_low,
+        entry_high: sample.entry_high,
       } : {}),
       market_regime: marketRegime,
       market_regime_context: marketRegimeContext,

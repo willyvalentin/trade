@@ -332,6 +332,18 @@ try {
       assert.equal(externalRequests,before);
       assert.equal(Number(sql("select count(*) from recommendation_outcomes;")),0);
       for(const row of researchSnapshots) sql(`update recommendation_snapshots set payload_json='${JSON.stringify(row.payload_json).replaceAll("'","''")}'::jsonb where id='${row.id}';`);
+      // Persisted execution geometry must remain the original decision plan,
+      // not merely keep its midpoint while changing its entry bounds or R.
+      for(const field of ["entry_low","entry_high","risk_per_share","reward_per_share","risk_reward"]) {
+        if(field==="risk_reward") sql("update recommendation_snapshots set risk_reward=risk_reward+1;");
+        else sql(`update recommendation_snapshots set payload_json=jsonb_set(payload_json,'{${field}}',to_jsonb(coalesce((payload_json->>'${field}')::numeric,0)+1));`);
+        const drifted=await evaluate(),driftedBody=await drifted.json();
+        assert.equal(drifted.status,200);
+        assert.equal(driftedBody.eligible_snapshot_count,0,`Stored ${field} drift must reject sources before outcome acquisition`);
+        assert.equal(externalRequests,before);
+        assert.equal(Number(sql("select count(*) from recommendation_outcomes;")),0);
+        for(const row of researchSnapshots) sql(`update recommendation_snapshots set risk_reward=${row.risk_reward},payload_json='${JSON.stringify(row.payload_json).replaceAll("'","''")}'::jsonb where id='${row.id}';`);
+      }
       // A valid source without its exact durable lineage is not attributable.
       // Missing or cross-run lineage must stop before future candle acquisition.
       const originalRunPayload=scanRuns[0].payload_json;
