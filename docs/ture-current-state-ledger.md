@@ -86,6 +86,16 @@ expiry independently limits execution if the operating job cannot wake in time.
 No second slot is authorized by this card; changed revision/question requires
 new readiness and a new prospective card. Graduation remains `not_met`.
 
+**Operating-job scheduling limit — 2026-10-01:** automatic security review
+rejects creation of the proposed heartbeat because its recurring schedule could
+later change production configuration, deploy and perform a provider-backed
+scan without exact automation-specific authority. The tool reports rejection;
+no automation was created and no production control was changed. The prospective
+card is frozen locally, not booked or armed. Request explicit authority for the
+single Oct 2 observation and its activation/cleanup deploys before retrying that
+operation; do not bypass the rejection with another scheduler or indirect job.
+This does not block independent CLOSED intelligence work.
+
 **Selected primary IF-2b input slice — 2026-10-01:** Codex owns
 `codex/completed-daily-context`, isolated from verified main
 `4e960cf9ac260821ceb28c909d83c5cad137f353`, with an eight active-hour delivery
