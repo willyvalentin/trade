@@ -11,6 +11,12 @@ import type {
   RecommendationScanRunWindow,
 } from "@/lib/recommendation-scan-run";
 import { decisionStrategyReferenceFromUnknown } from "@/lib/decision-strategy-registry";
+import {
+  scannerDecisionInputSnapshotFromUnknown,
+  isScannerDecisionInputPublishable,
+  COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION,
+  COMPLETED_DAILY_DECISION_SCANNER_VERSION,
+} from "@/lib/scanner-decision-input-snapshot";
 
 export type CandidateDecisionRecordReadback = {
   status: "available" | "incomplete" | "unavailable";
@@ -242,7 +248,8 @@ export function candidateDecisionRecordFromUnknown(
   const recordVersion = record?.record_version;
   const isLegacyRecord = recordVersion === "candidate_decision_record_v1";
   const isAttributedLegacyRecord = recordVersion === "candidate_decision_record_v2";
-  const isCurrentRecord = recordVersion === "candidate_decision_record_v3";
+  const isInputAttributedRecord = recordVersion === "candidate_decision_record_v4";
+  const isCurrentRecord = recordVersion === "candidate_decision_record_v3" || isInputAttributedRecord;
   const learningAttribution = isAttributedLegacyRecord || isCurrentRecord
     ? candidateDecisionLearningAttributionFromUnknown(record?.learning_attribution)
     : isLegacyRecord
@@ -279,6 +286,28 @@ export function candidateDecisionRecordFromUnknown(
     !candidates.every((candidate) =>
       hasKnownCandidateReadbackShape(candidate, decisionTimestamp),
     ) ||
+    (isInputAttributedRecord && (
+      versions?.scanner_version !== COMPLETED_DAILY_DECISION_SCANNER_VERSION ||
+      versions.input_policy_version !== COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION ||
+      coverage.observed_candidate_count !== candidates.filter(value =>
+        objectOrNull(objectOrNull(value)?.data)?.input_snapshot !== null).length ||
+      !candidates.every(value => {
+        const candidate = objectOrNull(value), data = objectOrNull(candidate?.data);
+        if (data?.input_snapshot === null) return candidate?.disposition === "not_evaluated" &&
+          data.freshness === "gap" && data.source_timestamp === null;
+        const snapshot = scannerDecisionInputSnapshotFromUnknown(data?.input_snapshot,
+          String(candidate?.ticker ?? ""), decisionTimestamp);
+        if (!snapshot) return false;
+        const current = snapshot.current_session;
+        if (candidate?.disposition === "published" && (data?.freshness !== "fresh" || !current)) return false;
+        return current ? data?.provider_source === "twelve_data" && data?.source_timestamp === current.latest_bar_started_at &&
+          (data?.freshness !== "fresh" || isScannerDecisionInputPublishable(snapshot, String(candidate?.ticker ?? ""), new Date(decisionTimestamp))) :
+          data?.freshness !== "fresh";
+      })
+    )) ||
+    (!isInputAttributedRecord && (versions?.input_policy_version !== undefined ||
+      versions?.scanner_version === COMPLETED_DAILY_DECISION_SCANNER_VERSION ||
+      candidates.some(value => objectOrNull(objectOrNull(value)?.data)?.input_snapshot !== undefined))) ||
     (finalDecision?.disposition !== "recommendations_published" &&
       finalDecision?.disposition !== "no_trade") ||
     !Array.isArray(finalDecision?.published_tickers) ||

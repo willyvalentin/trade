@@ -86,6 +86,61 @@ isolated-database proof before PR/OPEN. No OPEN scan, actual provider request, m
 production flag or quality rule was activated. Engine graduation remains
 `not_met`; fixture coverage is not forward data fitness or recommendation alpha.
 
+**Local decision/generator integration — IF-2b, 2026-10-01:** current main
+`99465dea0aba50946cd0d96fe2267ee0b73c324f` was integrated by local checkpoint
+`3fac9e9b76f99bb26a94a26986da9d84fdde68f0`; read-only main/PR checks in this
+delivery still show that main and no overlapping product PR. The subsequent
+working-tree patch adds `candidate_decision_capture_v2`,
+`candidate_decision_record_v4` and
+`scanner_v3_completed_daily_intraday_inputs` for the explicit input challenger.
+The exact used numeric features, intraday indicators and compact source-context
+identities are archived in `scanner_decision_input_snapshot_v1`, independently
+of mutable cache. This is structural/time/source readback of an immutable
+capture, not re-hashing archived raw provider bars or proving outcome alpha.
+
+The actual generator now accepts the explicit input policy, propagates it to
+the scanner/capture, declares historical versus current roles in its existing
+model input and excludes these changed inputs from the old frozen clock/liquidity
+shadow cohorts. Legacy single-price post-ranking refresh cannot replace the
+new session inputs or add requests. Before insert, a deterministic guard requires
+the captured current session to remain usable: both the unchanged 15-minute
+source-time bound and at most one closed-bar interval since its close. Expiry
+returns `current_session_inputs_expired` with zero publication; the final
+decision/readback also marks expired evidence stale rather than claiming it
+fresh. Invalid policy, pre-market/closed session or conflicting frozen allocation
+is rejected before generator provider work. Default generator callers remain
+legacy; no production flag selects the challenger yet.
+
+The real scanner, generator and Supabase SDK now pass through disposable
+PostgreSQL 16/PostgREST 16.1 with actual source migrations and the existing
+owner-bound persistence/readback. A separately charged sixteen-request synthetic
+history warm-up precedes a normal fixture attempt with six intraday plus two
+regime requests. A controlled provider-boundary delay makes the current inputs
+expire while legacy reference freshness alone would still allow them. Actual
+generation returns no-trade, saves all eight identities including missing/stale
+inputs, and a restarted owner reader restores the exact decision and lineage.
+No recommendation or position write occurs. Duplicate writes preserve the first
+capture; later cache mutation cannot change it; another owner sees no rows and
+anonymous scan-run read is denied. Containers/network are removed after each
+proof. Distinct fixture occurrence identities were corrected after the existing
+idempotent writer truthfully retained an earlier same-key record; production
+identity/persistence code was not changed to accommodate the fixture.
+
+The ten input tests and eighteen existing decision regressions pass (28/28),
+as do strict TypeScript, affected lint, Next 16.3.8 production build and all
+three packaged scheduled runtimes. The earlier decision-only patch passed the
+registered containment suite 1014/1014; that receipt does not cover subsequent
+generator edits. The current generator patch also passes the complete registered
+containment suite 1014/1014 (terminal exit 0, 1.9 minutes); no test registration
+or required CI gate was removed. Remaining work in this same primary
+slice: normal scheduled/backend selection with bounded budget, the complete
+scheduled-trigger-to-database/readback proof, coherent PR/protected CI and exact
+main verification, then a separately frozen prospective OPEN data-fitness/cost
+comparison. No new OPEN, actual provider call, migration, production activation,
+publication threshold, outcome cohort or broker action was made by this patch.
+Classification is local `recommendation_capability`; graduation remains
+`not_met` and forward recommendation quality remains unproved.
+
 **Supporting exit completed — PR #719, 2026-10-01:** protected CI
 `36902470969` passes on `46b05abe...`; normal protected squash merge at
 18:27:40Z produces main `99465dea0aba50946cd0d96fe2267ee0b73c324f`.

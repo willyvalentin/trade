@@ -44,6 +44,8 @@ import type { ScannerProviderCreditAllocationRuntimeAdmission } from "@/lib/scan
 import { buildScannerProviderCreditAllocationShadow } from "@/lib/scanner-provider-credit-allocation-shadow";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 import type { TwelveDataResponseIdentity } from "@/lib/twelve-data-response-identity";
+import { COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION } from "@/lib/scanner-decision-input-snapshot";
+export { COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION } from "@/lib/scanner-decision-input-snapshot";
 
 export type ScannerCandidate = {
   ticker: string;
@@ -172,8 +174,6 @@ export type ScanMarketOptions = {
   // activates this challenger; legacy/frozen policies remain the default.
   completedDailyContextPolicyVersion?: typeof COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION;
 };
-
-export const COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION = "completed_daily_intraday_input_v1" as const;
 
 const CACHE_TTL_MS = 45 * 60 * 1000;
 const FRESH_CALL_DELAY_MS = 8 * 1000;
@@ -1034,7 +1034,7 @@ async function scanMarketCore(
     return {
       candidate: {
         ...candidate,
-        intraday_indicators: intradayIndicators,
+        intraday_indicators: completedContextMode && !freshCurrentPrice ? null : intradayIndicators,
         intraday_indicator_source: result.source,
         intraday_indicator_cached_at: result.cached_at,
         intraday_indicator_response_identity: result.response_identity,
@@ -1043,7 +1043,7 @@ async function scanMarketCore(
         // Legacy scanner-cache `recent_volume_ratio` came from daily bars.
         // Only same-session intraday bars from a fresh indicator receipt may
         // populate this ranking/decision feature.
-        recent_volume_ratio: recentVolumeRatio ?? undefined,
+        recent_volume_ratio: completedContextMode && !freshCurrentPrice ? undefined : recentVolumeRatio ?? undefined,
         ...(completedContextMode ? {
           // Current-session fields come only from validated closed intraday bars.
           // Daily history remains separately attributable, never today's OHLC.

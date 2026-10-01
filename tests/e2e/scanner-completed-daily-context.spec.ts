@@ -5,6 +5,11 @@ import { resolve } from "node:path";
 import { createHmac, randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
+import { buildCandidateDecisionCapture, buildCandidateDecisionRecord } from "@/lib/candidate-decision-record";
+import { candidateDecisionRecordFromUnknown, candidateDecisionRecordFromScanRun } from "@/lib/candidate-decision-readback";
+import { buildDecisionLineageReceipt, decisionLineageReceiptFromScanRun } from "@/lib/decision-lineage-receipt";
+import { buildRecommendationScanRun, recommendationScanRunFromPersistenceRow } from "@/lib/recommendation-scan-run";
+import { isScannerDecisionInputPublishable } from "@/lib/scanner-decision-input-snapshot";
 import {
   getUsEquityMarketSession,
   usEquityMarketCalendarDataset,
@@ -204,9 +209,27 @@ function disposableCacheDatabase() {
       Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 100);
     }
     if (!ready) throw new Error("isolated PostgreSQL TCP startup failed");
+    const migrationFiles = [
+      "20260519000000_create_legacy_baseline_schema_draft.sql",
+      "20260528000000_create_recommendation_snapshots.sql",
+      "20260528001000_create_recommendation_outcomes.sql",
+      "20260528002000_create_recommendation_scan_runs.sql",
+      "20260528003000_create_recommendation_batches.sql",
+      "20260614000000_create_execution_records.sql",
+      "20260724001500_create_transactional_open_position_command.sql",
+      "20260811163228_add_fail_closed_application_owner_foundation.sql",
+    ];
+    // Actual source migrations and owner constraints, not a JSON-store mock.
+    // Minimal auth fixtures are local-only; no broker/position command is called.
     docker(["exec", "-i", database, "psql", "-X", "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-q"],
       "create role anon nologin; create role authenticated nologin; create role service_role nologin bypassrls;\n" +
-      readFileSync("supabase/migrations/20260519000000_create_legacy_baseline_schema_draft.sql", "utf8"));
+      "create schema auth; create table auth.users (id uuid primary key);\n" +
+      "create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claims', true)::jsonb->>'sub', '')::uuid $$;\n" +
+      "insert into auth.users values ('00000000-0000-4000-8000-000000000001'), ('00000000-0000-4000-8000-000000000002');\n" +
+      migrationFiles.map(file => readFileSync(`supabase/migrations/${file}`, "utf8")).join("\n") +
+      "\ngrant select, insert, update on public.recommendation_scan_runs to service_role;\n" +
+      "grant select on public.recommendation_snapshots, public.recommendation_outcomes, public.user_settings, public.positions, public.recommendations to service_role;\n" +
+      "grant insert on public.market_regime_snapshots to service_role;\n");
     const secret = "synthetic-local-postgrest-jwt-fixture-only";
     docker(["run", "-d", "--rm", "--network", network, "--name", rest,
       "-p", "127.0.0.1::3000", "-e", `PGRST_DB_URI=postgres://postgres:postgres@${database}:5432/postgres`,
@@ -225,7 +248,12 @@ for (const storage of ["synthetic HTTP boundary", "isolated PostgreSQL/PostgREST
 test(`real scanner acquires raw history then reuses it after restart with ${storage}`, async () => {
   test.setTimeout(120000);
   const bundled = await build({ stdin: { contents:
-    "export {scanMarket} from './lib/scanner'; export {createActiveScanTrace} from './lib/active-scan-trace';",
+    "export {scanMarket} from './lib/scanner'; export {createActiveScanTrace} from './lib/active-scan-trace';" +
+    "export {getServerSupabaseClient} from './lib/supabase-server'; export {persistRecommendationScanRun} from './lib/server/recommendation-scan-run-persistence';" +
+    "export {readRecommendationLearningBaselineSource} from './lib/server/application-data-access';" +
+    "export {generateRecommendations} from './lib/recommendation-generator';" +
+    "export {buildRealScannerBaseCandidateSelection} from './lib/real-scanner-candidate-generation';" +
+    "export {resolveScheduledScanProviderCreditBudget} from './lib/scheduled-scan-ticker-cap';",
     resolveDir: process.cwd(), loader: "ts" }, absWorkingDir: process.cwd(),
     bundle: true, write: false, platform: "node", format: "cjs",
     external: ["@supabase/supabase-js"], plugins: [{ name: "framework-marker", setup(builder) {
@@ -238,7 +266,13 @@ test(`real scanner acquires raw history then reuses it after restart with ${stor
     new Function("require", "module", "exports", bundled.outputFiles[0].text)(
       createRequire(resolve(process.cwd(), "package.json")), loaded, loaded.exports);
     return loaded.exports as { scanMarket: typeof import("@/lib/scanner").scanMarket;
-      createActiveScanTrace: typeof import("@/lib/active-scan-trace").createActiveScanTrace };
+      createActiveScanTrace: typeof import("@/lib/active-scan-trace").createActiveScanTrace;
+      getServerSupabaseClient: typeof import("@/lib/supabase-server").getServerSupabaseClient;
+      persistRecommendationScanRun: typeof import("@/lib/server/recommendation-scan-run-persistence").persistRecommendationScanRun;
+      generateRecommendations: typeof import("@/lib/recommendation-generator").generateRecommendations;
+      buildRealScannerBaseCandidateSelection: typeof import("@/lib/real-scanner-candidate-generation").buildRealScannerBaseCandidateSelection;
+      resolveScheduledScanProviderCreditBudget: typeof import("@/lib/scheduled-scan-ticker-cap").resolveScheduledScanProviderCreditBudget;
+      readRecommendationLearningBaselineSource: typeof import("@/lib/server/application-data-access").readRecommendationLearningBaselineSource };
   };
   const RealDate = globalThis.Date;
   const database = storage === "isolated PostgreSQL/PostgREST" ? disposableCacheDatabase() : null;
@@ -260,30 +294,35 @@ test(`real scanner acquires raw history then reuses it after restart with ${stor
     }
     if (!ready) { database.cleanup(); throw new Error("isolated PostgREST startup failed"); }
   }
-  const keys = ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_SERVICE_ROLE", "SUPABASE_SERVICE_ROLE_SECRET", "TWELVE_DATA_API_KEY"];
+  const keys = ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_SERVICE_ROLE", "SUPABASE_SERVICE_ROLE_SECRET", "TWELVE_DATA_API_KEY", "TURE_APPLICATION_OWNER_USER_ID", "TURE_MARKET_WIDE_DISCOVERY_ENABLED", "TURE_DYNAMIC_MOVERS_DISCOVERY_ENABLED"];
   const saved = keys.map(key => [key, process.env[key]] as const);
   keys.forEach(key => delete process.env[key]);
   process.env.NEXT_PUBLIC_SUPABASE_URL = "https://synthetic-history-fixture.invalid";
   process.env.SUPABASE_SERVICE_ROLE_KEY = database?.token ?? "sb_secret_synthetic_local_only";
   process.env.TWELVE_DATA_API_KEY = "synthetic_local_only";
+  const owner = "00000000-0000-4000-8000-000000000001", otherOwner = "00000000-0000-4000-8000-000000000002";
+  process.env.TURE_APPLICATION_OWNER_USER_ID = owner;
   globalThis.Date = FixtureDate as DateConstructor;
   console.log = () => {}; console.error = () => {};
   const rows = new Map<string, Record<string, unknown>>();
   let daily = 0, intraday = 0, wrongIntradayIdentity = false, gapIntraday = false;
+  let delayAfterScanner = false;
   const base = Array.from({ length: 8 }, (_, i) => ({ ticker: `SYNTH${i}`, company_name: "Synthetic",
     sector: "Synthetic", mock_current_price: 99, mock_trend: "", mock_volume_context: "",
     mock_support: 95, mock_resistance: 108, mock_news_context: "" }));
   globalThis.fetch = async (input, init) => {
     const request = new Request(input, init), url = new URL(request.url);
     if (url.origin === "https://synthetic-history-fixture.invalid") {
-      expect(url.pathname).toBe("/rest/v1/scanner_cache");
+      expect(["/rest/v1/scanner_cache", "/rest/v1/recommendation_scan_runs", "/rest/v1/recommendation_snapshots", "/rest/v1/recommendation_outcomes",
+        "/rest/v1/user_settings", "/rest/v1/positions", "/rest/v1/recommendations", "/rest/v1/market_regime_snapshots"]).toContain(url.pathname);
+      if (["/rest/v1/recommendations", "/rest/v1/positions"].includes(url.pathname)) expect(request.method).toBe("GET");
       if (database) {
         // Only the Supabase gateway prefix is removed. Query parsing, JSONB
         // persistence, unique upsert and restart readback run in real PostgREST/PG.
         const path = url.pathname.slice("/rest/v1".length) + url.search;
         const response = await originalFetch(database.origin + path, {
           method: request.method, headers: request.headers,
-          ...(request.method !== "GET" ? { body: await request.text() } : {}),
+          ...(!["GET", "HEAD"].includes(request.method) ? { body: await request.text() } : {}),
         });
         expect(response.ok, await response.clone().text()).toBe(true);
         const persisted = await originalFetch(database.origin + "/scanner_cache?select=*", {
@@ -293,6 +332,7 @@ test(`real scanner acquires raw history then reuses it after restart with ${stor
         for (const row of await persisted.json()) rows.set(row.ticker, row);
         return response;
       }
+      expect(url.pathname).toBe("/rest/v1/scanner_cache");
       const filter = url.searchParams.get("ticker");
       if (request.method === "GET") {
         const matched = [...rows.values()].filter(row => !filter ||
@@ -313,6 +353,10 @@ test(`real scanner acquires raw history then reuses it after restart with ${stor
     expect(url.origin).toBe("https://api.twelvedata.com");
     expect(url.pathname).toBe("/time_series");
     const symbol = url.searchParams.get("symbol"), interval = url.searchParams.get("interval");
+    // Delay at the external provider boundary, not inside scoring/building.
+    // Source time remains inside legacy 15min freshness but the current-session
+    // closed-bar window has expired, so the new publication guard must reject.
+    if (delayAfterScanner && interval === "1day" && symbol === "QQQ") { clock += 360001; delayAfterScanner = false; }
     let values;
     if (interval === "1day") {
       daily++;
@@ -369,9 +413,161 @@ test(`real scanner acquires raw history then reuses it after restart with ${stor
     }
     for (const candidate of candidates.slice(6)) {
       expect(candidate.latest_close).toBeUndefined();
+      expect(candidate.intraday_indicators).toBeNull();
+      expect(candidate.recent_volume_ratio).toBeUndefined();
       expect(candidate.intraday_indicator_stale).toBe(true);
     }
     expect(trace.trace.market_data_fetch.provider_credit_allocation_shadow).toBeNull();
+    const capturedAt = new FixtureDate().toISOString();
+    const capture = buildCandidateDecisionCapture({ captureTimestamp: capturedAt,
+      universe: base, observedCandidates: candidates, noPublishReason: "no_trade" });
+    const run = buildRecommendationScanRun({ trading_date: "2026-10-01", observed_at: capturedAt,
+      completed_at: capturedAt, window: "midday", source: "supabase",
+      scheduled_scan_run_id: "synthetic_scanner_restart_occurrence",
+      scanned_ticker_count: 8, raw_candidate_count: 8 });
+    const decision = buildCandidateDecisionRecord({ scanRun: run, capture,
+      scoringVersion: "unchanged-local-scoring", buildVersion: "local-synthetic-input-proof" })!;
+    expect(capture.capture_version).toBe("candidate_decision_capture_v2");
+    expect(decision.record_version).toBe("candidate_decision_record_v4");
+    expect(decision.versions.scanner_version).toBe("scanner_v3_completed_daily_intraday_inputs");
+    expect(decision.candidates).toHaveLength(8);
+    expect(decision.candidates.slice(0, 6).every(candidate => candidate.data.freshness === "fresh")).toBe(true);
+    const encoded = JSON.parse(JSON.stringify(decision));
+    expect(candidateDecisionRecordFromUnknown(encoded)).toEqual(decision);
+    const snapshot = encoded.candidates[0].data.input_snapshot;
+    expect(snapshot).toMatchObject({ input_policy_version: "completed_daily_intraday_input_v1",
+      historical_context: { role: "completed_historical_daily", latest_completed_market_date: "2026-09-30" },
+      current_session: { role: "current_regular_session_closed_bars", latest_bar_started_at: "2026-10-01T16:45:00.000Z" },
+      features: { latest_close: 105, previous_close: 101, session_open: 104, session_high: 106, session_low: 103 } });
+    expect(encoded.candidates.slice(6).every((candidate: { data: { input_snapshot: { current_session: unknown; features: { latest_close: unknown } } } }) =>
+      candidate.data.input_snapshot.current_session === null && candidate.data.input_snapshot.features.latest_close === null)).toBe(true);
+    expect(isScannerDecisionInputPublishable(snapshot, base[0].ticker, new FixtureDate())).toBe(true);
+    expect(isScannerDecisionInputPublishable(snapshot, base[0].ticker, new RealDate("2026-10-01T16:55:00.001Z"))).toBe(false);
+    expect(isScannerDecisionInputPublishable(encoded.candidates[7].data.input_snapshot, base[7].ticker, new FixtureDate())).toBe(false);
+    expect(isScannerDecisionInputPublishable(snapshot, "OTHER", new FixtureDate())).toBe(false);
+    expect(isScannerDecisionInputPublishable(snapshot, base[0].ticker, new RealDate("2026-10-01T16:49:59.000Z"))).toBe(false);
+    expect(isScannerDecisionInputPublishable(snapshot, base[0].ticker, new RealDate("2026-10-01T20:00:00.000Z"))).toBe(false);
+    const receipt = buildDecisionLineageReceipt(decision);
+    const persisted = { ...run, payload_json: { ...run.payload_json,
+      candidate_decision_record: encoded, decision_lineage_receipt: JSON.parse(JSON.stringify(receipt)) } };
+    expect(candidateDecisionRecordFromScanRun(persisted)).toEqual(decision);
+    expect(decisionLineageReceiptFromScanRun(persisted, decision)).toEqual(receipt);
+    let expectedScanRunCount = 1;
+    const readDurableDecision = async () => {
+      const result = await load().readRecommendationLearningBaselineSource(owner);
+      expect(result.status).toBe("available");
+      if (result.status !== "available") throw new Error("local authoritative readback unavailable");
+      expect(result.data.recommendation_scan_runs).toHaveLength(expectedScanRunCount);
+      const row = (result.data.recommendation_scan_runs as Record<string, unknown>[]).find(row => row.id === run.id)!;
+      expect(row.owner_user_id).toBe(owner);
+      const restored = recommendationScanRunFromPersistenceRow(row)!;
+      expect(candidateDecisionRecordFromScanRun(restored)).toEqual(decision);
+      expect(decisionLineageReceiptFromScanRun(restored, decision)).toEqual(receipt);
+    };
+    if (database) {
+      const runtime = load(), client = runtime.getServerSupabaseClient().client;
+      expect((await runtime.persistRecommendationScanRun(persisted, { supabaseClient: client })).status).toBe("saved");
+      await readDurableDecision();
+      // Duplicate persistence cannot overwrite the original used-feature snapshot.
+      const changed = structuredClone(persisted);
+      (changed.payload_json.candidate_decision_record as typeof encoded).candidates[0].data.input_snapshot.features.latest_close = 999;
+      expect((await runtime.persistRecommendationScanRun(changed, { supabaseClient: client })).status).toBe("saved");
+      await readDurableDecision();
+      const other = await load().readRecommendationLearningBaselineSource(otherOwner);
+      expect(other.status === "available" && other.data.recommendation_scan_runs).toEqual([]);
+      expect((await load().readRecommendationLearningBaselineSource("invalid-owner")).status).toBe("unavailable");
+      const denied = await originalFetch(database.origin + "/recommendation_scan_runs?select=id");
+      expect([401, 403]).toContain(denied.status);
+      // The actual generator owns universe selection, scoring and no-trade;
+      // neither scanner nor generator internals are substituted. Warm-up is
+      // explicitly separate, synthetic setup (sixteen requests, not free data).
+      const resumedClock = clock;
+      const generatorAt = new RealDate("2026-10-01T17:50:00.000Z");
+      const selected = runtime.buildRealScannerBaseCandidateSelection({ scanWindow: "midday",
+        requestedScanBudget: 8, selectionMode: "scheduled_rotating", now: generatorAt }).candidates;
+      expect(selected).toHaveLength(8);
+      daily = 0; intraday = 0;
+      for (const candidate of selected) await runtime.scanMarket([candidate], options);
+      expect([daily, intraday]).toEqual([8, 8]);
+      clock = generatorAt.getTime(); daily = 0; intraday = 0; delayAfterScanner = true;
+      const generated = await load().generateRecommendations({ ownerUserId: owner,
+        sessionType: "midday", scanWindow: "midday", source: "scheduled", scheduledMaxTickers: 8,
+        scheduledProviderCreditBudget: runtime.resolveScheduledScanProviderCreditBudget({ planMode: "free" }),
+        scheduledProviderCallPacingMs: 0, scannerInputPolicyVersion: "completed_daily_intraday_input_v1", skipOpenAi: true });
+      expect([daily, intraday]).toEqual([2, 6]);
+      expect(generated.recommendations).toEqual([]);
+      const generatedLog = generated.scan_log as import("@/lib/recommendation-generator").RecommendationScanLogDetails;
+      expect(generatedLog.scanner_clock_prior_shadow_comparison ?? null).toBeNull();
+      expect(generatedLog.scanner_intraday_liquidity_shadow_comparison ?? null).toBeNull();
+      expect(generatedLog.no_publish_reason).toBe("current_session_inputs_expired");
+      expect(generatedLog.ranked_candidates_not_published_reason).toContain("versioned current-session inputs expired");
+      const generatedCapture = generatedLog.candidate_decision_capture!;
+      expect(generatedCapture.capture_version).toBe("candidate_decision_capture_v2");
+      expect(generatedCapture.observed_candidates).toHaveLength(8);
+      const generatedRun = buildRecommendationScanRun({ trading_date: "2026-10-01",
+        observed_at: generatorAt.toISOString(), completed_at: new FixtureDate().toISOString(), window: "midday",
+        scheduled_scan_run_id: "synthetic_generator_expiry_occurrence",
+        source: "supabase", scanned_ticker_count: 8, raw_candidate_count: 8 });
+      const generatedDecision = buildCandidateDecisionRecord({ scanRun: generatedRun, capture: generatedCapture,
+        scoringVersion: "unchanged-local-scoring", buildVersion: "local-synthetic-generator-proof" })!;
+      expect(generatedDecision.candidates).toHaveLength(8);
+      expect(generatedDecision.candidates.filter(candidate => candidate.data.freshness === "fresh")).toHaveLength(0);
+      expect(generatedDecision.candidates.every(candidate => candidate.data.freshness === "stale")).toBe(true);
+      expect(generatedDecision.final_decision.disposition).toBe("no_trade");
+      const generatedEnvelope = { ...generatedRun, payload_json: { ...generatedRun.payload_json,
+        candidate_decision_record: generatedDecision, decision_lineage_receipt: buildDecisionLineageReceipt(generatedDecision) } };
+      expect((await runtime.persistRecommendationScanRun(generatedEnvelope, { supabaseClient: client })).status).toBe("saved");
+      expectedScanRunCount = 2;
+      const generatorReadback = await load().readRecommendationLearningBaselineSource(owner);
+      expect(generatorReadback.status).toBe("available");
+      if (generatorReadback.status !== "available") throw new Error("generator authoritative readback unavailable");
+      const generatedRow = (generatorReadback.data.recommendation_scan_runs as Record<string, unknown>[]).find(row => row.id === generatedRun.id)!;
+      const generatedRestored = recommendationScanRunFromPersistenceRow(generatedRow)!;
+      expect(candidateDecisionRecordFromScanRun(generatedRestored)).toEqual(generatedDecision);
+      expect(decisionLineageReceiptFromScanRun(generatedRestored, generatedDecision)).toEqual(buildDecisionLineageReceipt(generatedDecision));
+      const publishedRows = await originalFetch(database.origin + "/recommendations?select=id", { headers: { Authorization: `Bearer ${database.token}` } });
+      expect(await publishedRows.json()).toEqual([]);
+      daily = 0; intraday = 0;
+      await expect(load().generateRecommendations({ ownerUserId: owner, sessionType: "midday", scanWindow: "pre_market",
+        source: "scheduled", scannerInputPolicyVersion: "completed_daily_intraday_input_v1", skipOpenAi: true })).rejects.toThrow("completed_context_generator_admission_invalid");
+      expect([daily, intraday]).toEqual([0, 0]);
+      clock = resumedClock;
+    }
+    for (const mutate of [
+      (value: typeof encoded) => { value.versions.scanner_version = "scanner_v2_fresh_cache_before_refresh"; },
+      (value: typeof encoded) => { delete value.candidates[0].data.input_snapshot; },
+      (value: typeof encoded) => { value.candidates[0].data.input_snapshot.current_session.symbol = "OTHER"; },
+      (value: typeof encoded) => { value.candidates[0].data.input_snapshot.historical_context.latest_completed_at = capturedAt; },
+      (value: typeof encoded) => { value.candidates[0].data.input_snapshot.current_session.captured_at = "2026-10-01T17:00:00.000Z"; },
+      (value: typeof encoded) => { value.candidates[0].data.source_timestamp = "2026-10-01T16:40:00.000Z"; },
+      (value: typeof encoded) => { value.candidates[7].data.input_snapshot.features.latest_close = 105; },
+      (value: typeof encoded) => { value.candidates[0].data.input_snapshot.historical_context.calendar_fingerprint = "drift"; },
+      (value: typeof encoded) => { value.coverage.observed_candidate_count = 6; },
+      (value: typeof encoded) => { value.record_version = "candidate_decision_record_v3"; delete value.versions.input_policy_version; },
+    ]) {
+      const changed = structuredClone(encoded); mutate(changed);
+      expect(candidateDecisionRecordFromUnknown(changed)).toBeNull();
+    }
+    const emptyCapture = buildCandidateDecisionCapture({ captureTimestamp: capturedAt, universe: base,
+      observedCandidates: [], inputPolicyVersion: "completed_daily_intraday_input_v1", noPublishReason: "no_trade" });
+    const emptyDecision = buildCandidateDecisionRecord({ scanRun: run, capture: emptyCapture,
+      scoringVersion: "unchanged-local-scoring", buildVersion: "local-synthetic-input-proof" })!;
+    expect(emptyDecision.coverage).toMatchObject({ expected_candidate_count: 8, observed_candidate_count: 0 });
+    expect(emptyDecision.candidates.every(candidate => candidate.disposition === "not_evaluated" && candidate.data.input_snapshot === null)).toBe(true);
+    expect(candidateDecisionRecordFromUnknown(JSON.parse(JSON.stringify(emptyDecision)))).toEqual(emptyDecision);
+    expect(() => buildCandidateDecisionCapture({ captureTimestamp: capturedAt, universe: base,
+      observedCandidates: [candidates[0], base[1]] })).toThrow("mixed_or_unknown_input_policy");
+    const lateRun = { ...run, completed_at: "2026-10-01T17:06:00.000Z" };
+    const lateDecision = buildCandidateDecisionRecord({ scanRun: lateRun, capture,
+      scoringVersion: "unchanged-local-scoring", buildVersion: "local-synthetic-input-proof" })!;
+    expect(lateDecision.candidates[0].data).toMatchObject({ freshness: "stale", gap_codes: ["provider_data_stale"] });
+    expect(candidateDecisionRecordFromUnknown(JSON.parse(JSON.stringify(lateDecision)))).toEqual(lateDecision);
+    const publishCapture = { ...capture, published_tickers: [base[0].ticker], eligible_candidate_tickers: [base[0].ticker] };
+    expect(() => buildCandidateDecisionRecord({ scanRun: lateRun, capture: publishCapture,
+      scoringVersion: "unchanged-local-scoring", buildVersion: "local-synthetic-input-proof" })).toThrow("publication_input_incomplete");
+    const originalValue = decision.candidates[0].data.input_snapshot!.features.latest_close;
+    candidates[0].latest_close = 999;
+    expect(decision.candidates[0].data.input_snapshot!.features.latest_close).toBe(originalValue);
     // Persisted derived fields are not authoritative in the new policy. The
     // exact raw bars and digest must survive restart and drive recomputation.
     const savedRaw = structuredClone(rows.get(base[0].ticker)!.raw) as Record<string, unknown>;
@@ -387,6 +583,7 @@ test(`real scanner acquires raw history then reuses it after restart with ${stor
       } else rows.get(base[0].ticker)!.raw = raw;
     };
     await replaceRaw(savedRaw);
+    if (database) await readDurableDecision(); // Used features do not change with later mutable-cache contents.
     expect((await load().scanMarket([base[0]], { ...options, maxFreshProviderCalls: 0 }))[0].latest_close).toBe(105);
     const mutatedRaw = structuredClone(savedRaw) as { intraday_indicator_cache: { session_context: { candles: { close: number }[] } } };
     mutatedRaw.intraday_indicator_cache.session_context.candles[0].close = 104;
