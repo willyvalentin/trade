@@ -818,6 +818,21 @@ This correction does not change or activate the frozen operating job. Return
 to its fresh-input/canonical-learning acceptance and measured quality challenger
 after this named integrity gap is closed, not a volume-control platform.
 
+**Final local verification — 2026-10-02:** source correction revision is
+`8cddd843aae504a77d2217bb6662c964a987823f`. Full lint completes with zero
+errors/eight retained warnings. A detached local integration rehearsal against
+completed-input learning `83217b45` is revision
+`60621af4d12d3bdfd159d168caefa78125af7fb2`, tree
+`bfb54680096a55c5d115d893c0926a80715ba0ce`: 139 combined tests, affected lint,
+strict types and the standard production build all pass. Its actual zero-volume
+source/outcome/restarted owner readback preserves three original assessments
+and outcomes, five unresolved identities and closed comparison/promotion gates.
+All disposable fixture containers/networks are verified removed. This is local
+composition evidence only; protected CI, integrated main, deployed behavior
+and prospective quality acceptance remain outstanding. The frozen Oct 2 input
+observation uses the unchanged pre-correction revision and cannot prove this
+volume defect absent; its historical fields are not silently recomputed.
+
 ## Retained Sep 29 selection — historical receipts, not an active queue
 
 **Selected primary IF-2b input slice — 2026-10-01:** Codex owns
