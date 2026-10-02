@@ -2,7 +2,68 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-02, recommendation intelligence first
 
-**Current selection — 2026-10-02 19:58Z:** primary owner Codex selects the
+**Current queue — 2026-10-02 21:00Z:** PR #727 is normally merged after all
+six protected shards, aggregate and merge-candidate provenance pass on exact
+head `aa33ec41405d004d4107797572a1da43ca1aa631`. Squash main
+`b75d524cba2f20da4fe37d64facac3469bc37c87` has the identical tested tracked
+tree `1480d342817fc03bf46f67f87f245966c4115f1a`. Automatic Git production
+deploy `6ac01af86c02c60008d3b32b` is ready/published at 20:59:57.406Z;
+authenticated provider-free readback at 21:01:02.493Z confirms the exact deploy,
+all competing modes/input selector off, global disable true and zero active,
+unresolved or unattributed work. No provider request, scan, configuration change
+or migration occurred. No OPEN retry is selected.
+This minimum support correction does not establish OPEN behavior or quality lift.
+
+The selected intelligence delivery now owns the primary slot: CLOSED IF-4
+`quality_measurement`, owner Codex, eight active hours (initial investigation
+at most four), isolated `codex/relative-plan-canonical-outcomes-oct2`, now based
+on this exact main. No independent second slice is selected. Close the frozen
+relative-plan model's missing outcome link: same v4 decision, unchanged
+`relative_plan_context_shadow_v1`, original hidden source/plan and canonical
+60m outcome per identity. Preserve all eight members, unassessed contexts,
+pending/missing horizons, source conflicts and unfavorable outcomes. Never
+relabel stale, short-window or missing inputs as comparable.
+
+The local pure adapter and actual learning-read consumer retain original/shadow
+K=3 membership, canonical precision and original first-target terminal R.
+Partial populations keep null comparable metrics, no-entry is zero exposure,
+and unresolved intrabar order or unmeasured R remains unknown. A selected
+60m receipt's identity survives even when its label is unusable. Twenty-five
+focused model/outcome/registration tests pass, including a reproduced and fixed
+JSONB key-order rejection. Native-dependency pre-integration foundation passes
+1,032 containment and 393 intelligence tests plus normal lint/types/build and
+registered integration suites; later JSONB/receipt refinements and the combined
+main require final verification, not reuse as exact-final-revision evidence.
+
+Acceptance remains the actual isolated scheduler/source/SDK/outcome-persistence
+and restarted owner read, including favorable/unfavorable, pending, duplicate,
+wrong-source and zero-outcome cases. Extend the existing CLOSED proof with an
+explicitly separate mature 60m boundary; do not replace its retained shorter-
+horizon regressions. No schema, provider budget, live ranking, publication or
+broker change. A valid prospective completed-input baseline contract, forward
+windows and full charter still precede collection/promotion; this diagnostic
+does not retroactively admit historical evidence. Do not change the model or
+expand the minimum support correction.
+
+**Local outcome-link acceptance — 2026-10-02 21:10Z:** the mature 60m CLOSED
+scenario passes the actual packaged scheduler, original-input source capture,
+SDK/PostgREST persistence, bounded outcome runner and restarted owner learning
+read. Of the unchanged eight original members, six have persisted mature 60m
+receipts (three synthetic positive, three synthetic stop-before-target); two
+missing sources remain visible. Four outcomes persist in the first bounded
+batch, two resume later, and the completed repeat makes zero requests without
+changing prior receipts. Original-source/lineage tampering admits zero outcomes.
+Comparable precision, expectancy and lift stay null for this partial population;
+this is synthetic CLOSED behavior evidence, not market alpha or a forward pass.
+
+The integrated main plus local delivery passes all 62 affected runtime, admission,
+shadow/outcome and registration tests (3.9 minutes), normal lint (zero errors,
+eight existing warnings), strict nonincremental types and unchanged Next
+production build. The full registered foundation is being verified on this
+frozen combined tree before a focused PR. No production configuration, provider
+request, migration, publication or broker action is part of this delivery.
+
+**Historical selection — 2026-10-02 19:58Z:** primary owner Codex selects the
 minimum IF-2b regular-session analysis/publication separation on isolated
 `codex/regular-session-analysis-oct2`, verified main
 `58d4969768dbb00685c112687ca6fed00308c312` after integrating #726.
