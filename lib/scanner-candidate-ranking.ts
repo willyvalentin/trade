@@ -384,10 +384,7 @@ function rankCandidate(
     component("window_fit", windowFit, 0.1),
     component("warnings_penalty", warningsPenalty, 0.05),
   ];
-  const normalizedScore = clampScore(
-    components.reduce((sum, item) => sum + item.contribution, 0),
-  );
-  const tier = tierForRankingScore(normalizedScore, warnings);
+  const { score: normalizedScore, tier } = evaluateRetainedScannerRankingComponents(components, warnings);
 
   return {
     ticker: candidate.ticker,
@@ -405,6 +402,16 @@ function rankCandidate(
       gaps: Array.from(new Set(gaps)).slice(0, 8),
     },
   };
+}
+
+/** Shared v1.2 aggregation semantics for the live scorer and immutable-input
+ * shadow models. This grants no selection, publication or execution authority. */
+export function evaluateRetainedScannerRankingComponents(
+  components: ScannerCandidateRankingScore["components"],
+  warnings: ScannerCandidateRankingWarning[],
+) {
+  const score = clampScore(components.reduce((sum, item) => sum + item.contribution, 0));
+  return { score, tier: tierForRankingScore(score, warnings) };
 }
 
 function selectRankedCandidates(

@@ -221,6 +221,18 @@ for (const scenario of ["cold", "warm", "opening", "opening_zero"]) {
       learning_admission: {
         readiness_version: "recommendation_learning_baseline_readiness_v4",
         plan_version: "recommendation_learning_evaluation_plan_v2",
+        relative_plan_context_shadow: {
+          comparison_version: "relative_plan_context_shadow_v1",
+          status: scenario.startsWith("opening") ? "unavailable" : "partial",
+          original_population_count: 8,
+          assessed_count: scenario.startsWith("opening") ? 0 : scenario === "warm" ? 6 : 3,
+          unassessed_count: scenario.startsWith("opening") ? 8 : scenario === "warm" ? 2 : 5,
+          restart_stable: true,
+          actual_provider_requests: 0,
+          live_ranking_effect: false,
+          publication_effect: false,
+          quality_improvement_claimed: false,
+        },
         canonical_research_outcomes: scenario === "warm" ? 6 : 3,
         retained_intake_assessments: scenario === "warm" ? 6 : 3,
         intake_assessment_provenance: "complete",

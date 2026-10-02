@@ -2,7 +2,48 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-02, recommendation intelligence first
 
-**Current executable selection:** the minimum IF-2b decision/publication-clock
+**Current selection — reconciled 2026-10-02 19:18Z:** primary owner Codex
+has normally merged PR #725 after all six protected shards, required aggregate
+and merge-candidate provenance pass on exact head
+`da6ed1305d1f16fa7a6d92358ad07fe489e674c4`. Squash main
+`86e69df71707533d0268e669b2bc65b4e267cad0` has the identical tested tracked tree.
+Automatic production deploy `6ac00253973e6b0007ee59e2` is ready/published;
+authenticated provider-free default-off preflight at 19:18:23.129Z binds this
+exact revision/deploy, all competing workers inert, three terminal daily
+reservations/twenty-four credits and zero active/unresolved/unattributed work.
+This closes inert integration, not OPEN behavior or recommendation quality.
+The one independent CLOSED relative-plan-context slice frozen at 18:48Z below
+continues locally on this main; do not publish it while the separately frozen
+new OPEN observation owns the unchanged production revision.
+
+**New prospective bounded-context OPEN observation — frozen 19:14:37.322Z:**
+`/private/tmp/ture-oct2-context-2145-card.json`,
+`observation_series_3d688d813661b5cf`, exact unchanged main above, target
+19:45Z/21:45 CEST, half-open expiry 20:00Z and ready deadline 19:30Z.
+One normal scheduled attempt, at most eight credits, unchanged input, ranking,
+confidence, geometry and publication policy; all eight identities/missingness
+remain. Global scheduler-disable stays true. Account capacity is read once
+after default-off preflight: at 19:18:45.379Z Twelve Data reports 32/800 daily
+and 1/8 minute credits used; this is an observation, not an inferred ledger
+total or a guarantee about undisclosed shared consumers. The read costs one
+separate credit. Shared-key staging remains on its previous verified inert
+revision, and no manual scan or broker action is permitted.
+
+Activation deploy `6ac003b613abc246dab0a552` is ready/published at
+19:20:04.503Z on exact frozen main; authenticated effective readback at
+19:20:50.289Z verifies global disable true, exact owned series, all competing
+workers off and only the expected already-enabled activation rejection.
+Codex and the same-chat cleanup heartbeat share the owned state and may not
+race or repeat builds. The new once-only observer has thirty-second individual
+request caps inside its unchanged inclusive ninety-second bound, 19:46–19:47:30Z;
+the consumed predecessor's fifteen-second timeout is not rewritten. Immediately
+restore only owned controls, remove metadata/input selector and verify one
+unchanged-main cleanup deploy regardless of result. Passing operational/source
+binding is not quality lift. This last slot cannot provide a complete new
+sixty-minute regular-session horizon before close; leave canonical learning
+and valid prospective baseline comparison explicitly unaccepted.
+
+**Historical PR #724 selection — superseded by the current queue above:** the minimum IF-2b decision/publication-clock
 correction is normally merged as PR #724 at exact main
 `6026f6bb434a2d7f4d3dea19349b22910080da6a`, owned by Codex. Its tested head and
 merged tracked tree match; six protected shards, aggregate and merge-candidate
@@ -16,7 +57,7 @@ outcomes through actual learning admission, then one measured contextual-ranking
 challenger. Do not extend the clock/control surface or retry the consumed 16:15Z
 failure. Its record remains immutable.
 
-**Selected minimum critical-path investigation — 2026-10-02:** primary owner
+**Historical selected critical-path investigation — 2026-10-02:** primary owner
 Codex, isolated main-based branch `codex/bounded-context-overlap-oct2`, four
 active hours for reproduction/implementation/behavior checks; no independent
 second slice. Attributable failed-attempt trace at 18:07:42.870Z retains a
@@ -44,7 +85,7 @@ scheduler or receipt platform.
 Preserve that card unchanged: zero configuration changes, builds, scan requests
 or provider calls for it. Do not move or retry that consumed card.
 
-**New prospective corrected-clock OPEN card — frozen 2026-10-02 before outcome:**
+**Consumed corrected-clock OPEN card — frozen 2026-10-02 before outcome:**
 exact main above; normal Git-connected inert integration deploy
 `6abfe8eca64d060007ca4564` must be ready/published and default-off verified before
 any activation. Target is 18:00Z (20:00 CEST / 14:00 New York), expiry 18:15Z,
@@ -178,7 +219,9 @@ including complete persisted canonical-learning fixtures and the new negative
 checks; fresh lint, nonincremental types and standard production build also
 pass on the final source. Local environment is macOS ARM64/Node 26.5.0 and
 disposable PostgreSQL/PostgREST, not protected Ubuntu/Node 24.19 CI or OPEN.
-Protected exact-head integration and inert production verification are pending.
+At that local-verification checkpoint, protected exact-head integration and
+inert production verification were pending; the current queue above records
+their subsequent completion.
 
 **Attributable plan-scale diagnosis — 2026-10-02, not a new live policy:** a
 separate owner-bound read at 17:42:52.397Z preserves all eight identities in the
@@ -190,10 +233,107 @@ despite materially different range context. The current component tests fixed
 absolute stop/second-target distances and nominal R/R, not relative range or
 the declared 60-minute outcome horizon. This is a concrete candidate for the
 next same-population, point-in-time contextual-ranking investigation after the
-source/canonical-learning links pass, not a chosen or validated challenger.
+source/canonical-learning links pass, not a validated challenger. The later
+separately frozen CLOSED selection below does not retroactively change this
+diagnosis or its predecessor's failure.
 Observed recent range is not a forward forecast or hard target ceiling; no
 outcomes were read, alpha inferred, geometry rewritten, threshold lowered or
 policy activated. The predecessor's publication-clock `fail` remains unchanged.
+**Frozen independent selection — 2026-10-02 18:48Z:** this queue superseded
+the older dated selections without replacing their immutable evidence. Primary
+owner Codex is finishing the minimum IF-2b bounded-context correction in PR
+#725, head `da6ed1305d1f16fa7a6d92358ad07fe489e674c4`, from verified main
+`6026f6bb434a2d7f4d3dea19349b22910080da6a`. Final affected runtime tests (24),
+lint, strict types and build pass locally; protected exact-head CI is pending.
+The failed 18:00Z observation is inconclusive, its once-only observer timeout
+is retained, and production cleanup is verified with all competing workers off.
+
+Select one independent CLOSED IF-3/IF-4 intelligence slice, owner Codex, six
+active hours (initial investigation capped at four), isolated main-based branch
+`codex/relative-plan-context-oct2`. The attributable plan-scale audit, before
+reading any future outcomes, finds AAPL and ORCL both graded 88/strong by the
+unchanged absolute-distance component despite first-target/recent-range ratios
+of about 10.46 and 8.16. Frozen hypothesis: a point-in-time relative-plan-context
+shadow score improves same-population canonical 60m precision at K=3 by at least
+0.03, without failing the unchanged full quality charter. This is a hypothesis,
+not a conclusion that past range predicts or caps future movement.
+
+Baseline is exact retained `scanner_candidate_ranking_v1.2` components on
+input-attributed v4 decisions with an explicit pre-publication clock. Challenger
+`relative_plan_context_shadow_v1` changes only the price-plan component:
+penalty = min(60, 20 * max(0, log2(first-target-distance / observed-60m-range / 2))).
+Distances use worst long entry; component and aggregate rounding, weights,
+geometry, original eligibility and all other baseline evidence stay unchanged.
+Use only validated closed 5-minute inputs with at least twelve bars implied by
+the full-session contiguous capture contract and a strictly positive retained
+recent range. Short/15-minute/zero/missing windows remain explicitly unassessed
+with unchanged baseline score; never rescale or remove those population members.
+
+Interface ownership is a pure durable-decision shadow scorer and its existing
+canonical-learning read consumer, not generator/order/portfolio/schema writes.
+Preserve every selected identity, including unranked/missing candidates. No
+provider, new toggle, live ranking, publication, broker, baseline-freeze or
+promotion authority is added. Do not infer unreproducible local-score features
+or reread mutable cache. Local behavioral acceptance requires relative-context
+sensitivity, exact baseline reconstruction, unchanged other components/geometry,
+JSON/restart stability, missing-data preservation and invalid/future/cross-bound
+input rejection through actual decision and learning consumers.
+
+Integrate only after #725's protected merge/inert production verification;
+resume its bounded OPEN original-source/outcome acceptance when eligible.
+Prospective paired evidence must keep all original decisions/attempts, the
+first 30 eligible complete decisions as held-out and next 30 as walk-forward,
+canonical 15/30/60m rules (60m primary), precision >=0.55, expectancy >=0.20R,
+calibration error <=0.15, coverage >=0.90, missingness <=0.10, reliability >=0.95,
+credits <=8 and unchanged concentration/feasibility limits. No evidence is
+collected for comparison before a valid future baseline contract is frozen;
+calibration/training, upstream-version and normalized-source gaps remain
+`evidence_incomplete`, not permission to reuse old policy outcomes or promote.
+
+Keep ticker/sector/setup/regime concentration limits at 0.20/0.35/0.60/0.70
+on the same retained denominator. Liquidity, volatility and trigger evidence
+are required; unavailable spread, halt and slippage remain disclosed, not
+synthetic feasibility. Diagnostic K=3 priority is not the publisher's selection
+contract and ordinal ranking is not a probability. No new baseline freeze or
+comparison collection is authorized by this local model alone.
+
+**Relative-plan-context CLOSED behavior — 2026-10-02 19:31Z:** implementation
+uses the original durable v4 decision and the existing owner-bound learning
+reader. Seven new behavior tests pass; 56 affected model/readiness/ranking and
+registration checks pass. Same-population four-rankable fixtures change
+diagnostic K=3 membership without modifying the original decision, other
+components, geometry, eligibility or publication. Missing/zero/short/15-minute
+contexts stay explicit; malformed components, wrong lineage/geometry, baseline
+drift and numeric overflow cannot yield accepted comparisons.
+
+All 24 affected packaged-runtime regressions pass on the rebased main. Actual
+isolated PostgreSQL/PostgREST, SDK and restarted owner learning consumers retain
+eight identities: cold inputs assess three contexts and preserve five gaps;
+warm inputs assess six and preserve two gaps; short opening inputs assess zero
+and retain all eight members. The new proof initially overgeneralized the cold
+fixture's count to warm/opening cases; those precise test expectations are now
+scenario-bound without changing product behavior or dropping checks. Canonical
+synthetic outcome persistence/resumption, source/lineage tamper rejection and
+unchanged `not_ready`/no-promotion gates remain verified. No external provider,
+production or broker action occurs in these CLOSED tests. Fresh standard lint
+(zero errors/eight existing warnings), strict nonincremental types and build
+pass; the final registered foundation is still running. Protected CI, merge,
+production behavior and forward recommendation-quality acceptance remain
+separate, unaccepted dimensions.
+
+**Historical PR #723 selection — superseded:** the reproduced IF-2b decision/publication
+clock-integrity interruption on isolated main-based branch
+`codex/input-decision-before-publication`, owned by Codex. PR #723 is normally
+merged at main `41c03db91bbbeb6e4aec8e29a7ee7a954221dcb7`; protected CI and exact
+inert production verification pass. The new 16:15Z Oct 2 observation is terminal,
+but its frozen publication-binding check fails. Do not retry its consumed card
+or arm another OPEN job before reproducing, correcting and verifying this defect.
+Cap investigation at four active hours and the focused delivery at 4–16 hours;
+change only the new input-attributed decision clock and its publication-path
+regression, preserve legacy/historical records and all quality/provider gates.
+Once this interruption is closed, return directly to the prospective fresh-input
+and canonical-learning acceptance, then one measured contextual-ranking
+challenger. No independent second development slice is selected.
 
 **New Oct 2 observation and exact diagnosis — 2026-10-02:** frozen main above,
 activation deploy `6abfd21f657adbbd8c74c71f` ready/published at 15:48:27.102Z,

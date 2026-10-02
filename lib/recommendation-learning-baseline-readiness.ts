@@ -2,6 +2,8 @@ import {
   candidateDecisionRecordFromScanRun,
 } from "@/lib/candidate-decision-readback";
 import type { CandidateDecisionRecord } from "@/lib/candidate-decision-record";
+import { decisionLineageReceiptFromScanRun } from "@/lib/decision-lineage-receipt";
+import { buildRelativePlanContextShadow, type RelativePlanContextShadow } from "@/lib/scanner-relative-plan-context-shadow";
 import {
   projectRecommendationOutcomeBundle,
 } from "@/lib/canonical-evaluation-projection-adapters";
@@ -124,6 +126,9 @@ export type RecommendationLearningBaselineReadiness = {
   };
   blockers: string[];
   notes: string[];
+  // Optional read-only intelligence comparison on the existing immutable
+  // source path. It cannot alter readiness, cohort admission or live ranking.
+  relative_plan_context_shadow?: RelativePlanContextShadow[];
 };
 
 function normalizeTicker(value: string | null | undefined) {
@@ -337,6 +342,7 @@ export function buildRecommendationLearningBaselineReadiness({
     return provenance;
   }
 
+  const relativePlanComparisons: RelativePlanContextShadow[] = [];
   for (const scanRun of scanRuns) {
     const record = candidateDecisionRecordFromScanRun(scanRun);
 
@@ -347,6 +353,15 @@ export function buildRecommendationLearningBaselineReadiness({
     }
 
     attributableCount += 1;
+    if (record.record_version === "candidate_decision_record_v4") {
+      const comparison=buildRelativePlanContextShadow(record);
+      if (!decisionLineageReceiptFromScanRun(scanRun,record)) {
+        comparison.status="conflicting";
+        comparison.shadow_top_k=[];
+        comparison.reason_codes=[...comparison.reason_codes,"original_decision_lineage_unavailable"];
+      }
+      relativePlanComparisons.push(comparison);
+    }
     const fullPopulation =
       record.coverage.full_membership_captured &&
       record.candidates.every((candidate) => candidate.disposition !== "not_evaluated");
@@ -694,6 +709,7 @@ export function buildRecommendationLearningBaselineReadiness({
       : "not_ready";
 
   return {
+    ...(relativePlanComparisons.length>0 ? {relative_plan_context_shadow:relativePlanComparisons} : {}),
     contract_version: completedInputSources.length > 0
       ? COMPLETED_INPUT_LEARNING_BASELINE_READINESS_VERSION
       : RECOMMENDATION_LEARNING_BASELINE_READINESS_VERSION,
