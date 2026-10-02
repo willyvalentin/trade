@@ -2,6 +2,265 @@
 
 ## Active Now / Next / Blocked — 2026-09-29 recommendation intelligence first
 
+**Now — independent CLOSED IF-2b → IF-4 research-source slice, 2026-10-01:**
+Codex owns `codex/input-attributed-outcome-capture` in the isolated
+`/private/tmp/ture-if2b-outcomes.CUZRlz/trade` worktree, starting from verified
+main `930d44b6be9ec6fca059adba21addd05d9f9c7de`. Delivery budget is seven active
+hours, initial investigation at most four. The prior input-code slice is
+integrated; its authorized Oct 2 OPEN operating job remains separate below.
+
+The existing packaged scheduler/backend/scanner/generator/SDK proof against
+disposable PostgreSQL 16/PostgREST 16.1 reproduces a missing learning link:
+with learning acceleration explicitly enabled, the cold afternoon attempt
+retains eight decision identities/three fresh inputs but zero research
+snapshots. The warm-history variant retains six fresh inputs and still zero
+snapshots, with sixteen separately counted synthetic setup requests, eight
+scheduled requests and zero recommendation/position writes. Its explicit
+research-source regression fails `0 !== 6`; the ordinary input-delivery checks
+pass. The source gate in both research selectors admits only morning momentum,
+midday and power hour, excluding the normal afternoon and opening windows.
+These are synthetic CLOSED results, not a production gap frequency or alpha
+comparison. Both proofs' containers and networks are verified removed.
+
+Selected behavior: give the new versioned v4 input decisions an explicitly
+versioned, hidden research capture path throughout the verified regular session,
+using only their already acquired, fresh, decision-bound scanner geometry.
+Keep legacy capture and frozen clock/liquidity cohorts unchanged. Preserve
+the eight-member denominator and unobservable candidates; do not invent plans
+or outcomes for missing inputs. Bind snapshot cutoff to the actual decision,
+not the scheduler start, and require exact source/identity/geometry continuity.
+Keep existing research sample caps, provider budgets, publication thresholds,
+ranking, outcome-worker disable and broker isolation. No schema, raw provider
+archive, new data source or autonomous-paper scope is selected.
+
+Acceptance is the same real isolated runtime and restarted owner readback:
+fresh unpublished v4 sources survive outside the old clock windows, with exact
+decision/source versions and point-in-time identities; stale/future/missing,
+wrong geometry/identity, duplicates and another owner remain rejected or
+explicitly unresolved. Legacy behavior remains unchanged. Exercise the actual
+outcome evaluator on those persisted research sources using a separately
+declared synthetic future boundary, preserving unresolved population members;
+no real provider calls or production outcomes. This closes a
+`recommendation_capability`/measurement link, not demonstrated quality lift.
+
+Integration order: implement/test locally, then one coherent PR with protected
+CI. Do not merge or change the observed production revision before the frozen
+Oct 2 input test and its verified cleanup; no second development stream or
+generic readiness/capture platform is selected. Next OPEN source/outcome
+acceptance requires a separate prospective card. Graduation remains `not_met`.
+
+**Local vertical implementation evidence — 2026-10-01:** the new
+`completed_input_research_capture_v1` selector retains only unpublished v4
+plans with the exact fresh input archive, response identity, original geometry,
+feature-vector values and decision timestamp. Existing learning enable/sample
+caps still apply. Legacy selectors and frozen clock/liquidity cohorts remain
+unchanged. No new ranking or publication rule, provider call or schema is added.
+
+The packaged isolated runtime also reproduced two downstream blockers: a
+research-only scan did not persist a batch that the outcome loader could find,
+and a locally filtered invalid source could re-enter through the loader's raw
+aggregate. The focused fix persists a separately marked diagnostic/no-trade
+batch with zero recommendations and explicit hidden research membership, reads
+its owner-bound durable decision before admitting a source, and carries only
+validated members into the aggregate. It does not relabel research as official
+recommendations or enable the scheduled outcome worker.
+
+All 15 tests in `scanner-completed-daily-context.spec.ts` pass locally, including
+the actual packaged scheduler/backend/scanner/SDK, disposable PostgreSQL and
+PostgREST, restarted owner readback and actual outcome evaluator. Cold afternoon
+and opening variants retain three sources and persist three outcomes; the warm
+variant retains six and persists four under the existing evaluator request cap,
+leaving two eligible sources pending. Eight decision identities remain in every
+case: five cold/opening and two warm members without a valid source are not
+invented, dropped from the population or treated as losses. Warm setup uses
+sixteen separately counted synthetic requests; the normal scan uses eight;
+future outcome acquisition uses three or four separately counted requests.
+Wrong identity/geometry, stale/future sources, duplicated candidates, changed
+feature vectors and stored source-time tampering are rejected. The actual
+evaluator makes zero requests and persists zero outcomes on the tampered-source
+case; another owner reads no sources. Stored sources remain hidden, and
+recommendation/position writes remain zero.
+
+Final source review also reproduced three admitted sources after removing the
+scan's durable lineage receipt. The outcome loader now requires the existing
+semantic lineage validator as well as the owner-bound decision; a missing or
+cross-run receipt rejects sources before future-data acquisition. A valid
+receipt may truthfully remain `incomplete` for the population's five/two missing
+inputs; the fix does not require inventing complete population data.
+
+All 69 affected input/outcome/legacy-learning tests pass after that correction,
+including the real stored missing-lineage and cross-run-lineage negatives in
+cold, warm and opening variants. Affected lint and strict TypeScript pass.
+The standard Next/Turbopack production
+build passes after replacing this isolated worktree's external dependency
+symlink with its own local copy. An earlier webpack diagnostic is not a passing
+build and is not used as acceptance. The broader provider-free foundation run
+started before the final lineage guard completes successfully, including 1019
+browser/server checks, 342 intelligence checks, the existing database lifecycle
+proofs, lint with the eight retained warnings, zero-vulnerability dependency
+audit and the remaining registered contract groups. Preserve that as earlier
+working-state evidence, not a full-current-revision rerun. The changed route and
+integrated proof are then reverified by the 69 affected tests, strict types,
+lint and a new successful standard build; protected full CI remains required.
+This is local `recommendation_capability`/measurement-path
+evidence with explicitly synthetic market and future data, not production
+outcome persistence, a completed baseline comparison or improved alpha. At that
+local-verification boundary there was no PR or production change; preserve the
+frozen Oct 2 revision and separate prospective OPEN acceptance.
+
+**PR submitted / integration held — 2026-10-01:** focused PR #721 now contains
+the source-to-outcome delivery and the evidence-based roadmap reconciliation,
+on head `b7a84db883a7bf86b277a958571401d72b162fa7`. GitHub merge candidate
+`9bf01a3fe155b3a3dfbdaaf5dcdbc4d007013f9c` has the same tracked tree
+`4153ae880f30339c86b3b5c1299d3d667d70a0e8`; initial CI run `36925628991`
+starts all six verification shards. Its foundation job `110582244674` then
+reports 1018 passing tests and one failure: the first isolated input proof cannot
+pull the unchanged PostgREST image because ECR returns `toomanyrequests: Rate
+exceeded`. The later packaged cold/warm/opening proofs pass in that same job.
+This is a registry acquisition failure, not an observed engine or source-joining
+regression; do not skip the failed test or infer CI success. The existing preview
+`6abec9cd3df89300082f609c` is a deploy-preview on the submitted head, not a
+production deploy. No review findings are present at this read, and auto-merge
+is unset. Production readback still pins main `930d44b6...` and published deploy
+`6abeba8b6bea9800095b71d6`. Do not merge before the frozen Oct 2 operating job
+and verified cleanup. This follow-up receipt is local only, not another status
+push. The app's PR attachment call reports its 100-identity capacity limit;
+the actual PR remains accessible in GitHub, and no existing attachment is removed.
+
+**Budget-deferred outcome continuation verified locally — 2026-10-01:** a
+temporary warm-runtime diagnostic against the actual isolated evaluator proves
+that its next pass resumes the two deferred sources: four first-pass outcomes
+become six, with only two additional synthetic candle requests and unchanged
+prior outcome rows. A third restarted route pass performs zero acquisition or
+outcome rewrite. The diagnostic is incorporated in the existing cold, warm and
+opening packaged regressions, not a new capture/control platform. All 69 affected
+tests pass again, with strict TypeScript, affected lint and clean diff checks;
+fixture containers/networks are verified removed. Existing runtime code and
+provider/publication rules are unchanged; the test enhancement is initially
+local and must receive current-revision CI before integration. The two warm
+members without a valid input remain unobservable, not invented outcomes. These
+are synthetic source/outcome continuity facts, not production learning or alpha.
+
+**Original-plan integrity review — 2026-10-01:** the actual isolated outcome
+loader admits three sources after their persisted entry-low metadata is changed
+while midpoint and archived inputs remain unchanged (`3 !== 0` regression).
+The v4 capture now retains both entry bounds in its existing JSON payload;
+source admission binds both bounds, planned R and derived risk/reward per share
+to the original archived decision plan before future-data acquisition. Legacy
+capture and outcome paths are unchanged; no schema or production setting changes.
+Cold, warm and opening proofs each reject mutations to all five fields with zero
+future acquisition or outcome writes, then still complete and resume their valid
+sources. All 73 affected checks pass, with strict TypeScript, affected lint and
+the standard Next/Turbopack build. Fixture containers/networks are removed.
+These are synthetic CLOSED integrity/measurement-path results, not production
+learning or recommendation-quality lift. The user-requested roadmap refinement
+and repaired obsolete date assertion are locally committed as `e41e8906` and
+will join this focused PR update; current-revision protected CI is still required.
+The Oct 2 operating revision and its integration hold remain unchanged.
+
+**IF-2b integration exit — 2026-10-01:** PR #720 is normally squash-merged
+after protected CI `36914848106` succeeds on
+`87e8f0ee795e651463b0e13a0385b6b3a73f8bd3`. Its foundation job runs the real
+packaged scheduled input-policy/database proof and reports 1016 passing tests;
+all required and provenance checks are green. Merge at 19:54:49Z produces main
+`930d44b6be9ec6fca059adba21addd05d9f9c7de`, with an identical tracked source
+tree. Main CI `36917767733` passes the required summary and post-merge
+provenance attestation; its intentionally skipped shards are not a fresh
+1016-test main rerun. Automatic Git-connected production deploy
+`6abeba8b6bea9800095b71d6` is ready/published at 19:56:16.402Z on that exact
+main. Authenticated deployed readback at 20:00:07.778Z verifies exact build
+identity, inert controls, unset input selector, zero active reservations and
+HTTP 200/no-store health and preflight. Normal login updates existing abuse
+counters; this is not a claim of zero database writes. No provider request,
+scan invocation, configuration change, migration or broker action occurred.
+
+This closes the selected code delivery as `recommendation_capability` with
+default-off deployed integration. It does not close prospective input-fitness,
+outcome-quality or graduation acceptance. Today's last eligible 19:45Z scan
+required activation ready by 19:30Z; CI was still running then. No late scan or
+closing-session bypass was attempted. The old five observations/40 credits and
+incomplete clock-neutral cohort remain unchanged. The receipts below retain
+earlier local states and are superseded only as integration status.
+
+**Next OPEN card, frozen before observation — IF-2b cold input fitness:** Codex
+owns the operating job independently of CLOSED development on
+`codex/if2b-forward-input-evidence`. Target exactly one normal scheduled scan
+on 2026-10-02 at 13:45Z (09:45 America/New_York, 15:45 CEST), expiring at
+14:00Z, with no retry. Pin main and activation/cleanup to the exact revision
+above. The existing verified exchange calendar declares a regular 13:30Z–20:00Z
+session; recheck it and authoritative claims before activation. Default-off
+readback currently reports prospective preflight `ready`, series
+`observation_series_553f65f3488ba448`, zero date claims/attempts and eight
+available credits for this bounded attempt. This is preparation, not activation.
+
+Question: does `completed_daily_intraday_input_v1` acquire genuine completed
+history and separate fresh same-session intraday inputs in the normal runtime,
+preserve all eight selected identities and decision v4 lineage, and finish
+within the unchanged six-scanner/two-regime/eight-total credit ceiling? Source
+is the existing Twelve Data Basic Free private pre-release, internal non-display
+usage; no new source, paid entitlement, redistribution, raw training archive or
+retention extension is authorized. Verify applicable data access and existing
+storage constraints; unknown entitlement or budget is no-go, not permission to
+retry. A read-only cache aggregate at 19:36:22.969161Z on Oct 1 finds 68 rows and
+zero new historical/current-context markers. Do not assume warm history.
+
+Baseline is the retained unchanged serial-allocation diagnostic, not a paired
+alpha comparator. The cold synthetic runtime yields three fresh inputs from
+eight requests; six fresh requires separately acquired same-day history and is
+not this test's pass threshold. Actual Oct 2 selection rotates through seven
+disjoint early populations before any repeat, so an ordinary later tick cannot
+be assumed to reuse history. At 09:45 only three five-minute bars can be closed;
+short-window volume, range or shape features must remain unknown. Do not mix
+this input policy with the old allocation or clock-neutral evaluation cohort.
+
+Before arming, require the exact ready production/main revision, global disable
+true, all conflicting one-shots/workers/experiments off, input selector unset,
+no overlapping/uncertain claims and a fresh authenticated preflight. Change
+only the bounded series fields (date/start/expiry/max attempts 1/max credits 8),
+its enable flag and function-scoped input selector to the exact version. Keep
+global disable true. One unchanged-main Git-connected activation deploy must be
+ready at least a full 15-minute interval before the target (by 13:30Z), otherwise
+restore owned controls and no-go. Never invoke a scan/provider route manually.
+
+Read authoritative attempt, finalized credit claim, exact scanner inputs,
+decision/lineage and publication/broker counts from 13:46Z for at most 90 seconds.
+Delivery pass requires one attributable terminal attempt/scan, at most eight
+credits and correctly bound v4 decision/lineage; valid no-trade is acceptable.
+Data fitness is reported separately: history count/identity, intraday source
+times, fresh and unavailable input counts on eight identities, explicit short
+features, cache reuse and total cost. Wrong role/identity, future evidence,
+budget excess, duplicate work or stale publication is fail; provider/session/
+timeout is inconclusive; absent bounded evidence is missing_result. No single
+coverage count proves superiority, calibrated confidence or recommendation
+quality. Preserve all missingness; no quality thresholds change.
+
+Regardless of outcome, Codex restores only owned series controls to disabled,
+removes owned date/start/expiry/limit metadata and unsets the input selector,
+then verifies one unchanged-main Git-connected cleanup deploy. Never repeat an
+uncertain build request without reconciling its existing handle. Automatic series
+expiry independently limits execution if the operating job cannot wake in time.
+No second slot is authorized by this card; changed revision/question requires
+new readiness and a new prospective card. Graduation remains `not_met`.
+
+**Operating-job scheduling limit — 2026-10-01:** automatic security review
+rejects creation of the proposed heartbeat because its recurring schedule could
+later change production configuration, deploy and perform a provider-backed
+scan without exact automation-specific authority. The tool reports rejection;
+no automation was created and no production control was changed. The prospective
+card is frozen locally, not booked or armed. Request explicit authority for the
+single Oct 2 observation and its activation/cleanup deploys before retrying that
+operation; do not bypass the rejection with another scheduler or indirect job.
+This does not block independent CLOSED intelligence work.
+
+**Exact operating authority and scheduling — 2026-10-01:** the user then
+explicitly approves the single Oct 2 15:45 CEST observation, its eight-credit
+ceiling and activation/cleanup deploys. The app accepts creation and readback of
+`ture-if-2b-kallstart-2-oktober`, attached to this chat, with a schedule ending
+Oct 2 and no later activation authority. It has a specific 15:46 CEST readback
+wake-up and deletes itself after verified no-go/inert state or cleanup. This
+supersedes the scheduling blocker above, not the exact revision/readiness/card
+guards. No production flag, deploy or provider call is made while scheduling.
+
 **Selected primary IF-2b input slice — 2026-10-01:** Codex owns
 `codex/completed-daily-context`, isolated from verified main
 `4e960cf9ac260821ceb28c909d83c5cad137f353`, with an eight active-hour delivery

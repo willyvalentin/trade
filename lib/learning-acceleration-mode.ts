@@ -14,6 +14,9 @@ import type {
 import type { RecommendationDecisionFeatureVector } from "@/lib/recommendation-decision-feature-vector";
 import type { TwelveDataResponseIdentity } from "@/lib/twelve-data-response-identity";
 import type { SetupType } from "@/lib/setup-types";
+import type { CandidateDecisionRecord } from "@/lib/candidate-decision-record";
+import { INPUT_ATTRIBUTED_CANDIDATE_DECISION_RECORD_VERSION } from "@/lib/candidate-decision-record";
+import { selectCompletedInputResearchSamples, type CompletedInputResearchEvidence } from "@/lib/completed-input-research-selection";
 
 export type LearningAccelerationEnabledSource =
   | "server_env"
@@ -49,6 +52,7 @@ export type LearningAccelerationModeEvaluation = {
 };
 
 export type LearningAccelerationResearchSample = {
+  input_research_evidence?: CompletedInputResearchEvidence;
   ticker: string;
   company_name: string;
   sector: string;
@@ -480,6 +484,7 @@ export function buildLearningAccelerationResearchSelection({
   scanWindow = "unknown",
   maxSamples = 25,
   inputSourceHint = null,
+  record = null,
 }: {
   enabled: boolean;
   candidates: RealScannerCandidate[];
@@ -490,6 +495,7 @@ export function buildLearningAccelerationResearchSelection({
   scanWindow?: IntradayScanWindow | "unknown";
   maxSamples?: number;
   inputSourceHint?: string | null;
+  record?: CandidateDecisionRecord | null;
 }): LearningAccelerationResearchSelectionSummary {
   const visibleTickerSet = new Set(visibleTickers.map(tickerKey));
   const explicitBelowThresholdDiagnostics = (selectedBuildDiagnostics ?? []).filter(
@@ -623,6 +629,15 @@ export function buildLearningAccelerationResearchSelection({
     top_research_sample_tickers: [],
     sample_quality_summary: { good: 0, usable: 0 },
   };
+
+  if (record?.record_version === INPUT_ATTRIBUTED_CANDIDATE_DECISION_RECORD_VERSION) {
+    const samples = enabled && max > 0 ? selectCompletedInputResearchSamples({
+      record, candidates, excludedTickers: visibleTickers, maxSamples: max,
+    }) : [];
+    return { ...disabledSummary, samples, samples_collected_count: samples.length,
+      top_research_sample_tickers: samples.map(sample => sample.ticker),
+      sample_quality_summary: { good: samples.length, usable: 0 } };
+  }
 
   if (!enabled || !isOfficialWindow(scanWindow) || max === 0) {
     return disabledSummary;

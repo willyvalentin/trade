@@ -1,4 +1,8 @@
 import { NextResponse } from "next/server";
+import { COMPLETED_INPUT_RESEARCH_CAPTURE_VERSION, completedInputResearchSnapshotMatchesDecision } from "@/lib/completed-input-research-selection";
+import { candidateDecisionRecordFromScanRun } from "@/lib/candidate-decision-readback";
+import { recommendationScanRunFromPersistenceRow } from "@/lib/recommendation-scan-run";
+import { decisionLineageReceiptFromScanRun } from "@/lib/decision-lineage-receipt";
 import { summarizeEntryTypeTriggerDiagnostics } from "@/lib/recommendation-entry-type";
 import { getIntradayCandlesWithDiagnostics } from "@/lib/market-data";
 import { getNewYorkDateString } from "@/lib/intraday-scan-window";
@@ -607,10 +611,14 @@ function isOfficialLiveBatch(
   const batchType = stringOrNull(row.batch_type) ?? stringOrNull(payload.batch_type);
 
   return (
+    ((options.includeGrowMaxLearningSnapshots &&
+      (batchType === "diagnostic" || batchType === "unknown") &&
+      payload.completed_input_research_capture_version === COMPLETED_INPUT_RESEARCH_CAPTURE_VERSION &&
+      payload.diagnostic_mode !== true && payload.diagnostic_run !== true && payload.dry_run !== true) ||
     batchType === "official" &&
     (options.includeGrowMaxLearningSnapshots
       ? !hasDryRunDiagnosticPayload(payload)
-      : !hasDiagnosticPayload(payload))
+      : !hasDiagnosticPayload(payload)))
   );
 }
 
@@ -839,7 +847,11 @@ async function loadOfficialLiveSnapshots({
       const payload = objectOrNull(batch.payload_json) ?? {};
       const selectedBatchFingerprint = batchFingerprintOf(batch);
       const expectedSnapshotFingerprints = Array.from(
-        new Set(arrayOfStrings(payload.recommendation_snapshot_fingerprints)),
+        new Set([
+          ...arrayOfStrings(payload.recommendation_snapshot_fingerprints),
+          ...(payload.completed_input_research_capture_version === COMPLETED_INPUT_RESEARCH_CAPTURE_VERSION
+            ? arrayOfStrings(payload.completed_input_research_snapshot_fingerprints) : []),
+        ]),
       );
       const scanRunFingerprint = stringOrNull(batch.scan_run_fingerprint);
       const batchSnapshotRows: Array<Record<string, unknown>> = [];
@@ -913,12 +925,27 @@ async function loadOfficialLiveSnapshots({
         }
       }
 
-      const rawBatchSnapshots = batchSnapshotRows
+      let rawBatchSnapshots = batchSnapshotRows
         .map(recommendationSnapshotFromPersistenceRow)
         .filter(
           (snapshot): snapshot is RecommendationSnapshot =>
             snapshot !== null,
         );
+      if (payload.completed_input_research_capture_version === COMPLETED_INPUT_RESEARCH_CAPTURE_VERSION) {
+        // Owner-bound durable decision is the authority, not a research marker
+        // or an "official" label. No new provider work during this validation.
+        const decisionRows = await serverSupabase.client.from("recommendation_scan_runs").select("*")
+          .eq("owner_user_id", ownerUserId).eq("run_fingerprint", scanRunFingerprint ?? "").limit(2);
+        if (decisionRows.error) throw new Error("completed_input_research_decision_read_unavailable");
+        const sourceRun = decisionRows.data?.length === 1 ? recommendationScanRunFromPersistenceRow(decisionRows.data[0]) : null;
+        const decisionRecord = sourceRun ? candidateDecisionRecordFromScanRun(sourceRun) : null;
+        const attributableRecord = sourceRun && decisionRecord && decisionLineageReceiptFromScanRun(sourceRun, decisionRecord)
+          ? decisionRecord : null;
+        rawBatchSnapshots = rawBatchSnapshots.filter(snapshot =>
+          snapshot.payload_json.research_capture_version === COMPLETED_INPUT_RESEARCH_CAPTURE_VERSION
+            ? completedInputResearchSnapshotMatchesDecision(snapshot, attributableRecord)
+            : batch.batch_type === "official");
+      }
       const batchSnapshots = includeGrowMaxLearningSnapshots
         ? rawBatchSnapshots
         : rawBatchSnapshots
@@ -939,7 +966,8 @@ async function loadOfficialLiveSnapshots({
           (fingerprint) => !foundFingerprints.has(fingerprint),
         ),
       );
-      snapshotRows.push(...batchSnapshotRows);
+      snapshotRows.push(...batchSnapshotRows.filter(row =>
+        foundFingerprints.has(String(row.snapshot_fingerprint ?? ""))));
     }
 
     if (snapshotRows.length === 0 && snapshotQueryErrors.length > 0) {

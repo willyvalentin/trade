@@ -63,6 +63,34 @@ test("packaged scheduled input policy reaches the real isolated database and own
     expect(evidence.cleanup).toBe("inert");
   }
 });
+
+for (const scenario of ["cold", "warm", "opening"]) {
+  test(`packaged ${scenario} inputs retain hidden research plans and real isolated outcome persistence`, () => {
+    test.setTimeout(90000);
+    const proof = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--diagnose-outcomes",
+      ...(scenario !== "warm" ? ["--cold"] : []), ...(scenario === "opening" ? ["--opening"] : [])],
+      { cwd: process.cwd(), encoding: "utf8", timeout: 80000 });
+    expect(proof.status, `${proof.stdout}\n${proof.stderr}`).toBe(0);
+    const evidence = JSON.parse(proof.stdout.trim().split("\n").at(-1)!);
+    expect(evidence.outcome_chain_evidence).toMatchObject({
+      research_sources: scenario === "warm" ? 6 : 3,
+      persisted_outcomes: scenario === "warm" ? 4 : 3,
+      unobservable_population_members: scenario === "warm" ? 2 : 5,
+      outcome_budget_pending_sources: scenario === "warm" ? 2 : 0,
+      resumption: {
+        persisted_outcomes: scenario === "warm" ? 6 : 3,
+        additional_synthetic_outcome_requests: scenario === "warm" ? 2 : 0,
+        completed_repeat_requests: 0,
+        prior_outcomes_unchanged: true,
+      },
+    });
+    expect(evidence.scheduled_synthetic_requests).toBe(8);
+    expect(evidence.actual_provider_requests).toBe(0);
+    expect(evidence.production_actions).toBe(0);
+    expect(evidence.publications).toBe(0);
+    expect(evidence.cleanup).toBe("inert");
+  });
+}
 function receipt(last = "2026-09-30", capturedAt = at.toISOString()) {
   return {
     contract_version: "daily_candle_response_v1", symbol: "SYNTH",

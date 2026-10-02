@@ -34,16 +34,38 @@ freshness, provider budget, evidence lineage or safety. The remaining bounded
 A.2 OPEN series is the selected operational exit observation and does not block
 independent intelligence work.
 
-**2026-10-01 active integrity interruption.** The allocation switchback was
+**2026-10-01 integrity exit and resumed intelligence work.** The allocation switchback was
 stopped after four attributable no-trade cycles/two pairs and verified inert
 cleanup. Its final pair is missing, so it establishes no passing data-fitness
 or quality improvement. A separate CLOSED real-scanner/SDK-to-reference proof
-reproduced cache write time substituting for missing market time. Select only
-the small fail-closed correction and its behavior regression; do not relax
-cache TTL, data freshness, ranking or publication to manufacture coverage.
-After this blocker is removed, resume IF-2b fresh, fully observed input coverage
-from the retained evidence, not a new scheduler/dashboard/readiness stream.
-The ledger holds exact revisions, receipts, cleanup and remaining acceptance.
+reproduced cache write time substituting for missing market time. The focused
+correction is now behavior-verified in production; that support interruption is
+closed. Resume IF-2b fresh, fully observed input coverage and its exact IF-4
+source-to-outcome link, not a new scheduler/dashboard/readiness stream. The
+ledger holds exact revisions, receipts, cleanup and remaining acceptance.
+
+The retained two-pair allocation evidence has more rankable observations in
+the challenger (14/16 versus 11/16) but fewer fully observed inputs (0 versus 6).
+Rankable research fallbacks therefore cannot substitute for complete fresh
+decision inputs. Prioritize validated completed history plus fresh same-session
+inputs within the existing budget, then retain their original decision-bound
+plans through canonical outcome evaluation. Preserve every selected identity:
+missing inputs and pending outcomes remain explicit, not losses or removed
+denominators. Input fitness, outcome coverage and recommendation-quality lift
+remain separate acceptance questions. The new input code is integrated, while
+its prospective OPEN fitness and the source-to-outcome delivery still require
+their own acceptance; neither is a demonstrated quality improvement. Keep the
+frozen Oct 2 input observation separate from later source/outcome verification,
+and do not relax freshness, ranking or publication to manufacture coverage.
+
+The immediate work order is therefore complete fresh decision inputs, exact
+source-to-outcome continuity, then one measured contextual-ranking challenger.
+When those first two links pass their declared acceptance, return the primary
+delivery to the largest attributable recommendation-quality defect; do not
+extend input or outcome infrastructure without a new reproduced blocker.
+Retain separate results for operational delivery, input fitness, outcome
+coverage and baseline-relative quality. Only the last can establish that the
+recommendations became better, and it still requires the full quality charter.
 
 **Recommendation-quality gate.** An IF-4 terminal decision must evaluate the
 whole frozen charter that makes the recommendation useful: absolute precision,

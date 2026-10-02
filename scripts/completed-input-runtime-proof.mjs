@@ -13,6 +13,13 @@ import { buildSync } from "esbuild";
 const root = process.cwd();
 const cold = process.argv.includes("--cold");
 const wrongPolicy = process.argv.includes("--wrong-policy");
+const diagnoseOutcomes = process.argv.includes("--diagnose-outcomes");
+const opening = process.argv.includes("--opening");
+assert(!opening || cold, "Opening proof has no pre-session warm-history acquisition");
+const slot = opening ? "2026-10-01T13:45:00.000Z" : "2026-10-01T17:30:00.000Z";
+const expiry = new Date(Date.parse(slot) + 900000).toISOString();
+const nextSlot = new Date(Date.parse(expiry) + 900000).toISOString();
+const futureBoundary = new Date(Date.parse(slot) + 1800000).toISOString();
 const directory = mkdtempSync(join(tmpdir(), "ture-input-runtime-proof-"));
 const database = `ture-input-runtime-db-${process.pid}`;
 const api = `ture-input-runtime-api-${process.pid}`;
@@ -44,6 +51,7 @@ try {
   writeFileSync(join(generated, "scheduled-scan-deployment-identity.json"), JSON.stringify(identity));
   const options = { bundle: true, platform: "node", format: "cjs", conditions: ["react-server"], alias: { "@": root }, logLevel: "silent" };
   buildSync({ ...options, entryPoints: [resolve(root, "app/api/automation/run-scan/route.ts")], outfile: join(generated, "scheduled-scan-runtime.cjs") });
+  if (diagnoseOutcomes) buildSync({ ...options, entryPoints: [resolve(root, "app/api/recommendations/evaluate-outcomes/route.ts")], outfile: join(generated, "outcome-route.cjs") });
   buildSync({ ...options, entryPoints: [resolve(root, "netlify/functions/scheduled-scan.ts")], outfile: join(directory, "functions/scheduled.cjs") });
   buildSync({ ...options, stdin: {
     resolveDir: root,
@@ -62,6 +70,7 @@ try {
       export { recommendationScanRunFromPersistenceRow } from './lib/recommendation-scan-run';
       export { candidateDecisionRecordFromScanRun } from './lib/candidate-decision-readback';
       export { decisionLineageReceiptFromScanRun } from './lib/decision-lineage-receipt';
+      export { selectCompletedInputResearchSamples } from './lib/completed-input-research-selection';
       export { buildScannerProviderCreditAllocationReconciliation } from './lib/scanner-provider-credit-allocation-reconciliation';`,
   }, outfile: join(generated, "reader.cjs") });
   const require = createRequire(import.meta.url);
@@ -73,8 +82,8 @@ try {
     TURE_APPLICATION_OWNER_USER_ID: owner, TWELVE_DATA_PLAN_MODE: "free",
     TURE_DISABLE_SCHEDULED_FUNCTIONS: "true", TURE_OBSERVATION_SERIES_ENABLED: "true",
     TURE_OBSERVATION_SERIES_DATE: contract.trading_date,
-    TURE_OBSERVATION_SERIES_START_SLOT_UTC: "2026-10-01T17:30:00.000Z",
-    TURE_OBSERVATION_SERIES_EXPIRES_AT_UTC: "2026-10-01T17:45:00.000Z",
+    TURE_OBSERVATION_SERIES_START_SLOT_UTC: slot,
+    TURE_OBSERVATION_SERIES_EXPIRES_AT_UTC: expiry,
     TURE_OBSERVATION_SERIES_MAX_ATTEMPTS: "1",
     TURE_OBSERVATION_SERIES_MAX_PROVIDER_CREDITS: "8",
     TURE_PROVIDER_CREDIT_ALLOCATION_EXPERIMENT_ENABLED: "false",
@@ -83,6 +92,7 @@ try {
     TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_ENABLED: "false",
     TURE_NORMAL_SCAN_ONE_SHOT_ENABLED: "false", TURE_OUTCOME_EVALUATION_ONE_SHOT_ENABLED: "false",
     TURE_INTERNAL_PAPER_WORKER_ENABLED: "false",
+    TURE_LEARNING_ACCELERATION_ENABLED: diagnoseOutcomes ? "true" : "false",
     TURE_BASIC_FREE_CATALOG_DAILY_CREDIT_BUDGET: "800", TURE_BASIC_FREE_CATALOG_PER_MINUTE_CREDIT_BUDGET: "8",
     TWELVE_DATA_API_KEY: "synthetic-boundary-only",
     OPENAI_API_KEY: "synthetic-boundary-only-no-ai-calls-permitted",
@@ -112,6 +122,7 @@ try {
     "20260519000000_create_legacy_baseline_schema_draft.sql",
     "20260528000000_create_recommendation_snapshots.sql",
     "20260528001000_create_recommendation_outcomes.sql",
+    ...(diagnoseOutcomes ? ["20260605000000_add_recommendation_outcomes_snapshot_horizon_unique_index.sql"] : []),
     "20260528002000_create_recommendation_scan_runs.sql",
     "20260528003000_create_recommendation_batches.sql",
     "20260614000000_create_execution_records.sql",
@@ -198,8 +209,8 @@ try {
   }
   externalRequests=0;
   const scheduler = require(join(directory, "functions/scheduled.cjs")).default;
-  clock = OriginalDate.parse("2026-10-01T17:30:20.000Z");
-  const response = await scheduler(new Request("http://closed-scheduler", {method:"POST", body:JSON.stringify({next_run:"2026-10-01T17:45:00.000Z"})}), {deploy:{id:identity.deploy_id,context:"production",published:true}});
+  clock = OriginalDate.parse(slot) + 20000;
+  const response = await scheduler(new Request("http://closed-scheduler", {method:"POST", body:JSON.stringify({next_run:expiry})}), {deploy:{id:identity.deploy_id,context:"production",published:true}});
   const body = await response.json();
   const rows = JSON.parse(sql("select coalesce(jsonb_agg(t), '[]') from scheduled_scan_attempts t;"));
   const receipts = JSON.parse(sql("select coalesce(jsonb_agg(t), '[]') from observation_cycle_receipts t;"));
@@ -207,6 +218,8 @@ try {
   const record = scanRuns[0]?.payload_json.candidate_decision_record;
   const lineage = scanRuns[0]?.payload_json.decision_lineage_receipt;
   const claims=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from basic_free_discovery_credit_reservations t;"));
+  const researchSnapshots=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_snapshots t;"));
+  let outcomeChainEvidence = null;
   if(wrongPolicy) {
     assert.equal(response.status,503);
     assert.equal(externalRequests,0);
@@ -235,6 +248,56 @@ try {
     assert.equal(record.candidates.filter(c=>c.data.freshness==="fresh").length,cold?3:6);
     assert(record.candidates.every(c=>c.data.source_timestamp===null || Date.parse(c.data.source_timestamp)<=Date.parse(record.decision_timestamp)));
     assert.equal(lineage.scan_run_fingerprint,scanRuns[0].run_fingerprint);
+    if(diagnoseOutcomes) {
+      assert.equal(researchSnapshots.length,cold?3:6,
+        "Fresh, non-published versioned inputs must retain research sources throughout the regular session");
+      for(const row of researchSnapshots) {
+        const payload=row.payload_json, decision=record.candidates.find(c=>c.candidate_id===payload.candidate_id);
+        assert(decision);
+        assert.equal(OriginalDate.parse(row.recommended_at),OriginalDate.parse(record.decision_timestamp));
+        assert.equal(row.status,"hidden");
+        assert.equal(row.source_mode,"research_only");
+        assert.equal(row.recommendation_id,null);
+        assert.equal(payload.research_capture_version,"completed_input_research_capture_v1");
+        assert.equal(payload.scanner_input_policy_version,"completed_daily_intraday_input_v1");
+        assert.deepEqual(payload.scanner_decision_input_snapshot,decision.data.input_snapshot);
+        assert.equal(payload.data_timestamp,decision.data.source_timestamp);
+        assert.notEqual(payload.clock_prior_shadow_evidence_sample,true);
+        assert.notEqual(payload.intraday_liquidity_shadow_evidence_sample,true);
+      }
+      // Adversarial source admission on the actual persisted v4 decision, not
+      // a parallel fabricated decision schema. Full runtime happy path above.
+      const candidateInputs=researchSnapshots.map(row=>{
+        const p=row.payload_json,f=p.scanner_decision_input_snapshot.features;
+        return {ticker:row.ticker,company_name:row.company_name,sector:p.sector,
+          setup_type:p.setup_type,tier:p.tier,score:{value:row.score,reasons:[],warnings:[],tier:p.tier},signals:[],warnings:[],
+          data_source:p.market_data_source,provider_source:p.provider_source,market_data_timestamp:p.data_timestamp,
+          reference_price_timestamp:p.data_timestamp,stale:false,intraday_indicator_response_identity:p.intraday_indicator_response_identity,
+          decision_feature_vector:p.decision_feature_vector,
+          entry_low:f.proposed_entry_low,entry_high:f.proposed_entry_high,stop_loss:f.proposed_stop_loss,
+          target_1:f.proposed_target_1,target_2:f.proposed_target_2,risk_reward:f.proposed_risk_reward};
+      });
+      const select=(r=record,c=candidateInputs,excluded=[])=>readers.selectCompletedInputResearchSamples({record:r,candidates:c,excludedTickers:excluded,maxSamples:8});
+      assert.equal(select().length,researchSnapshots.length);
+      assert.equal(select(record,candidateInputs,[candidateInputs[0].ticker]).length,researchSnapshots.length-1);
+      const mutations=[
+        r=>{r.candidates.find(c=>c.ticker===candidateInputs[0].ticker).candidate_id="wrong";},
+        r=>{r.candidates.find(c=>c.ticker===candidateInputs[0].ticker).data.input_snapshot.current_session.symbol="OTHER";},
+        r=>{r.candidates.find(c=>c.ticker===candidateInputs[0].ticker).data.freshness="stale";},
+        r=>{r.candidates.find(c=>c.ticker===candidateInputs[0].ticker).data.source_timestamp="2026-10-01T18:00:00.000Z";},
+        r=>{r.candidates.find(c=>c.ticker===candidateInputs[0].ticker).data.input_snapshot.features.proposed_stop_loss=1;},
+        r=>{r.candidates.push(structuredClone(r.candidates.find(c=>c.ticker===candidateInputs[0].ticker)));},
+      ];
+      for(const mutate of mutations) {const r=structuredClone(record);mutate(r);assert.equal(select(r).length,researchSnapshots.length-1);}
+      for(const mutate of [c=>{c[0].stale=true;},c=>{c[0].reference_price_timestamp="2026-10-01T17:20:00.000Z";},
+        c=>{c[0].stop_loss=1;},c=>{c[0].decision_feature_vector.feature_values.latest_price=1;},
+        c=>{c[0].intraday_indicator_response_identity.payload_sha256=`sha256:${"f".repeat(64)}`;},
+        c=>{c.push(structuredClone(c[0]));}]) {
+        const c=structuredClone(candidateInputs);mutate(c);assert.equal(select(record,c).length,researchSnapshots.length-1);
+      }
+      assert.deepEqual(select({...record,record_version:"candidate_decision_record_v3"}),[]);
+      assert.deepEqual(select({...record,decision_timestamp:"2026-10-01T20:00:00.000Z"}),[]);
+    }
     // Restart the actual owner reader independently of mutable scanner caches.
     delete require.cache[require.resolve(join(generated,"reader.cjs"))];
     const restarted=require(join(generated,"reader.cjs"));
@@ -247,8 +310,102 @@ try {
     const otherRead=await restarted.readRecommendationLearningBaselineSource("00000000-0000-4000-8000-000000000002");
     assert.equal(otherRead.status,"available");
     assert.equal(otherRead.data.recommendation_scan_runs.length,0);
+    if(diagnoseOutcomes) {
+      assert.equal(ownerRead.data.recommendation_snapshots.length,researchSnapshots.length);
+      assert.equal(otherRead.data.recommendation_snapshots.length,0);
+      // A separate, explicit synthetic future boundary supplies outcome bars.
+      // Exercise the real authenticated route, eligibility, runner, provider
+      // adapter, persistence and owner readback; never flip stored visibility.
+      clock=OriginalDate.parse(futureBoundary);
+      const before=externalRequests;
+      const evaluate=()=>require(join(generated,"outcome-route.cjs")).POST(new Request("http://closed-fixture/api/recommendations/evaluate-outcomes",{
+        method:"POST",headers:{"x-automation-secret":environment.AUTOMATION_SECRET,"Content-Type":"application/json"},
+        body:JSON.stringify({mode:"official_live_today",horizons:["15m"],max_candle_requests:4,max_batches:1}),
+      }));
+      // Persist a conflicting source timestamp, then exercise the real loader.
+      // No provider call or outcome may occur; restore only these isolated rows.
+      sql("update recommendation_snapshots set payload_json=jsonb_set(payload_json,'{data_timestamp}','\"2026-10-01T20:00:00.000Z\"'::jsonb);");
+      const rejected=await evaluate();
+      const rejectedBody=await rejected.json();
+      assert.equal(rejected.status,200);
+      assert.equal(rejectedBody.eligible_snapshot_count,0);
+      assert.equal(externalRequests,before);
+      assert.equal(Number(sql("select count(*) from recommendation_outcomes;")),0);
+      for(const row of researchSnapshots) sql(`update recommendation_snapshots set payload_json='${JSON.stringify(row.payload_json).replaceAll("'","''")}'::jsonb where id='${row.id}';`);
+      // Persisted execution geometry must remain the original decision plan,
+      // not merely keep its midpoint while changing its entry bounds or R.
+      for(const field of ["entry_low","entry_high","risk_per_share","reward_per_share","risk_reward"]) {
+        if(field==="risk_reward") sql("update recommendation_snapshots set risk_reward=risk_reward+1;");
+        else sql(`update recommendation_snapshots set payload_json=jsonb_set(payload_json,'{${field}}',to_jsonb(coalesce((payload_json->>'${field}')::numeric,0)+1));`);
+        const drifted=await evaluate(),driftedBody=await drifted.json();
+        assert.equal(drifted.status,200);
+        assert.equal(driftedBody.eligible_snapshot_count,0,`Stored ${field} drift must reject sources before outcome acquisition`);
+        assert.equal(externalRequests,before);
+        assert.equal(Number(sql("select count(*) from recommendation_outcomes;")),0);
+        for(const row of researchSnapshots) sql(`update recommendation_snapshots set risk_reward=${row.risk_reward},payload_json='${JSON.stringify(row.payload_json).replaceAll("'","''")}'::jsonb where id='${row.id}';`);
+      }
+      // A valid source without its exact durable lineage is not attributable.
+      // Missing or cross-run lineage must stop before future candle acquisition.
+      const originalRunPayload=scanRuns[0].payload_json;
+      for(const invalidRunPayload of [
+        Object.fromEntries(Object.entries(originalRunPayload).filter(([name])=>name!=="decision_lineage_receipt")),
+        {...originalRunPayload,decision_lineage_receipt:{...originalRunPayload.decision_lineage_receipt,scan_run_fingerprint:"wrong_run"}},
+      ]) {
+        sql(`update recommendation_scan_runs set payload_json='${JSON.stringify(invalidRunPayload).replaceAll("'","''")}'::jsonb where id='${scanRuns[0].id}';`);
+        const noLineage=await evaluate(),noLineageBody=await noLineage.json();
+        assert.equal(noLineage.status,200);
+        assert.equal(noLineageBody.eligible_snapshot_count,0,"Missing or wrong-run lineage must reject all input-attributed research sources");
+        assert.equal(externalRequests,before);
+        assert.equal(Number(sql("select count(*) from recommendation_outcomes;")),0);
+      }
+      sql(`update recommendation_scan_runs set payload_json='${JSON.stringify(originalRunPayload).replaceAll("'","''")}'::jsonb where id='${scanRuns[0].id}';`);
+      const outcomeResponse=await evaluate();
+      const outcomeBody=await outcomeResponse.json();
+      assert.equal(outcomeResponse.status,200,JSON.stringify({outcomeBody,logs:logs.slice(-5)}));
+      const outcomes=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_outcomes t;"));
+      assert.equal(outcomes.length,Math.min(4,researchSnapshots.length),JSON.stringify({status:outcomeBody.status,
+        summary:outcomeBody.summary,eligible:outcomeBody.eligible_snapshot_count,reasons:outcomeBody.ineligible_reasons,
+        batches:JSON.parse(sql("select coalesce(jsonb_agg(jsonb_build_object('id',id,'batch_type',batch_type,'status',status,'capture_version',payload_json->>'completed_input_research_capture_version')),'[]') from recommendation_batches;"))}));
+      assert.equal(externalRequests-before,Math.min(4,researchSnapshots.length));
+      assert(outcomes.every(row=>researchSnapshots.some(snapshot=>snapshot.snapshot_fingerprint===row.snapshot_fingerprint)));
+      const futureRead=await restarted.readRecommendationLearningBaselineSource(owner);
+      assert.equal(futureRead.data.recommendation_outcomes.length,outcomes.length);
+      const otherFuture=await restarted.readRecommendationLearningBaselineSource("00000000-0000-4000-8000-000000000002");
+      assert.equal(otherFuture.data.recommendation_outcomes.length,0);
+      assert.equal(Number(sql("select count(*) from recommendation_snapshots where status <> 'hidden';")),0);
+      outcomeChainEvidence={synthetic_future_boundary:futureBoundary,
+        research_sources:researchSnapshots.length,persisted_outcomes:outcomes.length,
+        separate_synthetic_outcome_requests:externalRequests-before,
+        unobservable_population_members:8-researchSnapshots.length,
+        outcome_budget_pending_sources:researchSnapshots.length-outcomes.length};
+      // The counts above describe the first four-request pass. Resume after a
+      // route restart: finish only deferred sources, retaining the original
+      // completed rows. A third pass must perform no acquisition or rewrite.
+      delete require.cache[require.resolve(join(generated,"outcome-route.cjs"))];
+      const resumedResponse=await evaluate(),resumedBody=await resumedResponse.json();
+      assert.equal(resumedResponse.status,200,JSON.stringify(resumedBody));
+      const resumedRows=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_outcomes t;"));
+      assert.equal(resumedRows.length,researchSnapshots.length,"Budget-deferred sources must resume");
+      assert.equal(externalRequests-before,researchSnapshots.length,"Completed sources must not acquire data again");
+      for(const initial of outcomes) assert.deepEqual(resumedRows.find(row=>row.id===initial.id),initial);
+      const completedRows=resumedRows.sort((a,b)=>a.id.localeCompare(b.id));
+      delete require.cache[require.resolve(join(generated,"outcome-route.cjs"))];
+      const repeatedResponse=await evaluate(),repeatedBody=await repeatedResponse.json();
+      assert.equal(repeatedResponse.status,200,JSON.stringify(repeatedBody));
+      assert.equal(externalRequests-before,researchSnapshots.length);
+      const repeatedRows=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_outcomes t;"));
+      assert.deepEqual(repeatedRows.sort((a,b)=>a.id.localeCompare(b.id)),completedRows);
+      const resumedRead=await restarted.readRecommendationLearningBaselineSource(owner);
+      assert.equal(resumedRead.data.recommendation_outcomes.length,researchSnapshots.length);
+      assert.equal((await restarted.readRecommendationLearningBaselineSource("00000000-0000-4000-8000-000000000002")).data.recommendation_outcomes.length,0);
+      outcomeChainEvidence.resumption={persisted_outcomes:resumedRows.length,
+        additional_synthetic_outcome_requests:resumedRows.length-outcomes.length,
+        completed_repeat_requests:0,prior_outcomes_unchanged:true};
+      externalRequests=before;
+      clock=OriginalDate.parse(slot)+20000;
+    }
     const duplicate=await scheduler(new Request("http://closed-scheduler",{method:"POST",
-      body:JSON.stringify({next_run:"2026-10-01T17:45:00.000Z"})}),{deploy:{id:identity.deploy_id,context:"production",published:true}});
+      body:JSON.stringify({next_run:expiry})}),{deploy:{id:identity.deploy_id,context:"production",published:true}});
     assert.equal(duplicate.status,204);
     assert.equal(externalRequests,8);
   }
@@ -256,17 +413,31 @@ try {
   assert.equal(Number(sql("select count(*) from positions;")),0);
   // Disable/expiry are exercised by the real scheduled entrypoint, not a mock.
   process.env.TURE_OBSERVATION_SERIES_ENABLED="false";
-  clock=OriginalDate.parse("2026-10-01T17:45:20Z");
+  clock=OriginalDate.parse(expiry)+20000;
   const cleanup=await scheduler(new Request("http://closed-scheduler",{method:"POST",
-    body:JSON.stringify({next_run:"2026-10-01T18:00:00.000Z"})}),{deploy:{id:identity.deploy_id,context:"production",published:true}});
+    body:JSON.stringify({next_run:nextSlot})}),{deploy:{id:identity.deploy_id,context:"production",published:true}});
   assert.equal(cleanup.status,204);
   assert.equal(Number(sql("select count(*) from scheduled_scan_attempts;")),1);
   originalLog(JSON.stringify({evidence_mode:"synthetic_closed_packaged_input_runtime_actual_source_schema",
-    scenario:wrongPolicy?"invalid_policy":cold?"cold_history":"warm_history_restart",
+    scenario:wrongPolicy?"invalid_policy":opening?"opening_cold_history":cold?"cold_history":"warm_history_restart",
     setup_synthetic_requests:setupRequests,scheduled_synthetic_requests:externalRequests,
     attempts:rows.length,cycles:receipts.length,claims:claims.length,decision_version:record?.record_version,
     fresh_inputs:record?.candidates.filter(c=>c.data.freshness==="fresh").length,
+    ...(diagnoseOutcomes ? {outcome_chain_evidence:outcomeChainEvidence,outcome_chain_diagnostic:{learning_acceleration_enabled:true,
+      candidate_population:record?.candidates.length,
+      research_snapshot_count:researchSnapshots.length,
+      research_snapshots:researchSnapshots.map(row=>({ticker:row.ticker,
+        candidate_id:row.payload_json?.candidate_id??null,
+        input_policy_version:row.payload_json?.scanner_input_policy_version??null,
+        research_purpose:row.payload_json?.research_purpose??null,
+        decision_input_snapshot_present:row.payload_json?.scanner_decision_input_snapshot!==undefined,
+        source_timestamp:row.payload_json?.data_timestamp??null,
+        freshness:record?.candidates.find(candidate=>candidate.candidate_id===row.payload_json?.candidate_id)?.data.freshness??null}))}} : {}),
     actual_provider_requests:0,production_actions:0,publications:0,broker_actions:0,cleanup:"inert"}));
+  if(diagnoseOutcomes && !wrongPolicy) {
+    assert.equal(researchSnapshots.length,cold?3:6,
+      "Fresh, non-published versioned inputs must retain research outcome sources during a regular afternoon session");
+  }
 
 } catch (error) {
   try { originalLog(docker("inspect", "--format", "{{json .HostConfig.PortBindings}} {{json .NetworkSettings.Ports}} {{.State.Status}} {{.State.Error}}", api)); } catch { /* May not exist. */ }

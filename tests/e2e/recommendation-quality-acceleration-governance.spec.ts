@@ -36,8 +36,11 @@ test("operating governance rejects unrelated readiness ahead of quality evidence
 test("current-state ledger names the active quality chain and its promotion gate", () => {
   const ledger = readDoc("docs/ture-current-state-ledger.md");
 
-  expect(ledger).toContain("### Now / Next / Blocked selection — 2026-09-27");
-  expect(ledger).toContain("collect the exact clock-neutral IF-3b forward cohort");
+  const activeSelection = ledger.split("**Local vertical implementation evidence")[0];
+  expect(activeSelection).toContain("## Active Now / Next / Blocked");
+  expect(activeSelection).toContain("IF-2b → IF-4 research-source slice");
+  expect(activeSelection).toContain("Preserve\nthe eight-member denominator and unobservable candidates");
+  expect(activeSelection).toContain("Graduation remains `not_met`");
   expect(ledger).toMatch(/live-policy promotion until complete attributable\s+held-out\/forward evidence exists/);
   expect(ledger).toMatch(
     /paper\/broker expansion until\s+IF-5 demonstrates sustained useful recommendation quality/,
