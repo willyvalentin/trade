@@ -11,6 +11,47 @@ barrier. Prospective input/learning acceptance and recommendation-quality lift
 remain blocked on their missing market evidence. Earlier dated local/hold
 statements below are retained receipts, not additional active queues.
 
+**Current integration handoff — 2026-10-02:** primary delivery and roadmap
+reconciliation are submitted in PR #722, head
+`d17176d95391125e98a081391f1e581da1f138c7`, against verified main
+`e8da24a48ff39260417227e79e103213868adaf0`. Protected six-shard workflow
+`37017804500` is still running; do not substitute local results for its required
+aggregate. The app attachment attempt fails at this chat's 100-attachment limit;
+the PR remains https://github.com/willyvalentin/trade/pull/722.
+
+The already selected independent volume correction is rebased locally on that
+exact submitted source at revision
+`33a510d23256b9f94722a54c5d240ace81c63ae8`. The merged runtime regression
+retains both prior canonical-learning assertions and the actual zero/opening
+volume chain. All 153 combined affected checks pass, including hidden original
+plans, isolated PostgreSQL/PostgREST persistence and restarted owner readback;
+all six CI-registration checks pass. Full lint has zero errors/eight retained
+warnings; non-incremental strict TypeScript and the standard Next/Turbopack
+production build pass. Only historical documents, a new governance test and
+comments differ from the previously verified local composition's application
+source. Disposable test containers/networks are removed and unrelated local
+databases remain untouched. This branch is not pushed and has no competing PR;
+integrate it only after PR #722, then protected CI/main/default-off production
+verification. Neither delivery proves live input fitness or recommendation lift.
+The final test-only completion also retains the prior composition's explicit
+three-zero-input assertion: its one opening-zero packaged persistence/outcome/
+learning check passes in 16.8 seconds. Application source remains unchanged.
+
+**Shared-provider isolation correction readback — 2026-10-02:** staging deploy
+`6abfba319b77b9e90e9ef9da` is ready/published at 14:07:09.192Z on unchanged
+`a1a692ce00e7af11fbf779210c7b83ca9ade5215`. Readback at 14:14:29.423Z verifies
+the exact published revision and only its existing Production/function-scoped
+global-disable value true. Bounded historical logs for 14:15–14:17Z contain
+one outcome-worker `Execution disabled by environment` message. Staging's
+authoritative database has zero scheduled scan attempts, published candidates
+and created recommendations in that window. The scan function's corresponding
+disabled log is absent: this remains missing runtime evidence, not proof it
+ran or made zero provider calls. Both functions' verified source returns before
+credentials/database/provider work when globally disabled. Main remains inert;
+no route/provider is invoked, no retry/card is selected and no further staging
+development is opened. Keep the absent scan-log and per-consumer credit
+attribution gaps explicit; do not inflate the narrow outcome-worker readback.
+
 **Rebased delivery verification — 2026-10-02:** source revision
 `9e8628c79eff60e4774764b7d3ac9bddb4bdeebe`, based on integrated main above,
 has no application/script/test difference from the previously verified local

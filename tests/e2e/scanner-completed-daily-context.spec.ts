@@ -113,6 +113,7 @@ for (const scenario of ["cold", "warm", "opening", "opening_zero"]) {
       },
     });
     expect(evidence.scheduled_synthetic_requests).toBe(8);
+    if(scenario === "opening_zero") expect(evidence.zero_latest_volume_inputs).toBe(3);
     expect(evidence.actual_provider_requests).toBe(0);
     expect(evidence.production_actions).toBe(0);
     expect(evidence.publications).toBe(0);

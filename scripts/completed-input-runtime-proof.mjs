@@ -340,6 +340,8 @@ try {
       for (const candidate of fresh) {
         const indicators = candidate.data.input_snapshot.intraday_indicators;
         assert.equal(indicators.latestVolume, 0, "Original latest zero volume must survive persisted decision inputs");
+        // The opening slot has only three closed bars; later slots have the
+        // full twelve-bar descriptive window. Neither implies a 24-bar ratio.
         const meanBars = opening ? 3 : 12;
         assert.equal(indicators.averageVolume, Math.round(1000 * (meanBars - 1) / meanBars),
           "The mean must retain zero and the actual opening/later observation count");
