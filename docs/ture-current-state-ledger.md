@@ -2,7 +2,78 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-02, recommendation intelligence first
 
-**Current selection — reconciled 2026-10-02 19:18Z:** primary owner Codex
+**Current selection — 2026-10-02 19:58Z:** primary owner Codex selects the
+minimum IF-2b regular-session analysis/publication separation on isolated
+`codex/regular-session-analysis-oct2`, verified main
+`58d4969768dbb00685c112687ca6fed00308c312` after integrating #726.
+Budget six active hours, initial
+investigation at most four. The last OPEN attempt below reproduces a closing
+segment gate preventing any point-in-time input, decision or research source.
+Keep late publication's existing trial/safety gate unchanged; admit only the
+already budgeted, owner-bound completed-input scheduled analysis through the
+verified regular session. No new scheduler switch, schema or provider allowance.
+Acceptance: actual packaged scheduler/route/adapters/isolated persistence and
+owner readback retain the original eight-member decision and research inputs,
+with explicit late-publication withholding and zero publication/broker effects;
+unknown policy, closed/early-closed session, duplicate, expiry and missing input
+remain fail-closed. Resume original-source/canonical learning and the frozen
+relative-plan hypothesis immediately after this minimum support correction.
+The independent #726 shadow scorer/learning diagnostic has integrated first.
+This primary is now rebased onto its verified main; there is no active secondary.
+Do not compete on schema/order/portfolio or change the frozen shadow model.
+
+**Consumed bounded-context OPEN result — 2026-10-02:** the original bounded
+reader returns at 19:46:34Z with exactly one
+`scheduled_scan_attempt_1ylhdcl`, fired 19:45:22.774Z, route received
+19:45:24.850Z: skipped HTTP 200, `outside_generation_window`. Zero credits or
+reservations, scan runs, decisions, sources, publications or broker effects.
+Classification `inconclusive`: analysis never ran, not an evaluated `no_trade`
+or acceptance of the context correction. Owned cleanup production deploy
+`6ac00a396864639c6d43dd92` is ready/published at 19:48:07.916Z on exact main
+`86e69df71707533d0268e669b2bc65b4e267cad0`. Authenticated default-off readback
+at 19:50:00.842Z verifies global
+disable true, all competing modes off, three terminal daily reservations/24
+credits, four daily attempts and zero active/unresolved/unattributed work.
+Its automation is deleted. No retry or additional OPEN run is selected today.
+PR #726's exact protected CI passes all six shards, aggregate and provenance.
+Normal merge at 20:08:12Z yields main `58d4969768dbb00685c112687ca6fed00308c312`,
+with the same tested tracked tree `9fc5c3660c30d2f9ee11797fe719aee20f7c3344`.
+Automatic production deploy `6ac00f2ee1666e0008995f70` is ready/published at
+20:09:58.687Z. Authenticated default-off verification at 20:12:50.064Z confirms
+that exact revision, all workers/input selector off, global disable true and
+zero active/unresolved/unattributed work. The frozen shadow model has not been
+behavior-verified in production; recommendation-quality acceptance stays open.
+
+**Closing-segment CLOSED reproduction — 2026-10-02:** the exact controlled
+15:45 New York fixture fails through the actual packaged scheduler/route with
+cycle `rejected`, no decision and zero acquisition. A separate 15:15 fixture
+still reaches analysis under the retained trial: the defect is the final
+thirty-minute `closing_soon` cutoff, not every power-hour minute. The minimum
+`regular_session_analysis_v1` admission allows only the existing exact owned
+completed-input series; publication's trial, cutoff, risk and quality rules are
+unchanged. The generator retains ranking and original inputs but never sends
+a withheld closing population to AI or deterministic publication builders.
+It records `power_hour_publication_withheld`, not a strategy-quality rejection.
+
+The actual local packaged path passes flat and directional fixtures: one
+attempt/reservation, eight synthetic requests, a v4 eight-member decision,
+three fresh original hidden research sources, exact lineage, restarted
+owner-bound source readback and zero publication/position/broker effects.
+Wrong-owner read returns no source/run, missing horizons remain zero and
+baseline readiness remains `not_ready`. The full affected runtime/admission
+suite passes 36 tests, including unchanged timeout, provider failure, canonical
+learning, duplicate/expiry and early-close checks. Final metadata/readback tests
+pass separately. The complete registered local foundation on the pre-integration
+main passes, including 1,035 containment and 375 intelligence tests, strict types,
+lint and standard build. Fresh combined-head verification on integrated main
+passes all 49 affected runtime/admission/shadow/registration tests (3.2 minutes),
+standard lint (zero errors/eight existing warnings), strict nonincremental types
+and unchanged Next production build. Protected exact-head integration remains
+pending; do not treat separate pre-integration foundation runs as exact-head CI.
+This is
+`supporting_blocker_removal`, not OPEN acceptance or recommendation-quality lift.
+
+**Historical selection — reconciled 2026-10-02 19:18Z:** primary owner Codex
 has normally merged PR #725 after all six protected shards, required aggregate
 and merge-candidate provenance pass on exact head
 `da6ed1305d1f16fa7a6d92358ad07fe489e674c4`. Squash main
@@ -16,7 +87,7 @@ The one independent CLOSED relative-plan-context slice frozen at 18:48Z below
 continues locally on this main; do not publish it while the separately frozen
 new OPEN observation owns the unchanged production revision.
 
-**New prospective bounded-context OPEN observation — frozen 19:14:37.322Z:**
+**Consumed bounded-context OPEN card — frozen 19:14:37.322Z:**
 `/private/tmp/ture-oct2-context-2145-card.json`,
 `observation_series_3d688d813661b5cf`, exact unchanged main above, target
 19:45Z/21:45 CEST, half-open expiry 20:00Z and ready deadline 19:30Z.

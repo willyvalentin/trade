@@ -20,6 +20,19 @@ import {
 
 // Synthetic CLOSED fixtures. No market data, credentials or production writes.
 const at = new Date("2026-10-01T15:50:00.000Z");
+for (const strongInput of [false, true]) {
+test(`closing regular-session analysis retains ${strongInput ? "directional" : "flat"} original decisions without late publication`, () => {
+  test.setTimeout(90000);
+  const proof=spawnSync(process.execPath,["scripts/completed-input-runtime-proof.mjs","--cold","--closing",...(strongInput ? ["--publication-clock"] : [])],
+    {cwd:process.cwd(),encoding:"utf8",timeout:80000});
+  expect(proof.status,`${proof.stdout}\n${proof.stderr}`).toBe(0);
+  const evidence=JSON.parse(proof.stdout.trim().split("\n").at(-1)!);
+  expect(evidence).toMatchObject({scenario:"closing_research_only",scheduled_synthetic_requests:8,
+    attempts:1,claims:1,decision_version:"candidate_decision_record_v4",fresh_inputs:3,
+    late_publication_withheld:true,original_research_sources:3,publications:0,
+    actual_provider_requests:0,production_actions:0,broker_actions:0,cleanup:"inert"});
+});
+}
 for (const bounded of [true, false]) {
 test(`market context ${bounded ? "drains owned transports" : "preserves unbounded legacy rejection"} on benchmark failure`, async () => {
   const bundle = await build({ entryPoints: [resolve(process.cwd(), "lib/market-regime.ts")],

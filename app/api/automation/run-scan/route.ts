@@ -51,6 +51,7 @@ import { buildMarketSessionEvaluation } from "@/lib/market-session";
 import {
   buildContinuousMarketScanAdmission,
   CONTINUOUS_MARKET_SCAN_LEGACY_COOLDOWN_COORDINATION_VERSION,
+  REGULAR_SESSION_ANALYSIS_POLICY_VERSION,
   shouldApplyLegacySameWindowCooldown,
   type ContinuousMarketScanAdmission,
 } from "@/lib/continuous-market-scan-admission";
@@ -1974,6 +1975,8 @@ function createAutomationScanLog({
       typeof details?.ranked_candidates_not_published_reason === "string"
         ? details.ranked_candidates_not_published_reason
         : null,
+    analysis_policy_version: details?.analysis_policy_version === REGULAR_SESSION_ANALYSIS_POLICY_VERSION
+      ? REGULAR_SESSION_ANALYSIS_POLICY_VERSION : null,
     no_publish_reason:
       typeof details?.no_publish_reason === "string"
         ? details.no_publish_reason
@@ -2807,6 +2810,7 @@ async function persistAutomationArtifacts({
     payload: {
       market_regime: marketRegime,
       market_regime_context: marketRegimeContext,
+      ...(scanLog.analysis_policy_version ? { analysis_policy_version: scanLog.analysis_policy_version } : {}),
       scan_window: scanWindow,
       scan_reason: orchestration.scan_reason,
       run_type: orchestration.run_type,
@@ -3772,6 +3776,7 @@ export async function POST(request: Request) {
     legacyPowerHourWindowGate: legacyOfficialGateDiagnostics,
     providerBudget: scheduledRuntimeConfig.scheduled_provider_credit_budget,
     observationSeriesAdmission,
+    scannerInputPolicyVersion,
   });
   const activeScanTrace = createActiveScanTrace({
     routeReceivedAt: routeReceivedAtUtc,
@@ -4072,7 +4077,9 @@ export async function POST(request: Request) {
   });
   const disabledGenerationBypassAllowed =
     scanWindow.scanWindow === "power_hour"
-      ? powerHourTrialGate.power_hour_publish_allowed
+      ? powerHourTrialGate.power_hour_publish_allowed ||
+        (!force && scheduledGateDiagnostics.scheduled_gate_allowed &&
+          scheduledGateDiagnostics.analysis_policy_version === REGULAR_SESSION_ANALYSIS_POLICY_VERSION)
       : calendarFallbackAllowsScan || backgroundDiscoveryObservationAllowed;
 
   if (!marketOpenForScan && !canRunPreMarketWatchlist) {

@@ -1,5 +1,6 @@
 import "server-only";
 import { hasCompletedInputBudget } from "@/lib/scheduled-scanner-input-policy";
+import { REGULAR_SESSION_ANALYSIS_POLICY_VERSION } from "@/lib/continuous-market-scan-admission";
 
 import OpenAI from "openai";
 
@@ -324,6 +325,7 @@ export type RecommendationScanLogDetails = {
   recommendation_publish_policy_version?: string | null;
   build_marker?: string | null;
   no_publish_reason?: string | null;
+  analysis_policy_version?: typeof REGULAR_SESSION_ANALYSIS_POLICY_VERSION | null;
   power_hour_trial_enabled?: boolean | null;
   power_hour_publish_allowed?: boolean | null;
   power_hour_publish_block_reason?: string | null;
@@ -3251,6 +3253,8 @@ export async function generateRecommendations({
       source,
       powerHourTrialPublishing,
     });
+    const closingInputAnalysisOnly =
+      inputAttributed && scanWindow === "power_hour" && !powerHourTrial;
     const effectiveScanPolicyMaxRecommendations = powerHourTrial
       ? POWER_HOUR_TRIAL_RECOMMENDATION_TARGET.max
       : scanPolicy.maxRecommendations;
@@ -3274,7 +3278,8 @@ export async function generateRecommendations({
     if (
       scanWindow === "power_hour" &&
       !ALLOW_POWER_HOUR_NEW_RECOMMENDATIONS &&
-      !allowPowerHourRecommendationLogging
+      !allowPowerHourRecommendationLogging &&
+      !closingInputAnalysisOnly
     ) {
       logPipeline("inserted_recommendations_count", 0);
 
@@ -3295,7 +3300,7 @@ export async function generateRecommendations({
       };
     }
 
-    if (!scanPolicy.allowGeneration && !allowPowerHourRecommendationLogging) {
+    if (!scanPolicy.allowGeneration && !allowPowerHourRecommendationLogging && !closingInputAnalysisOnly) {
       logPipeline("inserted_recommendations_count", 0);
 
       return {
@@ -4142,7 +4147,10 @@ export async function generateRecommendations({
       3,
       Math.max(1, settings.max_recommendations_per_session),
     );
-    let candidatesForOpenAI = qualifiedCandidates.slice(0, candidateLimit);
+    // Observation is not a publication quota. Retain the scored population,
+    // but never send a withheld closing-session input to either builder.
+    let candidatesForOpenAI = closingInputAnalysisOnly
+      ? [] : qualifiedCandidates.slice(0, candidateLimit);
     const referenceRefreshMaxAttempts =
       // A legacy single-price refresh cannot replace the versioned session
       // inputs used for ranking or silently add requests to this challenger.
@@ -4206,7 +4214,9 @@ export async function generateRecommendations({
             : "not_checked";
           const rankingTier = ranking?.score.tier ?? "unknown";
           const rejectionReason =
-            candidate.local_score < publishableThreshold
+            closingInputAnalysisOnly
+              ? "power_hour_publication_withheld"
+              : candidate.local_score < publishableThreshold
               ? "below_publish_threshold"
               : rankingTier !== "strong" &&
                   rankingTier !== "valid" &&
@@ -4270,7 +4280,9 @@ export async function generateRecommendations({
         scannerCandidateRankingSummary.target_min,
       );
       const message =
-        qualifiedCandidates.length === 0
+        closingInputAnalysisOnly
+          ? "Regular-session analysis completed. Late-session publication remains withheld."
+          : qualifiedCandidates.length === 0
           ? "Scan completed. No structurally valid ranked learning candidates were publishable."
           : "Scan completed. Ranked candidates were available but none fit the publication limit.";
 
@@ -4286,6 +4298,8 @@ export async function generateRecommendations({
         scan_log: {
           ...publishVersionDetails(),
           result: "no_high_quality_setup",
+          ...(closingInputAnalysisOnly
+            ? { analysis_policy_version: REGULAR_SESSION_ANALYSIS_POLICY_VERSION } : {}),
           top_candidate_ticker: topCandidate?.ticker ?? null,
           top_candidate_score: topCandidateScore,
           top_candidate_setup_type: topCandidateSetupType,
@@ -4308,7 +4322,9 @@ export async function generateRecommendations({
           experimental_count: experimentalQualifiedCount,
           ranked_candidates_not_published_reason: message,
           no_publish_reason:
-            qualifiedCandidates.length === 0
+            closingInputAnalysisOnly
+              ? "power_hour_publication_withheld"
+              : qualifiedCandidates.length === 0
               ? "no_publishable_ranked_candidates"
               : "publish_limit_selected_zero_candidates",
           power_hour_trial_enabled: powerHourTrialPublishing,
@@ -4335,7 +4351,9 @@ export async function generateRecommendations({
             eligibleCandidateTickers: availableCandidateTickers,
             publishableThreshold,
             noPublishReason:
-              qualifiedCandidates.length === 0
+              closingInputAnalysisOnly
+                ? "power_hour_publication_withheld"
+                : qualifiedCandidates.length === 0
                 ? "no_publishable_ranked_candidates"
                 : "publish_limit_selected_zero_candidates",
             recommendationBuildPath: "no_publish",

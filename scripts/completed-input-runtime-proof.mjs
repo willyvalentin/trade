@@ -16,6 +16,9 @@ const cold = process.argv.includes("--cold");
 const wrongPolicy = process.argv.includes("--wrong-policy");
 const diagnoseOutcomes = process.argv.includes("--diagnose-outcomes");
 const opening = process.argv.includes("--opening");
+const closing = process.argv.includes("--closing");
+assert(!closing || cold && !opening && !wrongPolicy && !diagnoseOutcomes,
+  "Closing analysis is one isolated cold input path, not outcome/forward acceptance");
 const publicationClock = process.argv.includes("--publication-clock");
 const contextLatency = process.argv.includes("--context-latency");
 const contextBudgetTimeout = process.argv.includes("--context-budget-timeout");
@@ -29,7 +32,7 @@ const benchmarkDelayMs = contextBudgetTimeout || scannerRateLimit ? 30000 : 9000
 assert(!publicationClock || cold && !opening && !wrongPolicy && !diagnoseOutcomes,
   "Publication clock proof is one isolated cold normal scanner path");
 assert(!opening || cold, "Opening proof has no pre-session warm-history acquisition");
-const slot = opening ? "2026-10-01T13:45:00.000Z" : "2026-10-01T17:30:00.000Z";
+const slot = closing ? "2026-10-01T19:45:00.000Z" : opening ? "2026-10-01T13:45:00.000Z" : "2026-10-01T17:30:00.000Z";
 const expiry = new Date(Date.parse(slot) + 900000).toISOString();
 const nextSlot = new Date(Date.parse(expiry) + 900000).toISOString();
 const futureBoundary = new Date(Date.parse(slot) + 1800000).toISOString();
@@ -120,7 +123,7 @@ try {
     TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_ENABLED: "false",
     TURE_NORMAL_SCAN_ONE_SHOT_ENABLED: "false", TURE_OUTCOME_EVALUATION_ONE_SHOT_ENABLED: "false",
     TURE_INTERNAL_PAPER_WORKER_ENABLED: "false",
-    TURE_LEARNING_ACCELERATION_ENABLED: diagnoseOutcomes ? "true" : "false",
+    TURE_LEARNING_ACCELERATION_ENABLED: diagnoseOutcomes || closing ? "true" : "false",
     TURE_BASIC_FREE_CATALOG_DAILY_CREDIT_BUDGET: "800", TURE_BASIC_FREE_CATALOG_PER_MINUTE_CREDIT_BUDGET: "8",
     TWELVE_DATA_API_KEY: "synthetic-boundary-only",
     OPENAI_API_KEY: "synthetic-boundary-only-no-ai-calls-permitted",
@@ -328,8 +331,40 @@ try {
     assert.equal(record.record_version,"candidate_decision_record_v4");
     assert.equal(record.candidates.length,8);
     assert.equal(record.versions.input_policy_version,"completed_daily_intraday_input_v1");
-    assert.equal(record.final_decision.disposition,publicationClock?"recommendations_published":"no_trade");
-    if(publicationClock) {
+    assert.equal(record.final_decision.disposition,publicationClock && !closing?"recommendations_published":"no_trade");
+    if(closing) {
+      assert.equal(scanRuns[0].payload_json.analysis_policy_version,"regular_session_analysis_v1");
+      assert.equal(scanRuns[0].payload_json.power_hour_publish_allowed,false);
+      assert.equal(record.final_decision.no_trade_reason,"power_hour_publication_withheld");
+      assert.equal(Number(sql("select count(*) from recommendations;")),0);
+      assert.equal(researchSnapshots.length,3);
+      assert.deepEqual(readers.candidateDecisionRecordFromScanRun(scanRuns[0]),record);
+      assert.deepEqual(readers.decisionLineageReceiptFromScanRun(scanRuns[0],record),lineage);
+      for(const row of researchSnapshots) {
+        assert.equal(row.source_mode,"research_only");
+        assert.equal(row.status,"hidden");
+        assert.equal(row.recommendation_id,null);
+        const candidate=record.candidates.find(c=>c.candidate_id===row.payload_json.candidate_id);
+        assert(candidate && candidate.data.freshness==="fresh");
+        assert.deepEqual(row.payload_json.scanner_decision_input_snapshot,candidate.data.input_snapshot);
+      }
+      delete require.cache[require.resolve(join(generated,"reader.cjs"))];
+      const restarted=require(join(generated,"reader.cjs"));
+      const read=await restarted.readRecommendationLearningBaselineSource(owner);
+      const source=restarted.parseRecommendationLearningBaselineSource(read.data);
+      assert(source);
+      assert.equal(source.snapshots.length,3);
+      assert.equal(source.outcomes.length,0,"Late inputs cannot fabricate complete future horizons");
+      assert.equal(source.scanRuns.length,1);
+      assert.deepEqual(restarted.candidateDecisionRecordFromScanRun(source.scanRuns[0]),record);
+      const readiness=restarted.buildRecommendationLearningBaselineReadiness(source);
+      assert.equal(readiness.status,"not_ready");
+      assert.equal(Object.values(readiness.decision_population).slice(0,4).reduce((sum,count)=>sum+count,0),8);
+      const wrongOwner=await restarted.readRecommendationLearningBaselineSource("00000000-0000-4000-8000-000000000002");
+      assert.equal(wrongOwner.data.recommendation_snapshots.length,0);
+      assert.equal(wrongOwner.data.recommendation_scan_runs.length,0);
+    }
+    if(publicationClock && !closing) {
       const published=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendations t;"));
       assert(published.length>0,JSON.stringify({body,logs:logs.slice(-30)}).slice(-16000));
       syntheticPublicationCount=published.length;
@@ -756,7 +791,8 @@ try {
   assert.equal(Number(sql("select count(*) from scheduled_scan_attempts;")),1);
   assert.equal(Number(sql("select count(*) from recommendations;")),syntheticPublicationCount);
   originalLog(JSON.stringify({evidence_mode:"synthetic_closed_packaged_input_runtime_actual_source_schema",
-    scenario:wrongPolicy?"invalid_policy":opening?"opening_cold_history":cold?"cold_history":"warm_history_restart",
+    scenario:closing?"closing_research_only":wrongPolicy?"invalid_policy":opening?"opening_cold_history":cold?"cold_history":"warm_history_restart",
+    ...(closing?{late_publication_withheld:true,original_research_sources:researchSnapshots.length}:{}),
     setup_synthetic_requests:setupRequests,scheduled_synthetic_requests:externalRequests,
     attempts:rows.length,cycles:receipts.length,claims:claims.length,decision_version:record?.record_version,
     fresh_inputs:record?.candidates.filter(c=>c.data.freshness==="fresh").length,
