@@ -15,6 +15,9 @@ const cold = process.argv.includes("--cold");
 const wrongPolicy = process.argv.includes("--wrong-policy");
 const diagnoseOutcomes = process.argv.includes("--diagnose-outcomes");
 const opening = process.argv.includes("--opening");
+const publicationClock = process.argv.includes("--publication-clock");
+assert(!publicationClock || cold && !opening && !wrongPolicy && !diagnoseOutcomes,
+  "Publication clock proof is one isolated cold normal scanner path");
 assert(!opening || cold, "Opening proof has no pre-session warm-history acquisition");
 const slot = opening ? "2026-10-01T13:45:00.000Z" : "2026-10-01T17:30:00.000Z";
 const expiry = new Date(Date.parse(slot) + 900000).toISOString();
@@ -40,6 +43,7 @@ const originalFetch = globalThis.fetch;
 const originalLog = console.log;
 const originalEnvironment = { ...process.env };
 let externalRequests = 0;
+let syntheticPublicationCount = 0;
 let clock = 0;
 const logs = [];
 const docker = (...args) => execFileSync("docker", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
@@ -107,6 +111,7 @@ try {
     TURE_BASIC_FREE_CATALOG_DAILY_CREDIT_BUDGET: "800", TURE_BASIC_FREE_CATALOG_PER_MINUTE_CREDIT_BUDGET: "8",
     TWELVE_DATA_API_KEY: "synthetic-boundary-only",
     OPENAI_API_KEY: "synthetic-boundary-only-no-ai-calls-permitted",
+    ...(publicationClock ? { TURE_SCHEDULED_SCAN_SKIP_OPENAI: "true" } : {}),
   };
   // No credentials from the invoking environment may leak into this runtime.
   for (const name of Object.keys(process.env)) {
@@ -184,7 +189,11 @@ try {
             year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(new OriginalDate(time));
           const latestClosed = time + 300000 <= clock && time + 600000 > clock;
           const volume = missingLatestVolume && latestClosed ? " " : zeroLatestVolume && latestClosed ? "0" : "1000";
-          values.unshift({datetime,open:"100",high:"101",low:"99",close:"100",volume});
+          const index=(time-OriginalDate.parse("2026-10-01T13:30:00Z"))/300000;
+          const close=100+index*0.06;
+          values.unshift(publicationClock
+            ? {datetime,open:String(close-0.05),high:String(close+0.1),low:String(close-0.1),close:String(close),volume:String(1000+index*40)}
+            : {datetime,open:"100",high:"101",low:"99",close:"100",volume});
         }
       } else {
         const day=new OriginalDate("2026-09-30T00:00:00Z");
@@ -200,10 +209,25 @@ try {
     if (url.pathname === `/auth/v1/admin/users/${owner}`) return Response.json({ user: { id: owner, aud: "authenticated", role: "authenticated" } });
     if (!url.pathname.startsWith("/rest/v1/")) throw new Error("Unexpected fixture API path");
     const request=new Request(input,init);
-    return originalFetch(`${apiOrigin}${url.pathname.slice("/rest/v1".length)}${url.search}`, {
+    let requestBody=!["GET","HEAD"].includes(request.method)?await request.text():null;
+    const isPublication=publicationClock && url.pathname==="/rest/v1/recommendations" && request.method==="POST";
+    if(isPublication) {
+      // Only the isolated database boundary models persistence's later clock.
+      // Scanner, gates, generator, SDK, actual insert and readback are real.
+      clock+=200;
+      const payload=JSON.parse(requestBody);
+      requestBody=JSON.stringify(payload.map(row=>({...row,created_at:new Date().toISOString()})));
+      // supabase-js's explicit insert column list otherwise omits the added
+      // fixture database-clock value and invokes the real wall-clock default.
+      const columns=url.searchParams.get("columns");
+      if(columns) url.searchParams.set("columns",columns+',"created_at"');
+    }
+    const response=await originalFetch(`${apiOrigin}${url.pathname.slice("/rest/v1".length)}${url.search}`, {
       method:request.method,headers:request.headers,
-      ...(!["GET","HEAD"].includes(request.method)?{body:await request.text()}:{})
+      ...(requestBody!==null?{body:requestBody}:{})
     });
+    if(isPublication) clock+=236;
+    return response;
   };
   console.log = (...items) => logs.push(items);
   globalThis.Netlify = { env: { get: (name) => process.env[name] } };
@@ -255,7 +279,39 @@ try {
     assert.equal(record.record_version,"candidate_decision_record_v4");
     assert.equal(record.candidates.length,8);
     assert.equal(record.versions.input_policy_version,"completed_daily_intraday_input_v1");
-    assert.equal(record.final_decision.disposition,"no_trade");
+    assert.equal(record.final_decision.disposition,publicationClock?"recommendations_published":"no_trade");
+    if(publicationClock) {
+      const published=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendations t;"));
+      assert(published.length>0,JSON.stringify({body,logs:logs.slice(-30)}).slice(-16000));
+      syntheticPublicationCount=published.length;
+      assert.deepEqual(readers.candidateDecisionRecordFromScanRun(scanRuns[0]),record);
+      assert.deepEqual(readers.decisionLineageReceiptFromScanRun(scanRuns[0],record),lineage);
+      assert.equal(record.decision_clock?.contract_version,"pre_publication_decision_clock_v1");
+      for(const row of published) {
+        const candidate=record.candidates.find(c=>c.ticker===row.ticker && c.disposition==="published");
+        assert(candidate?.data.input_snapshot);
+        assert.equal(candidate.data.freshness,"fresh");
+        assert.deepEqual(candidate.data.gap_codes,[]);
+        for(const [column,feature] of [["entry_low","proposed_entry_low"],["entry_high","proposed_entry_high"],
+          ["stop_loss","proposed_stop_loss"],["target_1","proposed_target_1"]]) {
+          assert.equal(Number(row[column]),candidate.data.input_snapshot.features[feature]);
+        }
+        assert(OriginalDate.parse(record.decision_timestamp)<=OriginalDate.parse(row.created_at),
+          `Explicit decision must precede publication: decision=${record.decision_timestamp}, published=${row.created_at}`);
+        assert(OriginalDate.parse(row.created_at)<=OriginalDate.parse(scanRuns[0].completed_at),
+          `Publication precedes completion: published=${row.created_at}, completed=${scanRuns[0].completed_at}, modeled=${new Date().toISOString()}`);
+      }
+      assert(OriginalDate.parse(record.decision_clock.input_capture_timestamp)<=OriginalDate.parse(record.decision_timestamp));
+      assert.equal(record.coverage.pre_truncation_capture_evidence.point_in_time_cutoff,record.decision_timestamp);
+      for(const key of ["input_capture_timestamp","decision_timestamp","contract_version"]) {
+        const changed=structuredClone(scanRuns[0]);
+        changed.payload_json.candidate_decision_record.decision_clock[key]="untrusted-clock";
+        assert.equal(readers.candidateDecisionRecordFromScanRun(changed),null);
+      }
+      originalLog(JSON.stringify({publication_clock_proof:"passed",synthetic_publication_count:published.length,
+        decision_timestamp:record.decision_timestamp,published_at:published.map(row=>row.created_at),
+        completed_at:scanRuns[0].completed_at,actual_provider_requests:0,production_actions:0}));
+    }
     assert.equal(scanRuns[0].payload_json.scanner_clock_prior_shadow_comparison ?? null,null);
     assert.equal(scanRuns[0].payload_json.scanner_intraday_liquidity_shadow_comparison ?? null,null);
     assert.equal(record.candidates.filter(c=>c.data.freshness==="fresh").length,missingLatestVolume?0:cold?3:6);
@@ -606,7 +662,7 @@ try {
     assert.equal(duplicate.status,204);
     assert.equal(externalRequests,8);
   }
-  assert.equal(Number(sql("select count(*) from recommendations;")),0);
+  assert.equal(Number(sql("select count(*) from recommendations;")),syntheticPublicationCount);
   assert.equal(Number(sql("select count(*) from positions;")),0);
   // Disable/expiry are exercised by the real scheduled entrypoint, not a mock.
   process.env.TURE_OBSERVATION_SERIES_ENABLED="false";
@@ -615,6 +671,7 @@ try {
     body:JSON.stringify({next_run:nextSlot})}),{deploy:{id:identity.deploy_id,context:"production",published:true}});
   assert.equal(cleanup.status,204);
   assert.equal(Number(sql("select count(*) from scheduled_scan_attempts;")),1);
+  assert.equal(Number(sql("select count(*) from recommendations;")),syntheticPublicationCount);
   originalLog(JSON.stringify({evidence_mode:"synthetic_closed_packaged_input_runtime_actual_source_schema",
     scenario:wrongPolicy?"invalid_policy":opening?"opening_cold_history":cold?"cold_history":"warm_history_restart",
     setup_synthetic_requests:setupRequests,scheduled_synthetic_requests:externalRequests,
@@ -632,7 +689,8 @@ try {
         freshness:record?.candidates.find(candidate=>candidate.candidate_id===row.payload_json?.candidate_id)?.data.freshness??null}))}} : {}),
     ...(zeroLatestVolume ? { zero_latest_volume_inputs:record.candidates.filter(candidate=>candidate.data.input_snapshot?.intraday_indicators?.latestVolume===0).length } : {}),
     ...(missingLatestVolume ? {missing_volume_research_sources:researchSnapshots.length} : {}),
-    actual_provider_requests:0,production_actions:0,publications:0,broker_actions:0,cleanup:"inert"}));
+    actual_provider_requests:0,production_actions:0,publications:syntheticPublicationCount,
+    production_publications:0,broker_actions:0,cleanup:"inert"}));
   if(diagnoseOutcomes && !wrongPolicy) {
     assert.equal(researchSnapshots.length,cold?3:6,
       "Fresh, non-published versioned inputs must retain research outcome sources during a regular afternoon session");

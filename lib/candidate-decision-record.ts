@@ -30,6 +30,7 @@ export const CANDIDATE_DECISION_CAPTURE_VERSION =
   "candidate_decision_capture_v1" as const;
 export const INPUT_ATTRIBUTED_CANDIDATE_DECISION_CAPTURE_VERSION = "candidate_decision_capture_v2" as const;
 export const INPUT_ATTRIBUTED_CANDIDATE_DECISION_RECORD_VERSION = "candidate_decision_record_v4" as const;
+export const PRE_PUBLICATION_DECISION_CLOCK_VERSION = "pre_publication_decision_clock_v1" as const;
 export const LEGACY_CANDIDATE_DECISION_RECORD_VERSION =
   "candidate_decision_record_v1" as const;
 export const ATTRIBUTED_CANDIDATE_DECISION_RECORD_VERSION =
@@ -81,6 +82,8 @@ export type CandidateDecisionReasonCode =
 export type CandidateDecisionCapture = {
   capture_version: typeof CANDIDATE_DECISION_CAPTURE_VERSION | typeof INPUT_ATTRIBUTED_CANDIDATE_DECISION_CAPTURE_VERSION;
   capture_timestamp: string;
+  decision_timestamp?: string;
+  decision_clock_version?: typeof PRE_PUBLICATION_DECISION_CLOCK_VERSION;
   scanner_version: typeof CANDIDATE_DECISION_SCANNER_VERSION | typeof COMPLETED_DAILY_DECISION_SCANNER_VERSION;
   input_policy_version?: typeof COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION;
   universe_version: typeof CANDIDATE_DECISION_UNIVERSE_VERSION;
@@ -122,6 +125,11 @@ export type CandidateDecisionRecord = {
   scan_run_id: string;
   scan_run_fingerprint: string;
   decision_timestamp: string;
+  decision_clock?: {
+    contract_version: typeof PRE_PUBLICATION_DECISION_CLOCK_VERSION;
+    input_capture_timestamp: string;
+    decision_timestamp: string;
+  };
   strategy_reference: DecisionStrategyReference | null;
   versions: {
     scanner_version: string;
@@ -280,6 +288,7 @@ function mapReasonCode(value: string | null | undefined): CandidateDecisionReaso
 
 export function buildCandidateDecisionCapture({
   captureTimestamp,
+  decisionTimestamp,
   universe,
   observedCandidates,
   inputPolicyVersion,
@@ -294,6 +303,7 @@ export function buildCandidateDecisionCapture({
   selectedBuildDiagnostics = [],
 }: {
   captureTimestamp: string;
+  decisionTimestamp?: string;
   universe: ScannerCandidate[];
   observedCandidates: ScannerCandidate[];
   inputPolicyVersion?: typeof COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION;
@@ -323,10 +333,17 @@ export function buildCandidateDecisionCapture({
     throw new Error("candidate_decision_mixed_or_unknown_input_policy");
   }
   if (inputAttributed && toIso(captureTimestamp) === null) throw new Error("candidate_decision_input_capture_timestamp_invalid");
+  const explicitDecisionTimestamp = decisionTimestamp === undefined ? undefined : toIso(decisionTimestamp);
+  if (decisionTimestamp !== undefined && (!inputAttributed || !explicitDecisionTimestamp ||
+    Date.parse(explicitDecisionTimestamp) < Date.parse(normalizedCaptureTimestamp))) {
+    throw new Error("candidate_decision_explicit_clock_invalid");
+  }
 
   return {
     capture_version: inputAttributed ? INPUT_ATTRIBUTED_CANDIDATE_DECISION_CAPTURE_VERSION : CANDIDATE_DECISION_CAPTURE_VERSION,
     capture_timestamp: normalizedCaptureTimestamp,
+    ...(explicitDecisionTimestamp ? { decision_timestamp: explicitDecisionTimestamp,
+      decision_clock_version: PRE_PUBLICATION_DECISION_CLOCK_VERSION } : {}),
     scanner_version: inputAttributed ? COMPLETED_DAILY_DECISION_SCANNER_VERSION : CANDIDATE_DECISION_SCANNER_VERSION,
     ...(inputAttributed ? { input_policy_version: COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION } : {}),
     universe_version: CANDIDATE_DECISION_UNIVERSE_VERSION,
@@ -413,7 +430,20 @@ export function buildCandidateDecisionRecord({
     throw new Error("candidate_decision_input_capture_version_mismatch");
   }
 
-  const decisionTimestamp =
+  const hasExplicitClock = capture.decision_timestamp !== undefined || capture.decision_clock_version !== undefined;
+  const explicitDecisionTimestamp = toIso(capture.decision_timestamp ?? "");
+  const runStartedAt = scanRun.started_at == null ? null : toIso(scanRun.started_at);
+  const runCompletedAt = scanRun.completed_at == null ? null : toIso(scanRun.completed_at);
+  if (hasExplicitClock && (!inputAttributed || capture.decision_clock_version !== PRE_PUBLICATION_DECISION_CLOCK_VERSION ||
+    !explicitDecisionTimestamp || toIso(capture.capture_timestamp) === null ||
+    Date.parse(explicitDecisionTimestamp) < Date.parse(capture.capture_timestamp) ||
+    (scanRun.started_at != null && (!runStartedAt || Date.parse(explicitDecisionTimestamp) < Date.parse(runStartedAt))) ||
+    (scanRun.completed_at != null && (!runCompletedAt || Date.parse(explicitDecisionTimestamp) > Date.parse(runCompletedAt))))) {
+    throw new Error("candidate_decision_explicit_clock_invalid");
+  }
+  // Completion acknowledges persistence; it is not a pre-publication decision.
+  // Older captures/archives retain their historical clock semantics unchanged.
+  const decisionTimestamp = explicitDecisionTimestamp ??
     toIso(scanRun.completed_at ?? "") ??
     toIso(scanRun.observed_at) ??
     capture.capture_timestamp;
@@ -577,6 +607,8 @@ export function buildCandidateDecisionRecord({
     scan_run_id: scanRun.id,
     scan_run_fingerprint: scanRun.run_fingerprint,
     decision_timestamp: decisionTimestamp,
+    ...(hasExplicitClock ? { decision_clock: { contract_version: PRE_PUBLICATION_DECISION_CLOCK_VERSION,
+      input_capture_timestamp: capture.capture_timestamp, decision_timestamp: decisionTimestamp } } : {}),
     strategy_reference: buildCurrentDecisionStrategyReference(
       capture.universe_version,
     ),

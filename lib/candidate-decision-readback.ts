@@ -2,6 +2,7 @@ import type {
   CandidateDecisionDisposition,
   CandidateDecisionRecord,
 } from "@/lib/candidate-decision-record";
+import { PRE_PUBLICATION_DECISION_CLOCK_VERSION } from "@/lib/candidate-decision-record";
 import {
   buildCandidateDecisionLearningAttribution,
   candidateDecisionLearningAttributionFromUnknown,
@@ -244,6 +245,8 @@ export function candidateDecisionRecordFromUnknown(
   const candidates = Array.isArray(record?.candidates) ? record.candidates : null;
   const expectedCandidateCount = coverage?.expected_candidate_count;
   const decisionTimestamp = isoTimestampOrNull(record?.decision_timestamp);
+  const decisionClock = objectOrNull(record?.decision_clock);
+  const inputCapturedAt = isoTimestampOrNull(decisionClock?.input_capture_timestamp);
 
   const recordVersion = record?.record_version;
   const isLegacyRecord = recordVersion === "candidate_decision_record_v1";
@@ -271,6 +274,14 @@ export function candidateDecisionRecordFromUnknown(
     (!isLegacyRecord && !isAttributedLegacyRecord && !isCurrentRecord) ||
     record?.record_kind !== "candidate_decision_record" ||
     decisionTimestamp === null ||
+    (record?.decision_clock !== undefined && (!isInputAttributedRecord || !decisionClock ||
+      decisionClock.contract_version !== PRE_PUBLICATION_DECISION_CLOCK_VERSION ||
+      isoTimestampOrNull(decisionClock.decision_timestamp) !== decisionTimestamp ||
+      inputCapturedAt === null || Date.parse(inputCapturedAt) > Date.parse(decisionTimestamp) ||
+      !candidates?.every(value => {
+        const snapshot = objectOrNull(objectOrNull(objectOrNull(value)?.data)?.input_snapshot);
+        return snapshot === null || isoTimestampOrNull(snapshot.captured_at) === inputCapturedAt;
+      }))) ||
     learningAttribution === null ||
     (isCurrentRecord && strategyReference === null) ||
     candidates === null ||
