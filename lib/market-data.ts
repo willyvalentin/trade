@@ -157,7 +157,7 @@ function numberField(value: unknown, fieldName: string) {
   const parsed =
     typeof value === "number"
       ? value
-      : typeof value === "string"
+      : typeof value === "string" && value.trim().length > 0
         ? Number(value)
         : Number.NaN;
 

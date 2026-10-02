@@ -2,14 +2,147 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-02, recommendation intelligence first
 
-**Current executable selection:** Now is the completed-input canonical-learning
-delivery below, rebased locally on integrated main `e8da24a4...`; Next is its
-protected PR/CI integration, followed by the already selected independent
-volume correction and one measured contextual-ranking challenger. The Oct 2
-operating job is terminal and cleanup is verified, not a waiting integration
-barrier. Prospective input/learning acceptance and recommendation-quality lift
-remain blocked on their missing market evidence. Earlier dated local/hold
-statements below are retained receipts, not additional active queues.
+**Current executable selection:** Now is integration of the locally verified
+independent IF-2b volume-input integrity correction, rebased on protected main
+`d518bbb5...` after prerequisite PR #722 is merged and its inert production
+behavior is verified. Next is the missing prospective fresh-input/canonical-
+learning acceptance, followed by one measured contextual-ranking challenger.
+The Oct 2 operating job is terminal and cleanup is verified, not a waiting
+integration barrier. Recommendation-quality lift remains unproven. Earlier
+dated local/hold statements below are retained receipts, not additional active
+queues; do not reuse the consumed Oct 2 observation card.
+
+**PR #722 integration verified — 2026-10-02:** required six-shard workflow
+`37017804500`, its protected aggregate and merge-candidate provenance pass on
+submitted head `d17176d95391125e98a081391f1e581da1f138c7`. Strict branch
+protection remains enforced; no blocking review finding exists. Normal squash
+merge at 14:39:14Z produces main
+`d518bbb5815d1d4f25769fbec8d4a901eda5ade5`; its tracked tree exactly matches
+the tested head. Main workflow `37021370717` is successful; this metadata is
+not a claim of a new six-shard run or downloaded post-merge attestation.
+Automatic production deploy `6abfc2155b19150008e29202` is ready/published at
+14:40:44.693Z. Authenticated readback at 14:41:09.142Z verifies the exact
+revision/deploy, HTTP 200/no-store health, all effective controls inert, unset
+input selector and zero active reservations. No provider, scan, publication
+or broker action is invoked. This integrates canonical-learning capability and
+the user-approved roadmap reconciliation; it does not prove prospective input
+fitness, outcome coverage or recommendation lift.
+
+The volume slice is rebased to local revision
+`be2cce0435dc4b65b1933d0cacc0096dbb531586`. Its entire tracked tree matches
+the pre-rebase `1e06c59d...` source that passes 165 affected checks, full lint,
+strict types and a fresh standard build. All eleven subsequent CI-registration
+and governance checks also pass. The focused delivery is submitted as PR #723,
+initial head `63266225218672793c45de25f19f95ddc9155e20`; preserve default-off
+controls and do not open a competing slice.
+
+**PR #723 reproduced CI correction — 2026-10-02:** foundation job
+`110886562305` in workflow `37021748642` passes lint, strict types, the standard
+production build and isolated paper persistence proofs, then fails test
+collection. The new parser regression imports server-only SDK code at module
+scope, while this registered containment shard deliberately collects without
+the `react-server` condition. The earlier 165-test local command uses that
+condition and does not establish default-condition collection compatibility.
+The same failure is reproduced locally before changing anything. The focused
+test-only correction loads the actual SDK inside its existing server-facing
+esbuild harness; production code, the server-only marker, CI conditions and
+registered coverage remain unchanged. Default-condition collection now lists
+all eighteen tests in the affected file; the parser regression and two existing
+server-containment checks pass. The unchanged local foundation runner also
+passes full lint (zero errors/eight retained warnings), non-incremental types,
+dependency audit (zero vulnerabilities), a fresh standard production build,
+isolated database lifecycle proofs, all 1,026 default-condition containment
+tests, twelve authentication checks and 375 intelligence-contract tests. The
+remaining unchanged capture/binding checks continue locally in parallel with
+replacement protected CI; neither a partial local run nor the earlier head's
+results authorize merge. An initial sandbox run stops at npm-audit DNS failure;
+the network-authorized run passes that audit without changing commands or
+source. This harness repair is not a new recommendation-quality improvement.
+
+**Prospective OPEN capacity disposition — 2026-10-02:** read-only consumer
+inspection at 14:46:25.018Z confirms exact inert main `d518bbb5...` and the
+unchanged staging revision with its Production/function-scoped global-disable
+flag true. Today's authoritative main ledger has one terminal reservation for
+eight credits, zero active reservations and declared limits of 800/day and
+8/minute. Those internal counts do not establish the shared provider account's
+remaining capacity after the observed staging overlap. No signed-in provider
+usage session or current account usage evidence is available; the owner is
+asked only for timestamped consumption/remaining capacity or an existing
+signed-in readback, never an API key. A replacement observation is `no_go`
+pending this evidence, PR #723 integration/readback and its own prospective
+frozen contract/operation authority. No slot is armed, no provider request or
+manual route is made, and the consumed Oct 2 card is not retried. Continue the
+selected integration; do not replace the intelligence delivery with a usage
+dashboard or another scheduler stream.
+
+**Retained pre-merge integration handoff — 2026-10-02:** primary delivery and roadmap
+reconciliation are submitted in PR #722, head
+`d17176d95391125e98a081391f1e581da1f138c7`, against verified main
+`e8da24a48ff39260417227e79e103213868adaf0`. Protected six-shard workflow
+`37017804500` is still running; do not substitute local results for its required
+aggregate. The app attachment attempt fails at this chat's 100-attachment limit;
+the PR remains https://github.com/willyvalentin/trade/pull/722.
+
+The already selected independent volume correction is rebased locally on that
+exact submitted source at revision
+`33a510d23256b9f94722a54c5d240ace81c63ae8`. The merged runtime regression
+retains both prior canonical-learning assertions and the actual zero/opening
+volume chain. All 153 combined affected checks pass, including hidden original
+plans, isolated PostgreSQL/PostgREST persistence and restarted owner readback;
+all six CI-registration checks pass. Full lint has zero errors/eight retained
+warnings; non-incremental strict TypeScript and the standard Next/Turbopack
+production build pass. Only historical documents, a new governance test and
+comments differ from the previously verified local composition's application
+source. Disposable test containers/networks are removed and unrelated local
+databases remain untouched. This branch is not pushed and has no competing PR;
+integrate it only after PR #722, then protected CI/main/default-off production
+verification. Neither delivery proves live input fitness or recommendation lift.
+The final test-only completion also retains the prior composition's explicit
+three-zero-input assertion: its one opening-zero packaged persistence/outcome/
+learning check passes in 16.8 seconds. Application source remains unchanged.
+
+**Volume provider-boundary completion — 2026-10-02:** subsequent direct
+provider-parser reproduction demonstrates that an empty or whitespace volume
+string is coerced into zero by the required numeric parser. The selected
+volume slice now rejects blank required numeric fields with the existing
+invalid-value failure; an actual numeric/string zero remains a valid
+observation. The real packaged cold scanner proof confirms zero complete fresh
+inputs and zero completed-input research snapshots for missing latest volume.
+Validated historical-only context may remain, but current-session inputs,
+intraday indicators and current close remain unavailable. An initial assertion
+that also prohibited historical-only snapshots was corrected to this actual
+contract; that assertion failure was not a second engine defect.
+
+All 165 combined affected tests pass on this completed local source, including
+the parser rejection, actual isolated database persistence/restart, original
+zero/opening volume, provider-credit allocation and source attribution. Full
+lint has zero errors/eight retained warnings; strict non-incremental TypeScript
+and a fresh standard Next 16.3.8/Turbopack build pass. Disposable fixture
+containers/networks are gone; unrelated local databases are preserved. No
+provider request, production action or ranking/publication threshold change is
+made. The branch remains local pending integration of prerequisite PR #722;
+these checks do not establish real-market input acceptance or recommendation lift.
+
+**Shared-provider isolation correction readback — 2026-10-02:** staging deploy
+`6abfba319b77b9e90e9ef9da` is ready/published at 14:07:09.192Z on unchanged
+`a1a692ce00e7af11fbf779210c7b83ca9ade5215`. Readback at 14:14:29.423Z verifies
+the exact published revision and only its existing Production/function-scoped
+global-disable value true. Bounded historical logs for 14:15–14:17Z contain
+one outcome-worker `Execution disabled by environment` message. Staging's
+authoritative database has zero scheduled scan attempts, published candidates
+and created recommendations in that window. The scan function's corresponding
+disabled log is absent: this remains missing runtime evidence, not proof it
+ran or made zero provider calls. Both functions' verified source returns before
+credentials/database/provider work when globally disabled. Main remains inert;
+no route/provider is invoked, no retry/card is selected and no further staging
+development is opened. Keep the absent scan-log and per-consumer credit
+attribution gaps explicit; do not inflate the narrow outcome-worker readback.
+The later bounded 14:30–14:32Z readback, after one full scheduler interval from
+publication, likewise contains one outcome-worker disabled message but no
+scan-worker disabled message, with zero attributable database scan attempts,
+published candidates or created recommendations. The absent scan execution log
+remains an evidence gap; this read-only check does not invoke a function or
+provider and does not independently establish global upstream credit usage.
 
 **Rebased delivery verification — 2026-10-02:** source revision
 `9e8628c79eff60e4774764b7d3ac9bddb4bdeebe`, based on integrated main above,
@@ -777,6 +910,91 @@ Oct 2 and no later activation authority. It has a specific 15:46 CEST readback
 wake-up and deletes itself after verified no-go/inert state or cleanup. This
 supersedes the scheduling blocker above, not the exact revision/readiness/card
 guards. No production flag, deploy or provider call is made while scheduling.
+
+**Additional opening readback — 2026-10-02:** standalone source remains the
+tested `8cddd843` correction; test-only revision
+`ab0bd70bd2317204031eedf60fb160c5080548c9` adds the three-bar mean regression,
+with all 27 affected checks passing. The opening flag exists only after the
+PR #721 prerequisite, not in this main-based standalone proof. An intermediate
+attempt to reuse it here fails before assertion and is removed, without changing
+production code.
+The separate learning composition `73217b8a281f0b41c9f08d8913d48c05a0b9cda3`
+verifies an actual persisted 09:45 synthetic observation with latest zero,
+three-bar mean 667, unavailable complete-window ratio and the original
+weak-volume warning through three canonical outcomes/restarted assessments.
+The older twelve-bar reader expectation fails `667 !== 917` and is corrected;
+this is a diagnostic fix, not an additional engine defect. Five identities
+remain unresolved and all freeze/publication/broker gates remain closed.
+The active primary ledger, Oct 2 frozen observation and integration hold
+remain unchanged; no production or real-provider operation occurs.
+
+The complete existing local `foundation` shard and all 141 existing
+`snapshot-issuance` checks pass on exact composition source `73217b8a`,
+tree `439dcd1376786cd6f8d69ab2773362b10d1c541a`. Foundation covers lint,
+strict types, audit, build, disposable database lifecycle, 1,024 containment/
+input checks, authenticated readback and retained intelligence/evaluation
+contracts. The source stays clean and input fixture containers/networks are
+verified removed. This is macOS/ARM64 Node 26.5.0 local verification, not
+protected six-shard CI or production acceptance; integrate in the declared
+order only after the frozen Oct 2 observation and verified cleanup.
+
+**Retained local independent IF-2b volume-input correction — 2026-10-02:** the active
+queue is reconciled in `codex/completed-input-learning-admission`; this isolated
+main-based branch is its only selected second CLOSED delivery, owned by Codex
+at `/private/tmp/ture-volume-observation.zmEmT7/trade`. Four-active-hour budget;
+initial investigation at most four. Base is verified protected main
+`930d44b6be9ec6fca059adba21addd05d9f9c7de`. No schema, outcome, policy-freeze
+or production-configuration ownership overlaps the completed-input IF-4 slice.
+
+Three added regressions and the actual packaged scheduler/backend/scanner/SDK/
+PostgreSQL/PostgREST cold proof reproduce latest zero volume replaced by an
+older positive observation (`1000 !== 0`), and an inflated twelve-bar mean after
+zeros/missingness are removed. The first sandbox launch cannot access Docker;
+it is an environment failure, not engine evidence. The authorized local proof
+reproduces the saved-decision defect and removes its disposable fixtures.
+
+The narrow correction binds latest volume to the same original price candle,
+retains zero and averages the original last twelve clock positions, leaving
+invalid/gapped volume unknown. Available early-session means remain descriptive,
+not complete two-window ratios. The stricter volume ratio, freshness, ranking
+and publication thresholds and eight-credit provider ceiling stay unchanged.
+Historical cached decisions, frozen comparisons and original cohorts are not
+rewritten; the new source/build revision distinguishes future computation.
+
+All 65 affected checks pass, including the actual positive/zero/invalid-policy
+packaged runtime, owner isolation, restart readback, exact price-time binding,
+intake and shadow-ranking regressions. The zero-volume run retains three fresh
+v4 inputs, exact `latestVolume=0`/`averageVolume=917`, one attributable attempt,
+eight identities/eight synthetic requests, zero recommendations/positions and
+inert cleanup. Standard Next 16.3.8 production build and TypeScript pass;
+affected lint and diff checks pass. These are synthetic CLOSED data-fitness
+facts, not production incidence, alpha or improved recommendation returns.
+
+Integration is held for the exact frozen Oct 2 observation and verified cleanup,
+then PR #721 and the completed-input learning slice. Rebase against their
+integrated main and resolve the shared existing runtime-proof regression before
+one coherent PR; do not create a competing public queue or push now. Protected
+CI, main/production verification and real-market effect remain outstanding.
+This correction does not change or activate the frozen operating job. Return
+to its fresh-input/canonical-learning acceptance and measured quality challenger
+after this named integrity gap is closed, not a volume-control platform.
+
+**Final local verification — 2026-10-02:** source correction revision is
+`8cddd843aae504a77d2217bb6662c964a987823f`. Full lint completes with zero
+errors/eight retained warnings. A detached local integration rehearsal against
+completed-input learning `83217b45` is revision
+`60621af4d12d3bdfd159d168caefa78125af7fb2`, tree
+`bfb54680096a55c5d115d893c0926a80715ba0ce`: 139 combined tests, affected lint,
+strict types and the standard production build all pass. Its actual zero-volume
+source/outcome/restarted owner readback preserves three original assessments
+and outcomes, five unresolved identities and closed comparison/promotion gates.
+All disposable fixture containers/networks are verified removed. This is local
+composition evidence only; protected CI, integrated main, deployed behavior
+and prospective quality acceptance remain outstanding. The frozen Oct 2 input
+observation uses the unchanged pre-correction revision and cannot prove this
+volume defect absent; its historical fields are not silently recomputed.
+
+## Retained Sep 29 selection — historical receipts, not an active queue
 
 **Selected primary IF-2b input slice — 2026-10-01:** Codex owns
 `codex/completed-daily-context`, isolated from verified main

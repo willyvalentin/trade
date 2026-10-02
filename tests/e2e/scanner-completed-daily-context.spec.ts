@@ -20,6 +20,42 @@ import {
 
 // Synthetic CLOSED fixtures. No market data, credentials or production writes.
 const at = new Date("2026-10-01T15:50:00.000Z");
+test("provider parsing preserves observed zero but never converts missing volume into zero", async () => {
+  // Foundation intentionally collects without the server condition. Load the
+  // actual SDK only in this server-facing bundle; keep its production marker
+  // and the default-condition containment checks unchanged.
+  const bundle = await build({ entryPoints: [resolve(process.cwd(), "lib/market-data.ts")],
+    bundle: true, write: false, platform: "node", format: "cjs", conditions: ["react-server"] });
+  const loaded = { exports: {} };
+  new Function("require", "module", "exports", bundle.outputFiles[0].text)(
+    createRequire(resolve(process.cwd(), "package.json")), loaded, loaded.exports);
+  const { getIntradayCandlesWithDiagnostics } = loaded.exports as {
+    getIntradayCandlesWithDiagnostics: typeof import("@/lib/market-data").getIntradayCandlesWithDiagnostics;
+  };
+  const originalFetch = globalThis.fetch;
+  const originalKey = process.env.TWELVE_DATA_API_KEY;
+  process.env.TWELVE_DATA_API_KEY = "synthetic-closed-boundary-only";
+  let volume: unknown = "0";
+  globalThis.fetch = async (input) => {
+    const url = new URL(typeof input === "string" || input instanceof URL ? input : input.url);
+    expect(url.origin).toBe("https://api.twelvedata.com");
+    expect(url.pathname).toBe("/time_series");
+    return Response.json({ meta: { symbol: "SYNTH", interval: "5min", exchange_timezone: "America/New_York" },
+      values: [{ datetime: "2026-10-01 09:30:00", open: "100", high: "101", low: "99", close: "100", volume }] });
+  };
+  try {
+    const read = () => getIntradayCandlesWithDiagnostics("SYNTH", "5min",
+      new Date("2026-10-01T13:30:00Z"), new Date("2026-10-01T13:35:00Z"), { requireResponseIdentity: true });
+    expect((await read()).candles[0].volume).toBe(0);
+    for (volume of ["", " ", "\t", null, undefined]) {
+      await expect(read()).rejects.toThrow(/invalid.*volume/i);
+    }
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalKey === undefined) delete process.env.TWELVE_DATA_API_KEY;
+    else process.env.TWELVE_DATA_API_KEY = originalKey;
+  }
+});
 test("scheduled input selection stays default-off and requires a matching claim and exact bounded budget", () => {
   const policy = "completed_daily_intraday_input_v1";
   const receipt = { durable_invocation_payload: { scanner_input_policy_version: policy } } as unknown as ScheduledScanInvocationReceipt;
@@ -52,8 +88,9 @@ function bars(last = "2026-09-30", count = 60) {
 
 test("packaged scheduled input policy reaches the real isolated database and owner readback", () => {
   test.setTimeout(180000);
-  for (const argument of [null, "--cold", "--wrong-policy"]) {
-    const proof = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", ...(argument ? [argument] : [])],
+  for (const arguments_ of [[], ["--cold"], ["--wrong-policy"], ["--cold", "--zero-latest-volume"],
+    ["--cold", "--opening", "--zero-latest-volume"]]) {
+    const proof = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", ...arguments_],
       { cwd: process.cwd(), encoding: "utf8", timeout: 55000 });
     expect(proof.status, `${proof.stdout}\n${proof.stderr}`).toBe(0);
     const evidence = JSON.parse(proof.stdout.trim().split("\n").at(-1)!);
@@ -61,14 +98,31 @@ test("packaged scheduled input policy reaches the real isolated database and own
     expect(evidence.actual_provider_requests).toBe(0);
     expect(evidence.production_actions).toBe(0);
     expect(evidence.cleanup).toBe("inert");
+    if (arguments_.includes("--zero-latest-volume")) {
+      expect(evidence.zero_latest_volume_inputs).toBe(3);
+      expect(evidence.scheduled_synthetic_requests).toBe(8);
+      expect(evidence.publications).toBe(0);
+      expect(evidence.broker_actions).toBe(0);
+    }
   }
 });
 
-for (const scenario of ["cold", "warm", "opening"]) {
+test("packaged missing volume stays unavailable through persisted decision and owner readback", () => {
+  test.setTimeout(90000);
+  const proof = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--cold", "--missing-latest-volume"],
+    { cwd: process.cwd(), encoding: "utf8", timeout: 80000 });
+  expect(proof.status, `${proof.stdout}\n${proof.stderr}`).toBe(0);
+  const evidence = JSON.parse(proof.stdout.trim().split("\n").at(-1)!);
+  expect(evidence).toMatchObject({fresh_inputs:0,missing_volume_research_sources:0,
+    actual_provider_requests:0,production_actions:0,publications:0,broker_actions:0,cleanup:"inert"});
+});
+
+for (const scenario of ["cold", "warm", "opening", "opening_zero"]) {
   test(`packaged ${scenario} inputs retain hidden research plans and real isolated outcome persistence`, () => {
     test.setTimeout(90000);
     const proof = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--diagnose-outcomes",
-      ...(scenario !== "warm" ? ["--cold"] : []), ...(scenario === "opening" ? ["--opening"] : [])],
+      ...(scenario !== "warm" ? ["--cold"] : []), ...(scenario.startsWith("opening") ? ["--opening"] : []),
+      ...(scenario === "opening_zero" ? ["--zero-latest-volume"] : [])],
       { cwd: process.cwd(), encoding: "utf8", timeout: 80000 });
     expect(proof.status, `${proof.stdout}\n${proof.stderr}`).toBe(0);
     const evidence = JSON.parse(proof.stdout.trim().split("\n").at(-1)!);
@@ -105,6 +159,7 @@ for (const scenario of ["cold", "warm", "opening"]) {
       },
     });
     expect(evidence.scheduled_synthetic_requests).toBe(8);
+    if(scenario === "opening_zero") expect(evidence.zero_latest_volume_inputs).toBe(3);
     expect(evidence.actual_provider_requests).toBe(0);
     expect(evidence.production_actions).toBe(0);
     expect(evidence.publications).toBe(0);
