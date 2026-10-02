@@ -10,7 +10,6 @@ import { candidateDecisionRecordFromUnknown, candidateDecisionRecordFromScanRun 
 import { buildDecisionLineageReceipt, decisionLineageReceiptFromScanRun } from "@/lib/decision-lineage-receipt";
 import { buildRecommendationScanRun, recommendationScanRunFromPersistenceRow } from "@/lib/recommendation-scan-run";
 import { isScannerDecisionInputPublishable } from "@/lib/scanner-decision-input-snapshot";
-import { getIntradayCandlesWithDiagnostics } from "@/lib/market-data";
 import { scheduledScannerInputPolicy } from "@/lib/scheduled-scanner-input-policy";
 import { resolveScheduledScanProviderCreditBudget } from "@/lib/scheduled-scan-ticker-cap";
 import type { ScheduledScanInvocationReceipt } from "@/lib/scheduled-scan-invocation-receipt";
@@ -22,6 +21,17 @@ import {
 // Synthetic CLOSED fixtures. No market data, credentials or production writes.
 const at = new Date("2026-10-01T15:50:00.000Z");
 test("provider parsing preserves observed zero but never converts missing volume into zero", async () => {
+  // Foundation intentionally collects without the server condition. Load the
+  // actual SDK only in this server-facing bundle; keep its production marker
+  // and the default-condition containment checks unchanged.
+  const bundle = await build({ entryPoints: [resolve(process.cwd(), "lib/market-data.ts")],
+    bundle: true, write: false, platform: "node", format: "cjs", conditions: ["react-server"] });
+  const loaded = { exports: {} };
+  new Function("require", "module", "exports", bundle.outputFiles[0].text)(
+    createRequire(resolve(process.cwd(), "package.json")), loaded, loaded.exports);
+  const { getIntradayCandlesWithDiagnostics } = loaded.exports as {
+    getIntradayCandlesWithDiagnostics: typeof import("@/lib/market-data").getIntradayCandlesWithDiagnostics;
+  };
   const originalFetch = globalThis.fetch;
   const originalKey = process.env.TWELVE_DATA_API_KEY;
   process.env.TWELVE_DATA_API_KEY = "synthetic-closed-boundary-only";

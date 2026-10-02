@@ -32,8 +32,48 @@ The volume slice is rebased to local revision
 `be2cce0435dc4b65b1933d0cacc0096dbb531586`. Its entire tracked tree matches
 the pre-rebase `1e06c59d...` source that passes 165 affected checks, full lint,
 strict types and a fresh standard build. All eleven subsequent CI-registration
-and governance checks also pass. Prepare one focused PR on this integrated
-prerequisite; preserve default-off controls and do not open a competing slice.
+and governance checks also pass. The focused delivery is submitted as PR #723,
+initial head `63266225218672793c45de25f19f95ddc9155e20`; preserve default-off
+controls and do not open a competing slice.
+
+**PR #723 reproduced CI correction — 2026-10-02:** foundation job
+`110886562305` in workflow `37021748642` passes lint, strict types, the standard
+production build and isolated paper persistence proofs, then fails test
+collection. The new parser regression imports server-only SDK code at module
+scope, while this registered containment shard deliberately collects without
+the `react-server` condition. The earlier 165-test local command uses that
+condition and does not establish default-condition collection compatibility.
+The same failure is reproduced locally before changing anything. The focused
+test-only correction loads the actual SDK inside its existing server-facing
+esbuild harness; production code, the server-only marker, CI conditions and
+registered coverage remain unchanged. Default-condition collection now lists
+all eighteen tests in the affected file; the parser regression and two existing
+server-containment checks pass. The unchanged local foundation runner also
+passes full lint (zero errors/eight retained warnings), non-incremental types,
+dependency audit (zero vulnerabilities), a fresh standard production build,
+isolated database lifecycle proofs, all 1,026 default-condition containment
+tests, twelve authentication checks and 375 intelligence-contract tests. The
+remaining unchanged capture/binding checks continue locally in parallel with
+replacement protected CI; neither a partial local run nor the earlier head's
+results authorize merge. An initial sandbox run stops at npm-audit DNS failure;
+the network-authorized run passes that audit without changing commands or
+source. This harness repair is not a new recommendation-quality improvement.
+
+**Prospective OPEN capacity disposition — 2026-10-02:** read-only consumer
+inspection at 14:46:25.018Z confirms exact inert main `d518bbb5...` and the
+unchanged staging revision with its Production/function-scoped global-disable
+flag true. Today's authoritative main ledger has one terminal reservation for
+eight credits, zero active reservations and declared limits of 800/day and
+8/minute. Those internal counts do not establish the shared provider account's
+remaining capacity after the observed staging overlap. No signed-in provider
+usage session or current account usage evidence is available; the owner is
+asked only for timestamped consumption/remaining capacity or an existing
+signed-in readback, never an API key. A replacement observation is `no_go`
+pending this evidence, PR #723 integration/readback and its own prospective
+frozen contract/operation authority. No slot is armed, no provider request or
+manual route is made, and the consumed Oct 2 card is not retried. Continue the
+selected integration; do not replace the intelligence delivery with a usage
+dashboard or another scheduler stream.
 
 **Retained pre-merge integration handoff — 2026-10-02:** primary delivery and roadmap
 reconciliation are submitted in PR #722, head
