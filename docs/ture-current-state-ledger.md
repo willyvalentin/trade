@@ -2,6 +2,86 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-02, recommendation intelligence first
 
+**Current executable selection:** Now is the completed-input canonical-learning
+delivery below, rebased locally on integrated main `e8da24a4...`; Next is its
+protected PR/CI integration, followed by the already selected independent
+volume correction and one measured contextual-ranking challenger. The Oct 2
+operating job is terminal and cleanup is verified, not a waiting integration
+barrier. Prospective input/learning acceptance and recommendation-quality lift
+remain blocked on their missing market evidence. Earlier dated local/hold
+statements below are retained receipts, not additional active queues.
+
+**Rebased delivery verification — 2026-10-02:** source revision
+`9e8628c79eff60e4774764b7d3ac9bddb4bdeebe`, based on integrated main above,
+has no application/script/test difference from the previously verified local
+`8ceb9cf6...`. All 136 selected learning, intake, canonical-outcome, budget,
+actual packaged cold/warm/opening database and governance checks pass; all six
+existing CI-registration checks also pass. Full lint has zero errors/eight
+retained warnings, non-incremental strict TypeScript passes, and a fresh standard
+Next/Turbopack production build completes successfully. An initial test launch
+omitted the existing harness's `react-server` condition and supplied no engine
+evidence; the corrected command uses the registered condition. The first build
+hits sandbox port EPERM, retained by its generated cache; after a successful
+localhost-bind diagnostic and recoverable relocation of only generated `.next`
+output, the standard clean build passes without source or compiler changes.
+Disposable runtime fixtures are removed; unrelated local database containers
+are untouched. This is local macOS/ARM64 Node 26.5.0 behavior, not protected
+CI, a merge or forward quality evidence. The coherent next PR includes the
+user-approved roadmap reconciliation; no planning-only PR is created.
+The subsequent documentation-only reconciliation has five passing governance
+checks, including explicit missing-evidence disposition, baseline predeclaration
+and separation of provider rejection from evaluated `no_trade`; no engine source
+changes follow the 136-test run.
+
+**PR #721 integration verified — 2026-10-02:** normal squash merge at
+13:51:51Z, after required protected CI and zero blocking reviews, produces main
+`e8da24a48ff39260417227e79e103213868adaf0`. Its tracked tree exactly matches
+submitted head `0676d6396673d2218a0f080c2d454ffcbdc35510`. Main workflow
+`37015861302` completes successfully; its summary/post-merge job metadata is
+not a fresh six-shard rerun or proof of a downloaded candidate attestation.
+Automatic production deploy `6abfb6f99e01a90008c34d1e` is ready/published at
+13:53:16.527Z. Authenticated readback at 13:54:42.197Z verifies exact build,
+HTTP 200/no-store health, all effective controls inert, unset input selector and
+zero active reservations. No activation or provider request is made. This is
+main/deployed integration of hidden source-to-outcome capability, not prospective
+market acceptance or better recommendation quality. The app cannot attach the
+PR because this chat has reached its 100-attachment limit; the verified PR URL
+remains https://github.com/willyvalentin/trade/pull/721.
+
+**Bounded Oct 2 acquisition diagnosis:** authoritative sanitized attempt text
+reports ten API credits used in the current minute against a limit of eight.
+The local cycle separately retains three request credits; its invalid candidate
+coverage diagnostic cannot supply a valid eight-member input denominator.
+Read-only Netlify inspection at 13:57:41.522Z confirms Ture and ture-staging
+inherit the same Twelve Data key, without exposing the key. Staging's configured
+global-disable flag is false; its published revision is
+`a1a692ce00e7af11fbf779210c7b83ca9ade5215`, whose scheduler permits the 13:45Z
+slot. Read-only staging database evidence subsequently establishes attempt
+`scheduled_scan_attempt_c8bayj`, fired 13:45:07.735Z and received
+13:45:09.443Z: terminal `scanned`/HTTP 200, four raw/ranked/published candidates
+and four staging recommendations. Main fires at 13:45:24.217Z in the same
+minute. This proves a concurrent consumer of the shared key, not the exact
+allocation of all ten upstream credits or sole causality.
+
+The reproduced overlap justifies a reversible safety correction, not a staging
+product stream. At 14:05:30.914Z, only staging's existing Production/function
+`TURE_DISABLE_SCHEDULED_FUNCTIONS` is changed from false to true; all other
+variable scopes/contexts/values are compared unchanged in memory. Exactly one
+Git-connected build `6abfba319b77b9e90e9ef9d8` / deploy
+`6abfba319b77b9e90e9ef9da` is requested from unchanged `staging` revision
+`a1a692ce00e7af11fbf779210c7b83ca9ade5215`. Publication and the next normal
+disabled attempt still require readback; configuration alone is not runtime
+isolation evidence. Main remains inert, no scan/route/provider is invoked and
+no new OPEN card or retry is selected. No secret is output.
+
+Twelve Data's official [credit contract](https://support.twelvedata.com/en/articles/5615854-credits)
+states one credit per `/time_series` symbol and minute-boundary reset. Its
+[usage guidance](https://support.twelvedata.com/en/articles/5713553-control-over-api-usage)
+also states that `/api_usage` itself costs one credit; it was not invoked.
+The upstream count is account/key-level evidence, not proof that this one
+scan made ten requests. Keep the provider consumer/remaining-capacity gap
+explicit and do not claim local reservation alone measures available quota.
+
 **Oct 2 frozen OPEN result — `inconclusive`, 13:47:01.787Z readback:** unchanged
 main `930d44b6be9ec6fca059adba21addd05d9f9c7de`, activation deploy
 `6abfb0d35fce848f22f29fb3`, series `observation_series_553f65f3488ba448`.
