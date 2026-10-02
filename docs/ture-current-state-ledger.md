@@ -2,19 +2,198 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-02, recommendation intelligence first
 
-**Current executable selection:** Now is the reproduced IF-2b decision/publication
-clock-integrity interruption on isolated main-based branch
-`codex/input-decision-before-publication`, owned by Codex. PR #723 is normally
-merged at main `41c03db91bbbeb6e4aec8e29a7ee7a954221dcb7`; protected CI and exact
-inert production verification pass. The new 16:15Z Oct 2 observation is terminal,
-but its frozen publication-binding check fails. Do not retry its consumed card
-or arm another OPEN job before reproducing, correcting and verifying this defect.
-Cap investigation at four active hours and the focused delivery at 4–16 hours;
-change only the new input-attributed decision clock and its publication-path
-regression, preserve legacy/historical records and all quality/provider gates.
-Once this interruption is closed, return directly to the prospective fresh-input
-and canonical-learning acceptance, then one measured contextual-ranking
-challenger. No independent second development slice is selected.
+**Current executable selection:** the minimum IF-2b decision/publication-clock
+correction is normally merged as PR #724 at exact main
+`6026f6bb434a2d7f4d3dea19349b22910080da6a`, owned by Codex. Its tested head and
+merged tracked tree match; six protected shards, aggregate and merge-candidate
+provenance pass. Automatic production deploy `6abfe8eca64d060007ca4564` is
+ready/published at 17:26:25.151Z; authenticated default-off readback at
+17:27:43.994Z verifies exact revision, input selector unset, competing modes
+inert and zero active reservations. This is inert integration, not OPEN clock
+acceptance or recommendation-quality improvement.
+Return directly to prospective fresh-input/original-source acceptance, canonical
+outcomes through actual learning admission, then one measured contextual-ranking
+challenger. Do not extend the clock/control surface or retry the consumed 16:15Z
+failure. Its record remains immutable.
+
+**Selected minimum critical-path investigation — 2026-10-02:** primary owner
+Codex, isolated main-based branch `codex/bounded-context-overlap-oct2`, four
+active hours for reproduction/implementation/behavior checks; no independent
+second slice. Attributable failed-attempt trace at 18:07:42.870Z retains a
+6,792 ms completed candidate-data stage and three raw candidates, but ranking
+is never reached before the existing 23,000 ms route budget's cleanup reserve
+stops work at 20,135 ms. The subsequent generator phase awaits independent
+SPY/QQQ market-context acquisition and persistence before ranking. Its separate
+production latency is not retained, so do not claim the exact bottleneck is
+proven. Test the narrow serial-critical-path hypothesis through the actual
+packaged normal route with bounded synthetic latency before changing behavior.
+If reproduced, overlap only those independent reads inside the already-admitted
+completed-input policy's fixed six-plus-two provider budget; drain both tasks,
+preserve abort/failure semantics and exact scoring/geometry/publication.
+No deadline, quality threshold, provider allowance or schema is increased.
+Interface ownership is only recommendation generation and its registered
+CLOSED runtime proof; no order/portfolio/schema contract changes. Integrate
+after completed verified cleanup, protected CI and proportionate tests, then
+return directly to original-source/canonical learning acceptance and the
+attributable relative-plan-context ranking defect. If overlap does not remove
+the reproduced failure without side effects, reject it rather than expand a
+scheduler or receipt platform.
+
+**Unarmed corrected-clock predecessor — no_go 2026-10-02:** the prospective
+17:45Z card was never armed before its frozen 17:30Z readiness deadline.
+Preserve that card unchanged: zero configuration changes, builds, scan requests
+or provider calls for it. Do not move or retry that consumed card.
+
+**New prospective corrected-clock OPEN card — frozen 2026-10-02 before outcome:**
+exact main above; normal Git-connected inert integration deploy
+`6abfe8eca64d060007ca4564` must be ready/published and default-off verified before
+any activation. Target is 18:00Z (20:00 CEST / 14:00 New York), expiry 18:15Z,
+activation-ready deadline 17:45Z: one full quarter-hour before the slot. The new
+versioned frozen card at `/private/tmp/ture-oct2-clock-2000-card.json` retains
+its exact computed series identity and permits one normal scheduled attempt
+and at most eight Twelve Data Basic Free credits. The repository-pinned official
+calendar verifies a regular Oct 2 session 13:30–20:00Z with no early close.
+Question: after the reproduced correction, can the normal scan retain fresh
+original inputs, explicit `pre_publication_decision_clock_v1`, exact lineage and
+original hidden outcome sources without stale publication or excess credit?
+Use `completed_daily_intraday_input_v1`; ranking, confidence, thresholds and
+publication remain the unchanged normal policy at this exact revision.
+
+Go requires exact CI/main/deploy, two prior terminal reservations totaling
+sixteen credits, zero active/unresolved/unattributed work, unchanged inert
+shared-key staging, the existing same-day 15:23Z account receipt within three
+hours, and all competing modes inert. Keep global disable true. Change only
+function-scoped production observation-series enable and its owned date, slots,
+attempt/credit caps and input selector; publish exactly one unchanged-main
+activation build. Late/mismatched activation is `no_go`, with immediate owned
+cleanup; do not move or retry this consumed card. Never invoke a manual route,
+provider or broker, migrate, buy data or lower a quality threshold.
+
+Operational pass requires one attributable terminal completed/empty scan,
+at most one eight-credit reservation, zero active/duplicate/broker effects,
+exact source/build/decision/lineage binding and capture ≤ explicit decision ≤
+completion. Any actual publication additionally needs decision ≤ authoritative
+database publication ≤ completion, fresh original input and unchanged geometry.
+A valid `no_trade` is allowed. Source continuity passes separately only for at
+least one valid hidden source with exact original candidate/plan/input/decision
+provenance. Retain all eight identities and explicit missingness; three observed
+inputs are not all-eight coverage. Duplication, budget excess, invalid clocks,
+cross-bound lineage, stale publication or altered geometry/source is `fail`.
+Provider/session/timeout/input absence is `inconclusive`; no bounded attempt
+is `missing_result`. A no-publication run leaves the real successful-publication
+dimension unexercised and proves no recommendation-quality improvement.
+
+From 18:01Z, read only authoritative owner-bound attempt/cycle/run/snapshot,
+reservation aggregate, publication/broker counts and actual dashboard evidence,
+at most through 18:02:30Z including authentication/body time. Immediately restore
+only owned controls to false/unset, leave global disable true and every unrelated
+value unchanged, then create exactly one unchanged-main cleanup build and
+verify ready/published identity. Codex and a same-chat heartbeat own cleanup;
+runtime half-open expiry independently rejects later slots. Preserve the receipt
+and predecessor's failure. Later source/outcome/actual-learning checks have their
+own question/card, and cannot pool incompatible revisions or imply baseline,
+promotion, alpha, upstream-version, raw-replay or execution-feasibility authority.
+
+**Activated corrected-clock card — 2026-10-02:** owner-bound provider-free
+preflight at 17:34:05.239Z is ready for the new 18:00Z slot, with two terminal
+prior reservations/sixteen credits and zero active, unresolved or unattributed
+work. The locally retained activation transaction changes only the owned
+function-scoped production controls. Activation deploy
+`6abfeb194807195a331ce113` is ready/published at 17:35:02.141Z on exact main
+`6026f6bb434a2d7f4d3dea19349b22910080da6a`, before the 17:45Z deadline.
+Authenticated effective readback at 17:35:47.122Z binds that exact deploy and
+`observation_series_628cc5dac7a8709a`; its sole rejection is the expected
+already-enabled activation guard. Global disable remains true, staging remains
+inert, and no provider or scan route is invoked manually. The same-chat cleanup
+heartbeat was registered and is now deleted after verified cleanup.
+
+**Corrected-clock OPEN result — bounded read incomplete, later diagnosis
+inconclusive, 2026-10-02:** the original once-only 18:01Z observer times out
+at 18:01:42.728Z before returning complete evidence; preserve its
+`bounded_read_incomplete` receipt unchanged. A separately bounded, provider-free
+late recovery at 18:04:53.184Z finds exactly one attributable attempt
+`scheduled_scan_attempt_cr0wmr`, fired 18:01:00.986Z, route received
+18:01:03.487Z, terminal `timeout_budget_exceeded` finalized 18:01:23.761Z.
+Six provider successes, zero provider errors and three raw candidates are
+retained in the cycle; ranking, decision/run and original research sources are
+absent. One terminal eight-credit reservation, zero active/duplicate/broker
+records and zero publications are observed. This is neither an evaluated
+`no_trade` nor corrected-clock acceptance. The later read cannot retroactively
+pass the frozen observer window. No outcome series is armed without valid
+original sources; preserve the prepared helpers inert.
+
+Owned controls are immediately restored; exactly one unchanged-main cleanup
+deploy `6abff1b61e8fabd5ade7536b` is ready/published at 18:03:16.615Z on
+`6026f6bb434a2d7f4d3dea19349b22910080da6a`. Global disable remains true,
+owned metadata/input selector are removed and unrelated controls are unchanged.
+The intelligence chain is `evidence_incomplete`: diagnose the attributable
+time budget before any replacement live question; never retry the consumed
+slot or increase quality/output quotas. This interrupts only the minimum
+source-admission blocker and does not select a scheduler/platform expansion.
+Authenticated default-off readback at 18:15:53.719Z verifies this exact cleanup
+deploy, all competing workers inert, input selector unset, three terminal
+reservations/twenty-four credits and zero active reservations. Runtime ping
+is provider-free and performs no Supabase write.
+
+**Critical-path CLOSED reproduction and correction — 2026-10-02:** the actual
+packaged scheduler, normal route, real scanner/provider adapters, Supabase SDK,
+isolated PostgreSQL/PostgREST publication and owner reader reproduce the serial
+failure with six 1,800 ms candidate reads and two concurrent 9,000 ms benchmark
+reads: 20,119 ms, three raw candidates, no ranking/decision/publication, one
+failed finalized eight-credit reservation. These synthetic delays isolate the
+dependency, not the unrecorded exact production benchmark latency.
+The admitted completed-input branch now overlaps its independent scanner and
+SPY/QQQ tasks. Both tasks and both benchmark transports settle before returning;
+abort still uses the existing signal and unchanged deadline. The same scenario
+completes in 11,368 ms with three fresh inputs, exact v4 decision/lineage and
+three original-geometry synthetic database publications, explicit decision
+before database insertion and completion. Eight synthetic requests remain the
+cap; external-provider, production and broker actions are zero. This is local
+`supporting_blocker_removal`, not OPEN acceptance or recommendation-quality lift.
+Prefetch may use the already-reserved two benchmark requests even when the
+scanner is empty; it cannot obtain more credits or publish incomplete input.
+Legacy/manual profiles retain serial scanner/context ordering. Benchmark
+failure draining applies to callers with an owned abort signal; unbounded
+legacy calls retain early rejection. Its separate actual-adapter test
+keeps the second request pending until explicitly settled before returning the
+first failure. A read-only review additionally identifies an early scanner
+rate-limit failure being delayed by pending benchmarks until the route's
+timeout overrides its precise classification. The actual packaged synthetic
+regression fails before correction; terminal scanner rejection now cancels
+only its sibling context via a controller linked to the unchanged parent
+signal, drains both transports and preserves the original scanner error.
+The timeout regression also checks measured monotonic terminal duration, not
+only budget labels. The database expiry fixture advances time at context
+persistence after acquisition; it still requires zero stale publications and
+does not assume that QQQ starts after scanning.
+
+Local verification at 18:41Z: the registered foundation run passes its build,
+lint (zero errors/eight existing warnings), nonincremental types, zero-vulnerability
+audit, three disposable database lifecycle groups, 1,030 containment checks,
+authenticated boundary and all downstream intelligence/explanation/proposal/
+adapter/capture/binding groups. That run began before the final review
+corrections; it is not represented as exact final-code verification. After
+those corrections, all 24 tests in the affected runtime file pass afresh,
+including complete persisted canonical-learning fixtures and the new negative
+checks; fresh lint, nonincremental types and standard production build also
+pass on the final source. Local environment is macOS ARM64/Node 26.5.0 and
+disposable PostgreSQL/PostgREST, not protected Ubuntu/Node 24.19 CI or OPEN.
+Protected exact-head integration and inert production verification are pending.
+
+**Attributable plan-scale diagnosis — 2026-10-02, not a new live policy:** a
+separate owner-bound read at 17:42:52.397Z preserves all eight identities in the
+immutable failed 16:15Z predecessor. Its three observed plans show that AAPL's
+first target is 7.4279% above the worst entry, versus a retained 2.12% completed
+daily average range and 0.71% recent intraday range; its original price-plan
+component is 88/strong without a stretch warning. ORCL receives the same 88
+despite materially different range context. The current component tests fixed
+absolute stop/second-target distances and nominal R/R, not relative range or
+the declared 60-minute outcome horizon. This is a concrete candidate for the
+next same-population, point-in-time contextual-ranking investigation after the
+source/canonical-learning links pass, not a chosen or validated challenger.
+Observed recent range is not a forward forecast or hard target ceiling; no
+outcomes were read, alpha inferred, geometry rewritten, threshold lowered or
+policy activated. The predecessor's publication-clock `fail` remains unchanged.
 
 **New Oct 2 observation and exact diagnosis — 2026-10-02:** frozen main above,
 activation deploy `6abfd21f657adbbd8c74c71f` ready/published at 15:48:27.102Z,
@@ -88,6 +267,46 @@ only the named disposable runtime fixtures are cleaned up. Evidence is local
 macOS/ARM64 Node 26.5.0, not protected Ubuntu CI, main, production or OPEN quality.
 Submit one coherent focused PR from current main; keep all production controls
 inert and preserve the predecessor's frozen failure while integration completes.
+
+**Clock correction integration and canonical-outcome preparation — 2026-10-02:**
+the coherent correction is submitted as PR
+[#724](https://github.com/willyvalentin/trade/pull/724), tested head
+`364c974ead994370b111a853993a7153ba4fe42d`, against exact main above.
+Protected workflow `37037276539` is still running at 17:19Z: foundation,
+snapshot admission, snapshot issuance, non-forgeable authority and lossless
+scalar pass; replay-lineage and the protected aggregate are not yet complete.
+Main protection remains strict with enforced administrators and the required
+`provider-free-verification` context. No merge, main verification, replacement
+OPEN card or activation is claimed. The app attachment attempt hits this
+chat's existing 100-attachment limit; no attachment is deleted to make room.
+
+The existing, already integrated outcome-series capability is separately
+exercised through its actual packaged scheduled function, internal route,
+credit guard, Supabase SDK, isolated PostgreSQL/PostgREST persistence and actual
+restarted owner/learning readback. A warm synthetic original population retains
+six research sources; two exact quarter-hour slots use six synthetic requests
+and persist eighteen canonical 15/30/60-minute outcomes. First-pass rows remain
+unchanged on resumption. A cold synthetic population retains three research
+sources; the same two-slot shape uses three synthetic requests and persists
+nine canonical outcomes. Wrong packaged deploy, conflicting scan gates, invalid
+series budget, pre-start delivery, duplicate delivery, expiry and cleanup
+perform no additional provider work. Each actual attempt retains its exact
+series and slot index. The complete eight-member decision denominator survives,
+including unobserved members. All original sources reach actual canonical
+learning consumers; baseline remains `not_ready` with its prospective-contract
+blocker, and no promotion authority is granted.
+
+This is CLOSED verification on local macOS/ARM64 Node 26.5.0 with a synthetic
+external provider boundary, not production market or recommendation-quality
+evidence. The owned temporary proof reuses the registered completed-input
+runtime harness and existing outcome code/schema; production source, CI,
+ranking, budgets and workers are unchanged. Provider/configuration/scan/broker
+production effects are zero. The named disposable local fixtures are cleaned
+up. Prepared owner-bound production observers separate replacement input/clock
+evidence, original-source planning, canonical-outcome coverage and actual
+learning admission. They remain unarmed; any live source or outcome operation
+still requires its own prospectively frozen exact revision/card, budget,
+session, published deployment, stop conditions and verified cleanup.
 
 **PR #722 integration verified — 2026-10-02:** required six-shard workflow
 `37017804500`, its protected aggregate and merge-candidate provenance pass on

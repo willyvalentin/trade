@@ -120,10 +120,19 @@ function buildSummary(
 }
 
 export async function getMarketRegime(options: { signal?: AbortSignal } = {}): Promise<MarketRegime> {
-  const [spyCandles, qqqCandles] = await Promise.all([
+  const requests = [
     getDailyCandles("SPY", 60, options),
     getDailyCandles("QQQ", 60, options),
-  ]);
+  ];
+  // Abortable callers retain ownership until both reads settle. Calls without
+  // an owned signal retain legacy early rejection, rather than introducing an
+  // unbounded wait for a sibling transport that cannot be cancelled here.
+  const [spyResult, qqqResult] = options.signal
+    ? await Promise.allSettled(requests)
+    : (await Promise.all(requests)).map(value => ({ status: "fulfilled" as const, value }));
+  if (spyResult.status === "rejected") throw spyResult.reason;
+  if (qqqResult.status === "rejected") throw qqqResult.reason;
+  const spyCandles = spyResult.value, qqqCandles = qqqResult.value;
 
   const spy = analyzeSymbol(spyCandles);
   const qqq = analyzeSymbol(qqqCandles);
