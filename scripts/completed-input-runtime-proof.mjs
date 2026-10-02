@@ -9,6 +9,7 @@ import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { buildSync } from "esbuild";
+import { setTimeout as syntheticDelay } from "node:timers/promises";
 
 const root = process.cwd();
 const cold = process.argv.includes("--cold");
@@ -16,6 +17,15 @@ const wrongPolicy = process.argv.includes("--wrong-policy");
 const diagnoseOutcomes = process.argv.includes("--diagnose-outcomes");
 const opening = process.argv.includes("--opening");
 const publicationClock = process.argv.includes("--publication-clock");
+const contextLatency = process.argv.includes("--context-latency");
+const contextBudgetTimeout = process.argv.includes("--context-budget-timeout");
+const scannerRateLimit = process.argv.includes("--scanner-rate-limit");
+const expectContextTimeout = process.argv.includes("--expect-context-timeout") || contextBudgetTimeout;
+assert(!contextLatency || publicationClock && cold,
+  "Context latency exercises the isolated normal cold publication path");
+assert(!expectContextTimeout || contextLatency);
+assert(!scannerRateLimit || contextLatency && !expectContextTimeout);
+const benchmarkDelayMs = contextBudgetTimeout || scannerRateLimit ? 30000 : 9000;
 assert(!publicationClock || cold && !opening && !wrongPolicy && !diagnoseOutcomes,
   "Publication clock proof is one isolated cold normal scanner path");
 assert(!opening || cold, "Opening proof has no pre-session warm-history acquisition");
@@ -45,6 +55,9 @@ const originalEnvironment = { ...process.env };
 let externalRequests = 0;
 let syntheticPublicationCount = 0;
 let clock = 0;
+let durationStartedAt = null;
+let pendingSyntheticTransports = 0;
+const fixtureNow = () => clock + (durationStartedAt === null ? 0 : Math.round(performance.now() - durationStartedAt));
 const logs = [];
 const docker = (...args) => execFileSync("docker", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
 const dockerLogs = (name) => {
@@ -161,8 +174,8 @@ try {
       values('2026-10-01','polygon',true,'Synthetic CLOSED calendar','trading_day','09:30','16:00','{}','2026-10-01T17:30:00Z');
     insert into user_settings(owner_user_id) values('${owner}');`);
   globalThis.Date = class extends OriginalDate {
-    constructor(...args) { super(...(args.length ? args : [clock])); }
-    static now() { return clock; }
+    constructor(...args) { super(...(args.length ? args : [fixtureNow()])); }
+    static now() { return fixtureNow(); }
   };
   docker("run", "--pull=missing", "--rm", "-d", "--name", api, "--network", network, "-p", "127.0.0.1::3000",
     "-e", `PGRST_DB_URI=postgres://authenticator:closed-proof-only@${database}:5432/postgres`,
@@ -179,6 +192,16 @@ try {
     const url = new URL(typeof input === "string" || input instanceof URL ? input : input.url);
     if (url.origin === "https://api.twelvedata.com" && url.pathname === "/time_series") {
       externalRequests++;
+      if(contextLatency) {
+        pendingSyntheticTransports++;
+        try { await syntheticDelay(
+          ["SPY","QQQ"].includes(url.searchParams.get("symbol")) ? benchmarkDelayMs : 1800,
+          undefined, {signal:init?.signal});
+        } finally { pendingSyntheticTransports--; }
+      }
+      if(scannerRateLimit && !["SPY","QQQ"].includes(url.searchParams.get("symbol"))) {
+        return Response.json({status:"error",code:429,message:"Synthetic API credits rate limit"},{status:429});
+      }
       const interval = url.searchParams.get("interval");
       const intraday = interval !== "1day";
       const values = [];
@@ -247,8 +270,12 @@ try {
   externalRequests=0;
   const scheduler = require(join(directory, "functions/scheduled.cjs")).default;
   clock = OriginalDate.parse(slot) + 20000;
+  if(contextLatency) durationStartedAt = performance.now();
   const response = await scheduler(new Request("http://closed-scheduler", {method:"POST", body:JSON.stringify({next_run:expiry})}), {deploy:{id:identity.deploy_id,context:"production",published:true}});
+  const boundedDurationMs = durationStartedAt === null ? null : Math.round(performance.now() - durationStartedAt);
+  durationStartedAt = null;
   const body = await response.json();
+  assert.equal(pendingSyntheticTransports,0,"All owned transports must settle before terminal readback");
   const rows = JSON.parse(sql("select coalesce(jsonb_agg(t), '[]') from scheduled_scan_attempts t;"));
   const receipts = JSON.parse(sql("select coalesce(jsonb_agg(t), '[]') from observation_cycle_receipts t;"));
   const scanRuns = JSON.parse(sql("select coalesce(jsonb_agg(t), '[]') from recommendation_scan_runs t;"));
@@ -262,6 +289,28 @@ try {
     assert.equal(externalRequests,0);
     assert.equal(claims.length,0);
     assert.equal(scanRuns.length,0);
+  } else if(scannerRateLimit) {
+    assert.equal(response.status,500);
+    assert.equal(rows.length,1); assert.equal(receipts.length,1);
+    assert.equal(rows[0].skip_reason,"provider_rate_limited");
+    assert.equal(scanRuns.length,0); assert.equal(researchSnapshots.length,0);
+    assert.equal(claims.length,1); assert.equal(claims[0].requested_credits,8);
+    assert.equal(claims[0].status,"failed"); assert(claims[0].finalized_at);
+    assert.equal(externalRequests,3);
+    assert(boundedDurationMs < 10000,"Early scanner failure must not wait for the route deadline");
+    assert.equal(Number(sql("select count(*) from recommendations;")),0);
+  } else if(expectContextTimeout) {
+    assert.equal(response.status,200);
+    assert.equal(rows.length,1); assert.equal(receipts.length,1);
+    assert.equal(rows[0].skip_reason,"timeout_budget_exceeded");
+    assert.equal(receipts[0].cycle_status,"failed");
+    assert.equal(receipts[0].receipt_json.discovery_evaluation.raw_candidate_count,3);
+    assert.equal(receipts[0].receipt_json.discovery_evaluation.ranked_count,0);
+    assert.equal(scanRuns.length,0); assert.equal(researchSnapshots.length,0);
+    assert.equal(claims.length,1); assert.equal(claims[0].requested_credits,8);
+    assert.equal(claims[0].status,"failed"); assert(claims[0].finalized_at);
+    assert.equal(externalRequests,8);
+    assert.equal(Number(sql("select count(*) from recommendations;")),0);
   } else {
     assert.equal(response.status,200,JSON.stringify({body,logs:logs.slice(-15)}).slice(-12000));
     assert.equal(rows.length,1);
@@ -689,6 +738,10 @@ try {
         freshness:record?.candidates.find(candidate=>candidate.candidate_id===row.payload_json?.candidate_id)?.data.freshness??null}))}} : {}),
     ...(zeroLatestVolume ? { zero_latest_volume_inputs:record.candidates.filter(candidate=>candidate.data.input_snapshot?.intraday_indicators?.latestVolume===0).length } : {}),
     ...(missingLatestVolume ? {missing_volume_research_sources:researchSnapshots.length} : {}),
+    ...(contextLatency ? {context_latency_proof:scannerRateLimit?"preserved_scanner_rate_limit":expectContextTimeout?"reproduced_timeout":"completed",
+      bounded_duration_ms:boundedDurationMs,route_budget_ms:23000,cleanup_reserve_ms:3000,
+      synthetic_scanner_delay_ms:1800,synthetic_benchmark_delay_ms:benchmarkDelayMs,
+      pending_synthetic_transports:pendingSyntheticTransports} : {}),
     actual_provider_requests:0,production_actions:0,publications:syntheticPublicationCount,
     production_publications:0,broker_actions:0,cleanup:"inert"}));
   if(diagnoseOutcomes && !wrongPolicy) {

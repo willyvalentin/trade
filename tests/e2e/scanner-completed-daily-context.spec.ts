@@ -20,6 +20,82 @@ import {
 
 // Synthetic CLOSED fixtures. No market data, credentials or production writes.
 const at = new Date("2026-10-01T15:50:00.000Z");
+for (const bounded of [true, false]) {
+test(`market context ${bounded ? "drains owned transports" : "preserves unbounded legacy rejection"} on benchmark failure`, async () => {
+  const bundle = await build({ entryPoints: [resolve(process.cwd(), "lib/market-regime.ts")],
+    bundle: true, write: false, platform: "node", format: "cjs", conditions: ["react-server"] });
+  const loaded = { exports: {} };
+  new Function("require", "module", "exports", bundle.outputFiles[0].text)(
+    createRequire(resolve(process.cwd(), "package.json")), loaded, loaded.exports);
+  const { getMarketRegime } = loaded.exports as typeof import("@/lib/market-regime");
+  const originalFetch = globalThis.fetch, originalKey = process.env.TWELVE_DATA_API_KEY;
+  process.env.TWELVE_DATA_API_KEY = "synthetic-closed-boundary-only";
+  let release!: () => void, settled = false;
+  const pending = new Promise<void>(resolve => { release = resolve; });
+  const symbols: string[] = [];
+  globalThis.fetch = async (input) => {
+    const url = new URL(typeof input === "string" || input instanceof URL ? input : input.url);
+    expect(url.origin).toBe("https://api.twelvedata.com");
+    const symbol = url.searchParams.get("symbol")!; symbols.push(symbol);
+    if (symbol === "SPY") throw new Error("synthetic benchmark failure");
+    await pending;
+    return Response.json({ values: bars().map(bar => ({datetime:new Date(bar.timestamp*1000).toISOString().slice(0,10),
+      open:"100",high:"103",low:"99",close:"101",volume:"1000"})) });
+  };
+  const running = getMarketRegime(bounded ? {signal:new AbortController().signal} : {}).then(() => { settled = true; return null; }, error => { settled = true; return error; });
+  try {
+    await new Promise(resolve => setImmediate(resolve));
+    expect(symbols.sort()).toEqual(["QQQ","SPY"]);
+    expect(settled).toBe(!bounded);
+    release();
+    expect(await running).toBeInstanceOf(Error);
+  } finally {
+    release(); await running;
+    globalThis.fetch = originalFetch;
+    if (originalKey === undefined) delete process.env.TWELVE_DATA_API_KEY;
+    else process.env.TWELVE_DATA_API_KEY = originalKey;
+  }
+});
+}
+
+test("packaged bounded input pipeline overlaps independent context without changing its budget or clocks", () => {
+  test.setTimeout(90000);
+  const proof=spawnSync(process.execPath,["scripts/completed-input-runtime-proof.mjs","--cold","--publication-clock","--context-latency"],
+    {cwd:process.cwd(),encoding:"utf8",timeout:80000});
+  expect(proof.status,`${proof.stdout}\n${proof.stderr}`).toBe(0);
+  const evidence=proof.stdout.trim().split("\n").map(line=>JSON.parse(line)).at(-1);
+  expect(evidence).toMatchObject({context_latency_proof:"completed",scheduled_synthetic_requests:8,
+    route_budget_ms:23000,cleanup_reserve_ms:3000,fresh_inputs:3,actual_provider_requests:0,production_actions:0,cleanup:"inert"});
+  expect(evidence.bounded_duration_ms).toBeLessThan(19000);
+  expect(evidence.publications).toBeGreaterThan(0);
+});
+
+test("overlapped context still aborts at the unchanged deadline and drains every transport", () => {
+  test.setTimeout(90000);
+  const proof=spawnSync(process.execPath,["scripts/completed-input-runtime-proof.mjs","--cold","--publication-clock",
+    "--context-latency","--context-budget-timeout"],{cwd:process.cwd(),encoding:"utf8",timeout:80000});
+  expect(proof.status,`${proof.stdout}\n${proof.stderr}`).toBe(0);
+  const evidence=JSON.parse(proof.stdout.trim().split("\n").at(-1)!);
+  expect(evidence).toMatchObject({context_latency_proof:"reproduced_timeout",scheduled_synthetic_requests:8,
+    publications:0,pending_synthetic_transports:0,route_budget_ms:23000,cleanup_reserve_ms:3000,
+    actual_provider_requests:0,production_actions:0,cleanup:"inert"});
+  // Real monotonic duration, not only the hardcoded contract labels. Allow
+  // bounded database finalization after the 20-second acquisition cutoff.
+  expect(evidence.bounded_duration_ms).toBeGreaterThanOrEqual(19500);
+  expect(evidence.bounded_duration_ms).toBeLessThan(24000);
+});
+
+test("early scanner rate limit cancels context without becoming a timeout", () => {
+  test.setTimeout(90000);
+  const proof=spawnSync(process.execPath,["scripts/completed-input-runtime-proof.mjs","--cold","--publication-clock",
+    "--context-latency","--scanner-rate-limit"],{cwd:process.cwd(),encoding:"utf8",timeout:80000});
+  expect(proof.status,`${proof.stdout}\n${proof.stderr}`).toBe(0);
+  const evidence=JSON.parse(proof.stdout.trim().split("\n").at(-1)!);
+  expect(evidence).toMatchObject({context_latency_proof:"preserved_scanner_rate_limit",scheduled_synthetic_requests:3,
+    publications:0,pending_synthetic_transports:0,actual_provider_requests:0,production_actions:0,cleanup:"inert"});
+  expect(evidence.bounded_duration_ms).toBeLessThan(10000);
+});
+
 test("provider parsing preserves observed zero but never converts missing volume into zero", async () => {
   // Foundation intentionally collects without the server condition. Load the
   // actual SDK only in this server-facing bundle; keep its production marker
@@ -463,6 +539,13 @@ test(`real scanner acquires raw history then reuses it after restart with ${stor
       expect(["/rest/v1/scanner_cache", "/rest/v1/recommendation_scan_runs", "/rest/v1/recommendation_snapshots", "/rest/v1/recommendation_outcomes",
         "/rest/v1/user_settings", "/rest/v1/positions", "/rest/v1/recommendations", "/rest/v1/market_regime_snapshots"]).toContain(url.pathname);
       if (["/rest/v1/recommendations", "/rest/v1/positions"].includes(url.pathname)) expect(request.method).toBe("GET");
+      // Context acquisition now overlaps the scanner. Advance the clock at the
+      // real context-persistence boundary, after both acquisitions have settled,
+      // to keep this an expiry-before-publication test rather than an ordering
+      // assumption about which provider request starts last.
+      if (delayAfterScanner && url.pathname === "/rest/v1/market_regime_snapshots" && request.method === "POST") {
+        clock += 360001; delayAfterScanner = false;
+      }
       if (database) {
         // Only the Supabase gateway prefix is removed. Query parsing, JSONB
         // persistence, unique upsert and restart readback run in real PostgREST/PG.
@@ -500,10 +583,6 @@ test(`real scanner acquires raw history then reuses it after restart with ${stor
     expect(url.origin).toBe("https://api.twelvedata.com");
     expect(url.pathname).toBe("/time_series");
     const symbol = url.searchParams.get("symbol"), interval = url.searchParams.get("interval");
-    // Delay at the external provider boundary, not inside scoring/building.
-    // Source time remains inside legacy 15min freshness but the current-session
-    // closed-bar window has expired, so the new publication guard must reject.
-    if (delayAfterScanner && interval === "1day" && symbol === "QQQ") { clock += 360001; delayAfterScanner = false; }
     let values;
     if (interval === "1day") {
       daily++;

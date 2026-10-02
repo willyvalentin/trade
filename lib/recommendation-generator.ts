@@ -3639,7 +3639,22 @@ export async function generateRecommendations({
           : null,
       provider_call_cap: scannerFreshProviderCallCap ?? null,
     });
-    const scannerCandidates = await scanMarket(
+    const contextAbortController = inputAttributed ? new AbortController() : null;
+    const contextSignal = contextAbortController
+      ? signal ? AbortSignal.any([signal, contextAbortController.signal]) : contextAbortController.signal
+      : signal;
+    const loadMarketRegime = async () => {
+      try {
+        throwIfAborted(signal);
+        return await getMarketRegime({ signal: contextSignal });
+      } catch (error) {
+        console.error("[recommendations/generate] market_regime_error", {
+          error: normalizeUnknownError(error),
+        });
+        return neutralMarketRegimeFallback;
+      }
+    };
+    const scannerTask = scanMarket(
       scannerBaseCandidates.length > 0 ? scannerBaseCandidates : mockCandidates,
       {
         source,
@@ -3653,7 +3668,38 @@ export async function generateRecommendations({
         completedDailyContextPolicyVersion: scannerInputPolicyVersion,
         signal,
       },
-    );
+    ).then(candidates => {
+      // Retain completed acquisition evidence even if the independent context
+      // later times out. This trace never grants decision/publication authority.
+      if (inputAttributed) updateRawCandidateTrace(activeScanTrace, candidates);
+      return candidates;
+    }).catch(error => {
+      // A terminal scanner failure owns the result. Cancel only its sibling
+      // context, then drain it below; do not wait until the route deadline and
+      // replace a precise provider failure with a timeout classification.
+      contextAbortController?.abort(error);
+      throw error;
+    });
+    let prefetchedMarketRegime: MarketRegime | null = null;
+    let scannerCandidates: Awaited<ReturnType<typeof scanMarket>>;
+    if (inputAttributed) {
+      // Admission above fixes the whole reservation at six scanner credits
+      // plus two SPY/QQQ credits. These independent reads share the existing
+      // abort signal and may overlap; no extra provider allowance is created.
+      // Settle both tasks before leaving, including scanner/provider failures.
+      // An empty scanner result may still consume the two reserved benchmarks.
+      const [scannerResult, contextResult] = await Promise.allSettled([
+        scannerTask,
+        loadMarketRegime(),
+      ]);
+      if (scannerResult.status === "rejected") throw scannerResult.reason;
+      if (contextResult.status === "rejected") throw contextResult.reason;
+      scannerCandidates = scannerResult.value;
+      prefetchedMarketRegime = contextResult.value;
+    } else {
+      // Legacy, manual and unbounded profiles retain their serial behavior.
+      scannerCandidates = await scannerTask;
+    }
     throwIfAborted(signal);
     const candidateDecisionCaptureTimestamp = new Date().toISOString();
     const candidateEligibilityRejectionCodes = new Map<
@@ -3711,7 +3757,7 @@ export async function generateRecommendations({
         publishedTickers,
         selectedBuildDiagnostics,
       });
-    updateRawCandidateTrace(activeScanTrace, scannerCandidates);
+    if (!inputAttributed) updateRawCandidateTrace(activeScanTrace, scannerCandidates);
     const initialRealScannerCandidateGeneration =
       buildRealScannerCandidateGenerationSummary({
         universe: scannerBaseCandidates,
@@ -3771,16 +3817,7 @@ export async function generateRecommendations({
       openPositionTickerSet.add(ticker);
     }
 
-    let marketRegime = neutralMarketRegimeFallback;
-
-    try {
-      throwIfAborted(signal);
-      marketRegime = await getMarketRegime({ signal });
-    } catch (error) {
-      console.error("[recommendations/generate] market_regime_error", {
-        error: normalizeUnknownError(error),
-      });
-    }
+    const marketRegime = prefetchedMarketRegime ?? await loadMarketRegime();
 
     throwIfAborted(signal);
     logPipeline("market_regime", marketRegime);
