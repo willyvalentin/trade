@@ -7,7 +7,9 @@ import { captureCompletedDailyContext } from "@/lib/scanner-completed-daily-cont
 import { captureCurrentSessionContext, currentSessionFeatures } from "@/lib/scanner-current-session-context";
 import { calculateIntradayIndicators } from "@/lib/intraday-indicators";
 import { getUsEquityMarketSession } from "@/lib/us-equity-market-calendar";
+import { getNyMarketTime } from "@/lib/market-session";
 import type { ScannerCandidate } from "@/lib/scanner";
+import type { CandidateDecisionLearningAttribution } from "@/lib/candidate-decision-learning-attribution";
 
 // Synthetic CLOSED contexts pass the actual raw-context validators. No provider,
 // mutable cache, future outcome, broker, or production write is used.
@@ -17,7 +19,8 @@ const identity = { contract_version: "twelve_data_response_identity_v1", digest_
 
 async function candidate(ticker: string, range = 1, now = NOW, interval: "5min" | "15min" = "5min") {
   const history = [];
-  const day = new Date("2026-10-01T00:00:00.000Z");
+  const day = new Date(`${now.toISOString().slice(0, 10)}T00:00:00.000Z`);
+  day.setUTCDate(day.getUTCDate() - 1);
   while (history.length < 60) {
     if (getUsEquityMarketSession(day.toISOString().slice(0, 10)).session_close) {
       history.unshift({ timestamp: day.getTime() / 1000, open: 100, high: 103, low: 99, close: 100, volume: 1000 });
@@ -59,20 +62,22 @@ async function candidate(ticker: string, range = 1, now = NOW, interval: "5min" 
   return result;
 }
 
-export async function relativePlanEvidence(options: { range?: number; now?: Date; interval?: "5min" | "15min"; missing?: boolean; rankedCount?: 4 } = {}) {
+export async function relativePlanEvidence(options: { range?: number; now?: Date; interval?: "5min" | "15min"; missing?: boolean; rankedCount?: 4; buildVersion?: string; learningAttribution?: CandidateDecisionLearningAttribution } = {}) {
   const now = options.now ?? NOW;
   const observed = await Promise.all([candidate("AAA", options.range ?? 1, now, options.interval), candidate("ZZZ", 8, now, options.interval)]);
   if (options.rankedCount === 4) observed.push(...await Promise.all([candidate("BBB", 8, now), candidate("CCC", 8, now)]));
   const missing = Array.from({ length: options.missing === false ? 0 : 8 - observed.length }, (_, i) => ({ ...observed[0], ticker: `MISS${i}` }));
   const ranking = buildScannerCandidateRankingSummary({ candidates: observed, targetMin: 0, targetMax: 3, now });
-  const run = buildRecommendationScanRun({ trading_date: "2026-10-02", observed_at: now.toISOString(),
+  const run = buildRecommendationScanRun({ trading_date: getNyMarketTime(now.toISOString()).ny_date, observed_at: now.toISOString(),
+    ...(options.buildVersion ? { scheduled_scan_run_id: `synthetic_prospective_${now.toISOString()}` } : {}),
     completed_at: new Date(now.getTime() + 100).toISOString(), window: "midday", source: "supabase",
     scanned_ticker_count: observed.length + missing.length, raw_candidate_count: observed.length });
   const capture = buildCandidateDecisionCapture({ captureTimestamp: now.toISOString(), decisionTimestamp: now.toISOString(),
     universe: [...observed, ...missing], observedCandidates: observed, ranking,
     noPublishReason: "no_trade", eligibleCandidateTickers: observed.map(c => c.ticker) });
   const record = buildCandidateDecisionRecord({ scanRun: run, capture, scoringVersion: "synthetic_original_score",
-    buildVersion: "synthetic_closed_shadow_test:synthetic_closed_shadow_test" })!;
+    learningAttribution: options.learningAttribution,
+    buildVersion: options.buildVersion ?? "synthetic_closed_shadow_test:synthetic_closed_shadow_test" })!;
   expect(record).not.toBeNull();
   return { record, observed, run: { ...run, payload_json: { ...run.payload_json,
     candidate_decision_record: record, decision_lineage_receipt: buildDecisionLineageReceipt(record) } } };
