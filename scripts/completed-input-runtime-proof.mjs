@@ -22,6 +22,9 @@ const nextSlot = new Date(Date.parse(expiry) + 900000).toISOString();
 const futureBoundary = new Date(Date.parse(slot) + 1800000).toISOString();
 const zeroLatestVolume = process.argv.includes("--zero-latest-volume");
 assert(!zeroLatestVolume || cold && !wrongPolicy, "Zero-volume proof requires the cold valid-input scenario");
+const missingLatestVolume = process.argv.includes("--missing-latest-volume");
+assert(!missingLatestVolume || cold && !wrongPolicy && !zeroLatestVolume && !diagnoseOutcomes,
+  "Missing-volume proof requires its own cold acquisition scenario");
 const directory = mkdtempSync(join(tmpdir(), "ture-input-runtime-proof-"));
 const database = `ture-input-runtime-db-${process.pid}`;
 const api = `ture-input-runtime-api-${process.pid}`;
@@ -179,7 +182,8 @@ try {
         for (let time=OriginalDate.parse("2026-10-01T13:30:00Z"); time<clock; time+=300000) {
           const datetime=new Intl.DateTimeFormat("sv-SE",{timeZone:"America/New_York",
             year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(new OriginalDate(time));
-          const volume = zeroLatestVolume && time + 300000 <= clock && time + 600000 > clock ? "0" : "1000";
+          const latestClosed = time + 300000 <= clock && time + 600000 > clock;
+          const volume = missingLatestVolume && latestClosed ? " " : zeroLatestVolume && latestClosed ? "0" : "1000";
           values.unshift({datetime,open:"100",high:"101",low:"99",close:"100",volume});
         }
       } else {
@@ -254,7 +258,15 @@ try {
     assert.equal(record.final_decision.disposition,"no_trade");
     assert.equal(scanRuns[0].payload_json.scanner_clock_prior_shadow_comparison ?? null,null);
     assert.equal(scanRuns[0].payload_json.scanner_intraday_liquidity_shadow_comparison ?? null,null);
-    assert.equal(record.candidates.filter(c=>c.data.freshness==="fresh").length,cold?3:6);
+    assert.equal(record.candidates.filter(c=>c.data.freshness==="fresh").length,missingLatestVolume?0:cold?3:6);
+    if(missingLatestVolume) {
+      assert.equal(researchSnapshots.length,0,"A missing provider volume cannot create completed-input research sources");
+      assert(record.candidates.every(candidate => !candidate.data.input_snapshot ||
+        candidate.data.input_snapshot.current_session === null &&
+        candidate.data.input_snapshot.intraday_indicators === null &&
+        candidate.data.input_snapshot.features.latest_close === null),
+        "Missing volume must not be normalized into a complete decision input");
+    }
     assert(record.candidates.every(c=>c.data.source_timestamp===null || Date.parse(c.data.source_timestamp)<=Date.parse(record.decision_timestamp)));
     assert.equal(lineage.scan_run_fingerprint,scanRuns[0].run_fingerprint);
     if(diagnoseOutcomes) {
@@ -619,6 +631,7 @@ try {
         source_timestamp:row.payload_json?.data_timestamp??null,
         freshness:record?.candidates.find(candidate=>candidate.candidate_id===row.payload_json?.candidate_id)?.data.freshness??null}))}} : {}),
     ...(zeroLatestVolume ? { zero_latest_volume_inputs:record.candidates.filter(candidate=>candidate.data.input_snapshot?.intraday_indicators?.latestVolume===0).length } : {}),
+    ...(missingLatestVolume ? {missing_volume_research_sources:researchSnapshots.length} : {}),
     actual_provider_requests:0,production_actions:0,publications:0,broker_actions:0,cleanup:"inert"}));
   if(diagnoseOutcomes && !wrongPolicy) {
     assert.equal(researchSnapshots.length,cold?3:6,

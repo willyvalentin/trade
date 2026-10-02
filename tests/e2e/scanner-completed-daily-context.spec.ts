@@ -10,6 +10,7 @@ import { candidateDecisionRecordFromUnknown, candidateDecisionRecordFromScanRun 
 import { buildDecisionLineageReceipt, decisionLineageReceiptFromScanRun } from "@/lib/decision-lineage-receipt";
 import { buildRecommendationScanRun, recommendationScanRunFromPersistenceRow } from "@/lib/recommendation-scan-run";
 import { isScannerDecisionInputPublishable } from "@/lib/scanner-decision-input-snapshot";
+import { getIntradayCandlesWithDiagnostics } from "@/lib/market-data";
 import { scheduledScannerInputPolicy } from "@/lib/scheduled-scanner-input-policy";
 import { resolveScheduledScanProviderCreditBudget } from "@/lib/scheduled-scan-ticker-cap";
 import type { ScheduledScanInvocationReceipt } from "@/lib/scheduled-scan-invocation-receipt";
@@ -20,6 +21,31 @@ import {
 
 // Synthetic CLOSED fixtures. No market data, credentials or production writes.
 const at = new Date("2026-10-01T15:50:00.000Z");
+test("provider parsing preserves observed zero but never converts missing volume into zero", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalKey = process.env.TWELVE_DATA_API_KEY;
+  process.env.TWELVE_DATA_API_KEY = "synthetic-closed-boundary-only";
+  let volume: unknown = "0";
+  globalThis.fetch = async (input) => {
+    const url = new URL(typeof input === "string" || input instanceof URL ? input : input.url);
+    expect(url.origin).toBe("https://api.twelvedata.com");
+    expect(url.pathname).toBe("/time_series");
+    return Response.json({ meta: { symbol: "SYNTH", interval: "5min", exchange_timezone: "America/New_York" },
+      values: [{ datetime: "2026-10-01 09:30:00", open: "100", high: "101", low: "99", close: "100", volume }] });
+  };
+  try {
+    const read = () => getIntradayCandlesWithDiagnostics("SYNTH", "5min",
+      new Date("2026-10-01T13:30:00Z"), new Date("2026-10-01T13:35:00Z"), { requireResponseIdentity: true });
+    expect((await read()).candles[0].volume).toBe(0);
+    for (volume of ["", " ", "\t", null, undefined]) {
+      await expect(read()).rejects.toThrow(/invalid.*volume/i);
+    }
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalKey === undefined) delete process.env.TWELVE_DATA_API_KEY;
+    else process.env.TWELVE_DATA_API_KEY = originalKey;
+  }
+});
 test("scheduled input selection stays default-off and requires a matching claim and exact bounded budget", () => {
   const policy = "completed_daily_intraday_input_v1";
   const receipt = { durable_invocation_payload: { scanner_input_policy_version: policy } } as unknown as ScheduledScanInvocationReceipt;
@@ -69,6 +95,16 @@ test("packaged scheduled input policy reaches the real isolated database and own
       expect(evidence.broker_actions).toBe(0);
     }
   }
+});
+
+test("packaged missing volume stays unavailable through persisted decision and owner readback", () => {
+  test.setTimeout(90000);
+  const proof = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--cold", "--missing-latest-volume"],
+    { cwd: process.cwd(), encoding: "utf8", timeout: 80000 });
+  expect(proof.status, `${proof.stdout}\n${proof.stderr}`).toBe(0);
+  const evidence = JSON.parse(proof.stdout.trim().split("\n").at(-1)!);
+  expect(evidence).toMatchObject({fresh_inputs:0,missing_volume_research_sources:0,
+    actual_provider_requests:0,production_actions:0,publications:0,broker_actions:0,cleanup:"inert"});
 });
 
 for (const scenario of ["cold", "warm", "opening", "opening_zero"]) {

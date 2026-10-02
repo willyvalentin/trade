@@ -37,6 +37,28 @@ The final test-only completion also retains the prior composition's explicit
 three-zero-input assertion: its one opening-zero packaged persistence/outcome/
 learning check passes in 16.8 seconds. Application source remains unchanged.
 
+**Volume provider-boundary completion — 2026-10-02:** subsequent direct
+provider-parser reproduction demonstrates that an empty or whitespace volume
+string is coerced into zero by the required numeric parser. The selected
+volume slice now rejects blank required numeric fields with the existing
+invalid-value failure; an actual numeric/string zero remains a valid
+observation. The real packaged cold scanner proof confirms zero complete fresh
+inputs and zero completed-input research snapshots for missing latest volume.
+Validated historical-only context may remain, but current-session inputs,
+intraday indicators and current close remain unavailable. An initial assertion
+that also prohibited historical-only snapshots was corrected to this actual
+contract; that assertion failure was not a second engine defect.
+
+All 165 combined affected tests pass on this completed local source, including
+the parser rejection, actual isolated database persistence/restart, original
+zero/opening volume, provider-credit allocation and source attribution. Full
+lint has zero errors/eight retained warnings; strict non-incremental TypeScript
+and a fresh standard Next 16.3.8/Turbopack build pass. Disposable fixture
+containers/networks are gone; unrelated local databases are preserved. No
+provider request, production action or ranking/publication threshold change is
+made. The branch remains local pending integration of prerequisite PR #722;
+these checks do not establish real-market input acceptance or recommendation lift.
+
 **Shared-provider isolation correction readback — 2026-10-02:** staging deploy
 `6abfba319b77b9e90e9ef9da` is ready/published at 14:07:09.192Z on unchanged
 `a1a692ce00e7af11fbf779210c7b83ca9ade5215`. Readback at 14:14:29.423Z verifies
@@ -51,6 +73,12 @@ credentials/database/provider work when globally disabled. Main remains inert;
 no route/provider is invoked, no retry/card is selected and no further staging
 development is opened. Keep the absent scan-log and per-consumer credit
 attribution gaps explicit; do not inflate the narrow outcome-worker readback.
+The later bounded 14:30–14:32Z readback, after one full scheduler interval from
+publication, likewise contains one outcome-worker disabled message but no
+scan-worker disabled message, with zero attributable database scan attempts,
+published candidates or created recommendations. The absent scan execution log
+remains an evidence gap; this read-only check does not invoke a function or
+provider and does not independently establish global upstream credit usage.
 
 **Rebased delivery verification — 2026-10-02:** source revision
 `9e8628c79eff60e4774764b7d3ac9bddb4bdeebe`, based on integrated main above,
