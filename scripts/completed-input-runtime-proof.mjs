@@ -15,6 +15,9 @@ const root = process.cwd();
 const cold = process.argv.includes("--cold");
 const wrongPolicy = process.argv.includes("--wrong-policy");
 const diagnoseOutcomes = process.argv.includes("--diagnose-outcomes");
+const relativePlan60m = process.argv.includes("--relative-plan-60m");
+assert(!relativePlan60m || diagnoseOutcomes && !process.argv.includes("--opening") && !wrongPolicy,
+  "Mature relative-plan outcomes require their own unchanged original-input CLOSED scenario");
 const opening = process.argv.includes("--opening");
 const closing = process.argv.includes("--closing");
 assert(!closing || cold && !opening && !wrongPolicy && !diagnoseOutcomes,
@@ -35,7 +38,7 @@ assert(!opening || cold, "Opening proof has no pre-session warm-history acquisit
 const slot = closing ? "2026-10-01T19:45:00.000Z" : opening ? "2026-10-01T13:45:00.000Z" : "2026-10-01T17:30:00.000Z";
 const expiry = new Date(Date.parse(slot) + 900000).toISOString();
 const nextSlot = new Date(Date.parse(expiry) + 900000).toISOString();
-const futureBoundary = new Date(Date.parse(slot) + 1800000).toISOString();
+const futureBoundary = new Date(Date.parse(slot) + (relativePlan60m ? 4500000 : 1800000)).toISOString();
 const zeroLatestVolume = process.argv.includes("--zero-latest-volume");
 assert(!zeroLatestVolume || cold && !wrongPolicy, "Zero-volume proof requires the cold valid-input scenario");
 const missingLatestVolume = process.argv.includes("--missing-latest-volume");
@@ -60,6 +63,7 @@ let syntheticPublicationCount = 0;
 let clock = 0;
 let durationStartedAt = null;
 let pendingSyntheticTransports = 0;
+let futureOutcomePlans = [];
 const fixtureNow = () => clock + (durationStartedAt === null ? 0 : Math.round(performance.now() - durationStartedAt));
 const logs = [];
 const docker = (...args) => execFileSync("docker", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
@@ -217,7 +221,20 @@ try {
           const volume = missingLatestVolume && latestClosed ? " " : zeroLatestVolume && latestClosed ? "0" : "1000";
           const index=(time-OriginalDate.parse("2026-10-01T13:30:00Z"))/300000;
           const close=100+index*0.06;
-          values.unshift(publicationClock
+          const futurePlan=relativePlan60m ? futureOutcomePlans.find(plan=>plan.ticker===url.searchParams.get("symbol")) : null;
+          const anchor=futurePlan ? Math.ceil(OriginalDate.parse(futurePlan.payload_json.decision_timestamp)/300000)*300000 : null;
+          if(futurePlan && time>=anchor) {
+            // Explicitly synthetic future bars, supplied only at the provider
+            // boundary after the unchanged original plans have been persisted.
+            // One entry-only candle precedes each favorable/unfavorable terminal.
+            const entry=Number(futurePlan.entry), stop=Number(futurePlan.stop), target=Number(futurePlan.target);
+            const risk=entry-stop, terminal=time>=anchor+300000;
+            assert(risk>0 && target>entry);
+            values.unshift({datetime,open:String(entry),volume:"1000",
+              high:String(terminal && futurePlan.synthetic_win ? target+risk*0.1 : entry+risk*0.1),
+              low:String(terminal && !futurePlan.synthetic_win ? stop-risk*0.1 : entry-risk*0.1),
+              close:String(terminal ? futurePlan.synthetic_win ? target : stop : entry)});
+          } else values.unshift(publicationClock
             ? {datetime,open:String(close-0.05),high:String(close+0.1),low:String(close-0.1),close:String(close),volume:String(1000+index*40)}
             : {datetime,open:"100",high:"101",low:"99",close:"100",volume});
         }
@@ -286,6 +303,7 @@ try {
   const lineage = scanRuns[0]?.payload_json.decision_lineage_receipt;
   const claims=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from basic_free_discovery_credit_reservations t;"));
   const researchSnapshots=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_snapshots t;"));
+  if(relativePlan60m) futureOutcomePlans=researchSnapshots.map((snapshot,index)=>({...snapshot,synthetic_win:index%2===0}));
   let outcomeChainEvidence = null;
   if(wrongPolicy) {
     assert.equal(response.status,503);
@@ -523,7 +541,7 @@ try {
       const before=externalRequests;
       const evaluate=()=>require(join(generated,"outcome-route.cjs")).POST(new Request("http://closed-fixture/api/recommendations/evaluate-outcomes",{
         method:"POST",headers:{"x-automation-secret":environment.AUTOMATION_SECRET,"Content-Type":"application/json"},
-        body:JSON.stringify({mode:"official_live_today",horizons:["15m"],max_candle_requests:4,max_batches:1}),
+        body:JSON.stringify({mode:"official_live_today",horizons:[relativePlan60m ? "60m" : "15m"],max_candle_requests:4,max_batches:1}),
       }));
       // Persist a conflicting source timestamp, then exercise the real loader.
       // No provider call or outcome may occur; restore only these isolated rows.
@@ -629,6 +647,28 @@ try {
         return {source,readiness,plans};
       };
       const learning=await learningEvidence();
+      const outcomeLink=learning.readiness.relative_plan_context_outcomes;
+      assert.equal(outcomeLink.length,1);
+      assert.equal(outcomeLink[0].contract_version,"relative_plan_context_canonical_outcomes_v1");
+      assert.equal(outcomeLink[0].scan_run_fingerprint,record.scan_run_fingerprint);
+      assert.equal(outcomeLink[0].original_population_count,8);
+      assert.equal(outcomeLink[0].candidates.length,8);
+      assert.equal(outcomeLink[0].selected_60m_receipt_count,relativePlan60m ? researchSnapshots.length : 0);
+      assert.equal(outcomeLink[0].canonical_outcome_count,relativePlan60m ? researchSnapshots.length : 0,
+        "A retained fifteen-minute outcome cannot replace the frozen sixty-minute primary horizon");
+      assert.equal(outcomeLink[0].missing_outcome_count,relativePlan60m ? 8-researchSnapshots.length : 8);
+      assert.equal(outcomeLink[0].status,"evidence_incomplete");
+      assert.equal(outcomeLink[0].population_complete,false);
+      assert.equal(outcomeLink[0].baseline.precision_at_3.value,null);
+      assert.equal(outcomeLink[0].challenger.expectancy_r.value,null);
+      assert.equal(outcomeLink[0].precision_delta,null);
+      assert.equal(outcomeLink[0].quality_improvement_claimed,false);
+      if(relativePlan60m) {
+        assert(outcomeLink[0].candidates.some(row=>row.terminal_outcome==="target_before_stop" && row.r_result>0));
+        assert(outcomeLink[0].candidates.some(row=>row.terminal_outcome==="stop_before_target" && row.r_result===-1));
+        assert(outcomeLink[0].candidates.filter(row=>row.outcome_status==="missing").every(row=>row.r_result===null && row.positive_outcome===null));
+      }
+      assert.deepEqual((await learningEvidence()).readiness.relative_plan_context_outcomes,outcomeLink);
       const shadow=learning.readiness.relative_plan_context_shadow;
       assert.equal(shadow.length,1,"Actual persisted owner read exposes the original decision's shadow diagnostic");
       assert.equal(shadow[0].comparison_version,"relative_plan_context_shadow_v1");
@@ -718,7 +758,9 @@ try {
       ];
       for(const update of negativeUpdates){
         sql(update);
-        assert.equal((await learningEvidence()).readiness.counterfactual_coverage.research_candidate_outcomes_collected,0);
+        const rejectedLearning=await learningEvidence();
+        assert.equal(rejectedLearning.readiness.counterfactual_coverage.research_candidate_outcomes_collected,0);
+        assert.equal(rejectedLearning.readiness.relative_plan_context_outcomes[0].canonical_outcome_count,0);
         for(const row of researchSnapshots) sql(`update recommendation_snapshots set payload_json='${JSON.stringify(row.payload_json).replaceAll("'","''")}'::jsonb where id='${row.id}';`);
       }
       for(const invalidRunPayload of [
@@ -753,6 +795,22 @@ try {
           actual_provider_requests:0,
           live_ranking_effect:false,
           publication_effect:false,
+          quality_improvement_claimed:false,
+        },
+        relative_plan_context_outcomes:{
+          contract_version:outcomeLink[0].contract_version,
+          primary_horizon:outcomeLink[0].primary_horizon,status:outcomeLink[0].status,
+          original_population_count:outcomeLink[0].original_population_count,
+          selected_60m_receipt_count:outcomeLink[0].selected_60m_receipt_count,
+          resolved_60m_outcomes:outcomeLink[0].canonical_outcome_count,
+          missing_outcomes:outcomeLink[0].missing_outcome_count,
+          positive_labels:outcomeLink[0].candidates.filter(row=>row.positive_outcome===true).length,
+          negative_terminal_labels:outcomeLink[0].candidates.filter(row=>row.terminal_outcome==="stop_before_target").length,
+          precision_delta:outcomeLink[0].precision_delta,
+          baseline_precision:outcomeLink[0].baseline.precision_at_3.value,
+          challenger_expectancy_r:outcomeLink[0].challenger.expectancy_r.value,
+          restart_stable:true,full_charter_accepted:false,
+          actual_provider_requests:0,live_ranking_effect:false,publication_effect:false,
           quality_improvement_claimed:false,
         },
         canonical_research_outcomes:researchSnapshots.length,

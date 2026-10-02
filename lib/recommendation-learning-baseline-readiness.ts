@@ -4,6 +4,7 @@ import {
 import type { CandidateDecisionRecord } from "@/lib/candidate-decision-record";
 import { decisionLineageReceiptFromScanRun } from "@/lib/decision-lineage-receipt";
 import { buildRelativePlanContextShadow, type RelativePlanContextShadow } from "@/lib/scanner-relative-plan-context-shadow";
+import { buildRelativePlanContextOutcomeComparison, type RelativePlanContextOutcomeComparison } from "@/lib/scanner-relative-plan-context-outcomes";
 import {
   projectRecommendationOutcomeBundle,
 } from "@/lib/canonical-evaluation-projection-adapters";
@@ -129,6 +130,7 @@ export type RecommendationLearningBaselineReadiness = {
   // Optional read-only intelligence comparison on the existing immutable
   // source path. It cannot alter readiness, cohort admission or live ranking.
   relative_plan_context_shadow?: RelativePlanContextShadow[];
+  relative_plan_context_outcomes?: RelativePlanContextOutcomeComparison[];
 };
 
 function normalizeTicker(value: string | null | undefined) {
@@ -343,6 +345,7 @@ export function buildRecommendationLearningBaselineReadiness({
   }
 
   const relativePlanComparisons: RelativePlanContextShadow[] = [];
+  const relativePlanOutcomes: RelativePlanContextOutcomeComparison[] = [];
   for (const scanRun of scanRuns) {
     const record = candidateDecisionRecordFromScanRun(scanRun);
 
@@ -361,6 +364,7 @@ export function buildRecommendationLearningBaselineReadiness({
         comparison.reason_codes=[...comparison.reason_codes,"original_decision_lineage_unavailable"];
       }
       relativePlanComparisons.push(comparison);
+      relativePlanOutcomes.push(buildRelativePlanContextOutcomeComparison({ scanRun, scanRuns, snapshots, outcomes }));
     }
     const fullPopulation =
       record.coverage.full_membership_captured &&
@@ -710,6 +714,7 @@ export function buildRecommendationLearningBaselineReadiness({
 
   return {
     ...(relativePlanComparisons.length>0 ? {relative_plan_context_shadow:relativePlanComparisons} : {}),
+    ...(relativePlanOutcomes.length>0 ? {relative_plan_context_outcomes:relativePlanOutcomes} : {}),
     contract_version: completedInputSources.length > 0
       ? COMPLETED_INPUT_LEARNING_BASELINE_READINESS_VERSION
       : RECOMMENDATION_LEARNING_BASELINE_READINESS_VERSION,
