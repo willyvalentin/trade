@@ -102,7 +102,17 @@ prospective contract and may not pool incompatible populations or revisions.
 
 This reconciliation selects no new experiment, data source, provider budget,
 live policy or broker capability. The ledger remains the single executable
-queue, including the frozen Oct 2 observation and its integration hold.
+queue, including the frozen Oct 2 observation and its verified-cleanup boundary.
+
+**Unavailable data is not an investment decision.** The Oct 2 observation
+terminates with `provider_rate_limited` before retaining a scan decision. Its
+attributable rejection and bounded reservation protect the product, but do not
+prove complete inputs or a useful `no_trade`. Keep provider/data rejection,
+valid evaluated `no_trade` and a published recommendation distinct. Diagnose
+the exact acquisition failure without another identical live attempt; repair
+only a reproduced blocker, then resume the selected input-to-learning delivery.
+This result does not justify a lower quality threshold, a new subscription or
+an expanded scheduler project.
 
 **Recommendation-quality gate.** An IF-4 terminal decision must evaluate the
 whole frozen charter that makes the recommendation useful: absolute precision,

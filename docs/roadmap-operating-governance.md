@@ -80,6 +80,13 @@ restart a stopped experiment because an older paragraph still says "next".
 Bundle justified roadmap reconciliation with the selected product delivery;
 do not create a separate planning-only PR or a parallel control-plane stream.
 
+A provider/data rejection is not an evaluated `no_trade`. Preserve the terminal
+reason, the original missing population and both the full-slot reservation and
+actual request accounting when they differ. Neither a reserved credit nor a
+successful request establishes a usable fresh input. Diagnose a failed
+acquisition before selecting its bounded correction or a different prospective
+question; do not count repeated transport attempts as recommendation learning.
+
 ### Recommendation-engine graduation gate enforcement
 
 The master roadmap's recommendation-engine graduation gate controls when

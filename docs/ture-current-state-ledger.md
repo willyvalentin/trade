@@ -2,6 +2,45 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-02, recommendation intelligence first
 
+**Oct 2 frozen OPEN result — `inconclusive`, 13:47:01.787Z readback:** unchanged
+main `930d44b6be9ec6fca059adba21addd05d9f9c7de`, activation deploy
+`6abfb0d35fce848f22f29fb3`, series `observation_series_553f65f3488ba448`.
+Exactly one attributable attempt `scheduled_scan_attempt_1gvotff` fires at
+13:45:24.217Z and reaches the route at 13:45:26.362Z. It terminates
+`request_failed`, HTTP 500, `provider_rate_limited`; its deployment-bound
+cycle finalizes `rejected_data` at 13:45:32.274Z. There is no scan run or
+decision/lineage to evaluate. One eight-credit full-slot reservation is terminal,
+with zero active reservations or duplicate slots. Owner-bound cycle accounting
+separately retains three request credits, one provider success, one provider
+error and one stale input; these are not eight observed successful requests.
+Readback finds zero publications and broker records, no invalid cycle rows,
+one attributed receipt and no missing/orphan/duplicate receipts.
+
+Operational series attribution passes its narrow receipt dimension; input
+fitness remains inconclusive and outcome coverage/quality are not evaluated.
+This is a provider/data rejection, not a valid evaluated `no_trade`, a failure
+of the ranking hypothesis or proof of recommendation improvement. Do not retry
+this frozen card or pool its missing decision with older comparison cohorts.
+The next market-independent action is to diagnose the existing acquisition
+path's exact rate-limit cause without requesting provider data; only a
+reproduced blocker may interrupt the selected canonical-learning integration.
+Owned controls are restored and one same-revision cleanup build is requested
+at 13:47:30.011Z: build `6abfb5f31f909fc74a899d38`, deploy
+`6abfb5f31f909fc74a899d3a`, ready/published at 13:48:17.234Z.
+Authenticated served readback at 13:49:46.629Z verifies that exact cleanup
+identity, every effective control inert, input selector unset, global disable
+true, HTTP 200/no-store health and zero active reservations. Normal login updates
+its existing abuse counters. The frozen observation's integration hold is
+released; PR #721 still requires its normal protected merge, followed by rebase
+and coherent CI for the selected local learning slice. No manual provider/scan
+request, retry, migration or broker action occurs. The completed automation is
+removed; it cannot authorize another slot.
+
+The evidence-based roadmap/governance reconciliation is locally checked by all
+four existing recommendation-quality acceleration and graduation tests, plus
+clean diff validation. It remains bundled with the selected motor delivery,
+not a separate status/planning PR or a claim of main integration.
+
 **Broader local delivery verification terminal — 2026-10-02:** exact existing
 composition revision `8ab8c5df8adec29a14a53b8a99a4ee29619f981d`, tree
 `587d8d3bcdd325836f0193fb5e42b1823eccb219`, completes both existing
