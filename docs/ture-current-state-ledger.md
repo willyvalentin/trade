@@ -2,6 +2,27 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-02, recommendation intelligence first
 
+**Broader local delivery verification terminal — 2026-10-02:** exact existing
+composition revision `8ab8c5df8adec29a14a53b8a99a4ee29619f981d`, tree
+`587d8d3bcdd325836f0193fb5e42b1823eccb219`, completes both existing
+`foundation` and `snapshot-issuance` commands with exit zero. The latter
+reports all 159 tests passed. Foundation completes full lint (zero errors/eight
+retained warnings), non-incremental strict TypeScript, dependency audit (zero
+known vulnerabilities), standard production build, three disposable database
+lifecycle groups, the registered 1,024-test containment/input group,
+authenticated-boundary and catalog/type oracles, and all registered intelligence,
+explanation, proposal, capture and frozen-binding groups. Tracked source stays
+clean; independent Docker readback finds no input-runtime containers/networks or
+SV-C fixture containers remaining. The original dirty checkout is preserved.
+
+This is provider-free local macOS/ARM64 Node 26.5.0 verification of the same
+selected input/learning delivery, not protected Ubuntu/Node 24.19.0 six-shard CI,
+main integration, prospective market acceptance or recommendation-quality lift.
+No application change or third slice is introduced. PR #721 remains OPEN/CLEAN
+with required checks green and no auto-merge on `0676d639...`; protected main
+still pins `930d44b6...`. Current-revision protected CI and the Oct 2
+observation/verified-cleanup integration hold remain outstanding and unchanged.
+
 **Locally verified stored-assessment integrity correction — 2026-10-02:**
 primary source `7fc8118a389b86a9b2be16132ec17190263f7ba7` passes all 82
 selected intake, baseline-readiness, scheduled-outcome and actual persisted
