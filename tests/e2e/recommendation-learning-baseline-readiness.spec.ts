@@ -1268,7 +1268,30 @@ test.describe("recommendation learning baseline readiness", () => {
     });
   });
 
-  for (const resultVersion of ["1.0", "1.2"]) {
+  test("a version-only upgrade to research intake v1.2 cannot authorize a historical baseline", () => {
+    const evidence = Array.from({ length: 20 }, (_, index) =>
+      publishedEvidenceForSegment({ index, learningAttribution: completeAttribution() }),
+    );
+    const readiness = buildRecommendationLearningBaselineReadiness({
+      scanRuns: evidence.map(item => item.run),
+      snapshots: evidence.map((item, index) => index === 0 ? {
+        ...item.snapshot,
+        intake_quality_json: intakeQualityReceipt({ resultVersion: "1.2" }),
+      } : item.snapshot),
+      outcomes: evidence.map(item => item.outcome),
+    });
+    expect(readiness).toMatchObject({
+      status: "not_ready",
+      intake_quality_provenance: {
+        status: "incomplete", valid_receipt_count: 19, invalid_receipt_count: 1,
+        result_versions: ["1.1"],
+      },
+      visible_outcomes: { primary_outcome_count: 20 },
+    });
+    expect(readiness.blockers).toContain("outcome_sample_intake_quality_incomplete");
+  });
+
+  for (const resultVersion of ["1.0"]) {
     test(`keeps mixed intake-quality ${resultVersion}/1.1 versions out of a baseline freeze`, () => {
       const baselineAttribution = completeAttribution();
       const evidence = Array.from({ length: 20 }, (_, index) =>

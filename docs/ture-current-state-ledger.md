@@ -2,6 +2,17 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-02, recommendation intelligence first
 
+**Reproduced stored-assessment consistency blocker — 2026-10-02:** the actual
+isolated PostgreSQL/PostgREST-to-restarted-learning proof accepts a v1.2 receipt
+whose status/grade/visible flag are changed to `accepted`/A/true despite its
+original incomplete checks (`complete` instead of expected `incomplete`). Select
+only the same learning slice's bounded correction: validate the new research
+diagnostic against retained original inputs, plan, candidate and decision clock.
+Malformed diagnostics must remain explicit measurement gaps while valid canonical
+outcomes and all original identities remain. Legacy v1.0/v1.1 validation,
+ranking/publication, freeze/charter gates and the Oct 2 integration hold remain
+unchanged. No schema, provider, production configuration or third slice.
+
 **Local research microstructure assessment correction — 2026-10-02:** exact
 primary code revision `88610af646b89882036a25e412142ff10f7958b8` passes all
 79 affected checks and the standard Next production build with strict types.

@@ -1,4 +1,13 @@
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
+import {
+  buildCompletedInputResearchIntakeQualityResult,
+  COMPLETED_INPUT_RESEARCH_INTAKE_QUALITY_RESULT_VERSION,
+} from "@/lib/recommendation-intake-quality";
+import { scannerDecisionInputSnapshotFromUnknown } from "@/lib/scanner-decision-input-snapshot";
+import { COMPLETED_INPUT_RESEARCH_CAPTURE_VERSION } from "@/lib/completed-input-research-selection";
+
+export type IntakeQualityEvidenceSnapshot =
+  Pick<RecommendationSnapshot, "intake_quality_json"> & Partial<RecommendationSnapshot>;
 
 /**
  * A small, strict read model for persisted intake-quality receipts. It is
@@ -40,6 +49,77 @@ function uniqueSorted(values: Iterable<string>) {
   return Array.from(new Set(values)).sort();
 }
 
+function canonicalJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
+  if (value !== null && typeof value === "object") {
+    return `{${Object.entries(value).sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, item]) => `${JSON.stringify(key)}:${canonicalJson(item)}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function finiteNumber(value: unknown): number | null {
+  const number = typeof value === "number" ? value :
+    typeof value === "string" && value.trim() ? Number(value) : NaN;
+  return Number.isFinite(number) ? number : null;
+}
+
+/** Validate the new research diagnostic against retained decision-time context,
+ * not refreshed data or the evaluation clock. This is diagnostic consistency,
+ * not independent reproduction of the scanner's ordinal score or provider data.
+ * Source/decision/owner admission remains a separate mandatory learning gate.
+ * Legacy receipts keep their original structural validation contract. */
+function completedInputAssessmentMatches(snapshot: IntakeQualityEvidenceSnapshot): boolean {
+  const payload = objectOrNull(snapshot.payload_json);
+  const ticker = textOrNull(snapshot.ticker);
+  const decisionAt = textOrNull(snapshot.recommended_at);
+  const candidateId = textOrNull(payload?.candidate_id);
+  if (!payload || !ticker || !decisionAt || !candidateId ||
+    !Number.isFinite(Date.parse(decisionAt)) ||
+    payload.decision_timestamp !== decisionAt ||
+    payload.research_capture_version !== COMPLETED_INPUT_RESEARCH_CAPTURE_VERSION ||
+    snapshot.source_mode !== "research_only" || snapshot.is_visible !== false ||
+    snapshot.status !== "hidden" || snapshot.side !== "long" ||
+    snapshot.recommendation_id !== null) return false;
+  const input = scannerDecisionInputSnapshotFromUnknown(
+    payload.scanner_decision_input_snapshot, ticker, decisionAt,
+  );
+  if (!input?.current_session ||
+    payload.data_timestamp !== input.current_session.latest_bar_started_at) return false;
+  const marketSession = objectOrNull(payload.market_session);
+  const expected = {
+    ...buildCompletedInputResearchIntakeQualityResult({
+      ticker,
+      company_name: snapshot.company_name,
+      direction: "long",
+      entry_price: snapshot.entry,
+      entry_low: snapshot.entry_low,
+      entry_high: snapshot.entry_high,
+      stop_price: snapshot.stop,
+      target_price: snapshot.target,
+      current_price: input.features.latest_close,
+      confidence_score: finiteNumber(snapshot.score),
+      setup_type: textOrNull(payload.setup_type),
+      reason_text: snapshot.rationale,
+      generated_at: decisionAt,
+      market_data_timestamp: input.current_session.latest_bar_started_at,
+      market_data_stale: false,
+      latest_volume: input.intraday_indicators?.latestVolume,
+      average_volume: input.intraday_indicators?.averageVolume,
+      market_session: {
+        phase: textOrNull(marketSession?.phase),
+        risk_level: textOrNull(marketSession?.risk_level),
+        source: textOrNull(marketSession?.source),
+        is_market_open: typeof marketSession?.market_is_open === "boolean"
+          ? marketSession.market_is_open : null,
+      },
+      now: decisionAt,
+    }),
+    result_id: `recommendation-intake-research-${candidateId}`,
+  };
+  return canonicalJson(snapshot.intake_quality_json) === canonicalJson(expected);
+}
+
 export function recommendationIntakeQualityReceiptFromUnknown(
   value: unknown,
 ): RecommendationIntakeQualityReceipt | null {
@@ -77,12 +157,14 @@ export function recommendationIntakeQualityReceiptFromUnknown(
 }
 
 export function buildRecommendationIntakeQualityProvenance(
-  snapshots: Array<Pick<RecommendationSnapshot, "intake_quality_json">>,
+  snapshots: IntakeQualityEvidenceSnapshot[],
 ): RecommendationIntakeQualityProvenance {
   const eligibleSnapshotCount = snapshots.length;
-  const receipts = snapshots.map((snapshot) =>
-    recommendationIntakeQualityReceiptFromUnknown(snapshot.intake_quality_json),
-  );
+  const receipts = snapshots.map((snapshot) => {
+    const receipt = recommendationIntakeQualityReceiptFromUnknown(snapshot.intake_quality_json);
+    return receipt?.result_version === COMPLETED_INPUT_RESEARCH_INTAKE_QUALITY_RESULT_VERSION &&
+      !completedInputAssessmentMatches(snapshot) ? null : receipt;
+  });
   const validReceipts = receipts.filter(
     (receipt): receipt is RecommendationIntakeQualityReceipt => receipt !== null,
   );

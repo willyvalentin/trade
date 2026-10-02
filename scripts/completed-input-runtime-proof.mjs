@@ -72,6 +72,7 @@ try {
       export { buildRecommendationLearningBaselineSegmentation } from './lib/recommendation-learning-baseline-segments';
       export { buildRecommendationLearningEvaluationPlans } from './lib/recommendation-learning-evaluation-plan';
       export { recommendationDecisionSourceProvenanceFromSnapshot } from './lib/recommendation-decision-source-provenance';
+      export { buildRecommendationIntakeQualityProvenance } from './lib/recommendation-intake-quality-provenance';
       export { recommendationScanRunFromPersistenceRow } from './lib/recommendation-scan-run';
       export { candidateDecisionRecordFromScanRun } from './lib/candidate-decision-readback';
       export { decisionLineageReceiptFromScanRun } from './lib/decision-lineage-receipt';
@@ -459,6 +460,16 @@ try {
         "Each retained completed-input research source must keep its original intake assessment through owner readback");
       assert.equal(learning.readiness.intake_quality_provenance.status,"complete");
       assert.equal(learning.readiness.intake_quality_provenance.valid_receipt_count,researchSnapshots.length);
+      const reordered = learning.source.snapshots.map(snapshot=>({ ...snapshot,
+        intake_quality_json:Object.fromEntries(Object.entries(snapshot.intake_quality_json).reverse()) }));
+      assert.equal(restarted.buildRecommendationIntakeQualityProvenance(reordered).status,"complete",
+        "JSONB key order must not invalidate the same assessment");
+      const mixed = restarted.buildRecommendationIntakeQualityProvenance([
+        ...learning.source.snapshots,
+        {intake_quality_json:{...researchSnapshots[0].intake_quality_json,result_version:"1.1"}},
+      ]);
+      assert.equal(mixed.status,"mixed");
+      assert.deepEqual(mixed.result_versions,["1.1","1.2"]);
       for(const snapshot of learning.source.snapshots)
         assert.deepEqual(snapshot.intake_quality_json,researchSnapshots.find(row=>row.id===snapshot.id).intake_quality_json,
           "Outcome evaluation and restart may not recompute or upgrade the original assessment");
@@ -467,10 +478,21 @@ try {
       for(const [value,status,blocker] of [
         ["null","not_recorded","outcome_sample_intake_quality_not_recorded"],
         ["'{}'::jsonb","incomplete","outcome_sample_intake_quality_incomplete"],
+        ["intake_quality_json || '{\"status\":\"accepted\",\"grade\":\"A\",\"accepted_for_visible_list\":true}'::jsonb",
+          "incomplete","outcome_sample_intake_quality_incomplete"],
+        ["intake_quality_json || '{\"evaluated_at\":\"2026-10-01T20:00:00.000Z\"}'::jsonb",
+          "incomplete","outcome_sample_intake_quality_incomplete"],
+        ["intake_quality_json || '{\"result_id\":\"recommendation-intake-research-wrong-candidate\"}'::jsonb",
+          "incomplete","outcome_sample_intake_quality_incomplete"],
+        ["intake_quality_json || '{\"warnings\":[],\"checks\":[]}'::jsonb",
+          "incomplete","outcome_sample_intake_quality_incomplete"],
+        ["intake_quality_json || '{\"risk_reward_ratio\":99}'::jsonb",
+          "incomplete","outcome_sample_intake_quality_incomplete"],
       ]){
         sql(`update recommendation_snapshots set intake_quality_json=${value};`);
         const missing=await learningEvidence();
         assert.equal(missing.readiness.intake_quality_provenance.status,status);
+        assert.equal(missing.readiness.intake_quality_provenance.accepted_for_visible_list_count,0);
         assert(missing.readiness.blockers.includes(blocker));
         assert.equal(missing.readiness.counterfactual_coverage.research_candidate_outcomes_collected,researchSnapshots.length);
         for(const row of researchSnapshots)
@@ -533,6 +555,9 @@ try {
         intake_assessment_statuses:learning.readiness.intake_quality_provenance.result_statuses,
         intake_assessment_grades:learning.readiness.intake_quality_provenance.grades,
         original_intake_assessments_unchanged:true,
+        contradictory_intake_assessments_rejected:true,
+        assessment_key_order_preserved:true,
+        mixed_assessment_versions_segmented:true,
         upstream_provider_version_unavailable:researchSnapshots.length,
         unresolved_population_members:8-researchSnapshots.length,
         freeze_status:learning.readiness.status,

@@ -72,6 +72,13 @@ Retain separate results for operational delivery, input fitness, outcome
 coverage and baseline-relative quality. Only the last can establish that the
 recommendations became better, and it still requires the full quality charter.
 
+Persisted diagnostic presence is not assessment integrity or market feasibility.
+New completed-input research assessments must remain consistent with their
+retained original candidate, plan, inputs and decision clock before they count
+as valid quality-measurement evidence. A contradictory or missing assessment
+is an explicit measurement gap; it must not erase otherwise valid canonical
+outcomes, rewrite historical evidence or grant baseline/promotion authority.
+
 **Learning-to-improvement loop — 2026-10-02.** The immediate priorities above
 supersede the dated work selections retained below. Close the fresh-input and
 canonical-learning links with their declared evidence, then use attributable
