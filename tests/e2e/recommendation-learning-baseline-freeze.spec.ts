@@ -170,6 +170,17 @@ test("a durable baseline freeze requires an exact ready server receipt", async (
   });
 });
 
+test("new normalized-input research semantics cannot enter the legacy durable freeze", async () => {
+  let calls = 0;
+  const store = createRecommendationLearningBaselineFreezeStore(database({
+    async freeze() { calls += 1; return { data: null, error: null }; },
+  }));
+  await expect(store.freeze({ ...input(), evaluation_plan: {
+    ...evaluationPlan, contract_version: "recommendation_learning_evaluation_plan_v2",
+  } })).resolves.toMatchObject({ status: "unavailable", freeze: null });
+  expect(calls).toBe(0);
+});
+
 test("idempotency accepts only the same immutable baseline and rejects changed receipts", async () => {
   const idempotent = createRecommendationLearningBaselineFreezeStore(database({
     async freeze() {

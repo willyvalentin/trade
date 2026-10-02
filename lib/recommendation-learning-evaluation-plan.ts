@@ -6,7 +6,7 @@ import {
   projectRecommendationOutcomeBundle,
   type CanonicalProjectedOutcome,
 } from "@/lib/canonical-evaluation-projection-adapters";
-import type { LearningBaselineScanRun } from "@/lib/recommendation-learning-baseline-readiness";
+import { COMPLETED_INPUT_LEARNING_BASELINE_READINESS_VERSION, type LearningBaselineScanRun } from "@/lib/recommendation-learning-baseline-readiness";
 import type {
   RecommendationLearningBaselineSegment,
   RecommendationLearningBaselineSegmentation,
@@ -27,9 +27,12 @@ import {
   type ResearchSnapshotCandidateDecisionDisposition,
 } from "@/lib/research-snapshot-candidate-linkage";
 import { recommendationDecisionSourceProvenanceFromSnapshot } from "@/lib/recommendation-decision-source-provenance";
+import { recommendationResearchLearningSourceProvenance } from "@/lib/completed-input-learning-provenance";
 
 export const RECOMMENDATION_LEARNING_EVALUATION_PLAN_VERSION =
   "recommendation_learning_evaluation_plan_v1" as const;
+export const COMPLETED_INPUT_LEARNING_EVALUATION_PLAN_VERSION =
+  "recommendation_learning_evaluation_plan_v2" as const;
 
 type EvaluationSampleType = "visible" | "research" | "rejected";
 
@@ -45,7 +48,7 @@ type NumericSummary = {
 };
 
 export type RecommendationLearningEvaluationPlan = {
-  contract_version: typeof RECOMMENDATION_LEARNING_EVALUATION_PLAN_VERSION;
+  contract_version: typeof RECOMMENDATION_LEARNING_EVALUATION_PLAN_VERSION | typeof COMPLETED_INPUT_LEARNING_EVALUATION_PLAN_VERSION;
   segment_key: string;
   status: "not_freeze_eligible" | "ready_for_explicit_freeze";
   policy_attribution: RecommendationLearningBaselineSegment["policy_attribution"];
@@ -89,7 +92,7 @@ export type RecommendationLearningEvaluationPlan = {
 };
 
 export type RecommendationLearningEvaluationPlans = {
-  contract_version: typeof RECOMMENDATION_LEARNING_EVALUATION_PLAN_VERSION;
+  contract_version: typeof RECOMMENDATION_LEARNING_EVALUATION_PLAN_VERSION | typeof COMPLETED_INPUT_LEARNING_EVALUATION_PLAN_VERSION;
   status:
     | "no_comparable_segments"
     | "no_freeze_eligible_segments"
@@ -392,7 +395,7 @@ function samplesForSegment({
         continue;
       }
       if (
-        recommendationDecisionSourceProvenanceFromSnapshot(snapshot).status !==
+        recommendationResearchLearningSourceProvenance(snapshot, scanRuns).status !==
         "admissible"
       ) {
         blockers.add(
@@ -513,7 +516,9 @@ function evaluationPlanForSegment({
   );
 
   return {
-    contract_version: RECOMMENDATION_LEARNING_EVALUATION_PLAN_VERSION,
+    contract_version: segment.readiness.contract_version === COMPLETED_INPUT_LEARNING_BASELINE_READINESS_VERSION
+      ? COMPLETED_INPUT_LEARNING_EVALUATION_PLAN_VERSION
+      : RECOMMENDATION_LEARNING_EVALUATION_PLAN_VERSION,
     segment_key: segment.segment_key,
     status: canEvaluate ? "ready_for_explicit_freeze" : "not_freeze_eligible",
     policy_attribution: segment.policy_attribution,
@@ -580,7 +585,9 @@ function evaluationPlanForSegment({
     notes: [
       "Read-only evaluation plan: it neither persists a freeze nor changes ranking, confidence, publication, provider usage, or execution.",
       "Each metric uses at most one complete, decision-bound canonical primary outcome per exact candidate snapshot; visible, research, rejected, and no-trade evidence remain distinct.",
-      "A metric excludes a snapshot whose decision-time input provenance is incomplete, including absent source/provider/version/adapter/build metadata or a source timestamp after the decision.",
+      segment.readiness.contract_version === COMPLETED_INPUT_LEARNING_BASELINE_READINESS_VERSION
+        ? "A metric excludes incomplete decision-time provenance. Legacy and published sources require provider-version metadata; new hidden v4 research requires retained normalized market inputs, original geometry and durable lineage instead, without claiming an upstream API version, raw-provider replay or local-score reproduction. Adapter/build identity and point-in-time freshness remain mandatory. This basis requires a prospective baseline contract before freeze or promotion."
+        : "A metric excludes a snapshot whose decision-time input provenance is incomplete, including absent source/provider/version/adapter/build metadata or a source timestamp after the decision.",
       "Horizon R uses current_r only after an observed entry trigger. MFE/MAE use only the versioned entry-bound receipt, which excludes the entry-trigger candle and refuses an intrabar-ambiguous terminal candle; legacy best_r and worst_r remain excluded.",
       "Confidence is ordinal and excluded from calibration. An explicit durable freeze and held-out comparison remain required before IF-5 can consider a policy change.",
     ],
@@ -611,7 +618,9 @@ export function buildRecommendationLearningEvaluationPlans({
   ).length;
 
   return {
-    contract_version: RECOMMENDATION_LEARNING_EVALUATION_PLAN_VERSION,
+    contract_version: plans.some(plan => plan.contract_version === COMPLETED_INPUT_LEARNING_EVALUATION_PLAN_VERSION)
+      ? COMPLETED_INPUT_LEARNING_EVALUATION_PLAN_VERSION
+      : RECOMMENDATION_LEARNING_EVALUATION_PLAN_VERSION,
     status:
       plans.length === 0
         ? "no_comparable_segments"

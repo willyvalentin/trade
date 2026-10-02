@@ -1,8 +1,524 @@
 # Ture Current-State Ledger
 
-## Active Now / Next / Blocked — 2026-09-29 recommendation intelligence first
+## Active Now / Next / Blocked — reconciled 2026-10-02, recommendation intelligence first
 
-**Now — independent CLOSED IF-2b → IF-4 research-source slice, 2026-10-01:**
+**Current executable selection:** Now is the completed-input canonical-learning
+delivery below, rebased locally on integrated main `e8da24a4...`; Next is its
+protected PR/CI integration, followed by the already selected independent
+volume correction and one measured contextual-ranking challenger. The Oct 2
+operating job is terminal and cleanup is verified, not a waiting integration
+barrier. Prospective input/learning acceptance and recommendation-quality lift
+remain blocked on their missing market evidence. Earlier dated local/hold
+statements below are retained receipts, not additional active queues.
+
+**Rebased delivery verification — 2026-10-02:** source revision
+`9e8628c79eff60e4774764b7d3ac9bddb4bdeebe`, based on integrated main above,
+has no application/script/test difference from the previously verified local
+`8ceb9cf6...`. All 136 selected learning, intake, canonical-outcome, budget,
+actual packaged cold/warm/opening database and governance checks pass; all six
+existing CI-registration checks also pass. Full lint has zero errors/eight
+retained warnings, non-incremental strict TypeScript passes, and a fresh standard
+Next/Turbopack production build completes successfully. An initial test launch
+omitted the existing harness's `react-server` condition and supplied no engine
+evidence; the corrected command uses the registered condition. The first build
+hits sandbox port EPERM, retained by its generated cache; after a successful
+localhost-bind diagnostic and recoverable relocation of only generated `.next`
+output, the standard clean build passes without source or compiler changes.
+Disposable runtime fixtures are removed; unrelated local database containers
+are untouched. This is local macOS/ARM64 Node 26.5.0 behavior, not protected
+CI, a merge or forward quality evidence. The coherent next PR includes the
+user-approved roadmap reconciliation; no planning-only PR is created.
+The subsequent documentation-only reconciliation has five passing governance
+checks, including explicit missing-evidence disposition, baseline predeclaration
+and separation of provider rejection from evaluated `no_trade`; no engine source
+changes follow the 136-test run.
+
+**PR #721 integration verified — 2026-10-02:** normal squash merge at
+13:51:51Z, after required protected CI and zero blocking reviews, produces main
+`e8da24a48ff39260417227e79e103213868adaf0`. Its tracked tree exactly matches
+submitted head `0676d6396673d2218a0f080c2d454ffcbdc35510`. Main workflow
+`37015861302` completes successfully; its summary/post-merge job metadata is
+not a fresh six-shard rerun or proof of a downloaded candidate attestation.
+Automatic production deploy `6abfb6f99e01a90008c34d1e` is ready/published at
+13:53:16.527Z. Authenticated readback at 13:54:42.197Z verifies exact build,
+HTTP 200/no-store health, all effective controls inert, unset input selector and
+zero active reservations. No activation or provider request is made. This is
+main/deployed integration of hidden source-to-outcome capability, not prospective
+market acceptance or better recommendation quality. The app cannot attach the
+PR because this chat has reached its 100-attachment limit; the verified PR URL
+remains https://github.com/willyvalentin/trade/pull/721.
+
+**Bounded Oct 2 acquisition diagnosis:** authoritative sanitized attempt text
+reports ten API credits used in the current minute against a limit of eight.
+The local cycle separately retains three request credits; its invalid candidate
+coverage diagnostic cannot supply a valid eight-member input denominator.
+Read-only Netlify inspection at 13:57:41.522Z confirms Ture and ture-staging
+inherit the same Twelve Data key, without exposing the key. Staging's configured
+global-disable flag is false; its published revision is
+`a1a692ce00e7af11fbf779210c7b83ca9ade5215`, whose scheduler permits the 13:45Z
+slot. Read-only staging database evidence subsequently establishes attempt
+`scheduled_scan_attempt_c8bayj`, fired 13:45:07.735Z and received
+13:45:09.443Z: terminal `scanned`/HTTP 200, four raw/ranked/published candidates
+and four staging recommendations. Main fires at 13:45:24.217Z in the same
+minute. This proves a concurrent consumer of the shared key, not the exact
+allocation of all ten upstream credits or sole causality.
+
+The reproduced overlap justifies a reversible safety correction, not a staging
+product stream. At 14:05:30.914Z, only staging's existing Production/function
+`TURE_DISABLE_SCHEDULED_FUNCTIONS` is changed from false to true; all other
+variable scopes/contexts/values are compared unchanged in memory. Exactly one
+Git-connected build `6abfba319b77b9e90e9ef9d8` / deploy
+`6abfba319b77b9e90e9ef9da` is requested from unchanged `staging` revision
+`a1a692ce00e7af11fbf779210c7b83ca9ade5215`. Publication and the next normal
+disabled attempt still require readback; configuration alone is not runtime
+isolation evidence. Main remains inert, no scan/route/provider is invoked and
+no new OPEN card or retry is selected. No secret is output.
+
+Twelve Data's official [credit contract](https://support.twelvedata.com/en/articles/5615854-credits)
+states one credit per `/time_series` symbol and minute-boundary reset. Its
+[usage guidance](https://support.twelvedata.com/en/articles/5713553-control-over-api-usage)
+also states that `/api_usage` itself costs one credit; it was not invoked.
+The upstream count is account/key-level evidence, not proof that this one
+scan made ten requests. Keep the provider consumer/remaining-capacity gap
+explicit and do not claim local reservation alone measures available quota.
+
+**Oct 2 frozen OPEN result — `inconclusive`, 13:47:01.787Z readback:** unchanged
+main `930d44b6be9ec6fca059adba21addd05d9f9c7de`, activation deploy
+`6abfb0d35fce848f22f29fb3`, series `observation_series_553f65f3488ba448`.
+Exactly one attributable attempt `scheduled_scan_attempt_1gvotff` fires at
+13:45:24.217Z and reaches the route at 13:45:26.362Z. It terminates
+`request_failed`, HTTP 500, `provider_rate_limited`; its deployment-bound
+cycle finalizes `rejected_data` at 13:45:32.274Z. There is no scan run or
+decision/lineage to evaluate. One eight-credit full-slot reservation is terminal,
+with zero active reservations or duplicate slots. Owner-bound cycle accounting
+separately retains three request credits, one provider success, one provider
+error and one stale input; these are not eight observed successful requests.
+Readback finds zero publications and broker records, no invalid cycle rows,
+one attributed receipt and no missing/orphan/duplicate receipts.
+
+Operational series attribution passes its narrow receipt dimension; input
+fitness remains inconclusive and outcome coverage/quality are not evaluated.
+This is a provider/data rejection, not a valid evaluated `no_trade`, a failure
+of the ranking hypothesis or proof of recommendation improvement. Do not retry
+this frozen card or pool its missing decision with older comparison cohorts.
+The next market-independent action is to diagnose the existing acquisition
+path's exact rate-limit cause without requesting provider data; only a
+reproduced blocker may interrupt the selected canonical-learning integration.
+Owned controls are restored and one same-revision cleanup build is requested
+at 13:47:30.011Z: build `6abfb5f31f909fc74a899d38`, deploy
+`6abfb5f31f909fc74a899d3a`, ready/published at 13:48:17.234Z.
+Authenticated served readback at 13:49:46.629Z verifies that exact cleanup
+identity, every effective control inert, input selector unset, global disable
+true, HTTP 200/no-store health and zero active reservations. Normal login updates
+its existing abuse counters. The frozen observation's integration hold is
+released; PR #721 still requires its normal protected merge, followed by rebase
+and coherent CI for the selected local learning slice. No manual provider/scan
+request, retry, migration or broker action occurs. The completed automation is
+removed; it cannot authorize another slot.
+
+The evidence-based roadmap/governance reconciliation is locally checked by all
+four existing recommendation-quality acceleration and graduation tests, plus
+clean diff validation. It remains bundled with the selected motor delivery,
+not a separate status/planning PR or a claim of main integration.
+
+**Broader local delivery verification terminal — 2026-10-02:** exact existing
+composition revision `8ab8c5df8adec29a14a53b8a99a4ee29619f981d`, tree
+`587d8d3bcdd325836f0193fb5e42b1823eccb219`, completes both existing
+`foundation` and `snapshot-issuance` commands with exit zero. The latter
+reports all 159 tests passed. Foundation completes full lint (zero errors/eight
+retained warnings), non-incremental strict TypeScript, dependency audit (zero
+known vulnerabilities), standard production build, three disposable database
+lifecycle groups, the registered 1,024-test containment/input group,
+authenticated-boundary and catalog/type oracles, and all registered intelligence,
+explanation, proposal, capture and frozen-binding groups. Tracked source stays
+clean; independent Docker readback finds no input-runtime containers/networks or
+SV-C fixture containers remaining. The original dirty checkout is preserved.
+
+This is provider-free local macOS/ARM64 Node 26.5.0 verification of the same
+selected input/learning delivery, not protected Ubuntu/Node 24.19.0 six-shard CI,
+main integration, prospective market acceptance or recommendation-quality lift.
+No application change or third slice is introduced. PR #721 remains OPEN/CLEAN
+with required checks green and no auto-merge on `0676d639...`; protected main
+still pins `930d44b6...`. Current-revision protected CI and the Oct 2
+observation/verified-cleanup integration hold remain outstanding and unchanged.
+
+**Locally verified stored-assessment integrity correction — 2026-10-02:**
+primary source `7fc8118a389b86a9b2be16132ec17190263f7ba7` passes all 82
+selected intake, baseline-readiness, scheduled-outcome and actual persisted
+cold/warm/opening checks. Strict types and standard production build pass;
+full lint has zero errors/eight retained warnings. A terminal negative proof
+first reproduces a contradictory v1.2 A/accepted receipt counted as complete.
+The shared learning/outcome read model now checks new v1.2 diagnostics against
+retained original context, candidate, plan and decision clock. Altered status/grade,
+clock, candidate id, checks or risk/reward remain measurement gaps without
+removing valid canonical outcomes. JSONB key order and mixed-version handling
+are preserved; historical v1.0/v1.1 validation remains unchanged.
+
+Existing detached volume/learning composition source
+`0c89c00d943eff258880ab470437f53b4ca498a8`, tree
+`136bf5da61f65003a74693ab8b414a552cbb86cf`, passes all 98 selected checks,
+affected lint and a new production build/strict types. The actual isolated
+PostgreSQL 16.14/PostgREST 16.1 chain on macOS/ARM64 Node 26.5.0 retains the
+original three/six/three research assessments/outcomes and the opening-zero
+warning; all eight selected identities and unresolved outcomes remain explicit.
+Freeze stays `not_ready`, with no comparison or promotion authority. Tests
+contact zero actual providers/production/brokers, publish nothing and leave
+no input-runtime test containers/networks. This closes the same slice's local
+`quality_measurement` defect, not alpha or independently replayed ordinal
+scores/provider data. Stop this diagnostic correction stream; resume the
+selected fresh-input/canonical-learning acceptance, then the one measured
+contextual-ranking challenger. No third slice or new experiment is selected.
+
+Neither branch is pushed, merged or production-verified. Protected main remains
+`930d44b6be9ec6fca059adba21addd05d9f9c7de`; PR #721 stays OPEN/CLEAN with
+no auto-merge. Integrate only after its prerequisite and the frozen Oct 2
+observation with verified cleanup, then rebase/run protected checks. The
+observation revision, configuration, budget and existing job are unchanged.
+
+**Reproduced stored-assessment consistency blocker — 2026-10-02:** the actual
+isolated PostgreSQL/PostgREST-to-restarted-learning proof accepts a v1.2 receipt
+whose status/grade/visible flag are changed to `accepted`/A/true despite its
+original incomplete checks (`complete` instead of expected `incomplete`). Select
+only the same learning slice's bounded correction: validate the new research
+diagnostic against retained original inputs, plan, candidate and decision clock.
+Malformed diagnostics must remain explicit measurement gaps while valid canonical
+outcomes and all original identities remain. Legacy v1.0/v1.1 validation,
+ranking/publication, freeze/charter gates and the Oct 2 integration hold remain
+unchanged. No schema, provider, production configuration or third slice.
+
+**Local research microstructure assessment correction — 2026-10-02:** exact
+primary code revision `88610af646b89882036a25e412142ff10f7958b8` passes all
+79 affected checks and the standard Next production build with strict types.
+Full lint has zero errors/eight retained warnings. Two negative regressions
+first reproduce the v1.1 false pass. New hidden completed-input research uses
+intake v1.2: observed all-zero volume is low-volume evidence; missing, negative
+or non-finite volume/spread yields an incomplete microstructure assessment and
+unknown grade, while known weak-volume/wide-spread warnings remain. The exact
+legacy result is unchanged across 512 volume/spread combinations against
+predecessor `5da9f991`; visible/live v1.1 producers and archived results are not
+rewritten. Mixed 1.1/1.2 assessments retain the existing segmented-baseline gate.
+
+Actual packaged cold/warm/opening scheduler → backend → SDK → isolated
+PostgreSQL/PostgREST → canonical outcomes → restarted owner learning retains
+three/six/three original v1.2 assessments unchanged. Receipt provenance is
+complete while assessment status is `incomplete` and grade is `unknown`: stored
+evidence presence must not be reported as observed liquidity/spread feasibility.
+All eight original identities and unresolved outcomes remain, freeze stays
+`not_ready`, and no comparative metrics or promotion authority are granted.
+
+The existing detached composition incorporates the same correction with the
+volume fix at `19f0ce75550f8f6e62b80a3a94c13faa35857acb`, tree
+`49676a767b2ce3e563ca0aaa38fe14bf0bef2e62`. All 80 affected integration/learning
+checks plus 15 volume checks, affected lint and a new standard build/strict
+types pass. The opening-zero runtime preserves latest volume zero, mean 667,
+the original contracting-volume warning and unavailable spread through outcome
+and learning persistence. Only ledger evidence conflicts require resolution;
+no application conflict or third product slice is introduced. Both proofs
+report zero actual provider/production/broker/publication actions and inert
+cleanup; test containers/networks are independently verified removed.
+
+This closes a local `quality_measurement` defect within the selected learning
+delivery, not recommendation-quality lift. Protected CI, integration and
+prospective market learning acceptance remain outstanding. PR #721 stays open
+with all required checks green and no auto-merge; the frozen Oct 2 revision,
+operating job and observation/verified-cleanup integration hold are unchanged.
+
+**Reproduced research intake microstructure gap — 2026-10-02:** within the
+same selected completed-input learning slice, direct execution of intake v1.1
+returns `accepted` / grade A and a passing liquidity/spread check for observed
+all-zero volume and for unavailable volume/spread. This is a measurement defect,
+not evidence of live publication or poor market returns. Codex selects a bounded
+same-slice correction: a separate new completed-input research assessment version
+must distinguish observed zero from missing/invalid data and disclose unavailable
+spread; existing v1.0/v1.1 producers and archives stay unchanged. Acceptance is
+the negative regression, preserved legacy behavior and actual persisted original
+assessment through canonical outcomes and restarted owner learning readback.
+Original populations, sample/charter/freeze gates, ranking, publication, budgets
+and the Oct 2 observed revision/integration hold remain unchanged. No third
+development slice, new provider, schema or experiment is selected.
+
+**Opening composition readback — 2026-10-02:** the same selected input/learning
+delivery is additionally verified at the synthetic 09:45 New York slot with
+three closed five-minute bars and a latest observed zero. Local rehearsal
+`73217b8a281f0b41c9f08d8913d48c05a0b9cda3` retains mean volume 667, an
+unavailable complete-window ratio and the original weak-current-volume warning
+through three hidden sources, canonical outcomes and restarted learning.
+All eight original identities remain; five are unresolved, freeze stays
+`not_ready`, and there is no recommendation, broker or real provider operation.
+The old test reader's fixed twelve-bar expectation fails `667 !== 917`;
+correcting that reader is not an engine fix. A composition-only opening flag is
+also caught when copied into the older standalone proof and removed there.
+The standalone branch instead adds only its three-bar indicator regression:
+all 27 affected checks pass on `ab0bd70bd2317204031eedf60fb160c5080548c9`.
+Production calculator code remains the previously tested `8cddd843`.
+The frozen Oct 2 observation, prerequisite PR #721 and verified-cleanup
+integration hold remain unchanged. This is additional CLOSED coverage, not
+new market evidence or a claim of improved recommendation accuracy.
+
+**Combined foundation verification — 2026-10-02:** the full existing local
+`foundation` shard exits zero on exact rehearsal source `73217b8a`, tree
+`439dcd1376786cd6f8d69ab2773362b10d1c541a`. Full lint has zero errors/eight
+retained warnings; strict types, dependency audit (zero known vulnerabilities),
+standard production build, all three disposable lifecycle groups, 1,024
+containment/input checks, 12 authenticated-boundary checks, catalog/type
+oracles and all intelligence/frozen-improvement groups pass. Source remains
+clean and the input fixture containers/networks are verified removed. This
+uses local macOS/ARM64 Node 26.5.0, not protected Ubuntu/Node 24.19.0 CI.
+The separate existing `snapshot-issuance` shard also exits zero: all 141
+issuance, intake, source/cohort, baseline-readiness/freeze, policy-comparison and
+selective-publication checks pass on that exact source. These two local shards
+are not protected six-shard CI, main, production, real-market or alpha
+acceptance. The integration hold is unchanged.
+
+**Locally complete independent CLOSED IF-2b volume-input integrity slice — 2026-10-02:**
+Codex owns `codex/intraday-volume-observation`, isolated at
+`/private/tmp/ture-volume-observation.zmEmT7/trade` from verified protected main
+`930d44b6be9ec6fca059adba21addd05d9f9c7de`, with a four-active-hour budget and
+at most four hours of investigation. The completed-input IF-4 slice below is
+locally implemented/tested and held for integration; this is the only selected
+second development slice. It owns the existing intraday volume calculation and
+its regression, not the outcome schema, baseline contract or production flags.
+
+The existing actual packaged scheduler/backend/scanner/SDK/PostgreSQL/PostgREST
+proof with a synthetic latest closed zero-volume bar retains `latestVolume=1000`
+in the persisted v4 decision instead of zero (`1000 !== 0`). Three added unit
+regressions also fail: zero or invalid latest volume is borrowed from an older
+positive bar, and filtering zeros/missingness inflates the twelve-bar mean.
+The first sandbox launch cannot access Docker and supplies no engine evidence;
+the authorized local runtime reproduces the actual failure and cleans up.
+
+Select the smallest point-in-time data-fitness correction: bind latest volume
+to the same original price candle, retain observed zero, preserve the last
+twelve clock positions in the mean and return unknown for invalid/gapped
+inputs. Preserve the existing stricter two-window ratio, freshness, scoring and
+publication thresholds, provider budgets and all archived/frozen evidence.
+Acceptance is positive/zero/invalid/gapped unit behavior plus the exact zero
+and honest mean through actual persisted decision and restarted owner readback,
+eight unchanged credits/identities, no publication/broker effects and cleanup.
+No new provider or quality hypothesis is selected. Source/build revision keeps
+the correction separate from older archives; no persisted evidence is repaired.
+Integrate only after the frozen Oct 2 observation and verified cleanup, after
+PR #721 and the completed-input learning slice, then rebase and run their
+combined runtime regressions. This is recommendation data fitness, not alpha.
+
+The correction is locally committed as
+`8cddd843aae504a77d2217bb6662c964a987823f`. All 65 affected checks, full lint
+(zero errors/eight retained warnings), TypeScript and the standard production
+build pass. The actual cold zero-volume proof retains three fresh v4 inputs
+with `latestVolume=0` and `averageVolume=917`, one attempt/eight synthetic
+scan requests, no recommendations/positions and verified fixture cleanup.
+
+A separate detached local rehearsal composes that correction with the completed
+learning slice at `83217b45`, resolving only the existing proof and ledger
+conflicts. Exact rehearsal revision is
+`60621af4d12d3bdfd159d168caefa78125af7fb2`, tree
+`bfb54680096a55c5d115d893c0926a80715ba0ce`, isolated at
+`/private/tmp/ture-volume-learning-check.CaBqbV/trade`. All 139 combined tests,
+affected lint, strict types and a new standard production build pass. The actual
+zero-volume source → outcome → restarted learning readback retains all three
+original assessments/outcomes, leaves five unresolved identities explicit and
+keeps readiness/metrics/promotion gates closed. Disposable containers/networks
+are verified removed. This is local composition evidence, not protected CI,
+main integration or a production deploy; neither product branch is changed by
+the rehearsal. No third delivery, push, provider or broker operation occurs.
+
+The frozen `930d44b6...` Oct 2 observation remains unchanged and can retain this
+pre-correction volume limitation. Its volume fields cannot establish that this
+specific defect is absent, and older decisions may not be silently recomputed
+with the new calculator. Acceptance of the correction in production and its
+prospective market effect remain separate from that frozen input-delivery test.
+
+**Steering reconciliation — 2026-10-02:** the user's approved roadmap update
+keeps the current completed-input/learning delivery and frozen Oct 2 OPEN card
+selected. The master roadmap now explicitly orders fresh complete inputs,
+usable canonical learning evidence and one measured contextual-ranking
+challenger, with a bounded evidence-to-next-action loop. Earlier dated "Now"
+and "next CLOSED" selections are retained history, not additional queues or
+permission to restart the stopped allocation experiment. Operational delivery,
+input fitness, learning coverage and recommendation-quality lift stay separate.
+This is a local documentation reconciliation bundled with the selected motor
+delivery, not a main/deploy change or new acceptance result. The PR #721
+prerequisite and observation/verified-cleanup integration hold are unchanged.
+The existing recommendation-engine graduation-governance check passes locally
+(one test), and diff validation is clean. No application behavior changed;
+this check verifies steering consistency, not recommendation quality.
+
+**Now — independent CLOSED IF-4 completed-input outcome admission, 2026-10-02:**
+Codex owns `codex/completed-input-learning-admission` in isolated
+`/private/tmp/ture-research-learning.Ir0gkL/trade`, created from verified protected
+main `930d44b6be9ec6fca059adba21addd05d9f9c7de` and fast-forwarded locally to
+the stable PR #721 prerequisite `0676d6396673d2218a0f080c2d454ffcbdc35510`.
+Budget is six active hours, initial investigation at most four. PR #721 has
+completed protected CI run `36927974810` successfully on merge tree
+`6449d14c7439b4cbb04078199d183d6f3647d911`; its integration remains held until
+the frozen Oct 2 observation and verified cleanup. This dependent slice stays
+local until that prerequisite is integrated, with no competing public PR.
+
+The existing cold actual scheduler/backend/scanner/SDK/PostgreSQL/PostgREST
+proof and restarted owner-bound learning reader reproduce three persisted
+research sources and three canonical outcomes, but zero collected research
+outcomes in baseline readiness. The original eight candidate identities remain.
+The narrow source-provenance gate rejects all three because `provider_version`
+is null; response identities, feature vectors, adapter/build versions and source
+times are present. The learning parser retains the scan and all rows, so this
+is not diagnostic filtering. The synthetic diagnostic exits successfully and
+its disposable containers/networks are verified removed. It establishes neither
+production incidence nor recommendation-quality lift.
+
+Selected behavior: admit only new, hidden completed-input research outcomes via
+an explicit versioned normalized-input/geometry provenance basis, verified
+against their owner-bound v4 decision and semantic durable lineage. Never infer
+an upstream provider version or claim raw-provider replay. Preserve legacy v1
+admission, published-source admission, frozen cohorts, all unknown population
+members, quality/charter/calibration/minimum-sample gates and freeze authority.
+Use the same gate in existing readiness and canonical evaluation consumers.
+No schema, provider request, ranking/publication rule or production flag changes.
+
+**Reproduced intake-assessment gap within this learning link — 2026-10-02:**
+The actual cold scheduler/backend/scanner/SDK/database proof persists three
+research sources and canonical outcomes, but restarted owner readback retains
+zero intake assessments (`0 !== 3`). The source builder supplies only scan
+observability to the existing snapshot quality field. The new regression fails
+after actual outcome persistence; its disposable containers are verified
+removed. Select the smallest correction in this same slice: reuse the existing
+intake-quality v1.1 assessment only for new completed-input research, with the
+original decision clock, plan, score and retained intraday inputs. Preserve
+legacy/frozen sources and hidden visibility. Missing spread, portfolio and risk
+context remain unavailable, not fabricated passes. Assessment status/grade is
+diagnostic and cannot grant publication, calibration or baseline-freeze authority.
+Acceptance is unchanged original assessment through persisted source, outcome
+and restarted owner readback, with all existing readiness gaps still explicit.
+This remains local `quality_measurement`, not measured recommendation lift.
+
+**Local completed-input intake-assessment evidence — 2026-10-02:**
+The existing v1.1 diagnostic is now persisted only for new completed-input
+research sources, bound to the original candidate identity and decision time.
+It uses original geometry, ordinal score, current-session price and intraday
+volumes, and retains the existing low-volume warning when applicable. Missing
+portfolio/risk-control context remains `not_applicable`; spread is not invented.
+Legacy research, frozen comparison cohorts and live publication stay unchanged.
+The diagnostic's visible-list field is not authority to expose a hidden source.
+
+Actual cold/opening and warm scheduler/backend/scanner/SDK/PostgreSQL/PostgREST
+proofs retain three/six/three assessments with their canonical outcomes through
+restarted owner readback. Every persisted assessment is structurally unchanged
+after future outcome evaluation; candidate IDs and exact original decision
+timestamps agree. Missing/malformed persisted assessments keep their explicit
+readiness blockers without discarding known canonical outcomes. Full eight-member
+denominators, unknown outcomes, prospective-baseline contract, source-cohort,
+calibration and sample gates remain; readiness is `not_ready`, plans are not
+freeze eligible and comparative metrics remain null.
+
+An intermediate local patch-placement error is caught by the real runtime and
+corrected before acceptance. The first expanded test run also catches a test
+expectation using fractional minutes against intake v1.1's existing rounded
+minutes; the assertion is corrected without changing source timestamps,
+freshness thresholds or assessment semantics. The final 81-test affected suite
+and 43 pagination, frozen clock/liquidity comparison, graduation and CI-coverage
+checks pass (124 total). Affected lint and the standard Next production build
+including TypeScript pass. Fixture containers and networks are verified removed.
+There are zero real provider, production or broker actions and zero publication.
+This is local measurement-path evidence only. Protected CI, main integration
+after the PR #721/Oct 2 cleanup hold and prospective OPEN learning acceptance
+are still outstanding; no improvement in recommendation returns is claimed.
+
+**Final local foundation verification — 2026-10-02:** the complete provider-free
+`foundation` shard exits successfully on exact source revision
+`6a818aa8544331063bfe0b3fe67ed1d3bde9a9a7`. Full lint has zero errors/eight
+retained warnings; strict types, dependency audit (zero known vulnerabilities),
+standard production build, all three disposable lifecycle groups, 1,019
+browser/server checks, 12 authenticated-boundary checks and the registered
+catalog/type, intelligence and frozen-improvement groups pass. This replaces
+predecessor-only foundation evidence for the current implementation. It is one
+local shard, not protected six-shard CI, main acceptance or OPEN quality proof.
+No push, merge, production configuration or provider operation occurred.
+
+Acceptance is real persisted cold/warm source-to-outcome-to-learning readback,
+including malformed archives/features/identity/geometry, missing/cross-run
+lineage, ambiguous runs, duplicate outcomes and another owner. Valid canonical
+research outcomes contribute to the original denominator, while unresolved
+members stay explicit and overall readiness stays `not_ready` where its other
+gates are unmet. Preserve the frozen Oct 2 revision and operating job. This is
+`quality_measurement`, not proved alpha or a reason to expand infrastructure.
+
+**Local completed-input learning-admission evidence — 2026-10-02:**
+The actual persisted source → canonical outcome → restarted owner learning
+reader → readiness/evaluation path now admits three cold/opening and six warm
+research outcomes instead of zero. All eight original decision identities
+remain: five cold/opening unobserved members and two warm stale-rejected members
+remain unresolved, not losses. Warm outcome acquisition resumes four → two;
+a completed repeat performs no acquisition or outcome rewrite.
+
+`completed_input_learning_provenance_v1` verifies semantic durable lineage,
+exact retained normalized inputs, response identity, original geometry and all
+17 reconstructed market feature values at the original decision time. The
+ordinal `scanner_local_score` is explicitly excluded from reconstruction.
+Upstream `provider_version` remains null and is disclosed as unavailable;
+this is retained-normalized-input/geometry reproducibility, not raw-provider
+replay. Legacy provenance, published sources and frozen cohorts are unchanged.
+The new readiness v4/evaluation-plan v2 cannot acquire existing v1 freeze
+authority: the prospective-baseline-contract blocker remains explicit, along
+with existing population, intake, charter, calibration and sample gates.
+Readiness remains `not_ready`, the plan is not freeze eligible and comparison
+metrics remain null. This improves evaluability, not proven recommendation
+quality or permission to publish.
+
+The coherent 98-test affected suite and four governance checks pass locally.
+After final provider-continuity review, all three actual cold/warm/opening
+runtime proofs pass again, including persisted corruption, missing/cross-run
+lineage, ambiguous runs, duplicate outcomes, wrong provider and another owner.
+Strict TypeScript, affected lint and the final standard Next production build
+pass; disposable containers and networks are verified removed. Three broader
+legacy liquidity tests initially fail and reproduce unchanged on prerequisite
+`0676d6396673d2218a0f080c2d454ffcbdc35510`: their fixtures lack setup metadata
+needed by an existing concentration gate. Explicit synthetic setup metadata
+and a missing-setup negative repair those fixtures without changing the gate.
+The existing clock/liquidity outcome suites are registered in the regular
+provider-free intelligence CI shard; no required check is removed.
+
+This delivery is locally implemented/tested only on
+`codex/completed-input-learning-admission`, following the exact PR #721
+prerequisite. No child PR, push, main integration, production configuration,
+migration, real provider request or broker action has occurred. Protected CI,
+main verification and prospective OPEN source-to-outcome-to-learning evidence
+remain outstanding. Integrate only after PR #721 and the frozen Oct 2
+observation's verified cleanup, then rebase against current main before the
+first coherent push. No baseline freeze, calibration, policy promotion or
+alpha improvement is claimed.
+
+**Broader local review and upstream-version integrity correction — 2026-10-02:**
+The complete provider-free `foundation` shard passes locally on exact
+`319134ce36d8375261cbcae8dd2dc135466cc1ea`: lint has zero errors/eight retained
+warnings, strict types and standard production build pass, dependency audit
+reports zero vulnerabilities, all three disposable database lifecycle groups
+pass, and all registered browser/server, authentication, catalog/type-oracle,
+intelligence and frozen improvement groups complete successfully. This is one
+local shard, not protected six-shard CI or main/production verification.
+
+An additional actual cold persisted-source diagnostic changes only snapshot
+`provider_version` to an invented string after outcomes exist. The original
+normalized input archive retained no upstream version, but readiness still
+admits all three outcomes (`3 !== 0`). A preliminary in-memory module launch
+fails before runtime and supplies no behavior evidence; resolving its package
+import enables the actual failing proof. The focused new-basis correction
+rejects a non-null unretained version with
+`completed_input_upstream_version_not_retained` and keeps its verified upstream
+version unavailable/null. It does not change stored payloads or infer a version
+from Ture's adapter. Legacy/published provenance is unchanged.
+
+After this correction, 95 affected readiness, pagination, freeze, packaged
+input/source/outcome/learning, clock/liquidity comparison, governance and shard
+coverage tests pass. The real cold/warm/opening proofs reject the persisted
+metadata mutation and still admit three/six/three valid canonical outcomes on
+the original eight-member populations. Affected lint and a new standard build
+with TypeScript pass; all disposable fixtures are verified removed. Preserve
+the full foundation result as predecessor evidence, not a full-current-source
+rerun. Current protected CI and prospective OPEN learning evidence remain
+required. The delivery stays local, with the same PR #721 prerequisite and
+frozen Oct 2 observation/cleanup integration hold; no production or provider
+operation occurred.
+
+**Retained prerequisite — IF-2b → IF-4 research-source slice, 2026-10-01:**
 Codex owns `codex/input-attributed-outcome-capture` in the isolated
 `/private/tmp/ture-if2b-outcomes.CUZRlz/trade` worktree, starting from verified
 main `930d44b6be9ec6fca059adba21addd05d9f9c7de`. Delivery budget is seven active
@@ -45,8 +561,9 @@ no real provider calls or production outcomes. This closes a
 
 Integration order: implement/test locally, then one coherent PR with protected
 CI. Do not merge or change the observed production revision before the frozen
-Oct 2 input test and its verified cleanup; no second development stream or
-generic readiness/capture platform is selected. Next OPEN source/outcome
+Oct 2 input test and its verified cleanup; at this selection boundary no second
+development stream or generic readiness/capture platform was selected. The
+subsequent reproduced outcome-admission slice is selected above. Next OPEN source/outcome
 acceptance requires a separate prospective card. Graduation remains `not_met`.
 
 **Local vertical implementation evidence — 2026-10-01:** the new
@@ -945,14 +1462,18 @@ paper, broker or execution product expansion stays blocked from primary
 selection. This gate does not require a candidate every day: a fresh,
 attributable `no_trade` remains a valid decision.
 
-The active 2026-09-28 OPEN work is collection for that exact frozen cohort, not
+The then-selected 2026-09-28 OPEN work was collection for that exact frozen cohort, not
 a new infrastructure phase. CLOSED selection during the collection window is
 limited to a reproduced missing link in the same evidence chain or preparation
 of the next measured recommendation hypothesis from already attributable
 evidence. When a support blocker is closed, primary selection returns
 immediately to recommendation capability or quality measurement.
 
-### Now / Next / Blocked selection — 2026-09-28
+### Retained Now / Next / Blocked selection — 2026-09-28, superseded for work selection
+
+The active queue at the top of this ledger supersedes this dated selection.
+Keep its frozen charter and evidence intact; these historical slots and "Next"
+statements do not authorize another observation or select a development slice.
 
 - **Now:** collect the exact clock-neutral IF-3b forward cohort without changing
   live ranking or publication, while CLOSED work completes the IF-4 scorecard

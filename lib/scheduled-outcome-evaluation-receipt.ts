@@ -169,7 +169,7 @@ type ReceiptInput = {
     Pick<
       RecommendationSnapshot,
       "recommended_at" | "source_mode" | "payload_json" | "intake_quality_json"
-    >
+    > & Partial<RecommendationSnapshot>
   >;
 };
 
@@ -275,14 +275,14 @@ function snapshotPayloadText(
 }
 
 function intakeQualityProvenance(
-  snapshots: Array<Pick<RecommendationSnapshot, "intake_quality_json">>,
+  snapshots: Array<Pick<RecommendationSnapshot, "intake_quality_json"> & Partial<RecommendationSnapshot>>,
 ): ScheduledOutcomeEvaluationIntakeQualityProvenance {
   return buildRecommendationIntakeQualityProvenance(snapshots);
 }
 
 function decisionLineage(
   snapshots: Array<
-    Pick<RecommendationSnapshot, "source_mode" | "payload_json" | "intake_quality_json">
+    Pick<RecommendationSnapshot, "source_mode" | "payload_json" | "intake_quality_json"> & Partial<RecommendationSnapshot>
   >,
 ): ScheduledOutcomeEvaluationReceipt["decision_lineage"] {
   const policyVersions = snapshots

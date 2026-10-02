@@ -46,3 +46,16 @@ test("current-state ledger names the active quality chain and its promotion gate
     /paper\/broker expansion until\s+IF-5 demonstrates sustained useful recommendation quality/,
   );
 });
+
+test("Oct 2 reconciliation keeps incomplete experiments separate from recommendation learning", () => {
+  const roadmap = readDoc("docs/ture-master-roadmap.md");
+  const governance = readDoc("docs/roadmap-operating-governance.md");
+  expect(roadmap).toContain("Learning-to-improvement loop — 2026-10-02");
+  expect(roadmap).toMatch(/Predeclare its baseline, original\s+population, point-in-time information/);
+  expect(roadmap).toContain("unresolved members remain missing, not\nlosses");
+  expect(roadmap).toContain("Do not repeat an identical test\nwithout a verified correction or a newly frozen question");
+  expect(governance).toContain("`evidence_incomplete` disposition");
+  expect(governance).toMatch(/Independent CLOSED intelligence work may continue while\s+the missing OPEN evidence is collected/);
+  expect(governance).toContain("A provider/data rejection is not an evaluated `no_trade`");
+  expect(roadmap).toContain("This reconciliation selects no new experiment, data source, provider budget");
+});

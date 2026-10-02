@@ -1,6 +1,6 @@
 # Ture Master Roadmap
 
-## Active product direction — recommendation intelligence first, 2026-09-27
+## Active product direction — recommendation intelligence first, reconciled 2026-10-02
 
 The latest product selection is **data fitness and broad discovery → contextual
 ranking → complete outcome-linked evaluation → shadow-tested, reversible policy
@@ -59,13 +59,60 @@ frozen Oct 2 input observation separate from later source/outcome verification,
 and do not relax freshness, ranking or publication to manufacture coverage.
 
 The immediate work order is therefore complete fresh decision inputs, exact
-source-to-outcome continuity, then one measured contextual-ranking challenger.
+source-to-outcome continuity through canonical learning admission, then one
+measured contextual-ranking challenger. A stored outcome is not yet usable
+learning evidence: the same original input, plan, decision and outcome must reach
+the evaluator. New normalized-input research provenance must disclose its
+reproduction limits and unavailable upstream version, remain separate from
+legacy frozen contracts, and never silently acquire baseline/promotion authority.
 When those first two links pass their declared acceptance, return the primary
 delivery to the largest attributable recommendation-quality defect; do not
 extend input or outcome infrastructure without a new reproduced blocker.
 Retain separate results for operational delivery, input fitness, outcome
 coverage and baseline-relative quality. Only the last can establish that the
 recommendations became better, and it still requires the full quality charter.
+
+Persisted diagnostic presence is not assessment integrity or market feasibility.
+New completed-input research assessments must remain consistent with their
+retained original candidate, plan, inputs and decision clock before they count
+as valid quality-measurement evidence. A contradictory or missing assessment
+is an explicit measurement gap; it must not erase otherwise valid canonical
+outcomes, rewrite historical evidence or grant baseline/promotion authority.
+
+**Learning-to-improvement loop — 2026-10-02.** The immediate priorities above
+supersede the dated work selections retained below. Close the fresh-input and
+canonical-learning links with their declared evidence, then use attributable
+discovery misses, incomplete inputs, ranking errors or miscalibration to select
+one recommendation-quality challenger. Predeclare its baseline, original
+population, point-in-time information, expected effect, forward windows and
+full-charter decision before collecting comparison evidence. Evaluate both
+favorable and unfavorable outcomes; unresolved members remain missing, not
+losses. A rejected challenger is a useful learning result, not a reason to
+lower publication standards.
+
+After each bounded OPEN experiment, retain the result, its limitations and the
+one next action that the evidence justifies. Do not repeat an identical test
+without a verified correction or a newly frozen question. An operational pass
+can close a transport blocker; it cannot select or promote a better ranker.
+An `evidence_incomplete` experiment must name the missing evidence and either
+its bounded recovery or its explicit stop/disposition. It must not become an
+indefinite wait that prevents independent CLOSED intelligence work. Preserve
+the old frozen experiment unchanged; any replacement comparison needs its own
+prospective contract and may not pool incompatible populations or revisions.
+
+This reconciliation selects no new experiment, data source, provider budget,
+live policy or broker capability. The ledger remains the single executable
+queue, including the frozen Oct 2 observation and its verified-cleanup boundary.
+
+**Unavailable data is not an investment decision.** The Oct 2 observation
+terminates with `provider_rate_limited` before retaining a scan decision. Its
+attributable rejection and bounded reservation protect the product, but do not
+prove complete inputs or a useful `no_trade`. Keep provider/data rejection,
+valid evaluated `no_trade` and a published recommendation distinct. Diagnose
+the exact acquisition failure without another identical live attempt; repair
+only a reproduced blocker, then resume the selected input-to-learning delivery.
+This result does not justify a lower quality threshold, a new subscription or
+an expanded scheduler project.
 
 **Recommendation-quality gate.** An IF-4 terminal decision must evaluate the
 whole frozen charter that makes the recommendation useful: absolute precision,
@@ -187,8 +234,9 @@ unless a reproduced defect blocks or corrupts that path. The objective is not
 to maximize infrastructure or candidate count; it is to increase useful,
 calibrated recommendations while preserving honest `no_trade` decisions.
 
-**Immediate recommendation-quality build order — 2026-09-28.** Finish the
-current clock-neutral hypothesis before opening a competing ranker hypothesis:
+**Retained recommendation-quality build order — 2026-09-28.** This records the
+clock-neutral hypothesis's frozen order, not the current Now / Next queue. Its
+contract remains unchanged; the Oct 2 priorities and ledger select work:
 
 1. collect the already frozen held-out and walk-forward population with exact
    decisions, rejections, `no_trade` states, canonical outcomes and cost;
@@ -211,7 +259,10 @@ infrastructure after the named blocker is demonstrably closed. The exit artifact
 for each primary delivery must be a changed or newly measured recommendation
 capability, not merely safer transport for a future capability.
 
-**2026-09-30 measured data-fitness selection.** Two attributable regular-session
+**Retained 2026-09-30 measured data-fitness selection.** The selections and
+"next CLOSED" statements in this allocation chronology are superseded by the
+Oct 1 stopped-experiment result and Oct 2 priorities above. They are not
+authorization to restart the switchback. Two attributable regular-session
 cycles reproduced a late-index provider-credit concentration under the existing
 shared serial budget. The selected next challenger is
 `candidate_breadth_first_provider_budget_v1`: allocate at most one request per

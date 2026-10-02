@@ -47,8 +47,12 @@ sequence of generic readiness, schema, observability or automation improvements.
 Any further support change requires a new reproduced blocker and must again
 yield the primary slot to the earliest missing recommendation-quality link.
 
-Finish each hypothesis with an explicit `continue`, `narrow` or `reject`
-decision before opening a competing ranking hypothesis. A negative result is
+Finish each hypothesis with an explicit `continue`, `narrow`, `reject` or
+`evidence_incomplete` disposition before opening a competing ranking hypothesis.
+For `evidence_incomplete`, name the missing dimension and a bounded recovery or
+explicit stop; preserve the frozen contract and do not treat that disposition
+as policy acceptance. Independent CLOSED intelligence work may continue while
+the missing OPEN evidence is collected. A negative result is
 progress because it prevents an unsupported policy from reaching users. A code
 merge, operational receipt, rank displacement, high score or isolated favorable
 outcome is not recommendation-quality progress unless it closes a declared link
@@ -63,6 +67,25 @@ At handoff, classify delivered work as one of: `recommendation_capability`,
 Only the first three advance the intelligence roadmap. The fourth is necessary
 maintenance and must identify the resumed intelligence delivery; it cannot be
 reported as proof that recommendations improved.
+
+### Evidence-driven roadmap reconciliation — 2026-10-02
+
+The latest active priority and ledger queue supersede dated experimental work
+selections, not their immutable evidence or acceptance contracts. After a
+bounded experiment, distinguish operational delivery, fresh-input fitness,
+canonical outcome/learning coverage and baseline-relative recommendation
+quality. Record what changed the next development decision and its exact
+evidence gap. Do not promote a data-fitness proxy into quality evidence or
+restart a stopped experiment because an older paragraph still says "next".
+Bundle justified roadmap reconciliation with the selected product delivery;
+do not create a separate planning-only PR or a parallel control-plane stream.
+
+A provider/data rejection is not an evaluated `no_trade`. Preserve the terminal
+reason, the original missing population and both the full-slot reservation and
+actual request accounting when they differ. Neither a reserved credit nor a
+successful request establishes a usable fresh input. Diagnose a failed
+acquisition before selecting its bounded correction or a different prospective
+question; do not count repeated transport attempts as recommendation learning.
 
 ### Recommendation-engine graduation gate enforcement
 

@@ -21,9 +21,15 @@ import {
   RECOMMENDATION_DECISION_SOURCE_PROVENANCE_VERSION,
   recommendationDecisionSourceProvenanceBlockers,
   recommendationDecisionSourceProvenanceFromSnapshot,
-  type RecommendationDecisionSourceProvenance,
   type RecommendationDecisionSourceProvenanceBlocker,
 } from "@/lib/recommendation-decision-source-provenance";
+import {
+  COMPLETED_INPUT_LEARNING_PROVENANCE_VERSION,
+  completedInputLearningProvenanceBlockers,
+  recommendationResearchLearningSourceProvenance,
+  type LearningSourceProvenance,
+  type LearningSourceProvenanceBlocker,
+} from "@/lib/completed-input-learning-provenance";
 import {
   buildRecommendationIntakeQualityProvenance,
   type RecommendationIntakeQualityProvenance,
@@ -35,6 +41,8 @@ import {
 
 export const RECOMMENDATION_LEARNING_BASELINE_READINESS_VERSION =
   "recommendation_learning_baseline_readiness_v3" as const;
+export const COMPLETED_INPUT_LEARNING_BASELINE_READINESS_VERSION =
+  "recommendation_learning_baseline_readiness_v4" as const;
 export const MIN_VISIBLE_PRIMARY_OUTCOMES_BEFORE_BASELINE_FREEZE = 20;
 
 export type LearningBaselineScanRun = Pick<
@@ -48,7 +56,7 @@ export type LearningBaselineScanRun = Pick<
 >;
 
 export type RecommendationLearningBaselineReadiness = {
-  contract_version: typeof RECOMMENDATION_LEARNING_BASELINE_READINESS_VERSION;
+  contract_version: typeof RECOMMENDATION_LEARNING_BASELINE_READINESS_VERSION | typeof COMPLETED_INPUT_LEARNING_BASELINE_READINESS_VERSION;
   status: "not_ready" | "eligible_for_explicit_freeze";
   decision_records: {
     considered_count: number;
@@ -89,13 +97,15 @@ export type RecommendationLearningBaselineReadiness = {
     status: "complete" | "incomplete" | "mixed" | "unavailable";
   };
   decision_time_source_provenance: {
-    contract_version: typeof RECOMMENDATION_DECISION_SOURCE_PROVENANCE_VERSION;
+    contract_version: typeof RECOMMENDATION_DECISION_SOURCE_PROVENANCE_VERSION | typeof COMPLETED_INPUT_LEARNING_PROVENANCE_VERSION;
     assessed_snapshot_count: number;
     admissible_snapshot_count: number;
     incomplete_snapshot_count: number;
     intraday_indicator_response_identity_count: number;
     decision_feature_vector_count: number;
-    blocker_counts: Record<RecommendationDecisionSourceProvenanceBlocker, number>;
+    blocker_counts: Record<RecommendationDecisionSourceProvenanceBlocker, number> & Partial<Record<LearningSourceProvenanceBlocker, number>>;
+    completed_input_research_snapshot_count?: number;
+    upstream_provider_version_unavailable_count?: number;
   };
   intake_quality_provenance: RecommendationIntakeQualityProvenance;
   source_cohort_provenance: RecommendationSourceCohortProvenance;
@@ -305,19 +315,21 @@ export function buildRecommendationLearningBaselineReadiness({
   const blockers = new Set<string>();
   const sourceProvenanceBySnapshotId = new Map<
     string,
-    RecommendationDecisionSourceProvenance
+    LearningSourceProvenance
   >();
   const assessedSnapshotsById = new Map<string, RecommendationSnapshot>();
   const sourceProvenanceBlockerCounts = Object.fromEntries(
-    recommendationDecisionSourceProvenanceBlockers.map((blocker) => [blocker, 0]),
-  ) as Record<RecommendationDecisionSourceProvenanceBlocker, number>;
+    completedInputLearningProvenanceBlockers.map((blocker) => [blocker, 0]),
+  ) as Record<LearningSourceProvenanceBlocker, number>;
 
-  function sourceProvenanceForSnapshot(snapshot: RecommendationSnapshot) {
+  function sourceProvenanceForSnapshot(snapshot: RecommendationSnapshot, research = false) {
     const existing = sourceProvenanceBySnapshotId.get(snapshot.id);
     if (existing) return existing;
 
     assessedSnapshotsById.set(snapshot.id, snapshot);
-    const provenance = recommendationDecisionSourceProvenanceFromSnapshot(snapshot);
+    const provenance = research
+      ? recommendationResearchLearningSourceProvenance(snapshot, scanRuns)
+      : recommendationDecisionSourceProvenanceFromSnapshot(snapshot);
     sourceProvenanceBySnapshotId.set(snapshot.id, provenance);
     for (const blocker of provenance.blockers) {
       sourceProvenanceBlockerCounts[blocker] += 1;
@@ -516,7 +528,7 @@ export function buildRecommendationLearningBaselineReadiness({
       });
       if (!snapshot) continue;
 
-      const sourceProvenance = sourceProvenanceForSnapshot(snapshot);
+      const sourceProvenance = sourceProvenanceForSnapshot(snapshot, true);
       if (sourceProvenance.status !== "admissible") {
         blockers.add("counterfactual_candidate_decision_source_provenance_incomplete");
         continue;
@@ -667,6 +679,14 @@ export function buildRecommendationLearningBaselineReadiness({
     blockers.add("multiple_source_cohorts_require_segmented_baseline");
   }
 
+  const completedInputSources = Array.from(sourceProvenanceBySnapshotId.values()).filter(
+    provenance => provenance.contract_version === COMPLETED_INPUT_LEARNING_PROVENANCE_VERSION,
+  );
+  // New evidence semantics never enter an existing v1 freeze/charter silently.
+  // This delivery closes outcome attribution, not prospective baseline authority.
+  if (completedInputSources.length > 0) {
+    blockers.add("completed_input_research_requires_prospective_baseline_contract");
+  }
   const status =
     blockers.size === 0 &&
     primaryOutcomeCount >= MIN_VISIBLE_PRIMARY_OUTCOMES_BEFORE_BASELINE_FREEZE
@@ -674,7 +694,9 @@ export function buildRecommendationLearningBaselineReadiness({
       : "not_ready";
 
   return {
-    contract_version: RECOMMENDATION_LEARNING_BASELINE_READINESS_VERSION,
+    contract_version: completedInputSources.length > 0
+      ? COMPLETED_INPUT_LEARNING_BASELINE_READINESS_VERSION
+      : RECOMMENDATION_LEARNING_BASELINE_READINESS_VERSION,
     status,
     decision_records: {
       considered_count: scanRuns.length,
@@ -715,7 +737,15 @@ export function buildRecommendationLearningBaselineReadiness({
       status: strategyAttributionStatus,
     },
     decision_time_source_provenance: {
-      contract_version: RECOMMENDATION_DECISION_SOURCE_PROVENANCE_VERSION,
+      contract_version: completedInputSources.length > 0
+        ? COMPLETED_INPUT_LEARNING_PROVENANCE_VERSION
+        : RECOMMENDATION_DECISION_SOURCE_PROVENANCE_VERSION,
+      ...(completedInputSources.length > 0 ? {
+        completed_input_research_snapshot_count: completedInputSources.length,
+        upstream_provider_version_unavailable_count: completedInputSources.filter(
+          provenance => provenance.provider_version === null,
+        ).length,
+      } : {}),
       assessed_snapshot_count: sourceProvenanceBySnapshotId.size,
       admissible_snapshot_count: Array.from(
         sourceProvenanceBySnapshotId.values(),
@@ -733,7 +763,10 @@ export function buildRecommendationLearningBaselineReadiness({
         sourceProvenanceBySnapshotId.values(),
       ).filter((provenance) => provenance.decision_feature_vector !== null)
         .length,
-      blocker_counts: sourceProvenanceBlockerCounts,
+      blocker_counts: completedInputSources.length > 0 ? sourceProvenanceBlockerCounts
+        : Object.fromEntries(recommendationDecisionSourceProvenanceBlockers.map(
+          blocker => [blocker, sourceProvenanceBlockerCounts[blocker]],
+        )) as Record<RecommendationDecisionSourceProvenanceBlocker, number>,
     },
     intake_quality_provenance: intakeQualityProvenance,
     source_cohort_provenance: sourceCohortProvenance,
@@ -754,7 +787,9 @@ export function buildRecommendationLearningBaselineReadiness({
     notes: [
       "Read-only readiness audit: it does not change scoring, ranking, publication, provider usage, or execution.",
       "Visible outcomes use one complete 60m/30m/15m primary horizon per exactly linked published candidate; duplicates and incomplete coverage fail closed.",
-      "A linked snapshot is inadmissible when its decision-time input lineage is missing, invalid, after the decision, or lacks an intraday response fingerprint, a bounded decision feature vector, provider version, Ture adapter version, or source build marker. The fingerprint is a privacy-preserving response identity, not an upstream API-version claim; the vector records finite observed features or explicit unavailable inputs, never raw candles. Ture preserves those rows as an evidence gap rather than allowing them into a baseline.",
+      completedInputSources.length > 0
+        ? "Legacy and published sources require upstream provider-version provenance. New hidden completed-input research uses an explicit normalized-input/geometry basis bound to its exact v4 decision and durable lineage; upstream provider_version may truthfully remain null. This never claims raw-provider replay or local-score reproduction, fills missing inputs or admits stale/changed sources. Response identity, observed market feature values, source timing, adapter/build identity and original geometry remain required. A prospective baseline contract is still required for the new basis."
+        : "A linked snapshot is inadmissible when its decision-time input lineage is missing, invalid, after the decision, or lacks an intraday response fingerprint, a bounded decision feature vector, provider version, Ture adapter version, or source build marker. The fingerprint is a privacy-preserving response identity, not an upstream API-version claim; the vector records finite observed features or explicit unavailable inputs, never raw candles. Ture preserves those rows as an evidence gap rather than allowing them into a baseline.",
       "Every snapshot actually assessed for a baseline must carry a valid intake-quality receipt from one result version. Missing, malformed or mixed receipt versions remain an explicit evidence gap; receipt status and grade are retained for later analysis but do not alter publication or select a winning policy.",
       "Every assessed snapshot must retain a versioned source-cohort receipt. Provider, feed class, observed entitlement, coverage scope, upstream/receipt timestamps, adapter/build version, request cost and response-quality disposition are facts, not defaults. Missing or degraded receipts and different cohort labels cannot be pooled into one baseline.",
       "Every decision must retain an accepted strategy-registry identity. Legacy or missing strategy references are excluded, and distinct strategy/selection identities require separate baseline segments even when their publication policy is unchanged.",
