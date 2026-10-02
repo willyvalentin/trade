@@ -594,6 +594,28 @@ try {
         return {source,readiness,plans};
       };
       const learning=await learningEvidence();
+      const shadow=learning.readiness.relative_plan_context_shadow;
+      assert.equal(shadow.length,1,"Actual persisted owner read exposes the original decision's shadow diagnostic");
+      assert.equal(shadow[0].comparison_version,"relative_plan_context_shadow_v1");
+      assert.equal(shadow[0].scan_run_fingerprint,record.scan_run_fingerprint);
+      assert.equal(shadow[0].decision_timestamp,record.decision_timestamp);
+      assert.equal(shadow[0].original_population_count,8);
+      assert.equal(shadow[0].candidates.length,8,"Unobserved original members survive Postgres/SDK/learning restart");
+      assert.equal(shadow[0].assessed_count+shadow[0].unassessed_count,8);
+      assert.equal(shadow[0].live_ranking_effect,false);
+      assert.equal(shadow[0].publication_effect,false);
+      assert.equal(shadow[0].quality_improvement_claimed,false);
+      assert.notEqual(shadow[0].status,"conflicting");
+      const expectedAssessed=opening?0:researchSnapshots.length;
+      assert.equal(shadow[0].status,opening?"unavailable":"partial");
+      assert.equal(shadow[0].assessed_count,expectedAssessed,
+        "Every complete original 60m context is assessed; an opening window is never rescaled into an hour");
+      assert.equal(shadow[0].unassessed_count,8-expectedAssessed,
+        "Missing or short-window original members remain explicit, never dropped or imputed");
+      if(opening) assert.equal(shadow[0].candidates.filter(c=>c.reason==="short_closed_range_window").length,
+        researchSnapshots.length,"Valid short-window sources keep their precise unassessed reason");
+      assert.deepEqual((await learningEvidence()).readiness.relative_plan_context_shadow,shadow,
+        "Repeated actual durable read cannot recompute the original plan/input from mutable cache");
       assert.equal(learning.source.snapshots.filter(snapshot=>snapshot.intake_quality_json?.result_kind==="recommendation_intake_quality").length,researchSnapshots.length,
         "Each retained completed-input research source must keep its original intake assessment through owner readback");
       assert.equal(learning.readiness.intake_quality_provenance.status,"complete");
@@ -686,6 +708,18 @@ try {
       outcomeChainEvidence.learning_admission={
         readiness_version:learning.readiness.contract_version,
         plan_version:learning.plans.contract_version,
+        relative_plan_context_shadow:{
+          comparison_version:shadow[0].comparison_version,
+          status:shadow[0].status,
+          original_population_count:shadow[0].original_population_count,
+          assessed_count:shadow[0].assessed_count,
+          unassessed_count:shadow[0].unassessed_count,
+          restart_stable:true,
+          actual_provider_requests:0,
+          live_ranking_effect:false,
+          publication_effect:false,
+          quality_improvement_claimed:false,
+        },
         canonical_research_outcomes:researchSnapshots.length,
         retained_intake_assessments:learning.readiness.intake_quality_provenance.valid_receipt_count,
         intake_assessment_provenance:learning.readiness.intake_quality_provenance.status,
