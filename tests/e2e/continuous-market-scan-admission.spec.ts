@@ -64,6 +64,8 @@ function admission(
     recentScanRuns?: RecommendationScanRun[];
     recentPreRunFailures?: ObservationCyclePreRunFailure[] | null;
     observationSeriesAdmission?: ObservationSeriesRuntimeAdmission;
+    scannerInputPolicyVersion?: "completed_daily_intraday_input_v1";
+    legacyPowerHourAllowed?: boolean;
   } = {},
 ) {
   const now = new Date(instant);
@@ -82,7 +84,7 @@ function admission(
     legacyPowerHourWindowGate: {
       official_window_detected: true,
       scheduled_gate_window: "power_hour",
-      scheduled_gate_allowed: true,
+      scheduled_gate_allowed: overrides.legacyPowerHourAllowed ?? true,
       scheduled_gate_block_reason: null,
       schedule_window_mismatch: false,
     },
@@ -92,6 +94,7 @@ function admission(
     observationSeriesAdmission:
       overrides.observationSeriesAdmission ??
       disabledObservationSeriesAdmission,
+    scannerInputPolicyVersion: overrides.scannerInputPolicyVersion,
   });
 }
 
@@ -279,6 +282,33 @@ test("does not expand the separate late-session trial gate", () => {
     scheduled_gate_window: "power_hour",
     scheduled_gate_allowed: true,
   });
+});
+
+test("closing analysis needs an exact owned input series, never legacy publication authority", () => {
+  const instant = "2026-09-23T19:45:00.000Z";
+  const selected = {
+    legacyPowerHourAllowed: false,
+    scannerInputPolicyVersion: "completed_daily_intraday_input_v1" as const,
+    observationSeriesAdmission: {
+      ...eligibleObservationSeriesAdmission,
+      scheduled_slot_started_at_utc: instant,
+    },
+  };
+  expect(admission(instant, selected)).toMatchObject({
+    scheduled_gate_allowed: true, scheduled_gate_block_reason: null,
+    analysis_policy_version: "regular_session_analysis_v1",
+    observation_admission: { request_current_data: true },
+  });
+  for (const overrides of [
+    { ...selected, scannerInputPolicyVersion: undefined },
+    { ...selected, observationSeriesAdmission: disabledObservationSeriesAdmission },
+    { ...selected, observationSeriesAdmission: { ...selected.observationSeriesAdmission, series_id: null } },
+    { ...selected, observationSeriesAdmission: { ...selected.observationSeriesAdmission, scheduled_slot_started_at_utc: null } },
+    { ...selected, marketStatus: { ...tradingDay, provider: "local_fallback" } },
+    { ...selected, marketStatus: { ...tradingDay, dayType: "early_close" as const, marketCloseTime: "13:00" } },
+    { ...selected, recentPreRunFailures: null },
+  ]) expect(admission(instant, overrides).scheduled_gate_allowed).toBe(false);
+  expect(admission("2026-09-23T20:00:00.000Z", selected).scheduled_gate_allowed).toBe(false);
 });
 
 test("retains the independent catalog-only observation path", () => {

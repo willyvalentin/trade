@@ -13,6 +13,9 @@ import {
 } from "@/lib/observation-cycle-admission-policy";
 import type { ScheduledScanProviderCreditBudget } from "@/lib/scheduled-scan-ticker-cap";
 import type { ObservationSeriesRuntimeAdmission } from "@/lib/observation-series-control";
+import { COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION } from "@/lib/scanner-decision-input-snapshot";
+
+export const REGULAR_SESSION_ANALYSIS_POLICY_VERSION = "regular_session_analysis_v1" as const;
 
 export const CONTINUOUS_MARKET_SCAN_ADMISSION_VERSION =
   OBSERVATION_CYCLE_ADMISSION_POLICY_VERSION;
@@ -29,6 +32,7 @@ export type ContinuousMarketScanAdmission = ScheduledOfficialGateDiagnostics & {
   policy_version: typeof CONTINUOUS_MARKET_SCAN_ADMISSION_VERSION;
   observation_admission: ObservationCycleAdmissionReceipt;
   observation_series_admission: ObservationSeriesRuntimeAdmission;
+  analysis_policy_version?: typeof REGULAR_SESSION_ANALYSIS_POLICY_VERSION;
 };
 
 /**
@@ -66,6 +70,7 @@ export function buildContinuousMarketScanAdmission(input: {
   legacyPowerHourWindowGate: ScheduledOfficialGateDiagnostics;
   providerBudget: ScheduledScanProviderCreditBudget | null;
   observationSeriesAdmission: ObservationSeriesRuntimeAdmission;
+  scannerInputPolicyVersion?: typeof COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION;
 }): ContinuousMarketScanAdmission {
   const nyDate = getNyMarketTime(input.now).ny_date;
   const buildAdmission = (
@@ -111,25 +116,35 @@ export function buildContinuousMarketScanAdmission(input: {
     return block("scan_window_clock_mismatch", true);
   }
 
-  // The closing segment retains its separately gated, existing trial policy.
-  // This change must not silently enable new late-session publication.
+  // Only the already-owned, budgeted completed-input series can analyze the
+  // closing segment independently of the legacy publication trial. This is
+  // observation admission, never authority to publish a late recommendation.
   if (input.scanWindow === "power_hour") {
     const legacyAllowed = input.legacyPowerHourWindowGate.scheduled_gate_allowed;
+    const completedInputAnalysis =
+      input.scannerInputPolicyVersion === COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION &&
+      input.observationSeriesAdmission.decision === "allow" &&
+      input.observationSeriesAdmission.status === "eligible" &&
+      input.observationSeriesAdmission.series_id !== null &&
+      input.observationSeriesAdmission.scheduled_slot_started_at_utc !== null;
+    const analysisAllowed = legacyAllowed || completedInputAnalysis;
     const seriesAllowed =
       input.observationSeriesAdmission.decision === "allow" ||
       input.observationSeriesAdmission.decision === "bypass";
     const observationAdmission = buildAdmission(
-      legacyAllowed ? null : "legacy_power_hour_gate_rejected",
+      analysisAllowed ? null : "legacy_power_hour_gate_rejected",
       true,
     );
     return {
       ...input.legacyPowerHourWindowGate,
+      ...(completedInputAnalysis && !legacyAllowed
+        ? { analysis_policy_version: REGULAR_SESSION_ANALYSIS_POLICY_VERSION } : {}),
       policy_version: CONTINUOUS_MARKET_SCAN_ADMISSION_VERSION,
       scheduled_gate_allowed:
-        legacyAllowed &&
+        analysisAllowed &&
         seriesAllowed &&
         observationAdmission.request_current_data,
-      scheduled_gate_block_reason: legacyAllowed
+      scheduled_gate_block_reason: analysisAllowed
         ? !seriesAllowed
           ? input.observationSeriesAdmission.status
           : observationAdmission.request_current_data

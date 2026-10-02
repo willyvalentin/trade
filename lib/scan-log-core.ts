@@ -109,6 +109,7 @@ export type ScanLogEntry = {
   recommendation_publish_policy_version?: string | null;
   build_marker?: string | null;
   no_publish_reason?: string | null;
+  analysis_policy_version?: "regular_session_analysis_v1" | null;
   diagnostic_mode?: boolean | null;
   diagnostic_run_mode?: string | null;
   simulated_window?: string | null;

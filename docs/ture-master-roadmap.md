@@ -379,6 +379,17 @@ Pre-/after-market information stays separately labelled research/watch data;
 late-session entry safety is retained until separately validated. This decision
 does not itself enable a provider call, scheduled production run or broker action.
 
+The attributable Oct 2 final-slot rejection exposed one remaining coupling:
+the last thirty-minute publication cutoff stopped completed-input analysis
+before acquisition. The selected minimum CLOSED correction separates that
+already-owned, budgeted analysis from publication. It must retain original
+decision/source evidence, withhold late recommendations and preserve the
+trial/cutoff, freshness, quality, owner, expiry and credit guards. This removes
+an evidence-path blocker, not a new scheduling product or a quality claim;
+return immediately to the original-source/canonical-learning and frozen
+relative-plan-context comparison after its narrow acceptance. Late source
+capture cannot invent a complete future regular-session outcome horizon.
+
 ### Delivery priority — CLOSED readiness before OPEN, 2026-09-24
 
 Within SV-A/A.2, prioritize a cohesive, reproducible scheduled-runtime → durable
