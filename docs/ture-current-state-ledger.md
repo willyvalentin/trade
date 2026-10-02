@@ -2,16 +2,40 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-02, recommendation intelligence first
 
-**Current executable selection:** Now is the completed-input canonical-learning
-delivery below, rebased locally on integrated main `e8da24a4...`; Next is its
-protected PR/CI integration, followed by the already selected independent
-volume correction and one measured contextual-ranking challenger. The Oct 2
-operating job is terminal and cleanup is verified, not a waiting integration
-barrier. Prospective input/learning acceptance and recommendation-quality lift
-remain blocked on their missing market evidence. Earlier dated local/hold
-statements below are retained receipts, not additional active queues.
+**Current executable selection:** Now is integration of the locally verified
+independent IF-2b volume-input integrity correction, rebased on protected main
+`d518bbb5...` after prerequisite PR #722 is merged and its inert production
+behavior is verified. Next is the missing prospective fresh-input/canonical-
+learning acceptance, followed by one measured contextual-ranking challenger.
+The Oct 2 operating job is terminal and cleanup is verified, not a waiting
+integration barrier. Recommendation-quality lift remains unproven. Earlier
+dated local/hold statements below are retained receipts, not additional active
+queues; do not reuse the consumed Oct 2 observation card.
 
-**Current integration handoff — 2026-10-02:** primary delivery and roadmap
+**PR #722 integration verified — 2026-10-02:** required six-shard workflow
+`37017804500`, its protected aggregate and merge-candidate provenance pass on
+submitted head `d17176d95391125e98a081391f1e581da1f138c7`. Strict branch
+protection remains enforced; no blocking review finding exists. Normal squash
+merge at 14:39:14Z produces main
+`d518bbb5815d1d4f25769fbec8d4a901eda5ade5`; its tracked tree exactly matches
+the tested head. Main workflow `37021370717` is successful; this metadata is
+not a claim of a new six-shard run or downloaded post-merge attestation.
+Automatic production deploy `6abfc2155b19150008e29202` is ready/published at
+14:40:44.693Z. Authenticated readback at 14:41:09.142Z verifies the exact
+revision/deploy, HTTP 200/no-store health, all effective controls inert, unset
+input selector and zero active reservations. No provider, scan, publication
+or broker action is invoked. This integrates canonical-learning capability and
+the user-approved roadmap reconciliation; it does not prove prospective input
+fitness, outcome coverage or recommendation lift.
+
+The volume slice is rebased to local revision
+`be2cce0435dc4b65b1933d0cacc0096dbb531586`. Its entire tracked tree matches
+the pre-rebase `1e06c59d...` source that passes 165 affected checks, full lint,
+strict types and a fresh standard build. All eleven subsequent CI-registration
+and governance checks also pass. Prepare one focused PR on this integrated
+prerequisite; preserve default-off controls and do not open a competing slice.
+
+**Retained pre-merge integration handoff — 2026-10-02:** primary delivery and roadmap
 reconciliation are submitted in PR #722, head
 `d17176d95391125e98a081391f1e581da1f138c7`, against verified main
 `e8da24a48ff39260417227e79e103213868adaf0`. Protected six-shard workflow
