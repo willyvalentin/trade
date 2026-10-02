@@ -2,6 +2,39 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-02, recommendation intelligence first
 
+**Locally verified stored-assessment integrity correction — 2026-10-02:**
+primary source `7fc8118a389b86a9b2be16132ec17190263f7ba7` passes all 82
+selected intake, baseline-readiness, scheduled-outcome and actual persisted
+cold/warm/opening checks. Strict types and standard production build pass;
+full lint has zero errors/eight retained warnings. A terminal negative proof
+first reproduces a contradictory v1.2 A/accepted receipt counted as complete.
+The shared learning/outcome read model now checks new v1.2 diagnostics against
+retained original context, candidate, plan and decision clock. Altered status/grade,
+clock, candidate id, checks or risk/reward remain measurement gaps without
+removing valid canonical outcomes. JSONB key order and mixed-version handling
+are preserved; historical v1.0/v1.1 validation remains unchanged.
+
+Existing detached volume/learning composition source
+`0c89c00d943eff258880ab470437f53b4ca498a8`, tree
+`136bf5da61f65003a74693ab8b414a552cbb86cf`, passes all 98 selected checks,
+affected lint and a new production build/strict types. The actual isolated
+PostgreSQL 16.14/PostgREST 16.1 chain on macOS/ARM64 Node 26.5.0 retains the
+original three/six/three research assessments/outcomes and the opening-zero
+warning; all eight selected identities and unresolved outcomes remain explicit.
+Freeze stays `not_ready`, with no comparison or promotion authority. Tests
+contact zero actual providers/production/brokers, publish nothing and leave
+no input-runtime test containers/networks. This closes the same slice's local
+`quality_measurement` defect, not alpha or independently replayed ordinal
+scores/provider data. Stop this diagnostic correction stream; resume the
+selected fresh-input/canonical-learning acceptance, then the one measured
+contextual-ranking challenger. No third slice or new experiment is selected.
+
+Neither branch is pushed, merged or production-verified. Protected main remains
+`930d44b6be9ec6fca059adba21addd05d9f9c7de`; PR #721 stays OPEN/CLEAN with
+no auto-merge. Integrate only after its prerequisite and the frozen Oct 2
+observation with verified cleanup, then rebase/run protected checks. The
+observation revision, configuration, budget and existing job are unchanged.
+
 **Reproduced stored-assessment consistency blocker — 2026-10-02:** the actual
 isolated PostgreSQL/PostgREST-to-restarted-learning proof accepts a v1.2 receipt
 whose status/grade/visible flag are changed to `accepted`/A/true despite its
