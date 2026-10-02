@@ -2,7 +2,98 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-02, recommendation intelligence first
 
-**Current queue — 2026-10-02 21:00Z:** PR #727 is normally merged after all
+**Current queue — 2026-10-02 22:02Z:** PR #728 normally merged at 21:59:45Z
+after all six protected shards, aggregate and provenance passed. Main
+`7ed840d2c6ef687d1497930185f8e8f33bd9ab86` retains exact tested tree
+`6712c4cb053b88b08ddb724550d2a4910e0d2bec`. Automatic Git production
+deploy `6ac02953b8fd6100083a4bac` is ready/published at 22:01:07.935Z;
+authenticated provider-free readback at 22:01:56.813Z verifies that revision,
+all competing workers/input selector off, global disable true and zero active,
+unresolved or unattributed work. Final exact-head local foundation passed
+1,035 containment and 395 intelligence tests, authenticated and registered
+integration suites, lint, strict types, audit and normal build. Protected CI's
+first foundation attempt failed an external Docker image registry rate limit;
+one normal failed-job rerun passed without source changes. No production
+configuration, migration, provider request, scan or broker action occurred.
+Production outcome-link behavior and forward recommendation quality remain
+unaccepted; CLOSED synthetic persistence evidence is not alpha.
+
+The previously selected independent slice now owns the sole primary slot:
+CLOSED IF-4 prospective normalized-input baseline/comparison, owner Codex,
+twelve active hours (initial investigation at most four), isolated
+`codex/relative-plan-prospective-oct2` integrated onto this verified main.
+The actual restarted learning consumer reproduces
+`completed_input_research_requires_prospective_baseline_contract`; legacy v1
+freezes cannot silently accept the new reproduction basis. Preserve frozen
+`relative_plan_context_shadow_v1`, original population and full charter,
+normalized-input reproduction limits and unavailable upstream versions.
+
+Acceptance is an actual owner-bound prospective freeze/read/restart feeding
+the original-source canonical learning path, not a planning-only contract.
+The first thirty input-qualified decisions must retain unfavorable and missing
+outcomes without replacement by favorable overflow; historical, incomplete,
+duplicate and wrong-revision decisions remain named diagnostics. Immutable
+model/charter, future partitions, idempotency, rejected retroactive/mutated/
+wrong-owner/legacy substitutions and actual persistence are required. No
+provider request, scheduler activation, live ranking/publication, budget or
+threshold reduction, paper/broker capability or quality claim. No second or
+third schema/order/portfolio slice is selected. The market is closed; no
+additional Friday OPEN test.
+
+One independent CLOSED implementation is selected while this fully exercised
+vertical completes its remaining regression/CI/integration path: the frozen
+relative-plan probability measurement, owner Codex, eight active hours, initial
+investigation at most four, `codex/relative-plan-probability-oct3` from verified
+main `7ed840d2c6ef687d1497930185f8e8f33bd9ab86`. It initially changes only a
+separate numerical adapter/tests, reusing the existing fixed-bucket calibration
+policy and already merged canonical outcome rows, not this slice's schema or
+learner. Training labels must predate the frozen held-out boundary; later
+labels cannot alter the model. Keep every forward identity and disclose missing
+probabilities, non-binary labels and Brier/fixed-bucket calibration error. This
+prospective vertical integrates first; only afterward wire the measurement into
+its exact enrolled original-population reader and verify restarted persistence.
+No third delivery, model-policy change, live score/publication or quality claim.
+
+**Prospective vertical behavior — checked 2026-10-02 22:13Z:** local immutable
+Postgres/PostgREST/real-SDK freeze and restarted owner learner retain the same
+four original members while missing canonical outcomes progress 4 -> 1 -> 0.
+Three favorable and one unfavorable synthetic 60m receipts yield diagnostic
+baseline K=3 precision 2/3 versus challenger 1; `evidence_incomplete` and all
+authority=false remain. Two isolated owners, six concurrent first-freeze
+requests, exact idempotent readback, forbidden client RPC/direct mutation and
+retroactive rejection pass. No production records or provider calls are used.
+This is a CLOSED synthetic measurement proof, not forward quality evidence.
+
+The thirty-decision test retains the first missing label and later losses,
+withholds the favorable thirty-first decision as overflow and keeps the same
+120-member identity when all labels are removed. Real proxy/session, wrong-owner
+and cross-origin checks pass. Normal lint has zero errors/eight existing
+warnings, strict types and Next 16.3.8 build pass before final integrated
+verification. CLI-generated additive migration
+`20261002213547_if4_relative_plan_prospective_comparison.sql` remains local;
+no production migration, comparison freeze or collection is yet performed.
+Final combined affected suite passes 41 tests. Registered foundation completes
+successfully at 22:31Z: 1,035 containment, 417 intelligence, 12 authenticated,
+41 explanation, 42 proposal, 34 adapter, 32 capture and 32 binding tests; catalog
+and generated-type checks, isolated database lifecycle, lint, strict types,
+zero-vulnerability dependency audit and normal build all pass. Product/runtime
+sources remained unchanged during this final run; only factual ledger/selection
+and risk notes were reconciled. Protected exact-head PR CI still precedes
+integration. Remaining product evidence is training-only probability
+calibration and full-charter forward/runtime/feasibility comparison, not more
+freeze or scheduler infrastructure. Old experiments and thresholds stay frozen.
+
+Migration review: one transactional new empty immutable relation and new
+service-only RPCs, no historical backfill/rewrite. The owner FK briefly locks
+`auth.users`; read-only production preflight at 22:20:06Z finds the target table
+and both RPCs absent, the owner PK present, no transactions older than one
+minute and no waiting owner locks. Recheck before application and defer on
+contention. Missing schema fails closed; a normal code revert contains the new
+reader without deleting evidence, with reviewed forward migration for repairs.
+No production comparison freeze or synthetic production rows are authorized
+by this integration proof.
+
+**Historical queue — 2026-10-02 21:00Z:** PR #727 is normally merged after all
 six protected shards, aggregate and merge-candidate provenance pass on exact
 head `aa33ec41405d004d4107797572a1da43ca1aa631`. Squash main
 `b75d524cba2f20da4fe37d64facac3469bc37c87` has the identical tested tracked

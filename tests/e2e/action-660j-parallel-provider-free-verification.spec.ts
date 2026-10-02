@@ -280,6 +280,10 @@ const foundationTests = [
 ];
 
 const intelligenceTests = [
+  "tests/e2e/relative-plan-prospective-comparison.spec.ts",
+  "tests/e2e/relative-plan-prospective-store.spec.ts",
+  "tests/e2e/relative-plan-prospective-learning.spec.ts",
+  "tests/e2e/relative-plan-prospective-service.spec.ts",
   "tests/e2e/scanner-relative-plan-context-outcomes.spec.ts",
   "tests/e2e/scanner-relative-plan-context-shadow.spec.ts",
   "tests/e2e/ai-00.1-ture-setup-analyst-contract-freeze.spec.ts",

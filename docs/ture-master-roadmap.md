@@ -65,6 +65,18 @@ learning evidence: the same original input, plan, decision and outcome must reac
 the evaluator. New normalized-input research provenance must disclose its
 reproduction limits and unavailable upstream version, remain separate from
 legacy frozen contracts, and never silently acquire baseline/promotion authority.
+
+The selected prospective relative-plan comparison uses that separate normalized
+basis, the unchanged model and the full existing numerical charter. Its future
+training, held-out and walk-forward partitions must be frozen durably before
+source decisions. Enroll the first thirty input-qualified decisions per forward
+partition in original decision order, not the first thirty favorable or resolved
+outcomes; retain missing labels and overflow explicitly. Original canonical
+decision build identity and the freeze runtime's deploy identity are distinct
+facts, not interchangeable strings. Original-source/canonical-outcome comparison
+is a measurement link, not legacy baseline eligibility or a terminal quality
+decision. Training-only calibration and the complete attributable forward
+scorecard still precede any recommendation-quality claim or IF-5 promotion.
 When those first two links pass their declared acceptance, return the primary
 delivery to the largest attributable recommendation-quality defect; do not
 extend input or outcome infrastructure without a new reproduced blocker.
