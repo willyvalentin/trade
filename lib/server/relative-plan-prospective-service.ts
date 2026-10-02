@@ -6,6 +6,7 @@ import { readRecommendationLearningBaselineSource } from "@/lib/server/applicati
 import { buildRelativePlanProspectiveLearning } from "@/lib/server/relative-plan-prospective-learning";
 import { relativePlanProspectiveStore, type RelativePlanProspectiveStoreResult } from "@/lib/server/relative-plan-prospective-store";
 import { relativePlanCanonicalBuildIdentity, type RelativePlanProspectivePlanInput } from "@/lib/server/relative-plan-prospective-comparison";
+import { hasExplicitRelativePlanOutcomeRecordingTimes } from "@/lib/server/relative-plan-probability-measurement";
 
 type Dependencies = {
   store: typeof relativePlanProspectiveStore;
@@ -36,6 +37,12 @@ export function createRelativePlanProspectiveService(d: Dependencies = dependenc
       let sourceResult;
       try { sourceResult = await d.readSource(owner); } catch { return { status: "unavailable" as const,
         receipt: null, learning: null, blocker: "prospective_complete_owned_learning_source_unavailable" }; }
+      if (sourceResult.status === "available" &&
+        Array.isArray(sourceResult.data.recommendation_outcomes) &&
+        !hasExplicitRelativePlanOutcomeRecordingTimes(sourceResult.data.recommendation_outcomes)) {
+        return { status: "unavailable" as const, receipt: null, learning: null,
+          blocker: "prospective_explicit_outcome_recording_times_unavailable" };
+      }
       const source = sourceResult.status === "available" ? parseRecommendationLearningBaselineSource(sourceResult.data) : null;
       if (!source) return { status: "unavailable" as const, receipt: null, learning: null,
         blocker: "prospective_complete_owned_learning_source_unavailable" };

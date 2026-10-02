@@ -84,6 +84,20 @@ test("failed, truncated or malformed original-source reads do not substitute a l
   }
 });
 
+test("raw persisted outcome clocks are checked before a legacy decoder can manufacture recording times", async () => {
+  for (const clock of [undefined, null, "", "2026-10-12", "2026-02-30T17:00:00.000Z"]) {
+    const h = harness({ readSource: async () => ({ status: "available", data: {
+      recommendation_scan_runs: [], recommendation_snapshots: [], recommendation_outcomes: [
+        { evaluated_at: "2026-10-12T18:00:00.000Z", created_at: clock },
+      ],
+    } }) });
+    await h.service.freeze(prospectiveOwner, { windows: prospectiveInput.windows }, new Date(prospectiveFrozenAt));
+    expect(await h.service.read(prospectiveOwner)).toMatchObject({ status: "unavailable", receipt: null, learning: null,
+      blocker: "prospective_explicit_outcome_recording_times_unavailable" });
+    expect(h.writes()).toBe(1);
+  }
+});
+
 test("original source writers, immutable freeze and restarted canonical learner share the exact isolated owner population", () => {
   test.setTimeout(90000);
   const result = spawnSync(process.execPath, ["scripts/relative-plan-prospective-runtime-proof.mjs"], {
@@ -91,6 +105,11 @@ test("original source writers, immutable freeze and restarted canonical learner 
   expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
   const receipt = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
   expect(receipt).toMatchObject({ status: "pass", actual_source_persistence_and_restarted_learner: true,
+    actual_product_probability_consumer_verified: true, calibration_training_population: 48,
+    held_out_probability_population: 12, walk_forward_probability_population: 12,
+    prior_36_sample_incomplete_with_three_unknown_probabilities: true,
+    missing_label_retained_in_12_original_population: true, later_forward_labels_never_fit_model: true,
+    persisted_late_training_label_excluded: true, persisted_future_forward_recording_retained_as_missing: true,
     retained_original_population: 4, missing_outcome_progression: [4, 1, 0], concurrent_single_owner_freeze: true,
     full_charter_decision: "evidence_incomplete", provider_requests: 0, production_changes: 0,
     broker_actions: 0, quality_improvement_verified: false });

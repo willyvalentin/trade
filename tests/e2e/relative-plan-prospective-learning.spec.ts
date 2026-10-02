@@ -16,6 +16,7 @@ test("same original prospective population reaches canonical forward learning wi
   expect(held.precision_delta).toBeCloseTo(1 / 3);
   expect(read.terminal_quality_decision).toBeNull();
   expect(read.blockers).toContain("full_charter_forward_scorecard_required");
+  expect(read.blockers).toContain("durably_frozen_training_probability_model_required");
   expect(read.blockers).toContain("held_out_decision_population_incomplete");
   expect(read.legacy_baseline_readiness.blockers).toContain("completed_input_research_requires_prospective_baseline_contract");
   expect(Object.values(read.authority).every(value => value === false)).toBe(true);
@@ -64,6 +65,68 @@ test("future outcome receipts remain missing before their horizon matures", asyn
   expect(held.enrolled_decision_count).toBe(1);
   expect(held.canonical_outcome_count).toBe(0);
   expect(held.missing_outcome_count).toBe(4);
+});
+
+test("an outcome recorded after the read clock cannot enter coverage, precision or calibration", async () => {
+  const source = await prospectiveSource();
+  const first = buildRelativePlanProspectiveLearning({ owner: prospectiveOwner, freeze: prospectiveReceipt(), source, now: readAt })!;
+  source.outcomes[0].created_at = "2026-11-07T00:00:00.001Z";
+  const bounded = buildRelativePlanProspectiveLearning({ owner: prospectiveOwner, freeze: prospectiveReceipt(), source, now: readAt })!;
+  expect(bounded.partitions[1]).toMatchObject({ original_population_count: 4, canonical_outcome_count: 3,
+    missing_outcome_count: 1, precision_delta: null });
+  expect(bounded.partitions[1].original_membership_fingerprint).toBe(first.partitions[1].original_membership_fingerprint);
+  expect(bounded.partitions[1].probability_measurement?.forward).toMatchObject({ original_population_count: 4,
+    missing_outcome_count: 1, baseline: null, challenger: null });
+});
+
+async function probabilitySource() {
+  const pieces = await Promise.all([
+    ...[5, 6, 7].flatMap(day => Array.from({ length: 4 }, (_, n) => ({ day, n, losses: false }))),
+    ...[12, 26].flatMap(day => Array.from({ length: 3 }, (_, n) => ({ day, n, losses: day === 26 }))),
+  ].map(({ day, n, losses }) => prospectiveSource({ now: new Date(Date.UTC(2026, 9, day, 17, n * 5)), allLosses: losses })));
+  return { scanRuns: pieces.flatMap(row => row.scanRuns), snapshots: pieces.flatMap(row => row.snapshots),
+    outcomes: pieces.flatMap(row => row.outcomes) };
+}
+
+test("the actual enrolled reader measures held-out and walk-forward probability error from the same training-only model", async () => {
+  const source = await probabilitySource();
+  const read = buildRelativePlanProspectiveLearning({ owner: prospectiveOwner, freeze: prospectiveReceipt(), source, now: readAt })!;
+  const [training, held, walk] = read.partitions;
+  expect(training.original_population_count).toBe(48);
+  expect(training.probability_measurement).toBeNull();
+  expect(held.probability_measurement?.status).toBe("measured");
+  expect(walk.probability_measurement?.status).toBe("measured");
+  expect(held.probability_measurement?.model).toEqual(walk.probability_measurement?.model);
+  expect(held.probability_measurement?.training).toMatchObject({ binary_fitting_sample_count: 48,
+    training_job_execution_at: "unavailable_disclosed" });
+  expect(held.probability_measurement?.forward).toMatchObject({ original_population_count: 12, original_probability_coverage: 1 });
+  expect(walk.probability_measurement?.forward).toMatchObject({ original_population_count: 12, original_probability_coverage: 1 });
+  expect(held.probability_measurement?.forward?.baseline?.brier_score).not.toBe(walk.probability_measurement?.forward?.baseline?.brier_score);
+  expect(read.blockers).not.toContain("training_only_probability_calibration_required");
+  expect(read.blockers).toContain("held_out_decision_population_incomplete");
+  expect(read.blockers).toContain("full_charter_forward_scorecard_required");
+  expect(read.status).toBe("evidence_incomplete");
+  expect(read.terminal_quality_decision).toBeNull();
+  expect(read.quality_improvement_claimed).toBe(false);
+  expect(Object.values(read.authority).every(value => value === false)).toBe(true);
+  const noHeldLabels = { ...source, outcomes: source.outcomes.filter(row => Date.parse(row.evaluated_at) < Date.parse(prospectiveReceipt().plan.windows.held_out.start_at)) };
+  const missing = buildRelativePlanProspectiveLearning({ owner: prospectiveOwner, freeze: prospectiveReceipt(), source: noHeldLabels, now: readAt })!;
+  expect(missing.partitions[1].probability_measurement?.model).toEqual(held.probability_measurement?.model);
+  expect(missing.partitions[1].original_membership_fingerprint).toBe(held.original_membership_fingerprint);
+  expect(missing.partitions[1].probability_measurement?.forward).toMatchObject({ original_population_count: 12,
+    missing_outcome_count: 12, baseline: null, challenger: null });
+  expect(missing.blockers).toContain("training_only_probability_calibration_required");
+});
+
+test("the actual reader excludes late recorded training labels instead of fitting from future information", async () => {
+  const source = await probabilitySource();
+  const before = buildRelativePlanProspectiveLearning({ owner: prospectiveOwner, freeze: prospectiveReceipt(), source, now: readAt })!;
+  source.outcomes[0].created_at = prospectiveReceipt().plan.windows.held_out.start_at;
+  const later = buildRelativePlanProspectiveLearning({ owner: prospectiveOwner, freeze: prospectiveReceipt(), source, now: readAt })!;
+  expect(later.partitions[1].probability_measurement?.training).toMatchObject({ original_population_count: 48,
+    binary_fitting_sample_count: 47, late_label_count: 1 });
+  expect(later.partitions[1].original_membership_fingerprint).toBe(before.partitions[1].original_membership_fingerprint);
+  expect(later.partitions[2].probability_measurement?.model).toEqual(later.partitions[1].probability_measurement?.model);
 });
 
 test("the first thirty input-qualified decisions remain selected despite missing early labels and favorable overflow", async () => {

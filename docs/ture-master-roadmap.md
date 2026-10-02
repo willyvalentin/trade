@@ -77,6 +77,17 @@ facts, not interchangeable strings. Original-source/canonical-outcome comparison
 is a measurement link, not legacy baseline eligibility or a terminal quality
 decision. Training-only calibration and the complete attributable forward
 scorecard still precede any recommendation-quality claim or IF-5 promotion.
+The new relative-plan probability consumer measures the existing fixed-bucket
+model on that exact enrolled original population, with separate held-out and
+walk-forward errors, explicit missing probabilities and binary-event semantics.
+Only labels both evaluated and recorded before the training cutoff may fit;
+future-recorded labels do not enter as-of coverage or precision. Numerical
+recomputation is diagnostic, not proof of an immutable model fitted before
+forward decisions: existing outcome rows are upsertable and the model has not
+yet been durably materialized. Disclose that gap and keep the terminal quality
+gate closed until the model and the full charter are attributable. Do not
+reinterpret ordinal confidence, underfilled buckets or a good synthetic Brier
+score as accepted recommendation quality.
 When those first two links pass their declared acceptance, return the primary
 delivery to the largest attributable recommendation-quality defect; do not
 extend input or outcome infrastructure without a new reproduced blocker.

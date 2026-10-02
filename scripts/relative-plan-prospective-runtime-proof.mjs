@@ -104,12 +104,12 @@ try {
   const at = Date.now();
   const window = (startDay, endDay) => ({ start_at: new Date(at + startDay * 86400000).toISOString(),
     end_at: new Date(at + endDay * 86400000).toISOString() });
-  const heldDay = new Date(at + 3 * 86400000); heldDay.setUTCHours(0, 0, 0, 0);
+  const heldDay = new Date(at + 10 * 86400000); heldDay.setUTCHours(0, 0, 0, 0);
   while (!readers.getUsEquityMarketSession(heldDay.toISOString().slice(0, 10)).session_open) heldDay.setUTCDate(heldDay.getUTCDate() + 1);
-  const input = { ...readers.prospectiveInput, windows: { training: window(1, 2),
+  const input = { ...readers.prospectiveInput, windows: { training: window(1, 8),
     held_out: { start_at: heldDay.toISOString(), end_at: new Date(heldDay.getTime() + 86400000).toISOString() },
-    walk_forward: { start_at: new Date(heldDay.getTime() + 2 * 86400000).toISOString(),
-      end_at: new Date(heldDay.getTime() + 3 * 86400000).toISOString() } } };
+    walk_forward: { start_at: new Date(heldDay.getTime() + 14 * 86400000).toISOString(),
+      end_at: new Date(heldDay.getTime() + 15 * 86400000).toISOString() } } };
   assert.equal((await readers.relativePlanProspectiveStore().read(owner)).status, "not_found");
   const result = await readers.relativePlanProspectiveStore().freeze(input, owner, new Date());
   assert.equal(result.status, "frozen");
@@ -162,6 +162,97 @@ try {
   assert(complete.learning.legacy_baseline_readiness.blockers.includes("completed_input_research_requires_prospective_baseline_contract"));
   assert.deepEqual(await readers.createRelativePlanProspectiveService().read(owner, readAt), complete);
   assert.equal((await readers.createRelativePlanProspectiveService().read(concurrentOwner, readAt)).learning.partitions[1].enrolled_decision_count, 0);
+  // Actual persisted inputs -> canonical outcome adapter -> restarted product
+  // learner. Neither a numerical-only helper nor a substituted source reader.
+  const trainingDays = [];
+  const trainingDay = new Date(at + 86400000); trainingDay.setUTCHours(0, 0, 0, 0);
+  while (trainingDays.length < 3) {
+    if (readers.getUsEquityMarketSession(trainingDay.toISOString().slice(0, 10)).session_open) trainingDays.push(new Date(trainingDay));
+    trainingDay.setUTCDate(trainingDay.getUTCDate() + 1);
+  }
+  const sourceAt = (day, ordinal, allLosses = false) => readers.prospectiveSource({
+    now: new Date(day.getTime() + 17 * 3600000 + ordinal * 5 * 60000), allLosses });
+  const trainingSources = await Promise.all(trainingDays.flatMap(day => [0, 1, 2].map(n => sourceAt(day, n))));
+  const heldSources = [source, ...await Promise.all([1, 2].map(n => sourceAt(heldDay, n)))];
+  const walkDay = new Date(input.windows.walk_forward.start_at);
+  const walkSources = await Promise.all([0, 1, 2].map(n => sourceAt(walkDay, n, true)));
+  const pending = heldSources[2].outcomes[3];
+  for (const part of [...trainingSources, ...heldSources.slice(1), ...walkSources]) {
+    for (const run of part.scanRuns) assert.equal((await readers.persistRecommendationScanRun(run, { supabaseClient: client, server: true })).status, "saved");
+    for (const snapshot of part.snapshots) assert.equal((await readers.persistRecommendationSnapshot(snapshot, { supabaseClient: client, server: true })).status, "saved");
+    for (const outcome of part.outcomes.filter(row => row.id !== pending.id)) assert.equal((await readers.persistRecommendationOutcome(outcome, { supabaseClient: client, server: true })).status, "saved");
+  }
+  const probabilityReadAt = new Date(Date.parse(input.windows.walk_forward.end_at) + 3600000);
+  const measurement = async partitionIndex => {
+    const restart = await readers.createRelativePlanProspectiveService().read(owner, probabilityReadAt);
+    assert.equal(restart.status, "available");
+    assert.equal(restart.learning.status, "evidence_incomplete");
+    assert.equal(restart.learning.terminal_quality_decision, null);
+    assert(Object.values(restart.learning.authority).every(value => value === false));
+    const result = restart.learning.partitions[partitionIndex].probability_measurement;
+    assert(result); return { result, restart };
+  };
+  const missingProbability = await measurement(1);
+  assert.equal(missingProbability.result.status, "evidence_incomplete");
+  assert.equal(missingProbability.result.forward.original_population_count, 12);
+  assert.equal(missingProbability.result.forward.missing_outcome_count, 1);
+  assert.equal(missingProbability.result.forward.baseline, null);
+  assert.equal((await readers.persistRecommendationOutcome(pending, { supabaseClient: client, server: true })).status, "saved");
+  const underfilledProbability = await measurement(1);
+  assert.equal(underfilledProbability.result.status, "evidence_incomplete");
+  assert.equal(underfilledProbability.result.model.sample_count, 36);
+  assert.equal(underfilledProbability.result.forward.missing_probability_count, 3);
+  assert.equal(underfilledProbability.result.forward.baseline, null);
+  const extraTraining = await Promise.all(trainingDays.map(day => sourceAt(day, 3)));
+  for (const part of extraTraining) {
+    for (const run of part.scanRuns) assert.equal((await readers.persistRecommendationScanRun(run, { supabaseClient: client, server: true })).status, "saved");
+    for (const snapshot of part.snapshots) assert.equal((await readers.persistRecommendationSnapshot(snapshot, { supabaseClient: client, server: true })).status, "saved");
+    for (const outcome of part.outcomes) assert.equal((await readers.persistRecommendationOutcome(outcome, { supabaseClient: client, server: true })).status, "saved");
+  }
+  const calibratedHeld = await measurement(1), calibratedWalk = await measurement(2);
+  assert.equal(calibratedHeld.result.status, "measured", JSON.stringify(calibratedHeld.result.blockers));
+  assert.equal(calibratedWalk.result.status, "measured");
+  assert.equal(calibratedHeld.result.model.sample_count, 48);
+  assert.equal(calibratedHeld.result.model.trading_day_count, 3);
+  assert.equal(calibratedHeld.result.model.ticker_count, 4);
+  assert.deepEqual(calibratedWalk.result.model, calibratedHeld.result.model);
+  assert.equal(calibratedHeld.result.forward.original_population_count, 12);
+  assert.equal(calibratedWalk.result.forward.original_population_count, 12);
+  assert.equal(calibratedHeld.result.forward.original_membership_fingerprint, missingProbability.result.forward.original_membership_fingerprint);
+  assert(!calibratedHeld.restart.learning.blockers.includes("training_only_probability_calibration_required"));
+  assert(calibratedHeld.restart.learning.blockers.includes("full_charter_forward_scorecard_required"));
+  const unfavorableForward = await Promise.all([0, 1, 2].map(n => sourceAt(heldDay, n, true)));
+  for (const part of unfavorableForward) for (const outcome of part.outcomes) {
+    assert.equal((await readers.persistRecommendationOutcome(outcome, { supabaseClient: client, server: true })).status, "saved");
+  }
+  const changedProbability = await measurement(1);
+  assert.equal(changedProbability.result.status, "measured");
+  assert.deepEqual(changedProbability.result.model, calibratedHeld.result.model);
+  assert.equal(changedProbability.result.forward.original_membership_fingerprint, calibratedHeld.result.forward.original_membership_fingerprint);
+  assert.notDeepEqual(changedProbability.result.forward.baseline, calibratedHeld.result.forward.baseline);
+  assert.deepEqual(await measurement(1), changedProbability);
+  // Persisted late training evidence and future-recorded forward evidence are
+  // evaluated through the same product path, not merely numerical fixtures.
+  const lateTraining = { ...extraTraining[0].outcomes[0], created_at: input.windows.held_out.start_at };
+  assert.equal((await readers.persistRecommendationOutcome(lateTraining, { supabaseClient: client, server: true })).status, "saved");
+  const lateMeasurement = await measurement(1);
+  assert.equal(lateMeasurement.result.training.original_population_count, 48);
+  assert.equal(lateMeasurement.result.training.binary_fitting_sample_count, 47);
+  assert.equal(lateMeasurement.result.training.late_label_count, 1);
+  assert.equal(lateMeasurement.result.forward.original_membership_fingerprint, changedProbability.result.forward.original_membership_fingerprint);
+  const futureForward = { ...unfavorableForward[0].outcomes[0], created_at: new Date(probabilityReadAt.getTime() + 1).toISOString() };
+  assert.equal((await readers.persistRecommendationOutcome(futureForward, { supabaseClient: client, server: true })).status, "saved");
+  const futureMeasurement = await measurement(1);
+  assert.equal(futureMeasurement.restart.learning.partitions[1].canonical_outcome_count, 11);
+  assert.equal(futureMeasurement.restart.learning.partitions[1].precision_delta, null);
+  assert.equal(futureMeasurement.result.forward.original_population_count, 12);
+  assert.equal(futureMeasurement.result.forward.missing_outcome_count, 1);
+  assert.equal(futureMeasurement.result.forward.baseline, null);
+  assert.deepEqual(futureMeasurement.result.model, lateMeasurement.result.model);
+  assert.equal(futureMeasurement.result.forward.original_membership_fingerprint, changedProbability.result.forward.original_membership_fingerprint);
+  const unrelatedRead = await readers.createRelativePlanProspectiveService().read(concurrentOwner, probabilityReadAt);
+  assert.equal(unrelatedRead.learning.partitions[1].original_population_count, 0);
+  assert.equal(unrelatedRead.learning.partitions[1].probability_measurement.forward.original_population_count, 0);
   const rpc = (role, name, body) => fetch(`${endpoint}/rpc/${name}`, { method: "POST", headers: {
     authorization: `Bearer ${tokenFor(role)}`, "content-type": "application/json" }, body: JSON.stringify(body) });
   for (const role of ["anon", "authenticated"]) {
@@ -183,6 +274,15 @@ try {
   assert.equal(sql("select count(*) from public.relative_plan_prospective_comparisons"), "2");
   assert.equal(blockedExternalRequests, 0);
   console.log(JSON.stringify({ status: "pass", environment: "isolated_closed_synthetic_postgres_postgrest_sdk",
+    actual_product_probability_consumer_verified: true,
+    calibration_training_population: 48, held_out_probability_population: 12, walk_forward_probability_population: 12,
+    calibration_model_fingerprint: calibratedHeld.result.model.model_fingerprint,
+    held_out_brier: calibratedHeld.result.forward.baseline.brier_score,
+    walk_forward_brier: calibratedWalk.result.forward.baseline.brier_score,
+    prior_36_sample_incomplete_with_three_unknown_probabilities: true,
+    missing_label_retained_in_12_original_population: true,
+    later_forward_labels_never_fit_model: true,
+    persisted_late_training_label_excluded: true, persisted_future_forward_recording_retained_as_missing: true,
     durable_freeze_count: 2, restarted_exact_readback: true, idempotent_repeats: 7, concurrent_single_owner_freeze: true, retroactive_rejected: true,
     actual_source_persistence_and_restarted_learner: true, retained_original_population: 4,
     missing_outcome_progression: [4, 1, 0], mixed_canonical_outcomes: 4, baseline_precision_at_3: held.baseline.precision_at_3,
