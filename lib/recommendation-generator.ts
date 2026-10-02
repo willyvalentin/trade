@@ -3679,6 +3679,7 @@ export async function generateRecommendations({
       builtTickers = [],
       publishedTickers = [],
       selectedBuildDiagnostics = [],
+      decisionTimestamp,
     }: {
       ranking?: ScannerCandidateRankingSummary | null;
       eligibleCandidateTickers?: string[];
@@ -3688,9 +3689,11 @@ export async function generateRecommendations({
       builtTickers?: string[];
       publishedTickers?: string[];
       selectedBuildDiagnostics?: SelectedCandidateBuildDiagnostic[];
+      decisionTimestamp?: string;
     } = {}) =>
       buildCandidateDecisionCapture({
         captureTimestamp: candidateDecisionCaptureTimestamp,
+        ...(inputAttributed ? { decisionTimestamp: decisionTimestamp ?? new Date().toISOString() } : {}),
         universe: scannerBaseCandidates,
         observedCandidates: scannerCandidates,
         inputPolicyVersion: scannerInputPolicyVersion,
@@ -4458,6 +4461,7 @@ export async function generateRecommendations({
       parser_rejected_count: sanitizedRecommendations.skippedReasons.length,
     });
     const publicationCheckedAt = new Date();
+    const publicationDecisionTimestamp = publicationCheckedAt.toISOString();
     const recommendationsToInsert = sanitizedRecommendations.recommendations.filter(recommendation => {
       if (!inputAttributed) return true;
       const candidate = scannerCandidates.find(candidate => candidate.ticker === recommendation.ticker);
@@ -4896,6 +4900,7 @@ export async function generateRecommendations({
           ),
           publishedTickers: insertedRecommendationTickers,
           selectedBuildDiagnostics: selectedCandidateBuildDiagnostics,
+          decisionTimestamp: publicationDecisionTimestamp,
         }),
       } satisfies RecommendationScanLogDetails,
       ...(duplicateFallbackUsed ? { message: duplicateFallbackMessage } : {}),

@@ -117,6 +117,17 @@ test("packaged missing volume stays unavailable through persisted decision and o
     actual_provider_requests:0,production_actions:0,publications:0,broker_actions:0,cleanup:"inert"});
 });
 
+test("packaged normal publication binds its decision before actual database persistence", () => {
+  test.setTimeout(90000);
+  const proof=spawnSync(process.execPath,["scripts/completed-input-runtime-proof.mjs","--cold","--publication-clock"],
+    {cwd:process.cwd(),encoding:"utf8",timeout:80000});
+  expect(proof.status,`${proof.stdout}\n${proof.stderr}`).toBe(0);
+  const evidence=proof.stdout.trim().split("\n").map(line=>JSON.parse(line))
+    .find(row=>row.publication_clock_proof==="passed");
+  expect(evidence).toMatchObject({actual_provider_requests:0,production_actions:0});
+  expect(evidence.synthetic_publication_count).toBeGreaterThan(0);
+});
+
 for (const scenario of ["cold", "warm", "opening", "opening_zero"]) {
   test(`packaged ${scenario} inputs retain hidden research plans and real isolated outcome persistence`, () => {
     test.setTimeout(90000);
@@ -567,6 +578,38 @@ test(`real scanner acquires raw history then reuses it after restart with ${stor
     expect(decision.record_version).toBe("candidate_decision_record_v4");
     expect(decision.versions.scanner_version).toBe("scanner_v3_completed_daily_intraday_inputs");
     expect(decision.candidates).toHaveLength(8);
+    const decidedAt=new RealDate(clock+100).toISOString();
+    const completedAt=new RealDate(clock+436).toISOString();
+    const explicitCapture={...capture,decision_timestamp:decidedAt,
+      decision_clock_version:"pre_publication_decision_clock_v1" as const};
+    const explicitRun={...run,completed_at:completedAt};
+    const explicitDecision=buildCandidateDecisionRecord({scanRun:explicitRun,capture:explicitCapture,
+      scoringVersion:"unchanged-local-scoring",buildVersion:"local-synthetic-input-proof"})!;
+    expect(explicitDecision.decision_timestamp).toBe(decidedAt);
+    expect(explicitDecision.decision_clock).toEqual({contract_version:"pre_publication_decision_clock_v1",
+      input_capture_timestamp:capturedAt,decision_timestamp:decidedAt});
+    expect(candidateDecisionRecordFromUnknown(JSON.parse(JSON.stringify(explicitDecision)))).toEqual(explicitDecision);
+    // Archives lacking this new clock keep their existing completed-at semantics.
+    expect(buildCandidateDecisionRecord({scanRun:explicitRun,capture,
+      scoringVersion:"unchanged-local-scoring",buildVersion:"local-synthetic-input-proof"})?.decision_timestamp).toBe(completedAt);
+    for(const invalidClock of ["not-a-date",new RealDate(clock-1).toISOString(),new RealDate(clock+437).toISOString()]) {
+      expect(()=>buildCandidateDecisionRecord({scanRun:explicitRun,
+        capture:{...explicitCapture,decision_timestamp:invalidClock},
+        scoringVersion:"unchanged-local-scoring",buildVersion:"local-synthetic-input-proof"})).toThrow("candidate_decision_explicit_clock_invalid");
+    }
+    expect(()=>buildCandidateDecisionCapture({captureTimestamp:capturedAt,decisionTimestamp:"not-a-date",
+      universe:base,observedCandidates:candidates})).toThrow("candidate_decision_explicit_clock_invalid");
+    expect(()=>buildCandidateDecisionCapture({captureTimestamp:capturedAt,decisionTimestamp:new RealDate(clock-1).toISOString(),
+      universe:base,observedCandidates:candidates})).toThrow("candidate_decision_explicit_clock_invalid");
+    expect(()=>buildCandidateDecisionRecord({scanRun:explicitRun,
+      capture:{...explicitCapture,decision_clock_version:undefined},
+      scoringVersion:"unchanged-local-scoring",buildVersion:"local-synthetic-input-proof"})).toThrow("candidate_decision_explicit_clock_invalid");
+    for (const malformedRun of [{...explicitRun,started_at:"not-a-date"}, {...explicitRun,completed_at:"not-a-date"}]) {
+      expect(()=>buildCandidateDecisionRecord({scanRun:malformedRun,capture:explicitCapture,
+        scoringVersion:"unchanged-local-scoring",buildVersion:"local-synthetic-input-proof"})).toThrow("candidate_decision_explicit_clock_invalid");
+    }
+    expect(()=>buildCandidateDecisionCapture({captureTimestamp:capturedAt,decisionTimestamp:decidedAt,
+      universe:base,observedCandidates:[]})).toThrow("candidate_decision_explicit_clock_invalid");
     expect(decision.candidates.slice(0, 6).every(candidate => candidate.data.freshness === "fresh")).toBe(true);
     const encoded = JSON.parse(JSON.stringify(decision));
     expect(candidateDecisionRecordFromUnknown(encoded)).toEqual(decision);

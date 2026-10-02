@@ -2,15 +2,92 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-02, recommendation intelligence first
 
-**Current executable selection:** Now is integration of the locally verified
-independent IF-2b volume-input integrity correction, rebased on protected main
-`d518bbb5...` after prerequisite PR #722 is merged and its inert production
-behavior is verified. Next is the missing prospective fresh-input/canonical-
-learning acceptance, followed by one measured contextual-ranking challenger.
-The Oct 2 operating job is terminal and cleanup is verified, not a waiting
-integration barrier. Recommendation-quality lift remains unproven. Earlier
-dated local/hold statements below are retained receipts, not additional active
-queues; do not reuse the consumed Oct 2 observation card.
+**Current executable selection:** Now is the reproduced IF-2b decision/publication
+clock-integrity interruption on isolated main-based branch
+`codex/input-decision-before-publication`, owned by Codex. PR #723 is normally
+merged at main `41c03db91bbbeb6e4aec8e29a7ee7a954221dcb7`; protected CI and exact
+inert production verification pass. The new 16:15Z Oct 2 observation is terminal,
+but its frozen publication-binding check fails. Do not retry its consumed card
+or arm another OPEN job before reproducing, correcting and verifying this defect.
+Cap investigation at four active hours and the focused delivery at 4–16 hours;
+change only the new input-attributed decision clock and its publication-path
+regression, preserve legacy/historical records and all quality/provider gates.
+Once this interruption is closed, return directly to the prospective fresh-input
+and canonical-learning acceptance, then one measured contextual-ranking
+challenger. No independent second development slice is selected.
+
+**New Oct 2 observation and exact diagnosis — 2026-10-02:** frozen main above,
+activation deploy `6abfd21f657adbbd8c74c71f` ready/published at 15:48:27.102Z,
+series `observation_series_72f4038f27ed91c0`, target 16:15Z and expiry 16:30Z.
+Exactly one scheduled attempt `scheduled_scan_attempt_1mtzbzz` fires at
+16:15:24.841Z, enters the route at 16:15:28.583Z and returns HTTP 200/scanned.
+Run `rec_scan_run_1mk6om7` completes at 16:15:38.436Z. One terminal eight-credit
+reservation, zero active reservations, zero duplicate slots and zero broker
+records are observed. The original eight identities remain: three fresh complete
+inputs (PANW, AAPL, ORCL), five explicit unobserved members. Six scanner requests
+acquire three daily/intraday pairs with no scanner provider errors; account-wide
+usage is not inferred from this trace. Two hidden original research snapshots
+pass actual decision/lineage/source-provenance validators; their assessment
+status remains incomplete/unknown, not executable feasibility or alpha.
+
+One AAPL recommendation is published. A separate authoritative owner-joined
+read verifies its original input geometry (329.64–336.3, stop 319.65, target
+361.28) and fresh 16:10Z bar closed at 16:15Z. The defect is clock binding:
+the recommendation's database `created_at` is 16:15:38.200192Z, while the
+decision builder substitutes scan completion 16:15:38.436Z as decision time,
+235.808 ms after publication. Do not relabel the frozen `fail` as pass because
+the input/geometry are valid, edit historical timestamps, or claim recommendation
+quality. The bounded observer finishes at 16:16:37.256Z. Cleanup restores only
+owned function-scoped series controls and removes the input selector; unchanged
+main cleanup deploy `6abfd90f1e7f01393aeef0fc` is ready/published at 16:18:04.195Z.
+Authenticated default-off readback at 16:19:34.469Z verifies exact revision,
+global disable true, input selector unset and zero active reservations. The
+same-chat cleanup automation is deleted; no outcome worker is armed. Acceptance
+for the selected correction is an actual persisted successful publication with
+input-capture ≤ explicit decision ≤ database publication ≤ scan completion,
+unchanged original input/plan, valid durable lineage and canonical source/outcome
+readback, plus negative invalid/future clocks and unchanged legacy behavior.
+This is `supporting_blocker_removal`, not recommendation-quality lift.
+
+**Clock correction reproduced and implemented locally — 2026-10-02:** the
+actual packaged scheduler, scanner, unchanged publication gates, Supabase SDK,
+isolated PostgreSQL/PostgREST insert and authoritative reader reproduce a
+completion-based decision 236 ms after a successful synthetic publication.
+The corrected generator retains its real pre-insert admission clock; the new
+`pre_publication_decision_clock_v1` binds input capture and explicit decision,
+while scan completion remains separate. Invalid or contradictory explicit
+clocks fail closed. Captures without the new clock retain historical semantics;
+no persisted history, quality threshold, provider budget or live flag changes.
+
+The same isolated runtime then passes with three synthetic publications:
+capture/decision 17:30:20.000Z, database publication 17:30:20.200Z and completion
+17:30:20.436Z. Original geometry, fresh inputs, durable decision/lineage,
+corrupt-clock rejection, duplicate protection and inert cleanup are checked.
+Twenty related record/scanner checks pass before the final malformed-run-clock
+negative additions; their broad registered rerun remains required. Fixtures
+make no real provider or production calls and prove no recommendation quality.
+Full lint, non-incremental types and dependency audit pass initially. The first
+standard Turbopack build rejects the worktree's external dependency symlink;
+the same installed locked dependencies are materialized locally, without source
+or compiler changes. Its generated failed-build cache is moved outside the
+project before rerunning the unchanged registered foundation. No PR, merge,
+production integration or replacement OPEN card is yet claimed.
+
+**Clock correction final local verification — 2026-10-02:** all 37 affected
+scanner/record checks and 41 existing baseline-readiness/freeze/pagination checks
+pass, including the final invalid run clocks and legacy explicit-clock rejection.
+The unchanged registered foundation completes successfully: full lint has zero
+errors/eight retained warnings; non-incremental strict TypeScript, audit (zero
+vulnerabilities), fresh standard Next 16.3.8/Turbopack build and all three isolated
+database lifecycle groups pass. Its 1,027 default-condition containment tests,
+12 authentication checks, 375 intelligence-contract checks and the 41/42/34/32/32
+existing explanation/proposal/adapter/capture/binding groups pass. The source,
+lockfile, framework configuration, server-only boundary and CI registration are
+not weakened. Generated failed-build output is retained outside the worktree;
+only the named disposable runtime fixtures are cleaned up. Evidence is local
+macOS/ARM64 Node 26.5.0, not protected Ubuntu CI, main, production or OPEN quality.
+Submit one coherent focused PR from current main; keep all production controls
+inert and preserve the predecessor's frozen failure while integration completes.
 
 **PR #722 integration verified — 2026-10-02:** required six-shard workflow
 `37017804500`, its protected aggregate and merge-candidate provenance pass on
