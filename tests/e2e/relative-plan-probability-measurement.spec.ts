@@ -54,6 +54,25 @@ test("new-training raw revision admission retains PostgreSQL microseconds and sc
   expect(JSON.stringify(source)).toBe(bytes);
 });
 
+test("raw recording order cannot alias a contradictory microsecond label into observed evidence", () => {
+  const valid = { evaluated_at: "2026-11-06T23:59:59.000002Z", created_at: "2026-11-06T23:59:59.000002Z",
+    updated_at: "2026-11-06T23:59:59.000004Z" };
+  const inverted = { ...valid, created_at: "2026-11-07T01:59:59.000001+02:00" };
+  expect(Date.parse(inverted.created_at)).toBe(Date.parse(inverted.evaluated_at));
+  const rows = [valid, inverted], before = JSON.stringify(rows);
+  for (const guard of [hasAdmissibleRelativePlanOutcomeRevisionTimes, hasAdmissibleRelativePlanCurrentOutcomeRevisionTimes]) {
+    expect(guard(rows, now)).toBe(false);
+    for (const created_at of [valid.created_at, "2026-11-07T01:59:59.000003+02:00",
+      "2026-11-06T23:59:58.999999Z"]) {
+      // The older millisecond row keeps its existing missing-label path;
+      // equality and later microsecond recording remain eligible.
+      expect(guard([{ ...valid, created_at }], now)).toBe(true);
+    }
+  }
+  expect(hasExplicitRelativePlanOutcomeRecordingTimes(rows)).toBe(true);
+  expect(JSON.stringify(rows)).toBe(before);
+});
+
 function fixture() {
   const outcomes: Array<{ id: string; snapshot_fingerprint: string; ticker: string; evaluated_at: string; created_at: string }> = [];
   function comparison(day: number, phase: string, label: "win" | "loss", score = 70) {

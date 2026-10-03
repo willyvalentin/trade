@@ -48,6 +48,11 @@ export function hasAdmissibleRelativePlanOutcomeRevisionTimes(rows: unknown, now
     BigInt((value.match(/\.(\d{1,6})(?:Z|[+-]\d{2}:\d{2})$/)?.[1] ?? "").padEnd(6, "0").slice(3));
   return Number.isFinite(asOf) && hasExplicitRelativePlanOutcomeRecordingTimes(rows) &&
     (rows as Record<string, unknown>[]).every(row => explicitOutcomeRecordingInstant(row.updated_at) &&
+      // Older first recordings already remain missing under the unchanged
+      // canonical-label filter. Reject only the raw inversion that would be
+      // rounded into an eligible equal-clock label by the legacy decoder.
+      (Date.parse(row.created_at as string) < Date.parse(row.evaluated_at as string) ||
+        micros(row.created_at as string) >= micros(row.evaluated_at as string)) &&
       micros(row.updated_at) >= micros(row.evaluated_at as string) &&
       micros(row.updated_at) >= micros(row.created_at as string) && micros(row.updated_at) <= BigInt(asOf) * scale);
 }

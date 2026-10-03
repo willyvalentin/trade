@@ -2,7 +2,54 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
-**Now — original forward-order review correction locally complete, 2026-10-03:**
+**Now — raw first-recording precision correction locally tested, 2026-10-03:**
+The same bounded IF-4 primary in draft #732 now has one newly reproduced
+learning-integrity blocker: actual persistence serialization and the new
+server-owned training service accept a first recording one microsecond before
+evaluation. The raw revision guard accepts it, the legacy decoder rounds both
+clocks to the same millisecond, and the job materializes 48/48 canonical binary
+labels. A valid equal-clock control also materializes 48/48. The synthetic
+reproduction replaces storage only at its outer boundary, not the producer,
+decoder or training service; it is not real database attestation. Log:
+`/private/tmp/ture-first-recording-microsecond-service-reproduction-oct3.log`.
+The first attempted standalone runner lacks a TS loader and proves nothing.
+Minimum correction: reject raw sub-millisecond recording/evaluation inversion
+before it can alias into an eligible current label. Preserve older rows already
+excluded by the existing millisecond semantics, every original member and
+historical sealed capsules. Acceptance: actual new-job rejection without a
+materialize/confirm call or source mutation; equal/later recording remains valid;
+already-missing older records remain missing; existing model/result goldens,
+original-population integration, types/lint and exact build remain unchanged.
+Budget 4–8 active hours, investigation at most four. This is
+`supporting_blocker_removal`, not a new ranking hypothesis or quality-lift claim.
+No schema, threshold, scheduler, provider or broker change is selected. The
+independent context slice stays locally complete; protected release and the
+frozen original recommendation-quality comparison remain next after this fix.
+
+The minimum five-line admission correction now rejects the raw inversion before
+legacy projection. All 103 affected learning/model/prospective/full-charter
+checks pass serially in one 9.1m run, including four actual isolated
+Postgres/PostgREST/SDK and restarted-consumer cases. The new native fixture
+persists six-digit timestamps in Postgres, reads them through the actual owned
+SDK path, and rejects both UTC and offset-written inversions with 48 unchanged
+members and zero model/confirmation rows. Restored valid data then completes the
+existing immutable-model, concurrency, restart and forward-read proof.
+Equal/later recording remains usable; an already-earlier millisecond recording
+retains 48 original members with 47 usable labels, not a loss or a reduced
+population. Previously sealed legacy capsules and the UTC model/result goldens
+remain unchanged. Log:
+`/private/tmp/ture-first-recording-complete-learning-regression-oct3.log`.
+The five focused boundary/service checks are overlapping, not extra unique
+tests; log `/private/tmp/ture-first-recording-microsecond-boundaries-oct3.log`.
+Nonincremental types, normal full lint (zero errors/eight existing warnings)
+and four active governance checks pass. Logs:
+`/private/tmp/ture-first-recording-final-types-oct3.log`,
+`/private/tmp/ture-first-recording-final-lint-oct3.log` and
+`/private/tmp/ture-first-recording-governance-oct3.log`.
+Exact revision build and the coherent same-PR update remain next. No provider,
+production or broker operation occurred, and no quality improvement is claimed.
+
+**Retained locally complete — original forward-order review correction, 2026-10-03:**
 Codex retains the same IF-4 full-charter primary in draft #732; budget four to
 eight active hours, initial investigation at most four. At exact head `9f024dc4`,
 the actual versioned decision/lineage reader accepts an equivalent explicit

@@ -91,7 +91,7 @@ test("new terminal results reject unobserved raw revisions on the initial read a
     else process.env.TURE_APPLICATION_OWNER_USER_ID = originalOwner;
   }
   const originalBytes = JSON.stringify(data);
-  for (const faultRead of [1, 2]) {
+  for (const fault of ["future_revision", "inverted_recording"] as const) for (const faultRead of [1, 2]) {
     let reads = 0, runtimeReads = 0;
     const h = harness({ clock: () => new Date(input.now),
       modelStore: () => createRelativePlanTrainedProbabilityStore({ async read() {
@@ -99,7 +99,16 @@ test("new terminal results reject unobserved raw revisions on the initial read a
       }, async materialize() { throw new Error("must_not_refit"); }, async confirm() { throw new Error("must_not_confirm"); } }),
       readSource: async () => {
         reads++; const copy = structuredClone(data);
-        if (reads === faultRead) copy.recommendation_outcomes[0].updated_at = "2026-11-07T00:00:00.000001Z";
+        if (reads === faultRead) {
+          const row = copy.recommendation_outcomes[0];
+          if (fault === "future_revision") row.updated_at = "2026-11-07T00:00:00.000001Z";
+          else {
+            const prefix = String(row.evaluated_at).slice(0, 19);
+            row.evaluated_at = `${prefix}.000002Z`;
+            row.created_at = `${prefix}.000001Z`;
+            row.updated_at = `${prefix}.000003Z`;
+          }
+        }
         return { status: "available", data: copy };
       }, readRuntime: async () => { runtimeReads++; return input.runtime; },
     });

@@ -135,6 +135,32 @@ try {
   }
   assert.equal((await readers.persistRecommendationOutcome(originalRevision, { supabaseClient: client, server: true })).status, "saved");
   assert.deepEqual(await readSource(), originalRevisionSource);
+  // Postgres retains six fractional digits even though the legacy domain
+  // decoder projects milliseconds. Exercise the actual owned raw SDK read
+  // before that projection, never pretend decoded rows are raw DB evidence.
+  const clockPrefix = originalRevision.evaluated_at.slice(0, 19);
+  for (const created_at of [`${clockPrefix}.000001Z`,
+    new Date(Date.parse(`${clockPrefix}Z`) + 7200000).toISOString().slice(0, 19) + ".000001+02:00"]) {
+    sql(`update public.recommendation_outcomes set evaluated_at='${clockPrefix}.000002Z',
+      created_at='${created_at}', updated_at='${clockPrefix}.000003Z'
+      where id='${originalRevision.id}' and owner_user_id='${owner}';`);
+    const raw = await readers.readRecommendationLearningBaselineSource(owner);
+    assert.equal(raw.status, "available");
+    const before = JSON.stringify(raw.data), first = raw.data.recommendation_outcomes.find(row => row.id === originalRevision.id);
+    assert(first);
+    assert.equal(Date.parse(first.created_at), Date.parse(first.evaluated_at));
+    assert(first.created_at.includes("000001"));
+    assert(first.evaluated_at.includes("000002"));
+    assert.equal(raw.data.recommendation_outcomes.length, 48);
+    const rejected = await readers.createRelativePlanTrainedProbabilityService().train(owner, {});
+    assert.equal(rejected.status, "unavailable");
+    assert.equal(rejected.blocker, "trained_probability_outcome_revision_times_invalid");
+    assert.equal(sql("select count(*) from public.relative_plan_trained_probability_models"), "0");
+    assert.equal(sql("select count(*) from public.relative_plan_trained_probability_confirmations"), "0");
+    assert.equal(JSON.stringify((await readers.readRecommendationLearningBaselineSource(owner)).data), before);
+  }
+  assert.equal((await readers.persistRecommendationOutcome(originalRevision, { supabaseClient: client, server: true })).status, "saved");
+  assert.deepEqual(await readSource(), originalRevisionSource);
   const request = { owner, freeze, source: await readSource(), now: new Date() };
   let model = readers.buildRelativePlanTrainedProbabilityModel(request).trained_model; assert(model);
   assert.equal(model.original_population_count, 48); assert.equal(model.model.sample_count, 48);
@@ -292,6 +318,7 @@ try {
     actual_server_owned_training_job_verified: true, lost_acknowledgement_resumes_original_capsule: true,
     new_training_rejects_persisted_future_and_contradictory_revision_times: true,
     rejected_revision_keeps_48_original_members_and_zero_models: true,
+    raw_postgres_microsecond_recording_inversion_rejected_before_decoder: true,
     actual_database_rejects_backdated_and_premature_jobs: true,
     owner_and_client_rpc_isolation: true, direct_mutation_denied: true, actual_forward_product_consumer_verified: true,
     forward_original_members_per_partition: 12, missing_forward_label_remains_unknown: true,

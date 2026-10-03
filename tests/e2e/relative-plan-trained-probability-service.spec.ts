@@ -173,6 +173,37 @@ test("new training accepts exactly observed revisions and unchanged sealed jobs 
   }
 });
 
+test("new training cannot turn a microsecond-inverted first recording into an eligible label", async () => {
+  for (const recording of ["2026-10-05T18:00:00.000001Z", "2026-10-05T20:00:00.000001+02:00"]) {
+    const h = await harness(), row = h.data.recommendation_outcomes[0];
+    row.evaluated_at = "2026-10-05T18:00:00.000002Z";
+    row.created_at = recording;
+    row.updated_at = "2026-10-05T18:00:00.000003Z";
+    const original = JSON.stringify(h.data);
+    expect(await h.service.train(prospectiveOwner, {})).toMatchObject({ status: "unavailable", receipt: null,
+      blocker: "trained_probability_outcome_revision_times_invalid" });
+    expect(h.calls).not.toContain("materialize");
+    expect(h.calls).not.toContain("confirm");
+    expect(h.data.recommendation_outcomes).toHaveLength(48);
+    expect(JSON.stringify(h.data)).toBe(original);
+  }
+});
+
+test("new training preserves equal or later microsecond recordings and already-missing older labels", async () => {
+  for (const [recording, expected] of [["2026-10-05T18:00:00.000002Z", 48],
+    ["2026-10-05T20:00:00.000003+02:00", 48], ["2026-10-05T17:59:59.999999Z", 47]] as const) {
+    const h = await harness(), row = h.data.recommendation_outcomes[0];
+    row.evaluated_at = "2026-10-05T18:00:00.000002Z";
+    row.created_at = recording;
+    row.updated_at = "2026-10-05T18:00:00.000004Z";
+    const original = JSON.stringify(h.data);
+    expect(await h.service.train(prospectiveOwner, {})).toMatchObject({ status: "materialized", receipt: {
+      trained_model: { original_population_count: 48, canonical_outcome_count: expected,
+        missing_outcome_count: 48 - expected, model: { sample_count: expected } } } });
+    expect(JSON.stringify(h.data)).toBe(original);
+  }
+});
+
 async function legacyCandleSource(fault: "target" | "stop" | "aligned_target") {
   const h = await harness(), snapshot = h.source[0].snapshots[0];
   const anchor = recommendationOutcomeEvaluationAnchorFromSnapshot(snapshot)!;
