@@ -55,6 +55,20 @@ No production/provider/broker action, new experiment or schema is selected.
 CI remains attributable to committed `183e70d6`, not these local review changes;
 the mandatory high-severity dependency audit remains a separate release blocker.
 
+Review also reproduces an applicable CI coverage gap: the actual draft selector
+chooses only two of the four changed outcome suites; the acquisition and coverage
+boundary files are absent from the registered plan. Add only those two existing
+suites to the intelligence group, keeping the same server condition, worker,
+audit, timeout and protected routes. The actual selector now includes all four
+and 31 commands instead of 29. All 15 CI-plan/draft/security regressions pass
+(2.2s), including duplicate selection and cancellation. Log:
+`/private/tmp/ture-off-grid-ci-registration-corrected-oct3.log`. The first
+regression placement was rejected by a historical security source hash; the
+hash-bound file is restored byte-for-byte and the new assertion uses the existing
+evolving plan test instead. No historical receipt or security gate is changed.
+Nonincremental types and focused changed-test lint pass after this registration
+correction; the application tree remains the exact tested `2212dafd` product.
+
 **Completed local review fix / Next — complete original-history cache read:**
 Within existing draft PR #732, Codex reproduces one IF-2b blocker in the
 same original-input → canonical-outcome → full-charter delivery. With a real

@@ -255,6 +255,8 @@ const foundationTests = [
 
 const intelligenceTests = [
   "tests/e2e/action-576-verified-us-market-calendar-integration.spec.ts",
+  "tests/e2e/action-555-official-outcome-candle-acquisition-investigation.spec.ts",
+  "tests/e2e/recommendation-outcome-canonical-coverage.spec.ts",
   "tests/e2e/relative-plan-charter-observations.spec.ts",
   "tests/e2e/relative-plan-charter-context.spec.ts",
   "tests/e2e/relative-plan-charter-quality.spec.ts",

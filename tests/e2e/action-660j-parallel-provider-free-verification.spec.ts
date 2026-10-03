@@ -5,6 +5,7 @@ import { once } from "node:events";
 import { access, chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 
 const repositoryRoot = path.resolve(__dirname, "../..");
 const workflowPath = ".github/workflows/milestone-a-ci.yml";
@@ -284,6 +285,8 @@ const foundationTests = [
 
 const intelligenceTests = [
   "tests/e2e/action-576-verified-us-market-calendar-integration.spec.ts",
+  "tests/e2e/action-555-official-outcome-candle-acquisition-investigation.spec.ts",
+  "tests/e2e/recommendation-outcome-canonical-coverage.spec.ts",
   "tests/e2e/relative-plan-charter-observations.spec.ts",
   "tests/e2e/relative-plan-charter-context.spec.ts",
   "tests/e2e/relative-plan-charter-quality.spec.ts",
@@ -577,6 +580,26 @@ test("preserves exact serial coverage in six closed static shard plans", async (
   expect(runner).toContain("terminateActiveChild(activeChild, signal)");
   expect(runner).toContain('exitStatusForCancellation(signal)');
   expect(runner).toContain("shell: false");
+});
+
+test("changed original-outcome suites select their actual registered runtime checks", async () => {
+  const { selectDraftCommands } = await import(pathToFileURL(
+    path.join(repositoryRoot, "scripts/action-660k-run-draft-ci.mjs"),
+  ).href) as { selectDraftCommands: (paths: string[]) => PlannedCommand[] };
+  for (const outcomePath of [
+    "tests/e2e/action-555-official-outcome-candle-acquisition-investigation.spec.ts",
+    "tests/e2e/recommendation-outcome-canonical-coverage.spec.ts",
+  ]) {
+    const selected = selectDraftCommands([outcomePath, outcomePath]);
+    expect(selected.map(entry => entry.label)).toEqual([
+      "Lint", "TypeScript", "Draft critical security smoke",
+      `Affected registered test: ${outcomePath}`,
+    ]);
+    expect(selected.at(-1)).toMatchObject({
+      args: ["test", outcomePath, "--workers=1"],
+      node_options: "--conditions=react-server",
+    });
+  }
 });
 
 test("forwards cancellation to the active process group and exits before another command can start", async () => {
