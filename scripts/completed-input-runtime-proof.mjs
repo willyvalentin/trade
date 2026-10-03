@@ -104,6 +104,9 @@ assert(!(invalidBenchmarkReuse && baselineBenchmarkReuse) &&
   (!(invalidBenchmarkReuse || baselineBenchmarkReuse) || benchmarkReuse));
 const wrongPolicy = process.argv.includes("--wrong-policy");
 const diagnoseOutcomes = process.argv.includes("--diagnose-outcomes");
+const nextSessionOutcomes = process.argv.includes("--next-session-outcomes");
+assert(!nextSessionOutcomes || diagnoseOutcomes && !cold && !rotationDay && !process.argv.includes("--publication-clock"),
+  "Cross-date continuation retains the existing six original hidden sources and four-request first pass");
 const relativePlan60m = process.argv.includes("--relative-plan-60m");
 assert(!relativePlan60m || diagnoseOutcomes && !process.argv.includes("--opening") && !wrongPolicy,
   "Mature relative-plan outcomes require their own unchanged original-input CLOSED scenario");
@@ -144,7 +147,7 @@ assert(!existingPremarketSetup || !process.argv.some(value=>[
 const slot = rotationDay ? "2026-10-01T13:30:00.000Z" : closing ? "2026-10-01T19:45:00.000Z" : opening ? "2026-10-01T13:45:00.000Z" : "2026-10-01T17:30:00.000Z";
 const expiry = rotationDay ? "2026-10-01T20:00:00.000Z" : new Date(Date.parse(slot) + 900000).toISOString();
 const nextSlot = new Date(Date.parse(expiry) + 900000).toISOString();
-const futureBoundary = new Date(Date.parse(slot) + (relativePlan60m || publishedOriginalLearning ? 4500000 : 1800000)).toISOString();
+const futureBoundary = new Date(Date.parse(slot) + (relativePlan60m || publishedOriginalLearning || nextSessionOutcomes ? 4500000 : 1800000)).toISOString();
 const zeroLatestVolume = process.argv.includes("--zero-latest-volume");
 const fractionalPrice = process.argv.includes("--fractional-price");
 assert(!fractionalPrice || cold && !publicationClock && !rotationDay && !diagnoseOutcomes && !wrongPolicy,
@@ -231,6 +234,11 @@ try {
     entryPoints: [resolve(root, "app/api/automation/run-scan/route.ts")], outfile: join(generated, "scheduled-scan-runtime.cjs") });
   if (diagnoseOutcomes || publishedOriginalLearning || charterComposition || lateOriginalOutcomes || fullOriginalHistorySetup) buildSync({ ...options, entryPoints: [resolve(root, "app/api/recommendations/evaluate-outcomes/route.ts")], outfile: join(generated, "outcome-route.cjs") });
   buildSync({ ...options, entryPoints: [resolve(root, "netlify/functions/scheduled-scan.ts")], outfile: join(directory, "functions/scheduled.cjs") });
+  if(nextSessionOutcomes) {
+    buildSync({ ...options, entryPoints: [resolve(root, "netlify/functions/scheduled-outcome-evaluation.ts")],
+      outfile: join(directory, "functions/scheduled-outcomes.cjs") });
+    writeFileSync(join(generated,"scheduled-outcome-evaluation-runtime.cjs"),readFileSync(join(generated,"outcome-route.cjs")));
+  }
   await build({ ...options, ...(legacyRetentionBaseline ? {plugins:[{name:"legacy-retention-predecessor",setup(builder) {
     builder.onLoad({filter:/\/lib\/(scanner|market-data)\.ts$/},args=>({
       contents:execFileSync("git",["show",`3c736f99:${args.path.slice(root.length+1)}`],{cwd:root,encoding:"utf8"}),
@@ -346,6 +354,7 @@ try {
     "20260926091134_sv_a2_observation_cycle_receipts.sql",
     "20260915222537_basic_free_discovery_credit_reservations.sql",
     "20260917135646_if2_basic_free_daily_observation_claim.sql",
+    ...(nextSessionOutcomes ? ["20260918233411_if4_after_market_outcome_evaluation_receipts.sql"] : []),
     ...(charterComposition || fullOriginalHistorySetup ? ["20261002213547_if4_relative_plan_prospective_comparison.sql",
       "20261002233358_if4_relative_plan_trained_probability_model.sql",
       "20261003015239_if4_relative_plan_charter_result.sql"] : []),
@@ -395,7 +404,8 @@ try {
       const interval = url.searchParams.get("interval");
       const benchmark = ["SPY", "QQQ"].includes(url.searchParams.get("symbol"));
       syntheticRequestEvidence.push({ ticker: url.searchParams.get("symbol"), interval,
-        requested_at: new OriginalDate(clock).toISOString() });
+        requested_at: new OriginalDate(clock).toISOString(),
+        start_date: url.searchParams.get("start_date"), end_date: url.searchParams.get("end_date") });
       if(historyPreparationFault==="rate_limit") return Response.json({status:"error",code:429,message:"Synthetic CLOSED credit limit"},{status:429});
       if(historyPreparationFault==="abort") preparationFaultController.abort();
       if(historyPreparationFault==="deadline") await syntheticDelay(2000,undefined,{signal:init?.signal});
@@ -406,7 +416,7 @@ try {
       const values = [];
       if (intraday) {
         assert.equal(interval,"5min");
-        const providerEnd=lateOriginalOutcomes || fullOriginalHistorySetup ? Math.min(clock,OriginalDate.parse("2026-10-01T20:00:00Z")) : clock;
+        const providerEnd=lateOriginalOutcomes || fullOriginalHistorySetup || nextSessionOutcomes ? Math.min(clock,OriginalDate.parse("2026-10-01T20:00:00Z")) : clock;
         for (let time=OriginalDate.parse("2026-10-01T13:30:00Z"); time<providerEnd; time+=300000) {
           const datetime=new Intl.DateTimeFormat("sv-SE",{timeZone:"America/New_York",
             year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(new OriginalDate(time));
@@ -414,7 +424,7 @@ try {
           const volume = missingLatestVolume && latestClosed ? " " : zeroLatestVolume && latestClosed ? "0" : "1000";
           const index=(time-OriginalDate.parse("2026-10-01T13:30:00Z"))/300000;
           const close=100+index*0.06;
-          const futurePlan=relativePlan60m || publishedOriginalLearning || charterComposition || lateOriginalOutcomes || fullOriginalHistorySetup ? futureOutcomePlans.find(plan=>plan.ticker===url.searchParams.get("symbol")) : null;
+          const futurePlan=relativePlan60m || publishedOriginalLearning || nextSessionOutcomes || charterComposition || lateOriginalOutcomes || fullOriginalHistorySetup ? futureOutcomePlans.find(plan=>plan.ticker===url.searchParams.get("symbol")) : null;
           const anchor=futurePlan ? Math.ceil(OriginalDate.parse(futurePlan.payload_json.decision_timestamp)/300000)*300000 : null;
           if(futurePlan && time>=anchor) {
             // Explicitly synthetic future bars, supplied only at the provider
@@ -1493,7 +1503,7 @@ try {
   const lineage = scanRuns[0]?.payload_json.decision_lineage_receipt;
   const claims=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from basic_free_discovery_credit_reservations t;"));
   const researchSnapshots=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_snapshots t;"));
-  if(relativePlan60m || publishedOriginalLearning) futureOutcomePlans=researchSnapshots.map((snapshot,index)=>({...snapshot,synthetic_win:index%2===0}));
+  if(relativePlan60m || publishedOriginalLearning || nextSessionOutcomes) futureOutcomePlans=researchSnapshots.map((snapshot,index)=>({...snapshot,synthetic_win:index%2===0}));
   let outcomeChainEvidence = null;
   let charterCompositionEvidence = null;
   if(wrongPolicy) {
@@ -1910,9 +1920,10 @@ try {
       // adapter, persistence and owner readback; never flip stored visibility.
       clock=OriginalDate.parse(futureBoundary);
       const before=externalRequests;
+      const outcomeMultiplier=nextSessionOutcomes?3:1;
       const evaluate=()=>require(join(generated,"outcome-route.cjs")).POST(new Request("http://closed-fixture/api/recommendations/evaluate-outcomes",{
         method:"POST",headers:{"x-automation-secret":environment.AUTOMATION_SECRET,"Content-Type":"application/json"},
-        body:JSON.stringify({mode:"official_live_today",horizons:[relativePlan60m ? "60m" : "15m"],max_candle_requests:4,max_batches:1}),
+        body:JSON.stringify({mode:"official_live_today",horizons:nextSessionOutcomes?["15m","30m","60m"]:[relativePlan60m ? "60m" : "15m"],max_candle_requests:4,max_batches:1}),
       }));
       // Persist a conflicting source timestamp, then exercise the real loader.
       // No provider call or outcome may occur; restore only these isolated rows.
@@ -1955,7 +1966,7 @@ try {
       const outcomeBody=await outcomeResponse.json();
       assert.equal(outcomeResponse.status,200,JSON.stringify({outcomeBody,logs:logs.slice(-5)}));
       const outcomes=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_outcomes t;"));
-      assert.equal(outcomes.length,Math.min(4,researchSnapshots.length),JSON.stringify({status:outcomeBody.status,
+      assert.equal(outcomes.length,Math.min(4,researchSnapshots.length)*outcomeMultiplier,JSON.stringify({status:outcomeBody.status,
         summary:outcomeBody.summary,eligible:outcomeBody.eligible_snapshot_count,reasons:outcomeBody.ineligible_reasons,
         batches:JSON.parse(sql("select coalesce(jsonb_agg(jsonb_build_object('id',id,'batch_type',batch_type,'status',status,'capture_version',payload_json->>'completed_input_research_capture_version')),'[]') from recommendation_batches;"))}));
       assert.equal(externalRequests-before,Math.min(4,researchSnapshots.length));
@@ -1969,30 +1980,144 @@ try {
         research_sources:researchSnapshots.length,persisted_outcomes:outcomes.length,
         separate_synthetic_outcome_requests:externalRequests-before,
         unobservable_population_members:8-researchSnapshots.length,
-        outcome_budget_pending_sources:researchSnapshots.length-outcomes.length};
+        outcome_budget_pending_sources:researchSnapshots.length-new Set(outcomes.map(row=>row.snapshot_fingerprint)).size};
       // The counts above describe the first four-request pass. Resume after a
       // route restart: finish only deferred sources, retaining the original
       // completed rows. A third pass must perform no acquisition or rewrite.
+      if(nextSessionOutcomes) {
+        clock=OriginalDate.parse("2026-10-05T17:30:20.000Z");
+        process.env.TURE_DISABLE_SCHEDULED_FUNCTIONS="false";
+        process.env.TURE_OBSERVATION_SERIES_ENABLED="false";
+        const oldToday=await evaluate(),oldBody=await oldToday.json();
+        assert.equal(oldToday.status,200);
+        assert.equal(oldBody.eligible_snapshot_count,0,"The unchanged today's-only caller must reproduce the dated scope, not silently become historical");
+        assert.equal(externalRequests-before,4);
+        sql(`insert into recommendation_batches(id,batch_fingerprint,trading_date,owner_user_id,batch_type) values
+          ('ture_backlog_other_owner','ture_backlog_other_owner','2026-10-01','00000000-0000-4000-8000-000000000002','official'),
+          ('ture_backlog_expired','ture_backlog_expired','2026-09-28','${owner}','official'),
+          ('ture_backlog_future','ture_backlog_future','2026-10-06','${owner}','official');`);
+        const rejectedScopes=[];
+        for(const fault of ["unknown_scope","direct_call","frozen_one_shot","frozen_series","global_disabled"]) {
+          if(fault==="frozen_one_shot") process.env.TURE_OUTCOME_EVALUATION_ONE_SHOT_ENABLED="true";
+          if(fault==="frozen_series") process.env.TURE_OUTCOME_EVALUATION_SERIES_ENABLED="true";
+          if(fault==="global_disabled") process.env.TURE_DISABLE_SCHEDULED_FUNCTIONS="true";
+          const response=await require(join(generated,"outcome-route.cjs")).POST(new Request("http://closed-fixture/api/recommendations/evaluate-outcomes",{
+            method:"POST",headers:{"x-automation-secret":environment.AUTOMATION_SECRET,"Content-Type":"application/json"},
+            body:JSON.stringify({mode:"official_live_today",original_source_scope:fault==="unknown_scope"?"unknown":"trailing_seven_ny_dates_v1",
+              ...(fault==="direct_call"?{}:{scheduled_function_fired_at_utc:"2026-10-05T17:30:20.000Z",
+                scheduled_slot_at_utc:"2026-10-05T17:30:00.000Z",scheduled_outcome_evaluation_attempt_fingerprint:"scheduled_outcome_evaluation_scopefixture"})}),
+          }));
+          assert.equal(response.status,400,fault);
+          assert.equal((await response.json()).code,"original_outcome_source_scope_invalid",fault);
+          rejectedScopes.push(fault);
+          process.env.TURE_OUTCOME_EVALUATION_ONE_SHOT_ENABLED="false";
+          process.env.TURE_OUTCOME_EVALUATION_SERIES_ENABLED="false";
+          process.env.TURE_DISABLE_SCHEDULED_FUNCTIONS="false";
+        }
+        assert.equal(Number(sql("select count(*) from scheduled_outcome_evaluation_attempts;")),0);
+        assert.equal(externalRequests-before,4);
+        outcomeChainEvidence.cross_date_source_controls={same_day_predecessor_missing_sources:2,
+          other_owner_excluded:true,expired_original_source_excluded:true,future_source_excluded:true,
+          rejected_scopes:rejectedScopes,invalid_scope_requests:0};
+      }
       delete require.cache[require.resolve(join(generated,"outcome-route.cjs"))];
-      const resumedResponse=await evaluate(),resumedBody=await resumedResponse.json();
+      const invokeNextSession=()=>require(join(directory,"functions/scheduled-outcomes.cjs")).default(
+        new Request("http://closed-fixture/.netlify/functions/scheduled-outcome-evaluation",{
+          method:"POST",body:JSON.stringify({next_run:new OriginalDate(Math.floor(clock/900000)*900000+900000).toISOString()})}),
+        {deploy:{id:identity.deploy_id,context:"production",published:true},site:{id:identity.site_id}});
+      if(nextSessionOutcomes) {
+        const waitForApiCap=async(expected)=>{
+          for(let index=0;index<30;index++) {
+            const response=await originalFetch(`${apiOrigin}/recommendation_outcomes?select=id`,{
+              headers:{Authorization:`Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`}});
+            if(response.ok && (await response.json()).length===expected) return;
+            await syntheticDelay(100);
+          }
+          throw new Error(`isolated_api_row_cap_not_observed:${expected}`);
+        };
+        // Real PostgREST configuration, not a mocked SDK/store or invented
+        // rows: the twelve already persisted labels exceed this API cap.
+        sql("alter role authenticator set pgrst.db_max_rows='10'; notify pgrst,'reload config';");
+        await waitForApiCap(10);
+        const cappedResponse=await invokeNextSession(),cappedBody=await cappedResponse.json();
+        assert.equal(cappedResponse.status,200,JSON.stringify(cappedBody));
+        assert.equal(cappedBody.persistence_error,"original_outcome_read_incomplete");
+        assert.equal(cappedBody.status,"failed");
+        assert.equal(cappedBody.scheduled_outcome_evaluation_receipt.failures.first_blocker,"original_outcome_read_incomplete");
+        assert.equal(externalRequests-before,4);
+        assert.equal(Number(sql("select count(*) from basic_free_discovery_credit_reservations where trading_date='2026-10-05';")),0);
+        assert.equal(Number(sql("select count(*) from recommendation_outcomes;")),12);
+        sql("alter role authenticator set pgrst.db_max_rows='1000'; notify pgrst,'reload config';");
+        await waitForApiCap(12);
+        clock=OriginalDate.parse("2026-10-05T17:45:20.000Z");
+        outcomeChainEvidence.cross_date_source_controls.incomplete_outcome_page_rejected=true;
+      }
+      const concurrentResponses=nextSessionOutcomes?await Promise.all([invokeNextSession(),invokeNextSession()]):null;
+      if(concurrentResponses) assert.deepEqual(concurrentResponses.map(response=>response.status).sort(),[200,202]);
+      const resumedResponse=concurrentResponses?concurrentResponses.find(response=>response.status===200):await evaluate(),resumedBody=await resumedResponse.json();
       assert.equal(resumedResponse.status,200,JSON.stringify(resumedBody));
       const resumedRows=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_outcomes t;"));
-      assert.equal(resumedRows.length,researchSnapshots.length,"Budget-deferred sources must resume");
+      assert.equal(resumedRows.length,researchSnapshots.length*outcomeMultiplier,"Budget-deferred sources must resume");
       assert.equal(externalRequests-before,researchSnapshots.length,"Completed sources must not acquire data again");
       for(const initial of outcomes) assert.deepEqual(resumedRows.find(row=>row.id===initial.id),initial);
       const completedRows=resumedRows.sort((a,b)=>a.id.localeCompare(b.id));
       delete require.cache[require.resolve(join(generated,"outcome-route.cjs"))];
-      const repeatedResponse=await evaluate(),repeatedBody=await repeatedResponse.json();
+      const repeatedResponse=await (nextSessionOutcomes?invokeNextSession():evaluate()),repeatedBody=await repeatedResponse.json();
       assert.equal(repeatedResponse.status,200,JSON.stringify(repeatedBody));
       assert.equal(externalRequests-before,researchSnapshots.length);
       const repeatedRows=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_outcomes t;"));
       assert.deepEqual(repeatedRows.sort((a,b)=>a.id.localeCompare(b.id)),completedRows);
       const resumedRead=await restarted.readRecommendationLearningBaselineSource(owner);
-      assert.equal(resumedRead.data.recommendation_outcomes.length,researchSnapshots.length);
+      assert.equal(resumedRead.data.recommendation_outcomes.length,researchSnapshots.length*outcomeMultiplier);
       assert.equal((await restarted.readRecommendationLearningBaselineSource("00000000-0000-4000-8000-000000000002")).data.recommendation_outcomes.length,0);
       outcomeChainEvidence.resumption={persisted_outcomes:resumedRows.length,
-        additional_synthetic_outcome_requests:resumedRows.length-outcomes.length,
+        additional_synthetic_outcome_requests:(resumedRows.length-outcomes.length)/outcomeMultiplier,
         completed_repeat_requests:0,prior_outcomes_unchanged:true};
+      if(nextSessionOutcomes) {
+        const attempts=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from scheduled_outcome_evaluation_attempts t;"));
+        const credits=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from basic_free_discovery_credit_reservations t where trading_date='2026-10-05';"));
+        assert.equal(attempts.length,2);
+        const completedAttempt=attempts.find(attempt=>attempt.status==="completed");
+        assert(completedAttempt,JSON.stringify(attempts));
+        assert.equal(completedAttempt.request_json.original_source_window.from_trading_date,"2026-09-29");
+        assert.equal(completedAttempt.receipt_json.cost.candle_requests_executed,2);
+        assert.equal(credits.length,1);
+        assert.equal(credits[0].requested_credits,4);
+        assert.equal(credits[0].status,"completed",JSON.stringify(credits));
+        assert(credits[0].finalized_at && credits[0].provider_attempted);
+        assert.equal(resumedBody.same_day_official_batch_revisit.same_day_official_batches_discovered,0);
+        assert.equal(resumedBody.same_day_official_batch_revisit.original_source_read.original_batches_read,1);
+        assert.equal(Number(sql("select count(*) from recommendation_batches;")),4);
+        sql("delete from recommendation_batches where id in ('ture_backlog_other_owner','ture_backlog_expired','ture_backlog_future');");
+        const lateRows=resumedRows.filter(row=>!outcomes.some(prior=>prior.id===row.id));
+        assert.equal(lateRows.length,6);
+        assert(lateRows.every(row=>row.evaluated_at.startsWith("2026-10-05") && row.created_at.startsWith("2026-10-05")),
+          "Late original labels retain the actual later evaluation/record clock, never the original decision date");
+        const lateRequests=syntheticRequestEvidence.filter(request=>request.requested_at.startsWith("2026-10-05"));
+        assert.equal(lateRequests.length,2);
+        assert(lateRequests.every(request=>request.start_date.startsWith("2026-10-01") && request.end_date.startsWith("2026-10-01")),
+          "Recovery must request the original decision-day horizon, not current prices");
+        clock=OriginalDate.parse("2026-10-05T18:00:20.000Z");
+        delete require.cache[require.resolve(join(generated,"scheduled-outcome-evaluation-runtime.cjs"))];
+        const completedResponse=await require(join(directory,"functions/scheduled-outcomes.cjs")).default(
+          new Request("http://closed-fixture/.netlify/functions/scheduled-outcome-evaluation",{
+            method:"POST",body:JSON.stringify({next_run:"2026-10-05T18:15:00.000Z"})}),
+          {deploy:{id:identity.deploy_id,context:"production",published:true},site:{id:identity.site_id}});
+        const completedBody=await completedResponse.json();
+        assert.equal(completedResponse.status,200,JSON.stringify(completedBody));
+        assert.equal(externalRequests-before,6);
+        assert.equal(Number(sql("select count(*) from scheduled_outcome_evaluation_attempts;")),3);
+        assert.equal(Number(sql("select count(*) from basic_free_discovery_credit_reservations where trading_date='2026-10-05';")),1);
+        assert.deepEqual(JSON.parse(sql("select coalesce(jsonb_agg(t order by id),'[]') from recommendation_outcomes t;")),completedRows);
+        outcomeChainEvidence.resumption.next_session={policy_version:"trailing_seven_ny_dates_v1",
+          original_date:"2026-10-01",evaluation_date:"2026-10-05",scheduled_attempts:3,
+          reserved_credits:4,synthetic_requests:2,previous_outcomes_unchanged:true,
+          repeat_requests:0,completed_next_slot_requests:0,original_horizon_retained:true,
+          late_label_clock_retained:true,original_members:8};
+        outcomeChainEvidence.cross_date_source_controls.concurrent_delivery_claims=1;
+        process.env.TURE_DISABLE_SCHEDULED_FUNCTIONS="true";
+        process.env.TURE_OBSERVATION_SERIES_ENABLED="true";
+      }
       // Restarted owner read -> actual decoder -> actual baseline/evaluation
       // consumers. No source-version fabrication or readiness promotion.
       const learningEvidence=async()=>{
@@ -2018,16 +2143,25 @@ try {
         return {source,readiness,plans};
       };
       const learning=await learningEvidence();
+      if(nextSessionOutcomes) {
+        const originalCutoff=restarted.buildRelativePlanCharterObservations({scanRun:learning.source.scanRuns[0],source:learning.source,
+          now:new OriginalDate(futureBoundary)});
+        assert.equal(originalCutoff.comparison.canonical_outcome_count,4,
+          "Later recorded original labels cannot leak into an earlier as-of training/evaluation cut");
+        assert.equal(originalCutoff.rows.length,8);
+        assert.equal(originalCutoff.quality_improvement_claimed,false);
+        outcomeChainEvidence.cross_date_source_controls.late_labels_excluded_from_original_cutoff=true;
+      }
       const outcomeLink=learning.readiness.relative_plan_context_outcomes;
       assert.equal(outcomeLink.length,1);
       assert.equal(outcomeLink[0].contract_version,"relative_plan_context_canonical_outcomes_v1");
       assert.equal(outcomeLink[0].scan_run_fingerprint,record.scan_run_fingerprint);
       assert.equal(outcomeLink[0].original_population_count,8);
       assert.equal(outcomeLink[0].candidates.length,8);
-      assert.equal(outcomeLink[0].selected_60m_receipt_count,relativePlan60m ? researchSnapshots.length : 0);
-      assert.equal(outcomeLink[0].canonical_outcome_count,relativePlan60m ? researchSnapshots.length : 0,
+      assert.equal(outcomeLink[0].selected_60m_receipt_count,relativePlan60m || nextSessionOutcomes ? researchSnapshots.length : 0);
+      assert.equal(outcomeLink[0].canonical_outcome_count,relativePlan60m || nextSessionOutcomes ? researchSnapshots.length : 0,
         "A retained fifteen-minute outcome cannot replace the frozen sixty-minute primary horizon");
-      assert.equal(outcomeLink[0].missing_outcome_count,relativePlan60m ? 8-researchSnapshots.length : 8);
+      assert.equal(outcomeLink[0].missing_outcome_count,relativePlan60m || nextSessionOutcomes ? 8-researchSnapshots.length : 8);
       assert.equal(outcomeLink[0].status,"evidence_incomplete");
       assert.equal(outcomeLink[0].population_complete,false);
       assert.equal(outcomeLink[0].baseline.precision_at_3.value,null);

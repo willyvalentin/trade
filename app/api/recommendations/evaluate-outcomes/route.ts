@@ -7,6 +7,7 @@ import { decisionLineageReceiptFromScanRun } from "@/lib/decision-lineage-receip
 import { summarizeEntryTypeTriggerDiagnostics } from "@/lib/recommendation-entry-type";
 import { getIntradayCandlesWithDiagnostics } from "@/lib/market-data";
 import { getNewYorkDateString } from "@/lib/intraday-scan-window";
+import { ORIGINAL_OUTCOME_BACKLOG_SCOPE, originalOutcomeSourceWindow } from "@/lib/original-outcome-source-window";
 import {
   recommendationOutcomeFromPersistenceRow,
   readRecommendationOutcomesFromLocalStorage,
@@ -81,6 +82,7 @@ import {
 
 type EvaluateOutcomesRequest = {
   mode?: unknown;
+  original_source_scope?: unknown;
   batch_fingerprint?: unknown;
   dry_run?: unknown;
   snapshots?: unknown;
@@ -730,11 +732,13 @@ function buildSameDayOfficialBatchAggregate(
 
 async function loadOfficialLiveSnapshots({
   batchFingerprint,
+  recoverOriginalBacklog,
   includeGrowMaxLearningSnapshots,
   maxBatchesPerRun,
   now,
 }: {
   batchFingerprint: string | null;
+  recoverOriginalBacklog: boolean;
   includeGrowMaxLearningSnapshots: boolean;
   maxBatchesPerRun: number;
   now: Date;
@@ -769,6 +773,9 @@ async function loadOfficialLiveSnapshots({
   try {
     const client = serverSupabase.client;
     const batchRows: Array<Record<string, unknown>> = [];
+    const tradingDate = getNewYorkDateString(now);
+    const sourceWindow = recoverOriginalBacklog ? originalOutcomeSourceWindow(now) : null;
+    if (recoverOriginalBacklog && !sourceWindow) throw new Error("original_outcome_source_window_unavailable");
     if (batchFingerprint) {
       const result = await client.from("recommendation_batches").select("*")
         .eq("owner_user_id", ownerUserId).eq("batch_fingerprint", batchFingerprint)
@@ -778,15 +785,16 @@ async function loadOfficialLiveSnapshots({
       }
       batchRows.push(...result.data);
     } else {
-      const tradingDate = getNewYorkDateString(now);
       const readSignal = AbortSignal.timeout(5000);
       let cursor: string | null = null;
       let expectedCount: number | null = null;
       const seenIds = new Set<string>();
       do {
         let query = client.from("recommendation_batches").select("*", { count: "exact" })
-          .eq("owner_user_id", ownerUserId).eq("trading_date", tradingDate)
+          .eq("owner_user_id", ownerUserId)
           .order("id", { ascending: true }).limit(officialLiveBatchDiscoveryLimit);
+        query = sourceWindow ? query.gte("trading_date", sourceWindow.from_trading_date).lte("trading_date", sourceWindow.through_trading_date)
+          : query.eq("trading_date", tradingDate);
         if (cursor !== null) query = query.gt("id", cursor);
         const result = await query.abortSignal(readSignal);
         if (result.error || !Array.isArray(result.data) || result.count === null ||
@@ -803,7 +811,9 @@ async function loadOfficialLiveSnapshots({
         }
         for (const row of result.data) {
           if (typeof row.id !== "string" || !row.id || seenIds.has(row.id) ||
-              row.owner_user_id !== ownerUserId || row.trading_date !== tradingDate) {
+              row.owner_user_id !== ownerUserId || typeof row.trading_date !== "string" ||
+              (sourceWindow ? row.trading_date < sourceWindow.from_trading_date || row.trading_date > sourceWindow.through_trading_date
+                : row.trading_date !== tradingDate)) {
             throw new Error("official_batch_source_identity_invalid");
           }
           seenIds.add(row.id);
@@ -812,8 +822,11 @@ async function loadOfficialLiveSnapshots({
         }
       } while (batchRows.length < expectedCount);
       // A changing population is unavailable, not an apparently empty backlog.
-      const verified = await client.from("recommendation_batches").select("id", { count: "exact", head: true })
-        .eq("owner_user_id", ownerUserId).eq("trading_date", tradingDate).abortSignal(readSignal);
+      let verifyQuery = client.from("recommendation_batches").select("id", { count: "exact", head: true })
+        .eq("owner_user_id", ownerUserId);
+      verifyQuery = sourceWindow ? verifyQuery.gte("trading_date", sourceWindow.from_trading_date).lte("trading_date", sourceWindow.through_trading_date)
+        : verifyQuery.eq("trading_date", tradingDate);
+      const verified = await verifyQuery.abortSignal(readSignal);
       if (verified.error || verified.count !== expectedCount) {
         throw new Error(verified.error?.message ?? "official_batch_source_read_changed_or_incomplete");
       }
@@ -826,8 +839,11 @@ async function loadOfficialLiveSnapshots({
       ),
     );
     const admittedBatchIds = new Set(officialBatches.map(row => row.id));
+    const sameDayBatchCount = sourceWindow
+      ? officialBatches.filter(row => row.trading_date === tradingDate).length : officialBatches.length;
     const sourceRead = {
-      policy_version: "bounded_original_batch_keyset_read_v1",
+      policy_version: sourceWindow ? "bounded_original_backlog_keyset_read_v1" : "bounded_original_batch_keyset_read_v1",
+      ...(sourceWindow ? { original_source_window: sourceWindow } : {}),
       status: "complete",
       original_batches_read: batchRows.length,
       original_batch_fingerprints: batchRows.map(batchFingerprintOf),
@@ -846,7 +862,8 @@ async function loadOfficialLiveSnapshots({
         status: "blocked" as const,
         error: batchFingerprint
           ? "No non-diagnostic official batch matched the requested fingerprint."
-          : "No non-diagnostic official live batch found for today.",
+          : sourceWindow ? "No admitted original batch found in the bounded recovery window. Older sources were not evaluated."
+            : "No non-diagnostic official live batch found for today.",
         batch: null,
         batches: [],
         snapshots: [],
@@ -855,7 +872,7 @@ async function loadOfficialLiveSnapshots({
         snapshot_batch_fingerprints: {},
         same_day_official_batch_revisit: {
           original_source_read: sourceRead,
-          same_day_official_batches_discovered: officialBatches.length,
+          same_day_official_batches_discovered: sameDayBatchCount,
           max_batches_per_run: maxBatchesPerRun,
           selected_batch_count: 0,
           selected_batch_fingerprints: [],
@@ -1015,7 +1032,7 @@ async function loadOfficialLiveSnapshots({
         snapshot_batch_fingerprints: {},
         same_day_official_batch_revisit: {
           original_source_read: sourceRead,
-          same_day_official_batches_discovered: officialBatches.length,
+          same_day_official_batches_discovered: sameDayBatchCount,
           max_batches_per_run: maxBatchesPerRun,
           selected_batch_count: selectedBatches.length,
           selected_batch_fingerprints: selectedBatches.map(batchFingerprintOf),
@@ -1079,7 +1096,7 @@ async function loadOfficialLiveSnapshots({
       snapshot_batch_fingerprints: snapshotBatchFingerprints,
       same_day_official_batch_revisit: {
         original_source_read: sourceRead,
-        same_day_official_batches_discovered: officialBatches.length,
+        same_day_official_batches_discovered: sameDayBatchCount,
         max_batches_per_run: maxBatchesPerRun,
         selected_batch_count: selectedBatches.length,
         selected_batch_fingerprints: selectedBatches.map(batchFingerprintOf),
@@ -1114,7 +1131,7 @@ async function loadOfficialLiveSnapshots({
   }
 }
 
-async function loadSupabaseOutcomes(snapshotFingerprints: string[]) {
+async function loadSupabaseOutcomes(snapshotFingerprints: string[], requireCompleteRead = false) {
   const serverSupabase = getServerSupabaseClient();
   const ownerUserId = getConfiguredApplicationOwnerUserId();
 
@@ -1131,9 +1148,9 @@ async function loadSupabaseOutcomes(snapshotFingerprints: string[]) {
   }
 
   try {
-    const { data, error } = await serverSupabase.client
+    const { data, error, count } = await serverSupabase.client
       .from("recommendation_outcomes")
-      .select("*")
+      .select("*", requireCompleteRead ? { count: "exact" } : {})
       .eq("owner_user_id", ownerUserId)
       .in("snapshot_fingerprint", snapshotFingerprints)
       .order("evaluated_at", { ascending: false });
@@ -1143,6 +1160,12 @@ async function loadSupabaseOutcomes(snapshotFingerprints: string[]) {
         outcomes: [],
         error: error?.message ?? "Unable to load recommendation outcomes.",
       };
+    }
+    // API response caps must not turn already completed labels into apparent
+    // pending work and consume more credits. A larger source requires bounded
+    // pagination before this recovery can proceed; never trust a truncated read.
+    if (requireCompleteRead && (!Number.isSafeInteger(count) || count !== data.length)) {
+      return { outcomes: [], error: "original_outcome_read_incomplete" };
     }
 
     return {
@@ -2100,6 +2123,20 @@ export async function POST(request: Request) {
     );
   }
 
+  const recoverOriginalBacklog = body?.original_source_scope === ORIGINAL_OUTCOME_BACKLOG_SCOPE;
+  // Only the ordinary, admitted scheduler may extend its source window. Frozen
+  // one-shots/series and legacy direct calls keep their original today's scope.
+  if (body?.original_source_scope !== undefined && (
+    !recoverOriginalBacklog || scheduledInvocation.status !== "ready" || dryRun || batchFingerprint ||
+    scheduledInvocation.invocation.outcome_evaluation_series_control !== null ||
+    process.env.TURE_OUTCOME_EVALUATION_ONE_SHOT_ENABLED === "true" ||
+    process.env.TURE_OUTCOME_EVALUATION_SERIES_ENABLED === "true" ||
+    process.env.TURE_DISABLE_SCHEDULED_FUNCTIONS !== "false"
+  )) {
+    return NextResponse.json({ code: "original_outcome_source_scope_invalid" },
+      { status: 400, headers: { "Cache-Control": "no-store" } });
+  }
+
   let scheduledAttempt: ScheduledOutcomeEvaluationAttempt | null = null;
   let outcomeCreditGuard: BasicFreeScheduledOutcomeCreditGuard | null = null;
   let outcomeCreditSummary: BasicFreeScheduledOutcomeCreditSummary | null = null;
@@ -2121,6 +2158,7 @@ export async function POST(request: Request) {
         scheduled_slot_at: scheduledInvocation.invocation.scheduled_slot_at,
         horizons,
         provider_budget_limit: providerBudgetLimit,
+        ...(recoverOriginalBacklog ? { original_source_window: originalOutcomeSourceWindow(now) } : {}),
         ...(scheduledInvocation.invocation.outcome_evaluation_series_control &&
         scheduledInvocation.invocation
           .outcome_evaluation_series_slot_admission
@@ -2193,6 +2231,7 @@ export async function POST(request: Request) {
     mode === "official_live_today" || mode === "enrich_completed_outcomes"
       ? await loadOfficialLiveSnapshots({
           batchFingerprint,
+          recoverOriginalBacklog,
           includeGrowMaxLearningSnapshots: includeLearningSnapshots,
           maxBatchesPerRun,
           now,
@@ -2242,6 +2281,7 @@ export async function POST(request: Request) {
     mode === "official_live_today" || mode === "enrich_completed_outcomes"
       ? await loadSupabaseOutcomes(
           eligibleSnapshots.map((snapshot) => snapshot.snapshot_fingerprint),
+          recoverOriginalBacklog,
         )
       : null;
   const existingOutcomes =
@@ -2302,7 +2342,8 @@ export async function POST(request: Request) {
 
   if (
     (mode === "official_live_today" || mode === "enrich_completed_outcomes") &&
-    (officialSnapshotLoad?.status !== "ready" || eligibleSnapshots.length === 0)
+    (officialSnapshotLoad?.status !== "ready" || eligibleSnapshots.length === 0 ||
+      recoverOriginalBacklog && supabaseOutcomes?.error !== null)
   ) {
     const planReferenceMetadataTrace = buildPlanReferenceMetadataTrace({
       snapshots,
@@ -2402,7 +2443,7 @@ export async function POST(request: Request) {
           : null,
       elapsed_ms: Date.now() - routeStartedAt,
       persistence_status: dryRun ? "dry_run" : "not_attempted",
-      persistence_error: officialSnapshotLoad?.error ?? null,
+      persistence_error: officialSnapshotLoad?.error ?? supabaseOutcomes?.error ?? null,
       missing_snapshot_fingerprints:
         officialSnapshotLoad?.missing_snapshot_fingerprints ?? [],
       enrichment_mode: enrichmentMode,
@@ -2422,7 +2463,8 @@ export async function POST(request: Request) {
     };
 
     const blockedStatus =
-      officialSnapshotLoad?.status === "failed" ? "failed" : "blocked";
+      officialSnapshotLoad?.status === "failed" || recoverOriginalBacklog && supabaseOutcomes?.error
+        ? "failed" : "blocked";
     const scheduledReceiptFinalization = scheduledAttempt
       ? await finalizeScheduledOutcomeEvaluationReceipt({
           attempt: scheduledAttempt,
@@ -2439,8 +2481,8 @@ export async function POST(request: Request) {
           outcomesUpdatedCount: 0,
           outcomesSkippedEqualOrBetterCount: 0,
           persistenceStatus: dryRun ? "dry_run" : "not_attempted",
-          persistenceError: officialSnapshotLoad?.error ?? null,
-          firstBlocker: officialSnapshotLoad?.error ??
+          persistenceError: officialSnapshotLoad?.error ?? supabaseOutcomes?.error ?? null,
+          firstBlocker: officialSnapshotLoad?.error ?? supabaseOutcomes?.error ??
             (eligibleSnapshots.length === 0
               ? "no_structurally_valid_eligible_snapshots"
               : "official_outcome_evaluation_blocked"),
@@ -2476,7 +2518,7 @@ export async function POST(request: Request) {
       outcomes: [],
       warnings: [],
       summary:
-        officialSnapshotLoad?.error ??
+        officialSnapshotLoad?.error ?? supabaseOutcomes?.error ??
         (eligibleSnapshots.length === 0
           ? "No structurally valid batch snapshots were eligible for outcome evaluation."
           : "Official outcome evaluation is blocked."),
@@ -2490,7 +2532,9 @@ export async function POST(request: Request) {
   if (scheduledAttempt) {
     outcomeCreditGuard = await prepareBasicFreeScheduledOutcomeCreditGuard({
       planMode: providerPlanProfile.effective_mode,
-      maximumCandleRequests: providerBudgetLimit,
+      // A fully read, completed backlog has no pending provider work. Keep
+      // frozen observations and every nonempty recovery on the unchanged cap.
+      maximumCandleRequests: recoverOriginalBacklog && outcomeEvaluationSnapshots.length === 0 ? 0 : providerBudgetLimit,
       ownerUserId: ownerPrincipal.owner_user_id,
       executionFingerprint: scheduledAttempt.attempt_fingerprint,
     });

@@ -2,6 +2,48 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
+**Now / Next / Blocked — original outcome continuation across New York dates:**
+Owner Codex selects one CLOSED IF-4 4–16 active-hour vertical on isolated
+`codex/original-outcome-backlog-oct3`, from freshly verified main `55576078`
+through the completed local published-input continuity revision `8706c216`.
+Actual original scanner/SQL/SDK proof reproduces six retained input-qualified
+original sources, a four-request first outcome pass, then only four completed
+sources after the clock advances across a weekend. The ordinary worker selects
+today's batches, so two budget-deferred original sources are no longer reached.
+An explicit historical batch fingerprint already works; it is not the ordinary
+scheduled caller or authority for a manual production route invocation.
+
+Correct that specific learning-coverage gap through the existing ordinary
+scheduled function: fixed `trailing_seven_ny_dates_v1` recovery, original
+oldest-first order, full bounded keyset read and original anchored horizons.
+The unchanged source cap (200), per-run four-credit guard, durable slot claim,
+daily/minute reservation ledger, owner isolation, source/lineage admission and
+canonical outcome integrity remain mandatory. Beyond seven New York calendar
+dates remains explicitly outside recovery, never a completed global backlog;
+the window spans weekends without claiming provider historical entitlement.
+Outcome reads additionally verify exact row counts: an API-capped or otherwise
+incomplete result fails before reservation/acquisition, rather than reacquiring
+apparently missing labels. Larger outcome sets currently need bounded paging
+before recovery can proceed; this delivery does not claim that scale exit.
+Only a fully read completed recovery skips its zero-work credit reservation.
+Keep frozen one-shot/series and direct legacy calls on their existing scope.
+No source ingestion, ranking, publication, charter or broker change is selected.
+
+Acceptance: actual ordinary scheduler -> existing route -> boundary-only
+synthetic candles -> real SQL/reservation/finalization -> restarted owner
+learning read resumes the exact original missing members, keeps prior outcomes
+unchanged and performs no provider work on duplicate/completed sources. Other
+owners, future/expired batches, invalid scope and frozen controls fail closed;
+original missing inputs remain missing. This can improve coverage, not prove
+precision, alpha, a fitted forward model or accepted recommendation quality.
+
+Next remains retained full-original forward quality/release evidence, not a
+second ranking hypothesis. Fresh read-only PR #732 CI diagnosis finds an ECR
+image-pull rate limit, not a failing product assertion. Mandatory full audit
+still reports five high findings through unpatched `braces` <=3.0.3;
+registry latest is still 3.0.3. No audit exception, forced framework downgrade,
+blind CI retry, push, production/provider change or result migration is selected.
+
 **Completed local implementation / Next / Blocked — published original-input learning continuity:**
 Owner Codex selects one CLOSED IF-2b -> IF-4 4–16 active-hour vertical
 (initial investigation at most four) on isolated

@@ -368,6 +368,28 @@ test("packaged published original inputs survive SQL restart and canonical outco
     actual_provider_requests: 0, production_actions: 0, broker_actions: 0, quality_improvement_claimed: false });
 });
 
+test("ordinary scheduled outcomes recover only budget-deferred original sources after a weekend", () => {
+  test.setTimeout(90000);
+  const proof = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--diagnose-outcomes", "--next-session-outcomes"],
+    { cwd: process.cwd(), encoding: "utf8", timeout: 80000 });
+  expect(proof.status, `${proof.stdout}\n${proof.stderr}`).toBe(0);
+  const evidence = JSON.parse(proof.stdout.trim().split("\n").at(-1)!);
+  expect(evidence.outcome_chain_evidence.resumption.next_session).toEqual({
+    policy_version: "trailing_seven_ny_dates_v1", original_date: "2026-10-01", evaluation_date: "2026-10-05",
+    scheduled_attempts: 3, reserved_credits: 4, synthetic_requests: 2,
+    previous_outcomes_unchanged: true, repeat_requests: 0, completed_next_slot_requests: 0,
+    original_horizon_retained: true, late_label_clock_retained: true, original_members: 8,
+  });
+  expect(evidence.outcome_chain_evidence.cross_date_source_controls).toEqual({
+    same_day_predecessor_missing_sources: 2, other_owner_excluded: true,
+    expired_original_source_excluded: true, future_source_excluded: true, invalid_scope_requests: 0,
+    rejected_scopes: ["unknown_scope", "direct_call", "frozen_one_shot", "frozen_series", "global_disabled"],
+    concurrent_delivery_claims: 1, incomplete_outcome_page_rejected: true,
+    late_labels_excluded_from_original_cutoff: true,
+  });
+  expect(evidence).toMatchObject({ actual_provider_requests: 0, production_actions: 0, publications: 0, broker_actions: 0 });
+});
+
 for (const scenario of ["cold", "warm", "opening", "opening_zero"]) {
   test(`packaged ${scenario} inputs retain hidden research plans and real isolated outcome persistence`, () => {
     test.setTimeout(90000);
