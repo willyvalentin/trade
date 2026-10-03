@@ -653,7 +653,7 @@ try {
     assert.equal(scanRuns[0].payload_json.scanner_clock_prior_shadow_comparison ?? null,null);
     assert.equal(scanRuns[0].payload_json.scanner_intraday_liquidity_shadow_comparison ?? null,null);
     assert.equal(record.candidates.filter(c=>c.data.freshness==="fresh").length,
-      missingLatestVolume?0:mixedHistory?(acquisitionBaseline||invalidMixedHistory?3:5):cold?3:6);
+      missingLatestVolume?0:mixedHistory?(minimumOrderBaseline&&!invalidMixedHistory?5:3):cold?3:6);
     if(missingLatestVolume) {
       assert.equal(researchSnapshots.length,0,"A missing provider volume cannot create completed-input research sources");
       assert(record.candidates.every(candidate => !candidate.data.input_snapshot ||
@@ -1078,7 +1078,7 @@ try {
   if(benchmarkReuse) {
     assert.equal(record.candidates.length,8); // The first complete original population is never replaced.
     const firstFresh=record.candidates.filter(candidate=>candidate.data.freshness==="fresh").length;
-    assert.equal(firstFresh,mixedHistory?(acquisitionBaseline||invalidMixedHistory?3:5):cold?3:6);
+    assert.equal(firstFresh,mixedHistory?(minimumOrderBaseline&&!invalidMixedHistory?5:3):cold?3:6);
     const originalRegime=scanRuns[0].payload_json.market_regime;
     if(invalidBenchmarkReuse) sql(`update recommendation_scan_runs set payload_json=jsonb_set(payload_json,
       '{market_regime,input_evidence,qqq,content_sha256}','"invalid-fixture-digest"') where id='${scanRuns[0].id}';`);
@@ -1133,7 +1133,7 @@ try {
     }
     const expectReuse=!invalidBenchmarkReuse && !baselineBenchmarkReuse;
     const fresh=secondDecision.candidates.filter(candidate=>candidate.data.freshness==="fresh").length;
-    assert.equal(fresh,mixedHistory?(acquisitionBaseline||invalidMixedHistory?4:6):cold?(expectReuse?4:3):(expectReuse?8:6),JSON.stringify({
+    assert.equal(fresh,mixedHistory?(minimumOrderBaseline&&!invalidMixedHistory?6:4):cold?(expectReuse?4:3):(expectReuse?8:6),JSON.stringify({
       selected:secondDecision.candidates.map(candidate=>({ticker:candidate.ticker,freshness:candidate.data.freshness,
         daily:candidate.data.input_snapshot?.historical_context?.captured_at,
         current:candidate.data.input_snapshot?.current_session?.latest_bar_started_at,gaps:candidate.data.gap_codes})),

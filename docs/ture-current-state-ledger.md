@@ -2,7 +2,61 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
-**Local regular-session reuse result — broader verification pending:** the
+**Now / Next / Blocked — verified local IF-2b acquisition delivery, 2026-10-03:**
+Codex completes `completed_benchmark_regular_session_reuse_v2` on isolated
+`codex/retained-benchmark-allocation-oct3`; product revision
+`f9640dcb57b22cab1bfb305143382bafffe133cc`, from unchanged remote main
+`55576078e102e7019c271aeb5e67de4a353f2e8f`. Classification:
+`recommendation_capability` plus retained `hypothesis_evidence`, not alpha.
+The corrected regular-session historical-input reuse retains all 69 previously
+complete tickers and adds AMAT/AVGO/CAT/GOOGL/IBM/NFLX/PYPL: 76 distinct tickers
+and 123 fresh observations, versus original 69/110, on the identical 95-ticker,
+26-slot, 208-member, zero-setup synthetic population and eight-credit slot cap.
+No current price, source clock, selection, ranking or publication rule is relaxed.
+
+Final serial native verification passes all 43 affected runtime/admission tests
+in 7.1 minutes, including all five exact historical/current full-session arms,
+canonical outcomes, owner restart, partial/stale history, timeout/draining,
+rate limit, original publication-clock binding and dynamic-mover budget denial.
+Log `/private/tmp/ture-benchmark-regular-session-final-native-oct3.log`.
+Another 18 budget/CI-registration checks pass. Standard lint passes with zero
+errors/eight existing warnings; strict nonincremental types pass. Exact committed
+product `f9640dcb` passes the unchanged Next 16.3.8 Turbopack build in isolated
+Linux/Node 22.23.1 with locked dependencies, network-free build and no production
+credentials. Final script-only corrections restore the original-order mixed
+fixture's 3/4 expectations (the rejected minimum-order arm remains 5/6); script
+ESLint passes. Application, dependency and configuration source are unchanged
+from that built revision. The first broader run remains 42 passed/one failed
+due to the obsolete mixed expectation, with an overlapping Playwright artifact
+collision; the complete final serial run resolves both without weakening any
+full-session metric. Do not represent the original failed invocation as green.
+
+Next: inspect the retained nineteen never-complete original members before
+choosing another bounded IF-2b acquisition hypothesis. Readback finds all at
+original positions 4–7 with `candidate_provider_gap` in eight-stock-request
+slots; fourteen are selected twice, five once. This is an attributable local
+coverage gap, not evidence of a provider outage or a license to change the
+population, budget or freshness gate. Freeze any next comparison before its
+result; retain both breadth and total complete observations against this baseline.
+Return to original-source/canonical-learning and the frozen relative-plan
+comparison rather than a scheduler or execution stream. Opening coverage is
+still zero, late publication remains withheld, and the 95-member universe is
+not market-wide discovery. Graduation remains `not_met`; OPEN data fitness,
+forward outcomes, full-charter quality and promotion remain unaccepted.
+
+Integration is held behind draft PR #732, exact head
+`bf457f45c53c122c96929f167df156e1fde15ccf`, whose CI run `37095555550` is terminal
+failed on the PostgREST v16.1 registry's `toomanyrequests: Rate exceeded`.
+Read-only revalidation finds no changed main or PR state. Full audit separately
+still reports five high findings through braces/GHSA-vfj7-8cjw-p6xm; registry
+readback still gives braces 3.0.3 and eslint-config-next 16.3.8. Audit exit one
+is retained; no exclusion, downgrade or release bypass is selected. The exact
+historical fixture commits must stay reachable through integration; full-history
+CI checkout and allowed normal merge commits provide that route, not a squash
+that discards these baselines. No new push/PR, merge, deploy, migration,
+configuration change, actual provider/model request or broker action occurs.
+
+**Retained local regular-session reuse result — before broader verification:** the
 second diagnostic confirms every one of the nine redundant two-credit benchmark
 refreshes follows an original `outside_window` run, whose completed SPY/QQQ
 capsules independently replay as valid. The new outside-window regression fails
@@ -31,7 +85,7 @@ runtime. Scanner and trace source are restored exactly to `43fa089e`; only the
 validated benchmark reuse scope changes. Release/integration remains blocked
 behind PR #732 and mandatory security requirements; no new push/PR is selected.
 
-**Now — selected regular-session benchmark reuse correction, frozen before code:**
+**Historical selection — regular-session benchmark reuse, frozen before code:**
 Diagnostic replay on exact `6726ba67` finds all twenty-five preceding benchmark
 capsules valid at the next slot, with every original run terminal `empty`.
 Nine otherwise valid reads are rejected; the validator still accepts only old
@@ -59,7 +113,7 @@ at least 110 fresh observations, plus correct owner restart, original decisions,
 negative admission and no publication/broker effects. Separate improved data
 fitness from OPEN or quality acceptance. PR #732/security prerequisites remain.
 
-**Retained rejected allocation disposition:**
+**Historical rejected allocation disposition — diagnosis below subsequently completed:**
 The fair-tie runtime below also fails the original breadth criterion: 116 fresh
 observations but only 63 unique tickers, using all 208 credits/26 slots and the
 same original population. Log `/private/tmp/ture-fair-cost-ties-full-session-oct3.log`.
@@ -122,7 +176,7 @@ the denominator or limits. Investigate at most four active hours. Integration
 still follows the declared predecessors after protected release requirements;
 no production or recommendation-quality acceptance follows a fixture pass.
 
-**Now / Next / Blocked — full-session coverage regression reproduced:** the
+**Historical queue — full-session coverage regression reproduced:** the
 existing IF-2b primary remains with Codex on the isolated branch below. The
 frozen zero-setup, twenty-six-slot actual packaged/SQL/SDK comparison finishes
 both arms with all 208 original member observations, 95 selected eligible
