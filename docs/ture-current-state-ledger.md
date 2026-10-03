@@ -2,7 +2,7 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
-**Now — retained terminal-label contradiction correction, 2026-10-04:**
+**Now / Next — retained terminal-label contradiction correction locally complete, 2026-10-04:**
 Codex retains the same bounded IF-4 primary in draft #732, isolated branch
 `codex/original-outcome-pages-oct3`; budget 4–8 active hours, initial investigation
 at most four. The independent terminal-context slice remains locally complete,
@@ -27,13 +27,31 @@ contradictory no-hit/opposite-event/no-entry/event-clock rejection, unchanged
 historical goldens, actual SQL/SDK zero-write readback, broader original-chain
 regression, types/lint and an exact clean build.
 
-All 21 service checks pass (17.0s); the actual isolated Postgres/PostgREST/SDK
-training proof passes (33.7s). It retains 48 unchanged source members and zero
-model/confirmation rows after rejecting complete contradictory candles, then
-restores valid original data and verifies normal immutable training, concurrency,
-restart and forward consumption. Nonincremental types pass; normal full lint
-has zero errors/eight existing warnings. Broader regression and exact build
-are still pending; this is not release or acceptance evidence yet.
+All 105 affected learning/model/prospective/full-charter checks pass serially
+in one final 9.7m run, including all 21 service checks and four actual isolated
+Postgres/PostgREST/SDK and restarted product-consumption cases. The native
+training proof retains 48 unchanged source members and zero model/confirmation
+rows after rejecting complete contradictory candles, then restores valid
+original data and verifies normal immutable training, concurrency, restart and
+forward consumption. Missing/untriggered/neither-hit outcomes remain explicit
+non-binary observations, never invented losses. Prior focused runs overlap this
+suite and are not extra unique tests. Log:
+`/private/tmp/ture-terminal-label-full-regression-oct4.log`.
+Nonincremental types pass; normal full lint has zero errors/eight existing
+warnings. Logs: `/private/tmp/ture-terminal-label-final-types-oct4.log` and
+`/private/tmp/ture-terminal-label-final-lint-oct4.log`.
+Exact clean locked Linux Node 22 / Next 16.3.8 build passes on product revision
+`b96a56f082c427f66c522b7a807b56365a46b382`, with read-only lock-verified
+dependencies, no install/build network or production credentials and unchanged
+clean source through the final guard. Log:
+`/private/tmp/ture-terminal-label-exact-linux-build-oct4.log`.
+Four active governance checks pass after the final factual receipt (447ms);
+log `/private/tmp/ture-terminal-label-final-governance-oct4.log`. This receipt
+follows the tested product without application changes. The minimum correction is complete
+locally, not main/production-verified, protected-release accepted or a proven
+recommendation-quality improvement. Next is one coherent same-PR update and
+its exact-head verification; do not extend this admission surface further
+without a new reproduced blocker.
 
 Bounded owner-scoped, read-only production diagnosis finds 20 original snapshots
 across seven scan runs from September 28 through October 2 and zero joined
