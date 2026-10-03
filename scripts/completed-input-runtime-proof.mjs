@@ -14,6 +14,9 @@ import { setTimeout as syntheticDelay } from "node:timers/promises";
 const root = process.cwd();
 const cold = process.argv.includes("--cold");
 const rotationDay = process.argv.includes("--rotation-day");
+const prospectiveEnrollment = process.argv.includes("--prospective-enrollment");
+assert(!prospectiveEnrollment || rotationDay && process.argv.includes("--cold"),
+  "Original-population enrollment consumes the unchanged full-session CLOSED source");
 const benchmarkReuse = process.argv.includes("--benchmark-reuse");
 const mixedHistory = process.argv.includes("--mixed-history");
 const invalidMixedHistory = process.argv.includes("--mixed-history-invalid");
@@ -161,6 +164,9 @@ try {
       export { buildRecommendationLearningEvaluationPlans } from './lib/recommendation-learning-evaluation-plan';
       export { recommendationDecisionSourceProvenanceFromSnapshot } from './lib/recommendation-decision-source-provenance';
       export { buildRecommendationIntakeQualityProvenance } from './lib/recommendation-intake-quality-provenance';
+      ${prospectiveEnrollment ? `export { buildRelativePlanProspectiveEnrollment } from './lib/server/relative-plan-prospective-enrollment';
+      export { buildRelativePlanProspectivePlan, relativePlanCanonicalBuildIdentity, RELATIVE_PLAN_PROSPECTIVE_RECEIPT_VERSION } from './lib/server/relative-plan-prospective-comparison';
+      export { buildRelativePlanContextShadow } from './lib/scanner-relative-plan-context-shadow';` : ""}
       export { recommendationScanRunFromPersistenceRow } from './lib/recommendation-scan-run';
       export { candidateDecisionRecordFromScanRun } from './lib/candidate-decision-readback';
       export { decisionLineageReceiptFromScanRun } from './lib/decision-lineage-receipt';
@@ -484,6 +490,50 @@ try {
     }
     const wrongOwner=await restarted.readRecommendationLearningBaselineSource("00000000-0000-4000-8000-000000000002");
     assert.equal(wrongOwner.data.recommendation_scan_runs.length,0);
+    let enrollmentEvidence=null;
+    if(prospectiveEnrollment) {
+      // Synthetic controlled chronology ONLY: this does not fabricate an
+      // actual pre-forward database seal or retrospectively enroll market data.
+      const frozenAt="2026-09-25T12:00:00.000Z";
+      const plan=restarted.buildRelativePlanProspectivePlan({owner_user_id:owner,
+        source_revision:{commit_ref:identity.commit_ref,build_identity:restarted.relativePlanCanonicalBuildIdentity,
+          deploy_id:identity.deploy_id},windows:{
+          training:{start_at:"2026-09-28T13:30:00.000Z",end_at:"2026-09-29T20:00:00.000Z"},
+          held_out:{start_at:slot,end_at:expiry},
+          walk_forward:{start_at:"2026-10-05T13:30:00.000Z",end_at:"2026-10-06T20:00:00.000Z"},
+        }},frozenAt);
+      assert(plan);
+      const freeze={contract_version:restarted.RELATIVE_PLAN_PROSPECTIVE_RECEIPT_VERSION,
+        freeze_id:"22222222-2222-4222-8222-222222222222",owner_user_id:owner,frozen_at:frozenAt,plan};
+      const readEnrollment=(ownedSource=source,currentOwner=owner)=>restarted.buildRelativePlanProspectiveEnrollment({
+        owner:currentOwner,freeze,source:ownedSource,now:new OriginalDate(OriginalDate.parse(expiry)+3600000)});
+      const enrollment=readEnrollment(); assert(enrollment);
+      assert.deepEqual(readEnrollment(),enrollment,"Restarted unchanged original source retains membership and exclusions");
+      assert.equal(readEnrollment(source,"00000000-0000-4000-8000-000000000002"),null);
+      const decisionEvidence=source.scanRuns.map(run=>{
+        const record=restarted.candidateDecisionRecordFromScanRun(run);
+        const shadow=restarted.buildRelativePlanContextShadow(record);
+        return {fingerprint:run.run_fingerprint,decision_at:record.decision_timestamp,
+          original_population_count:shadow.original_population_count,status:shadow.status,
+          assessed_count:shadow.assessed_count,unassessed_count:shadow.unassessed_count,
+          members:shadow.candidates.map(member=>({candidate_id:member.candidate_id,ticker:member.ticker,
+            context_status:member.context_status,reason:member.reason})),
+          exclusion:enrollment.diagnostics.find(row=>row.fingerprint===run.run_fingerprint)?.reason??null};
+      }).sort((a,b)=>a.decision_at.localeCompare(b.decision_at));
+      const enrolledDecisions=enrollment.partitions.flatMap(partition=>partition.decisions);
+      assert.equal(enrolledDecisions.length+enrollment.diagnostics.length,source.scanRuns.length);
+      assert.equal(decisionEvidence.reduce((sum,row)=>sum+row.original_population_count,0),208);
+      assert(enrolledDecisions.every(row=>decisionEvidence.find(original=>original.fingerprint===row.fingerprint)?.status==="comparable"));
+      enrollmentEvidence={evidence_scope:"synthetic_controlled_original_source_composition_not_database_forward_seal",
+        source_decisions:source.scanRuns.length,original_member_observations:208,
+        enrolled_decisions:enrolledDecisions.length,excluded_decisions:enrollment.diagnostics.length,
+        partitions:enrollment.partitions.map(partition=>({partition:partition.partition,
+          enrolled_decision_count:partition.enrolled_decision_count,required_decisions:partition.required_decisions,
+          original_population_count:partition.original_population_count,missing_outcome_count:partition.missing_outcome_count,
+          original_membership_fingerprint:partition.original_membership_fingerprint})),
+        diagnostics:enrollment.diagnostics,decisions:decisionEvidence,
+        actual_provider_requests:0,quality_improvement_claimed:false};
+    }
     const beforeCleanup=externalRequests;
     clock=OriginalDate.parse(expiry)+20000;
     // First exercise automatic expiry while the fixture's series flag is still on.
@@ -509,6 +559,7 @@ try {
       reservations:totalClaims.length,reserved_credits:totalClaims.reduce((sum,claim)=>sum+claim.requested_credits,0),
       setup_synthetic_requests:setupRequests,scheduled_synthetic_requests:externalRequests,
       synthetic_benchmark_requests:externalBenchmarkRequests,restarted_owner_read:true,wrong_owner_runs:0,
+      ...(prospectiveEnrollment?{prospective_enrollment_evidence:enrollmentEvidence}:{}),
       actual_provider_requests:0,production_actions:0,publications:0,broker_actions:0,cleanup:"inert"}));
   } else {
   clock = OriginalDate.parse(slot) + 20000;

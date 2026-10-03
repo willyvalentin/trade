@@ -2,7 +2,50 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
-**Now / Next / Blocked — IF-2b first-pair guard rejected; stop allocation heuristics:**
+**Now / Next / Blocked — original-input to prospective-enrollment composition:**
+Codex resumes the earliest missing quality link on the existing isolated
+`codex/retained-benchmark-allocation-oct3`, selected product `f9640dcb`, retained
+head `36263100` and freshly verified main `55576078` (2026-10-03). Reuse the
+existing original-source reader and frozen relative-plan enrollment, not a new
+evaluator or ranking policy. Existing draft PR #732 remains at `bf457f45`,
+blocked; do not compete with its full-charter implementation.
+
+Before collecting results, freeze this bounded CLOSED question: how many of the
+unchanged 26 actual packaged decisions, 208 original members and 95 tickers
+reach the existing complete-assessed-population enrollment? Retain every
+excluded decision and reason. Read actual persisted original sources after
+restart; never manufacture a qualified source from a subset of fresh members.
+The controlled pre-decision freeze is explicitly a synthetic composition
+fixture, not an actual database pre-forward commitment or prospective market
+evidence. Preserve the existing full numerical charter, first-thirty rule,
+source clocks, owner isolation, eight-credit slot/208-credit session cap and
+zero provider/production/publication/broker effects. A positive input-coverage
+result alone does not establish a measurable comparison. Zero enrolled
+decisions or other missing dimensions require `evidence_incomplete`, not a
+changed eligibility rule. Initial investigation <=4 active hours; finish the
+selected original-source/canonical-learning composition within 4–16 hours.
+No new allocation-heuristic arm, OPEN job or release authority is selected.
+
+**Original-source composition result — 2026-10-03:** the unchanged packaged
+26-slot run, real SDK/PostgREST persistence and restarted original-source
+consumer reproduce 123 fresh member observations/76 unique complete tickers,
+but enroll zero of 26 decisions. All 208 original members remain: 111 are
+assessed, twelve have a short closed range, sixty-one are unranked and
+twenty-four lack complete fresh inputs. Every decision has at least one
+unassessed member, so all 26 retain
+`original_complete_assessed_population_unavailable`. Exact original membership
+and excluded diagnostics survive restart; wrong-owner enrollment returns null.
+The existing first-thirty rule, full-population requirement and charter remain
+unchanged. Log `/private/tmp/ture-original-source-enrollment-composition-oct3.log`,
+exit zero, zero actual provider/production/publication/broker actions.
+Disposition `evidence_incomplete`: broader input coverage is not a measurable
+relative-plan opportunity-set comparison. Resume local composition with the
+existing PR #732 evaluator; verify an actual complete prewarmed set separately
+with explicit setup cost and canonical outcomes, alongside this retained
+unchanged zero-setup negative. Do not relabel setup cost as cold improvement,
+reduce either original population or introduce a new allocation heuristic.
+
+**Historical IF-2b first-pair guard rejected; stop allocation heuristics:**
 The frozen otherwise-omitted first-pair correction executes through the actual
 packaged scheduler, scanner, SQL/SDK and original decision readback. It retains
 95 tickers/208 members, 26 attributable attempts/runs/reservations and 208

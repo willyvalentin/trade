@@ -211,6 +211,27 @@ test("retained rejected opening allocator spends no intraday credit before a fiv
     publications: 0, broker_actions: 0, cleanup: "inert" });
 });
 
+test("actual full-session input coverage does not impersonate complete prospective opportunity sets", () => {
+  test.setTimeout(90000);
+  const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--rotation-day", "--cold", "--prospective-enrollment"],
+    { cwd: process.cwd(), encoding: "utf8", timeout: 80000 });
+  expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
+  const evidence = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
+  expect(evidence).toMatchObject({ fresh_member_observations: 123, ever_complete_tickers: 76,
+    original_member_observations: 208, scheduled_synthetic_requests: 208, setup_synthetic_requests: 0,
+    actual_provider_requests: 0, production_actions: 0, publications: 0, broker_actions: 0, cleanup: "inert",
+    prospective_enrollment_evidence: { source_decisions: 26, original_member_observations: 208,
+      enrolled_decisions: 0, excluded_decisions: 26, quality_improvement_claimed: false,
+      evidence_scope: "synthetic_controlled_original_source_composition_not_database_forward_seal" } });
+  const composition = evidence.prospective_enrollment_evidence;
+  expect(composition.diagnostics).toHaveLength(26);
+  expect(composition.diagnostics.every((row: { reason: string }) => row.reason === "original_complete_assessed_population_unavailable")).toBe(true);
+  expect(composition.decisions.reduce((sum: number, row: { assessed_count: number }) => sum + row.assessed_count, 0)).toBe(111);
+  expect(composition.decisions.every((row: { original_population_count: number; unassessed_count: number }) =>
+    row.original_population_count === 8 && row.unassessed_count > 0)).toBe(true);
+  expect(composition.partitions.map((row: { enrolled_decision_count: number }) => row.enrolled_decision_count)).toEqual([0, 0, 0]);
+});
+
 test("full-session historical reuse improves breadth while retaining rejected allocation baselines", () => {
   test.setTimeout(420000);
   const evidence = ["baseline", "minimum", "guard", "fair", "regular", "first_closed_bar", "omitted_pair"].map(mode => {
