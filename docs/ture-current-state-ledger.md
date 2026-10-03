@@ -2,7 +2,7 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
-**Current queue — 2026-10-03 02:52Z:** The same primary CLOSED full-charter
+**Current queue — 2026-10-03 03:07Z:** The same primary CLOSED full-charter
 vertical now includes complete as-of result retention and restarted terminal
 consumption, closing the reproduced `durably_finalized_full_charter_result_required`
 link without opening a second ranking hypothesis or development stream. Codex
@@ -53,8 +53,15 @@ timings, not a production latency guarantee. Thirty-three affected regression
 tests, two new formatter/fingerprint checks and ten unchanged CI/provenance
 checks pass; strict types and lint pass. The existing calendar suite is added
 to the exact ordinary intelligence registration, without weakening audit,
-cancellation, job limits or protected aggregate requirements. Exact revised
-build and the complete bounded diagnostic are still ahead.
+cancellation, job limits or protected aggregate requirements. Exact revision
+`a50fefe30d5e9edcb6d21248c0d8fd9e84c44236`, tree
+`0ad20cb49ca19a6e5d12ad8e6cdddbfb84d3ea62`, now passes the whole locked normal
+Linux build on Node 22.23.1 / Next 16.3.8. Its bounded six-command non-release
+diagnostic completes with 541 intelligence, 41 predictive explanation, 42
+model-improvement, 34 completed-adapter, 32 completed-capture and 32 binding-store
+tests passing. These 722 checks do not replace the failed mandatory audit or
+establish full-foundation/release acceptance. The earlier local watchdog is
+superseded for this exact revised product, not relabelled as a passing run.
 
 One independent CLOSED IF-2b point-in-time context slice is selected next:
 Codex, twelve active hours from 02:31Z, initial reproduction at most four,
@@ -68,8 +75,9 @@ No new persistence-time clock or historical reconstruction substitutes for it.
 The corrected delayed-context proof retains capture at 17:30:29.218Z before
 decision at 17:30:31.254Z, eight synthetic boundary requests and zero actual
 provider/production/broker actions. Published, no-trade, closing research and
-unknown/mismatched fallback paths are under final combined regression on
-`c4d0930f48c71ea773cf3dbbda2c9f3cef157bc9`; the production code in `057c8eba`
+unknown/mismatched fallback paths pass all 48 combined scanner and canonical
+projection regression tests on
+`c4d0930f48c71ea773cf3dbbda2c9f3cef157bc9`; the identical production code in `057c8eba`
 already passes the exact normal Linux build. Early fixture assertions were
 corrected to preserve zero no-trade snapshots and absence of latency-only
 diagnostics, not to change product behavior or invent evidence.
@@ -83,6 +91,24 @@ original decision; preserve unknown fallbacks, budgets, timeouts and all
 publication guards. Do not backdate a later context or rewrite historical rows.
 This addresses original input fitness for the same frozen hypothesis; it does
 not authorize a scan, provider acquisition, policy change or quality claim.
+
+A bounded read-only local fixture investigation exposes an acquisition
+constraint, not a new ranking hypothesis or a product change. The unchanged
+native eight-member pipeline has three complete cold inputs or six with the
+normal half-hour-old daily/intraday setup. Moving only the synthetic setup to
+17:25Z still requires eight scan requests: at the 17:30:20Z decision, its last
+bar closed at 17:25Z and is outside the unchanged one-bar completion-lag limit.
+Setup at 17:30Z instead yields all eight original assessed members and a
+`comparable` relative-plan shadow through actual scheduled/native-route/
+Postgres/SDK/restarted-owner readback, with two scan requests. Its sixteen
+separate synthetic setup requests are explicitly not covered by the target
+scan's eight-credit claim. This conditional proof does not establish a normal,
+budgeted full-population acquisition path; do not authorize such setup in
+production, shrink an existing population, backdate cache clocks or weaken
+closed-bar freshness. The next input investigation must distinguish recent
+usable bars, acquisition/selection before outcomes and full original population
+fitness within actual credits. All external provider, production and broker
+actions are zero; both isolated fixture environments were cleaned up.
 
 Release is currently blocked by unchanged mandatory `npm audit --audit-level=high`:
 GHSA-vfj7-8cjw-p6xm affects braces 3.0.3 via the dev-only Next ESLint chain.
