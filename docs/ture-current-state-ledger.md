@@ -12,14 +12,24 @@ receipt below distinguishes its verified local behavior from integration and
 OPEN authority. Release audit/CI, data entitlement/shared-key capacity and full
 forward quality acceptance remain separate holds.
 
-**Next primary — bounded CLOSED IF-4 original-population outcome continuation:**
+**Current primary — bounded CLOSED IF-4 original-population outcome continuation:**
 Codex owns one 4–16 active-hour investigation/delivery, initial investigation
 capped at four. Determine whether the existing owner-bound outcome route can
 resume the full original session's research population through canonical 60m
 learning readback under its unchanged per-pass limits. The preparation proof
-currently follows only the first complete eight-member decision; its 168 missing
-labels are not proof of a product defect. Reproduce the actual remaining-source
-selection, persistence and restarted consumer before selecting any correction.
+initially followed only the first complete eight-member decision; its 168 missing
+labels were not proof of a product defect. Complete source enumeration is now
+verified below, but canonical continuation still retains 158 missing enrolled
+labels. The restarted original-population diagnosis below attributes 126 to
+missing realized-R despite complete provider coverage and 32 to absent qualified
+60m outcomes. Select the minimum exact-horizon mark correction using already
+retained, original anchored candles, without another provider acquisition.
+Reproduce positive and negative R and the horizon-boundary future-bar trap;
+require all 176 enrolled identities, preserve late missing horizons, original
+terminal events, immutable model/results and versioned measurement semantics.
+Do not fill gaps with a present quote, end-of-day price, zero default or last
+array element. No raw outcome count or zero raw backlog substitutes for
+qualified learning coverage. Investigation remains bounded by the selected slice.
 Retain all 26 original decisions, 22 enrolled decisions/176 enrolled members,
 opening exclusions and late-session incomplete horizons; no winner selection,
 denominator reduction, shorter horizon, new ranking hypothesis, model seal,
@@ -27,7 +37,101 @@ general worker or live activation. A passing continuation closes only the
 outcome-coverage link, not the full forward quality charter. Release and OPEN
 holds do not prevent this provider-free isolated investigation.
 
-**IF-4 continuation reproduction — 2026-10-03, source correction pending:**
+**Complete original source discovery — local behavior verified 2026-10-03:**
+Product `8d7c7cfd6b36be36ac243f8147af244a72ce886e` replaces the silent
+twenty-row cut with owner/NY-date-bound stable-ID keyset pages. Exact remaining
+counts and final count readback reject observed population drift; a five-second
+read deadline and explicit 200-row safety bound fail unavailable, not partially
+complete. This is enumeration, not an immutable database snapshot or permission
+to evaluate more batches/candles. Fingerprint-targeted reads, original admission,
+oldest-first processing, four requests per continuation pass and all quality
+rules remain unchanged. Route and source-read policies are versioned.
+
+The actual original 26-slot SQL/SDK/restarted-consumer regression passes:
+all 26 original batch rows are read, 25 are admitted and the original 13:30
+batch `rec_batch_5u9nnx` is explicitly excluded by its existing missing completed-
+research admission. All 26 decisions and 176 enrolled original members remain;
+no original batch is unvisited. An intermediate assertion expecting 26
+*admitted* batches fails at 25. Actual database classification proves that this
+was an admission-versus-enumeration diagnostic error; the final regression
+requires every original row plus the named exclusion, not weakened admission.
+The predecessor's genuine twenty-row truncation remains reproduced.
+
+Forty-eight four-request synthetic passes plus a zero-request stop retain 200
+physical outcomes but only 18 qualified canonical labels/158 missing enrolled
+labels. No increase in learning coverage or recommendation quality is claimed.
+Zero raw backlog is not zero canonical missingness. These 192 additional
+synthetic requests are separate from 95 preparation, 208 scheduled and eight
+initial outcome requests; direct after-market replay is not scheduled cadence,
+provider-account capacity or durable outcome-credit accounting. Full charter
+remains `evidence_incomplete`, model/terminal-quality result null and graduation
+`not_met`. Next diagnose the original canonical missingness, including
+`canonical_realized_r_unavailable` and late incomplete horizons, before selecting
+a correction. Preserve every original member and the full 60m horizon; no new
+ranker, provider acquisition, worker or live activation.
+
+The paired actual-source tests pass (2.8m): complete original enumeration and
+eight fail-closed controls (later-page failure, absent count, short page, wrong
+owner, actual inserted population drift, verification failure, cancellation and
+source bound). Each negative preserves stored outcomes and makes zero provider
+requests. An intermediate child diagnostic exceeds its output buffer; retaining
+all original identities/missingness while removing duplicate ranking objects
+fixes the test transport without a larger buffer or reduced cohort. All 51
+affected outcome/credit/canonical checks and 46 original-learning/full-charter
+checks pass. The latter first rejects an incorrectly invoked client-condition
+test command; rerunning with its registered `react-server` condition passes,
+without weakening `server-only`. Strict nonincremental types and scoped lint
+pass; the exact archived product's normal locked Linux Node 22 / Next 16.3.8
+build passes with network disabled and no production credentials. Logs:
+`/private/tmp/ture-original-outcome-pagination-reviewed-oct3.log`,
+`/private/tmp/ture-outcome-pagination-affected-oct3.log`,
+`/private/tmp/ture-outcome-pagination-learning-server-oct3.log` and
+`/private/tmp/ture-outcome-source-exact-linux-build-oct3.log`.
+This is local `quality_measurement` source continuity, not main, production,
+forward quality acceptance or full canonical-coverage completion. PR #732,
+mandatory audit and production/OPEN holds remain; no push, deploy, migration,
+actual provider, publication or broker action is performed.
+
+**Original canonical missingness — actual restarted diagnosis, 2026-10-03:**
+The complete original pipeline rerun passes (1.8m) on the unchanged product
+`8d7c7cfd`: all 26 original decisions and 176 enrolled members survive. A compact
+per-original-member diagnostic, not a selected replacement cohort, finds 18
+resolved, 126 `canonical_realized_r_unavailable`, and 32
+`canonical_60m_outcome_missing`. All 126 have selected `neither_hit` receipts
+with null current/eod R; the reader requires measured R and does not convert
+them into losses. Example SLB/NVO receipts retain complete anchored v2 provider
+coverage and 13 bars for a 12-bar horizon. The extra bar starts exactly at the
+required horizon end and therefore closes outside the horizon. Selecting the
+last retained element would introduce look-ahead. The actual runner passes no
+`current_price` to its candle computation; the canonical reader's existing
+current/eod-R fallback cannot supply these labels. The next minimum correction
+must derive a disclosed mark from the exact fully closed horizon-end bar,
+revalidate original coverage/anchor and preserve all terminal and missing cases.
+This is a reproduced measurement gap, not evidence of a worse strategy, a new
+ranking hypothesis, shortened horizon or permission to rewrite historical rows.
+Full-charter disposition remains `evidence_incomplete` and graduation `not_met`.
+Log: `/private/tmp/ture-original-outcome-canonical-diagnosis-oct3.log`.
+
+The additional real SQL owner/day isolation control passes (1.2m), after an
+initial diagnostic expectation fails: zero-budget pending work truthfully
+returns `partial` / `deferred_by_budget`, not an empty-source `blocked`. No
+product status, budget or quality rule is changed to pass. One actual other-owner
+and one other-day batch remain physically present while the same owner/day
+reader discovers exactly the original 26. The full eight source-read failure
+controls also pass, with zero provider requests and byte-unchanged outcomes.
+All 28 affected intelligence-direction/CI-registration checks pass afresh.
+Strict nonincremental types and scoped lint pass on this test-only follow-up;
+the product remains byte-unchanged from its exact normal locked Linux build.
+Logs: `/private/tmp/ture-original-source-owner-date-controls-oct3.log` (initial
+failure), `/private/tmp/ture-original-source-owner-date-verified-oct3.log`
+(passing correction), `/private/tmp/ture-original-outcome-diagnostic-types-oct3.log`
+and `/private/tmp/ture-original-outcome-diagnostic-lint-oct3.log`.
+Registration log: `/private/tmp/ture-original-source-diagnostic-governance-oct3.log`.
+Fresh readback of main remains `55576078`; draft PR #732 remains open on
+`bf457f45`, protected verification failed, and the mandatory dependency-audit
+hold remains. No push, merge, deploy, migration, live provider or broker operation.
+
+**Historical IF-4 continuation reproduction — 2026-10-03, before correction:**
 The actual original 26-slot preparation/scan/source path and restarted outcome
 route are extended without a caller-selected batch fingerprint. Forty bounded
 passes make four synthetic outcome requests each; the forty-first reports

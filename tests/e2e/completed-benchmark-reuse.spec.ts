@@ -587,6 +587,9 @@ test("whole-session outcome continuation discovers every original batch before c
   expect(new Set(continuation.original_source_read.original_batch_fingerprints).size).toBe(26);
   expect(continuation.passes.at(-1).source_selection.same_day_official_batches_discovered).toBe(25);
   expect(continuation.unvisited_original_batches).toEqual([]);
+  expect(continuation.enrolled_coverage_diagnostic.members).toHaveLength(176);
+  expect(Object.values(continuation.enrolled_coverage_diagnostic.reason_counts)
+    .reduce((sum: number, count) => sum + Number(count), 0)).toBe(176);
   console.info("Original outcome continuation (synthetic, not quality evidence):", JSON.stringify({
     original_decisions: continuation.original_decisions, original_population_count: continuation.original_population_count,
     original_batches_read: continuation.original_source_read.original_batches_read,
@@ -595,6 +598,9 @@ test("whole-session outcome continuation discovers every original batch before c
     passes: continuation.passes.length, separate_synthetic_requests: continuation.separate_synthetic_requests,
     physical_outcomes: continuation.physical_outcomes, canonical_outcome_count: continuation.canonical_outcome_count,
     missing_outcome_count: continuation.missing_outcome_count,
+    enrolled_reason_counts: continuation.enrolled_coverage_diagnostic.reason_counts,
+    missing_r_examples: continuation.enrolled_coverage_diagnostic.members
+      .filter((row: { outcome_reason: string }) => row.outcome_reason === "canonical_realized_r_unavailable").slice(0, 2),
     terminal_status: continuation.passes.at(-1).status,
     terminal_backlog: continuation.passes.at(-1).source_selection.remaining_backlog_after_run,
   }));
@@ -619,6 +625,10 @@ test("incomplete or over-bound original source reads fail before outcome provide
     expect(row.blocker).toBeTruthy();
   }
   expect(controls.at(-1).blocker).toBe("official_batch_source_read_limit_exceeded");
+  expect(receipt.full_original_history_evidence.original_source_read_isolation).toEqual({
+    actual_other_owner_rows: 1, actual_other_date_rows: 1, original_batches_read: 26,
+    provider_requests: 0, outcomes_unchanged: true,
+  });
 });
 
 test("actual original complete input reaches full charter through canonical outcomes without granting quality authority", () => {

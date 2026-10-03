@@ -1144,6 +1144,31 @@ try {
               assert.equal(Number(sql("select count(*) from recommendation_batches;")),26);
             }
             fullOriginalHistoryEvidence.original_source_read_controls=sourceControls;
+            sql(`insert into recommendation_batches(id,batch_fingerprint,trading_date,owner_user_id,batch_type) values
+              ('ture_source_owner_control','ture_source_owner_control','2026-10-01','00000000-0000-4000-8000-000000000002','official'),
+              ('ture_source_date_control','ture_source_date_control','2026-10-02','${owner}','official');`);
+            const beforeIsolation=externalRequests;
+            delete require.cache[require.resolve(join(generated,"outcome-route.cjs"))];
+            const isolatedResponse=await require(join(generated,"outcome-route.cjs")).POST(new Request("http://closed-fixture/api/recommendations/evaluate-outcomes",{
+              method:"POST",headers:{"x-automation-secret":environment.AUTOMATION_SECRET,"Content-Type":"application/json"},
+              body:JSON.stringify({mode:"official_live_today",horizons:["60m"],max_candle_requests:0,max_batches:1}),
+            }));
+            const isolatedBody=await isolatedResponse.json();
+            assert.equal(isolatedResponse.status,200,JSON.stringify(isolatedBody));
+            // Pending candidates count as attempted budget-deferred work, not
+            // an empty source. Preserve the runner's truthful partial receipt.
+            assert.equal(isolatedBody.status,"partial");
+            assert.equal(isolatedBody.effective_budget_limit,0);
+            assert.equal(isolatedBody.candle_requests_executed,0);
+            assert(isolatedBody.pending_provider_budget_count>0);
+            assert.equal(isolatedBody.outcome_provider_budget_status,"deferred_by_budget");
+            assert.equal(isolatedBody.same_day_official_batch_revisit.original_source_read.original_batches_read,26);
+            assert.equal(externalRequests,beforeIsolation);
+            assert.equal(sql("select coalesce(jsonb_agg(t order by id),'[]') from recommendation_outcomes t;"),originalOutcomeRows);
+            assert.equal(Number(sql("select count(*) from recommendation_batches;")),28);
+            fullOriginalHistoryEvidence.original_source_read_isolation={actual_other_owner_rows:1,actual_other_date_rows:1,
+              original_batches_read:26,provider_requests:0,outcomes_unchanged:true};
+            sql("delete from recommendation_batches where id in ('ture_source_owner_control','ture_source_date_control');");
           }
           if(originalOutcomeContinuation) {
             // Diagnose the EXISTING no-fingerprint source selection. Do not
@@ -1188,6 +1213,23 @@ try {
               batch_fingerprint:row.batch_fingerprint,scan_run_fingerprint:row.scan_run_fingerprint,
               complete_regular_horizon_eligible:eligible.some(decision=>decision.fingerprint===row.scan_run_fingerprint),
             }));
+            const enrolledCoverage=heldRead.decisions.flatMap(decision=>decision.comparison.candidates.map(row=>{
+              const outcome=completeSource.outcomes.find(value=>value.id===row.outcome_id);
+              const retained=outcome?.payload_json.counterfactual_candles??[];
+              return {scan_run_fingerprint:decision.fingerprint,candidate_id:row.candidate_id,ticker:row.ticker,
+                outcome_status:row.outcome_status,outcome_reason:row.outcome_reason,outcome_id:row.outcome_id,
+                stored_status:outcome?.status??null,current_r:outcome?.current_r??null,eod_r:outcome?.eod_r??null,
+                entry:outcome?.entry??null,stop:outcome?.stop??null,side:outcome?.side??null,
+                provider_coverage:outcome?.payload_json.canonical_provider_coverage??null,
+                retained_candle_count:retained.length,last_retained_candle:retained.at(-1)??null};
+            }));
+            assert.equal(enrolledCoverage.length,176);
+            assert.equal(new Set(enrolledCoverage.map(row=>row.candidate_id)).size,176);
+            const reasonCounts={};
+            for(const row of enrolledCoverage) {
+              const reason=row.outcome_reason??row.outcome_status;
+              reasonCounts[reason]=(reasonCounts[reason]??0)+1;
+            }
             fullOriginalHistoryEvidence.original_outcome_continuation={
               scope:"synthetic_actual_unselected_outcome_route_sql_sdk_not_quality_or_live",
               passes:continuationPasses,separate_synthetic_requests:externalRequests-continuationStart,
@@ -1197,6 +1239,7 @@ try {
               original_batch_count:originalBatches.length,unvisited_original_batches:unvisited,
               original_source_read:sourceRead??null,
               original_member_fingerprint:heldRead.original_membership_fingerprint,
+              enrolled_coverage_diagnostic:{reason_counts:reasonCounts,members:enrolledCoverage},
               // Retain EVERY original identity and missingness reason without
               // duplicating full ranking/charter objects in the CLI transport.
               original_decision_coverage:nextRead.learning.legacy_baseline_readiness.relative_plan_context_outcomes.map(comparison=>({
