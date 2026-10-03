@@ -32,6 +32,8 @@ type ScheduledOutcomeRouteModule = {
   POST?: (request: Request) => Promise<Response>;
 };
 
+import { ORIGINAL_OUTCOME_BACKLOG_SCOPE } from "../../lib/original-outcome-source-window";
+
 const outcomeEvaluationRoute = "/api/recommendations/evaluate-outcomes";
 const officialIntradayHorizons = ["15m", "30m", "60m"] as const;
 const knownOutcomeStatuses = new Set(["completed", "partial", "blocked", "failed"]);
@@ -190,6 +192,7 @@ function outcomeLogSummary(responseStatus: number, body: string) {
 
 async function invokeScheduledOutcomeRoute({
   automationSecret,
+  recoverOriginalBacklog,
   firedAtUtc,
   scheduledSlotAtUtc,
   attemptFingerprint,
@@ -197,6 +200,7 @@ async function invokeScheduledOutcomeRoute({
   outcomeEvaluationSeriesSlotAdmission,
 }: {
   automationSecret: string;
+  recoverOriginalBacklog: boolean;
   firedAtUtc: string;
   scheduledSlotAtUtc: string;
   attemptFingerprint: string;
@@ -221,6 +225,7 @@ async function invokeScheduledOutcomeRoute({
       },
       body: JSON.stringify({
         mode: "official_live_today",
+        ...(recoverOriginalBacklog ? { original_source_scope: ORIGINAL_OUTCOME_BACKLOG_SCOPE } : {}),
         horizons: officialIntradayHorizons,
         max_batches: 5,
         max_snapshots: BASIC_FREE_SCHEDULED_OUTCOME_MAX_SNAPSHOTS_PER_RUN,
@@ -447,6 +452,8 @@ export default async function handler(request: Request, context: Context) {
   try {
     const response = await invokeScheduledOutcomeRoute({
       automationSecret,
+      // Do not silently extend a frozen one-shot/series observation's scope.
+      recoverOriginalBacklog: !oneShotRequested && !outcomeEvaluationSeriesRequested,
       firedAtUtc,
       scheduledSlotAtUtc,
       attemptFingerprint,

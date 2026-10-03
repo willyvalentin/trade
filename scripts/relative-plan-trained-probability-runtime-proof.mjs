@@ -60,7 +60,7 @@ try {
     "20260614000000_create_execution_records.sql", "20260724001500_create_transactional_open_position_command.sql",
     "20260811163228_add_fail_closed_application_owner_foundation.sql"]) sql(readFileSync(resolve(root, "supabase/migrations", file), "utf8"));
   sql("grant all on all tables in schema public to service_role;");
-  for (const file of ["20261002213547_if4_relative_plan_prospective_comparison.sql", "20261002233358_if4_relative_plan_trained_probability_model.sql"])
+  for (const file of ["20261002213547_if4_relative_plan_prospective_comparison.sql", "20261002233358_if4_relative_plan_trained_probability_model.sql", "20261003015239_if4_relative_plan_charter_result.sql"])
     sql(readFileSync(resolve(root, "supabase/migrations", file), "utf8"));
   const key = "closed-proof-jwt-only-0123456789012345678901234567890123456789";
   const encoded = value => Buffer.from(JSON.stringify(value)).toString("base64url");
@@ -68,7 +68,8 @@ try {
     return `${body}.${createHmac("sha256", key).update(body).digest("base64url")}`; };
   docker("run", "--pull=never", "--rm", "-d", "--name", api, "--network", network, "-p", "127.0.0.1::3000",
     "-e", `PGRST_DB_URI=postgresql://authenticator:closed-proof-only@${db}:5432/postgres`,
-    "-e", "PGRST_DB_SCHEMAS=public", "-e", "PGRST_DB_ANON_ROLE=anon", "-e", `PGRST_JWT_SECRET=${key}`, "public.ecr.aws/supabase/postgrest:v16.1"); apiCreated = true;
+    "-e", "PGRST_DB_SCHEMAS=public", "-e", "PGRST_DB_ANON_ROLE=anon", "-e", `PGRST_JWT_SECRET=${key}`,
+    "ghcr.io/postgrest/postgrest@sha256:5922bde07147b82b1c9d8f749e48c1e5b99ebb233f3888bb7ab65f07cf4ac82d"); apiCreated = true;
   const endpoint = `http://${docker("port", api, "3000/tcp")}`;
   globalThis.fetch = async (input, options) => { const url = new URL(typeof input === "string" || input instanceof URL ? input : input.url);
     if (url.origin !== endpoint) { blockedExternalRequests++; throw new Error("external_request_forbidden"); }
@@ -112,7 +113,82 @@ try {
   }
   const readSource = async (sourceOwner = owner) => { const result = await readers.readRecommendationLearningBaselineSource(sourceOwner); assert.equal(result.status, "available");
     const source = readers.parseRecommendationLearningBaselineSource(result.data); assert(source); return source; };
+  // New training must admit the revision that was actually observed, not only
+  // its older evaluation/creation clocks. Existing sealed capsules are tested
+  // separately below and must never be rewritten or fitted again.
+  const originalRevisionSource = await readSource(), originalRevision = originalRevisionSource.outcomes[0];
+  const originalOtherOutcomes = JSON.stringify(originalRevisionSource.outcomes.slice(1));
+  for (const updated_at of [new Date(Date.now() + 86400000).toISOString(),
+    new Date(Date.parse(originalRevision.evaluated_at) - 1).toISOString()]) {
+    assert.equal((await readers.persistRecommendationOutcome({ ...originalRevision, updated_at },
+      { supabaseClient: client, server: true })).status, "saved");
+    const changedSource = await readSource();
+    assert.equal(changedSource.outcomes.length, 48);
+    assert.equal(changedSource.outcomes[0].created_at, originalRevision.created_at);
+    assert.equal(changedSource.outcomes[0].evaluated_at, originalRevision.evaluated_at);
+    assert.equal(changedSource.outcomes[0].updated_at, updated_at);
+    assert.equal(JSON.stringify(changedSource.outcomes.slice(1)), originalOtherOutcomes);
+    const rejected = await readers.createRelativePlanTrainedProbabilityService().train(owner, {});
+    assert.equal(rejected.status, "unavailable");
+    assert.equal(rejected.blocker, "trained_probability_outcome_revision_times_invalid");
+    assert.equal(sql("select count(*) from public.relative_plan_trained_probability_models"), "0");
+    assert.equal(sql("select count(*) from public.relative_plan_trained_probability_confirmations"), "0");
+  }
+  assert.equal((await readers.persistRecommendationOutcome(originalRevision, { supabaseClient: client, server: true })).status, "saved");
+  assert.deepEqual(await readSource(), originalRevisionSource);
+  // Postgres retains six fractional digits even though the legacy domain
+  // decoder projects milliseconds. Exercise the actual owned raw SDK read
+  // before that projection, never pretend decoded rows are raw DB evidence.
+  const clockPrefix = originalRevision.evaluated_at.slice(0, 19);
+  for (const created_at of [`${clockPrefix}.000001Z`,
+    new Date(Date.parse(`${clockPrefix}Z`) + 7200000).toISOString().slice(0, 19) + ".000001+02:00"]) {
+    sql(`update public.recommendation_outcomes set evaluated_at='${clockPrefix}.000002Z',
+      created_at='${created_at}', updated_at='${clockPrefix}.000003Z'
+      where id='${originalRevision.id}' and owner_user_id='${owner}';`);
+    const raw = await readers.readRecommendationLearningBaselineSource(owner);
+    assert.equal(raw.status, "available");
+    const before = JSON.stringify(raw.data), first = raw.data.recommendation_outcomes.find(row => row.id === originalRevision.id);
+    assert(first);
+    assert.equal(Date.parse(first.created_at), Date.parse(first.evaluated_at));
+    assert(first.created_at.includes("000001"));
+    assert(first.evaluated_at.includes("000002"));
+    assert.equal(raw.data.recommendation_outcomes.length, 48);
+    const rejected = await readers.createRelativePlanTrainedProbabilityService().train(owner, {});
+    assert.equal(rejected.status, "unavailable");
+    assert.equal(rejected.blocker, "trained_probability_outcome_revision_times_invalid");
+    assert.equal(sql("select count(*) from public.relative_plan_trained_probability_models"), "0");
+    assert.equal(sql("select count(*) from public.relative_plan_trained_probability_confirmations"), "0");
+    assert.equal(JSON.stringify((await readers.readRecommendationLearningBaselineSource(owner)).data), before);
+  }
+  assert.equal((await readers.persistRecommendationOutcome(originalRevision, { supabaseClient: client, server: true })).status, "saved");
+  assert.deepEqual(await readSource(), originalRevisionSource);
   const request = { owner, freeze, source: await readSource(), now: new Date() };
+  // Keep the real persisted terminal label, but retain complete coherent bars
+  // that touch neither target nor stop. Coverage alone cannot seal this label.
+  const originalCoverage = originalRevision.payload_json.canonical_provider_coverage;
+  assert(originalCoverage);
+  const start = Date.parse(originalCoverage.evaluation_anchor_start_at);
+  const contradictoryCandles = Array.from({ length: 12 }, (_, index) => ({
+    timestamp: new Date(start + index * 300000).toISOString(),
+    open: 100, high: 101, low: 99, close: 100, volume: 1000,
+  }));
+  assert.equal((await readers.persistRecommendationOutcome({ ...originalRevision,
+    payload_json: { ...originalRevision.payload_json, counterfactual_candles: contradictoryCandles,
+      counterfactual_candle_source: "horizon_filtered_intraday_candles",
+      retained_candles_available: true, retained_candle_count: 12 } },
+    { supabaseClient: client, server: true })).status, "saved");
+  const contradictoryRaw = await readers.readRecommendationLearningBaselineSource(owner);
+  assert.equal(contradictoryRaw.status, "available");
+  const contradictoryBefore = JSON.stringify(contradictoryRaw.data);
+  const rejectedLabel = await readers.createRelativePlanTrainedProbabilityService().train(owner, {});
+  assert.equal(rejectedLabel.status, "unavailable");
+  assert.equal(rejectedLabel.blocker, "trained_probability_retained_candle_outcome_conflicting");
+  assert.equal(sql("select count(*) from public.relative_plan_trained_probability_models"), "0");
+  assert.equal(sql("select count(*) from public.relative_plan_trained_probability_confirmations"), "0");
+  assert.equal(contradictoryRaw.data.recommendation_outcomes.length, 48);
+  assert.equal(JSON.stringify((await readers.readRecommendationLearningBaselineSource(owner)).data), contradictoryBefore);
+  assert.equal((await readers.persistRecommendationOutcome(originalRevision, { supabaseClient: client, server: true })).status, "saved");
+  assert.deepEqual(await readSource(), originalRevisionSource);
   let model = readers.buildRelativePlanTrainedProbabilityModel(request).trained_model; assert(model);
   assert.equal(model.original_population_count, 48); assert.equal(model.model.sample_count, 48);
   assert.equal((await readers.relativePlanTrainedProbabilityStore().read(freeze, owner)).status, "not_found");
@@ -267,6 +343,10 @@ try {
     database_attested_seal_and_separate_committed_read: true, same_transaction_confirmation_rejected: true,
     concurrent_single_materialization: true, exact_restarted_model: true, later_mutable_outcome_upserts_do_not_refit: true,
     actual_server_owned_training_job_verified: true, lost_acknowledgement_resumes_original_capsule: true,
+    new_training_rejects_persisted_future_and_contradictory_revision_times: true,
+    rejected_revision_keeps_48_original_members_and_zero_models: true,
+    raw_postgres_microsecond_recording_inversion_rejected_before_decoder: true,
+    complete_retained_candles_cannot_seal_contradictory_terminal_labels: true,
     actual_database_rejects_backdated_and_premature_jobs: true,
     owner_and_client_rpc_isolation: true, direct_mutation_denied: true, actual_forward_product_consumer_verified: true,
     forward_original_members_per_partition: 12, missing_forward_label_remains_unknown: true,

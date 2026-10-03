@@ -5,6 +5,7 @@ import {
   completedInputResearchSnapshotMatchesDecision,
 } from "@/lib/completed-input-research-selection";
 import { decisionLineageReceiptFromScanRun } from "@/lib/decision-lineage-receipt";
+import { COMPLETED_INPUT_PUBLISHED_CAPTURE_VERSION, completedInputPublishedSnapshotMatchesDecision } from "@/lib/completed-input-published-source";
 import {
   recommendationDecisionSourceProvenanceFromSnapshot,
   recommendationDecisionSourceProvenanceBlockers,
@@ -36,6 +37,8 @@ export type CompletedInputLearningProvenance = Omit<
   reproduction_scope: "retained_normalized_inputs_and_original_geometry_only";
   excluded_feature_names: readonly ["scanner_local_score"];
   upstream_provider_version_status: "unavailable";
+  published_input_capture_version?: typeof COMPLETED_INPUT_PUBLISHED_CAPTURE_VERSION;
+  original_decision_timestamp?: string;
   blockers: LearningSourceProvenanceBlocker[];
 };
 export type LearningSourceProvenance =
@@ -44,7 +47,10 @@ export type LearningSourceProvenance =
 
 /** New hidden v4 research can attribute outcomes to retained normalized inputs
  * without pretending to know the upstream API version or replay raw candles.
- * Legacy/published provenance remains v1. The owner-bound scan population must
+ * Legacy published provenance remains v1. Only a newly captured published
+ * source can join this normalized basis, keeping its publication clock and
+ * requiring the exact same closed-bar horizon as the original decision.
+ * The owner-bound scan population must
  * come from the existing learning reader; a snapshot alone cannot authorize it.
  */
 export function recommendationResearchLearningSourceProvenance(
@@ -54,7 +60,9 @@ export function recommendationResearchLearningSourceProvenance(
   const legacy = recommendationDecisionSourceProvenanceFromSnapshot(snapshot);
   const matches = scanRuns.filter(run => run.run_fingerprint === snapshot.scan_run_id);
   const records = matches.map(candidateDecisionRecordFromScanRun);
+  const publishedCapture = snapshot.payload_json.published_input_capture_version === COMPLETED_INPUT_PUBLISHED_CAPTURE_VERSION;
   const isNewResearch = snapshot.payload_json.research_capture_version === COMPLETED_INPUT_RESEARCH_CAPTURE_VERSION ||
+    publishedCapture ||
     records.some(record => record?.record_version === INPUT_ATTRIBUTED_CANDIDATE_DECISION_RECORD_VERSION);
   if (!isNewResearch) return legacy;
 
@@ -62,7 +70,9 @@ export function recommendationResearchLearningSourceProvenance(
   const record = run ? records[0] : null;
   const candidate = record?.candidates.find(row => row.candidate_id === snapshot.payload_json.candidate_id);
   const bound = Boolean(run && record && decisionLineageReceiptFromScanRun(run, record));
-  const matchesDecision = bound && completedInputResearchSnapshotMatchesDecision(snapshot, record ?? null);
+  const matchesDecision = bound && (publishedCapture
+    ? completedInputPublishedSnapshotMatchesDecision(snapshot, record ?? null)
+    : completedInputResearchSnapshotMatchesDecision(snapshot, record ?? null));
   // Only the new basis replaces the upstream-version prerequisite. Every
   // other legacy requirement and the stronger archive/lineage checks remain.
   const blockers: LearningSourceProvenanceBlocker[] = legacy.blockers.filter(
@@ -80,7 +90,7 @@ export function recommendationResearchLearningSourceProvenance(
     legacy.market_data_adapter_version !== "automation_scan_market_data_adapter_v1" ||
     !legacy.source_build_marker || !record?.versions.build_version.endsWith(`:${legacy.source_build_marker}`) ||
     snapshot.payload_json.recommendation_publish_policy_version !== record?.learning_attribution.recommendation_publish_policy_version ||
-    snapshot.payload_json.research_purpose !== "learning_acceleration" ||
+    (!publishedCapture && snapshot.payload_json.research_purpose !== "learning_acceleration") ||
     snapshot.payload_json.clock_prior_shadow_evidence_sample === true ||
     snapshot.payload_json.intraday_liquidity_shadow_evidence_sample === true) {
     blockers.push("completed_input_snapshot_or_geometry_mismatch");
@@ -123,6 +133,10 @@ export function recommendationResearchLearningSourceProvenance(
     reproduction_scope: "retained_normalized_inputs_and_original_geometry_only",
     excluded_feature_names: ["scanner_local_score"],
     upstream_provider_version_status: "unavailable",
+    ...(publishedCapture ? { published_input_capture_version: COMPLETED_INPUT_PUBLISHED_CAPTURE_VERSION,
+      original_decision_timestamp: record?.decision_timestamp ?? "",
+      source_timestamp: typeof snapshot.payload_json.original_source_timestamp === "string"
+        ? snapshot.payload_json.original_source_timestamp : null } : {}),
     blockers,
   };
 }

@@ -29,7 +29,7 @@ import {
   buildPlanReferenceMetadataTrace,
   type PlanReferenceMetadataTraceSummary,
 } from "@/lib/plan-reference-metadata-trace";
-import { buildCanonicalOutcomeProviderCoverageReceipt } from "@/lib/recommendation-outcome-canonical-coverage";
+import { buildCanonicalOutcomeProviderCoverageReceipt, canonicalOutcomeProviderCoverageQuality } from "@/lib/recommendation-outcome-canonical-coverage";
 import { recommendationOutcomeEvaluationAnchorFromSnapshot } from "@/lib/recommendation-outcome-evaluation-anchor";
 
 export type RecommendationOutcomeEvaluationRunStatus =
@@ -186,6 +186,7 @@ export type RecommendationOutcomeEvaluationRunnerOptions = {
 
 export const recommendationOutcomeEvaluationRunStorageKey =
   "trade-recommendation-outcome-evaluation-runs-v1";
+export const OUTCOME_CANDLE_WINDOW_POLICY_VERSION = "fully_closed_original_horizon_candles_v1" as const;
 
 const defaultHorizons: RecommendationOutcomeHorizon[] = ["15m", "30m", "60m"];
 const defaultMaxSnapshots = 6;
@@ -667,8 +668,8 @@ function candlesForRequestWindow(
       typeof candleEnd === "number" &&
       Number.isFinite(timestamp) &&
       Number.isFinite(candleEnd) &&
-      timestamp <= end &&
-      candleEnd > start
+      timestamp >= start &&
+      candleEnd <= end
     );
   });
 }
@@ -690,6 +691,51 @@ function candleTime(candle: RecommendationOutcomeCandle | null | undefined) {
   return typeof timestamp === "number" && Number.isFinite(timestamp)
     ? new Date(timestamp).toISOString()
     : null;
+}
+
+export const CANONICAL_HORIZON_PRICE_MARK_VERSION = "canonical_horizon_price_mark_v1" as const;
+
+/** The mark is the close of the original horizon's last FULLY CLOSED bar,
+ * never a current quote or the last element of a provider response. This is
+ * computed during acquisition only; historical/model/result readers do not
+ * rewrite their original retained outcomes. */
+function canonicalHorizonPriceMark(input: {
+  candles: RecommendationOutcomeCandle[];
+  request: RecommendationOutcomeCandleRequest;
+  coverage: ReturnType<typeof buildCanonicalOutcomeProviderCoverageReceipt>;
+  now: Date;
+}) {
+  const { request, coverage } = input;
+  const base = { contract_version: CANONICAL_HORIZON_PRICE_MARK_VERSION,
+    horizon: request.horizon, source: "original_horizon_candle_close" as const,
+    decision_timestamp: request.decision_timestamp,
+    evaluation_anchor_start_at: request.evaluation_anchor_start_at };
+  const unavailable = (reason: string) => ({ ...base, status: "unavailable" as const,
+    price: null, candle_started_at: null, marked_at: null, reason });
+  const duration = horizonMs(request.horizon);
+  const start = Date.parse(request.evaluation_anchor_start_at);
+  const end = duration === null ? NaN : start + duration;
+  if (canonicalOutcomeProviderCoverageQuality(coverage) !== 3 || !coverage.horizon_elapsed ||
+    !Number.isFinite(end) || input.now.getTime() < end ||
+    coverage.required_horizon_end_at !== new Date(end).toISOString()) {
+    return unavailable("complete_elapsed_original_horizon_required");
+  }
+  const interval = request.interval === "15min" ? 900000 : 300000;
+  const window = input.candles.filter(candle => {
+    const at = Date.parse(candleTime(candle) ?? "");
+    return at >= start && at < end;
+  });
+  // Revalidate the observed mark inputs rather than trusting a non-empty
+  // array. Coverage binds every expected slot; OHLC coherence protects price.
+  if (window.some(candle => {
+    const { open, high, low, close } = candle;
+    return ![open, high, low, close].every(value => typeof value === "number" && Number.isFinite(value) && value > 0) ||
+      low! > high! || open! < low! || open! > high! || close! < low! || close! > high!;
+  })) return unavailable("original_horizon_price_candles_invalid");
+  const last = window.filter(candle => Date.parse(candleTime(candle) ?? "") === end - interval);
+  if (last.length !== 1) return unavailable("unique_horizon_end_candle_required");
+  return { ...base, status: "available" as const, price: last[0].close!,
+    candle_started_at: new Date(end - interval).toISOString(), marked_at: new Date(end).toISOString(), reason: null };
 }
 
 function warning(
@@ -1092,6 +1138,7 @@ export async function runRecommendationOutcomeEvaluation(
       const firstHorizonCandleTime = candleTime(horizonCandles[0]);
       const lastHorizonCandleTime = candleTime(horizonCandles.at(-1));
       const horizonFilterDiagnostics = {
+        horizon_filter_policy_version: OUTCOME_CANDLE_WINDOW_POLICY_VERSION,
         reused_candle_count: reusedCandles.length,
         horizon_filtered_candle_count: horizonCandles.length,
         first_reused_candle_time: firstReusedCandleTime,
@@ -1197,6 +1244,12 @@ export async function runRecommendationOutcomeEvaluation(
         continue;
       }
 
+      const canonicalProviderCoverage = buildCanonicalOutcomeProviderCoverageReceipt({
+        candles: horizonCandles, request: work.request, result: candleResult,
+      });
+      const horizonPriceMark = canonicalHorizonPriceMark({
+        candles: horizonCandles, request: work.request, coverage: canonicalProviderCoverage, now,
+      });
       const result = computeRecommendationOutcome({
         snapshot,
         horizon: work.horizon,
@@ -1205,6 +1258,7 @@ export async function runRecommendationOutcomeEvaluation(
         provider: candleResult.provider,
         data_completeness: "complete",
         candles: horizonCandles,
+        current_price: horizonPriceMark.price,
         warnings: candleResult.warnings,
       });
       const outcome = annotateOutcome(result.outcome, {
@@ -1213,12 +1267,8 @@ export async function runRecommendationOutcomeEvaluation(
           outcome: result.outcome,
           candles: horizonCandles,
         }),
-        canonical_provider_coverage:
-          buildCanonicalOutcomeProviderCoverageReceipt({
-            candles: horizonCandles,
-            request: work.request,
-            result: candleResult,
-          }),
+        canonical_provider_coverage: canonicalProviderCoverage,
+        canonical_horizon_price_mark: horizonPriceMark,
         ...horizonFilterDiagnostics,
         ...retainedCandlePayload(horizonCandles),
         ...shadowEntryTrialPayload({

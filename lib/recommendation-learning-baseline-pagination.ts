@@ -1,5 +1,6 @@
 export const RECOMMENDATION_LEARNING_BASELINE_SOURCE_MAX_ROWS = 10_000;
 export const RECOMMENDATION_LEARNING_BASELINE_SOURCE_PAGE_SIZE = 1_000;
+export const RECOMMENDATION_LEARNING_BASELINE_CAPPED_SOURCE_MAX_PAGES = 200;
 
 export type RecommendationLearningBaselineSourceRow = Record<string, unknown>;
 
@@ -78,8 +79,10 @@ export function recommendationLearningBaselineSourceRowsAreStable(
 export async function readCompleteRecommendationLearningBaselineSourcePages({
   expectedRowCount,
   readPage,
+  allowResponseCaps = false,
 }: {
   expectedRowCount: number;
+  allowResponseCaps?: boolean;
   readPage: (
     from: number,
     to: number,
@@ -95,12 +98,10 @@ export async function readCompleteRecommendationLearningBaselineSourcePages({
 
   const rows: RecommendationLearningBaselineSourceRow[] = [];
   const rowIds = new Set<string>();
+  let pages = 0;
 
-  for (
-    let from = 0;
-    from < expectedRowCount;
-    from += RECOMMENDATION_LEARNING_BASELINE_SOURCE_PAGE_SIZE
-  ) {
+  for (let from = 0; from < expectedRowCount;) {
+    if (allowResponseCaps && ++pages > RECOMMENDATION_LEARNING_BASELINE_CAPPED_SOURCE_MAX_PAGES) return null;
     const to = Math.min(
       from + RECOMMENDATION_LEARNING_BASELINE_SOURCE_PAGE_SIZE - 1,
       expectedRowCount - 1,
@@ -110,7 +111,9 @@ export async function readCompleteRecommendationLearningBaselineSourcePages({
     if (
       page.error ||
       !Array.isArray(page.data) ||
-      page.data.length !== expectedPageLength
+      (allowResponseCaps
+        ? page.data.length === 0 || page.data.length > expectedPageLength
+        : page.data.length !== expectedPageLength)
     ) {
       return null;
     }
@@ -129,6 +132,10 @@ export async function readCompleteRecommendationLearningBaselineSourcePages({
       rowIds.add(row.id);
       rows.push(row);
     }
+    // Only the original-outcome consumer opts in. Advance by the actual
+    // bounded response, preserving the caller's repeated stability and exact
+    // count checks. Legacy strict-page callers keep their existing contract.
+    from += page.data.length;
   }
 
   return rows.length === expectedRowCount && rowIds.size === expectedRowCount

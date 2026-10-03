@@ -91,15 +91,28 @@ test.describe("scanner plan reference binding", () => {
 
   test("scanner applies the binding after stale-safe intraday normalization", () => {
     const scanner = readFileSync(resolve(process.cwd(), "lib/scanner.ts"), "utf8");
+    const originalNormalization = scanner.indexOf(
+      "const originalIndicators = completedContextMode",
+    );
     const normalization = scanner.indexOf(
-      "const intradayIndicators = result.indicators",
+      "const intradayIndicators = originalIndicators",
+      originalNormalization,
+    );
+    const staleSafeNormalization = scanner.indexOf(
+      "withAdmissibleRecentIntradayVolume(originalIndicators, result.stale)",
+      normalization,
     );
     const binding = scanner.indexOf("const planReference = bindScannerPlanReference");
     const spread = scanner.indexOf("...planReference", binding);
 
-    expect(normalization).toBeGreaterThan(-1);
-    expect(binding).toBeGreaterThan(normalization);
+    expect(originalNormalization).toBeGreaterThan(-1);
+    expect(normalization).toBeGreaterThan(originalNormalization);
+    expect(staleSafeNormalization).toBeGreaterThan(normalization);
+    expect(binding).toBeGreaterThan(staleSafeNormalization);
     expect(spread).toBeGreaterThan(binding);
+    expect(scanner.slice(originalNormalization, normalization)).toContain(
+      "completedContextMode && !result.stale && result.session_context",
+    );
     expect(scanner.slice(binding, spread)).toContain(
       "intradayIndicators?.latestCandleTimestamp",
     );

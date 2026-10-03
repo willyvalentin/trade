@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { SCANNER_INPUT_POLICY_ENV, scheduledScannerInputPolicy } from "@/lib/scheduled-scanner-input-policy";
+import { attachCompletedInputPublishedEvidence } from "@/lib/completed-input-published-source";
 
 import {
   generateRecommendations,
@@ -24,7 +25,7 @@ import {
 import { getUsMarketStatus } from "@/lib/market-calendar";
 import type { MarketRegime } from "@/lib/market-regime";
 import {
-  buildMarketRegimeDecisionContext,
+  retainMarketRegimeDecisionContext,
   type MarketRegimeDecisionContext,
 } from "@/lib/market-regime-decision-context";
 import {
@@ -2198,6 +2199,7 @@ function buildAutomationScanObservability({
 
 function buildSnapshotFromRecommendation({
   recommendation,
+  decisionRecord,
   scanRunId,
   scanWindow,
   now,
@@ -2212,6 +2214,7 @@ function buildSnapshotFromRecommendation({
   marketRegimeContext,
 }: {
   recommendation: RecommendationRow;
+  decisionRecord: CandidateDecisionRecord | null;
   scanRunId: string;
   scanWindow: IntradayScanWindow;
   now: Date;
@@ -2332,7 +2335,7 @@ function buildSnapshotFromRecommendation({
     now,
   });
 
-  return buildRecommendationSnapshot({
+  const snapshot = buildRecommendationSnapshot({
     recommendation_id: textOrNull(recommendation.id),
     scan_run_id: scanRunId,
     ticker,
@@ -2431,6 +2434,7 @@ function buildSnapshotFromRecommendation({
       recommendation_serving_cadence: servingCadence,
     },
   });
+  return attachCompletedInputPublishedEvidence(snapshot, decisionRecord);
 }
 
 function buildSnapshotFromResearchSample({
@@ -2694,6 +2698,7 @@ async function persistAutomationArtifacts({
   scheduledInvocationReceipt,
   learningAccelerationInput,
   marketRegime,
+  marketRegimeContext: capturedMarketRegimeContext,
 }: {
   scanDate: string;
   sessionType: SessionType;
@@ -2721,11 +2726,12 @@ async function persistAutomationArtifacts({
     expectedBelowThresholdFromTimeline?: number | null;
   } | null;
   marketRegime: MarketRegime | null;
+  marketRegimeContext?: MarketRegimeDecisionContext | null;
 }) {
   activeScanTrace?.markStage("persistence", "started");
-  const marketRegimeContext = buildMarketRegimeDecisionContext({
+  const marketRegimeContext = retainMarketRegimeDecisionContext({
     marketRegime,
-    capturedAt: new Date(),
+    capturedContext: capturedMarketRegimeContext,
   });
   const serverSupabase = getServerSupabaseClient();
   const observability = buildAutomationScanObservability({
@@ -2946,6 +2952,7 @@ async function persistAutomationArtifacts({
   const preliminarySnapshots = recommendations.map((recommendation) =>
     buildSnapshotFromRecommendation({
       recommendation,
+      decisionRecord: candidateDecisionRecord,
       scanRunId: scanRun.run_fingerprint,
       scanWindow,
       now,
@@ -3056,6 +3063,7 @@ async function persistAutomationArtifacts({
   for (const recommendation of recommendations) {
     const snapshot = buildSnapshotFromRecommendation({
       recommendation,
+      decisionRecord: candidateDecisionRecord,
       scanRunId: scanRun.run_fingerprint,
       scanWindow,
       now,
@@ -5548,6 +5556,9 @@ export async function POST(request: Request) {
           generationScanLog?.candidate_decision_capture ?? null,
         scheduledInvocationReceipt,
         marketRegime: generationResult.market_regime ?? null,
+        marketRegimeContext: "market_regime_context" in generationResult
+          ? generationResult.market_regime_context ?? null
+          : null,
         learningAccelerationInput: {
           candidateGeneration:
             generationScanLog?.real_scanner_candidate_generation ?? null,

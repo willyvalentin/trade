@@ -1,9 +1,10 @@
 import { expect, test } from "@playwright/test";
-import { buildRelativePlanTrainedProbabilityModel, verifiedRelativePlanTrainedProbabilityReceipt,
+import { buildRelativePlanTrainedProbabilityModel, verifiedRelativePlanTrainedProbabilityReceipt, relativePlanTrainedPopulationMatches,
   RELATIVE_PLAN_TRAINED_PROBABILITY_RECEIPT_VERSION, RELATIVE_PLAN_TRAINED_PROBABILITY_MAX_BYTES } from "@/lib/server/relative-plan-trained-probability-model";
 import { relativePlanSemanticFingerprint } from "@/lib/server/relative-plan-prospective-comparison";
 import { prospectiveOwner, prospectiveReceipt } from "../fixtures/relative-plan-prospective";
 import { prospectiveSource } from "../fixtures/relative-plan-prospective-source";
+import { buildRelativePlanProspectiveEnrollment } from "@/lib/server/relative-plan-prospective-enrollment";
 
 // Synthetic CLOSED training job inputs, not a persisted materialization receipt.
 const now = new Date("2026-10-10T00:00:00.000Z");
@@ -28,6 +29,32 @@ test("a pre-forward training job retains all original members and the unchanged 
   expect(Object.values(result.trained_model!.authority).every(value => value === false)).toBe(true);
   expect(JSON.stringify(request)).toBe(original);
   expect(buildRelativePlanTrainedProbabilityModel(structuredClone(request))).toEqual(result);
+});
+
+test("offset clocks retain chronological training identities through model verification and population matching", async () => {
+  const request = await input(), run = request.source.scanRuns[0];
+  const record = run.payload_json.candidate_decision_record as {
+    decision_timestamp: string; decision_clock?: { decision_timestamp: string } };
+  const originalInstant = Date.parse(record.decision_timestamp);
+  record.decision_timestamp = "2026-10-06T00:00:00.000+07:00";
+  if (record.decision_clock) record.decision_clock.decision_timestamp = record.decision_timestamp;
+  expect(Date.parse(record.decision_timestamp)).toBe(originalInstant);
+  request.source.scanRuns.reverse();
+  const trained = buildRelativePlanTrainedProbabilityModel(request).trained_model!;
+  expect(trained).not.toBeNull();
+  expect(trained.original_population_count).toBe(48);
+  expect(trained.original_training_receipts[0]).toMatchObject({ run_fingerprint: run.run_fingerprint,
+    decision_at: new Date(originalInstant).toISOString() });
+  expect(trained.retained_training_source.scanRuns.find(row => row.run_fingerprint === run.run_fingerprint)!
+    .payload_json.candidate_decision_record).toMatchObject({ decision_timestamp: record.decision_timestamp });
+  const value = { contract_version: RELATIVE_PLAN_TRAINED_PROBABILITY_RECEIPT_VERSION,
+    owner_user_id: request.owner, materialization_id: "44444444-4444-4444-8444-444444444444",
+    materialized_at: now.toISOString(), committed_read_at: "2026-10-10T00:00:00.001Z", trained_model: trained };
+  expect(verifiedRelativePlanTrainedProbabilityReceipt(value, request.freeze, request.owner)).toEqual(value);
+  const comparisons = buildRelativePlanProspectiveEnrollment(request)!.partitions[0].decisions.map(row => row.comparison);
+  expect(relativePlanTrainedPopulationMatches(value, [...comparisons].reverse())).toBe(true);
+  const invalid = structuredClone(comparisons); invalid[0].decision_timestamp = "invalid";
+  expect(relativePlanTrainedPopulationMatches(value, invalid)).toBe(false);
 });
 
 test("premature and at-or-after-forward materialization jobs fail closed without backdating", async () => {

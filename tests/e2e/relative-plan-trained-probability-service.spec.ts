@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { createRelativePlanTrainedProbabilityService } from "@/lib/server/relative-plan-trained-probability-service";
 import { createRelativePlanTrainedProbabilityStore } from "@/lib/server/relative-plan-trained-probability-store";
 import { createRelativePlanProspectiveStore } from "@/lib/server/relative-plan-prospective-store";
-import { RELATIVE_PLAN_TRAINED_PROBABILITY_RECEIPT_VERSION, type RelativePlanTrainedProbabilityReceipt,
+import { buildRelativePlanTrainedProbabilityModel, RELATIVE_PLAN_TRAINED_PROBABILITY_RECEIPT_VERSION, type RelativePlanTrainedProbabilityReceipt,
   type RelativePlanTrainedProbabilityModel } from "@/lib/server/relative-plan-trained-probability-model";
 import { prospectiveOwner, prospectiveReceipt } from "../fixtures/relative-plan-prospective";
 import { prospectiveSource } from "../fixtures/relative-plan-prospective-source";
@@ -14,6 +14,13 @@ import { persistRecommendationScanRun } from "@/lib/server/recommendation-scan-r
 import { persistRecommendationSnapshot } from "@/lib/server/recommendation-snapshot-persistence";
 import { persistRecommendationOutcome } from "@/lib/server/recommendation-outcome-persistence";
 import { relativePlanCompleteHttpResponse, RELATIVE_PLAN_COMPLETE_RESPONSE_MAX_BYTES } from "@/lib/server/relative-plan-complete-http-response";
+import { RELATIVE_PLAN_COMPLETE_DECODED_MAX_BYTES, RELATIVE_PLAN_COMPLETE_GZIP_MAX_BYTES } from "@/lib/server/relative-plan-complete-http-response";
+import { gunzipSync } from "node:zlib";
+import { randomBytes } from "node:crypto";
+import { computeRecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
+import { recommendationOutcomeEvaluationAnchorFromSnapshot } from "@/lib/recommendation-outcome-evaluation-anchor";
+import { buildCanonicalOutcomeProviderCoverageReceipt } from "@/lib/recommendation-outcome-canonical-coverage";
+import { parseRecommendationLearningBaselineSource } from "@/lib/recommendation-learning-baseline-source";
 
 const now = new Date("2026-10-10T00:00:00.000Z");
 const pieces = Promise.all([5, 6, 7].flatMap(day => [0, 1, 2, 3].map(n =>
@@ -26,7 +33,11 @@ async function harness() {
   // Capture the ACTUAL writer serialization, not already-decoded domain
   // objects pretending to be database rows (counts/price aliases differ).
   const writer = { from(table: string) { return { async upsert(row: Record<string, unknown>) {
-    data[table as keyof typeof data].push(structuredClone(row)); return { error: null };
+    const rows = data[table as keyof typeof data];
+    const index = rows.findIndex(prior => prior.id === row.id);
+    if (index < 0) rows.push(structuredClone(row));
+    else rows[index] = structuredClone(row);
+    return { error: null };
   } }; } };
   const priorOwner = process.env.TURE_APPLICATION_OWNER_USER_ID;
   process.env.TURE_APPLICATION_OWNER_USER_ID = prospectiveOwner;
@@ -62,7 +73,16 @@ async function harness() {
     readSource: async owner => { expect(owner).toBe(prospectiveOwner); calls.push("source_read"); return { status: "available", data }; },
     clock: () => new Date(now),
   };
-  return { data, calls, dependencies, database, service: createRelativePlanTrainedProbabilityService(dependencies),
+  return { data, source, calls, dependencies, database, service: createRelativePlanTrainedProbabilityService(dependencies),
+    async replaceOutcome(outcome: Parameters<typeof persistRecommendationOutcome>[0]) {
+      const prior = process.env.TURE_APPLICATION_OWNER_USER_ID;
+      process.env.TURE_APPLICATION_OWNER_USER_ID = prospectiveOwner;
+      try { expect((await persistRecommendationOutcome(outcome, { supabaseClient: writer, server: true })).status).toBe("saved"); }
+      finally {
+        if (prior === undefined) delete process.env.TURE_APPLICATION_OWNER_USER_ID;
+        else process.env.TURE_APPLICATION_OWNER_USER_ID = prior;
+      }
+    },
     interruptConfirmation: () => { confirmed = false; } };
 }
 
@@ -122,6 +142,193 @@ test("raw recording-time gaps and late/premature jobs never become fitted eviden
   expect(complete.calls).not.toContain("materialize");
 });
 
+test("a fresh training job cannot seal a future or contradictory persisted outcome revision", async () => {
+  for (const revision of ["2026-10-10T00:00:00.001Z", "2026-10-10T00:00:00.000001Z",
+    "2026-10-05T16:00:00.000Z", undefined,
+    null, "", "2026-10-07", "2026-02-30T17:00:00.000Z"]) {
+    const h = await harness();
+    h.data.recommendation_outcomes[0].updated_at = revision;
+    const original = JSON.stringify(h.data);
+    expect(await h.service.train(prospectiveOwner, {})).toMatchObject({ status: "unavailable", receipt: null,
+      blocker: "trained_probability_outcome_revision_times_invalid" });
+    expect(h.calls).not.toContain("materialize");
+    expect(h.calls).not.toContain("confirm");
+    expect(JSON.stringify(h.data)).toBe(original);
+  }
+});
+
+test("new training accepts exactly observed revisions and unchanged sealed jobs do not reread mutable clocks", async () => {
+  for (const updated_at of [now.toISOString(), "2026-10-10T02:00:00.000000+02:00",
+    "2026-10-09T23:59:59.999999Z"]) {
+    const h = await harness();
+    h.data.recommendation_outcomes[0].updated_at = updated_at;
+    const first = await h.service.train(prospectiveOwner, {});
+    expect(first).toMatchObject({ status: "materialized", receipt: { trained_model: {
+      original_population_count: 48, canonical_outcome_count: 48, model: { sample_count: 48 } } } });
+    h.data.recommendation_outcomes[0].updated_at = "invalid_later_mutable_history";
+    const restart = createRelativePlanTrainedProbabilityService({ ...h.dependencies,
+      readSource: async () => { throw new Error("sealed_model_cannot_read_current_source"); } });
+    expect(await restart.train(prospectiveOwner, {})).toMatchObject({ status: "already_materialized", receipt: first.receipt });
+    expect(h.calls.filter(call => call === "materialize")).toHaveLength(1);
+  }
+});
+
+test("new training cannot turn a microsecond-inverted first recording into an eligible label", async () => {
+  for (const recording of ["2026-10-05T18:00:00.000001Z", "2026-10-05T20:00:00.000001+02:00"]) {
+    const h = await harness(), row = h.data.recommendation_outcomes[0];
+    row.evaluated_at = "2026-10-05T18:00:00.000002Z";
+    row.created_at = recording;
+    row.updated_at = "2026-10-05T18:00:00.000003Z";
+    const original = JSON.stringify(h.data);
+    expect(await h.service.train(prospectiveOwner, {})).toMatchObject({ status: "unavailable", receipt: null,
+      blocker: "trained_probability_outcome_revision_times_invalid" });
+    expect(h.calls).not.toContain("materialize");
+    expect(h.calls).not.toContain("confirm");
+    expect(h.data.recommendation_outcomes).toHaveLength(48);
+    expect(JSON.stringify(h.data)).toBe(original);
+  }
+});
+
+test("new training preserves equal or later microsecond recordings and already-missing older labels", async () => {
+  for (const [recording, expected] of [["2026-10-05T18:00:00.000002Z", 48],
+    ["2026-10-05T20:00:00.000003+02:00", 48], ["2026-10-05T17:59:59.999999Z", 47]] as const) {
+    const h = await harness(), row = h.data.recommendation_outcomes[0];
+    row.evaluated_at = "2026-10-05T18:00:00.000002Z";
+    row.created_at = recording;
+    row.updated_at = "2026-10-05T18:00:00.000004Z";
+    const original = JSON.stringify(h.data);
+    expect(await h.service.train(prospectiveOwner, {})).toMatchObject({ status: "materialized", receipt: {
+      trained_model: { original_population_count: 48, canonical_outcome_count: expected,
+        missing_outcome_count: 48 - expected, model: { sample_count: expected } } } });
+    expect(JSON.stringify(h.data)).toBe(original);
+  }
+});
+
+async function legacyCandleSource(fault: "target" | "stop" | "aligned_target") {
+  const h = await harness(), snapshot = h.source[0].snapshots[0];
+  const anchor = recommendationOutcomeEvaluationAnchorFromSnapshot(snapshot)!;
+  const start = Date.parse(anchor.evaluation_anchor_start_at);
+  const complete = Array.from({ length: 12 }, (_, index) => ({
+    timestamp: new Date(start + index * 300000).toISOString(),
+    open: 100, high: 101, low: 99, close: 100, volume: 1000,
+  }));
+  const event = { ...complete[1], ...(fault === "stop" ? { low: 95 } : { high: 109 }) };
+  const candles = fault === "aligned_target" ? complete.map((bar, index) => index === 1 ? event : bar)
+    : [...complete, { ...event, timestamp: new Date(start + 301000).toISOString() }];
+  const outcome = computeRecommendationOutcome({ snapshot, horizon: "60m", evaluated_at: new Date(start + 3900000),
+    candles, current_price: 100, provider: "twelve_data", source: "intraday_candles", data_completeness: "complete" }).outcome;
+  const coverage = buildCanonicalOutcomeProviderCoverageReceipt({ candles, request: {
+    interval: "5min", horizon: "60m", start_at: anchor.evaluation_anchor_start_at,
+    end_at: new Date(start + 3900000).toISOString(), ...anchor,
+  }, result: { status: "available", provider: "twelve_data" } });
+  // Disclosed synthetic retained v1 claim, reproduced against actual producer
+  // revision 183e70d6 in the standalone failure log. Do not relabel it as a
+  // current v2 acquisition or rewrite an already sealed model's capsule.
+  await h.replaceOutcome({ ...outcome, payload_json: { ...outcome.payload_json,
+    canonical_provider_coverage: { ...coverage, candle_validation_policy_version: "positive_coherent_original_horizon_ohlc_v1",
+      freshness: "fresh", observed_candle_count: 12, malformed_candle_count: 0, blockers: [] },
+    counterfactual_candles: candles, counterfactual_candle_source: "horizon_filtered_intraday_candles",
+    retained_candles_available: true, retained_candle_count: candles.length,
+  } });
+  return h;
+}
+
+test("a new training job cannot seal legacy target or stop labels contradicted by their retained candles", async () => {
+  for (const fault of ["target", "stop"] as const) {
+    const h = await legacyCandleSource(fault), before = JSON.stringify(h.data);
+    expect(await h.service.train(prospectiveOwner, {})).toMatchObject({ status: "unavailable", receipt: null,
+      blocker: "trained_probability_retained_candle_coverage_conflicting" });
+    expect(h.calls).not.toContain("materialize");
+    expect(h.calls).not.toContain("confirm");
+    expect(h.data.recommendation_outcomes).toHaveLength(48);
+    expect(JSON.stringify(h.data)).toBe(before);
+  }
+});
+
+test("valid retained legacy candles remain eligible without reducing the original training population", async () => {
+  const h = await legacyCandleSource("aligned_target"), before = JSON.stringify(h.data);
+  expect(await h.service.train(prospectiveOwner, {})).toMatchObject({ status: "materialized", receipt: { trained_model: {
+    original_population_count: 48, canonical_outcome_count: 48, missing_outcome_count: 0, model: { sample_count: 48 },
+  } } });
+  expect(JSON.stringify(h.data)).toBe(before);
+});
+
+test("new training rejects a retained terminal label contradicted by otherwise complete coherent candles", async () => {
+  const h = await legacyCandleSource("aligned_target");
+  const row = h.data.recommendation_outcomes.find(row =>
+    (row.payload_json as Record<string, unknown>).counterfactual_candles)!;
+  const payload = row.payload_json as Record<string, unknown>;
+  // The real producer/writer retained a target label. Remove only its observed
+  // target touch: all twelve original slots remain aligned and coherent.
+  expect(row.target_hit).toBe(true);
+  for (const bar of payload.counterfactual_candles as Record<string, unknown>[]) bar.high = 101;
+  const before = JSON.stringify(h.data);
+  const result = await h.service.train(prospectiveOwner, {});
+  expect({ status: result.status, blocker: result.blocker, hasReceipt: result.receipt !== null }).toEqual({
+    status: "unavailable", hasReceipt: false,
+    blocker: "trained_probability_retained_candle_outcome_conflicting",
+  });
+  expect(h.calls).not.toContain("materialize");
+  expect(h.calls).not.toContain("confirm");
+  expect(h.data.recommendation_outcomes).toHaveLength(48);
+  expect(JSON.stringify(h.data)).toBe(before);
+});
+
+test("retained opposite-event, no-entry and event-clock contradictions cannot enter a new fitted model", async () => {
+  for (const fault of ["opposite_event", "no_entry", "event_clock"] as const) {
+    const h = await legacyCandleSource("aligned_target");
+    const row = h.data.recommendation_outcomes.find(row =>
+      (row.payload_json as Record<string, unknown>).counterfactual_candles)!;
+    const bars = (row.payload_json as Record<string, unknown>).counterfactual_candles as Record<string, unknown>[];
+    if (fault === "opposite_event") { bars[1].high = 101; bars[1].low = 95; }
+    if (fault === "no_entry") for (const bar of bars) Object.assign(bar, { open: 98, high: 99, low: 97, close: 98 });
+    if (fault === "event_clock") (row.payload_json as Record<string, unknown>).target_hit_at = bars[2].timestamp;
+    const before = JSON.stringify(h.data), result = await h.service.train(prospectiveOwner, {});
+    expect({ status: result.status, blocker: result.blocker, hasReceipt: result.receipt !== null }).toEqual({
+      status: "unavailable", hasReceipt: false, blocker: "trained_probability_retained_candle_outcome_conflicting" });
+    expect(h.calls).not.toContain("materialize"); expect(h.calls).not.toContain("confirm");
+    expect(h.data.recommendation_outcomes).toHaveLength(48);
+    expect(JSON.stringify(h.data)).toBe(before);
+  }
+});
+
+test("contradictory retained shapes fail before fitting storage, not by discarding original members", async () => {
+  const mutations: ((payload: Record<string, unknown>) => void)[] = [
+    p => { p.counterfactual_candles = null; },
+    p => { (p.counterfactual_candles as unknown[])[0] = null; },
+    p => { (p.counterfactual_candles as unknown[])[0] = []; },
+    p => { (p.counterfactual_candles as Record<string, unknown>[])[0].low = 102; },
+    p => { (p.counterfactual_candles as unknown[]).push((p.counterfactual_candles as unknown[])[0]); p.retained_candle_count = 13; },
+    p => { p.retained_candle_count = 11; },
+    p => { p.retained_candles_available = false; },
+    p => { p.counterfactual_candle_source = "unbound_source"; },
+  ];
+  for (const mutate of mutations) {
+    const h = await legacyCandleSource("aligned_target");
+    const row = h.data.recommendation_outcomes.find(row => (row.payload_json as Record<string, unknown>).counterfactual_candles)!;
+    mutate(row.payload_json as Record<string, unknown>);
+    const before = JSON.stringify(h.data);
+    expect(await h.service.train(prospectiveOwner, {})).toMatchObject({ status: "unavailable", receipt: null,
+      blocker: "trained_probability_retained_candle_coverage_conflicting" });
+    expect(h.calls).not.toContain("materialize"); expect(JSON.stringify(h.data)).toBe(before);
+  }
+});
+
+test("a previously sealed legacy capsule remains byte-equivalent and is never refitted from mutable candles", async () => {
+  const h = await legacyCandleSource("target"), source = parseRecommendationLearningBaselineSource(h.data)!;
+  // Explicit historical fixture via the unchanged pure v1 builder, not a new
+  // admitted training job. It must remain decodable after admission changes.
+  const legacy = buildRelativePlanTrainedProbabilityModel({ owner: prospectiveOwner, freeze: prospectiveReceipt(), source, now }).trained_model!;
+  expect(legacy.original_population_count).toBe(48);
+  expect((await h.database.materialize(legacy)).status).toBe("pending_confirmation");
+  const historical = await h.database.confirm();
+  const restart = createRelativePlanTrainedProbabilityService({ ...h.dependencies,
+    readSource: async () => { throw new Error("historical_capsule_cannot_read_mutable_candles"); } });
+  expect(await restart.read(prospectiveOwner)).toMatchObject({ status: "available", receipt: historical.receipt });
+  expect(await restart.train(prospectiveOwner, {})).toMatchObject({ status: "already_materialized", receipt: historical.receipt });
+  expect(h.calls).not.toContain("source_read"); expect(h.calls.filter(call => call === "materialize")).toHaveLength(1);
+});
+
 test("the real proxy guards anonymous, cross-owner and cross-origin model commands", async () => {
   const password = process.env.TRADE_APP_PASSWORD, owner = process.env.TURE_APPLICATION_OWNER_USER_ID;
   process.env.TRADE_APP_PASSWORD = "isolated-trained-model-session-only"; process.env.TURE_APPLICATION_OWNER_USER_ID = prospectiveOwner;
@@ -168,4 +375,34 @@ test("HTTP transport fails closed on complete UTF-8 size, never truncating membe
   const circular: Record<string, unknown> = {}; circular.original = circular;
   expect(await relativePlanCompleteHttpResponse(circular, { status: 200, headers: {} }).json()).toMatchObject({
     status: "unavailable", receipt: null, blocker: "relative_plan_complete_response_unserializable" });
+});
+
+test("large complete JSON uses lossless negotiated gzip without expanding the buffered envelope", async () => {
+  const result = { original_population: ["AAA", "BBB", "CCC", "DDD", "EEE", "FFF", "GGG", "ZZZ"],
+    evidence: "é".repeat(RELATIVE_PLAN_COMPLETE_RESPONSE_MAX_BYTES / 2) };
+  for (const acceptEncoding of ["gzip", "br, GZip; q=0.5", "*"]) {
+    const response = relativePlanCompleteHttpResponse(result, { status: 201, headers: {}, acceptEncoding });
+    expect(response.status).toBe(201);
+    expect(response.headers.get("content-encoding")).toBe("gzip");
+    expect(response.headers.get("vary")).toBe("Accept-Encoding");
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    const encoded = Buffer.from(await response.arrayBuffer());
+    expect(encoded.byteLength).toBeLessThanOrEqual(RELATIVE_PLAN_COMPLETE_GZIP_MAX_BYTES);
+    expect(encoded.toString("base64").length).toBeLessThan(6_000_000);
+    expect(JSON.parse(gunzipSync(encoded).toString("utf8"))).toEqual(result);
+  }
+  for (const acceptEncoding of [null, "", "br", "gzip;q=0, *;q=1", "gzip;q=0.000", "gzip;q=2", "gzip;q=bad", "gzip;q=1,gzip;q=0"]) {
+    expect(relativePlanCompleteHttpResponse(result, { status: 200, headers: {}, acceptEncoding }).status).toBe(503);
+  }
+});
+
+test("gzip never bypasses independent decoded and compressed bounds", async () => {
+  const decodedOverflow = { evidence: "x".repeat(RELATIVE_PLAN_COMPLETE_DECODED_MAX_BYTES) };
+  const incompressible = { evidence: randomBytes(RELATIVE_PLAN_COMPLETE_GZIP_MAX_BYTES + 1048576).toString("base64") };
+  for (const result of [decodedOverflow, incompressible]) {
+    const response = relativePlanCompleteHttpResponse(result, { status: 200, headers: {}, acceptEncoding: "gzip" });
+    expect(response.status).toBe(503);
+    expect(response.headers.get("content-encoding")).toBeNull();
+    expect(await response.json()).toMatchObject({ receipt: null, blocker: "relative_plan_complete_response_exceeds_buffered_transport_limit" });
+  }
 });

@@ -12,9 +12,15 @@ import {
 
 import {
   getMarketRegime,
+  COMPLETED_DAILY_MARKET_REGIME_INPUT_POLICY_VERSION,
+  marketRegimePromptInput,
   neutralMarketRegimeFallback,
   type MarketRegime,
 } from "@/lib/market-regime";
+import {
+  buildMarketRegimeDecisionContext,
+  type MarketRegimeDecisionContext,
+} from "@/lib/market-regime-decision-context";
 import {
   scanMarket,
   type ScannerCandidate,
@@ -132,6 +138,7 @@ import {
   type ReferenceRefreshDiagnostics,
 } from "@/lib/reference-refresh-diagnostics";
 import { normalizeApplicationOwnerUserId } from "@/lib/application-session-core";
+import { readOwnedCompletedBenchmarkReuse } from "@/lib/completed-benchmark-reuse";
 import {
   resolveScheduledScannerProviderCallCap,
   SCHEDULED_REFERENCE_REFRESH_DEFAULT_MAX_ATTEMPTS,
@@ -3122,7 +3129,7 @@ async function generateRecommendationsWithOpenAI(
       target_count_for_window: maxRecommendations,
       preferred_timeframe: settings.preferred_timeframe,
       allowed_directions: allowedDirections,
-      market_regime: marketRegime,
+      market_regime: marketRegimePromptInput(marketRegime),
       trade_horizon: dayTradeHorizon,
       scanner_ranking_summary: {
         generated_at: scannerCandidateRankingSummary.generated_at,
@@ -3357,7 +3364,7 @@ export async function generateRecommendations({
         db.from("positions").select("ticker,status").eq("owner_user_id", owner),
         db
           .from("recommendation_scan_runs")
-          .select("observed_at,payload_json")
+          .select("id,owner_user_id,run_fingerprint,trading_date,window,status,data_mode,observed_at,completed_at,payload_json")
           .eq("owner_user_id", owner)
           .order("observed_at", { ascending: false })
           .limit(1)
@@ -3629,7 +3636,13 @@ export async function generateRecommendations({
           : null,
     });
 
-    const scannerFreshProviderCallCap = diagnosticMode
+    // Existing owner-bound last-run read, never a new global cache or a provider
+    // request. Freed credits are available only before any acquisition starts.
+    const completedBenchmarkReuse = inputAttributed && !latestMarketWideDiscoveryResult.error
+      ? await readOwnedCompletedBenchmarkReuse({ row: latestMarketWideDiscoveryResult.data,
+          owner, now: new Date(), signal }) : null;
+    throwIfAborted(signal);
+    const scannerFreshProviderCallCap = completedBenchmarkReuse ? 8 : diagnosticMode
       ? Math.min(1, scannerBaseCandidates.length)
       : source === "scheduled"
         ? resolveScheduledScannerProviderCallCap({
@@ -3648,14 +3661,32 @@ export async function generateRecommendations({
     const contextSignal = contextAbortController
       ? signal ? AbortSignal.any([signal, contextAbortController.signal]) : contextAbortController.signal
       : signal;
+    let originalMarketRegimeContext: MarketRegimeDecisionContext | null = null;
     const loadMarketRegime = async () => {
       try {
         throwIfAborted(signal);
-        return await getMarketRegime({ signal: contextSignal });
+        const marketRegime = completedBenchmarkReuse
+          ? completedBenchmarkReuse.market_regime
+          : await getMarketRegime({ signal: contextSignal,
+            ...(inputAttributed ? { inputPolicyVersion: COMPLETED_DAILY_MARKET_REGIME_INPUT_POLICY_VERSION } : {}) });
+        // This decision's observed classification/revalidation completion,
+        // not candle freshness, scan start or later artifact persistence. The
+        // reused capsules retain their original captures/classification clock.
+        originalMarketRegimeContext = buildMarketRegimeDecisionContext({
+          marketRegime,
+          capturedAt: new Date(),
+        });
+        return marketRegime;
       } catch (error) {
+        originalMarketRegimeContext = null;
         console.error("[recommendations/generate] market_regime_error", {
           error: normalizeUnknownError(error),
         });
+        // The normalized path requires observed original benchmark inputs.
+        // Missing/stale/provider-failed context is a data rejection, not a
+        // neutral investment judgment or an evaluated no_trade. Legacy callers
+        // keep their previous explicitly unavailable neutral fallback.
+        if (inputAttributed) throw error;
         return neutralMarketRegimeFallback;
       }
     };
@@ -3671,6 +3702,7 @@ export async function generateRecommendations({
             : undefined,
         providerCreditAllocationRuntimeAdmission,
         completedDailyContextPolicyVersion: scannerInputPolicyVersion,
+        ...(completedBenchmarkReuse ? { completedBenchmarkReuse } : {}),
         signal,
       },
     ).then(candidates => {
@@ -3688,9 +3720,10 @@ export async function generateRecommendations({
     let prefetchedMarketRegime: MarketRegime | null = null;
     let scannerCandidates: Awaited<ReturnType<typeof scanMarket>>;
     if (inputAttributed) {
-      // Admission above fixes the whole reservation at six scanner credits
-      // plus two SPY/QQQ credits. These independent reads share the existing
-      // abort signal and may overlap; no extra provider allowance is created.
+      // Admission fixes the whole reservation at eight: six acquisition plus
+      // two SPY/QQQ calls, or eight acquisition calls after validated reuse.
+      // Independent reads share the existing abort signal and may overlap;
+      // no extra provider allowance is created.
       // Settle both tasks before leaving, including scanner/provider failures.
       // An empty scanner result may still consume the two reserved benchmarks.
       const [scannerResult, contextResult] = await Promise.allSettled([
@@ -4002,6 +4035,7 @@ export async function generateRecommendations({
             : "Scan completed. No high-quality day trade setup found."),
         duplicate_fallback_used: duplicateFallbackUsed,
         market_regime: marketRegime,
+        market_regime_context: originalMarketRegimeContext,
         scan_window: scanWindow,
         scan_log: {
           ...publishVersionDetails(),
@@ -4294,6 +4328,7 @@ export async function generateRecommendations({
         message,
         duplicate_fallback_used: duplicateFallbackUsed,
         market_regime: marketRegime,
+        market_regime_context: originalMarketRegimeContext,
         scan_window: scanWindow,
         scan_log: {
           ...publishVersionDetails(),
@@ -4662,6 +4697,7 @@ export async function generateRecommendations({
               : "Ranked learning candidates were available but failed recommendation validation.")),
         duplicate_fallback_used: duplicateFallbackUsed,
         market_regime: marketRegime,
+        market_regime_context: originalMarketRegimeContext,
         scan_window: scanWindow,
         scan_log: {
           ...publishVersionDetails(),
@@ -4769,6 +4805,7 @@ export async function generateRecommendations({
         inserted_tickers: [],
         duplicate_fallback_used: duplicateFallbackUsed,
         market_regime: marketRegime,
+        market_regime_context: originalMarketRegimeContext,
         scan_window: scanWindow,
         message:
           "Diagnostic scan built recommendations without publishing live recommendation rows.",
@@ -4891,6 +4928,7 @@ export async function generateRecommendations({
       inserted_tickers: insertedRecommendationTickers,
       duplicate_fallback_used: duplicateFallbackUsed,
       market_regime: marketRegime,
+      market_regime_context: originalMarketRegimeContext,
       scan_window: scanWindow,
       scan_log: {
         ...publishVersionDetails(),

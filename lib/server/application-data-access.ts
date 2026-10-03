@@ -312,6 +312,7 @@ export async function readRecommendationLearningBaselineSource(
   const readOutcomes = () =>
     readCompleteRecommendationLearningBaselineSourcePages({
       expectedRowCount: outcomeRowCount,
+      allowResponseCaps: true,
       readPage: (from, to) =>
         client
           .from("recommendation_outcomes")
