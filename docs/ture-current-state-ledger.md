@@ -2,6 +2,63 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
+**Completed local review fix / Next — complete original-history cache read:**
+Within existing draft PR #732, Codex reproduces one IF-2b blocker in the
+same original-input → canonical-outcome → full-charter delivery. With a real
+isolated PostgREST cap of ten, preparation stops on its third invocation even
+though SQL already holds sixteen paid histories. It requests/reserves zero
+new credits: the durable guard prevents a duplicate purchase, but the single
+uncounted cache page strands the original ninety-five-ticker preparation.
+Before-fix evidence is
+`/private/tmp/ture-capped-history-preparation-reproduction-oct3.log`, not the
+earlier Docker-permission setup failure.
+
+Exact product revision `5a3b1d099d0b44ef641c518c04e300b1a7d02230` replaces
+only that cache read with fixed-selection keyset pages, exact remaining/final
+counts, identity checks, a shared five-second read deadline and a 256-page
+bound. Existing ticker uniqueness supplies the database ordering key. Claim
+identities, original order/fingerprint, owner authority, eight-credit minute
+budget, calendar, source freshness, price clock, CAS writes and publication
+rules remain unchanged. This is `supporting_blocker_removal`, not a new ranking
+hypothesis, schema or control-plane stream; the resumed intelligence delivery
+is the original full-population forward comparison.
+
+The actual SQL/SDK proof now completes all twelve preparation invocations
+under the real ten-row cap: ninety-five histories/reservations, at most eight
+requests per modeled minute, then ninety-five available cached members with
+zero new requests. Ten transport-boundary faults (page error, missing/drifting
+counts, empty tail, duplicate/unselected identities, over-limit count, deadline
+and abort) stop before acquisition/reservation and leave durable claims intact.
+The unchanged twenty-six-slot/208-member source proceeds to the full-charter
+consumer; its 176-member learning population still has eight canonical outcomes
+and 168 missing members, so the result remains `evidence_incomplete`. These
+are disclosed synthetic CLOSED inputs, not live provider entitlement or alpha.
+Proof log: `/private/tmp/ture-capped-history-preparation-after-oct3.log`.
+
+All fifteen affected serial regressions pass (9.1m), including installed HTTP,
+proxy/session/owner defenses, charge retention, abort/deadline, concurrency,
+whole-original outcome continuation and the indivisible charter consumer.
+Regression log: `/private/tmp/ture-capped-history-regression-oct3.log`.
+Nonincremental types and normal full lint pass (zero errors/eight existing
+warnings). Normal locked Linux Node 22 / Next 16.3.8 build passes on exact
+`5a3b1d09`, with read-only dependencies, no build network or production keys:
+`/private/tmp/ture-capped-history-clean-exact-linux-build-oct3.log`.
+The first normal build completed, but its final clean-source guard correctly
+failed on a simultaneous ledger edit; that run is not passing verification.
+Only the rerun with source frozen is accepted. Earlier 302-check integration
+evidence remains on its previous revision; fourteen overlapping checks plus one
+new cap regression are not a new 303-check full-suite claim.
+
+Remote draft #732 is at `b9a0a4bf` before the selected coherent fix update.
+Its run `37129993403` is still in progress; the draft-skipped full release
+aggregate is not a passing protected release gate. The unchanged mandatory
+audit still has five high findings. No merge, production deploy, migration,
+real provider request or broker action is selected here. This is locally
+implemented/tested, not main- or production-behavior verified or quality-accepted.
+Next: update/review the same draft and satisfy release requirements without
+bypass, then resume the frozen original forward quality acceptance. Stop this
+cache support interruption here; do not select another generic helper stream.
+
 **Completed local integration / Next / Blocked — original-input to full-charter chain:**
 Codex consolidates the completed IF-2b → IF-4 input-fitness, canonical outcome
 and indivisible charter implementation into existing draft PR #732. No competing
