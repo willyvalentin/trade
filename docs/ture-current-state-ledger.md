@@ -2,7 +2,7 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
-**Current queue — 2026-10-03 02:31Z:** The same primary CLOSED full-charter
+**Current queue — 2026-10-03 02:52Z:** The same primary CLOSED full-charter
 vertical now includes complete as-of result retention and restarted terminal
 consumption, closing the reproduced `durably_finalized_full_charter_result_required`
 link without opening a second ranking hypothesis or development stream. Codex
@@ -36,13 +36,43 @@ so later registered checks are diagnostic only, not release acceptance.
 Everything in this vertical remains local: no PR, merge, production migration,
 configuration, provider request, scan or broker action has occurred.
 
+The finalized original product transport is now verified at **3,188,915 UTF-8
+bytes**, complete/no-store within the unchanged 5 MiB boundary. Actual isolated
+database pre-write checks reject future source time, wrong owner and changed
+model clocks; later outcome upserts do not replace the first original result.
+A broad non-release diagnostic reached 423 passing tests before its local
+twenty-minute watchdog; this is not a full-foundation pass. Profiling the same
+complete synthetic capsule reproduced repeated ICU formatter construction as
+the dominant computation cost. Local product revision
+`3823c8bb24f9ba88fe6633b81806994063f08e3e` reuses only two immutable New York
+formatters, not source, session, model or result evidence. The same-process-type
+local profiled workload changes candidate construction from 19,848 to 3,091 ms
+and independent replay from 31,116 to 3,439 ms, while both exact original
+measurement and result fingerprints remain identical. These are local sampled
+timings, not a production latency guarantee. Thirty-three affected regression
+tests, two new formatter/fingerprint checks and ten unchanged CI/provenance
+checks pass; strict types and lint pass. The existing calendar suite is added
+to the exact ordinary intelligence registration, without weakening audit,
+cancellation, job limits or protected aggregate requirements. Exact revised
+build and the complete bounded diagnostic are still ahead.
+
 One independent CLOSED IF-2b point-in-time context slice is selected next:
 Codex, twelve active hours from 02:31Z, initial reproduction at most four,
 isolated `codex/market-context-capture-oct3` from verified main `55576078`.
-The generator obtains observed regime before candidate decisions, but the
-existing persistence path rebuilds its `captured_at` with a later `new Date()`;
-the strict original-context reader correctly rejects a post-decision stamp.
-Reproduce that exact native-route/actual-persistence gap before changing code.
+The actual isolated scheduled/native-route/Postgres proof reproduced a context
+stamp 459 ms after its original decision. The strict original-context reader
+correctly rejects that stamp. The minimum local fix captures classification
+completion inside the generator, transports it through all five regular-session
+decision returns and retains exactly that context in run/snapshot persistence.
+No new persistence-time clock or historical reconstruction substitutes for it.
+The corrected delayed-context proof retains capture at 17:30:29.218Z before
+decision at 17:30:31.254Z, eight synthetic boundary requests and zero actual
+provider/production/broker actions. Published, no-trade, closing research and
+unknown/mismatched fallback paths are under final combined regression on
+`c4d0930f48c71ea773cf3dbbda2c9f3cef157bc9`; the production code in `057c8eba`
+already passes the exact normal Linux build. Early fixture assertions were
+corrected to preserve zero no-trade snapshots and absence of latency-only
+diagnostics, not to change product behavior or invent evidence.
 Own only generator/context transport, the existing scan artifact callsites,
 the existing completed-input runtime proof and its already registered test.
 The primary retains result schema/modules/CI-registration ownership and must

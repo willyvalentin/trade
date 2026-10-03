@@ -237,6 +237,7 @@
   "tests/e2e/action-652-current-catalog-migration-evidence-contract-v5-portability.spec.ts",
   "tests/e2e/action-652-generated-types-provenance-v1.spec.mjs",
   "tests/e2e/action-660-ma09-generated-types-provenance-v2.spec.mjs",
+  "tests/e2e/action-576-verified-us-market-calendar-integration.spec.ts",
   "tests/e2e/relative-plan-charter-observations.spec.ts",
   "tests/e2e/relative-plan-charter-context.spec.ts",
   "tests/e2e/relative-plan-charter-quality.spec.ts",
