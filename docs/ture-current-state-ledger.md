@@ -2,6 +2,53 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
+**Now / Next / Blocked — minimum-request acquisition locally complete:** the
+selected IF-2b capability is implemented and tested at product
+`6726ba67a9aaa276bfa9cfde7b246354bebcf872`, tree
+`a2b7b32a121c35b2070d608e2b2db67fc3bb7274`. The original-order mixed-history
+runtime reproduces three complete members where the frozen question requires
+five. Its unmodified committed baseline `43fa089e` then observes three and four
+members across two distinct original rotating slots; the new
+`completed_input_minimum_requests_first_v1` observes five and six. Both arms
+acquire the same eight histories with sixteen separately counted synthetic
+setup requests, then exactly eight requests/eight reserved credits per normal
+scan. Neither arm changes the original eight-member population, ranking
+formula, plan geometry, publication rules or full-denominator missingness.
+The scanner restores original return order after acquisition; its existing
+persisted trace retains version, original indices, revalidated source digests,
+historical capture clocks, estimated request costs and chosen acquisition order.
+This is acquisition order, not a ranking policy or a fitted probability.
+
+Tampered historical digests receive no cheaper cost and retain cold three/four
+coverage. Wholly cold and wholly warm two-slot behavior remain unchanged by this
+ordering correction. Fully cached valid inputs survive an actual SDK/isolated
+database restart with zero new provider calls at a zero-call cap. All 46 affected
+native/runtime, history, source/decision/publication, cancellation, timeout,
+budget-draining and CI-registration checks pass, plus all twelve separate
+scheduled-budget checks. Standard lint passes with zero errors/eight existing
+warnings; strict nonincremental TypeScript passes. Exact committed product above
+passes the normal locked Linux Node 22.23.1 / Next 16.3.8 Turbopack build with no
+build network or production credentials. Logs:
+`/private/tmp/ture-minimum-request-allocation-final.log`,
+`/private/tmp/ture-minimum-request-allocation-budget.log`,
+`/private/tmp/ture-minimum-request-allocation-exact-linux-build.log`.
+
+No external provider/model call, production write, PR, merge, deploy, migration
+or OPEN observation is claimed. This is local `recommendation_capability`
+(input fitness), not recommendation-quality lift or complete market discovery.
+Full eight-member cold coverage still needs attributable historical acquisition;
+do not treat the sixteen-request mixed setup as free or solve that gap by
+dropping missing members. Next: quantify cold/revisit coverage and systematic
+misses under the unchanged real rotating universe and whole per-scan cap before
+selecting another acquisition change; keep canonical outcomes/full-charter
+acceptance separate. Integration remains ordered behind PR #732 and the strict
+benchmark predecessor. PR #732's exact registry failure remains terminal, and
+the mandatory dependency audit remains unsatisfied. Official npm metadata still
+reports eslint-config-next 16.3.8 and braces 3.0.3; the
+[reviewed advisory](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) still names
+no patched release. No audit omission, downgrade, fake patch or CI rerun is
+selected. This release blocker does not prevent the bounded CLOSED investigation.
+
 **Cold acquisition investigation — checked 2026-10-03:** all seven actual
 packaged baseline/reuse/corruption checks pass, now including a genuinely cold
 start with zero setup requests. Across the two unchanged rotating populations,
@@ -34,7 +81,7 @@ failure; main is read-only verified unchanged at `55576078` on this turn.
 Integrate in the existing declared predecessor order only after protected
 security/release requirements pass. This comparison is data fitness, not alpha.
 
-**Primary IF-2b full-population acquisition — selected 2026-10-03 04:24Z:**
+**Prior IF-2b acquisition selection — 2026-10-03 04:24Z:**
 Codex starts the bounded four-active-hour investigation / twelve-active-hour
 vertical in isolated `codex/retained-benchmark-allocation-oct3`, from verified
 main `55576078` plus the locally verified benchmark-input predecessor. Existing
@@ -105,7 +152,7 @@ release requirement remain unresolved; do not bypass either or create a
 competing release. Preserve the complete-charter and benchmark-input predecessors
 when preparing ordinary integration.
 
-**Primary IF-2b benchmark input fitness — 2026-10-03 04:13Z:** Codex's
+**Local benchmark-input predecessor — 2026-10-03 04:13Z:** Codex's
 bounded investigation reproduces stale benchmark acceptance through the actual
 daily parser/classifier, then implements the selected correction on isolated
 `codex/market-context-input-fitness-oct3` from verified main
