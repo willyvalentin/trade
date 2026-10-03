@@ -1,6 +1,6 @@
 # Ture Master Roadmap
 
-## Active product direction — recommendation intelligence first, reconciled 2026-10-02
+## Active product direction — recommendation intelligence first, reconciled 2026-10-03
 
 The latest product selection is **data fitness and broad discovery → contextual
 ranking → complete outcome-linked evaluation → shadow-tested, reversible policy
@@ -83,9 +83,14 @@ walk-forward errors, explicit missing probabilities and binary-event semantics.
 Only labels both evaluated and recorded before the training cutoff may fit;
 future-recorded labels do not enter as-of coverage or precision. Numerical
 recomputation is diagnostic, not proof of an immutable model fitted before
-forward decisions: existing outcome rows are upsertable and the model has not
-yet been durably materialized. Disclose that gap and keep the terminal quality
-gate closed until the model and the full charter are attributable. Do not
+forward decisions: existing outcome rows are upsertable. The selected next
+link is an actual server-owned training job, full immutable training capsule
+and separate-transaction pre-forward committed-model witness, consumed by the
+restarted original-population reader. Do not substitute a self-hash, the
+declared fitting cutoff or a historical reconstruction for that evidence.
+An unavailable, late or mismatched model remains an explicit gap, never a
+silent qualified fallback. The complete charter/runtime/feasibility comparison
+still follows materialization; keep the terminal quality gate closed. Do not
 reinterpret ordinal confidence, underfilled buckets or a good synthetic Brier
 score as accepted recommendation quality.
 When those first two links pass their declared acceptance, return the primary

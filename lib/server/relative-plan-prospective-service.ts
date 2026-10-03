@@ -7,14 +7,17 @@ import { buildRelativePlanProspectiveLearning } from "@/lib/server/relative-plan
 import { relativePlanProspectiveStore, type RelativePlanProspectiveStoreResult } from "@/lib/server/relative-plan-prospective-store";
 import { relativePlanCanonicalBuildIdentity, type RelativePlanProspectivePlanInput } from "@/lib/server/relative-plan-prospective-comparison";
 import { hasExplicitRelativePlanOutcomeRecordingTimes } from "@/lib/server/relative-plan-probability-measurement";
+import { relativePlanTrainedProbabilityStore } from "@/lib/server/relative-plan-trained-probability-store";
 
 type Dependencies = {
   store: typeof relativePlanProspectiveStore;
   readSource: typeof readRecommendationLearningBaselineSource;
   revision: () => RelativePlanProspectivePlanInput["source_revision"] | null;
+  modelStore: typeof relativePlanTrainedProbabilityStore;
 };
 const dependencies: Dependencies = {
   store: relativePlanProspectiveStore, readSource: readRecommendationLearningBaselineSource,
+  modelStore: relativePlanTrainedProbabilityStore,
   revision: () => {
     const build = observationSeriesActivationBuildIdentityFromUnknown(identity);
     return build ? { commit_ref: build.commit_ref, build_identity: relativePlanCanonicalBuildIdentity, deploy_id: build.deploy_id } : null;
@@ -34,6 +37,10 @@ export function createRelativePlanProspectiveService(d: Dependencies = dependenc
     async read(owner: string, now = new Date()) {
       const freeze = await d.store().read(owner);
       if (!freeze.receipt) return { ...freeze, learning: null };
+      const model = await d.modelStore().read(freeze.receipt, owner);
+      if (!["available", "not_found", "pending_confirmation"].includes(model.status)) return {
+        status: "unavailable" as const, receipt: null, learning: null,
+        blocker: model.blocker ?? "prospective_training_model_storage_unavailable" };
       let sourceResult;
       try { sourceResult = await d.readSource(owner); } catch { return { status: "unavailable" as const,
         receipt: null, learning: null, blocker: "prospective_complete_owned_learning_source_unavailable" }; }
@@ -46,7 +53,8 @@ export function createRelativePlanProspectiveService(d: Dependencies = dependenc
       const source = sourceResult.status === "available" ? parseRecommendationLearningBaselineSource(sourceResult.data) : null;
       if (!source) return { status: "unavailable" as const, receipt: null, learning: null,
         blocker: "prospective_complete_owned_learning_source_unavailable" };
-      const learning = buildRelativePlanProspectiveLearning({ owner, freeze: freeze.receipt, source, now });
+      const learning = buildRelativePlanProspectiveLearning({ owner, freeze: freeze.receipt, source, now,
+        trainedModelReceipt: model.receipt });
       return learning ? { status: "available" as const, receipt: freeze.receipt, learning, blocker: null }
         : { status: "unavailable" as const, receipt: null, learning: null, blocker: "prospective_learning_binding_invalid" };
     },
