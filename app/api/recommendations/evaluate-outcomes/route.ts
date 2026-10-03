@@ -178,9 +178,11 @@ type ReceiptRun = Pick<
   | "candle_requests_saved_by_reuse"
 >;
 
-const outcomeEvaluationRouteVersion = "outcome-evaluation-route-v1.2";
+const outcomeEvaluationRouteVersion = "outcome-evaluation-route-v1.3";
 const defaultOfficialLiveMaxBatchesPerRun = 5;
+// Page size, not permission to silently omit the rest of the day's sources.
 const officialLiveBatchDiscoveryLimit = 20;
+const officialLiveBatchSourceReadLimit = 200;
 const allowedHorizons = new Set<RecommendationOutcomeHorizon>([
   "15m",
   "30m",
@@ -764,50 +766,76 @@ async function loadOfficialLiveSnapshots({
   }
 
   try {
-    const batchQuery = serverSupabase.client
-      .from("recommendation_batches")
-      .select("*")
-      .eq("owner_user_id", ownerUserId)
-      .order("published_at", {
-        ascending: batchFingerprint ? false : true,
-        nullsFirst: false,
-      })
-      .limit(batchFingerprint ? 1 : officialLiveBatchDiscoveryLimit);
-    const batchResult = batchFingerprint
-      ? await batchQuery.eq("batch_fingerprint", batchFingerprint)
-      : await batchQuery.eq("trading_date", getNewYorkDateString(now));
-
-    if (batchResult.error || !Array.isArray(batchResult.data)) {
-      return {
-        status: "failed" as const,
-        error:
-          batchResult.error?.message ??
-          "Unable to load official recommendation batches.",
-        batch: null,
-        batches: [],
-        snapshots: [],
-        recommendation_rows_loaded_count: 0,
-        missing_snapshot_fingerprints: [],
-        snapshot_batch_fingerprints: {},
-        same_day_official_batch_revisit: {
-          same_day_official_batches_discovered: 0,
-          max_batches_per_run: maxBatchesPerRun,
-          selected_batch_count: 0,
-          selected_batch_fingerprints: [],
-          selected_batch_order: "oldest_first",
-          batches_skipped_due_to_limit: 0,
-          snapshots_loaded_per_batch: {},
-        },
-      };
+    const client = serverSupabase.client;
+    const batchRows: Array<Record<string, unknown>> = [];
+    if (batchFingerprint) {
+      const result = await client.from("recommendation_batches").select("*")
+        .eq("owner_user_id", ownerUserId).eq("batch_fingerprint", batchFingerprint)
+        .order("published_at", { ascending: false, nullsFirst: false }).limit(1);
+      if (result.error || !Array.isArray(result.data)) {
+        throw new Error(result.error?.message ?? "Unable to load official recommendation batches.");
+      }
+      batchRows.push(...result.data);
+    } else {
+      const tradingDate = getNewYorkDateString(now);
+      const readSignal = AbortSignal.timeout(5000);
+      let cursor: string | null = null;
+      let expectedCount: number | null = null;
+      const seenIds = new Set<string>();
+      do {
+        let query = client.from("recommendation_batches").select("*", { count: "exact" })
+          .eq("owner_user_id", ownerUserId).eq("trading_date", tradingDate)
+          .order("id", { ascending: true }).limit(officialLiveBatchDiscoveryLimit);
+        if (cursor !== null) query = query.gt("id", cursor);
+        const result = await query.abortSignal(readSignal);
+        if (result.error || !Array.isArray(result.data) || result.count === null ||
+            !Number.isSafeInteger(result.count) || result.count < 0) {
+          throw new Error(result.error?.message ?? "official_batch_source_read_incomplete");
+        }
+        expectedCount ??= result.count;
+        if (expectedCount > officialLiveBatchSourceReadLimit) {
+          throw new Error("official_batch_source_read_limit_exceeded");
+        }
+        if (result.count !== expectedCount - batchRows.length ||
+            result.data.length !== Math.min(result.count, officialLiveBatchDiscoveryLimit)) {
+          throw new Error("official_batch_source_read_changed_or_incomplete");
+        }
+        for (const row of result.data) {
+          if (typeof row.id !== "string" || !row.id || seenIds.has(row.id) ||
+              row.owner_user_id !== ownerUserId || row.trading_date !== tradingDate) {
+            throw new Error("official_batch_source_identity_invalid");
+          }
+          seenIds.add(row.id);
+          batchRows.push(row);
+          cursor = row.id;
+        }
+      } while (batchRows.length < expectedCount);
+      // A changing population is unavailable, not an apparently empty backlog.
+      const verified = await client.from("recommendation_batches").select("id", { count: "exact", head: true })
+        .eq("owner_user_id", ownerUserId).eq("trading_date", tradingDate).abortSignal(readSignal);
+      if (verified.error || verified.count !== expectedCount) {
+        throw new Error(verified.error?.message ?? "official_batch_source_read_changed_or_incomplete");
+      }
     }
-
     const officialBatches = sortBatchesOldestFirst(
-      (batchResult.data as Array<Record<string, unknown>>).filter((row) =>
+      batchRows.filter((row) =>
         isOfficialLiveBatch(row, {
           includeGrowMaxLearningSnapshots,
         }),
       ),
     );
+    const admittedBatchIds = new Set(officialBatches.map(row => row.id));
+    const sourceRead = {
+      policy_version: "bounded_original_batch_keyset_read_v1",
+      status: "complete",
+      original_batches_read: batchRows.length,
+      original_batch_fingerprints: batchRows.map(batchFingerprintOf),
+      source_read_limit: officialLiveBatchSourceReadLimit,
+      excluded_batches: batchRows.filter(row => !admittedBatchIds.has(row.id)).map(row => ({
+        batch_fingerprint: batchFingerprintOf(row),
+        reason: "existing_official_source_admission_rejected",
+      })),
+    };
     const selectedBatches = batchFingerprint
       ? officialBatches.slice(0, 1)
       : officialBatches;
@@ -825,6 +853,7 @@ async function loadOfficialLiveSnapshots({
         missing_snapshot_fingerprints: [],
         snapshot_batch_fingerprints: {},
         same_day_official_batch_revisit: {
+          original_source_read: sourceRead,
           same_day_official_batches_discovered: officialBatches.length,
           max_batches_per_run: maxBatchesPerRun,
           selected_batch_count: 0,
@@ -981,6 +1010,7 @@ async function loadOfficialLiveSnapshots({
         missing_snapshot_fingerprints: Array.from(allExpectedSnapshotFingerprints),
         snapshot_batch_fingerprints: {},
         same_day_official_batch_revisit: {
+          original_source_read: sourceRead,
           same_day_official_batches_discovered: officialBatches.length,
           max_batches_per_run: maxBatchesPerRun,
           selected_batch_count: selectedBatches.length,
@@ -1044,6 +1074,7 @@ async function loadOfficialLiveSnapshots({
       missing_snapshot_fingerprints: missingSnapshotFingerprints,
       snapshot_batch_fingerprints: snapshotBatchFingerprints,
       same_day_official_batch_revisit: {
+        original_source_read: sourceRead,
         same_day_official_batches_discovered: officialBatches.length,
         max_batches_per_run: maxBatchesPerRun,
         selected_batch_count: selectedBatches.length,
@@ -1241,7 +1272,7 @@ function buildSameDayOfficialBatchRevisitDiagnostics({
       batches_skipped_due_to_limit: 0,
       snapshots_loaded_per_batch: {} as Record<string, number>,
     };
-  const snapshotBatchFingerprints =
+  const snapshotBatchFingerprints: Record<string, string> =
     officialSnapshotLoad?.snapshot_batch_fingerprints ?? {};
   const selectedSnapshotFingerprints = new Set(
     selectedSnapshots.map((snapshot) => snapshot.snapshot_fingerprint),

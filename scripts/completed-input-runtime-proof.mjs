@@ -21,6 +21,9 @@ const lateOriginalOutcomes = process.argv.includes("--late-original-outcomes");
 const fullOriginalHistorySetup = process.argv.includes("--full-original-history-setup");
 const budgetedHistorySetup = process.argv.includes("--budgeted-history-setup");
 const originalOutcomeContinuation = process.argv.includes("--original-outcome-continuation");
+const originalSourceReadControls = process.argv.includes("--original-source-read-controls");
+assert(!originalSourceReadControls || budgetedHistorySetup,
+  "Source-read controls retain the actual original budgeted session");
 assert(!originalOutcomeContinuation || budgetedHistorySetup,
   "Original outcome continuation follows the actual budgeted full original session, never seeded source rows");
 const historyPreparationFault = process.argv.find(value=>value.startsWith("--history-preparation-fault="))?.split("=")[1];
@@ -158,6 +161,8 @@ const identity = {
 };
 const OriginalDate = globalThis.Date;
 const originalFetch = globalThis.fetch;
+let originalSourceReadFault = null;
+let originalSourceReadFaultApplied = false;
 const originalSignalTimeout = AbortSignal.timeout;
 const originalLog = console.log;
 const originalEnvironment = { ...process.env };
@@ -428,6 +433,32 @@ try {
       method:request.method,headers:request.headers,
       ...(requestBody!==null?{body:requestBody}:{})
     });
+    if(originalSourceReadFault && url.pathname==="/rest/v1/recommendation_batches" &&
+        ["GET","HEAD"].includes(request.method)) {
+      const laterPage=url.searchParams.has("id");
+      if(originalSourceReadFault==="second_page" && laterPage) {
+        originalSourceReadFaultApplied=true;
+        return Response.json({message:"synthetic_second_source_page_failure"},{status:503});
+      }
+      if(originalSourceReadFault==="verification_error" && request.method==="HEAD") {
+        originalSourceReadFaultApplied=true;
+        return Response.json({message:"synthetic_source_verification_failure"},{status:503});
+      }
+      if(!originalSourceReadFaultApplied && request.method==="GET" && !laterPage) {
+        originalSourceReadFaultApplied=true;
+        if(originalSourceReadFault==="deadline") await syntheticDelay(6000,undefined,{signal:init?.signal});
+        if(originalSourceReadFault==="source_population_changed") {
+          sql(`insert into recommendation_batches(id,batch_fingerprint,trading_date,owner_user_id,batch_type)
+            values('ture_source_read_control_drift','ture_source_read_control_drift','2026-10-01','${owner}','diagnostic');`);
+        } else if(["missing_count","truncated_page","wrong_owner"].includes(originalSourceReadFault)) {
+          const rows=await response.json(), headers=new Headers(response.headers);
+          if(originalSourceReadFault==="missing_count") headers.delete("content-range");
+          if(originalSourceReadFault==="truncated_page") rows.pop();
+          if(originalSourceReadFault==="wrong_owner") rows[0].owner_user_id="00000000-0000-4000-8000-000000000002";
+          return Response.json(rows,{status:response.status,headers});
+        }
+      }
+    }
     if(isPublication) clock+=236;
     return response;
   };
@@ -1085,6 +1116,35 @@ try {
             trained_probability_model:null,terminal_quality_decision:null,quality_improvement_claimed:false};
           fullOriginalHistoryEvidence.remaining_quality_gate="full_forward_charter_and_sealed_probability_model_not_established";
           fullOriginalHistoryEvidence.total_separate_synthetic_data_requests=setupRequests+externalRequests;
+          if(originalSourceReadControls) {
+            clock=OriginalDate.parse("2026-10-01T20:45:00Z");
+            const sourceControls=[];
+            const originalOutcomeRows=sql("select coalesce(jsonb_agg(t order by id),'[]') from recommendation_outcomes t;");
+            for(const fault of ["second_page","missing_count","truncated_page","wrong_owner",
+              "source_population_changed","verification_error","deadline","source_read_limit"]) {
+              originalSourceReadFault=fault; originalSourceReadFaultApplied=false;
+              if(fault==="source_read_limit") sql(`insert into recommendation_batches(id,batch_fingerprint,trading_date,owner_user_id,batch_type)
+                select 'ture_source_read_control_'||n,'ture_source_read_control_'||n,'2026-10-01','${owner}','diagnostic'
+                from generate_series(1,175) n;`);
+              const before=externalRequests;
+              delete require.cache[require.resolve(join(generated,"outcome-route.cjs"))];
+              const response=await require(join(generated,"outcome-route.cjs")).POST(new Request("http://closed-fixture/api/recommendations/evaluate-outcomes",{
+                method:"POST",headers:{"x-automation-secret":environment.AUTOMATION_SECRET,"Content-Type":"application/json"},
+                body:JSON.stringify({mode:"official_live_today",horizons:["60m"],max_candle_requests:4,max_batches:1}),
+              }));
+              const body=await response.json();
+              assert.equal(response.status,200,JSON.stringify(body));
+              assert.equal(body.status,"failed",JSON.stringify({fault,body}));
+              assert.equal(externalRequests,before,"Incomplete source reads cannot perform outcome provider work");
+              assert.equal(sql("select coalesce(jsonb_agg(t order by id),'[]') from recommendation_outcomes t;"),originalOutcomeRows);
+              assert(originalSourceReadFaultApplied || fault==="source_read_limit");
+              sourceControls.push({fault,status:body.status,blocker:body.persistence_error,provider_requests:0,outcomes_unchanged:true});
+              originalSourceReadFault=null;
+              sql("delete from recommendation_batches where id like 'ture_source_read_control_%';");
+              assert.equal(Number(sql("select count(*) from recommendation_batches;")),26);
+            }
+            fullOriginalHistoryEvidence.original_source_read_controls=sourceControls;
+          }
           if(originalOutcomeContinuation) {
             // Diagnose the EXISTING no-fingerprint source selection. Do not
             // hand-pick later batches, seed outcomes or change its provider cap.
@@ -1121,7 +1181,9 @@ try {
             const originalBatches=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from (select owner_user_id,batch_fingerprint,scan_run_fingerprint from recommendation_batches) t;"))
               .filter(row=>row.owner_user_id===owner&&runFingerprints.has(row.scan_run_fingerprint));
             assert.equal(originalBatches.length,26);
-            const discovered=new Set(continuationPasses.at(-1).source_selection?.selected_batch_fingerprints??[]);
+            const sourceRead=continuationPasses.at(-1).source_selection?.original_source_read;
+            const discovered=new Set(sourceRead?.original_batch_fingerprints??
+              continuationPasses.at(-1).source_selection?.selected_batch_fingerprints??[]);
             const unvisited=originalBatches.filter(row=>!discovered.has(row.batch_fingerprint)).map(row=>({
               batch_fingerprint:row.batch_fingerprint,scan_run_fingerprint:row.scan_run_fingerprint,
               complete_regular_horizon_eligible:eligible.some(decision=>decision.fingerprint===row.scan_run_fingerprint),
@@ -1133,12 +1195,20 @@ try {
               canonical_outcome_count:heldRead.canonical_outcome_count,missing_outcome_count:heldRead.missing_outcome_count,
               physical_outcomes:completeSource.outcomes.length,
               original_batch_count:originalBatches.length,unvisited_original_batches:unvisited,
+              original_source_read:sourceRead??null,
               original_member_fingerprint:heldRead.original_membership_fingerprint,
-              original_decision_coverage:nextRead.learning.legacy_baseline_readiness.relative_plan_context_outcomes,
+              // Retain EVERY original identity and missingness reason without
+              // duplicating full ranking/charter objects in the CLI transport.
+              original_decision_coverage:nextRead.learning.legacy_baseline_readiness.relative_plan_context_outcomes.map(comparison=>({
+                scan_run_fingerprint:comparison.scan_run_fingerprint,
+                candidates:comparison.candidates.map(row=>({candidate_id:row.candidate_id,ticker:row.ticker,
+                  snapshot_fingerprint:row.snapshot_fingerprint,outcome_id:row.outcome_id,
+                  outcome_status:row.outcome_status,outcome_reason:row.outcome_reason,
+                  terminal_outcome:row.terminal_outcome,r_result:row.r_result})),
+              })),
               terminal_quality_decision:null,quality_improvement_claimed:false,
             };
             fullOriginalHistoryEvidence.total_separate_synthetic_data_requests=setupRequests+externalRequests;
-            process.stderr.write(JSON.stringify({original_outcome_continuation:fullOriginalHistoryEvidence.original_outcome_continuation})+"\n");
           }
         }
       }

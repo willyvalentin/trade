@@ -571,7 +571,7 @@ test("whole-session outcome continuation discovers every original batch before c
   const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--cold",
     "--rotation-day", "--prospective-enrollment", "--full-original-history-setup", "--budgeted-history-setup",
     "--original-outcome-continuation"], { cwd: process.cwd(), encoding: "utf8", timeout: 230000 });
-  expect(result.status, `${result.stdout.slice(-2000)}\n${result.stderr.slice(-2000)}`).toBe(0);
+  expect(result.status, `${result.error?.message ?? ""}\n${result.stdout.slice(-2000)}\n${result.stderr.slice(-2000)}`).toBe(0);
   const receipt = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
   expect(receipt).toMatchObject({ actual_provider_requests: 0, production_actions: 0, publications: 0,
     broker_actions: 0, cleanup: "inert" });
@@ -579,8 +579,46 @@ test("whole-session outcome continuation discovers every original batch before c
   expect(continuation).toMatchObject({ original_decisions: 26, original_batch_count: 26,
     original_population_count: 176, terminal_quality_decision: null, quality_improvement_claimed: false });
   expect(continuation.passes.every((pass: { requests: number }) => pass.requests <= 4)).toBe(true);
-  expect(continuation.passes.at(-1).source_selection.same_day_official_batches_discovered).toBe(26);
+  // All original rows must be READ, not made eligible. The 13:30 original
+  // decision has no completed research capsule; do not relax its admission.
+  expect(continuation.original_source_read).toMatchObject({ status: "complete", original_batches_read: 26,
+    excluded_batches: [{ batch_fingerprint: "rec_batch_5u9nnx", reason: "existing_official_source_admission_rejected" }] });
+  expect(continuation.original_source_read.original_batch_fingerprints).toHaveLength(26);
+  expect(new Set(continuation.original_source_read.original_batch_fingerprints).size).toBe(26);
+  expect(continuation.passes.at(-1).source_selection.same_day_official_batches_discovered).toBe(25);
   expect(continuation.unvisited_original_batches).toEqual([]);
+  console.info("Original outcome continuation (synthetic, not quality evidence):", JSON.stringify({
+    original_decisions: continuation.original_decisions, original_population_count: continuation.original_population_count,
+    original_batches_read: continuation.original_source_read.original_batches_read,
+    admitted_batches: continuation.passes.at(-1).source_selection.same_day_official_batches_discovered,
+    excluded_batches: continuation.original_source_read.excluded_batches,
+    passes: continuation.passes.length, separate_synthetic_requests: continuation.separate_synthetic_requests,
+    physical_outcomes: continuation.physical_outcomes, canonical_outcome_count: continuation.canonical_outcome_count,
+    missing_outcome_count: continuation.missing_outcome_count,
+    terminal_status: continuation.passes.at(-1).status,
+    terminal_backlog: continuation.passes.at(-1).source_selection.remaining_backlog_after_run,
+  }));
+});
+
+test("incomplete or over-bound original source reads fail before outcome provider work", () => {
+  test.setTimeout(120000);
+  const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--cold",
+    "--rotation-day", "--prospective-enrollment", "--full-original-history-setup", "--budgeted-history-setup",
+    "--original-source-read-controls"], { cwd: process.cwd(), encoding: "utf8", timeout: 110000 });
+  expect(result.status, `${result.stdout.slice(-2000)}\n${result.stderr.slice(-2000)}`).toBe(0);
+  const receipt = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
+  expect(receipt).toMatchObject({ actual_provider_requests: 0, production_actions: 0, publications: 0,
+    broker_actions: 0, cleanup: "inert" });
+  const controls = receipt.full_original_history_evidence.original_source_read_controls;
+  expect(controls.map((row: { fault: string }) => row.fault)).toEqual([
+    "second_page", "missing_count", "truncated_page", "wrong_owner", "source_population_changed",
+    "verification_error", "deadline", "source_read_limit",
+  ]);
+  for (const row of controls) {
+    expect(row).toMatchObject({ status: "failed", provider_requests: 0, outcomes_unchanged: true });
+    expect(row.blocker).toBeTruthy();
+  }
+  expect(controls.at(-1).blocker).toBe("official_batch_source_read_limit_exceeded");
 });
 
 test("actual original complete input reaches full charter through canonical outcomes without granting quality authority", () => {
