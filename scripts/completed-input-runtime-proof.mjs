@@ -20,6 +20,12 @@ assert(!prospectiveEnrollment || rotationDay && process.argv.includes("--cold"),
 const benchmarkReuse = process.argv.includes("--benchmark-reuse");
 const charterComposition = process.argv.includes("--charter-composition");
 const historyOnlySetup = process.argv.includes("--history-only-setup");
+const legacyHistorySetup = process.argv.includes("--legacy-history-setup");
+const legacyRetentionBaseline = process.argv.includes("--legacy-retention-baseline");
+assert(!legacyRetentionBaseline || legacyHistorySetup,
+  "The retained predecessor is only the same legacy acquisition baseline");
+assert(!legacyHistorySetup || charterComposition && !historyOnlySetup,
+  "Legacy retention consumes its actual existing fetch, never another preparation route");
 const setupCompositionDiagnostic = process.argv.includes("--setup-composition-diagnostic");
 assert(!setupCompositionDiagnostic || charterComposition,
   "Setup diagnosis emits only this synthetic original-source information set");
@@ -155,7 +161,11 @@ try {
     entryPoints: [resolve(root, "app/api/automation/run-scan/route.ts")], outfile: join(generated, "scheduled-scan-runtime.cjs") });
   if (diagnoseOutcomes || charterComposition) buildSync({ ...options, entryPoints: [resolve(root, "app/api/recommendations/evaluate-outcomes/route.ts")], outfile: join(generated, "outcome-route.cjs") });
   buildSync({ ...options, entryPoints: [resolve(root, "netlify/functions/scheduled-scan.ts")], outfile: join(directory, "functions/scheduled.cjs") });
-  buildSync({ ...options, stdin: {
+  await build({ ...options, ...(legacyRetentionBaseline ? {plugins:[{name:"legacy-retention-predecessor",setup(builder) {
+    builder.onLoad({filter:/\/lib\/(scanner|market-data)\.ts$/},args=>({
+      contents:execFileSync("git",["show",`3c736f99:${args.path.slice(root.length+1)}`],{cwd:root,encoding:"utf8"}),
+      loader:"ts",resolveDir:join(root,"lib")}));
+  }}]} : {}), stdin: {
     resolveDir: root,
     contents: `export { observationSeriesControlFromEnvironment, buildObservationSeriesSlotAdmission } from './lib/observation-series-control';
       export { buildObservationCycleReceipt, buildObservationCycleReadback } from './lib/observation-cycle-receipt';
@@ -373,6 +383,8 @@ try {
   clock=OriginalDate.parse("2026-10-01T17:00:00Z");
   let setupRequests=0;
   let setupIntradayRequests=0;
+  const legacySetupCandidates=[];
+  let legacySetupFingerprint=null;
   if(!cold && !wrongPolicy) {
     const selected=readers.buildRealScannerBaseCandidateSelection({scanWindow:readers.getIntradayScanWindow(new Date("2026-10-01T17:30:00Z")),requestedScanBudget:8,
       selectionMode:"scheduled_rotating",now:new OriginalDate("2026-10-01T17:30:00Z")}).candidates;
@@ -385,12 +397,24 @@ try {
     // This invokes the existing real scanner cap, not a seeded cache or new
     // preparation endpoint. One credit acquires validated daily history but
     // cannot also acquire an intraday context that expires before our decisions.
-    for(const candidate of setupPopulation) await readers.scanMarket([candidate],{source:"scheduled",maxFreshProviderCalls:historyOnlySetup?1:2,
-      freshProviderCallPacingMs:0,completedDailyContextPolicyVersion:"completed_daily_intraday_input_v1"});
+    for(const candidate of setupPopulation) {
+      const observed=await readers.scanMarket([candidate],{source:"scheduled",maxFreshProviderCalls:historyOnlySetup||legacyHistorySetup?1:2,
+        freshProviderCallPacingMs:0,...(!legacyHistorySetup ? {completedDailyContextPolicyVersion:"completed_daily_intraday_input_v1"} : {})});
+      if(legacyHistorySetup) legacySetupCandidates.push(...observed);
+    }
     setupRequests=externalRequests;
     setupIntradayRequests=syntheticRequestEvidence.filter(request=>request.interval!=="1day").length;
-    assert.equal(setupRequests,setupPopulation.length*(historyOnlySetup?1:2));
-    assert.equal(setupIntradayRequests,historyOnlySetup?0:setupPopulation.length);
+    assert.equal(setupRequests,setupPopulation.length*(historyOnlySetup||legacyHistorySetup?1:2));
+    assert.equal(setupIntradayRequests,historyOnlySetup||legacyHistorySetup?0:setupPopulation.length);
+    if(legacyHistorySetup) {
+      // UUID/default insertion time are physical rows, not legacy information.
+      // Keep every candidate, derived value and original updated-at clock.
+      const rows=JSON.parse(sql("select jsonb_agg((to_jsonb(t)-'id'-'created_at') || jsonb_build_object('raw',raw-'completed_daily_context') order by ticker) from scanner_cache t;"));
+      legacySetupFingerprint=`sha256:${readers.relativePlanSemanticFingerprint({candidates:legacySetupCandidates,cache:rows})}`;
+      process.stderr.write(JSON.stringify({legacy_setup_requests:setupRequests,legacy_original_information:legacySetupFingerprint,
+        retained_daily_contexts:Number(sql("select count(*) from scanner_cache where raw ? 'completed_daily_context';")),
+        ...(setupCompositionDiagnostic?{legacy_candidates:legacySetupCandidates,legacy_cache:rows}:{})})+"\n");
+    }
     if(invalidMixedHistory) sql(`update scanner_cache set raw=jsonb_set(raw,
       '{completed_daily_context,content_sha256}','"invalid-fixture-history-digest"');`);
   }
@@ -1304,7 +1328,7 @@ try {
       reserved_credits:allClaims.reduce((sum,claim)=>sum+claim.requested_credits,0),benchmark_calls_second:externalBenchmarkRequests,
       original_source_clocks_unchanged:expectReuse,restarted_owner_read:true,wrong_owner_runs:0};
     if(charterComposition) {
-      assert.equal(setupRequests,historyOnlySetup?16:32); assert.equal(firstFresh,6); assert.equal(fresh,8);
+      assert.equal(setupRequests,historyOnlySetup||legacyHistorySetup?16:32); assert.equal(firstFresh,6); assert.equal(fresh,8);
       assert.equal(source.snapshots.length,14,"Actual generator retains the six partial and eight complete original sources");
       const frozenAt="2026-09-25T12:00:00.000Z";
       const plan=restarted.buildRelativePlanProspectivePlan({owner_user_id:owner,
@@ -1443,7 +1467,8 @@ try {
         decision_clock:decision.decision_clock,versions:decision.versions,candidates:decision.candidates,
       }));
       charterCompositionEvidence={evidence_scope:"synthetic_actual_original_source_and_canonical_outcomes_not_forward_seal",
-        setup_mode:historyOnlySetup?"existing_one_credit_history_only":"existing_two_credit_history_and_intraday",
+        setup_mode:legacyHistorySetup?"existing_legacy_fetch_retained_history":historyOnlySetup?"existing_one_credit_history_only":"existing_two_credit_history_and_intraday",
+        ...(legacyHistorySetup?{legacy_original_information:legacySetupFingerprint}:{}),
         setup_intraday_requests:setupIntradayRequests,
         original_member_ids:[record,secondDecision].flatMap(decision=>decision.candidates.map(member=>member.candidate_id)),
         original_input_fingerprint:`sha256:${restarted.relativePlanSemanticFingerprint(originalInputInformation)}`,

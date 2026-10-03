@@ -43,7 +43,7 @@ The full original information fingerprints differ
 versus `sha256:c9c66a5926cfe2f7568863a3d4c5764bdf8ef140a4d73cbe5441e92f05a61eb4`).
 The frozen acceptance initially fails as expected; a registered negative
 regression now preserves this rejection and the exact second-decision equality.
-Both focused checks pass, with full affected runtime rerun pending. This is
+Both focused checks and the seventeen-check affected runtime rerun pass. This is
 `hypothesis_evidence`, not an accepted cheaper preparation policy, cold-start
 recovery or improved recommendations. Both charters remain
 `evidence_incomplete`, model/terminal-quality decision null and graduation
@@ -66,6 +66,47 @@ Do not create a preparation scheduler/job, another allocation heuristic or a
 ranking change to compensate for the rejected arm. If this path cannot preserve
 the frozen source semantics, reject it and choose the next attributable input
 gap. No provider, production, migration, publication or broker action is selected.
+
+**Already-paid legacy history retention — 2026-10-03:** The selected actual
+scanner/SQL/SDK reproduction makes sixteen existing synthetic legacy daily
+setup reads, retains zero attributable histories and fails at three complete
+first-scan inputs instead of six. No cache data was seeded. The narrow local
+correction retains a strict optional response identity/history from the same
+legacy response, with unchanged URL parameters, candle parsing/errors and
+legacy candidate selection. Invalid metadata remains unavailable history;
+original derived values and legacy candidates do not change. The same validated
+completed-history capture excludes unfinished bars and revalidates calendar,
+split basis, digest and NY capture day on subsequent use. There is no new fetch,
+preparation job, credit allowance, ranking/publication rule, schema or live flag.
+
+The exact before/after semantic fingerprint of all sixteen legacy candidates
+and original derived cache values/updated-at clocks is
+`sha256:4ad7b9b0d82693deff5f4c0928a6cd26a215e9caab838545f1fcaef243c179cf`.
+Random database UUID/default insertion time are separately physical metadata,
+not a candle, decision feature or replaced source clock. Sixteen retained
+histories then support six/eight complete inputs through the actual two-slot
+scheduled path, sixteen original identities, fourteen original research sources
+and fourteen synthetic canonical outcomes. Eight complete second-decision
+members reach the restarted full-charter consumer, four positive/four negative.
+Setup remains a separate sixteen daily requests; scans sixteen, outcomes
+fourteen. These are synthetic same-day preparation/use proofs, not cold-start
+recovery, market coverage, model sealing or recommendation-quality improvement.
+The rejected two-credit-to-one-credit arm above remains rejected; its partial
+ranking difference is not erased or used as an accepted policy comparison.
+
+Two registered focused tests pass: actual predecessor/current SQL/SDK/full-charter
+composition and provider-boundary legacy equality, wrong/missing identity,
+timezone/date, partial/future/duplicate bars, unchanged malformed-volume error,
+same-day expiry and abort/no-extra-call controls. Initial test-harness failures
+(a Node warning preceding the JSON diagnostic and expecting legacy blank-volume
+acceptance) were corrected without changing product validation. Strict
+nonincremental types and changed-file lint pass. The final broader runtime
+regression and exact-revision normal Linux build remain pending. This delivery
+is local `recommendation_capability` input reuse plus `quality_measurement`
+continuity; not main, production or acceptance of stronger recommendations.
+Charter remains `evidence_incomplete`, model/terminal result null and graduation
+`not_met`. Release audit/PR #732 CI remain held; do not bypass them. Finish this
+coherent local delivery before choosing another hypothesis.
 
 **Completed original scanner to existing full-charter composition:**
 Codex reuses existing draft PR #732's isolated

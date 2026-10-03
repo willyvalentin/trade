@@ -446,6 +446,67 @@ test("captures closed daily dates as historical context, not a current price", a
     "SYNTH", new Date("2026-10-01T18:00:00.000Z"))).toEqual(context);
 });
 
+test("legacy daily response retention preserves candles and request shape while strict history stays fail closed", async () => {
+  const bundle=await build({entryPoints:[resolve(process.cwd(),"lib/market-data.ts")],bundle:true,
+    write:false,platform:"node",format:"cjs",conditions:["react-server"]});
+  const loaded={exports:{}};
+  new Function("require","module","exports",bundle.outputFiles[0].text)(
+    createRequire(resolve(process.cwd(),"package.json")),loaded,loaded.exports);
+  const runtime=loaded.exports as typeof import("@/lib/market-data");
+  const OriginalDate=globalThis.Date,originalFetch=globalThis.fetch,originalKey=process.env.TWELVE_DATA_API_KEY;
+  globalThis.Date=class extends OriginalDate {
+    constructor(...args:ConstructorParameters<typeof Date>) {super(...(args.length?args:[at.getTime()]) as ConstructorParameters<typeof Date>);}
+    static now(){return at.getTime();}
+  } as typeof Date;
+  process.env.TWELVE_DATA_API_KEY="synthetic-legacy-retention-only";
+  let scenario="valid",requests=0;
+  const params:string[]=[];
+  globalThis.fetch=async input=>{
+    const url=new URL(typeof input==="string"||input instanceof URL?input:input.url);
+    expect(url.origin).toBe("https://api.twelvedata.com");expect(url.pathname).toBe("/time_series");
+    requests++;url.searchParams.delete("apikey");params.push(url.search);
+    expect(url.searchParams.has("adjust")).toBe(false);
+    const values=bars().map(bar=>({datetime:new OriginalDate(bar.timestamp*1000).toISOString().slice(0,10),
+      open:String(bar.open),high:String(bar.high),low:String(bar.low),close:String(bar.close),volume:String(bar.volume)}));
+    const meta={symbol:scenario==="wrong_symbol"?"OTHER":"SYNTH",interval:"1day",
+      exchange_timezone:scenario==="wrong_timezone"?"UTC":"America/New_York"};
+    if(scenario==="partial"||scenario==="future"){
+      values.shift();values.push({...values.at(-1)!,datetime:scenario==="partial"?"2026-10-01":"2026-10-02",close:"1000",high:"1001"});
+    }
+    if(scenario==="duplicate") values[58]={...values[57]};
+    if(scenario==="blank_volume")values[58].volume="";
+    if(scenario==="dated_timestamp")values[58].datetime+="T00:00:00Z";
+    return Response.json({...(scenario!=="missing_meta"?{meta}:{}),values});
+  };
+  try {
+    for(scenario of ["valid","partial","future","duplicate","blank_volume","dated_timestamp","wrong_symbol","wrong_timezone","missing_meta"]){
+      if(scenario==="blank_volume"){
+        await expect(runtime.getDailyCandles("synth",60)).rejects.toThrow("invalid candle 59 volume");
+        await expect(runtime.getDailyCandlesWithRetainedHistory("synth",60)).rejects.toThrow("invalid candle 59 volume");
+        continue;
+      }
+      const legacy=await runtime.getDailyCandles("synth",60);
+      const retained=await runtime.getDailyCandlesWithRetainedHistory("synth",60);
+      expect(retained.candles).toEqual(legacy);expect(params.at(-1)).toBe(params.at(-2));
+      const history=await api.captureCompletedDailyContext(retained.completed_response,"SYNTH",at);
+      if(scenario==="valid"||scenario==="partial"){
+        expect(history).toMatchObject({role:"completed_historical_daily",captured_at:at.toISOString(),
+          latest_completed_market_date:"2026-09-30",price_adjustment:"splits"});
+        expect(history!.candles).toHaveLength(scenario==="partial"?59:60);
+        expect(history).not.toHaveProperty("reference_price_timestamp");
+        expect(await api.readCompletedDailyContext(history,"SYNTH",new OriginalDate("2026-10-02T15:50:00Z"))).toBeNull();
+      } else expect(history).toBeNull();
+    }
+    expect(requests).toBe(18); // One existing request per API, never supplemental/fallback reads.
+    const controller=new AbortController();controller.abort();
+    await expect(runtime.getDailyCandlesWithRetainedHistory("SYNTH",60,{signal:controller.signal})).rejects.toThrow();
+    expect(requests).toBe(18);
+  } finally {
+    globalThis.Date=OriginalDate;globalThis.fetch=originalFetch;
+    if(originalKey===undefined)delete process.env.TWELVE_DATA_API_KEY;else process.env.TWELVE_DATA_API_KEY=originalKey;
+  }
+});
+
 test("excludes today's unfinished bar and never upgrades it after close", async () => {
   const context = await api.captureCompletedDailyContext(receipt("2026-10-01"), "SYNTH", at);
   expect(context?.latest_completed_market_date).toBe("2026-09-30");

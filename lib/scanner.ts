@@ -16,7 +16,7 @@ import {
   withAdmissibleRecentIntradayVolume,
   type IntradayIndicators,
 } from "@/lib/intraday-indicators";
-import { getDailyCandles, getDailyCandlesWithIdentity, type DailyCandle } from "@/lib/market-data";
+import { getDailyCandlesWithRetainedHistory, getDailyCandlesWithIdentity, type DailyCandle } from "@/lib/market-data";
 import { captureCompletedDailyContext, readCompletedDailyContext,
   type CompletedDailyContext } from "@/lib/scanner-completed-daily-context";
 import { currentSessionFeatures, type CurrentSessionContext } from "@/lib/scanner-current-session-context";
@@ -1185,6 +1185,7 @@ async function scanMarketCore(
 
     try {
       let acquiredContext: CompletedDailyContext | null = null;
+      let retainedLegacyContext: CompletedDailyContext | null = null;
       const candles = await measureScanFetchStep({
         trace: options.activeScanTrace,
         step: "daily_candles",
@@ -1196,11 +1197,17 @@ async function scanMarketCore(
             if (!acquiredContext) throw new Error("completed_daily_history_unavailable");
             return acquiredContext.candles;
           }
-          return getDailyCandles(
+          const response = await getDailyCandlesWithRetainedHistory(
             baseCandidate.ticker,
             CANDLE_DAYS_NEEDED,
             { signal: options.signal },
           );
+          if (response.completed_response) {
+            retainedLegacyContext = await captureCompletedDailyContext(
+              response.completed_response, baseCandidate.ticker, new Date(),
+            );
+          }
+          return response.candles;
         },
       });
       throwIfAborted(options.signal);
@@ -1234,7 +1241,7 @@ async function scanMarketCore(
             baseCandidate,
             scannerValues,
             cachedRow?.raw ?? null,
-            acquiredContext,
+            acquiredContext ?? retainedLegacyContext,
           ),
       });
       throwIfAborted(options.signal);

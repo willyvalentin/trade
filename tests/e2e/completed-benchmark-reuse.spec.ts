@@ -303,6 +303,33 @@ test("history-only setup is rejected when it changes original partial-decision r
     .toEqual(baseline.charter_composition_evidence.missing_dimensions);
 });
 
+test("already-paid legacy history reaches original full charter without changing legacy information", () => {
+  test.setTimeout(240000);
+  const args=["scripts/completed-input-runtime-proof.mjs", "--benchmark-reuse", "--charter-composition", "--legacy-history-setup"];
+  const baseline=spawnSync(process.execPath,[...args,"--legacy-retention-baseline"],
+    {cwd:process.cwd(),encoding:"utf8",timeout:110000});
+  expect(baseline.status,baseline.stderr).toBe(1);
+  expect(baseline.stderr).toContain("3 !== 6");
+  const before=JSON.parse(baseline.stderr.split("\n").find(line=>line.startsWith('{"legacy_setup_requests":'))!);
+  expect(before).toMatchObject({legacy_setup_requests:16,retained_daily_contexts:0});
+  const result=spawnSync(process.execPath,args,{cwd:process.cwd(),encoding:"utf8",timeout:110000});
+  expect(result.status,`${result.stdout}\n${result.stderr}`).toBe(0);
+  const retained=JSON.parse(result.stderr.split("\n").find(line=>line.startsWith('{"legacy_setup_requests":'))!);
+  expect(retained).toMatchObject({legacy_setup_requests:16,retained_daily_contexts:16});
+  expect(retained.legacy_original_information).toBe(before.legacy_original_information);
+  expect(before.legacy_original_information).toBe("sha256:4ad7b9b0d82693deff5f4c0928a6cd26a215e9caab838545f1fcaef243c179cf");
+  const evidence=JSON.parse(result.stdout.trim().split("\n").at(-1)!);
+  expect(evidence).toMatchObject({setup_synthetic_requests:16,scheduled_synthetic_requests:16,
+    benchmark_reuse_evidence:{first_fresh_inputs:6,second_fresh_inputs:8,original_members_per_decision:8,
+      attempts:2,reservations:2,reserved_credits:16,restarted_owner_read:true,wrong_owner_runs:0},
+    charter_composition_evidence:{setup_mode:"existing_legacy_fetch_retained_history",setup_intraday_requests:0,
+      source_research_snapshots:14,retained_original_members:16,original_enrolled_population:8,
+      canonical_enrolled_outcomes:8,separate_synthetic_outcome_requests:14,positive_enrolled_outcomes:4,
+      negative_enrolled_outcomes:4,completed_repeat_requests:0,restored_charter_unchanged:true,
+      disposition:"evidence_incomplete",trained_model:null,terminal_quality_decision:null,quality_improvement_claimed:false},
+    actual_provider_requests:0,production_actions:0,publications:0,broker_actions:0,cleanup:"inert"});
+});
+
 test("full-session historical reuse improves breadth while retaining rejected allocation baselines", () => {
   test.setTimeout(420000);
   const evidence = ["baseline", "minimum", "guard", "fair", "regular", "first_closed_bar", "omitted_pair"].map(mode => {
