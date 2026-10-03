@@ -507,6 +507,41 @@ test("durable history preparation preserves the full original session while resu
   expect(new Set(preparation.preparation_passes.map((pass: { universe_fingerprint: string }) => pass.universe_fingerprint)).size).toBe(1);
 });
 
+test("installed owner history command resumes the full original inputs through real HTTP, proxy, session and SQL", () => {
+  test.setTimeout(180000);
+  const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--cold",
+    "--rotation-day", "--prospective-enrollment", "--full-original-history-setup", "--budgeted-history-setup",
+    "--history-preparation-app"], { cwd: process.cwd(), encoding: "utf8", timeout: 165000 });
+  expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
+  const receipt = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
+  expect(receipt).toMatchObject({ original_slots: 26, original_member_observations: 208,
+    selected_unique_tickers: 95, fresh_member_observations: 200, setup_synthetic_requests: 95,
+    scheduled_synthetic_requests: 208, prospective_enrollment_evidence: { enrolled_decisions: 22, excluded_decisions: 4 },
+    history_app_boundary_evidence: { path: "/api/app/completed-session-history", transport: "actual_loopback_http",
+      framework_request_cookie_stores: "installed_next_runtime", real_proxy_session_and_owner_verification: true,
+      negative_requests_zero_provider_and_reservations: true, route_defense_without_proxy: true,
+      arbitrary_population_owner_date_budget_and_query_rejected: true, bounded_empty_request_body: true,
+      cancelled_request_zero_acquisition: true,
+      restarted_route_per_request: true, no_scheduler_hook_added: true, hosted_runtime_verified: false },
+    full_original_history_evidence: { setup_credit_reservations: 95, restarted_batches: 12,
+      maximum_requests_in_modeled_minute: 8, minute_budget_blocked_without_provider: true,
+      corrupted_paid_history_retry_blocked: true, unproven_cached_finalization_blocks_acquisition: true,
+      daily_budget_drift_blocked_without_provider: true, legacy_derived_price_unchanged: true,
+      canonical_outcome_evidence: { canonical_outcome_count: 8, population_complete: true },
+      full_charter_evidence: { disposition: "evidence_incomplete" }, quality_improvement_claimed: false },
+    actual_provider_requests: 0, production_actions: 0, publications: 0, broker_actions: 0, cleanup: "inert" });
+  const passes = receipt.full_original_history_evidence.preparation_passes;
+  expect(passes).toHaveLength(12);
+  expect(passes.map((pass: { reserved_credits: number }) => pass.reserved_credits)).toEqual([...Array(11).fill(8), 7]);
+  for (const pass of passes) {
+    expect(pass.original_members).toHaveLength(95);
+    expect(pass).toMatchObject({ current_price_allowed: false, publication_allowed: false, broker_allowed: false,
+      reservation_accounting_complete: true });
+    expect(pass.original_members.map((row: { ticker: string }) => row.ticker))
+      .toEqual(passes[0].original_members.map((row: { ticker: string }) => row.ticker));
+  }
+});
+
 for (const fault of ["rate_limit", "provider_identity", "cache_write", "reservation", "finalization", "daily_limit", "abort", "deadline"]) {
   test(`history preparation retains charged failure and missing members after ${fault} without buying a retry`, () => {
     test.setTimeout(90000);

@@ -6,6 +6,8 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { createHmac } from "node:crypto";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
+import { createServer } from "node:http";
+import { AsyncLocalStorage } from "node:async_hooks";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { build, buildSync } from "esbuild";
@@ -20,6 +22,9 @@ const prospectiveEnrollment = process.argv.includes("--prospective-enrollment");
 const lateOriginalOutcomes = process.argv.includes("--late-original-outcomes");
 const fullOriginalHistorySetup = process.argv.includes("--full-original-history-setup");
 const budgetedHistorySetup = process.argv.includes("--budgeted-history-setup");
+const historyPreparationApp = process.argv.includes("--history-preparation-app");
+assert(!historyPreparationApp || budgetedHistorySetup && !process.argv.some(value=>value.startsWith("--history-preparation-fault=")),
+  "Installed app integration uses the same full-original budgeted preparation, not a new fixture population");
 const originalOutcomeContinuation = process.argv.includes("--original-outcome-continuation");
 const originalSourceReadControls = process.argv.includes("--original-source-read-controls");
 assert(!originalSourceReadControls || budgetedHistorySetup,
@@ -176,6 +181,11 @@ let pendingSyntheticTransports = 0;
 let futureOutcomePlans = [];
 let benchmarkReuseEvidence = null;
 let preparationFaultController = null;
+let historyAppServer = null;
+let historyAppRequest = null;
+let historyAppBoundaryEvidence = null;
+let historyOwnerPrincipalFault = false;
+const originalAsyncLocalStorage = globalThis.AsyncLocalStorage;
 const fixtureNow = () => clock + (durationStartedAt === null ? 0 : Math.round(performance.now() - durationStartedAt));
 const logs = [];
 const docker = (...args) => execFileSync("docker", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
@@ -191,6 +201,19 @@ try {
   mkdirSync(join(directory, "functions"));
   writeFileSync(join(generated, "scheduled-scan-deployment-identity.json"), JSON.stringify(identity));
   const options = { bundle: true, platform: "node", format: "cjs", conditions: ["react-server"], alias: { "@": root }, logLevel: "silent" };
+  if (historyPreparationApp) {
+    // Use the installed framework's real request/cookie stores, never stub
+    // requireApplicationSession, owner verification, proxy or history operation.
+    const rootRequire = createRequire(resolve(root, "package.json"));
+    await build({ ...options, plugins: [{ name: "same-installed-next-request-runtime", setup(builder) {
+      builder.onResolve({ filter: /^next\// }, args=>({ path: rootRequire.resolve(args.path === "next/navigation"
+        ? "next/dist/client/components/navigation.react-server" : args.path), external: true }));
+    } }], stdin: { resolveDir: root, contents: `
+      export { POST } from './app/api/app/completed-session-history/route';
+      export { proxy } from './proxy';
+      export { createApplicationSession } from './lib/application-session-core';` },
+    outfile: join(generated, "history-app.cjs") });
+  }
   // Before/after comparison uses the exact original committed product modules
   // in memory; neither product checkout nor fixtures/cohort are rewritten.
   const baselinePlugin = { name: "frozen-original-benchmark-allocation", setup(builder) {
@@ -277,6 +300,8 @@ try {
     TWELVE_DATA_API_KEY: "synthetic-boundary-only",
     OPENAI_API_KEY: "synthetic-boundary-only-no-ai-calls-permitted",
     ...(publicationClock ? { TURE_SCHEDULED_SCAN_SKIP_OPENAI: "true" } : {}),
+    ...(historyPreparationApp ? { NODE_ENV: "production", TRADE_APP_PASSWORD: "isolated-history-app-only",
+      TURE_APPLICATION_ORIGIN: "https://trade.valentinlabs.com", URL: "https://trade.valentinlabs.com" } : {}),
   };
   // No credentials from the invoking environment may leak into this runtime.
   for (const name of Object.keys(process.env)) {
@@ -413,7 +438,9 @@ try {
       return Response.json({meta:{symbol:historyPreparationFault==="provider_identity"?"WRONG":url.searchParams.get("symbol"),interval,exchange_timezone:"America/New_York"},values});
     }
     if (url.origin !== environment.NEXT_PUBLIC_SUPABASE_URL) throw new Error(`Unexpected external boundary: ${url.hostname}`);
-    if (url.pathname === `/auth/v1/admin/users/${owner}`) return Response.json({ user: { id: owner, aud: "authenticated", role: "authenticated" } });
+    if (url.pathname === `/auth/v1/admin/users/${owner}`) return Response.json({ user: {
+      id: historyOwnerPrincipalFault ? "00000000-0000-4000-8000-000000000002" : owner,
+      aud: "authenticated", role: "authenticated" } });
     if (!url.pathname.startsWith("/rest/v1/")) throw new Error("Unexpected fixture API path");
     const request=new Request(input,init);
     let requestBody=!["GET","HEAD"].includes(request.method)?await request.text():null;
@@ -472,6 +499,100 @@ try {
   let setupIntradayRequests=0;
   let existingPremarketEvidence=null;
   let fullOriginalHistoryEvidence=null;
+  if (historyPreparationApp) {
+    globalThis.AsyncLocalStorage = AsyncLocalStorage;
+    const rootRequire = createRequire(resolve(root, "package.json"));
+    const { NextRequest } = rootRequire("next/server");
+    const { createRequestStoreForAPI } = rootRequire("next/dist/server/async-storage/request-store");
+    const { createWorkStore } = rootRequire("next/dist/server/async-storage/work-store");
+    const { workAsyncStorage } = rootRequire("next/dist/server/app-render/work-async-storage.external");
+    const { workUnitAsyncStorage } = rootRequire("next/dist/server/app-render/work-unit-async-storage.external");
+    const appRuntime = () => {
+      delete require.cache[require.resolve(join(generated,"history-app.cjs"))];
+      return require(join(generated,"history-app.cjs"));
+    };
+    const dispatch = async (request, useProxy = true) => {
+      const app = appRuntime();
+      if (useProxy) {
+        const boundary = await app.proxy(request);
+        if (boundary.headers.get("x-middleware-next") !== "1") return boundary;
+      }
+      const store = createRequestStoreForAPI(request, { pathname: request.nextUrl.pathname, search: request.nextUrl.search },
+        { tags: [], expirationsByCacheKind: new Map() }, undefined, undefined, undefined);
+      const work = createWorkStore({ page: "/api/app/completed-session-history/route", buildId: "isolated-closed",
+        deploymentId: "isolated-closed", previouslyRevalidatedTags: [], renderOpts: { supportsDynamicResponse: true,
+          cacheLifeProfiles: {}, cacheComponents: false, experimental: {}, staticPageGenerationTimeout: 60 } });
+      return workAsyncStorage.run(work, () => workUnitAsyncStorage.run(store, () => app.POST(request)));
+    };
+    historyAppServer = createServer(async (incoming, outgoing) => {
+      try {
+        const chunks = []; for await (const chunk of incoming) chunks.push(chunk);
+        const request = new NextRequest(`${environment.TURE_APPLICATION_ORIGIN}${incoming.url}`, { method: incoming.method,
+          headers: incoming.headers, body: Buffer.concat(chunks) });
+        const response = await dispatch(request);
+        outgoing.writeHead(response.status, Object.fromEntries(response.headers));
+        outgoing.end(Buffer.from(await response.arrayBuffer()));
+      } catch (error) { outgoing.writeHead(500); outgoing.end(String(error)); }
+    });
+    await new Promise(done => historyAppServer.listen(0, "127.0.0.1", done));
+    const endpoint = `http://127.0.0.1:${historyAppServer.address().port}/api/app/completed-session-history`;
+    clock = OriginalDate.parse("2026-10-01T12:45:00.000Z");
+    const token = await appRuntime().createApplicationSession();
+    assert(token);
+    const validHeaders = { cookie: `trade_auth=${token}`, origin: environment.TURE_APPLICATION_ORIGIN,
+      "content-type": "application/json" };
+    const send = async ({ headers = validHeaders, body = "{}", query = "" } = {}) => {
+      const response = await originalFetch(endpoint + query, { method: "POST", headers, body });
+      assert.equal(response.headers.get("cache-control"), "no-store");
+      return { status: response.status, result: await response.json() };
+    };
+    assert.equal((await send({ headers: { "content-type": "application/json", origin: validHeaders.origin } })).status, 401);
+    assert.equal((await send({ headers: { ...validHeaders, cookie: "trade_auth=invalid" } })).status, 401);
+    assert.equal((await send({ headers: { ...validHeaders, origin: "https://foreign.invalid" } })).status, 403);
+    assert.equal((await send({ headers: { cookie: validHeaders.cookie, "content-type": "application/json" } })).status, 403);
+    historyOwnerPrincipalFault = true;
+    assert.equal((await send()).status, 401);
+    historyOwnerPrincipalFault = false;
+    process.env.TURE_APPLICATION_OWNER_USER_ID = "00000000-0000-4000-8000-000000000002";
+    assert.equal((await send()).status, 401);
+    process.env.TURE_APPLICATION_OWNER_USER_ID = owner;
+    const initialClock = clock;
+    clock += 8 * 3600000;
+    assert.equal((await send()).status, 401, "Expired operator sessions cannot acquire history");
+    clock = initialClock;
+    for (const body of ["", "null", "[]", '"{}"', "{broken}", '{"tickers":["WINNER"]}',
+      '{"owner_user_id":"other"}', '{"date":"2026-10-02"}', '{"daily_budget":800}', " ".repeat(257) + "{}"])
+      assert.equal((await send({ body })).status, 400);
+    assert.equal((await send({ query: "?tickers=WINNER" })).status, 400);
+    assert.equal((await send({ headers: { ...validHeaders, "content-type": "text/plain" } })).status, 400);
+    assert.equal((await send({ body: new Uint8Array([123, 125, 255]) })).status, 400);
+    for (const headers of [{ "content-type": "application/json", origin: validHeaders.origin },
+      { ...validHeaders, origin: "https://foreign.invalid" }]) {
+      const response = await dispatch(new NextRequest(`${environment.TURE_APPLICATION_ORIGIN}/api/app/completed-session-history`,
+        { method: "POST", headers, body: "{}" }), false);
+      assert.equal(response.status, headers.cookie ? 403 : 401, "The route is protected even without the proxy");
+    }
+    const cancelled = new AbortController(); cancelled.abort();
+    const stopped = await dispatch(new NextRequest(`${environment.TURE_APPLICATION_ORIGIN}/api/app/completed-session-history`,
+      { method: "POST", headers: validHeaders, body: "{}", signal: cancelled.signal }));
+    assert.equal(stopped.status, 422);
+    assert.equal((await stopped.json()).blocker, "history_preparation_aborted");
+    assert.equal(externalRequests, 0);
+    assert.equal(Number(sql("select count(*) from basic_free_discovery_credit_reservations;")), 0);
+    assert.equal(Number(sql("select count(*) from scanner_cache;")), 0);
+    historyAppRequest = async () => {
+      const response = await send({ headers: { ...validHeaders,
+        cookie: `trade_auth=${await appRuntime().createApplicationSession()}` } });
+      assert.equal(response.status, response.result.status === "blocked" ? 422 : 200);
+      return response.result;
+    };
+    historyAppBoundaryEvidence = { path: "/api/app/completed-session-history", transport: "actual_loopback_http",
+      framework_request_cookie_stores: "installed_next_runtime", real_proxy_session_and_owner_verification: true,
+      negative_requests_zero_provider_and_reservations: true, route_defense_without_proxy: true,
+      arbitrary_population_owner_date_budget_and_query_rejected: true, bounded_empty_request_body: true,
+      cancelled_request_zero_acquisition: true,
+      restarted_route_per_request: true, no_scheduler_hook_added: true, hosted_runtime_verified: false };
+  }
   const legacySetupCandidates=[];
   let legacySetupFingerprint=null;
   if(!cold && !wrongPolicy) {
@@ -624,13 +745,14 @@ try {
     const preparationPasses=[];
     if(budgetedHistorySetup) {
       const origin=clock;
+      const prepare = () => historyAppRequest ? historyAppRequest() : readers.prepareCompletedSessionHistories();
       assert.equal((await readers.prepareCompletedSessionHistories({tickers:["WINNER"],owner_user_id:owner})).blocker,"history_preparation_request_invalid");
       assert.equal(externalRequests,0,"Caller-selected populations or owner identities are never acquisition authority");
       for(let index=0;index<12;index++) {
         clock=origin+index*60000;
         delete require.cache[require.resolve(join(generated,"reader.cjs"))];
         const resumed=require(join(generated,"reader.cjs"));
-        const pass=await resumed.prepareCompletedSessionHistories();
+        const pass=await (historyAppRequest ? historyAppRequest() : resumed.prepareCompletedSessionHistories());
         assert.equal(pass.blocker,null,JSON.stringify(pass));
         assert.equal(pass.original_members.length,95);
         assert.deepEqual(pass.original_members.map(row=>row.ticker),originalUniverse.map(row=>row.ticker));
@@ -640,43 +762,43 @@ try {
         if(index===0) {
           const before=externalRequests;
           sql("revoke execute on function public.finalize_basic_free_discovery_credit_reservation_attempt(text,text,text,text,timestamptz) from service_role;");
-          assert.equal((await resumed.prepareCompletedSessionHistories()).blocker,"history_preparation_finalization_unproven");
+          assert.equal((await prepare()).blocker,"history_preparation_finalization_unproven");
           assert.equal(externalRequests,before,"Unproven cached finalization must block new acquisitions");
           sql("grant execute on function public.finalize_basic_free_discovery_credit_reservation_attempt(text,text,text,text,timestamptz) to service_role;");
-          const limited=await resumed.prepareCompletedSessionHistories();
+          const limited=await prepare();
           assert.equal(limited.status,"blocked");
           assert.equal(limited.blocker,"per_minute_credit_limit_reached");
           assert.equal(limited.original_members.filter(row=>row.status==="available").length,8);
           assert.equal(externalRequests,before);
           assert.equal(Number(sql("select sum(requested_credits) from basic_free_discovery_credit_reservations;")),8);
           process.env.TURE_BASIC_FREE_CATALOG_DAILY_CREDIT_BUDGET="799";
-          assert.equal((await resumed.prepareCompletedSessionHistories()).blocker,"basic_free_credit_reservation_unavailable");
+          assert.equal((await prepare()).blocker,"basic_free_credit_reservation_unavailable");
           assert.equal(externalRequests,before,"Changing the declared daily budget may not sidestep its durable lock");
           process.env.TURE_BASIC_FREE_CATALOG_DAILY_CREDIT_BUDGET="800";
         }
       }
       const before=externalRequests;
-      const complete=await readers.prepareCompletedSessionHistories();
+      const complete=await prepare();
       assert.equal(complete.status,"complete"); assert.equal(complete.requested_credits,0);
       assert.equal(externalRequests,before);
       const controller=new AbortController(); controller.abort();
       assert.equal((await readers.prepareCompletedSessionHistories({signal:controller.signal})).blocker,"history_preparation_aborted");
       const plan=process.env.TWELVE_DATA_PLAN_MODE;
       process.env.TWELVE_DATA_PLAN_MODE="grow";
-      assert.equal((await readers.prepareCompletedSessionHistories()).blocker,"history_preparation_owner_plan_or_budget_unavailable");
+      assert.equal((await prepare()).blocker,"history_preparation_owner_plan_or_budget_unavailable");
       process.env.TWELVE_DATA_PLAN_MODE=plan;
       const first=JSON.parse(sql("select row_to_json(t) from scanner_cache t order by ticker limit 1;"));
       sql(`update scanner_cache set raw=jsonb_set(raw,'{completed_daily_context,content_sha256}','"corrupted-paid-context"') where ticker='${first.ticker}';`);
-      const uncertain=await readers.prepareCompletedSessionHistories();
+      const uncertain=await prepare();
       assert.equal(uncertain.status,"blocked"); assert.equal(uncertain.original_members.find(row=>row.ticker===first.ticker).status,"blocked");
       assert.equal(externalRequests,before,"A corrupt/uncertain prior paid source may not buy a retry in another minute");
       sql(`update scanner_cache set raw='${JSON.stringify(first.raw).replaceAll("'","''")}'::jsonb where ticker='${first.ticker}';`);
-      assert.equal((await readers.prepareCompletedSessionHistories()).status,"complete");
+      assert.equal((await prepare()).status,"complete");
       const savedClock=clock;
       clock=OriginalDate.parse("2026-10-01T13:30:00Z");
-      assert.equal((await readers.prepareCompletedSessionHistories()).blocker,"history_preparation_session_unavailable");
+      assert.equal((await prepare()).blocker,"history_preparation_session_unavailable");
       clock=OriginalDate.parse("2026-10-03T12:45:00Z");
-      assert.equal((await readers.prepareCompletedSessionHistories()).blocker,"history_preparation_session_unavailable");
+      assert.equal((await prepare()).blocker,"history_preparation_session_unavailable");
       clock=savedClock;
       assert.equal(externalRequests,before);
       const paid=JSON.parse(sql("select jsonb_agg(t order by minute_bucket,execution_fingerprint) from basic_free_discovery_credit_reservations t;"));
@@ -1344,6 +1466,7 @@ try {
       ...(existingPremarketSetup?{existing_premarket_evidence:existingPremarketEvidence}:{}),
       ...(lateOriginalOutcomes?{late_original_outcome_evidence:lateOutcomeEvidence}:{}),
       ...(fullOriginalHistorySetup?{full_original_history_evidence:fullOriginalHistoryEvidence}:{}),
+      ...(historyPreparationApp?{history_app_boundary_evidence:historyAppBoundaryEvidence}:{}),
       actual_provider_requests:0,production_actions:0,publications:0,broker_actions:0,cleanup:"inert"}));
   } else {
   clock = OriginalDate.parse(slot) + 20000;
@@ -2280,6 +2403,12 @@ try {
   originalLog(dockerLogs(api));
   throw error;
 } finally {
+  if (historyAppServer) {
+    historyAppServer.closeAllConnections();
+    await new Promise(done => historyAppServer.close(done));
+  }
+  if (originalAsyncLocalStorage === undefined) Reflect.deleteProperty(globalThis, "AsyncLocalStorage");
+  else globalThis.AsyncLocalStorage = originalAsyncLocalStorage;
   globalThis.Date = OriginalDate; globalThis.fetch = originalFetch; console.log = originalLog;
   AbortSignal.timeout = originalSignalTimeout;
   Reflect.deleteProperty(globalThis, "Netlify");
