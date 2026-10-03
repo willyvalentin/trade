@@ -5,6 +5,7 @@ import { buildRelativePlanCharterResult, verifiedRelativePlanCharterResultReceip
   relativePlanTerminalQualityDecision, RELATIVE_PLAN_CHARTER_RESULT_RECEIPT_VERSION } from "@/lib/server/relative-plan-charter-result";
 import { relativePlanSemanticFingerprint } from "@/lib/server/relative-plan-prospective-comparison";
 import { decodeRelativePlanRetainedSource,RELATIVE_PLAN_CHARTER_SOURCE_MAX_BYTES } from "@/lib/server/relative-plan-charter-result";
+import { gzipSync } from "node:zlib";
 
 const fixture = charterEvaluationInput();
 test.beforeEach(() => test.setTimeout(180000));
@@ -37,6 +38,23 @@ test("lossless source decoding rejects malformed, altered, noncanonical and over
     { ...original,decoded_byte_length:RELATIVE_PLAN_CHARTER_SOURCE_MAX_BYTES+1 },{ ...original,encoding:"raw_json" }]) {
     expect(decodeRelativePlanRetainedSource(changed)).toBeNull();
   }
+  // A lying declared length must not bypass the actual decompressor cap.
+  expect(decodeRelativePlanRetainedSource({ ...original, decoded_byte_length: 1,
+    payload: gzipSync("x".repeat(RELATIVE_PLAN_CHARTER_SOURCE_MAX_BYTES + 1)).toString("base64") })).toBeNull();
+});
+test("eight-member complete source fits bounded storage without dropping a training or forward member", async () => {
+  const input = await charterEvaluationInput(8), built = buildRelativePlanCharterResult(input);
+  expect(built.status, built.blocker ?? "").toBe("ready");
+  const result = built.result!;
+  expect(result.retained_source.decoded_byte_length).toBeGreaterThan(8 * 1048576);
+  expect(result.retained_source.decoded_byte_length).toBeLessThanOrEqual(RELATIVE_PLAN_CHARTER_SOURCE_MAX_BYTES);
+  expect(Buffer.byteLength(JSON.stringify(result))).toBeLessThan(5 * 1048576);
+  expect(result.measurement.partitions.map(part => part.original_population_count)).toEqual([240, 240]);
+  expect(result.trained_model_receipt.trained_model.original_population_count).toBe(96);
+  expect(decodeRelativePlanRetainedSource(result.retained_source)).toEqual(JSON.parse(JSON.stringify(input.source)));
+  expect(verifiedRelativePlanCharterResultReceipt({ contract_version: RELATIVE_PLAN_CHARTER_RESULT_RECEIPT_VERSION,
+    result_id: "55555555-5555-4555-8555-555555555555", owner_user_id: input.owner,
+    finalized_at: input.now.toISOString(), result }, input.freeze, input.owner)?.result).toEqual(result);
 });
 test("a recomputed fingerprint cannot legitimize forged metrics or a changed original runtime envelope",async () => {
   for (const mode of ["disposition","metric","cost"] as const) {
@@ -82,4 +100,21 @@ test("actual database clock, immutable result and restarted SDK/product consumpt
   expect(proof.complete_finalized_product_http_bytes).toBeGreaterThan(0);
   expect(proof.complete_finalized_product_http_bytes).toBeLessThanOrEqual(5*1048576);
   console.log(JSON.stringify({ local_charter_finalization_evidence:proof }));
+});
+test("full eight-member population survives actual SQL finalization and negotiated HTTP readback", () => {
+  test.setTimeout(480000);
+  const result = spawnSync(process.execPath, ["scripts/relative-plan-charter-runtime-proof.mjs", "--finalized-result", "--full-eight-member-population"], {
+    encoding: "utf8", timeout: 470000, env: { ...process.env },
+  });
+  expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
+  const proof = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
+  expect(proof).toMatchObject({ status: "pass", original_candidates_per_forward_partition: 240,
+    durable_terminal_result_verified: true, actual_database_finalization_clock_verified: true,
+    historical_model_clock_fixture: true, actual_loopback_http_readback_verified: true,
+    full_population_transport_encoding: "gzip", quality_improvement_verified: false,
+    provider_requests: 0, production_writes: 0, broker_actions: 0 });
+  expect(proof.complete_original_product_decoded_http_bytes).toBeGreaterThan(5 * 1048576);
+  expect(proof.complete_finalized_product_http_bytes).toBeLessThanOrEqual(5 * 1048576);
+  expect(proof.complete_original_product_http_bytes).toBeLessThanOrEqual(4 * 1048576);
+  console.log(JSON.stringify({ local_eight_member_charter_evidence: proof }));
 });

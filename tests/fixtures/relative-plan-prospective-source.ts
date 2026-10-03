@@ -11,9 +11,9 @@ import { BUILD_MARKER, RECOMMENDATION_PUBLISH_POLICY_VERSION } from "@/lib/publi
 import { CANDIDATE_DECISION_PROVIDER_CONTRACT_VERSION } from "@/lib/candidate-decision-record";
 
 // Synthetic CLOSED point-in-time source. Future fixture dates are never market evidence.
-export async function prospectiveSource(options: { now?: Date; missingInputs?: boolean; missingOutcome?: boolean; allLosses?: boolean } = {}) {
+export async function prospectiveSource(options: { now?: Date; missingInputs?: boolean; missingOutcome?: boolean; allLosses?: boolean; rankedCount?: 4 | 8 } = {}) {
   const now = options.now ?? new Date("2026-10-12T17:00:00.000Z"), revision = prospectiveInput.source_revision;
-  const { run, record, observed } = await relativePlanEvidence({ rankedCount: 4, now,
+  const { run, record, observed } = await relativePlanEvidence({ rankedCount: options.rankedCount ?? 4, now,
     missing: options.missingInputs ?? false, buildVersion: revision.build_identity,
     learningAttribution: buildCandidateDecisionLearningAttribution({
       recommendationPublishPolicyVersion: RECOMMENDATION_PUBLISH_POLICY_VERSION,

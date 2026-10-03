@@ -7,12 +7,12 @@ import type { RelativePlanCharterRuntimeSource } from "@/lib/server/relative-pla
 
 /** Complete synthetic unit source only, NOT an actual DB attestation or alpha.
  * Four tickers in one sector deliberately violate the unchanged charter. */
-export async function charterEvaluationInput() {
+export async function charterEvaluationInput(rankedCount: 4 | 8 = 4) {
   const owner = prospectiveOwner, freeze = prospectiveReceipt();
   const trainingParts = await Promise.all([5, 6, 7].flatMap(day => [0, 1, 2, 3].map(n =>
-    prospectiveSource({ now: new Date(Date.UTC(2026, 9, day, 17, n * 5)) }))));
+    prospectiveSource({ now: new Date(Date.UTC(2026, 9, day, 17, n * 5)), rankedCount }))));
   const forwardParts = await Promise.all([12, 13, 14, 26, 27, 28].flatMap(day => Array.from({ length: 10 }, (_, n) =>
-    prospectiveSource({ now: new Date(Date.UTC(2026, 9, day, 16, n * 15)) }))));
+    prospectiveSource({ now: new Date(Date.UTC(2026, 9, day, 16, n * 15)), rankedCount }))));
   for (const part of forwardParts) {
     const at = part.snapshots[0].recommended_at;
     const context = { contract_version: "market_regime_decision_context_v1", classifier_version: "market_regime_v1",

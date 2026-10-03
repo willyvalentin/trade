@@ -11,7 +11,10 @@ export const RELATIVE_PLAN_CHARTER_RESULT_VERSION = "relative_plan_charter_resul
 export const RELATIVE_PLAN_CHARTER_RESULT_RECEIPT_VERSION = "relative_plan_charter_result_receipt_v1" as const;
 // Complete evidence only. This is a physical bound, never a cohort selector.
 export const RELATIVE_PLAN_CHARTER_RESULT_MAX_BYTES = 8 * 1048576;
-export const RELATIVE_PLAN_CHARTER_SOURCE_MAX_BYTES = 8 * 1048576;
+// Eight original members across all training + 60 forward decisions require
+// more than 8 MiB decoded. Keep the stored capsule at 8 MiB and the decoded
+// source independently capped; this changes no population/quality policy.
+export const RELATIVE_PLAN_CHARTER_SOURCE_MAX_BYTES = 16 * 1048576;
 type RetainedSource = { encoding: "canonical_json_gzip_base64_v1"; decoded_byte_length: number;
   source_fingerprint: string; payload: string };
 type Measurement = NonNullable<ReturnType<typeof buildRelativePlanCharterEvaluation>>;

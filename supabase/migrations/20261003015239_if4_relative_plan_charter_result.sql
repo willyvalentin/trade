@@ -79,7 +79,7 @@ begin
     coalesce(p_result#>>'{retained_source,source_fingerprint}','') !~ '^[a-f0-9]{64}$' or
     jsonb_typeof(p_result#>'{retained_source,payload}') is distinct from 'string' or
     jsonb_typeof(p_result#>'{retained_source,decoded_byte_length}') is distinct from 'number' or
-    (p_result#>>'{retained_source,decoded_byte_length}')::numeric not between 1 and 8388608 then
+    (p_result#>>'{retained_source,decoded_byte_length}')::numeric not between 1 and 16777216 then
     return jsonb_build_object('status','unavailable','receipt',null);
   end if;
   perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended('relative_plan_result_v1:' || p_prospective_freeze_id::text,0));

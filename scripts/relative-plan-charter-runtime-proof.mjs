@@ -9,9 +9,12 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { build } from "esbuild";
+import { createServer } from "node:http";
 
 const root = process.cwd(), directory = mkdtempSync(join(tmpdir(), "ture-relative-plan-charter-proof-"));
 const finalizedMode = process.argv.includes("--finalized-result");
+const rankedCount = process.argv.includes("--full-eight-member-population") ? 8 : 4;
+const partitionPopulation = 30 * rankedCount;
 const db = `ture-relative-plan-charter-db-${process.pid}`, api = `ture-relative-plan-charter-api-${process.pid}`;
 const network = `ture-relative-plan-charter-net-${process.pid}`;
 const docker = (...args) => execFileSync("docker", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
@@ -20,6 +23,36 @@ const sql = query => execFileSync("docker", ["exec", "-i", db, "psql", "-h", "12
 const originalFetch = globalThis.fetch, originalEnvironment = { ...process.env };
 let dbCreated = false, apiCreated = false, networkCreated = false, blockedExternalRequests = 0;
 let finalizedHttpBytes = null, resultPrewriteGuardsVerified = false;
+let originalDecodedHttpBytes = null, actualHttpReadbackVerified = false, transportEncoding = null;
+// Real local socket + client decompression, not Response.json() pretending to
+// decode compressed bytes. This is NOT a hosted Netlify behavior attestation.
+async function verifyHttp(readers, body) {
+  let wireBytes = null, encoding = null;
+  const server = createServer(async (request, response) => {
+    try {
+      const result = readers.relativePlanCompleteHttpResponse(body, { status: 200, headers: { "Cache-Control": "no-store" },
+        acceptEncoding: request.headers["accept-encoding"] });
+      const bytes = Buffer.from(await result.arrayBuffer());
+      wireBytes = bytes.length; encoding = result.headers.get("content-encoding");
+      assert(bytes.length <= (encoding === "gzip" ? 4 : 5) * 1048576);
+      if (encoding === "gzip") assert(bytes.toString("base64").length < 6_000_000);
+      response.writeHead(result.status, Object.fromEntries(result.headers)); response.end(bytes);
+    } catch (error) { response.writeHead(500); response.end(String(error)); }
+  });
+  try {
+    await new Promise((resolve, reject) => { server.once("error", reject); server.listen(0, "127.0.0.1", resolve); });
+    const response = await originalFetch(`http://127.0.0.1:${server.address().port}/complete`, {
+      headers: { "accept-encoding": "gzip" }, signal: AbortSignal.timeout(20000),
+    });
+    assert.equal(response.status, 200); assert.equal(response.headers.get("cache-control"), "no-store");
+    assert.equal(response.headers.get("vary"), "Accept-Encoding");
+    assert.deepEqual(await response.json(), JSON.parse(JSON.stringify(body)));
+    actualHttpReadbackVerified = true;
+    return { wireBytes, encoding, decodedBytes: Buffer.byteLength(JSON.stringify(body), "utf8") };
+  } finally {
+    server.closeAllConnections(); await new Promise(resolve => server.close(resolve));
+  }
+}
 try {
   await build({ bundle: true, platform: "node", format: "cjs", conditions: ["react-server"], alias: { "@": root },
     plugins: [{ name: "real-fixture-expect", setup(builder) { builder.onResolve({ filter: /^@playwright\/test$/ }, () => ({
@@ -48,7 +81,9 @@ try {
       export { persistRecommendationOutcome } from './lib/server/recommendation-outcome-persistence';` }, outfile: join(directory, "reader.cjs") });
   const readers = createRequire(import.meta.url)(join(directory, "reader.cjs"));
   docker("network", "create", network); networkCreated = true;
-  docker("run", "--pull=never", "--rm", "-d", "--name", db, "--network", network,
+  // Fresh Draft runners do not have the ordinary foundation shard's image
+  // cache. Fetch only these named test images if absent, never a market API.
+  docker("run", "--pull=missing", "--rm", "-d", "--name", db, "--network", network,
     "-e", "POSTGRES_PASSWORD=closed-proof-only", "postgres:16-alpine"); dbCreated = true;
   for (let i = 0; i < 40; i++) {
     try { sql("select 1"); break; } catch { if (i === 39) throw new Error("isolated_database_not_ready"); await delay(250); }
@@ -74,7 +109,7 @@ try {
   const encoded = value => Buffer.from(JSON.stringify(value)).toString("base64url");
   const body = `${encoded({ alg: "HS256", typ: "JWT" })}.${encoded({ role: "service_role", exp: Math.floor(Date.now() / 1000) + 3600 })}`;
   const token = `${body}.${createHmac("sha256", key).update(body).digest("base64url")}`;
-  docker("run", "--pull=never", "--rm", "-d", "--name", api, "--network", network, "-p", "127.0.0.1::3000",
+  docker("run", "--pull=missing", "--rm", "-d", "--name", api, "--network", network, "-p", "127.0.0.1::3000",
     "-e", `PGRST_DB_URI=postgresql://authenticator:closed-proof-only@${db}:5432/postgres`,
     "-e", "PGRST_DB_SCHEMAS=public", "-e", "PGRST_DB_ANON_ROLE=anon", "-e", `PGRST_JWT_SECRET=${key}`, "public.ecr.aws/supabase/postgrest:v16.1"); apiCreated = true;
   const endpoint = `http://${docker("port", api, "3000/tcp")}`;
@@ -134,7 +169,7 @@ try {
     for (const outcome of part.outcomes.filter(row => row.id !== omittedId)) assert.equal((await readers.persistRecommendationOutcome(outcome, { supabaseClient: client, server: true })).status, "saved");
   };
   for (const day of days) for (let n = 0; n < 4; n++) {
-    await persist(await readers.prospectiveSource({ now: new Date(Date.parse(session(day).session_open) + 3.5 * 3600000 + n * 300000) }));
+    await persist(await readers.prospectiveSource({ now: new Date(Date.parse(session(day).session_open) + 3.5 * 3600000 + n * 300000), rankedCount }));
   }
   let training;
   if (finalizedMode) {
@@ -155,12 +190,12 @@ try {
     training = { status: "materialized",receipt: (await readers.createRelativePlanTrainedProbabilityService().read(owner)).receipt };
   } else training = await readers.createRelativePlanTrainedProbabilityService().train(owner, {});
   assert.equal(training.status, "materialized", training.blocker); const sealed = training.receipt;
-  assert.equal(sealed.trained_model.original_population_count, 48);
+  assert.equal(sealed.trained_model.original_population_count, 12 * rankedCount);
   assert(Date.parse(sealed.committed_read_at) < Date.parse(windows.held_out.start_at));
   const parts = [], runtimeRows = [];
   for (const day of futureDays) for (let n = 0; n < 10; n++) {
     const at = new Date(Date.parse(session(day).session_open) + 2.5 * 3600000 + n * 900000);
-    const part = await readers.prospectiveSource({ now: at });
+    const part = await readers.prospectiveSource({ now: at, rankedCount });
     const context = { contract_version: "market_regime_decision_context_v1", classifier_version: "market_regime_v1",
       captured_at: at.toISOString(), regime: "risk_on" };
     Object.assign(part.scanRuns[0].payload_json, { market_regime: "risk_on", market_regime_context: context });
@@ -187,15 +222,15 @@ try {
     assert.equal(charter.terminal_quality_decision, null); assert.equal(charter.context_triage, null);
     assert.equal(charter.quality_improvement_claimed, false);
     for (const partition of charter.partitions) {
-      assert.equal(partition.enrolled_decision_count, 30); assert.equal(partition.original_population_count, 120);
+      assert.equal(partition.enrolled_decision_count, 30); assert.equal(partition.original_population_count, partitionPopulation);
       assert.deepEqual(partition.probability.model, sealed.trained_model.model);
       assert.equal(partition.thresholds.checks.length, 11);
     }
     return result;
   };
   const missing = await read(); assert.equal(missing.learning.full_charter.computed_disposition, "evidence_incomplete");
-  assert.equal(missing.learning.full_charter.partitions[0].quality.original_population_count, 120);
-  assert.equal(missing.learning.full_charter.partitions[0].quality.outcome_coverage.value, 119 / 120);
+  assert.equal(missing.learning.full_charter.partitions[0].quality.original_population_count, partitionPopulation);
+  assert.equal(missing.learning.full_charter.partitions[0].quality.outcome_coverage.value, (partitionPopulation - 1) / partitionPopulation);
   assert.equal((await readers.persistRecommendationOutcome(pending, { supabaseClient: client, server: true })).status, "saved");
   const full = await read(), charter = full.learning.full_charter;
   assert.equal(charter.evidence_complete, true); assert.equal(charter.computed_disposition, "reject");
@@ -205,10 +240,9 @@ try {
   assert.equal(held.reliability.value.value, 30 / 31); assert.equal(held.reliability.terminal_failure_count, 1);
   assert.equal(held.cost.credits_per_decision, 8); assert.equal(held.cost.reserved_provider_credits, 248);
   assert.equal(charter.partitions[1].operational.reliability.value.value, 1);
-  const response = readers.relativePlanCompleteHttpResponse(full, { status: 200, headers: { "Cache-Control": "no-store" } });
-  assert.equal(response.status, 200); assert.equal(response.headers.get("cache-control"), "no-store");
-  const httpBytes = Buffer.byteLength(await response.clone().text(), "utf8");
-  assert.deepEqual(await response.json(), JSON.parse(JSON.stringify(full)));
+  const fullTransport = await verifyHttp(readers, full);
+  const httpBytes = fullTransport.wireBytes;
+  originalDecodedHttpBytes = fullTransport.decodedBytes; transportEncoding = fullTransport.encoding;
   assert.deepEqual(await read(), full); // restarted service and actual fresh SDK reads, not cached source
   let durable = null;
   if (finalizedMode) {
@@ -225,13 +259,8 @@ try {
     assert.equal(persisted.learning.status,"evaluated");
     assert.equal(persisted.learning.terminal_quality_decision.result_fingerprint,durable.receipt.result.result_fingerprint);
     for (const body of [durable,persisted]) {
-      const transported = readers.relativePlanCompleteHttpResponse(body,{ status:200,headers:{ "Cache-Control":"no-store" } });
-      assert.equal(transported.status,200);
-      assert.equal(transported.headers.get("cache-control"),"no-store");
-      const bytes = Buffer.byteLength(await transported.clone().text(),"utf8");
-      assert(bytes <= 5*1048576);
-      assert.deepEqual(await transported.json(),JSON.parse(JSON.stringify(body)));
-      finalizedHttpBytes = Math.max(finalizedHttpBytes ?? 0,bytes);
+      const transported = await verifyHttp(readers, body);
+      finalizedHttpBytes = Math.max(finalizedHttpBytes ?? 0, transported.wireBytes);
     }
     for (const role of ["anon","authenticated","service_role"]) for (const privilege of ["select","insert","update","delete","truncate","references","trigger"]) {
       assert.equal(sql(`select has_table_privilege('${role}','public.relative_plan_charter_results','${privilege}')`),"f");
@@ -268,7 +297,7 @@ try {
   // Corrected unfavorable forward labels change errors, never the immutable
   // fitting job, original first thirty or thresholds.
   for (const part of [parts[0], parts[30]]) {
-    const losses = await readers.prospectiveSource({ now: new Date(part.snapshots[0].recommended_at), allLosses: true });
+    const losses = await readers.prospectiveSource({ now: new Date(part.snapshots[0].recommended_at), allLosses: true, rankedCount });
     for (const outcome of losses.outcomes) assert.equal((await readers.persistRecommendationOutcome(outcome, { supabaseClient: client, server: true })).status, "saved");
   }
   const corrected = (await readers.createRelativePlanProspectiveService().read(owner,now)).learning.full_charter;
@@ -284,8 +313,8 @@ try {
   assert.equal(blockedExternalRequests, 0);
   console.log(JSON.stringify({ status: "pass", environment: "isolated_postgres_postgrest_actual_sdk",
     evidence: finalizedMode ? "historical_synthetic_model_fixture_actual_database_finalization_not_market_alpha" : "synthetic_closed_not_market_alpha",
-    immutable_actual_database_training_members: finalizedMode ? null : 48,
-    original_held_out_decisions: 30, original_walk_forward_decisions: 30, original_candidates_per_forward_partition: 120,
+    immutable_actual_database_training_members: finalizedMode ? null : 12 * rankedCount,
+    original_held_out_decisions: 30, original_walk_forward_decisions: 30, original_candidates_per_forward_partition: partitionPopulation,
     held_out_admitted_attempts: 31, terminal_failures: 1, held_out_reserved_fixture_credits: 248,
     unknown_cost_retains_failure: !finalizedMode, missing_label_retains_original_denominator: true,
     actual_restarted_full_charter_consumer_verified: true, eleven_charter_checks_per_partition: true,
@@ -293,6 +322,9 @@ try {
     durable_terminal_result_verified: finalizedMode, actual_database_finalization_clock_verified: finalizedMode,
     historical_model_clock_fixture: finalizedMode, quality_improvement_verified: false,
     complete_original_product_http_bytes: httpBytes,
+    complete_original_product_decoded_http_bytes: originalDecodedHttpBytes,
+    actual_loopback_http_readback_verified: actualHttpReadbackVerified,
+    full_population_transport_encoding: transportEncoding,
     complete_finalized_product_http_bytes: finalizedHttpBytes, result_prewrite_guards_verified: resultPrewriteGuardsVerified,
     provider_requests: 0, production_writes: 0, broker_actions: 0 }));
 } finally {

@@ -14,6 +14,9 @@ import { persistRecommendationScanRun } from "@/lib/server/recommendation-scan-r
 import { persistRecommendationSnapshot } from "@/lib/server/recommendation-snapshot-persistence";
 import { persistRecommendationOutcome } from "@/lib/server/recommendation-outcome-persistence";
 import { relativePlanCompleteHttpResponse, RELATIVE_PLAN_COMPLETE_RESPONSE_MAX_BYTES } from "@/lib/server/relative-plan-complete-http-response";
+import { RELATIVE_PLAN_COMPLETE_DECODED_MAX_BYTES, RELATIVE_PLAN_COMPLETE_GZIP_MAX_BYTES } from "@/lib/server/relative-plan-complete-http-response";
+import { gunzipSync } from "node:zlib";
+import { randomBytes } from "node:crypto";
 
 const now = new Date("2026-10-10T00:00:00.000Z");
 const pieces = Promise.all([5, 6, 7].flatMap(day => [0, 1, 2, 3].map(n =>
@@ -168,4 +171,34 @@ test("HTTP transport fails closed on complete UTF-8 size, never truncating membe
   const circular: Record<string, unknown> = {}; circular.original = circular;
   expect(await relativePlanCompleteHttpResponse(circular, { status: 200, headers: {} }).json()).toMatchObject({
     status: "unavailable", receipt: null, blocker: "relative_plan_complete_response_unserializable" });
+});
+
+test("large complete JSON uses lossless negotiated gzip without expanding the buffered envelope", async () => {
+  const result = { original_population: ["AAA", "BBB", "CCC", "DDD", "EEE", "FFF", "GGG", "ZZZ"],
+    evidence: "é".repeat(RELATIVE_PLAN_COMPLETE_RESPONSE_MAX_BYTES / 2) };
+  for (const acceptEncoding of ["gzip", "br, GZip; q=0.5", "*"]) {
+    const response = relativePlanCompleteHttpResponse(result, { status: 201, headers: {}, acceptEncoding });
+    expect(response.status).toBe(201);
+    expect(response.headers.get("content-encoding")).toBe("gzip");
+    expect(response.headers.get("vary")).toBe("Accept-Encoding");
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    const encoded = Buffer.from(await response.arrayBuffer());
+    expect(encoded.byteLength).toBeLessThanOrEqual(RELATIVE_PLAN_COMPLETE_GZIP_MAX_BYTES);
+    expect(encoded.toString("base64").length).toBeLessThan(6_000_000);
+    expect(JSON.parse(gunzipSync(encoded).toString("utf8"))).toEqual(result);
+  }
+  for (const acceptEncoding of [null, "", "br", "gzip;q=0, *;q=1", "gzip;q=0.000", "gzip;q=2", "gzip;q=bad", "gzip;q=1,gzip;q=0"]) {
+    expect(relativePlanCompleteHttpResponse(result, { status: 200, headers: {}, acceptEncoding }).status).toBe(503);
+  }
+});
+
+test("gzip never bypasses independent decoded and compressed bounds", async () => {
+  const decodedOverflow = { evidence: "x".repeat(RELATIVE_PLAN_COMPLETE_DECODED_MAX_BYTES) };
+  const incompressible = { evidence: randomBytes(RELATIVE_PLAN_COMPLETE_GZIP_MAX_BYTES + 1048576).toString("base64") };
+  for (const result of [decodedOverflow, incompressible]) {
+    const response = relativePlanCompleteHttpResponse(result, { status: 200, headers: {}, acceptEncoding: "gzip" });
+    expect(response.status).toBe(503);
+    expect(response.headers.get("content-encoding")).toBeNull();
+    expect(await response.json()).toMatchObject({ receipt: null, blocker: "relative_plan_complete_response_exceeds_buffered_transport_limit" });
+  }
 });

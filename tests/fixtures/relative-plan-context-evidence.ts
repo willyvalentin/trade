@@ -62,10 +62,11 @@ async function candidate(ticker: string, range = 1, now = NOW, interval: "5min" 
   return result;
 }
 
-export async function relativePlanEvidence(options: { range?: number; now?: Date; interval?: "5min" | "15min"; missing?: boolean; rankedCount?: 4; buildVersion?: string; learningAttribution?: CandidateDecisionLearningAttribution } = {}) {
+export async function relativePlanEvidence(options: { range?: number; now?: Date; interval?: "5min" | "15min"; missing?: boolean; rankedCount?: 4 | 8; buildVersion?: string; learningAttribution?: CandidateDecisionLearningAttribution } = {}) {
   const now = options.now ?? NOW;
   const observed = await Promise.all([candidate("AAA", options.range ?? 1, now, options.interval), candidate("ZZZ", 8, now, options.interval)]);
-  if (options.rankedCount === 4) observed.push(...await Promise.all([candidate("BBB", 8, now), candidate("CCC", 8, now)]));
+  if (options.rankedCount === 4 || options.rankedCount === 8) observed.push(...await Promise.all([candidate("BBB", 8, now), candidate("CCC", 8, now)]));
+  if (options.rankedCount === 8) observed.push(...await Promise.all(["DDD", "EEE", "FFF", "GGG"].map(ticker => candidate(ticker, 8, now))));
   const missing = Array.from({ length: options.missing === false ? 0 : 8 - observed.length }, (_, i) => ({ ...observed[0], ticker: `MISS${i}` }));
   const ranking = buildScannerCandidateRankingSummary({ candidates: observed, targetMin: 0, targetMax: 3, now });
   const run = buildRecommendationScanRun({ trading_date: getNyMarketTime(now.toISOString()).ny_date, observed_at: now.toISOString(),
