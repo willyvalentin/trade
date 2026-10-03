@@ -2,6 +2,28 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
+**Exact Draft CI diagnosis and portable identity correction — 2026-10-03 04:08Z:**
+PR #732's exact `d0d84fa07db62221021eb66ef6467da9b02dfcfd` Draft workflow
+`37094676033` terminates failed. Its complete actual four/eight-member SQL and
+HTTP proofs pass, including the twelve retained older decisions; the only
+affected result-suite failure is a hardcoded compressed-result golden hash.
+The original measurement hash is identical. The reader already validates
+decoded canonical evidence and binds the exact original stored representation,
+rather than requiring current Node/zlib to recreate identical compressed bytes.
+The narrow test correction preserves the frozen full semantic-body golden,
+original source identity, unchanged measurement golden and exact stored-byte
+fingerprint; it additionally proves a changed gzip OS header fails without its
+binding and passes only after rebinding the identical decoded source. No product
+evaluator, numeric gate, cohort, CI selection or timeout changes.
+Local product-test revision `9b1f5835e145ab92e74bdcbc25ebaf642e5b9217` passes
+both affected checks on macOS Node 26 and isolated locked Linux Node 22.23.1,
+with test network disabled and no production credentials. Linux independently
+matches the frozen compression-independent semantic identity. This is a CI
+portability correction, not a quality improvement or release acceptance.
+The required security/release blocker remains. The selected primary development
+continues in the isolated benchmark-input-fitness branch from verified main;
+integrate that source correction only after this charter/context delivery.
+
 **Current correction — 2026-10-03 03:52Z:** The same primary IF-4 vertical
 has one newly reproduced full-source retention gap, within its existing
 twelve-active-hour delivery budget. Twelve valid owned decisions before the
