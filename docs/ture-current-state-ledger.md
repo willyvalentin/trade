@@ -2,7 +2,33 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
-**Now / Next / Blocked — original scanner to existing full-charter composition:**
+**Now / Next / Blocked — completed-history setup fitness:**
+The original-source composition below is locally complete on product
+`609c38c2b2534830622e855708cfd30389b9e54f`, tree
+`c2a873f78fcef53b49f64f7cbaace7e920ee2a80`; release remains held, not integrated.
+Codex retains one primary CLOSED IF-2b investigation on the same isolated
+integration branch, 4–16 active hours and at most four investigation hours.
+Its predecessor's immutable cold result remains zero enrolled decisions;
+do not replace it with the warm result or change its original population.
+
+Freeze the question before collection: can the existing actual scanner acquire
+only validated historical daily context in setup, using its existing one-credit
+cap, and retain the identical original two-slot input/plan/ranking evidence and
+canonical/full-charter coverage after restart? Baseline is the existing 32-call
+two-slot setup plus sixteen scheduled scan requests and fourteen separately
+disclosed outcome requests. Test only the existing history-only cap, not another
+acquisition-order heuristic. Require all sixteen original identities, the first
+partial decision, six/eight fresh inputs, the same original point-in-time input
+and plan evidence, exact finalized scheduled cost and unchanged quality gates.
+Setup must use at most sixteen synthetic daily calls and zero setup intraday
+calls; it is not free history, a production preparation job, cold-start recovery,
+a pre-forward model seal or market-quality evidence. Reject a differing original
+information set; stale/invalid histories must not gain freshness or extra budget.
+This bounded composition experiment may justify reuse of an existing capability,
+not new live preparation/scheduler authority. No provider, production, publication
+or broker action is selected. Finish or reject it before further work selection.
+
+**Completed original scanner to existing full-charter composition:**
 Codex reuses existing draft PR #732's isolated
 `codex/relative-plan-charter-comparison-oct3`, predecessor `bf457f45`, and locally
 merges the completed selected-input delivery `9c42a596` with both histories
@@ -62,9 +88,16 @@ without acquiring data. Observed sector/setup/regime/context is present for all
 eight; training model, first-thirty forward populations, day/ticker diversity,
 paired uncertainty and walk-forward evidence remain missing. Disposition stays
 `evidence_incomplete`, terminal decision/model null and graduation `not_met`.
-Strict nonincremental types and changed-file lint pass. The combined regression
-and exact integrated build are still pending; no main, hosted behavior or
-recommendation-quality acceptance is claimed. Mandatory audit is revalidated:
+Product revision `609c38c2` passes 121 combined runtime/input/receipt/ranking
+regressions and all 139 relative-plan evaluation/store/service regressions.
+The first latter run had 134 passes and five Docker permission failures;
+the unchanged full suite passes with actual local Docker access. A prior regex
+selection collected unrelated historical modules and is not a passing result.
+Strict nonincremental types and full lint pass (zero errors/eight existing
+warnings). The exact clean revision passes the normal locked Linux
+Node 22.23.1 / Next 16.3.8 Turbopack build with no production credentials or build
+network. This is not protected Ubuntu/Node 24 CI, main or hosted behavior;
+recommendation-quality acceptance remains unclaimed. Mandatory audit is revalidated:
 five high findings still trace to unpatched braces GHSA-vfj7-8cjw-p6xm in dev
 tooling. Do not exclude audit or force the suggested incompatible Next 14
 downgrade. Finish this coherent local integration, then resume the earliest
