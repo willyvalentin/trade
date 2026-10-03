@@ -11,6 +11,7 @@ import {
 import type { RecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
 import type { RecommendationScanRun } from "@/lib/recommendation-scan-run";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
+import { COMPLETED_INPUT_PUBLISHED_CAPTURE_VERSION } from "@/lib/completed-input-published-source";
 import {
   hasCanonicalOutcomeProviderCoverageWithEvaluationAnchor,
 } from "@/lib/recommendation-outcome-canonical-coverage";
@@ -108,6 +109,7 @@ export type RecommendationLearningBaselineReadiness = {
     decision_feature_vector_count: number;
     blocker_counts: Record<RecommendationDecisionSourceProvenanceBlocker, number> & Partial<Record<LearningSourceProvenanceBlocker, number>>;
     completed_input_research_snapshot_count?: number;
+    completed_input_published_snapshot_count?: number;
     upstream_provider_version_unavailable_count?: number;
   };
   intake_quality_provenance: RecommendationIntakeQualityProvenance;
@@ -334,7 +336,7 @@ export function buildRecommendationLearningBaselineReadiness({
     if (existing) return existing;
 
     assessedSnapshotsById.set(snapshot.id, snapshot);
-    const provenance = research
+    const provenance = research || snapshot.payload_json.published_input_capture_version === COMPLETED_INPUT_PUBLISHED_CAPTURE_VERSION
       ? recommendationResearchLearningSourceProvenance(snapshot, scanRuns)
       : recommendationDecisionSourceProvenanceFromSnapshot(snapshot);
     sourceProvenanceBySnapshotId.set(snapshot.id, provenance);
@@ -762,7 +764,12 @@ export function buildRecommendationLearningBaselineReadiness({
         ? COMPLETED_INPUT_LEARNING_PROVENANCE_VERSION
         : RECOMMENDATION_DECISION_SOURCE_PROVENANCE_VERSION,
       ...(completedInputSources.length > 0 ? {
-        completed_input_research_snapshot_count: completedInputSources.length,
+        completed_input_research_snapshot_count: completedInputSources.filter(provenance =>
+          !("published_input_capture_version" in provenance)).length,
+        ...(completedInputSources.some(provenance => "published_input_capture_version" in provenance) ? {
+          completed_input_published_snapshot_count: completedInputSources.filter(provenance =>
+            "published_input_capture_version" in provenance).length,
+        } : {}),
         upstream_provider_version_unavailable_count: completedInputSources.filter(
           provenance => provenance.provider_version === null,
         ).length,

@@ -355,6 +355,19 @@ test("packaged normal publication binds its decision before actual database pers
   expect(evidence.synthetic_publication_count).toBeGreaterThan(0);
 });
 
+test("packaged published original inputs survive SQL restart and canonical outcome learning without changing the population", () => {
+  test.setTimeout(90000);
+  const proof = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--cold", "--publication-clock", "--published-original-learning"],
+    { cwd: process.cwd(), encoding: "utf8", timeout: 80000 });
+  expect(proof.status, `${proof.stdout}\n${proof.stderr}`).toBe(0);
+  const evidence = proof.stdout.trim().split("\n").map(line => JSON.parse(line))
+    .find(row => row.published_original_learning_proof === "passed");
+  expect(evidence).toMatchObject({ original_population: 8, canonical_published_outcomes: 3,
+    missing_original_members: 5, separate_synthetic_outcome_requests: 3, completed_repeat_requests: 0,
+    distinct_original_publication_clocks: true, restarted_owned_read: true, original_publications_unchanged: true,
+    actual_provider_requests: 0, production_actions: 0, broker_actions: 0, quality_improvement_claimed: false });
+});
+
 for (const scenario of ["cold", "warm", "opening", "opening_zero"]) {
   test(`packaged ${scenario} inputs retain hidden research plans and real isolated outcome persistence`, () => {
     test.setTimeout(90000);

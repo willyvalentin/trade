@@ -2,6 +2,76 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
+**Completed local implementation / Next / Blocked — published original-input learning continuity:**
+Owner Codex selects one CLOSED IF-2b -> IF-4 4–16 active-hour vertical
+(initial investigation at most four) on isolated
+`codex/published-original-input-learning-oct3`, from freshly read main
+`55576078` through completed local `ab50607a`. A bounded read-only production
+query finds zero scheduled outcome attempts on Oct 2; zero stored outcomes is
+not itself a reproduced outcome-runner failure. It also identifies an earlier
+source gap: the visible AAPL snapshot has original candidate IDs and an outcome
+anchor, but no retained normalized input or explicit original decision clock;
+the two hidden sources retain both. The current normalized learning matcher
+only admits hidden research, so publication can prevent full-original quality
+attribution even after a canonical label arrives. Reproduce through the existing
+packaged normal publication proof before correction. Retain new published
+inputs against their exact original v4 decision and unchanged plan, with an
+explicit capture basis and distinct decision/publication clocks. Match the same
+fully closed canonical horizon; a changed anchor remains a missing member,
+not permission to shift labels. Preserve legacy published evidence, hidden
+capture, original denominators, the frozen ranking formula/charter, owner
+isolation and release gates. Acceptance: actual scheduler/scanner publication,
+SQL/SDK/restarted original-source reader and canonical-outcome consumer link
+both published and hidden original sources; mutations, clock/geometry mismatch,
+stale data and wrong owner fail closed; original missing inputs remain missing.
+No production/provider/broker action or live ranking change is selected. This
+is source/outcome quality measurement, not demonstrated accuracy or promotion.
+
+The actual packaged publication proof reproduces the missing original input.
+Its published payload's legacy `data_timestamp` is acquisition time, not the
+original closed bar's start; plan bounds/setup/string confidence also have no
+top-level snapshot persistence columns. New publications now retain their
+exact v4 input under `completed_input_published_capture_v1`, explicitly retain
+the original source/decision clocks, and preserve original plan metadata through
+the actual persistence decoder. Legacy acquisition/publication times, snapshot
+fingerprints, recommendation rows and hidden research capture stay unchanged.
+A publication crossing the next canonical closed-bar anchor is not admitted
+on the new basis. Old snapshots are not repaired or relabelled retrospectively.
+
+The registered actual scheduler/scanner/SQL/SDK/restarted-reader/outcome proof
+passes: eight original candidates, three funded inputs/eight synthetic scan
+requests, three actual isolated publications, three separately costed synthetic
+60-minute outcome requests and three persisted attributable canonical labels.
+Five original members remain missing; precision delta stays null and readiness
+stays `not_ready`. Geometry/input/clock/unknown-version mutations and missing
+durable lineage stop before outcome acquisition; wrong owner receives no rows;
+route restart reacquires or rewrites no completed outcomes. Original publication
+count and plans remain unchanged. The frozen charter consumes explicit original
+published setup metadata, still retains all eight members and remains incomplete.
+The actual scanner/source regression passes all 37 checks (3.8m), including
+existing hidden sources, opening/closing, missing data and legacy acquisition.
+All 29 canonical/charter measurement checks and all 39 historical/model checks
+pass; the five final published-source tests additionally verify mixed visible
+and hidden canonical membership, duplicate denial and unchanged missing members.
+All five governance checks pass. Nonincremental types and normal full lint pass
+(zero errors/eight pre-existing warnings). Production build remains to be
+verified before this local handoff is complete. No new schema, real provider
+request, production write, merge, deploy or broker action occurred.
+
+Next is release verification and the retained full-original forward quality
+question, not another ranking hypothesis. Read-only GitHub status still shows
+PR #732 draft at `bf457f45`, with failed protected verification; no release gate
+is bypassed and its result migration remains unapplied. This slice is only
+local; production/OPEN behavior and measurable quality improvement remain
+unverified. Logs: `/private/tmp/ture-published-original-input-source-fixed-oct3.log`,
+`/private/tmp/ture-published-original-input-runtime-regression-oct3.log`,
+`/private/tmp/ture-published-original-input-measurement-tests-final-oct3.log`,
+`/private/tmp/ture-published-original-input-historical-model-tests-oct3.log`,
+`/private/tmp/ture-published-original-input-mixed-unit-oct3.log`,
+`/private/tmp/ture-published-original-input-final-unit-governance-oct3.log`,
+`/private/tmp/ture-published-original-input-final-types-oct3.log` and
+`/private/tmp/ture-published-original-input-full-lint-oct3.log`.
+
 **Completed bounded investigation / Next / Blocked — original outcome acquisition:**
 On `codex/original-outcome-window-reuse-oct3`, from freshly read main
 `55576078` through completed local `d90519ec`, Codex tested a same-run,

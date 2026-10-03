@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { SCANNER_INPUT_POLICY_ENV, scheduledScannerInputPolicy } from "@/lib/scheduled-scanner-input-policy";
+import { attachCompletedInputPublishedEvidence } from "@/lib/completed-input-published-source";
 
 import {
   generateRecommendations,
@@ -2198,6 +2199,7 @@ function buildAutomationScanObservability({
 
 function buildSnapshotFromRecommendation({
   recommendation,
+  decisionRecord,
   scanRunId,
   scanWindow,
   now,
@@ -2212,6 +2214,7 @@ function buildSnapshotFromRecommendation({
   marketRegimeContext,
 }: {
   recommendation: RecommendationRow;
+  decisionRecord: CandidateDecisionRecord | null;
   scanRunId: string;
   scanWindow: IntradayScanWindow;
   now: Date;
@@ -2332,7 +2335,7 @@ function buildSnapshotFromRecommendation({
     now,
   });
 
-  return buildRecommendationSnapshot({
+  const snapshot = buildRecommendationSnapshot({
     recommendation_id: textOrNull(recommendation.id),
     scan_run_id: scanRunId,
     ticker,
@@ -2431,6 +2434,7 @@ function buildSnapshotFromRecommendation({
       recommendation_serving_cadence: servingCadence,
     },
   });
+  return attachCompletedInputPublishedEvidence(snapshot, decisionRecord);
 }
 
 function buildSnapshotFromResearchSample({
@@ -2948,6 +2952,7 @@ async function persistAutomationArtifacts({
   const preliminarySnapshots = recommendations.map((recommendation) =>
     buildSnapshotFromRecommendation({
       recommendation,
+      decisionRecord: candidateDecisionRecord,
       scanRunId: scanRun.run_fingerprint,
       scanWindow,
       now,
@@ -3058,6 +3063,7 @@ async function persistAutomationArtifacts({
   for (const recommendation of recommendations) {
     const snapshot = buildSnapshotFromRecommendation({
       recommendation,
+      decisionRecord: candidateDecisionRecord,
       scanRunId: scanRun.run_fingerprint,
       scanWindow,
       now,

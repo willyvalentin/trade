@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { COMPLETED_INPUT_RESEARCH_CAPTURE_VERSION, completedInputResearchSnapshotMatchesDecision } from "@/lib/completed-input-research-selection";
+import { completedInputPublishedSnapshotMatchesDecision } from "@/lib/completed-input-published-source";
 import { candidateDecisionRecordFromScanRun } from "@/lib/candidate-decision-readback";
 import { recommendationScanRunFromPersistenceRow } from "@/lib/recommendation-scan-run";
 import { decisionLineageReceiptFromScanRun } from "@/lib/decision-lineage-receipt";
@@ -960,7 +961,8 @@ async function loadOfficialLiveSnapshots({
           (snapshot): snapshot is RecommendationSnapshot =>
             snapshot !== null,
         );
-      if (payload.completed_input_research_capture_version === COMPLETED_INPUT_RESEARCH_CAPTURE_VERSION) {
+      if (payload.completed_input_research_capture_version === COMPLETED_INPUT_RESEARCH_CAPTURE_VERSION ||
+        rawBatchSnapshots.some(snapshot => snapshot.payload_json.published_input_capture_version !== undefined)) {
         // Owner-bound durable decision is the authority, not a research marker
         // or an "official" label. No new provider work during this validation.
         const decisionRows = await serverSupabase.client.from("recommendation_scan_runs").select("*")
@@ -971,7 +973,9 @@ async function loadOfficialLiveSnapshots({
         const attributableRecord = sourceRun && decisionRecord && decisionLineageReceiptFromScanRun(sourceRun, decisionRecord)
           ? decisionRecord : null;
         rawBatchSnapshots = rawBatchSnapshots.filter(snapshot =>
-          snapshot.payload_json.research_capture_version === COMPLETED_INPUT_RESEARCH_CAPTURE_VERSION
+          snapshot.payload_json.published_input_capture_version !== undefined
+            ? completedInputPublishedSnapshotMatchesDecision(snapshot, attributableRecord)
+            : snapshot.payload_json.research_capture_version === COMPLETED_INPUT_RESEARCH_CAPTURE_VERSION
             ? completedInputResearchSnapshotMatchesDecision(snapshot, attributableRecord)
             : batch.batch_type === "official");
       }

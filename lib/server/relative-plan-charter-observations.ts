@@ -64,9 +64,11 @@ export function buildRelativePlanCharterObservations(input: {
     const values = admissible ? provenance!.decision_feature_vector?.feature_values : null;
     const sector = admissible ? observedText(decision!.sector) : null;
     if (!sector) blockers.add("original_sector_unavailable");
-    // Setup comes only from explicit original hidden snapshot metadata. Its
+    // Setup comes only from explicit original snapshot metadata. Its
     // scope is disclosed: the v4 decision record does not itself retain it.
-    const rawSetup = admissible ? snapshot!.payload_json.setup_type : null;
+    const publishedInput = Boolean(admissible && snapshot!.recommendation_id &&
+      provenance && "published_input_capture_version" in provenance);
+    const rawSetup = admissible ? (publishedInput ? snapshot!.type : snapshot!.payload_json.setup_type) : null;
     const setup: SetupType | null = typeof rawSetup === "string" && rawSetup !== "UNKNOWN" &&
       SETUP_TYPES.includes(rawSetup as SetupType) ? rawSetup as SetupType : null;
     if (!setup) blockers.add("original_setup_unavailable_or_unclassified");
@@ -98,7 +100,8 @@ export function buildRelativePlanCharterObservations(input: {
       snapshot_fingerprint: admissible ? snapshot!.snapshot_fingerprint : null,
       baseline_rank: row.baseline_rank, challenger_rank: row.shadow_rank,
       sector, setup, regime,
-      metadata_scope: { sector: "original_decision_record", setup: "explicit_original_research_snapshot",
+      metadata_scope: { sector: "original_decision_record", setup: publishedInput
+        ? "explicit_original_published_snapshot" : "explicit_original_research_snapshot",
         regime: "matching_original_scan_and_snapshot_context" },
       decision_feature_vector_version: admissible ? provenance!.decision_feature_vector?.contract_version ?? null : null,
       liquidity, volatility, trigger_attainment: trigger,

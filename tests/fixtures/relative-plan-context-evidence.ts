@@ -62,7 +62,7 @@ async function candidate(ticker: string, range = 1, now = NOW, interval: "5min" 
   return result;
 }
 
-export async function relativePlanEvidence(options: { range?: number; now?: Date; interval?: "5min" | "15min"; missing?: boolean; rankedCount?: 4 | 8; buildVersion?: string; learningAttribution?: CandidateDecisionLearningAttribution } = {}) {
+export async function relativePlanEvidence(options: { range?: number; now?: Date; interval?: "5min" | "15min"; missing?: boolean; rankedCount?: 4 | 8; buildVersion?: string; learningAttribution?: CandidateDecisionLearningAttribution; publishedTickers?: string[] } = {}) {
   const now = options.now ?? NOW;
   const observed = await Promise.all([candidate("AAA", options.range ?? 1, now, options.interval), candidate("ZZZ", 8, now, options.interval)]);
   if (options.rankedCount === 4 || options.rankedCount === 8) observed.push(...await Promise.all([candidate("BBB", 8, now), candidate("CCC", 8, now)]));
@@ -75,7 +75,8 @@ export async function relativePlanEvidence(options: { range?: number; now?: Date
     scanned_ticker_count: observed.length + missing.length, raw_candidate_count: observed.length });
   const capture = buildCandidateDecisionCapture({ captureTimestamp: now.toISOString(), decisionTimestamp: now.toISOString(),
     universe: [...observed, ...missing], observedCandidates: observed, ranking,
-    noPublishReason: "no_trade", eligibleCandidateTickers: observed.map(c => c.ticker) });
+    noPublishReason: "no_trade", eligibleCandidateTickers: observed.map(c => c.ticker),
+    publishedTickers: options.publishedTickers });
   const record = buildCandidateDecisionRecord({ scanRun: run, capture, scoringVersion: "synthetic_original_score",
     learningAttribution: options.learningAttribution,
     buildVersion: options.buildVersion ?? "synthetic_closed_shadow_test:synthetic_closed_shadow_test" })!;

@@ -112,7 +112,10 @@ const closing = process.argv.includes("--closing");
 assert(!closing || cold && !opening && !wrongPolicy && !diagnoseOutcomes,
   "Closing analysis is one isolated cold input path, not outcome/forward acceptance");
 const publicationClock = process.argv.includes("--publication-clock");
+const publishedOriginalLearning = process.argv.includes("--published-original-learning");
 const contextLatency = process.argv.includes("--context-latency");
+assert(!publishedOriginalLearning || publicationClock && cold && !closing && !contextLatency,
+  "Published learning retains the existing isolated normal publication population");
 const pointInTimeContext = process.argv.includes("--point-in-time-context");
 assert(!pointInTimeContext || cold && !wrongPolicy,
   "Point-in-time context proof requires the actual bounded cold input path");
@@ -141,7 +144,7 @@ assert(!existingPremarketSetup || !process.argv.some(value=>[
 const slot = rotationDay ? "2026-10-01T13:30:00.000Z" : closing ? "2026-10-01T19:45:00.000Z" : opening ? "2026-10-01T13:45:00.000Z" : "2026-10-01T17:30:00.000Z";
 const expiry = rotationDay ? "2026-10-01T20:00:00.000Z" : new Date(Date.parse(slot) + 900000).toISOString();
 const nextSlot = new Date(Date.parse(expiry) + 900000).toISOString();
-const futureBoundary = new Date(Date.parse(slot) + (relativePlan60m ? 4500000 : 1800000)).toISOString();
+const futureBoundary = new Date(Date.parse(slot) + (relativePlan60m || publishedOriginalLearning ? 4500000 : 1800000)).toISOString();
 const zeroLatestVolume = process.argv.includes("--zero-latest-volume");
 const fractionalPrice = process.argv.includes("--fractional-price");
 assert(!fractionalPrice || cold && !publicationClock && !rotationDay && !diagnoseOutcomes && !wrongPolicy,
@@ -226,7 +229,7 @@ try {
   } };
   await build({ ...options, ...(baselineBenchmarkReuse || acquisitionBaseline || minimumOrderBaseline || firstObservationBaseline || fairOrderBaseline || regularSessionBaseline || firstClosedBarBaseline || omittedPairBaseline ? {plugins:[baselinePlugin]} : {}),
     entryPoints: [resolve(root, "app/api/automation/run-scan/route.ts")], outfile: join(generated, "scheduled-scan-runtime.cjs") });
-  if (diagnoseOutcomes || charterComposition || lateOriginalOutcomes || fullOriginalHistorySetup) buildSync({ ...options, entryPoints: [resolve(root, "app/api/recommendations/evaluate-outcomes/route.ts")], outfile: join(generated, "outcome-route.cjs") });
+  if (diagnoseOutcomes || publishedOriginalLearning || charterComposition || lateOriginalOutcomes || fullOriginalHistorySetup) buildSync({ ...options, entryPoints: [resolve(root, "app/api/recommendations/evaluate-outcomes/route.ts")], outfile: join(generated, "outcome-route.cjs") });
   buildSync({ ...options, entryPoints: [resolve(root, "netlify/functions/scheduled-scan.ts")], outfile: join(directory, "functions/scheduled.cjs") });
   await build({ ...options, ...(legacyRetentionBaseline ? {plugins:[{name:"legacy-retention-predecessor",setup(builder) {
     builder.onLoad({filter:/\/lib\/(scanner|market-data)\.ts$/},args=>({
@@ -267,6 +270,8 @@ try {
       export { buildRecommendationLearningBaselineSegmentation } from './lib/recommendation-learning-baseline-segments';
       export { buildRecommendationLearningEvaluationPlans } from './lib/recommendation-learning-evaluation-plan';
       export { recommendationDecisionSourceProvenanceFromSnapshot } from './lib/recommendation-decision-source-provenance';
+      export { recommendationResearchLearningSourceProvenance } from './lib/completed-input-learning-provenance';
+      export { buildRelativePlanCharterObservations } from './lib/server/relative-plan-charter-observations';
       export { buildRecommendationIntakeQualityProvenance } from './lib/recommendation-intake-quality-provenance';
       ${charterComposition ? `export { createRelativePlanProspectiveService } from './lib/server/relative-plan-prospective-service';
       export { buildRelativePlanProspectivePlan, relativePlanCanonicalBuildIdentity, relativePlanSemanticFingerprint } from './lib/server/relative-plan-prospective-comparison';` : ""}
@@ -331,7 +336,7 @@ try {
     "20260519000000_create_legacy_baseline_schema_draft.sql",
     "20260528000000_create_recommendation_snapshots.sql",
     "20260528001000_create_recommendation_outcomes.sql",
-    ...(diagnoseOutcomes || charterComposition || lateOriginalOutcomes || fullOriginalHistorySetup ? ["20260605000000_add_recommendation_outcomes_snapshot_horizon_unique_index.sql"] : []),
+    ...(diagnoseOutcomes || publishedOriginalLearning || charterComposition || lateOriginalOutcomes || fullOriginalHistorySetup ? ["20260605000000_add_recommendation_outcomes_snapshot_horizon_unique_index.sql"] : []),
     "20260528002000_create_recommendation_scan_runs.sql",
     "20260528003000_create_recommendation_batches.sql",
     "20260614000000_create_execution_records.sql",
@@ -409,7 +414,7 @@ try {
           const volume = missingLatestVolume && latestClosed ? " " : zeroLatestVolume && latestClosed ? "0" : "1000";
           const index=(time-OriginalDate.parse("2026-10-01T13:30:00Z"))/300000;
           const close=100+index*0.06;
-          const futurePlan=relativePlan60m || charterComposition || lateOriginalOutcomes || fullOriginalHistorySetup ? futureOutcomePlans.find(plan=>plan.ticker===url.searchParams.get("symbol")) : null;
+          const futurePlan=relativePlan60m || publishedOriginalLearning || charterComposition || lateOriginalOutcomes || fullOriginalHistorySetup ? futureOutcomePlans.find(plan=>plan.ticker===url.searchParams.get("symbol")) : null;
           const anchor=futurePlan ? Math.ceil(OriginalDate.parse(futurePlan.payload_json.decision_timestamp)/300000)*300000 : null;
           if(futurePlan && time>=anchor) {
             // Explicitly synthetic future bars, supplied only at the provider
@@ -1488,7 +1493,7 @@ try {
   const lineage = scanRuns[0]?.payload_json.decision_lineage_receipt;
   const claims=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from basic_free_discovery_credit_reservations t;"));
   const researchSnapshots=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_snapshots t;"));
-  if(relativePlan60m) futureOutcomePlans=researchSnapshots.map((snapshot,index)=>({...snapshot,synthetic_win:index%2===0}));
+  if(relativePlan60m || publishedOriginalLearning) futureOutcomePlans=researchSnapshots.map((snapshot,index)=>({...snapshot,synthetic_win:index%2===0}));
   let outcomeChainEvidence = null;
   let charterCompositionEvidence = null;
   if(wrongPolicy) {
@@ -1626,6 +1631,13 @@ try {
       for(const row of published) {
         const candidate=record.candidates.find(c=>c.ticker===row.ticker && c.disposition==="published");
         assert(candidate?.data.input_snapshot);
+        if(publishedOriginalLearning) {
+          const originalSnapshot=benchmarkSource.snapshots.find(snapshot=>snapshot.recommendation_id===row.id);
+          assert(originalSnapshot,"The original published snapshot must survive the restarted owned reader");
+          assert.deepEqual(originalSnapshot.payload_json.scanner_decision_input_snapshot,candidate.data.input_snapshot,
+            "Publication must not discard its original normalized decision inputs");
+          assert.equal(originalSnapshot.payload_json.decision_timestamp,record.decision_timestamp);
+        }
         assert.equal(candidate.data.freshness,"fresh");
         assert.deepEqual(candidate.data.gap_codes,[]);
         for(const [column,feature] of [["entry_low","proposed_entry_low"],["entry_high","proposed_entry_high"],
@@ -1808,6 +1820,88 @@ try {
     const otherRead=await restarted.readRecommendationLearningBaselineSource("00000000-0000-4000-8000-000000000002");
     assert.equal(otherRead.status,"available");
     assert.equal(otherRead.data.recommendation_scan_runs.length,0);
+    if(publishedOriginalLearning) {
+      const originalSource=restarted.parseRecommendationLearningBaselineSource(ownerRead.data);
+      assert(originalSource);
+      assert.equal(originalSource.snapshots.length,3);
+      assert(originalSource.snapshots.every(snapshot=>snapshot.is_visible && snapshot.recommendation_id));
+      for(const snapshot of originalSource.snapshots) {
+        const provenance=restarted.recommendationResearchLearningSourceProvenance(snapshot,originalSource.scanRuns);
+        assert.equal(provenance.status,"admissible",JSON.stringify(provenance));
+        assert.equal(provenance.original_decision_timestamp,record.decision_timestamp);
+        assert.equal(provenance.source_timestamp,snapshot.payload_json.original_source_timestamp);
+        assert.notEqual(provenance.decision_timestamp,provenance.original_decision_timestamp,
+          "Publication must retain its distinct real clock");
+      }
+      clock=OriginalDate.parse(futureBoundary);
+      const before=externalRequests;
+      const evaluate=()=>require(join(generated,"outcome-route.cjs")).POST(new Request("http://closed-fixture/api/recommendations/evaluate-outcomes",{
+        method:"POST",headers:{"x-automation-secret":environment.AUTOMATION_SECRET,"Content-Type":"application/json"},
+        body:JSON.stringify({mode:"official_live_today",horizons:["60m"],max_candle_requests:3,max_batches:1}),
+      }));
+      // Real persisted mutations must stop at the loader before acquisition.
+      for(const fault of ["entry_low","risk_per_share","original_source_timestamp","decision_timestamp","published_input_capture_version","scanner_decision_input_snapshot"]) {
+        const value=["entry_low","risk_per_share"].includes(fault) ? "0" : JSON.stringify(
+          ["published_input_capture_version","scanner_decision_input_snapshot"].includes(fault) ? "unknown_capture" : "2026-10-01T20:00:00.000Z");
+        sql(`update recommendation_snapshots set payload_json=jsonb_set(payload_json,'{${fault}}','${value}'::jsonb);`);
+        const response=await evaluate(),result=await response.json();
+        assert.equal(response.status,200,JSON.stringify(result));
+        assert.equal(result.eligible_snapshot_count,0,JSON.stringify(result));
+        assert.equal(externalRequests,before);
+        for(const row of researchSnapshots) sql(`update recommendation_snapshots set payload_json='${JSON.stringify(row.payload_json).replaceAll("'","''")}'::jsonb where id='${row.id}';`);
+      }
+      sql("update recommendation_scan_runs set payload_json=payload_json-'decision_lineage_receipt';");
+      const unbound=await evaluate(),unboundBody=await unbound.json();
+      assert.equal(unbound.status,200);
+      assert.equal(unboundBody.eligible_snapshot_count,0);
+      assert.equal(externalRequests,before);
+      sql(`update recommendation_scan_runs set payload_json='${JSON.stringify(scanRuns[0].payload_json).replaceAll("'","''")}'::jsonb where id='${scanRuns[0].id}';`);
+      const result=await evaluate(),resultBody=await result.json();
+      assert.equal(result.status,200,JSON.stringify(resultBody));
+      const read=await restarted.readRecommendationLearningBaselineSource(owner);
+      const source=restarted.parseRecommendationLearningBaselineSource(read.data);
+      assert(source);
+      const readiness=restarted.buildRecommendationLearningBaselineReadiness(source);
+      const comparison=readiness.relative_plan_context_outcomes[0];
+      assert.equal(resultBody.persistence_status,"success",JSON.stringify({status:resultBody.persistence_status,error:resultBody.persistence_error}));
+      assert.equal(source.outcomes.length,3);
+      assert.equal(externalRequests-before,3);
+      assert.equal(comparison.original_population_count,8);
+      assert.equal(comparison.canonical_outcome_count,3,JSON.stringify(comparison));
+      assert.equal(comparison.missing_outcome_count,5);
+      assert.equal(comparison.population_complete,false);
+      assert.equal(comparison.precision_delta,null);
+      assert.equal(comparison.quality_improvement_claimed,false);
+      assert.equal(readiness.decision_time_source_provenance.completed_input_published_snapshot_count,3);
+      assert.equal(readiness.status,"not_ready");
+      const charter=restarted.buildRelativePlanCharterObservations({scanRun:source.scanRuns[0],source,now:new OriginalDate(clock)});
+      assert(charter);
+      assert.equal(charter.rows.length,8);
+      for(const snapshot of source.snapshots) {
+        const row=charter.rows.find(row=>row.candidate_id===snapshot.payload_json.candidate_id);
+        assert.equal(row.metadata_scope.setup,"explicit_original_published_snapshot");
+        assert.equal(row.setup,snapshot.type);
+      }
+      assert.equal(charter.status,"evidence_incomplete");
+      assert.equal(charter.quality_improvement_claimed,false);
+      const persisted=JSON.stringify(source.outcomes);
+      delete require.cache[require.resolve(join(generated,"outcome-route.cjs"))];
+      assert.equal((await evaluate()).status,200);
+      assert.equal(externalRequests-before,3);
+      assert.equal(JSON.stringify(restarted.parseRecommendationLearningBaselineSource((await restarted.readRecommendationLearningBaselineSource(owner)).data).outcomes),persisted);
+      assert.equal((await restarted.readRecommendationLearningBaselineSource("00000000-0000-4000-8000-000000000002")).data.recommendation_outcomes.length,0);
+      assert.equal(Number(sql("select count(*) from recommendations;")),3);
+      assert.equal(Number(sql("select count(*) from recommendation_snapshots where status='hidden';")),0);
+      originalLog(JSON.stringify({published_original_learning_proof:"passed",original_population:8,
+        canonical_published_outcomes:3,missing_original_members:5,separate_synthetic_outcome_requests:3,
+        distinct_original_publication_clocks:true,restarted_owned_read:true,completed_repeat_requests:0,
+        original_publications_unchanged:true,actual_provider_requests:0,production_actions:0,broker_actions:0,
+        quality_improvement_claimed:false}));
+      // Return to the existing original-slot deduplication assertion. Future
+      // outcome acquisition is separately counted above, not scan budget.
+      externalRequests=before;
+      clock=OriginalDate.parse(slot)+20000;
+    }
     if(diagnoseOutcomes) {
       assert.equal(ownerRead.data.recommendation_snapshots.length,researchSnapshots.length);
       assert.equal(otherRead.data.recommendation_snapshots.length,0);
