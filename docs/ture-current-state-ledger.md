@@ -60,7 +60,12 @@ reproduces unknown published capture plus an invented upstream-version string
 being counted by legacy source admission. Unknown captures now use the stronger
 normalized gate and stay incomplete; absent markers retain historical behavior.
 All 31 measurement tests, the registered actual publication/outcome test (12.8s),
-types and full lint pass after this correction. Its final build remains pending.
+types and full lint pass after this correction. The normal Linux Next production
+build of exact final product revision
+`68f24784512cb940a81fdf68edadf283b8c8f44e` also passes with read-only,
+lock-verified cached dependencies and no install/build network or credentials.
+All five final governance checks pass. This input-continuity exit is complete
+locally; return to original full-population canonical/forward quality evidence.
 No new schema, real provider
 request, production write, merge, deploy or broker action occurred.
 
@@ -79,7 +84,9 @@ unverified. Logs: `/private/tmp/ture-published-original-input-source-fixed-oct3.
 `/private/tmp/ture-published-original-input-final-recheck-lint-oct3.log`,
 `/private/tmp/ture-published-original-input-final-measurement-tests-oct3.log`,
 `/private/tmp/ture-published-original-input-final-registered-runtime-oct3.log` and
-`/private/tmp/ture-published-original-input-exact-linux-build-oct3.log`.
+`/private/tmp/ture-published-original-input-exact-linux-build-oct3.log`,
+`/private/tmp/ture-published-original-input-final-exact-linux-build-oct3.log` and
+`/private/tmp/ture-published-original-input-final-governance-recheck-oct3.log`.
 
 **Completed bounded investigation / Next / Blocked — original outcome acquisition:**
 On `codex/original-outcome-window-reuse-oct3`, from freshly read main
