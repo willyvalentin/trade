@@ -32,9 +32,9 @@ Exact-product build passes. The remaining 32 absent qualified 60m labels are
 now individually attributed below to four original horizons crossing session
 close, not another unexplained source/acquisition defect. This bounded
 continuation is locally complete with `evidence_incomplete` full-charter
-disposition, not passing quality. Next inspect the existing prospective
-comparison's decision-time/session eligibility and resulting full-scorecard
-feasibility before selecting a correction or a new collection question.
+disposition, not passing quality. The existing prospective comparison's
+decision-time/session eligibility and full-scorecard feasibility have now been
+inspected without changing the original population or thresholds.
 The bounded full-original scorecard check now returns the unchanged
 `evidence_incomplete` disposition: coverage, sector/setup/regime concentration
 fail their existing limits; precision, expectancy, calibration and paired
@@ -44,8 +44,8 @@ pre-forward model or cross-day evidence through another acquisition retry.
 Stop this historical acceptance attempt; retain it as a diagnostic, not a
 substitute prospective cohort.
 
-**Current primary — bounded CLOSED IF-4 malformed terminal-label integrity:**
-The next learning action preserves this negative result: the sole selected
+**Completed primary — bounded CLOSED IF-4 malformed terminal-label integrity:**
+The completed learning action preserves this negative result: the sole selected
 CLOSED IF-4 slice (Codex, 4–16 active hours; initial
 investigation capped at four) removes reproduced invalid-OHLC terminal-label
 admission. A synthetic actual runner-to-original-comparison regression receives
@@ -54,9 +54,10 @@ its high. Its horizon mark is correctly unavailable, but finite-only provider
 coverage still admits the target event. Minimum exit: newly acquired invalid
 positive/negative/inverted candles retain malformed/incomplete coverage and
 missing original labels through actual persistence/restarted readback, while
-valid original labels and immutable historical replay stay unchanged. Version
-the acquisition validation; do not rewrite old rows/models/results or expand
-workers, ranking, schema or live scope.
+valid original labels and immutable historical replay stay unchanged. This
+minimum exit now passes locally, including versioned acquisition validation,
+actual persisted/restarted learning and unchanged historical replay. Do not
+rewrite old rows/models/results or expand workers, ranking, schema or live scope.
 Preserve the frozen v1 population/thresholds and historical results; do not
 discard the late members, shorten their horizons, retry acquisition or build
 another general outcome worker to force coverage.
@@ -96,8 +97,8 @@ The first diagnostic supplied an unadmitted hidden source directly to the
 visible-only runner and made zero requests; it is a test setup error, not the
 product reproduction. The corrected setup matches the route's admitted-source
 projection, leaves stored visibility intact and reproduces the real false label.
-Full-original/immutable-result verification and exact-product build remain
-pending at this implementation checkpoint. No external provider, production
+Full-original/immutable-result verification and exact-product build were
+pending at this implementation checkpoint; final evidence follows below. No external provider, production
 write, migration, ranking/publication change, policy promotion or broker action.
 Logs: `/private/tmp/ture-outcome-ohlc-learning-reproduced-oct3.log`,
 `/private/tmp/ture-outcome-ohlc-learning-after-oct3.log`,
@@ -105,6 +106,44 @@ Logs: `/private/tmp/ture-outcome-ohlc-learning-reproduced-oct3.log`,
 `/private/tmp/ture-outcome-ohlc-affected-oct3.log`,
 `/private/tmp/ture-outcome-ohlc-final-types-oct3.log` and
 `/private/tmp/ture-outcome-ohlc-final-lint-oct3.log`.
+
+**Malformed terminal-label final behavior verification — 2026-10-03:**
+Exact archived product `fe854e9611aa8ddf0efc88a2654fa2ad70e9cae8`
+passes the normal locked Linux Node 22 / Next 16.3.8 build, with network disabled
+and no production credentials. Both complete original-population and negative
+source/owner controls pass through isolated SQL/PostgREST/SDK and restarted
+consumption (3.9m): the same 26 decisions, 176 enrolled members, 144 qualified
+labels and 32 explicit late-horizon missing labels remain. Fourteen final
+canonical/governance checks also pass. No member is removed to pass coverage.
+
+The broader immutable-learning run finishes with 38 passing tests and one
+historical fixture failure, not a failed database finalization: regenerating
+an old golden source with the new additive validation-policy field changes its
+source fingerprint. Pinning that historical fixture explicitly to its original
+pre-validation v2 receipt shape preserves both unchanged literal golden hashes.
+All nine pure capsule/source/replay tests then pass (1.5m); both actual database
+proofs already passed in the broader run with the current default acquisition
+policy. New fixtures remain current by default; no stored receipt, result,
+model, cohort or production data is rewritten. Final historical fixture lint
+and strict nonincremental TypeScript pass after the explicit historical payload
+shape is typed as retained JSON, not falsely declared as a current receipt.
+This is local IF-4 `quality_measurement`, not recommendation-quality
+lift, main integration, production behavior or OPEN acceptance.
+
+The mandatory full dependency audit still fails on the same five high findings;
+draft PR #732 also retains its independently failed external ECR pull. No
+exceptions, dependency downgrade, CI retry, push, merge, deployment, migration,
+provider request or broker action is made. The reproduced malformed-label
+surface has its minimum behavior/build exit; do not expand it into another
+general learning worker or replay/control framework.
+Logs: `/private/tmp/ture-outcome-ohlc-full-original-oct3.log`,
+`/private/tmp/ture-outcome-ohlc-final-coverage-governance-oct3.log`,
+`/private/tmp/ture-outcome-ohlc-immutable-learning-oct3.log`,
+`/private/tmp/ture-outcome-ohlc-historical-replay-final-oct3.log`,
+`/private/tmp/ture-outcome-ohlc-historical-golden-final-lint-oct3.log`,
+`/private/tmp/ture-outcome-ohlc-final-all-types-repaired-oct3.log`,
+`/private/tmp/ture-outcome-ohlc-exact-linux-build-oct3.log` and
+`/private/tmp/ture-outcome-ohlc-full-audit-oct3.json`.
 
 **Canonical original-horizon measurement — locally behavior-verified 2026-10-03:**
 Product `138a69981648a8e09b9b0edac8f147c60be5be74` fixes the reproduced

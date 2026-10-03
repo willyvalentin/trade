@@ -7,12 +7,24 @@ import type { RelativePlanCharterRuntimeSource } from "@/lib/server/relative-pla
 
 /** Complete synthetic unit source only, NOT an actual DB attestation or alpha.
  * Four tickers in one sector deliberately violate the unchanged charter. */
-export async function charterEvaluationInput(rankedCount: 4 | 8 = 4) {
+export async function charterEvaluationInput(rankedCount: 4 | 8 = 4,
+  options: { outcomePolicy?: "current" | "retained_pre_ohlc_validation_v2" } = {}) {
   const owner = prospectiveOwner, freeze = prospectiveReceipt();
   const trainingParts = await Promise.all([5, 6, 7].flatMap(day => [0, 1, 2, 3].map(n =>
     prospectiveSource({ now: new Date(Date.UTC(2026, 9, day, 17, n * 5)), rankedCount }))));
   const forwardParts = await Promise.all([12, 13, 14, 26, 27, 28].flatMap(day => Array.from({ length: 10 }, (_, n) =>
     prospectiveSource({ now: new Date(Date.UTC(2026, 9, day, 16, n * 15)), rankedCount }))));
+  if (options.outcomePolicy === "retained_pre_ohlc_validation_v2") {
+    // Pin the existing historical golden capsule's exact receipt shape. A
+    // current acquisition policy must not rewrite that retained source or its
+    // fixed model/result fingerprints. All normal new fixtures stay current.
+    for (const part of [...trainingParts, ...forwardParts]) for (const outcome of part.outcomes) {
+      const payload: Record<string, unknown> = outcome.payload_json;
+      const coverage = payload.canonical_provider_coverage as Record<string, unknown>;
+      payload.canonical_provider_coverage = Object.fromEntries(Object.entries(coverage)
+        .filter(([name]) => name !== "candle_validation_policy_version"));
+    }
+  }
   for (const part of forwardParts) {
     const at = part.snapshots[0].recommended_at;
     const context = { contract_version: "market_regime_decision_context_v1", classifier_version: "market_regime_v1",

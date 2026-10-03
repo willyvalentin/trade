@@ -11,7 +11,7 @@ import { scopeRelativePlanCharterResultSource } from "@/lib/server/relative-plan
 import { verifiedRelativePlanProspectiveFreeze, relativePlanSemanticJson } from "@/lib/server/relative-plan-prospective-comparison";
 import type { RecommendationLearningBaselineSource } from "@/lib/recommendation-learning-baseline-source";
 
-const fixture = charterEvaluationInput();
+const fixture = charterEvaluationInput(4, { outcomePolicy: "retained_pre_ohlc_validation_v2" });
 test.beforeEach(() => test.setTimeout(180000));
 const candidate = fixture.then(input => ({ input,result: buildRelativePlanCharterResult(input).result! }));
 async function value() {
@@ -23,6 +23,8 @@ async function value() {
 test("complete retained evidence reproduces every original charter dimension without live authority",async () => {
   const { input,receipt } = await value();
   expect(receipt.result, "full original capsule must exist without shortening the cohort").not.toBeNull();
+  expect(input.source.outcomes.every(outcome =>
+    !("candle_validation_policy_version" in (outcome.payload_json.canonical_provider_coverage as Record<string, unknown>)))).toBe(true);
   // Frozen synthetic baseline before formatter reuse: every clock, retained
   // decoded identity and numerical result must remain semantically unchanged.
   // Node/zlib's gzip OS header is not an original evidence identity; Node 24
