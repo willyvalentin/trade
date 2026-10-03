@@ -263,6 +263,46 @@ test("actual original complete input reaches full charter through canonical outc
   expect(composition.observed_context_blockers.every((row: { blockers: string[] }) => row.blockers.length === 0)).toBe(true);
 });
 
+test("history-only setup is rejected when it changes original partial-decision ranking", () => {
+  test.setTimeout(240000);
+  const run = (historyOnly: boolean) => {
+    const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs",
+      "--benchmark-reuse", "--charter-composition", ...(historyOnly ? ["--history-only-setup"] : [])],
+    { cwd: process.cwd(), encoding: "utf8", timeout: 110000 });
+    expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
+    return JSON.parse(result.stdout.trim().split("\n").at(-1)!);
+  };
+  const baseline = run(false), history = run(true);
+  expect(baseline.charter_composition_evidence.setup_requests).toBe(32);
+  expect(history.charter_composition_evidence.setup_requests).toBe(16);
+  expect(history.charter_composition_evidence.setup_intraday_requests).toBe(0);
+  expect(baseline.charter_composition_evidence.original_input_fingerprint).toMatch(/^sha256:[a-f0-9]{64}$/);
+  // The frozen acceptance was exact ORIGINAL information equality, not only
+  // the complete second decision. The failed experiment is retained as a
+  // rejection; cheaper setup must not erase its differing partial population.
+  expect(history.charter_composition_evidence.original_input_fingerprint)
+    .not.toBe(baseline.charter_composition_evidence.original_input_fingerprint);
+  expect(history.charter_composition_evidence.original_decision_fingerprints[0])
+    .not.toBe(baseline.charter_composition_evidence.original_decision_fingerprints[0]);
+  expect(history.charter_composition_evidence.original_decision_fingerprints[1])
+    .toBe(baseline.charter_composition_evidence.original_decision_fingerprints[1]);
+  expect(history.charter_composition_evidence.original_member_ids)
+    .toEqual(baseline.charter_composition_evidence.original_member_ids);
+  for (const evidence of [baseline, history]) {
+    expect(evidence).toMatchObject({ fresh_inputs: 8, attempts: 2, claims: 2, cycles: 2,
+      scheduled_synthetic_requests: 16, charter_composition_evidence: {
+        source_research_snapshots: 14, retained_original_members: 16,
+        excluded_partial_decisions: 1, original_enrolled_population: 8, canonical_enrolled_outcomes: 8,
+        reserved_provider_credits: 16, separate_synthetic_outcome_requests: 14,
+        positive_enrolled_outcomes: 4, negative_enrolled_outcomes: 4,
+        disposition: "evidence_incomplete", trained_model: null, terminal_quality_decision: null,
+        quality_improvement_claimed: false, completed_repeat_requests: 0, restored_charter_unchanged: true,
+      } });
+  }
+  expect(history.charter_composition_evidence.missing_dimensions)
+    .toEqual(baseline.charter_composition_evidence.missing_dimensions);
+});
+
 test("full-session historical reuse improves breadth while retaining rejected allocation baselines", () => {
   test.setTimeout(420000);
   const evidence = ["baseline", "minimum", "guard", "fair", "regular", "first_closed_bar", "omitted_pair"].map(mode => {

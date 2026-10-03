@@ -19,6 +19,12 @@ assert(!prospectiveEnrollment || rotationDay && process.argv.includes("--cold"),
   "Original-population enrollment consumes the unchanged full-session CLOSED source");
 const benchmarkReuse = process.argv.includes("--benchmark-reuse");
 const charterComposition = process.argv.includes("--charter-composition");
+const historyOnlySetup = process.argv.includes("--history-only-setup");
+const setupCompositionDiagnostic = process.argv.includes("--setup-composition-diagnostic");
+assert(!setupCompositionDiagnostic || charterComposition,
+  "Setup diagnosis emits only this synthetic original-source information set");
+assert(!historyOnlySetup || charterComposition,
+  "History-only setup is its frozen original-source composition, not a cold or live preparation job");
 assert(!charterComposition || benchmarkReuse && !cold && !rotationDay &&
   !process.argv.some(value=>["--mixed-history","--benchmark-reuse-invalid","--benchmark-reuse-baseline"].includes(value)),
   "Charter composition retains the existing original prewarmed two-slot source and discloses setup cost");
@@ -172,7 +178,7 @@ try {
       export { recommendationDecisionSourceProvenanceFromSnapshot } from './lib/recommendation-decision-source-provenance';
       export { buildRecommendationIntakeQualityProvenance } from './lib/recommendation-intake-quality-provenance';
       ${charterComposition ? `export { createRelativePlanProspectiveService } from './lib/server/relative-plan-prospective-service';
-      export { buildRelativePlanProspectivePlan, relativePlanCanonicalBuildIdentity } from './lib/server/relative-plan-prospective-comparison';` : ""}
+      export { buildRelativePlanProspectivePlan, relativePlanCanonicalBuildIdentity, relativePlanSemanticFingerprint } from './lib/server/relative-plan-prospective-comparison';` : ""}
       ${prospectiveEnrollment ? `export { buildRelativePlanProspectiveEnrollment } from './lib/server/relative-plan-prospective-enrollment';
       export { buildRelativePlanProspectivePlan, relativePlanCanonicalBuildIdentity, RELATIVE_PLAN_PROSPECTIVE_RECEIPT_VERSION } from './lib/server/relative-plan-prospective-comparison';
       export { buildRelativePlanContextShadow } from './lib/scanner-relative-plan-context-shadow';` : ""}
@@ -366,6 +372,7 @@ try {
   // setup, never hidden in scan cost or treated as free historical coverage.
   clock=OriginalDate.parse("2026-10-01T17:00:00Z");
   let setupRequests=0;
+  let setupIntradayRequests=0;
   if(!cold && !wrongPolicy) {
     const selected=readers.buildRealScannerBaseCandidateSelection({scanWindow:readers.getIntradayScanWindow(new Date("2026-10-01T17:30:00Z")),requestedScanBudget:8,
       selectionMode:"scheduled_rotating",now:new OriginalDate("2026-10-01T17:30:00Z")}).candidates;
@@ -375,10 +382,15 @@ try {
     if(benchmarkReuse) assert.equal(secondSelected.length,8);
     const setupPopulation=[...new Map([...(mixedHistory ? selected.slice(4) : selected),
       ...(mixedHistory ? secondSelected.slice(4) : secondSelected)].map(candidate=>[candidate.ticker,candidate])).values()];
-    for(const candidate of setupPopulation) await readers.scanMarket([candidate],{source:"scheduled",maxFreshProviderCalls:2,
+    // This invokes the existing real scanner cap, not a seeded cache or new
+    // preparation endpoint. One credit acquires validated daily history but
+    // cannot also acquire an intraday context that expires before our decisions.
+    for(const candidate of setupPopulation) await readers.scanMarket([candidate],{source:"scheduled",maxFreshProviderCalls:historyOnlySetup?1:2,
       freshProviderCallPacingMs:0,completedDailyContextPolicyVersion:"completed_daily_intraday_input_v1"});
     setupRequests=externalRequests;
-    assert.equal(setupRequests,setupPopulation.length*2);
+    setupIntradayRequests=syntheticRequestEvidence.filter(request=>request.interval!=="1day").length;
+    assert.equal(setupRequests,setupPopulation.length*(historyOnlySetup?1:2));
+    assert.equal(setupIntradayRequests,historyOnlySetup?0:setupPopulation.length);
     if(invalidMixedHistory) sql(`update scanner_cache set raw=jsonb_set(raw,
       '{completed_daily_context,content_sha256}','"invalid-fixture-history-digest"');`);
   }
@@ -1292,7 +1304,7 @@ try {
       reserved_credits:allClaims.reduce((sum,claim)=>sum+claim.requested_credits,0),benchmark_calls_second:externalBenchmarkRequests,
       original_source_clocks_unchanged:expectReuse,restarted_owner_read:true,wrong_owner_runs:0};
     if(charterComposition) {
-      assert.equal(setupRequests,32); assert.equal(firstFresh,6); assert.equal(fresh,8);
+      assert.equal(setupRequests,historyOnlySetup?16:32); assert.equal(firstFresh,6); assert.equal(fresh,8);
       assert.equal(source.snapshots.length,14,"Actual generator retains the six partial and eight complete original sources");
       const frozenAt="2026-09-25T12:00:00.000Z";
       const plan=restarted.buildRelativePlanProspectivePlan({owner_user_id:owner,
@@ -1426,7 +1438,18 @@ try {
       assert.deepEqual(restored.learning,after.learning,"All original membership, outcomes and charter measurements survive restored isolated tampering");
       assert.deepEqual(JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_outcomes t;")),completedOutcomes);
       assert.equal(externalRequests,completedRequests,"Readback and isolated negative controls cannot acquire market data");
+      const originalInputInformation=[record,secondDecision].map(decision=>({
+        scan_run_fingerprint:decision.scan_run_fingerprint,decision_timestamp:decision.decision_timestamp,
+        decision_clock:decision.decision_clock,versions:decision.versions,candidates:decision.candidates,
+      }));
       charterCompositionEvidence={evidence_scope:"synthetic_actual_original_source_and_canonical_outcomes_not_forward_seal",
+        setup_mode:historyOnlySetup?"existing_one_credit_history_only":"existing_two_credit_history_and_intraday",
+        setup_intraday_requests:setupIntradayRequests,
+        original_member_ids:[record,secondDecision].flatMap(decision=>decision.candidates.map(member=>member.candidate_id)),
+        original_input_fingerprint:`sha256:${restarted.relativePlanSemanticFingerprint(originalInputInformation)}`,
+        original_decision_fingerprints:originalInputInformation.map(information=>
+          `sha256:${restarted.relativePlanSemanticFingerprint(information)}`),
+        ...(setupCompositionDiagnostic?{original_input_information:originalInputInformation}:{}),
         setup_requests:setupRequests,scheduled_requests:16,separate_synthetic_outcome_requests:14,outcome_passes:outcomePasses,
         source_decisions:2,source_research_snapshots:14,retained_original_members:16,enrolled_decisions:1,
         excluded_partial_decisions:1,original_enrolled_population:8,canonical_enrolled_outcomes:8,

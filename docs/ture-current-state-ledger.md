@@ -2,16 +2,16 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
-**Now / Next / Blocked — completed-history setup fitness:**
+**Now / Next / Blocked — completed-history input fitness:**
 The original-source composition below is locally complete on product
 `609c38c2b2534830622e855708cfd30389b9e54f`, tree
 `c2a873f78fcef53b49f64f7cbaace7e920ee2a80`; release remains held, not integrated.
-Codex retains one primary CLOSED IF-2b investigation on the same isolated
-integration branch, 4–16 active hours and at most four investigation hours.
-Its predecessor's immutable cold result remains zero enrolled decisions;
+The bounded history-only setup investigation is complete with `reject` against
+its frozen exact-original-information criterion. Its predecessor's immutable
+cold result remains zero enrolled decisions;
 do not replace it with the warm result or change its original population.
 
-Freeze the question before collection: can the existing actual scanner acquire
+**Completed frozen setup question:** can the existing actual scanner acquire
 only validated historical daily context in setup, using its existing one-credit
 cap, and retain the identical original two-slot input/plan/ranking evidence and
 canonical/full-charter coverage after restart? Baseline is the existing 32-call
@@ -27,6 +27,45 @@ information set; stale/invalid histories must not gain freshness or extra budget
 This bounded composition experiment may justify reuse of an existing capability,
 not new live preparation/scheduler authority. No provider, production, publication
 or broker action is selected. Finish or reject it before further work selection.
+
+**Rejected setup arm — 2026-10-03:** Actual isolated SQL/SDK/restarted
+original-source composition uses sixteen synthetic daily setup requests instead
+of thirty-two, with zero setup intraday calls. Both arms retain all sixteen
+original identities, two scheduled attempts/claims, sixteen reserved scheduled
+credits and fourteen separately disclosed synthetic canonical-outcome requests.
+The complete second decision has exactly identical original input/plan/ranking
+information and eight enrolled members. The first partial decision is not
+identical: its two missing-current-input members have `indicator_source=cache`
+in the baseline and `unavailable` in the history-only arm. Existing source-quality
+ranking changes 74 to 38 and total scores 36 to 33. No quality rule was changed.
+The full original information fingerprints differ
+(`sha256:5b690cc42cf98f83691cca36751eb909c776d13efd5c467d4fd97863df93dc34`
+versus `sha256:c9c66a5926cfe2f7568863a3d4c5764bdf8ef140a4d73cbe5441e92f05a61eb4`).
+The frozen acceptance initially fails as expected; a registered negative
+regression now preserves this rejection and the exact second-decision equality.
+Both focused checks pass, with full affected runtime rerun pending. This is
+`hypothesis_evidence`, not an accepted cheaper preparation policy, cold-start
+recovery or improved recommendations. Both charters remain
+`evidence_incomplete`, model/terminal-quality decision null and graduation
+`not_met`. Do not remove the partial decision to manufacture equality.
+
+**Next bounded IF-2b investigation:** Codex retains one primary CLOSED slice
+on the same isolated integration branch, 4–16 active hours with at most four
+initial investigation hours. Investigate whether attributable completed daily
+history can be retained from the scanner's already-paid legacy daily fetch,
+without changing its original candles, candidate scoring, request count or
+caller behavior. Existing legacy acquisition currently retains derived values,
+not the strict raw daily response consumed by the completed-input path. Before
+implementation, reproduce the actual legacy fetch -> persisted raw cache ->
+restarted normalized-input consumer gap. Freeze unchanged legacy information,
+strict provider identity/split basis/calendar validation, original capture time,
+partial-bar exclusion, same-day revalidation and no extra request/fallback as
+the acceptance. Invalid or missing attribution must remain unusable; retaining
+history grants neither current-price freshness nor publication permission.
+Do not create a preparation scheduler/job, another allocation heuristic or a
+ranking change to compensate for the rejected arm. If this path cannot preserve
+the frozen source semantics, reject it and choose the next attributable input
+gap. No provider, production, migration, publication or broker action is selected.
 
 **Completed original scanner to existing full-charter composition:**
 Codex reuses existing draft PR #732's isolated
