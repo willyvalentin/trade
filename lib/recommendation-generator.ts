@@ -12,6 +12,8 @@ import {
 
 import {
   getMarketRegime,
+  COMPLETED_DAILY_MARKET_REGIME_INPUT_POLICY_VERSION,
+  marketRegimePromptInput,
   neutralMarketRegimeFallback,
   type MarketRegime,
 } from "@/lib/market-regime";
@@ -3122,7 +3124,7 @@ async function generateRecommendationsWithOpenAI(
       target_count_for_window: maxRecommendations,
       preferred_timeframe: settings.preferred_timeframe,
       allowed_directions: allowedDirections,
-      market_regime: marketRegime,
+      market_regime: marketRegimePromptInput(marketRegime),
       trade_horizon: dayTradeHorizon,
       scanner_ranking_summary: {
         generated_at: scannerCandidateRankingSummary.generated_at,
@@ -3651,11 +3653,17 @@ export async function generateRecommendations({
     const loadMarketRegime = async () => {
       try {
         throwIfAborted(signal);
-        return await getMarketRegime({ signal: contextSignal });
+        return await getMarketRegime({ signal: contextSignal,
+          ...(inputAttributed ? { inputPolicyVersion: COMPLETED_DAILY_MARKET_REGIME_INPUT_POLICY_VERSION } : {}) });
       } catch (error) {
         console.error("[recommendations/generate] market_regime_error", {
           error: normalizeUnknownError(error),
         });
+        // The normalized path requires observed original benchmark inputs.
+        // Missing/stale/provider-failed context is a data rejection, not a
+        // neutral investment judgment or an evaluated no_trade. Legacy callers
+        // keep their previous explicitly unavailable neutral fallback.
+        if (inputAttributed) throw error;
         return neutralMarketRegimeFallback;
       }
     };

@@ -2,6 +2,56 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
+**Primary IF-2b benchmark input fitness — 2026-10-03 04:13Z:** Codex's
+bounded investigation reproduces stale benchmark acceptance through the actual
+daily parser/classifier, then implements the selected correction on isolated
+`codex/market-context-input-fitness-oct3` from verified main
+`55576078e102e7019c271aeb5e67de4a353f2e8f`. The explicit normalized-input path
+now uses `completed_daily_market_regime_input_v1`: attributable split-adjusted
+SPY/QQQ history, verified calendar, latest fifty consecutive completed sessions,
+validated OHLC/volume and one original as-of instant. Only today's unfinished
+daily bar is discarded; unknown, stale, gapped, future or misidentified series
+cannot become an observed context. This is historical trend context, not a
+current benchmark quote. Its two original source capsules, exact response byte
+identities and original used values survive actual isolated database persistence
+and restarted owner-bound SDK readback. Wrong-owner read exposes no run.
+
+The normalized generator rejects unavailable benchmarks without substituting
+neutral market evidence, publishing a recommendation or recording an evaluated
+`no_trade`. Legacy/default callers retain their original classifier, input
+shape and fallback; there is no historical rewrite. The classifier's arithmetic
+is unchanged, but the new input basis is explicitly retained. Frozen prospective
+comparisons still require their exact original source commit/build; they may not
+pool this new revision into an old cohort. The existing reservation remains six
+scanner plus two benchmark requests, at most eight total. No provider retry,
+new data source, quality threshold, live flag or execution change is selected.
+Raw evidence stays outside the existing AI prompt shape; no new credential,
+live AI call or provider expense was introduced by these CLOSED checks.
+
+All thirty affected component/packaged runtime/actual database/owner-readback
+checks pass on the final source, including stale rejection, unfinished-bar
+exclusion, unchanged publication geometry, timeout/draining, rate limit,
+duplicate/cleanup and existing daily/intraday history cases. These synthetic
+fixtures are not market evidence or quality lift. Final standard lint passes
+with zero errors and eight pre-existing warnings; non-incremental TypeScript
+checking also passes. The exact committed normal locked Linux build remains
+pending; no PR,
+merge, production deploy or migration is claimed for this source correction.
+Integrate it after PR #732's complete-charter/original-context delivery, never
+instead of that delivery. PR #732's portable compressed-identity regression is
+locally verified on macOS and Linux; its coherent existing Draft update is
+`bf457f45` and protected release/security acceptance remains unfulfilled.
+
+**Next intelligence evidence gap:** actual complete fresh original inputs for
+all eight selected members within the existing whole-scan budget, then original
+prospective forward outcomes/full-charter comparison. Validated daily context
+does not grant current-price freshness. Current cold acquisition still observes
+only three complete members and warmed daily history only six; missing members
+remain explicit. Investigate the smallest defensible same-day completed-
+benchmark reuse/allocation only from exact retained sources and real budget
+accounting; no additional requests, cache-clock substitution, population
+reduction or live activation is authorized by this local source fix.
+
 **Current queue — 2026-10-03 00:04Z:** PR #730 normally merges at
 00:02:34Z after all six protected shards, aggregate and merge provenance in
 CI `37078162782` pass on head `25fd0b726956bb109790af684de57e4fee47d18b`.

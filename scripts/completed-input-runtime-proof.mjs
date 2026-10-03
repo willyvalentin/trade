@@ -25,6 +25,11 @@ assert(!closing || cold && !opening && !wrongPolicy && !diagnoseOutcomes,
 const publicationClock = process.argv.includes("--publication-clock");
 const contextLatency = process.argv.includes("--context-latency");
 const contextBudgetTimeout = process.argv.includes("--context-budget-timeout");
+const staleBenchmark = process.argv.includes("--benchmark-stale");
+const partialBenchmark = process.argv.includes("--benchmark-partial");
+assert(!(staleBenchmark && partialBenchmark) && (!(staleBenchmark || partialBenchmark) ||
+  cold && !wrongPolicy && !opening && !closing && !diagnoseOutcomes && !contextLatency),
+  "Benchmark fitness is one isolated cold original-input scenario");
 const scannerRateLimit = process.argv.includes("--scanner-rate-limit");
 const expectContextTimeout = process.argv.includes("--expect-context-timeout") || contextBudgetTimeout;
 assert(!contextLatency || publicationClock && cold,
@@ -210,6 +215,8 @@ try {
         return Response.json({status:"error",code:429,message:"Synthetic API credits rate limit"},{status:429});
       }
       const interval = url.searchParams.get("interval");
+      const benchmark = ["SPY", "QQQ"].includes(url.searchParams.get("symbol"));
+      if (benchmark) assert.equal(url.searchParams.get("adjust"), "splits");
       const intraday = interval !== "1day";
       const values = [];
       if (intraday) {
@@ -239,11 +246,15 @@ try {
             : {datetime,open:"100",high:"101",low:"99",close:"100",volume});
         }
       } else {
-        const day=new OriginalDate("2026-09-30T00:00:00Z");
+        const day=new OriginalDate(staleBenchmark && benchmark ? "2026-05-26T00:00:00Z" : "2026-09-30T00:00:00Z");
         while(values.length<60) {
           const date=day.toISOString().slice(0,10);
           if(readers.getUsEquityMarketSession(date).session_close) values.unshift({datetime:date,open:"100",high:"103",low:"99",close:"101",volume:"1000"});
           day.setUTCDate(day.getUTCDate()-1);
+        }
+        if (partialBenchmark && benchmark) {
+          values.shift();
+          values.push({datetime:"2026-10-01",open:"100",high:"1001",low:"99",close:"1000",volume:"1000"});
         }
       }
       return Response.json({meta:{symbol:url.searchParams.get("symbol"),interval,exchange_timezone:"America/New_York"},values});
@@ -310,6 +321,16 @@ try {
     assert.equal(externalRequests,0);
     assert.equal(claims.length,0);
     assert.equal(scanRuns.length,0);
+  } else if(staleBenchmark) {
+    assert.equal(response.status,500,JSON.stringify({body,logs:logs.slice(-15)}));
+    assert.equal(rows.length,1); assert.equal(receipts.length,1);
+    assert.notEqual(rows[0].outcome,"scanned");
+    assert.equal(scanRuns.length,0); assert.equal(researchSnapshots.length,0);
+    assert.equal(claims.length,1); assert.equal(claims[0].requested_credits,8);
+    assert.equal(claims[0].status,"failed"); assert(claims[0].finalized_at);
+    assert.equal(externalRequests,8);
+    assert.equal(Number(sql("select count(*) from recommendations;")),0);
+    assert(logs.some(items=>JSON.stringify(items).includes("market_regime_completed_daily_input_unavailable")));
   } else if(scannerRateLimit) {
     assert.equal(response.status,500);
     assert.equal(rows.length,1); assert.equal(receipts.length,1);
@@ -343,6 +364,30 @@ try {
     assert.equal(claims[0].status,"completed");
     assert(claims[0].finalized_at);
     assert.equal(externalRequests,8);
+    const regimeEvidence=scanRuns[0].payload_json.market_regime?.input_evidence;
+    assert.equal(regimeEvidence?.policy_version,"completed_daily_market_regime_input_v1",
+      "Original benchmark source policy must survive actual database persistence");
+    for (const symbol of ["spy","qqq"]) {
+      assert.equal(regimeEvidence[symbol].latest_completed_market_date,"2026-09-30");
+      assert.equal(regimeEvidence[symbol].latest_completed_at,"2026-09-30T20:00:00.000Z");
+      assert(regimeEvidence[symbol].response_identity.payload_byte_length>0);
+      assert.match(regimeEvidence[symbol].content_sha256,/^sha256:[a-f0-9]{64}$/);
+      assert(OriginalDate.parse(regimeEvidence[symbol].captured_at)<=OriginalDate.parse(record.decision_timestamp));
+    }
+    if (partialBenchmark) {
+      assert.equal(scanRuns[0].payload_json.market_regime.spy.close,101);
+      assert.equal(scanRuns[0].payload_json.market_regime.regime,"risk_off");
+      assert.equal(regimeEvidence.spy.candles.length,59);
+    }
+    // Actual restarted SDK + owner decoder, not only direct SQL inspection.
+    delete require.cache[require.resolve(join(generated,"reader.cjs"))];
+    const benchmarkReader=require(join(generated,"reader.cjs"));
+    const benchmarkRead=await benchmarkReader.readRecommendationLearningBaselineSource(owner);
+    const benchmarkSource=benchmarkReader.parseRecommendationLearningBaselineSource(benchmarkRead.data);
+    assert(benchmarkSource && benchmarkSource.scanRuns.length===1);
+    assert.deepEqual(benchmarkSource.scanRuns[0].payload_json.market_regime.input_evidence,regimeEvidence);
+    const benchmarkWrongOwner=await benchmarkReader.readRecommendationLearningBaselineSource("00000000-0000-4000-8000-000000000002");
+    assert.equal(benchmarkWrongOwner.data.recommendation_scan_runs.length,0);
     const cycle=readers.buildObservationCycleReadback(receipts);
     assert.equal(cycle.status,"available");
     assert.equal(cycle.invalid_row_count,0);
@@ -866,6 +911,9 @@ try {
         freshness:record?.candidates.find(candidate=>candidate.candidate_id===row.payload_json?.candidate_id)?.data.freshness??null}))}} : {}),
     ...(zeroLatestVolume ? { zero_latest_volume_inputs:record.candidates.filter(candidate=>candidate.data.input_snapshot?.intraday_indicators?.latestVolume===0).length } : {}),
     ...(missingLatestVolume ? {missing_volume_research_sources:researchSnapshots.length} : {}),
+    ...((staleBenchmark || partialBenchmark) ? {benchmark_input_fitness:staleBenchmark?"stale_rejected_not_no_trade":"partial_current_bar_discarded",
+      retained_market_regime_input_policy:scanRuns[0]?.payload_json.market_regime?.input_evidence?.policy_version??null,
+      terminal_reservation_status:claims[0]?.status,decision_count:scanRuns.length} : {}),
     ...(contextLatency ? {context_latency_proof:scannerRateLimit?"preserved_scanner_rate_limit":expectContextTimeout?"reproduced_timeout":"completed",
       bounded_duration_ms:boundedDurationMs,route_budget_ms:23000,cleanup_reserve_ms:3000,
       synthetic_scanner_delay_ms:1800,synthetic_benchmark_delay_ms:benchmarkDelayMs,
