@@ -2,7 +2,57 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
-**Now / Next / Blocked — completed prospective revision-integrity exit:**
+**Now / Next / Blocked — original closed-bar price fidelity:**
+Owner Codex selects one CLOSED IF-2b 4–16 active-hour slice (initial
+investigation at most four), isolated `codex/normalized-price-fidelity-oct3`,
+from freshly verified main `55576078` through completed local `cbf80e29`.
+The existing packaged scheduler/scanner/provider-boundary/isolated SQL proof
+reproduces HTTP 500 and `scanner_decision_input_snapshot_invalid` for valid
+closed candles at `100.0041`: the shared indicator rounds latest price to
+`100.00`, outside original low/high `100.0040`/`100.0042`. This blocks fresh
+original inputs for the retained relative-plan hypothesis, not a new ranking
+hypothesis. Preserve actual provider prices in the normalized path from already
+validated fresh closed contexts with an explicit price-basis version. Keep the
+legacy default, old immutable evidence, original population, provider budget,
+shadow formula, charter, plan construction rules and publication thresholds.
+Acceptance: actual packaged runtime retains the exact original price and all
+eight identities/three funded complete inputs within eight synthetic requests;
+fresh cache/restart and historical rounded-cent behavior remain valid; missing,
+stale and malformed data remain blocked. No provider, production, new schema,
+live policy or broker action is selected. Release/CI and actual OPEN quality
+evidence remain separate unmet gates. Resume original discovery/relative-plan
+evidence after this minimal input-fitness exit.
+
+**Closed-bar price fidelity — local implementation checkpoint:**
+The actual cold scheduler/scanner/SQL proof now returns HTTP 200 and one
+attribuable completed decision instead of the reproduced HTTP 500. All eight
+original identities and the same three funded complete inputs remain; latest
+price is exactly `100.0041`, not `100.00`, with
+`provider_closed_bar_price_v1` retained in the original normalized indicators.
+The scanner recomputes only from its already validated fresh closed context;
+it does not rewrite cache, acquire data or change the legacy rounded-cent
+default. Raw close/high/low and VWAP retain provider-basis numerical precision;
+percentage features keep their existing rounding and the shadow formula stays
+unchanged. This marker distinguishes newly captured input information from
+historical evidence; do not pool incompatible input bases as an exact pair.
+
+The registered actual runtime proof passes (5.4s), including repeated fresh
+cache reads, a restarted actual scanner with zero acquisition allowance, exact
+prices, unchanged cache rows and stale-current-price denial. Scheduled cost
+remains eight synthetic requests/one claim, zero publications/broker work and
+verified inert cleanup. All 32 initial indicator/shadow/prospective regression
+checks pass (8.3s), including cents/subcent prices, explicit basis, unchanged
+legacy output, no mutation and missing-price behavior. Scoped lint and
+nonincremental types pass. Broader runtime/canonical/historical checks and an
+exact-revision normal build remain running/pending; no production or quality
+lift claim. Logs: `/private/tmp/ture-fractional-price-reproduced-oct3.log`,
+`/private/tmp/ture-fractional-price-after-oct3.log`,
+`/private/tmp/ture-price-fidelity-registered-runtime-oct3.log`,
+`/private/tmp/ture-price-fidelity-unit-oct3.log`,
+`/private/tmp/ture-price-fidelity-types-oct3.log` and
+`/private/tmp/ture-price-fidelity-lint-oct3.log`.
+
+**Completed predecessor — prospective revision-integrity exit:**
 Codex completes one bounded CLOSED IF-4 4–16 active-hour slice (initial
 investigation at most four) on isolated
 `codex/prospective-outcome-revision-oct3`, from verified main `55576078`

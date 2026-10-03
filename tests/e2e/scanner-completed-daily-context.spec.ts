@@ -25,6 +25,19 @@ import {
 
 // Synthetic CLOSED fixtures. No market data, credentials or production writes.
 const at = new Date("2026-10-01T15:50:00.000Z");
+test("packaged original scanner retains valid fractional provider prices without losing its input population", () => {
+  test.setTimeout(90000);
+  const proof = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--cold", "--fractional-price"],
+    { cwd: process.cwd(), encoding: "utf8", timeout: 80000 });
+  expect(proof.status, `${proof.stdout}\n${proof.stderr}`).toBe(0);
+  const rows = proof.stdout.trim().split("\n").map(line => JSON.parse(line));
+  expect(rows.find(row => row.fractional_price_fitness)).toMatchObject({ fractional_price_fitness: "passed",
+    original_population_count: 8, fresh_inputs: 3, retained_latest_price: 100.0041, scheduled_synthetic_requests: 8,
+    fresh_cache_and_restart_exact_price: true, cache_rows_unchanged: true, stale_reuse_blocked: true,
+    actual_provider_requests: 0, production_actions: 0, quality_improvement_claimed: false });
+  expect(rows.at(-1)).toMatchObject({ attempts: 1, claims: 1, decision_version: "candidate_decision_record_v4",
+    fresh_inputs: 3, publications: 0, actual_provider_requests: 0, production_actions: 0, broker_actions: 0, cleanup: "inert" });
+});
 for (const strongInput of [false, true]) {
 test(`closing regular-session analysis retains ${strongInput ? "directional" : "flat"} original decisions without late publication`, () => {
   test.setTimeout(90000);

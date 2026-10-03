@@ -143,6 +143,9 @@ const expiry = rotationDay ? "2026-10-01T20:00:00.000Z" : new Date(Date.parse(sl
 const nextSlot = new Date(Date.parse(expiry) + 900000).toISOString();
 const futureBoundary = new Date(Date.parse(slot) + (relativePlan60m ? 4500000 : 1800000)).toISOString();
 const zeroLatestVolume = process.argv.includes("--zero-latest-volume");
+const fractionalPrice = process.argv.includes("--fractional-price");
+assert(!fractionalPrice || cold && !publicationClock && !rotationDay && !diagnoseOutcomes && !wrongPolicy,
+  "Fractional-price fitness uses only the original cold scheduler/provider boundary, never a new cohort or policy");
 assert(!zeroLatestVolume || cold && !wrongPolicy, "Zero-volume proof requires the cold valid-input scenario");
 const missingLatestVolume = process.argv.includes("--missing-latest-volume");
 assert(!missingLatestVolume || cold && !wrongPolicy && !zeroLatestVolume && !diagnoseOutcomes,
@@ -419,7 +422,9 @@ try {
               high:String(terminal && futurePlan.synthetic_win ? target+risk*0.1 : entry+risk*0.1),
               low:String(terminal && !futurePlan.synthetic_win ? stop-risk*0.1 : entry-risk*0.1),
               close:String(terminal ? futurePlan.synthetic_win ? target : stop : entry)});
-          } else values.unshift(publicationClock
+          } else values.unshift(fractionalPrice
+            ? {datetime,open:"100.0041",high:"100.0042",low:"100.0040",close:"100.0041",volume}
+            : publicationClock
             ? {datetime,open:String(close-0.05),high:String(close+0.1),low:String(close-0.1),close:String(close),volume:String(1000+index*40)}
             : {datetime,open:"100",high:"101",low:"99",close:"100",volume});
         }
@@ -1647,6 +1652,48 @@ try {
     assert.equal(scanRuns[0].payload_json.scanner_intraday_liquidity_shadow_comparison ?? null,null);
     assert.equal(record.candidates.filter(c=>c.data.freshness==="fresh").length,
       missingLatestVolume?0:mixedHistory?(minimumOrderBaseline&&!invalidMixedHistory?5:3):cold?3:6);
+    if(fractionalPrice) {
+      const observed=record.candidates.filter(candidate=>candidate.data.freshness==="fresh");
+      assert.equal(observed.length,3,"Valid fractional-price sources must remain fully observed without extra requests");
+      for(const member of observed) {
+        assert.equal(member.data.input_snapshot.features.latest_close,100.0041);
+        assert.equal(member.data.input_snapshot.intraday_indicators.latestPrice,100.0041);
+        assert.equal(member.data.input_snapshot.intraday_indicators.priceBasis,"provider_closed_bar_price_v1");
+      }
+      assert.deepEqual(readers.candidateDecisionRecordFromScanRun(scanRuns[0]),record);
+      const originalCache=sql("select jsonb_agg(to_jsonb(t) order by ticker) from scanner_cache t;");
+      const selection=readers.buildRealScannerBaseCandidateSelection({scanWindow:readers.getIntradayScanWindow(new Date(slot)),
+        requestedScanBudget:8,selectionMode:"scheduled_rotating",now:new Date(slot)}).candidates;
+      assert.deepEqual(selection.map(row=>row.ticker),record.candidates.map(row=>row.ticker));
+      const requestedBefore=externalRequests;
+      const noAcquisition={source:"scheduled",maxFreshProviderCalls:0,freshProviderCallPacingMs:0,
+        completedDailyContextPolicyVersion:"completed_daily_intraday_input_v1"};
+      for(const restart of [false,true]) {
+        if(restart) delete require.cache[require.resolve(join(generated,"reader.cjs"))];
+        const consumer=restart?require(join(generated,"reader.cjs")):readers;
+        const cached=await consumer.scanMarket(selection,noAcquisition);
+        const fresh=cached.filter(row=>row.current_session_evidence && row.intraday_indicator_stale===false);
+        assert.deepEqual(fresh.map(row=>row.ticker).sort(),observed.map(row=>row.ticker).sort());
+        for(const candidate of fresh) {
+          assert.equal(candidate.latest_close,100.0041);
+          assert.equal(candidate.intraday_indicators.latestPrice,100.0041);
+          assert.equal(candidate.intraday_indicators.priceBasis,"provider_closed_bar_price_v1");
+        }
+        assert.equal(externalRequests,requestedBefore);
+        assert.equal(sql("select jsonb_agg(to_jsonb(t) order by ticker) from scanner_cache t;"),originalCache);
+      }
+      const priorClock=clock;
+      clock+=360000;
+      const stale=await require(join(generated,"reader.cjs")).scanMarket(selection,noAcquisition);
+      assert(stale.every(row=>!row.current_session_evidence && row.latest_close===undefined),
+        "Exact price precision must not grant stale current-price permission");
+      assert.equal(externalRequests,requestedBefore);
+      clock=priorClock;
+      originalLog(JSON.stringify({fractional_price_fitness:"passed",original_population_count:8,
+        fresh_inputs:observed.length,retained_latest_price:100.0041,scheduled_synthetic_requests:externalRequests,
+        fresh_cache_and_restart_exact_price:true,cache_rows_unchanged:true,stale_reuse_blocked:true,
+        actual_provider_requests:0,production_actions:0,quality_improvement_claimed:false}));
+    }
     if(missingLatestVolume) {
       assert.equal(researchSnapshots.length,0,"A missing provider volume cannot create completed-input research sources");
       assert(record.candidates.every(candidate => !candidate.data.input_snapshot ||

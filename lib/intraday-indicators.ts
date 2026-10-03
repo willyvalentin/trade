@@ -1,6 +1,11 @@
 import type { IntradayCandle } from "@/lib/market-data";
 
+export const PROVIDER_CLOSED_BAR_PRICE_BASIS = "provider_closed_bar_price_v1" as const;
+
 export type IntradayIndicators = {
+  // Absent on historical rounded-cent evidence. This basis is selected only
+  // after the completed-input scanner validates the original closed raw bars.
+  priceBasis?: typeof PROVIDER_CLOSED_BAR_PRICE_BASIS;
   vwap: number | null;
   latestPrice: number | null;
   latestCandleTimestamp?: string | null;
@@ -140,6 +145,7 @@ export function intradayIndicatorsFromUnknown(
   );
 
   return {
+    ...(raw.priceBasis === PROVIDER_CLOSED_BAR_PRICE_BASIS ? { priceBasis: PROVIDER_CLOSED_BAR_PRICE_BASIS } : {}),
     vwap: parseNumber(raw.vwap),
     latestPrice: parseNumber(raw.latestPrice),
     latestCandleTimestamp:
@@ -195,12 +201,20 @@ export function calculateIntradayIndicators(
   observation: {
     interval: "5min" | "15min";
     observedAtSeconds: number;
+    priceBasis?: typeof PROVIDER_CLOSED_BAR_PRICE_BASIS;
   },
 ): IntradayIndicators {
+  if (observation.priceBasis !== undefined && observation.priceBasis !== PROVIDER_CLOSED_BAR_PRICE_BASIS) {
+    throw new Error("intraday_indicator_price_basis_invalid");
+  }
+  const price = observation.priceBasis === PROVIDER_CLOSED_BAR_PRICE_BASIS ? (value: number) => value : round;
+  const basis = observation.priceBasis === PROVIDER_CLOSED_BAR_PRICE_BASIS
+    ? { priceBasis: PROVIDER_CLOSED_BAR_PRICE_BASIS } : {};
   const warnings: string[] = [];
 
   if (!Array.isArray(candles) || candles.length === 0) {
     return {
+      ...basis,
       vwap: null,
       latestPrice: null,
       latestCandleTimestamp: null,
@@ -258,7 +272,7 @@ export function calculateIntradayIndicators(
   const latestCandle = [...sortedCandles]
     .reverse()
     .find((candle) => isFiniteNumber(candle.close));
-  const latestPrice = latestCandle ? round(latestCandle.close) : null;
+  const latestPrice = latestCandle ? price(latestCandle.close) : null;
   const latestCandleAt = latestCandle
     ? new Date(latestCandle.timestamp * 1000)
     : null;
@@ -266,7 +280,7 @@ export function calculateIntradayIndicators(
     latestCandleAt && Number.isFinite(latestCandleAt.getTime())
       ? latestCandleAt.toISOString()
       : null;
-  const vwap = totalVolume > 0 ? round(vwapNumerator / totalVolume) : null;
+  const vwap = totalVolume > 0 ? price(vwapNumerator / totalVolume) : null;
   const priceVsVwapPercent =
     latestPrice !== null && vwap !== null && vwap > 0
       ? round(((latestPrice - vwap) / vwap) * 100)
@@ -283,11 +297,11 @@ export function calculateIntradayIndicators(
     .slice(-RECENT_CANDLE_COUNT);
   const recentHigh =
     recentCandles.length > 0
-      ? round(Math.max(...recentCandles.map((candle) => candle.high)))
+      ? price(Math.max(...recentCandles.map((candle) => candle.high)))
       : null;
   const recentLow =
     recentCandles.length > 0
-      ? round(Math.min(...recentCandles.map((candle) => candle.low)))
+      ? price(Math.min(...recentCandles.map((candle) => candle.low)))
       : null;
   const recentRangePercent =
     recentHigh !== null && recentLow !== null && latestPrice !== null && latestPrice > 0
@@ -375,6 +389,7 @@ export function calculateIntradayIndicators(
   }
 
   return {
+    ...basis,
     vwap,
     latestPrice,
     latestCandleTimestamp,

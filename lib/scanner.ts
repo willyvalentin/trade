@@ -12,6 +12,8 @@ import {
   resolveIntradayIndicatorRefreshAdmission,
 } from "@/lib/intraday-indicator-refresh-admission";
 import {
+  calculateIntradayIndicators,
+  PROVIDER_CLOSED_BAR_PRICE_BASIS,
   intradayIndicatorsFromUnknown,
   withAdmissibleRecentIntradayVolume,
   type IntradayIndicators,
@@ -978,8 +980,16 @@ async function scanMarketCore(
     }
 
     indicatorSources[candidate.ticker] = result.source;
-    const intradayIndicators = result.indicators
-      ? withAdmissibleRecentIntradayVolume(result.indicators, result.stale)
+    // A rounded legacy-cache price can lie outside a valid narrow provider bar.
+    // Recompute only the normalized path from its already validated, fresh
+    // closed context; no cache rewrite, provider call or historical replay.
+    const originalIndicators = completedContextMode && !result.stale && result.session_context
+      ? calculateIntradayIndicators(result.session_context.candles, {
+          interval: result.session_context.interval, observedAtSeconds: Date.now() / 1000,
+          priceBasis: PROVIDER_CLOSED_BAR_PRICE_BASIS,
+        }) : result.indicators;
+    const intradayIndicators = originalIndicators
+      ? withAdmissibleRecentIntradayVolume(originalIndicators, result.stale)
       : null;
     const planReference = bindScannerPlanReference({
       fallback: {
