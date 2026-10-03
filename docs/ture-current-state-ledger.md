@@ -2,25 +2,26 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
-**Now / Next / Blocked — prospective quality measurement revision integrity:**
-Codex selects one bounded CLOSED IF-4 4–16 active-hour slice (initial
+**Now / Next / Blocked — completed prospective revision-integrity exit:**
+Codex completes one bounded CLOSED IF-4 4–16 active-hour slice (initial
 investigation at most four) on isolated
 `codex/prospective-outcome-revision-oct3`, from verified main `55576078`
 through completed local app predecessor `55b262cd`. The actual persistence
 serialization and restarted prospective service reproduce an as-of read that
 accepts a current outcome with older evaluation/creation clocks but a future
 revision. That can contaminate the frozen relative-plan hypothesis's coverage,
-precision and probability measurement. Verify the same defect through existing
-isolated SQL/SDK before correction. Reject unobserved or contradictory CURRENT
+precision and probability measurement. The same defect was reproduced through
+existing isolated SQL/SDK before correction. Reject unobserved or contradictory CURRENT
 admitted revisions before mutable-source measurement and new result finalization;
 never select a smaller original population. Existing immutable result/model
 capsules and historical fingerprints remain unchanged. Future-recorded labels
 already excluded from the as-of read stay missing under the retained rules.
 Acceptance: exact writer/SDK/SQL/restarted read and finalization denial, zero
 new terminal results, original full population and other rows unchanged, valid
-restoration and immutable historical replay. This is quality measurement, not
-ranking lift or another control stream. Resume original point-in-time discovery/
-relative-plan evidence when this minimum integrity exit passes. No provider,
+restoration and immutable historical replay. This local behavior exit passes on
+product `a92b6ea55b2cc1b7cd29647f6fd8b38f1a3850ea`. This is quality measurement,
+not ranking lift or another control stream. Next: resume original point-in-time
+discovery/relative-plan evidence, not further revision-control expansion. No provider,
 production, migration, policy or broker action is selected; release/CI,
 rights/shared-key capacity and prospective quality holds remain separate.
 
@@ -43,14 +44,55 @@ decisions/240 candidates per forward partition remain, two invalid persisted
 revision cases create zero terminal results, other outcomes remain unchanged,
 and restoration permits exactly one immutable result with actual database-clock
 finalization and restarted HTTP/SDK readback. Its synthetic charter result is
-still `reject`, not accepted market quality. Final registered database tests,
-broader historical/ranking regressions and exact-product normal build remain
-pending; no source-only pass, production or alpha claim. Logs:
+still `reject`, not accepted market quality. Final verification follows; no
+source-only pass, production or alpha claim. Logs:
 `/private/tmp/ture-prospective-revision-reproduced-oct3.log`,
 `/private/tmp/ture-prospective-revision-db-reproduced-oct3.log`,
 `/private/tmp/ture-prospective-revision-service-after-oct3.log`,
 `/private/tmp/ture-prospective-revision-final-boundary-oct3.log` and
 `/private/tmp/ture-prospective-revision-db-after-oct3.log`.
+
+**Prospective revision integrity — final local behavior evidence, 2026-10-03:**
+The two registered terminal-result database proofs pass (6.2m), retaining
+30 decisions and respectively 120/240 original candidates per forward partition.
+Both deny the bad persisted revisions before any NEW result, preserve the full
+population, restore the valid path, and verify that a later mutable future
+revision cannot alter an already finalized retained capsule. All three registered
+source/learning database proofs also pass: full-charter original writers and
+restarted reader, mature mixed scanner outcomes, and original prospective
+population/probability consumer. The last initially failed because its late-first-
+recording fixture left updated time before created time; only that fixture's
+revision clock was corrected. The repeated test passes (14.8s), preserving the
+48 training/12 forward populations and late-label exclusion. No product rule
+was relaxed to obtain a pass.
+
+All 33 targeted boundary checks and 62 broader provider-free historical/model/
+ranking checks pass. The initial broader run's three local Docker permission
+denials were separately re-run with the authorized isolated environment;
+they are not presented as successful initial runs. Historical capsule
+fingerprints remain unchanged. Nonincremental types and scoped lint pass;
+normal full lint passes with zero errors and eight pre-existing warnings.
+The normal locked-package Linux Next build passes on exact product revision
+`a92b6ea55b2cc1b7cd29647f6fd8b38f1a3850ea` in the network-disabled archive
+`/private/tmp/ture-prospective-revision-build-oct3.C9bxkr`; the subsequent
+fixture-only correction changes no product/build input.
+
+Logs: `/private/tmp/ture-prospective-revision-registered-database-oct3.log`,
+`/private/tmp/ture-prospective-revision-registered-learning-docker-oct3.log`,
+`/private/tmp/ture-prospective-revision-registered-learning-retry-oct3.log`,
+`/private/tmp/ture-prospective-revision-final-boundary-oct3.log`,
+`/private/tmp/ture-prospective-revision-learning-golden-oct3.log`,
+`/private/tmp/ture-prospective-revision-final-types-oct3.log`,
+`/private/tmp/ture-prospective-revision-full-lint-oct3.log` and
+`/private/tmp/ture-prospective-revision-exact-linux-build-oct3.log`.
+
+This slice has no push, PR, merge, deploy, production migration, provider call
+or broker action. Latest separately read main remains `55576078`; PR #732
+remains draft/blocked with failed protected CI, and the separately verified
+dependency-audit hold is not bypassed. Production result migration, actual
+data entitlement/shared-key capacity and original prospective OPEN quality
+evidence remain unmet. Local synthetic `reject` or `evidence_incomplete` is
+not engine graduation or improved recommendation accuracy.
 
 **Completed predecessor — completed-history input fitness:**
 Codex completes one CLOSED IF-2b 4–16 active-hour app integration (initial

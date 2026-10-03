@@ -291,7 +291,10 @@ try {
   assert.deepEqual(await measurement(1), changedProbability);
   // Persisted late training evidence and future-recorded forward evidence are
   // evaluated through the same product path, not merely numerical fixtures.
-  const lateTraining = { ...extraTraining[0].outcomes[0], created_at: input.windows.held_out.start_at };
+  // First recording is deliberately late, but its revision must not precede
+  // that recording. This case tests enrollment, not an invalid mutable clock.
+  const lateTraining = { ...extraTraining[0].outcomes[0], created_at: input.windows.held_out.start_at,
+    updated_at: input.windows.held_out.start_at };
   assert.equal((await readers.persistRecommendationOutcome(lateTraining, { supabaseClient: client, server: true })).status, "saved");
   const lateMeasurement = await measurement(1);
   assert.equal(lateMeasurement.result.training.original_population_count, 48);
