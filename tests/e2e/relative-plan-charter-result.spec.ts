@@ -18,6 +18,10 @@ async function value() {
 test("complete retained evidence reproduces every original charter dimension without live authority",async () => {
   const { input,receipt } = await value();
   expect(receipt.result, "full original capsule must exist without shortening the cohort").not.toBeNull();
+  // Frozen synthetic baseline before formatter reuse: every clock, retained
+  // identity and numerical result must remain byte-semantically unchanged.
+  expect(receipt.result.measurement.measurement_fingerprint).toBe("cdcf680f51165fc75532c7fc6955d72b8c8c3cd88b2c35af88bd70e0a689d82b");
+  expect(receipt.result.result_fingerprint).toBe("0df42f950d0ab825afd9cf31c2a2524288c2782ec96b14cc77e9f23eb9ce070e");
   expect(verifiedRelativePlanCharterResultReceipt(receipt,input.freeze,input.owner)).toEqual(receipt);
   expect(receipt.result.retained_runtime.status).toBe("available");
   expect(receipt.result.measurement.partitions.map(p=>p.original_population_count)).toEqual([120,120]);

@@ -198,13 +198,28 @@ export const usEquityMarketCalendarValidation =
 export const usEquityMarketCalendarDataset =
   usEquityMarketCalendarValidation.dataset;
 
+// Reuse immutable formatting configuration, never calendar/session results.
+// Full original-cohort replay otherwise repeatedly constructs the same costly
+// ICU formatters while still needing every independent clock/source check.
+const marketDateFormatter = new Intl.DateTimeFormat("en-US", {
+  timeZone: usEquityMarketCalendarTimezone,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+const newYorkPartsFormatter = new Intl.DateTimeFormat("en-US", {
+  timeZone: usEquityMarketCalendarTimezone,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hourCycle: "h23",
+});
+
 function marketDateFromInstant(value: Date) {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: usEquityMarketCalendarTimezone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(value);
+  const parts = marketDateFormatter.formatToParts(value);
   const part = (type: string) => parts.find((item) => item.type === type)?.value ?? "";
   return `${part("year")}-${part("month")}-${part("day")}`;
 }
@@ -222,16 +237,7 @@ function shiftMarketDate(value: string, days: number) {
 }
 
 function newYorkParts(value: Date) {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: usEquityMarketCalendarTimezone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hourCycle: "h23",
-  }).formatToParts(value);
+  const parts = newYorkPartsFormatter.formatToParts(value);
   const part = (type: string) => Number(parts.find((item) => item.type === type)?.value ?? "0");
   return { year: part("year"), month: part("month"), day: part("day"), hour: part("hour"), minute: part("minute"), second: part("second") };
 }

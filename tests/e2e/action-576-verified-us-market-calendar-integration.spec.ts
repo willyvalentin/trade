@@ -1,5 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { createRequire } from "node:module";
+import { build } from "esbuild";
 
 import { expect, test } from "@playwright/test";
 
@@ -203,6 +205,42 @@ test("Action 576 converts New York sessions across both DST transitions", () => 
   expect(getUsEquityMarketSession("2026-03-09").session_open).toBe("2026-03-09T13:30:00.000Z");
   expect(getUsEquityMarketSession("2026-10-30").session_open).toBe("2026-10-30T13:30:00.000Z");
   expect(getUsEquityMarketSession("2026-11-02").session_open).toBe("2026-11-02T14:30:00.000Z");
+});
+
+test("full-cohort calendar replay reuses formatters without caching mutable session evidence", async () => {
+  const bundle = await build({ entryPoints: [resolve(process.cwd(), calendarPath)], bundle: true,
+    write: false, platform: "node", format: "cjs" });
+  const original = Intl.DateTimeFormat;
+  let constructions = 0;
+  Intl.DateTimeFormat = new Proxy(original, { construct(target, args) {
+    constructions += 1;
+    return Reflect.construct(target, args);
+  } });
+  try {
+    const loaded = { exports: {} };
+    new Function("require", "module", "exports", bundle.outputFiles[0].text)(
+      createRequire(resolve(process.cwd(), "package.json")), loaded, loaded.exports);
+    const calendar = loaded.exports as typeof import("../../lib/us-equity-market-calendar");
+    const dates = ["2026-03-06T17:00:00Z", "2026-03-09T17:00:00Z", "2026-10-30T17:00:00Z",
+      "2026-11-02T17:00:00Z", "2026-11-27T20:00:00Z", "2026-07-03T17:00:00Z"];
+    for (let repeat = 0; repeat < 20; repeat += 1) for (const date of dates) {
+      const now = new Date(date);
+      expect(calendar.buildUsEquityMarketCalendarEvaluation(now)).toEqual(buildUsEquityMarketCalendarEvaluation(now));
+    }
+    expect(constructions).toBe(2);
+    const changed = dataset();
+    const now = new Date("2026-07-22T17:00:00Z");
+    expect(calendar.getUsEquityMarketSession(now, changed).session_type).toBe("regular_session");
+    changed.exceptions.push({ market_date: "2026-07-22", session_type: "closed_special", reason: "Synthetic changed source" });
+    changed.exceptions.sort((a, b) => a.market_date.localeCompare(b.market_date));
+    expect(calendar.getUsEquityMarketSession(now, reseal(changed)).session_type).toBe("closed_special");
+    expect(calendar.getUsEquityMarketSession(now, null).session_type).toBe("unknown");
+    expect(calendar.getUsEquityMarketSession(new Date(NaN)).session_type).toBe("unknown");
+    expect(calendar.getUsEquityMarketSession("2029-01-01").session_type).toBe("unknown");
+    expect(constructions).toBe(2);
+  } finally {
+    Intl.DateTimeFormat = original;
+  }
 });
 
 test("Action 576 handles weekends, verified holidays, observed holidays, and special closures", () => {
