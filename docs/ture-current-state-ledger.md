@@ -2,7 +2,7 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
-**Cold acquisition investigation — 2026-10-03 05:07Z:** all seven actual
+**Cold acquisition investigation — checked 2026-10-03:** all seven actual
 packaged baseline/reuse/corruption checks pass, now including a genuinely cold
 start with zero setup requests. Across the two unchanged rotating populations,
 the predecessor observes three then three complete members; benchmark reuse

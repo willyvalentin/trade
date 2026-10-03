@@ -14,6 +14,13 @@ import { setTimeout as syntheticDelay } from "node:timers/promises";
 const root = process.cwd();
 const cold = process.argv.includes("--cold");
 const benchmarkReuse = process.argv.includes("--benchmark-reuse");
+const mixedHistory = process.argv.includes("--mixed-history");
+const invalidMixedHistory = process.argv.includes("--mixed-history-invalid");
+const acquisitionBaseline = process.argv.includes("--acquisition-baseline");
+const acquisitionBaselineRevision = "43fa089e2c7410f10834e148179dda1564765e46";
+assert(!mixedHistory || benchmarkReuse && !cold);
+assert(!acquisitionBaseline || mixedHistory);
+assert(!invalidMixedHistory || mixedHistory && !acquisitionBaseline);
 const invalidBenchmarkReuse = process.argv.includes("--benchmark-reuse-invalid");
 const baselineBenchmarkReuse = process.argv.includes("--benchmark-reuse-baseline");
 // Branch ancestor with the exact verified predecessor tree 640df041; unlike
@@ -101,10 +108,10 @@ try {
   // in memory; neither product checkout nor fixtures/cohort are rewritten.
   const baselinePlugin = { name: "frozen-original-benchmark-allocation", setup(builder) {
     builder.onLoad({ filter: /\/lib\/(scanner|recommendation-generator|market-regime)\.ts$/ }, args => ({
-      contents: execFileSync("git", ["show", `${reuseBaselineRevision}:${args.path.slice(root.length + 1)}`], {cwd:root,encoding:"utf8"}),
+      contents: execFileSync("git", ["show", `${acquisitionBaseline ? acquisitionBaselineRevision : reuseBaselineRevision}:${args.path.slice(root.length + 1)}`], {cwd:root,encoding:"utf8"}),
       loader:"ts", resolveDir:join(root,"lib") }));
   } };
-  await build({ ...options, ...(baselineBenchmarkReuse ? {plugins:[baselinePlugin]} : {}),
+  await build({ ...options, ...(baselineBenchmarkReuse || acquisitionBaseline ? {plugins:[baselinePlugin]} : {}),
     entryPoints: [resolve(root, "app/api/automation/run-scan/route.ts")], outfile: join(generated, "scheduled-scan-runtime.cjs") });
   if (diagnoseOutcomes) buildSync({ ...options, entryPoints: [resolve(root, "app/api/recommendations/evaluate-outcomes/route.ts")], outfile: join(generated, "outcome-route.cjs") });
   buildSync({ ...options, entryPoints: [resolve(root, "netlify/functions/scheduled-scan.ts")], outfile: join(directory, "functions/scheduled.cjs") });
@@ -320,11 +327,14 @@ try {
     const secondSelected=benchmarkReuse ? readers.buildRealScannerBaseCandidateSelection({scanWindow:readers.getIntradayScanWindow(new OriginalDate(expiry)),requestedScanBudget:8,
       selectionMode:"scheduled_rotating",now:new OriginalDate(expiry)}).candidates : [];
     if(benchmarkReuse) assert.equal(secondSelected.length,8);
-    const setupPopulation=[...new Map([...selected,...secondSelected].map(candidate=>[candidate.ticker,candidate])).values()];
+    const setupPopulation=[...new Map([...(mixedHistory ? selected.slice(4) : selected),
+      ...(mixedHistory ? secondSelected.slice(4) : secondSelected)].map(candidate=>[candidate.ticker,candidate])).values()];
     for(const candidate of setupPopulation) await readers.scanMarket([candidate],{source:"scheduled",maxFreshProviderCalls:2,
       freshProviderCallPacingMs:0,completedDailyContextPolicyVersion:"completed_daily_intraday_input_v1"});
     setupRequests=externalRequests;
     assert.equal(setupRequests,setupPopulation.length*2);
+    if(invalidMixedHistory) sql(`update scanner_cache set raw=jsonb_set(raw,
+      '{completed_daily_context,content_sha256}','"invalid-fixture-history-digest"');`);
   }
   externalRequests=0;
   externalBenchmarkRequests=0;
@@ -490,7 +500,8 @@ try {
     }
     assert.equal(scanRuns[0].payload_json.scanner_clock_prior_shadow_comparison ?? null,null);
     assert.equal(scanRuns[0].payload_json.scanner_intraday_liquidity_shadow_comparison ?? null,null);
-    assert.equal(record.candidates.filter(c=>c.data.freshness==="fresh").length,missingLatestVolume?0:cold?3:6);
+    assert.equal(record.candidates.filter(c=>c.data.freshness==="fresh").length,
+      missingLatestVolume?0:mixedHistory?(acquisitionBaseline||invalidMixedHistory?3:5):cold?3:6);
     if(missingLatestVolume) {
       assert.equal(researchSnapshots.length,0,"A missing provider volume cannot create completed-input research sources");
       assert(record.candidates.every(candidate => !candidate.data.input_snapshot ||
@@ -915,7 +926,7 @@ try {
   if(benchmarkReuse) {
     assert.equal(record.candidates.length,8); // The first complete original population is never replaced.
     const firstFresh=record.candidates.filter(candidate=>candidate.data.freshness==="fresh").length;
-    assert.equal(firstFresh,cold?3:6);
+    assert.equal(firstFresh,mixedHistory?(acquisitionBaseline||invalidMixedHistory?3:5):cold?3:6);
     const originalRegime=scanRuns[0].payload_json.market_regime;
     if(invalidBenchmarkReuse) sql(`update recommendation_scan_runs set payload_json=jsonb_set(payload_json,
       '{market_regime,input_evidence,qqq,content_sha256}','"invalid-fixture-digest"') where id='${scanRuns[0].id}';`);
@@ -939,12 +950,33 @@ try {
         selectionMode:"scheduled_rotating",now:new OriginalDate(sourceSlot)}).candidates;
       assert.deepEqual(decision.candidates.map(candidate=>candidate.ticker).sort(),
         originalSelection.map(candidate=>candidate.ticker).sort());
+      if(mixedHistory) {
+        const plan=source.payload_json.active_scan_trace.market_data_fetch.completed_input_acquisition;
+        if(acquisitionBaseline) assert.equal(plan,undefined);
+        else {
+          assert.equal(plan.policy_version,"completed_input_minimum_requests_first_v1");
+          assert.equal(plan.provider_call_cap,sourceSlot===slot?6:8);
+          assert.deepEqual(plan.original_members.map(member=>member.ticker),originalSelection.map(candidate=>candidate.ticker));
+          assert.deepEqual(plan.original_members.map(member=>member.ticker_index),[0,1,2,3,4,5,6,7]);
+          assert.deepEqual(plan.acquisition_order,invalidMixedHistory?[0,1,2,3,4,5,6,7]:[4,5,6,7,0,1,2,3]);
+          assert.deepEqual(plan.original_members.map(member=>member.estimated_requests),invalidMixedHistory?[2,2,2,2,2,2,2,2]:[2,2,2,2,1,1,1,1]);
+          for(const member of plan.original_members) {
+            assert.equal(member.current_context_sha256,null);
+            assert.equal(member.historical_captured_at,member.estimated_requests===1?"2026-10-01T17:00:00.000Z":null);
+            if(member.estimated_requests===1) {
+              const original=decision.candidates.find(candidate=>candidate.ticker===member.ticker);
+              assert.equal(original.data.input_snapshot.historical_context.content_sha256,member.historical_context_sha256);
+              assert.equal(original.data.input_snapshot.historical_context.captured_at,member.historical_captured_at);
+            } else assert.equal(member.historical_context_sha256,null);
+          }
+        }
+      }
       assert(OriginalDate.parse(source.observed_at)<=OriginalDate.parse(decision.decision_timestamp));
       assert(OriginalDate.parse(decision.decision_timestamp)<=OriginalDate.parse(source.completed_at));
     }
     const expectReuse=!invalidBenchmarkReuse && !baselineBenchmarkReuse;
     const fresh=secondDecision.candidates.filter(candidate=>candidate.data.freshness==="fresh").length;
-    assert.equal(fresh,cold?(expectReuse?4:3):(expectReuse?8:6),JSON.stringify({
+    assert.equal(fresh,mixedHistory?(acquisitionBaseline||invalidMixedHistory?4:6):cold?(expectReuse?4:3):(expectReuse?8:6),JSON.stringify({
       selected:secondDecision.candidates.map(candidate=>({ticker:candidate.ticker,freshness:candidate.data.freshness,
         daily:candidate.data.input_snapshot?.historical_context?.captured_at,
         current:candidate.data.input_snapshot?.current_session?.latest_bar_started_at,gaps:candidate.data.gap_codes})),
@@ -993,7 +1025,10 @@ try {
       {deploy:{id:identity.deploy_id,context:"production",published:true}});
     assert.equal(secondDuplicate.status,204); assert.equal(externalRequests,8);
     benchmarkReuseEvidence={mode:baselineBenchmarkReuse?"original_committed_baseline":invalidBenchmarkReuse?"invalid_original_falls_back":"validated_owner_reuse",
-      baseline_revision:reuseBaselineRevision,history_start:cold?"cold":"prewarmed",
+      baseline_revision:mixedHistory?acquisitionBaselineRevision:reuseBaselineRevision,
+      history_start:mixedHistory?"mixed":cold?"cold":"prewarmed",
+      ...(mixedHistory ? {acquisition_mode:acquisitionBaseline?"original_order":"minimum_requests_first"} : {}),
+      ...(mixedHistory ? {historical_context_integrity:invalidMixedHistory?"tampered":"valid"} : {}),
       first_scan_requests:firstRequests,second_scan_requests:externalRequests,
       first_fresh_inputs:firstFresh,second_fresh_inputs:fresh,original_members_per_decision:8,
       attempts:allAttempts.length,cycles:allCycles.length,reservations:allClaims.length,

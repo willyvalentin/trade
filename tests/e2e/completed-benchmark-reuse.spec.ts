@@ -146,3 +146,25 @@ for (const mode of ["baseline", "reuse", "invalid"] as const) {
   });
 }
 }
+
+for (const mode of ["baseline", "minimum_requests_first", "invalid_history"] as const) {
+  test(`mixed original population ${mode} acquires more complete inputs without more credits`, () => {
+    test.setTimeout(90000);
+    const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--benchmark-reuse", "--mixed-history",
+      ...(mode === "baseline" ? ["--acquisition-baseline"] : mode === "invalid_history" ? ["--mixed-history-invalid"] : [])],
+    { cwd: process.cwd(), encoding: "utf8", timeout: 80000 });
+    expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
+    const evidence = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
+    expect(evidence).toMatchObject({ setup_synthetic_requests: 16, scheduled_synthetic_requests: 16,
+      attempts: 2, cycles: 2, claims: 2, actual_provider_requests: 0,
+      production_actions: 0, publications: 0, broker_actions: 0, cleanup: "inert",
+      benchmark_reuse_evidence: { baseline_revision: "43fa089e2c7410f10834e148179dda1564765e46", history_start: "mixed",
+        acquisition_mode: mode === "baseline" ? "original_order" : "minimum_requests_first",
+        historical_context_integrity: mode === "invalid_history" ? "tampered" : "valid",
+        first_scan_requests: 8, second_scan_requests: 8,
+        first_fresh_inputs: mode === "minimum_requests_first" ? 5 : 3,
+        second_fresh_inputs: mode === "minimum_requests_first" ? 6 : 4,
+        original_members_per_decision: 8, reservations: 2, reserved_credits: 16,
+        benchmark_calls_second: 0, restarted_owner_read: true, wrong_owner_runs: 0 } });
+  });
+}

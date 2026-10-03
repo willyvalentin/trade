@@ -236,6 +236,20 @@ export type ActiveScanTrace = {
     intraday_indicators_elapsed_ms: number;
     total_elapsed_ms: number | null;
     data_input_policy_version?: "completed_daily_intraday_input_v1";
+    completed_input_acquisition?: {
+      policy_version: "completed_input_minimum_requests_first_v1";
+      evaluated_at: string;
+      provider_call_cap: number;
+      acquisition_order: number[];
+      original_members: {
+        ticker: string;
+        ticker_index: number;
+        estimated_requests: number;
+        historical_context_sha256: string | null;
+        historical_captured_at: string | null;
+        current_context_sha256: string | null;
+      }[];
+    };
     candidate_observations: ScanProviderCandidateObservation[];
     candidate_observation_summary: ScanProviderCandidateObservationSummary;
     provider_credit_allocation_shadow: ScannerProviderCreditAllocationShadow | null;

@@ -721,6 +721,18 @@ test(`real scanner acquires raw history then reuses it after restart with ${stor
       expect((rows.get(candidate.ticker)!.raw as Record<string, unknown>).completed_daily_context).toBeTruthy();
     }
     expect([daily, intraday]).toEqual([8, 8]);
+    const cachedRuntime = load();
+    const cachedTrace = cachedRuntime.createActiveScanTrace({ routeReceivedAt: new FixtureDate().toISOString() });
+    const fullyCached = await cachedRuntime.scanMarket(base, { ...options, maxFreshProviderCalls: 0, activeScanTrace: cachedTrace });
+    expect([daily, intraday]).toEqual([8, 8]); // No new request, not free setup.
+    expect(fullyCached.map(candidate => candidate.ticker)).toEqual(base.map(candidate => candidate.ticker));
+    expect(fullyCached.every(candidate => candidate.intraday_indicator_stale === false)).toBe(true);
+    expect(cachedTrace.trace.market_data_fetch.completed_input_acquisition).toMatchObject({
+      policy_version: "completed_input_minimum_requests_first_v1", provider_call_cap: 0,
+      acquisition_order: [0, 1, 2, 3, 4, 5, 6, 7],
+    });
+    expect(cachedTrace.trace.market_data_fetch.completed_input_acquisition!.original_members.every(member =>
+      member.estimated_requests === 0 && member.historical_context_sha256 && member.current_context_sha256)).toBe(true);
     clock = RealDate.parse("2026-10-01T16:50:00.000Z"); // Old 45min derived cache expired.
     daily = 0; intraday = 0;
     const restarted = load();
@@ -728,6 +740,7 @@ test(`real scanner acquires raw history then reuses it after restart with ${stor
     const candidates = await restarted.scanMarket(base, { ...options, maxFreshProviderCalls: 6, activeScanTrace: trace });
     expect([daily, intraday]).toEqual([0, 6]);
     expect(candidates).toHaveLength(8);
+    expect(candidates.map(candidate => candidate.ticker)).toEqual(base.map(candidate => candidate.ticker));
     expect(trace.trace.market_data_fetch.candidate_observation_summary).toMatchObject({
       summary_version: "scan_provider_candidate_observation_summary_v2",
       expected_candidate_count: 8, fully_observed_candidate_count: 6, total_reserved_credits: 6 });
