@@ -34,13 +34,22 @@ exclusion, unchanged publication geometry, timeout/draining, rate limit,
 duplicate/cleanup and existing daily/intraday history cases. These synthetic
 fixtures are not market evidence or quality lift. Final standard lint passes
 with zero errors and eight pre-existing warnings; non-incremental TypeScript
-checking also passes. The exact committed normal locked Linux build remains
-pending; no PR,
+checking also passes. Exact product `3f7cdc6f779999d274b8a41f76f025716e37073d`,
+tree `640df041b8780b73868204c9c9450b3df2cf7f93`, passes the ordinary locked
+Linux Node 22.23.1 / Next 16.3.8 Turbopack build with build network disabled,
+no production credentials, zero provider requests and zero production changes.
+The local log is `/private/tmp/ture-benchmark-fitness-exact-linux-build.log`.
+No PR,
 merge, production deploy or migration is claimed for this source correction.
 Integrate it after PR #732's complete-charter/original-context delivery, never
 instead of that delivery. PR #732's portable compressed-identity regression is
 locally verified on macOS and Linux; its coherent existing Draft update is
 `bf457f45` and protected release/security acceptance remains unfulfilled.
+Its exact Draft CI `37095555550` additionally stops at an external ECR
+`toomanyrequests: Rate exceeded` while fetching the named PostgREST test image,
+before the native database proof. Lint, types and preceding checks pass;
+interrupted/later checks are not inferred as passed. No retry or bypass is
+selected. This CI availability gap is separate from input-fitness evidence.
 
 **Next intelligence evidence gap:** actual complete fresh original inputs for
 all eight selected members within the existing whole-scan budget, then original
