@@ -1225,6 +1225,24 @@ try {
             }));
             assert.equal(enrolledCoverage.length,176);
             assert.equal(new Set(enrolledCoverage.map(row=>row.candidate_id)).size,176);
+            const measuredNeither=heldRead.decisions.flatMap(decision=>decision.comparison.candidates)
+              .filter(row=>row.outcome_status==="resolved" && row.terminal_outcome==="neither");
+            assert.equal(measuredNeither.length,126);
+            for(const member of measuredNeither) {
+              const outcome=completeSource.outcomes.find(value=>value.id===member.outcome_id);
+              const mark=outcome.payload_json.canonical_horizon_price_mark;
+              const coverage=outcome.payload_json.canonical_provider_coverage;
+              assert.equal(mark.contract_version,"canonical_horizon_price_mark_v1");
+              assert.equal(mark.status,"available");
+              assert.equal(mark.marked_at,coverage.required_horizon_end_at);
+              assert.equal(OriginalDate.parse(mark.candle_started_at)+300000,OriginalDate.parse(mark.marked_at));
+              assert.equal(outcome.current_price,mark.price);
+              assert.equal(outcome.current_r,(mark.price-outcome.entry)/(outcome.entry-outcome.stop));
+              assert.equal(member.r_result,outcome.current_r);
+              assert.equal(outcome.payload_json.horizon_filter_policy_version,"fully_closed_original_horizon_candles_v1");
+              assert(outcome.payload_json.counterfactual_candles.every(candle=>
+                OriginalDate.parse(candle.timestamp)+300000<=OriginalDate.parse(mark.marked_at)));
+            }
             const reasonCounts={};
             for(const row of enrolledCoverage) {
               const reason=row.outcome_reason??row.outcome_status;
@@ -1235,6 +1253,7 @@ try {
               passes:continuationPasses,separate_synthetic_requests:externalRequests-continuationStart,
               original_decisions:completeSource.scanRuns.length,original_population_count:heldRead.original_population_count,
               canonical_outcome_count:heldRead.canonical_outcome_count,missing_outcome_count:heldRead.missing_outcome_count,
+              persisted_neither_horizon_marks_verified:measuredNeither.length,
               physical_outcomes:completeSource.outcomes.length,
               original_batch_count:originalBatches.length,unvisited_original_batches:unvisited,
               original_source_read:sourceRead??null,

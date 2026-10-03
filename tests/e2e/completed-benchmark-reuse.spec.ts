@@ -588,6 +588,9 @@ test("whole-session outcome continuation discovers every original batch before c
   expect(continuation.passes.at(-1).source_selection.same_day_official_batches_discovered).toBe(25);
   expect(continuation.unvisited_original_batches).toEqual([]);
   expect(continuation.enrolled_coverage_diagnostic.members).toHaveLength(176);
+  expect(continuation).toMatchObject({ canonical_outcome_count: 144, missing_outcome_count: 32,
+    persisted_neither_horizon_marks_verified: 126 });
+  expect(continuation.enrolled_coverage_diagnostic.reason_counts).toEqual({ resolved: 144, canonical_60m_outcome_missing: 32 });
   expect(Object.values(continuation.enrolled_coverage_diagnostic.reason_counts)
     .reduce((sum: number, count) => sum + Number(count), 0)).toBe(176);
   console.info("Original outcome continuation (synthetic, not quality evidence):", JSON.stringify({
@@ -599,6 +602,7 @@ test("whole-session outcome continuation discovers every original batch before c
     physical_outcomes: continuation.physical_outcomes, canonical_outcome_count: continuation.canonical_outcome_count,
     missing_outcome_count: continuation.missing_outcome_count,
     enrolled_reason_counts: continuation.enrolled_coverage_diagnostic.reason_counts,
+    persisted_neither_horizon_marks_verified: continuation.persisted_neither_horizon_marks_verified,
     missing_r_examples: continuation.enrolled_coverage_diagnostic.members
       .filter((row: { outcome_reason: string }) => row.outcome_reason === "canonical_realized_r_unavailable").slice(0, 2),
     terminal_status: continuation.passes.at(-1).status,

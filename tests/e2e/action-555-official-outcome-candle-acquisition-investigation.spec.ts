@@ -93,6 +93,93 @@ function savedResult(outcome: RecommendationOutcome): RecommendationOutcomePersi
   };
 }
 
+test("complete horizon prices measure positive, negative and flat R without the future boundary bar", async () => {
+  const snapshot = action555Snapshot();
+  const start = Date.parse("2026-07-20T16:50:00Z");
+  for (const move of [2, -2, 0]) {
+    const candles = Array.from({ length: 13 }, (_, i) => ({
+      timestamp: new Date(start + i * 300000).toISOString(), open: snapshot.entry!,
+      high: snapshot.entry! + 5, low: snapshot.entry! - 5,
+      close: snapshot.entry! + (i === 11 ? move : i === 12 ? 4 : 0), volume: 1000,
+    }));
+    let requests = 0;
+    const run = await runRecommendationOutcomeEvaluation({ snapshots: [snapshot], existingOutcomes: [],
+      horizons: ["60m"], now: "2026-07-20T18:05:00Z", maxCandleRequests: 1,
+      fetchCandles: async request => { requests += 1; return { request, candles: [...candles].reverse(),
+        status: "available", provider: "twelve_data", error: null, warnings: [] }; }, persistOutcome: async outcome => savedResult(outcome) });
+    expect(requests).toBe(1);
+    const outcome = run.outcomes[0];
+    expect(outcome.status).toBe("neither_hit");
+    expect(outcome.current_price).toBe(snapshot.entry! + move);
+    expect(outcome.current_r).toBeCloseTo(move / (snapshot.entry! - snapshot.stop!));
+    expect(outcome.payload_json.canonical_horizon_price_mark).toMatchObject({
+      contract_version: "canonical_horizon_price_mark_v1", status: "available",
+      price: snapshot.entry! + move, candle_started_at: "2026-07-20T17:45:00.000Z",
+      marked_at: "2026-07-20T17:50:00.000Z", horizon: "60m", source: "original_horizon_candle_close",
+    });
+  }
+});
+
+test("a target touched only by the post-horizon candle cannot resolve the original horizon", async () => {
+  const snapshot = action555Snapshot();
+  const start = Date.parse("2026-07-20T16:50:00Z");
+  const candles = Array.from({ length: 13 }, (_, i) => ({
+    timestamp: new Date(start + i * 300000).toISOString(), open: snapshot.entry!,
+    high: i === 12 ? snapshot.target! + 1 : snapshot.entry! + 1,
+    low: snapshot.entry! - 1, close: snapshot.entry!, volume: 1000,
+  }));
+  const run = await runRecommendationOutcomeEvaluation({ snapshots: [snapshot], existingOutcomes: [],
+    horizons: ["60m"], now: "2026-07-20T18:05:00Z", maxCandleRequests: 1,
+    fetchCandles: async request => ({ request, candles, status: "available", provider: "twelve_data",
+      error: null, warnings: [] }), persistOutcome: async outcome => savedResult(outcome) });
+  expect(run.outcomes[0].status).toBe("neither_hit");
+  expect(run.outcomes[0].target_hit).toBe(false);
+  expect(run.outcomes[0].payload_json.retained_candle_count).toBe(12);
+});
+
+test("missing, duplicated, unclosed and incoherent horizon candles never manufacture measured R", async () => {
+  const snapshot = action555Snapshot();
+  const start = Date.parse("2026-07-20T16:50:00Z");
+  const complete = Array.from({ length: 12 }, (_, i) => ({
+    timestamp: new Date(start + i * 300000).toISOString(), open: snapshot.entry!,
+    high: snapshot.entry! + 5, low: snapshot.entry! - 5, close: snapshot.entry! + 1, volume: 1000,
+  }));
+  for (const [fault, candles] of [
+    ["missing_last", complete.slice(0, 11)], ["missing_middle", complete.filter((_, i) => i !== 5)],
+    ["duplicate", [...complete, complete[11]]],
+    ["unclosed", complete],
+    ["negative", complete.map((bar, i) => i === 11 ? { ...bar, close: -1 } : bar)],
+    ["incoherent", complete.map((bar, i) => i === 11 ? { ...bar, close: bar.high + 1 } : bar)],
+  ] as const) {
+    const run = await runRecommendationOutcomeEvaluation({ snapshots: [snapshot], existingOutcomes: [],
+      horizons: ["60m"], now: fault === "unclosed" ? "2026-07-20T17:49:00Z" : "2026-07-20T18:05:00Z",
+      maxCandleRequests: 1, fetchCandles: async request => ({ request, candles: [...candles], status: "available",
+        provider: "twelve_data", error: null, warnings: [] }), persistOutcome: async outcome => savedResult(outcome) });
+    expect(run.candle_requests_executed, fault).toBe(1);
+    expect(run.outcomes[0].current_price, fault).toBeNull();
+    expect(run.outcomes[0].current_r, fault).toBeNull();
+    expect(run.outcomes[0].payload_json.canonical_horizon_price_mark, fault).toMatchObject({ status: "unavailable", price: null });
+  }
+});
+
+test("one acquired response supplies only each original fully closed 15/30/60m mark", async () => {
+  const snapshot = action555Snapshot();
+  const start = Date.parse("2026-07-20T16:50:00Z");
+  const candles = Array.from({ length: 13 }, (_, i) => ({
+    timestamp: new Date(start + i * 300000).toISOString(), open: snapshot.entry!,
+    high: snapshot.entry! + 5, low: snapshot.entry! - 5, close: snapshot.entry! + i / 10, volume: 1000,
+  }));
+  const run = await runRecommendationOutcomeEvaluation({ snapshots: [snapshot], existingOutcomes: [],
+    horizons: ["15m", "30m", "60m"], now: "2026-07-20T18:05:00Z", maxCandleRequests: 1,
+    fetchCandles: async request => ({ request, candles, status: "available", provider: "twelve_data",
+      error: null, warnings: [] }), persistOutcome: async outcome => savedResult(outcome) });
+  expect(run.candle_requests_executed).toBe(1);
+  expect(run.outcomes.map(outcome => outcome.payload_json.retained_candle_count)).toEqual([3, 6, 12]);
+  expect(run.outcomes.map(outcome => outcome.current_price)).toEqual([snapshot.entry! + 0.2, snapshot.entry! + 0.5, snapshot.entry! + 1.1]);
+  expect(run.outcomes.map(outcome => (outcome.payload_json.canonical_horizon_price_mark as Record<string, unknown>).marked_at))
+    .toEqual(["2026-07-20T17:05:00.000Z", "2026-07-20T17:20:00.000Z", "2026-07-20T17:50:00.000Z"]);
+});
+
 test.describe("Action 555 official outcome candle acquisition investigation", () => {
   test("empty provider response attempts one reusable request and keeps explicit horizons", async () => {
     const snapshot = action555Snapshot();
@@ -227,7 +314,9 @@ test.describe("Action 555 official outcome candle acquisition investigation", ()
       secondRunOutcomes.map(
         (outcome) => outcome.payload_json.horizon_filtered_candle_count,
       ),
-    ).toEqual([4, 4, 4]);
+    // The 17:05 bar closes at 17:10, after the 17:09:49 evaluation clock.
+    // It is retained in raw response diagnostics, never in an outcome window.
+    ).toEqual([3, 3, 3]);
     expect(
       secondRunOutcomes.every(
         (outcome) =>
