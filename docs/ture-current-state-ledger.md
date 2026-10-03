@@ -2,8 +2,8 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
-**Now / Next / Blocked — original closed-bar price fidelity:**
-Owner Codex selects one CLOSED IF-2b 4–16 active-hour slice (initial
+**Completed input-fitness exit / Next / Blocked — original closed-bar price fidelity:**
+Owner Codex completes one CLOSED IF-2b 4–16 active-hour slice (initial
 investigation at most four), isolated `codex/normalized-price-fidelity-oct3`,
 from freshly verified main `55576078` through completed local `cbf80e29`.
 The existing packaged scheduler/scanner/provider-boundary/isolated SQL proof
@@ -42,15 +42,31 @@ prices, unchanged cache rows and stale-current-price denial. Scheduled cost
 remains eight synthetic requests/one claim, zero publications/broker work and
 verified inert cleanup. All 32 initial indicator/shadow/prospective regression
 checks pass (8.3s), including cents/subcent prices, explicit basis, unchanged
-legacy output, no mutation and missing-price behavior. Scoped lint and
-nonincremental types pass. Broader runtime/canonical/historical checks and an
-exact-revision normal build remain running/pending; no production or quality
-lift claim. Logs: `/private/tmp/ture-fractional-price-reproduced-oct3.log`,
+legacy output, no mutation and missing-price behavior. Final nonincremental
+types, normal full lint (zero errors/eight existing warnings) and all six
+governance checks pass. The broader registered scanner/canonical-outcome suite
+passes all 50 checks (4.8m), including actual packaged scheduler, SQL/SDK,
+restart, publication clock, cold/warm/opening inputs and mature mixed outcomes.
+All 31 historical/model/ranking checks pass (1.4m); retained capsule
+fingerprints and legacy input behavior remain unchanged. The normal Linux
+Next build of exact product revision
+`48ebed56eb92856941efb2b8377799218942a4b1` exits zero, including TypeScript
+and route generation, in a network-disabled cached dependency environment.
+The minimum input-fitness exit is complete locally: resume the existing frozen
+relative-plan hypothesis and original full-population quality evidence. This
+branch is not pushed, merged, main-verified or production-verified, and no
+recommendation-quality lift is proven. PR #732's mandatory release/CI hold and
+unapplied result migration remain separate blockers, not permission to bypass
+checks. Logs: `/private/tmp/ture-fractional-price-reproduced-oct3.log`,
 `/private/tmp/ture-fractional-price-after-oct3.log`,
 `/private/tmp/ture-price-fidelity-registered-runtime-oct3.log`,
 `/private/tmp/ture-price-fidelity-unit-oct3.log`,
-`/private/tmp/ture-price-fidelity-types-oct3.log` and
-`/private/tmp/ture-price-fidelity-lint-oct3.log`.
+`/private/tmp/ture-price-fidelity-final-types-oct3.log`,
+`/private/tmp/ture-price-fidelity-full-lint-oct3.log`,
+`/private/tmp/ture-price-fidelity-governance-oct3.log`,
+`/private/tmp/ture-price-fidelity-full-runtime-oct3.log`,
+`/private/tmp/ture-price-fidelity-historical-oct3.log` and
+`/private/tmp/ture-price-fidelity-exact-linux-build-oct3.log`.
 
 **Completed predecessor — prospective revision-integrity exit:**
 Codex completes one bounded CLOSED IF-4 4–16 active-hour slice (initial
