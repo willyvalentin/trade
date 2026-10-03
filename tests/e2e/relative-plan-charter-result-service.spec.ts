@@ -5,6 +5,10 @@ import { createRelativePlanCharterResultStore } from "@/lib/server/relative-plan
 import { createRelativePlanProspectiveStore } from "@/lib/server/relative-plan-prospective-store";
 import { createRelativePlanTrainedProbabilityStore } from "@/lib/server/relative-plan-trained-probability-store";
 import { prospectiveOwner,prospectiveReceipt } from "../fixtures/relative-plan-prospective";
+import { charterEvaluationInput } from "../fixtures/relative-plan-charter-evaluation";
+import { persistRecommendationScanRun } from "@/lib/server/recommendation-scan-run-persistence";
+import { persistRecommendationSnapshot } from "@/lib/server/recommendation-snapshot-persistence";
+import { persistRecommendationOutcome } from "@/lib/server/recommendation-outcome-persistence";
 
 type Dependencies = NonNullable<Parameters<typeof createRelativePlanCharterResultService>[0]>;
 function harness(overrides: Partial<Dependencies> = {}) {
@@ -66,4 +70,45 @@ test("native fixed-purpose result route repeats session and mutation-origin guar
   expect(source).toContain("relativePlanCompleteHttpResponse");
   expect(source).toContain('"Cache-Control": "no-store"');
   expect(source).not.toMatch(/getServerSupabaseClient|provider|scheduled|broker|request\.headers\.get\("owner/);
+});
+
+test("new terminal results reject unobserved raw revisions on the initial read and on the stable reread", async () => {
+  const input = await charterEvaluationInput();
+  const data: Record<string, Record<string, unknown>[]> = {
+    recommendation_scan_runs: [], recommendation_snapshots: [], recommendation_outcomes: [],
+  };
+  const writer = { from(table: string) { return { async upsert(row: Record<string, unknown>) {
+    data[table].push(structuredClone(row)); return { error: null };
+  } }; } };
+  const originalOwner = process.env.TURE_APPLICATION_OWNER_USER_ID;
+  process.env.TURE_APPLICATION_OWNER_USER_ID = prospectiveOwner;
+  try {
+    for (const run of input.source.scanRuns) expect((await persistRecommendationScanRun(run, { supabaseClient: writer, server: true })).status).toBe("saved");
+    for (const snapshot of input.source.snapshots) expect((await persistRecommendationSnapshot(snapshot, { supabaseClient: writer, server: true })).status).toBe("saved");
+    for (const outcome of input.source.outcomes) expect((await persistRecommendationOutcome(outcome, { supabaseClient: writer, server: true })).status).toBe("saved");
+  } finally {
+    if (originalOwner === undefined) delete process.env.TURE_APPLICATION_OWNER_USER_ID;
+    else process.env.TURE_APPLICATION_OWNER_USER_ID = originalOwner;
+  }
+  const originalBytes = JSON.stringify(data);
+  for (const faultRead of [1, 2]) {
+    let reads = 0, runtimeReads = 0;
+    const h = harness({ clock: () => new Date(input.now),
+      modelStore: () => createRelativePlanTrainedProbabilityStore({ async read() {
+        return { status: "available", receipt: input.trainedModelReceipt };
+      }, async materialize() { throw new Error("must_not_refit"); }, async confirm() { throw new Error("must_not_confirm"); } }),
+      readSource: async () => {
+        reads++; const copy = structuredClone(data);
+        if (reads === faultRead) copy.recommendation_outcomes[0].updated_at = "2026-11-07T00:00:00.000001Z";
+        return { status: "available", data: copy };
+      }, readRuntime: async () => { runtimeReads++; return input.runtime; },
+    });
+    expect(await h.service.finalize(prospectiveOwner, {})).toMatchObject({ status: "unavailable", receipt: null,
+      blocker: "relative_plan_result_outcome_revision_times_invalid", terminal_quality_decision: null });
+    expect(reads).toBe(faultRead);
+    expect(runtimeReads).toBe(faultRead - 1);
+    expect(h.calls.writes).toBe(0);
+    expect(data.recommendation_outcomes).toHaveLength(input.source.outcomes.length);
+    expect(JSON.stringify(data)).toBe(originalBytes);
+  }
 });

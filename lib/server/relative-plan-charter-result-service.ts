@@ -7,7 +7,7 @@ import { relativePlanCharterResultStore, type RelativePlanCharterResultStoreResu
 import { readRelativePlanCharterRuntimeSource } from "@/lib/server/relative-plan-charter-runtime-source";
 import { buildRelativePlanCharterResult, relativePlanTerminalQualityDecision } from "@/lib/server/relative-plan-charter-result";
 import { relativePlanSemanticFingerprint } from "@/lib/server/relative-plan-prospective-comparison";
-import { hasExplicitRelativePlanOutcomeRecordingTimes } from "@/lib/server/relative-plan-probability-measurement";
+import { hasExplicitRelativePlanOutcomeRecordingTimes, hasAdmissibleRelativePlanCurrentOutcomeRevisionTimes } from "@/lib/server/relative-plan-probability-measurement";
 import { RELATIVE_PLAN_COMPLETE_RESPONSE_MAX_BYTES } from "@/lib/server/relative-plan-complete-http-response";
 
 type Dependencies = { prospectiveStore: typeof relativePlanProspectiveStore;
@@ -47,18 +47,25 @@ export function createRelativePlanCharterResultService(d: Dependencies = depende
       status: "not_ready", receipt: null, blocker: "relative_plan_original_forward_windows_and_maturity_required" };
     const model = await d.modelStore().read(freeze.receipt,owner);
     if (!model.receipt) return { status: "not_ready",receipt: null,blocker: model.blocker ?? "relative_plan_original_committed_training_model_required" };
-    const sourceRead = async () => {
+    const sourceRead = async (asOf?: Date) => {
       const result = await d.readSource(owner);
-      if (result.status !== "available" || !hasExplicitRelativePlanOutcomeRecordingTimes(result.data.recommendation_outcomes)) return null;
-      return parseRecommendationLearningBaselineSource(result.data);
+      if (result.status !== "available" || !hasExplicitRelativePlanOutcomeRecordingTimes(result.data.recommendation_outcomes)) {
+        return { source: null, blocker: "relative_plan_result_complete_owned_source_unavailable" };
+      }
+      if (!hasAdmissibleRelativePlanCurrentOutcomeRevisionTimes(result.data.recommendation_outcomes, asOf ?? d.clock())) {
+        return { source: null, blocker: "relative_plan_result_outcome_revision_times_invalid" };
+      }
+      return { source: parseRecommendationLearningBaselineSource(result.data),
+        blocker: "relative_plan_result_complete_owned_source_unavailable" };
     };
     try {
-      const source = await sourceRead();
-      if (!source) return unavailable("relative_plan_result_complete_owned_source_unavailable");
+      const initial = await sourceRead(), source = initial.source;
+      if (!source) return unavailable(initial.blocker);
       const now = d.clock();
       const runtime = await d.readRuntime({ owner,freeze: freeze.receipt,now });
-      const after = await sourceRead();
-      if (!after || relativePlanSemanticFingerprint(after) !== relativePlanSemanticFingerprint(source)) {
+      const after = await sourceRead(now);
+      if (!after.source) return unavailable(after.blocker);
+      if (relativePlanSemanticFingerprint(after.source) !== relativePlanSemanticFingerprint(source)) {
         return unavailable("relative_plan_result_original_source_changed_during_read");
       }
       const candidate = buildRelativePlanCharterResult({ owner,freeze: freeze.receipt,now,source,runtime,trainedModelReceipt: model.receipt });

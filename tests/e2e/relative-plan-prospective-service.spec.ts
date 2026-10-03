@@ -9,6 +9,10 @@ import { readFileSync } from "node:fs";
 import { NextRequest } from "next/server";
 import { proxy } from "@/proxy";
 import { createApplicationSession, TRADE_AUTH_COOKIE } from "@/lib/application-session-core";
+import { prospectiveSource } from "../fixtures/relative-plan-prospective-source";
+import { persistRecommendationScanRun } from "@/lib/server/recommendation-scan-run-persistence";
+import { persistRecommendationSnapshot } from "@/lib/server/recommendation-snapshot-persistence";
+import { persistRecommendationOutcome } from "@/lib/server/recommendation-outcome-persistence";
 
 type Dependencies = NonNullable<Parameters<typeof createRelativePlanProspectiveService>[0]>;
 function harness(overrides: Partial<Dependencies> = {}) {
@@ -106,6 +110,46 @@ test("raw persisted outcome clocks are checked before a legacy decoder can manuf
       blocker: "prospective_explicit_outcome_recording_times_unavailable" });
     expect(h.writes()).toBe(1);
   }
+});
+
+test("unfinalized prospective read cannot measure a revision that was not observed at its as-of clock", async () => {
+  const source = await prospectiveSource();
+  const data: Record<string, Record<string, unknown>[]> = {
+    recommendation_scan_runs: [], recommendation_snapshots: [], recommendation_outcomes: [],
+  };
+  const writer = { from(table: string) { return { async upsert(row: Record<string, unknown>) {
+    data[table].push(structuredClone(row)); return { error: null };
+  } }; } };
+  const originalOwner = process.env.TURE_APPLICATION_OWNER_USER_ID;
+  process.env.TURE_APPLICATION_OWNER_USER_ID = prospectiveOwner;
+  try {
+    for (const run of source.scanRuns) expect((await persistRecommendationScanRun(run, { supabaseClient: writer, server: true })).status).toBe("saved");
+    for (const snapshot of source.snapshots) expect((await persistRecommendationSnapshot(snapshot, { supabaseClient: writer, server: true })).status).toBe("saved");
+    for (const outcome of source.outcomes) expect((await persistRecommendationOutcome(outcome, { supabaseClient: writer, server: true })).status).toBe("saved");
+  } finally {
+    if (originalOwner === undefined) delete process.env.TURE_APPLICATION_OWNER_USER_ID;
+    else process.env.TURE_APPLICATION_OWNER_USER_ID = originalOwner;
+  }
+  const h = harness({ readSource: async () => ({ status: "available", data }) });
+  await h.service.freeze(prospectiveOwner, { windows: prospectiveInput.windows }, new Date(prospectiveFrozenAt));
+  const now = new Date("2026-11-07T00:00:00.000Z");
+  const original = await h.service.read(prospectiveOwner, now);
+  expect(original.learning?.partitions[1]).toMatchObject({ original_population_count: 4, canonical_outcome_count: 4 });
+  for (const updatedAt of ["2026-11-07T00:00:00.001Z", "2026-11-07T00:00:00.000001Z",
+    "2026-10-12T16:00:00.000Z", undefined, null, "", "2026-02-30T17:00:00.000Z"]) {
+    const saved = data.recommendation_outcomes[0].updated_at;
+    data.recommendation_outcomes[0].updated_at = updatedAt;
+    const bytes = JSON.stringify(data);
+    expect(await createRelativePlanProspectiveService(h.dependencies).read(prospectiveOwner, now)).toMatchObject({
+      status: "unavailable", receipt: null, learning: null,
+      blocker: "prospective_outcome_revision_times_invalid",
+    });
+    expect(JSON.stringify(data)).toBe(bytes);
+    expect(data.recommendation_outcomes).toHaveLength(4);
+    data.recommendation_outcomes[0].updated_at = saved;
+  }
+  expect(await h.service.read(prospectiveOwner, now)).toEqual(original);
+  expect(h.writes()).toBe(1);
 });
 
 test("runtime reads occur only after a trusted owner freeze and complete source and cannot train or expose private errors", async () => {

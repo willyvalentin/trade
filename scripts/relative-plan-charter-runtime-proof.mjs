@@ -257,6 +257,39 @@ try {
   const httpBytes = fullTransport.wireBytes;
   originalDecodedHttpBytes = fullTransport.decodedBytes; transportEncoding = fullTransport.encoding;
   assert.deepEqual(await read(), full); // restarted service and actual fresh SDK reads, not cached source
+  // The mutable current label can have old evaluation/creation clocks but a
+  // revision not yet observed at this read's as-of boundary. Verify through
+  // the actual writer, SDK, SQL and restarted consumers, not a fake hash.
+  const revisionSourceRead = await readers.readRecommendationLearningBaselineSource(owner);
+  assert.equal(revisionSourceRead.status, "available");
+  const revisionSource = readers.parseRecommendationLearningBaselineSource(revisionSourceRead.data);
+  assert(revisionSource);
+  const originalRevision = revisionSource.outcomes[0];
+  const unchangedOtherOutcomes = JSON.stringify(revisionSource.outcomes.slice(1));
+  for (const updated_at of [new Date(now.getTime() + 86400000).toISOString(),
+    new Date(Date.parse(originalRevision.evaluated_at) - 1).toISOString()]) {
+    assert.equal((await readers.persistRecommendationOutcome({ ...originalRevision, updated_at },
+      { supabaseClient: client, server: true })).status, "saved");
+    const physical = await readers.readRecommendationLearningBaselineSource(owner);
+    const changed = readers.parseRecommendationLearningBaselineSource(physical.data); assert(changed);
+    assert.equal(changed.outcomes.length, revisionSource.outcomes.length);
+    assert.equal(changed.outcomes[0].updated_at, updated_at);
+    assert.equal(JSON.stringify(changed.outcomes.slice(1)), unchangedOtherOutcomes);
+    const rejected = await readers.createRelativePlanProspectiveService().read(owner, now);
+    assert.equal(rejected.status, "unavailable");
+    assert.equal(rejected.blocker, "prospective_outcome_revision_times_invalid");
+    assert.equal(rejected.learning, null);
+    if (finalizedMode) {
+      const terminal = await readers.createRelativePlanCharterResultService().finalize(owner, {});
+      assert.equal(terminal.status, "unavailable");
+      assert.equal(terminal.blocker, "relative_plan_result_outcome_revision_times_invalid");
+      assert.equal(terminal.terminal_quality_decision, null);
+    }
+    assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "0");
+  }
+  assert.equal((await readers.persistRecommendationOutcome(originalRevision,
+    { supabaseClient: client, server: true })).status, "saved");
+  assert.deepEqual(await read(), full);
   let durable = null;
   if (finalizedMode) {
     const beforeFinalization = Date.now();
@@ -276,6 +309,18 @@ try {
     const persisted = await readers.createRelativePlanProspectiveService().read(owner,now);
     assert.equal(persisted.learning.status,"evaluated");
     assert.equal(persisted.learning.terminal_quality_decision.result_fingerprint,durable.receipt.result.result_fingerprint);
+    // A terminal capsule owns its original as-of evidence. The new mutable
+    // revision gate must not reinterpret or rewrite an already finalized result.
+    assert.equal((await readers.persistRecommendationOutcome({ ...originalRevision,
+      updated_at: new Date(Date.now() + 86400000).toISOString() },
+      { supabaseClient: client, server: true })).status, "saved");
+    assert.deepEqual(await readers.createRelativePlanProspectiveService().read(owner, now), persisted);
+    const sealedRepeat = await readers.createRelativePlanCharterResultService().finalize(owner, {});
+    assert.equal(sealedRepeat.status, "already_finalized");
+    assert.deepEqual(sealedRepeat.receipt, durable.receipt);
+    assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "1");
+    assert.equal((await readers.persistRecommendationOutcome(originalRevision,
+      { supabaseClient: client, server: true })).status, "saved");
     for (const body of [durable,persisted]) {
       const transported = await verifyHttp(readers, body);
       finalizedHttpBytes = Math.max(finalizedHttpBytes ?? 0, transported.wireBytes);
@@ -337,6 +382,9 @@ try {
     unknown_cost_retains_failure: !finalizedMode, missing_label_retains_original_denominator: true,
     actual_restarted_full_charter_consumer_verified: true, eleven_charter_checks_per_partition: true,
     known_concentration_failure_separate_from_missing_evidence: true, forward_losses_never_refit_model: true,
+    unobserved_current_revision_rejected_without_population_reduction: true,
+    current_revision_cannot_finalize: finalizedMode,
+    finalized_capsule_ignores_later_mutable_revision: finalizedMode,
     durable_terminal_result_verified: finalizedMode, actual_database_finalization_clock_verified: finalizedMode,
     historical_model_clock_fixture: finalizedMode, quality_improvement_verified: false,
     unrelated_pre_window_decisions_persisted_and_preserved: unrelatedPriorDecisions,

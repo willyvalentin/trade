@@ -51,6 +51,21 @@ export function hasAdmissibleRelativePlanOutcomeRevisionTimes(rows: unknown, now
       micros(row.updated_at) >= micros(row.evaluated_at as string) &&
       micros(row.updated_at) >= micros(row.created_at as string) && micros(row.updated_at) <= BigInt(asOf) * scale);
 }
+
+/** Admission of mutable source for a NEW prospective read/result, never a
+ * replayed immutable capsule. Rows whose evaluation or first recording is
+ * after the as-of clock remain excluded by the existing enrollment rule.
+ * For rows that could contribute now, validate the actual raw revision before
+ * legacy decoding can substitute a recording clock for missing updated_at.
+ * Reject the complete read rather than measuring a favorable subset.
+ */
+export function hasAdmissibleRelativePlanCurrentOutcomeRevisionTimes(rows: unknown, now: Date): boolean {
+  const asOf = now.getTime();
+  return Number.isFinite(asOf) && hasExplicitRelativePlanOutcomeRecordingTimes(rows) &&
+    (rows as Record<string, unknown>[]).every(row =>
+      Math.max(Date.parse(row.evaluated_at as string), Date.parse(row.created_at as string)) > asOf ||
+      hasAdmissibleRelativePlanOutcomeRevisionTimes([row], now));
+}
 function ordered(rows: Comparison[]) {
   return [...rows].sort((a, b) => (a.decision_timestamp ?? "").localeCompare(b.decision_timestamp ?? "") ||
     a.scan_run_fingerprint.localeCompare(b.scan_run_fingerprint));

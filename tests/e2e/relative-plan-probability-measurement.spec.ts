@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { buildRelativePlanProbabilityMeasurement, hasAdmissibleRelativePlanOutcomeRevisionTimes,
-  hasExplicitRelativePlanOutcomeRecordingTimes } from "@/lib/server/relative-plan-probability-measurement";
+  hasExplicitRelativePlanOutcomeRecordingTimes, hasAdmissibleRelativePlanCurrentOutcomeRevisionTimes } from "@/lib/server/relative-plan-probability-measurement";
 import { recommendationOutcomeFromPersistenceRow } from "@/lib/recommendation-outcome-tracker";
 import type { RelativePlanContextOutcomeComparison } from "@/lib/scanner-relative-plan-context-outcomes";
 
@@ -9,6 +9,26 @@ import type { RelativePlanContextOutcomeComparison } from "@/lib/scanner-relativ
 // boundary separately before these inputs can constitute product evidence.
 const trainingWindow = { start_at: "2026-10-05T13:30:00.000Z", end_at: "2026-10-09T20:00:00.000Z" };
 const fittedAt = "2026-10-12T13:30:00.000Z", now = new Date("2026-11-07T00:00:00.000Z");
+
+test("current as-of read admits exact revisions but does not manufacture availability for future-recorded labels", () => {
+  const current = { evaluated_at: "2026-11-06T23:59:59.000001Z", created_at: "2026-11-06T23:59:59.000002Z",
+    updated_at: "2026-11-07T00:00:00.000000Z" };
+  expect(hasAdmissibleRelativePlanCurrentOutcomeRevisionTimes([current], now)).toBe(true);
+  expect(hasAdmissibleRelativePlanCurrentOutcomeRevisionTimes([{ ...current,
+    updated_at: "2026-11-07T02:00:00.000000+02:00" }], now)).toBe(true);
+  for (const updated_at of ["2026-11-07T00:00:00.000001Z", "2026-11-07T02:00:00.000001+02:00",
+    "2026-11-06T23:59:59.000001Z", undefined, null, "invalid"]) {
+    expect(hasAdmissibleRelativePlanCurrentOutcomeRevisionTimes([current, { ...current, updated_at }], now)).toBe(false);
+  }
+  // These rows cannot enter the existing evaluation/first-recording as-of
+  // enrollment. Preserve that missing-label semantics, not a newly fitted model.
+  for (const future of [{ ...current, created_at: "2026-11-07T00:00:00.001Z", updated_at: null },
+    { ...current, evaluated_at: "2026-11-07T00:00:00.001Z", updated_at: null }]) {
+    expect(hasAdmissibleRelativePlanCurrentOutcomeRevisionTimes([current, future], now)).toBe(true);
+  }
+  expect(hasAdmissibleRelativePlanCurrentOutcomeRevisionTimes([current], new Date(NaN))).toBe(false);
+  expect(hasAdmissibleRelativePlanCurrentOutcomeRevisionTimes([null], now)).toBe(false);
+});
 
 test("new-training raw revision admission retains PostgreSQL microseconds and scans every original row", () => {
   const asOf = new Date("2026-10-10T00:00:00.000Z");

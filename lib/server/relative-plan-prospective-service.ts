@@ -6,7 +6,7 @@ import { readRecommendationLearningBaselineSource } from "@/lib/server/applicati
 import { buildRelativePlanProspectiveLearning } from "@/lib/server/relative-plan-prospective-learning";
 import { relativePlanProspectiveStore, type RelativePlanProspectiveStoreResult } from "@/lib/server/relative-plan-prospective-store";
 import { relativePlanCanonicalBuildIdentity, type RelativePlanProspectivePlanInput } from "@/lib/server/relative-plan-prospective-comparison";
-import { hasExplicitRelativePlanOutcomeRecordingTimes } from "@/lib/server/relative-plan-probability-measurement";
+import { hasExplicitRelativePlanOutcomeRecordingTimes, hasAdmissibleRelativePlanCurrentOutcomeRevisionTimes } from "@/lib/server/relative-plan-probability-measurement";
 import { relativePlanTrainedProbabilityStore } from "@/lib/server/relative-plan-trained-probability-store";
 import { readRelativePlanCharterRuntimeSource } from "@/lib/server/relative-plan-charter-runtime-source";
 import { relativePlanCharterResultStore } from "@/lib/server/relative-plan-charter-result-store";
@@ -74,6 +74,12 @@ export function createRelativePlanProspectiveService(d: Dependencies = dependenc
         !hasExplicitRelativePlanOutcomeRecordingTimes(sourceResult.data.recommendation_outcomes)) {
         return { status: "unavailable" as const, receipt: null, learning: null,
           blocker: "prospective_explicit_outcome_recording_times_unavailable" };
+      }
+      if (sourceResult.status === "available" &&
+        Array.isArray(sourceResult.data.recommendation_outcomes) &&
+        !hasAdmissibleRelativePlanCurrentOutcomeRevisionTimes(sourceResult.data.recommendation_outcomes, now)) {
+        return { status: "unavailable" as const, receipt: null, learning: null,
+          blocker: "prospective_outcome_revision_times_invalid" };
       }
       const source = sourceResult.status === "available" ? parseRecommendationLearningBaselineSource(sourceResult.data) : null;
       if (!source) return { status: "unavailable" as const, receipt: null, learning: null,

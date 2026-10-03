@@ -2,7 +2,57 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
-**Now / Next / Blocked — completed-history input fitness:**
+**Now / Next / Blocked — prospective quality measurement revision integrity:**
+Codex selects one bounded CLOSED IF-4 4–16 active-hour slice (initial
+investigation at most four) on isolated
+`codex/prospective-outcome-revision-oct3`, from verified main `55576078`
+through completed local app predecessor `55b262cd`. The actual persistence
+serialization and restarted prospective service reproduce an as-of read that
+accepts a current outcome with older evaluation/creation clocks but a future
+revision. That can contaminate the frozen relative-plan hypothesis's coverage,
+precision and probability measurement. Verify the same defect through existing
+isolated SQL/SDK before correction. Reject unobserved or contradictory CURRENT
+admitted revisions before mutable-source measurement and new result finalization;
+never select a smaller original population. Existing immutable result/model
+capsules and historical fingerprints remain unchanged. Future-recorded labels
+already excluded from the as-of read stay missing under the retained rules.
+Acceptance: exact writer/SDK/SQL/restarted read and finalization denial, zero
+new terminal results, original full population and other rows unchanged, valid
+restoration and immutable historical replay. This is quality measurement, not
+ranking lift or another control stream. Resume original point-in-time discovery/
+relative-plan evidence when this minimum integrity exit passes. No provider,
+production, migration, policy or broker action is selected; release/CI,
+rights/shared-key capacity and prospective quality holds remain separate.
+
+**Prospective revision correction — local implementation and first proof:**
+Both the actual writer-serialization service regression and the existing full
+isolated SQL/PostgREST/SDK proof return `available` for a future current revision
+before correction. The mutable-source prospective reader and NEW terminal result
+command now admit raw revision clocks before legacy decoding. For outcomes
+eligible at the as-of clock, updated time must be explicit, at or after evaluation
+and creation, and no later than the as-of instant, retaining PostgreSQL
+microseconds and timezone equivalence. Already future-recorded/evaluated labels
+stay excluded under the existing rule; no candidate, outcome or source row is
+removed to measure a favorable subset. Finalization rechecks the same boundary
+on its stable second source read. Historical retained-result/model verifiers,
+enrollment, ranking, fitting, charter and schemas are unchanged.
+
+All 33 targeted service/boundary checks pass (4.4s), including both initial and
+second-read denial. The first full eight-member SQL proof passes: 30 original
+decisions/240 candidates per forward partition remain, two invalid persisted
+revision cases create zero terminal results, other outcomes remain unchanged,
+and restoration permits exactly one immutable result with actual database-clock
+finalization and restarted HTTP/SDK readback. Its synthetic charter result is
+still `reject`, not accepted market quality. Final registered database tests,
+broader historical/ranking regressions and exact-product normal build remain
+pending; no source-only pass, production or alpha claim. Logs:
+`/private/tmp/ture-prospective-revision-reproduced-oct3.log`,
+`/private/tmp/ture-prospective-revision-db-reproduced-oct3.log`,
+`/private/tmp/ture-prospective-revision-service-after-oct3.log`,
+`/private/tmp/ture-prospective-revision-final-boundary-oct3.log` and
+`/private/tmp/ture-prospective-revision-db-after-oct3.log`.
+
+**Completed predecessor — completed-history input fitness:**
 Codex completes one CLOSED IF-2b 4–16 active-hour app integration (initial
 investigation at most four) on isolated
 `codex/completed-history-app-command-oct3`, from verified main `55576078`

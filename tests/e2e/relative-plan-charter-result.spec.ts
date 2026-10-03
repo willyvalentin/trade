@@ -155,6 +155,8 @@ test("actual database clock, immutable result and restarted SDK/product consumpt
   expect(proof).toMatchObject({ status:"pass",durable_terminal_result_verified:true,
     actual_database_finalization_clock_verified:true,historical_model_clock_fixture:true,
     result_prewrite_guards_verified:true,
+    unobserved_current_revision_rejected_without_population_reduction:true,current_revision_cannot_finalize:true,
+    finalized_capsule_ignores_later_mutable_revision:true,
     quality_improvement_verified:false,provider_requests:0,production_writes:0,broker_actions:0 });
   expect(proof.complete_finalized_product_http_bytes).toBeGreaterThan(0);
   expect(proof.complete_finalized_product_http_bytes).toBeLessThanOrEqual(5*1048576);
@@ -171,6 +173,8 @@ test("full eight-member population survives actual SQL finalization and negotiat
     durable_terminal_result_verified: true, actual_database_finalization_clock_verified: true,
     historical_model_clock_fixture: true, actual_loopback_http_readback_verified: true,
     unrelated_pre_window_decisions_persisted_and_preserved: 12,
+    unobserved_current_revision_rejected_without_population_reduction: true,current_revision_cannot_finalize: true,
+    finalized_capsule_ignores_later_mutable_revision: true,
     full_population_transport_encoding: "gzip", quality_improvement_verified: false,
     provider_requests: 0, production_writes: 0, broker_actions: 0 });
   expect(proof.complete_original_product_decoded_http_bytes).toBeGreaterThan(5 * 1048576);
