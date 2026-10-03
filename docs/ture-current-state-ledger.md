@@ -2,6 +2,41 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
+**Completed bounded investigation / Next / Blocked — original outcome acquisition:**
+On `codex/original-outcome-window-reuse-oct3`, from freshly read main
+`55576078` through completed local `d90519ec`, Codex tested a same-run,
+120-minute outcome acquisition union without changing original plans or labels.
+A constructed two-window/four-ticker example suggested eight labels through
+four requests instead of four labels/four deferred. The actual packaged
+scanner/SQL/outcome/restarted-learning composition did not support that benefit:
+its fourteen original sources contain fourteen DIFFERENT tickers. All fourteen
+use the new normalized price basis, but still require fourteen separate
+acquisitions. The runtime acceptance test therefore fails its claimed cost
+reduction. One additional unit assertion also incorrectly expected provider
+status `gap` rather than the retained `available` status with an unknown
+canonical freshness receipt; this is not presented as a passing test suite.
+Do not select a favorable cohort or enlarge the acquisition span to manufacture
+benefit. All prototype product/script/test edits were removed; the recoverable
+prototype is `/private/tmp/ture-original-window-union-rejected-prototype.patch`.
+Diagnostic logs are `/private/tmp/ture-original-window-union-runtime-oct3.log`,
+`/private/tmp/ture-original-window-union-runtime-diagnosis-oct3.log` and
+`/private/tmp/ture-original-window-union-unit-oct3.log`.
+
+A subsequent bounded READ-ONLY production query on project
+`ekdyopdrrkphlrsilyoo` finds three original Oct 2 snapshots (AAPL visible;
+PANW and ORCL hidden), all at 16:15:38Z, and zero persisted outcomes joined
+to those snapshots. Their stored current-session contexts each contain 33
+five-minute bars ending at 16:15Z; capture times are 16:15:35–37Z. These
+already-paid bars precede the decisions and cannot supply post-decision
+canonical labels. Do not repurpose them as outcome coverage, historical labels
+or current weekend prices. This read establishes absence at the observation
+time, not that evaluation never ran or that the visible recommendation failed.
+The next intelligence link remains the original decision-to-canonical-outcome
+population and retained relative-plan comparison, not speculative acquisition
+infrastructure. No production write, provider request, credit reservation,
+publication or broker action occurred. Release/CI, actual future label
+acquisition and the full forward quality charter remain separate unmet gates.
+
 **Completed input-fitness exit / Next / Blocked — original closed-bar price fidelity:**
 Owner Codex completes one CLOSED IF-2b 4–16 active-hour slice (initial
 investigation at most four), isolated `codex/normalized-price-fidelity-oct3`,
