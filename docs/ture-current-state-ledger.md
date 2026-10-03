@@ -3,14 +3,131 @@
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
 **Now / Next / Blocked — completed-history input fitness:**
+Codex completes one CLOSED IF-2b 4–16 active-hour app integration (initial
+investigation at most four) on isolated
+`codex/completed-history-app-command-oct3`, from verified main `55576078`
+through completed local predecessor `2249bc1c`. Missing link: the full-original
+history operation had no installed app caller and could not prepare the normal
+scanner's point-in-time inputs through the application. Product `1848f3cc`
+installs a fixed-purpose authenticated owner POST command with an empty body.
+Keep the existing full session population, pre-open/calendar, owner, credit claims,
+deadline, no-price/no-publication/no-broker contract and retry semantics.
+Local behavior acceptance passes: actual proxy/session/request boundary,
+provider fixture, SDK and isolated SQL persistence preserve all original
+members across bounded resumed
+batches; unauthenticated, cross-origin, caller-selected, closed-session and
+over-budget requests cannot acquire data. Continue into the existing normal
+scanner/source/canonical consumer, not another scheduler or readiness surface.
+No production call, activation, migration, new budget or OPEN experiment is
+selected. Release and actual entitlement/shared-key capacity holds remain.
+
 Full-original same-day history preparation is locally implemented on product
 `00e2a298132a7e3966349d59213c7c3cfa7dddb9`, with actual isolated SQL/SDK credit
 reservation, finalization and restart behavior, consumed by the existing normal
-scanner/source/canonical/full-charter composition. The operation has no installed
-runtime caller or scheduler hook; production preparation is not armed. The
+scanner/source/canonical/full-charter composition. The predecessor had no
+installed runtime caller; the local owner app command supplies that path
+without a scheduler hook. Production preparation is not armed. The
 receipt below distinguishes its verified local behavior from integration and
 OPEN authority. Release audit/CI, data entitlement/shared-key capacity and full
 forward quality acceptance remain separate holds.
+
+**Completed-history app command — local IF-2b behavior, 2026-10-03:**
+Product `1848f3cc2c83f9c040fcc573660b599caab11380` installs
+`POST /api/app/completed-session-history` under the existing proxy, signed
+owner session, actual owner-principal verification and production-origin guard.
+Only UTF-8 JSON `{}` within 256 bytes and without query controls can start the
+existing operation. No GET provider action, caller ticker/date/owner/budget,
+new scheduler, flag, schema, acquisition rule or provider allowance is added.
+The complete 95-member original regular-session selection and pre-open/session
+checks remain unchanged. The request's abort signal reaches the operation.
+The reply distinguishes a terminal partial batch, complete preparation and a
+named blocked result; it is neither a recommendation nor evaluated `no_trade`.
+
+The actual loopback HTTP proof uses the installed Next request/cookie stores,
+real proxy/session/owner consumer, SDK and disposable SQL/PostgREST. External
+auth/calendar/provider fixtures are synthetic boundary data, not real market
+rights or capacity. Twelve restarted owner requests retain all 95 original
+members, reserve/finalize eleven eight-credit batches and one seven-credit
+batch; complete repeat costs zero. The app path also enforces minute caps,
+declared-budget binding, cached finalization, corrupt-paid-history no-rebuy,
+wrong plan, closed session and weekend. Missing/invalid/expired/wrong-owner
+sessions, wrong/missing origin, malformed/nonempty/oversized/invalid-UTF-8 body,
+query overrides and a cancelled request yield zero provider acquisition and
+zero claims/cache writes; the route independently retains auth/origin denial
+without proxy admission.
+
+All 11 registered preparation/failure/concurrency tests pass (3.9m), including
+the new actual HTTP path followed by the unchanged scanner/source/canonical/
+charter composition: 26 decisions, 208 original member observations, 200 fresh
+observations and 22 enrolled decisions. Setup costs 95 separately counted
+synthetic daily requests, not free scan capacity. The unchanged single-decision
+outcome proof still supplies eight canonical outcomes, not full-population
+quality acceptance. The full charter remains `evidence_incomplete` and engine
+graduation `not_met`. Scoped lint and final nonincremental types pass. Broader
+auth/scanner checks, exact-product normal build and packaged method boundary
+remain pending at this checkpoint; final evidence follows.
+
+The first harness run used Next's client navigation in a server-component
+context; it was corrected to the installed server navigation without changing
+the product. The next fixture incorrectly reused an expired token for the
+weekend test; authentication and session gating are now tested separately.
+The broader first run's eighteen Docker-denial failures are an environment
+permission failure, not claimed product regressions; its finished handle is
+retained before authorized isolated re-verification. Logs:
+`/private/tmp/ture-history-app-runtime-oct3.log`,
+`/private/tmp/ture-history-app-runtime-next-server-oct3.log`,
+`/private/tmp/ture-history-app-runtime-auth-clocks-oct3.log`,
+`/private/tmp/ture-history-app-registered-preparation-oct3.log`,
+`/private/tmp/ture-history-app-containment-oct3.log`,
+`/private/tmp/ture-history-app-lint-oct3.log` and
+`/private/tmp/ture-history-app-final-types-oct3.log`.
+
+This is local `recommendation_capability` (input preparation), not main or
+Netlify behavior, market-wide discovery, real prospective inputs or ranking
+lift. Main remains `55576078`; draft PR #732 remains open/blocked at `bf457f45`.
+No push/PR update/merge/deploy/migration/live provider/publication/broker action
+is selected. Stop this integration stream after its declared checks; the next
+intelligence link is point-in-time input fitness for the retained original
+population and relative-plan hypothesis, not another preparation dashboard or
+scheduler. Actual data entitlement/shared-key capacity, release audit/CI and
+prospective full-charter evidence remain separate holds.
+
+**Completed-history app integration — final local verification:**
+Exact product `1848f3cc` passes all eleven registered preparation/failure/
+concurrency checks (3.9m), all 61 broader authentication/containment/scanner
+checks including actual isolated persistence (4.4m), final nonincremental types,
+scoped lint and normal full lint (zero errors/eight existing warnings). The
+normal locked Linux Node 22 / Next 16.3.8 build passes on an exact archived
+product with network disabled and no production credentials: compilation 39s,
+TypeScript 2.9m and the new dynamic route present in the final route table.
+The build changes no compiler flag, dependency, framework or application config.
+
+Actual `next start` from that exact archive, also network-isolated, verifies the
+packaged proxy and app route: unauthenticated GET/POST 401, signed GET/HEAD 405,
+signed OPTIONS 204, cross-origin POST 403, invalid body/query 400, wrong bound
+owner-principal read 401 and an authenticated empty command on the explicitly
+closed Oct 3 session 422/`history_preparation_session_unavailable`. This last
+check makes five local synthetic Auth-boundary reads and zero data API/provider
+requests, credit reservations, publications or broker actions. Its Auth fixture
+is external-boundary substitution, not a production principal or data entitlement.
+The positive acquisition path's separate actual SQL/SDK/HTTP proof above is not
+misrepresented as hosted Netlify behavior.
+
+This closes the selected local installer/input-preparation slice. No recurring
+preparation, actual forward cohort, main integration, production data fitness
+or quality lift is accepted. Stop extending this app/preparation surface; return
+to the retained point-in-time original-population/relative-plan intelligence
+path. Release audit/CI, actual rights/shared-key remaining capacity and full
+prospective quality remain explicit missing links, not revised success criteria.
+Final logs: `/private/tmp/ture-history-app-containment-docker-oct3.log`,
+`/private/tmp/ture-history-app-full-lint-oct3.log`,
+`/private/tmp/ture-history-app-final-types-oct3.log`,
+`/private/tmp/ture-history-app-exact-linux-build-oct3.log` and
+`/private/tmp/ture-history-app-packaged-next-boundary-oct3.log`.
+Six final governance/reconciliation checks pass (526ms), recorded in
+`/private/tmp/ture-history-app-final-governance-oct3.log`. Final remote main
+still resolves to `55576078`; the only relevant open delivery remains draft
+PR #732. Historical CI-transition PR #230 does not overlap this history command.
 
 **Completed primary — bounded CLOSED IF-4 new-training revision integrity, 2026-10-03:**
 Owner Codex, one 4–16 active-hour slice with initial investigation capped at
