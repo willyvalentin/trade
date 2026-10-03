@@ -12,7 +12,7 @@ receipt below distinguishes its verified local behavior from integration and
 OPEN authority. Release audit/CI, data entitlement/shared-key capacity and full
 forward quality acceptance remain separate holds.
 
-**Current primary — bounded CLOSED IF-4 new-training revision integrity, 2026-10-03:**
+**Completed primary — bounded CLOSED IF-4 new-training revision integrity, 2026-10-03:**
 Owner Codex, one 4–16 active-hour slice with initial investigation capped at
 four, isolated `codex/preseal-outcome-revision-integrity-oct3` from verified main
 `55576078` through the completed local intelligence predecessor `591491e4`.
@@ -27,7 +27,14 @@ existing and pending immutable capsules bypass mutable-source reads and keep
 their exact old semantics/fingerprints. Keep historical model/result verifiers,
 source-to-label fitting, freeze, schema, ranking, publication and provider budget
 unchanged. This closes new-training data integrity, not alpha or acceptance of
-an historical recomputed model. No production activation or new live question.
+an historical recomputed model. The minimum exit now passes locally on product
+`88e81ed0a8885c70dd12595bcea8bc408e10a655`; no production activation or new
+live question. Return the primary selection to the active IF-2b point-in-time
+input/discovery and same-population contextual hypothesis; do not extend new
+training into another control framework. Completed-history preparation still
+has no installed runtime caller, and prospective input fitness and real forward
+quality remain separate missing links. Release, entitlement/shared-key capacity
+and OPEN holds below remain unchanged.
 
 **New-training revision correction — implementation checkpoint, 2026-10-03:**
 Both initial regressions return `materialized` where `unavailable` is required;
@@ -53,8 +60,8 @@ Twenty-four initial service/model tests, 71 broader learning/model checks and 30
 final revision-boundary/service checks pass. Strict type verification caught
 ES2017-incompatible BigInt literals; the source now uses the project's existing
 BigInt-constructor convention without changing compiler configuration. Final
-nonincremental types, exact-product build and full historical replay remain
-pending at this checkpoint. Final scoped lint passes. No provider request,
+nonincremental types, exact-product build and full historical replay were
+pending at this checkpoint; final evidence follows. Final scoped lint passes. No provider request,
 production mutation, migration, publication, promotion or broker action.
 Logs: `/private/tmp/ture-preseal-revision-reproduced-oct3.log`,
 `/private/tmp/ture-preseal-revision-database-reproduced-oct3.log`,
@@ -62,6 +69,34 @@ Logs: `/private/tmp/ture-preseal-revision-reproduced-oct3.log`,
 `/private/tmp/ture-preseal-revision-full-learning-oct3.log`,
 `/private/tmp/ture-preseal-revision-final-boundary-oct3.log` and
 `/private/tmp/ture-preseal-revision-final-lint-oct3.log`.
+
+**New-training revision final verification — local IF-4 quality measurement:**
+Product `88e81ed0` passes the final 71-test learning/model suite including both
+registered isolated SQL/PostgREST/SDK proofs (52.4s), the nine full historical
+capsule/source/replay checks (1.6m) with both original literal fingerprints,
+strict nonincremental TypeScript and final scoped lint.
+Six final intake/governance checks also pass after this ledger reconciliation.
+Exact archived-product
+normal locked Linux Node 22 / Next 16.3.8 build passes with network disabled,
+no production credentials, compilation 27.2s and TypeScript 2.1m. New source
+admission is stricter; retained fitting/measurement/model/result semantics are
+unchanged. The complete-source rejection is an integrity failure, not an
+evaluated no-trade or a smaller accepted training population.
+
+The two negative SDK revisions create zero models/confirmations and retain all
+48 original members; valid restoration still fits all 48, with 12 original
+members in each forward partition. This is local behavior verification, not
+main integration, production behavior, actual provider capacity, a real
+prospective cohort or recommendation-quality lift. Current main remains
+`55576078`; draft PR #732 is open/blocked at `bf457f45`, independently failed
+on the external ECR pull. The separate five-high mandatory audit hold remains.
+No push, PR update, merge, deployment, migration or live action occurs.
+Logs: `/private/tmp/ture-preseal-revision-final-learning-oct3.log`,
+`/private/tmp/ture-preseal-revision-historical-golden-oct3.log`,
+`/private/tmp/ture-preseal-revision-final-types-oct3.log`,
+`/private/tmp/ture-preseal-revision-final-lint-oct3.log` and
+`/private/tmp/ture-preseal-revision-exact-linux-build-oct3.log` and
+`/private/tmp/ture-preseal-revision-final-governance-oct3.log`.
 
 **Completed predecessor — bounded CLOSED IF-4 original-population outcome continuation:**
 Codex owns one 4–16 active-hour investigation/delivery, initial investigation
