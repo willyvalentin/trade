@@ -46,8 +46,18 @@ and four active governance checks pass. Logs:
 `/private/tmp/ture-first-recording-final-types-oct3.log`,
 `/private/tmp/ture-first-recording-final-lint-oct3.log` and
 `/private/tmp/ture-first-recording-governance-oct3.log`.
-Exact revision build and the coherent same-PR update remain next. No provider,
-production or broker operation occurred, and no quality improvement is claimed.
+Exact clean locked Linux Node 22 / Next 16.3.8 build passes on product revision
+`930e45bd3adfb4c96338eb885c126c2c7210663d`, using read-only lock-verified
+dependencies, no install/build network or production credentials, with unchanged
+clean source through both guards. Log:
+`/private/tmp/ture-first-recording-exact-linux-build-oct3.log`.
+All four active governance checks pass after the factual local test receipt;
+log `/private/tmp/ture-first-recording-final-governance-oct3.log`.
+Only this build receipt follows the tested product. The coherent same-PR update
+remains next; old-head Draft job `111268974967` is still authoritatively running
+on `e4336058` at 19:21Z and cannot verify this correction. Main remains
+`55576078`. No provider, production or broker operation occurred, and no
+quality improvement is claimed.
 
 **Retained locally complete — original forward-order review correction, 2026-10-03:**
 Codex retains the same IF-4 full-charter primary in draft #732; budget four to
