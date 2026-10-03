@@ -29,14 +29,36 @@ it does not establish real forward quality or satisfy engine graduation.
 
 The already selected full-charter relative-plan comparison is now the sole
 primary CLOSED IF-4 slice, Codex, twelve active hours from 00:47Z, on
-`codex/relative-plan-charter-comparison-oct3`, integrating the main above.
-The frozen hypothesis and numeric charter are unchanged. Local component
-measurements pass affected tests and actual isolated Postgres/PostgREST/SDK
-runtime proof: a failed admitted attempt and its credits stay in the original
-denominator; missing cost does not erase the known failure. This is not vertical
-completion. Next wire the same sealed model, original first thirty per partition,
-full quality/context/feasibility and attributable runtime into the actual reader,
-then prove restarted integrated consumption and unchanged terminal rules.
+`codex/relative-plan-charter-comparison-oct3`, integrated onto the main above.
+The frozen hypothesis and numeric charter are unchanged. The local actual
+owner-bound product reader now computes all eleven absolute charter checks,
+separate paired K=3/expectancy, fixed-bucket probability errors, original
+concentration/feasibility and trading-day clustered uncertainty in both forward
+partitions. A single verified per-read bundle prevents duplicated model/cohort
+replays; there is no global mutable-evidence cache. Every admitted scheduled
+attempt in the original windows, including failures and quality overflow, stays
+in reliability/cost. Two complete stable runtime reads preserve actual scheduler
+slot/build/owner/clock bindings; incomplete, changing or over-bound reads are
+unavailable, never shortened.
+
+Actual isolated Postgres/PostgREST/SDK/server-command/restarted-consumer proof
+passes with a real DB-sealed 48-member training capsule, thirty original
+decisions/120 candidates in each forward partition and an extra admitted failed
+attempt. Its held-out denominator is 31, reliability 30/31 and finalized fixture
+reservations 248 credits; missing cost retains that failure but makes cost
+unknown. An unresolved original label retains the 120-member denominator.
+Later unfavorable forward upserts change errors, not the fitted model or original
+membership. A fully measured one-sector/four-ticker fixture has known charter
+violations and computed `reject`; removing required evidence instead gives
+`evidence_incomplete`. Neither is market alpha or a durable policy decision.
+
+The read-only result intentionally keeps `terminal_quality_decision` and context
+triage null and all authority false. Even a complete computation names
+`durably_finalized_full_charter_result_required`: mutable forward history must
+not silently replace one terminal result. Broad local gates, exact protected CI,
+main integration and production inert readback are still ahead for this vertical.
+The next missing intelligence link is complete as-of forward-result retention
+and restarted terminal consumption, not a new ranker or control-plane stream.
 No second/third slice, new OPEN experiment, provider, paper or broker work.
 
 **Historical queue — 2026-10-03 00:47Z:** PR #730 is normally merged and

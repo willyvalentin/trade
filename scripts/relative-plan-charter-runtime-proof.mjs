@@ -26,7 +26,12 @@ try {
       export { prospectiveInput, prospectiveOwner } from './tests/fixtures/relative-plan-prospective';
       export { prospectiveSource } from './tests/fixtures/relative-plan-prospective-source';
       export { charterRuntimeRows } from './tests/fixtures/relative-plan-charter-runtime';
+      export { buildRelativePlanProspectivePlan } from './lib/server/relative-plan-prospective-comparison';
       export { relativePlanProspectiveStore } from './lib/server/relative-plan-prospective-store';
+      export { createRelativePlanTrainedProbabilityService } from './lib/server/relative-plan-trained-probability-service';
+      export { createRelativePlanProspectiveService } from './lib/server/relative-plan-prospective-service';
+      export { relativePlanCompleteHttpResponse } from './lib/server/relative-plan-complete-http-response';
+      export { getUsEquityMarketSession } from './lib/us-equity-market-calendar';
       export { readRelativePlanCharterRuntimeSource } from './lib/server/relative-plan-charter-runtime-source';
       export { summarizeRelativePlanCharterOperational } from './lib/server/relative-plan-charter-operational';
       export { buildRelativePlanCharterObservations } from './lib/server/relative-plan-charter-observations';
@@ -58,6 +63,7 @@ try {
     "20260926091134_sv_a2_observation_cycle_receipts.sql"]) sql(readFileSync(resolve(root, "supabase/migrations", file), "utf8"));
   sql("grant all on all tables in schema public to service_role;");
   sql(readFileSync(resolve(root, "supabase/migrations/20261002213547_if4_relative_plan_prospective_comparison.sql"), "utf8"));
+  sql(readFileSync(resolve(root, "supabase/migrations/20261002233358_if4_relative_plan_trained_probability_model.sql"), "utf8"));
   const key = "closed-proof-jwt-only-0123456789012345678901234567890123456789";
   const encoded = value => Buffer.from(JSON.stringify(value)).toString("base64url");
   const body = `${encoded({ alg: "HS256", typ: "JWT" })}.${encoded({ role: "service_role", exp: Math.floor(Date.now() / 1000) + 3600 })}`;
@@ -77,44 +83,121 @@ try {
   for (const name of ["SUPABASE_SERVICE_ROLE", "SUPABASE_SERVICE_ROLE_SECRET"]) delete process.env[name];
   process.env.TURE_APPLICATION_OWNER_USER_ID = owner;
   const { client } = readers.getServerSupabaseClient(); assert(client);
-  const freezeResult = await readers.relativePlanProspectiveStore().freeze(readers.prospectiveInput, owner, new Date());
-  assert.equal(freezeResult.status, "frozen"); const freeze = freezeResult.receipt;
-  const fixture = await readers.prospectiveSource(); fixture.scanRuns[0].status = "completed";
-  for (const run of fixture.scanRuns) assert.equal((await readers.persistRecommendationScanRun(run, { supabaseClient: client, server: true })).status, "saved");
-  for (const snapshot of fixture.snapshots) assert.equal((await readers.persistRecommendationSnapshot(snapshot, { supabaseClient: client, server: true })).status, "saved");
-  for (const outcome of fixture.outcomes) assert.equal((await readers.persistRecommendationOutcome(outcome, { supabaseClient: client, server: true })).status, "saved");
-  const completed = readers.charterRuntimeRows({ at: "2026-10-12T17:00:00.000Z", fingerprint: fixture.scanRuns[0].run_fingerprint });
-  const failed = readers.charterRuntimeRows({ at: "2026-10-12T17:15:00.000Z", fingerprint: null, failed: true });
-  for (const row of [completed, failed]) {
+  const session = day => readers.getUsEquityMarketSession(day.toISOString().slice(0, 10));
+  const fullDay = day => { const s = session(day); return s.session_open && Date.parse(s.session_close) - Date.parse(s.session_open) >= 6 * 3600000; };
+  const jobAt = new Date(), days = [], cursor = new Date(jobAt); cursor.setUTCHours(0, 0, 0, 0);
+  while (days.length < 3) { cursor.setUTCDate(cursor.getUTCDate() - 1); if (fullDay(cursor)) days.unshift(new Date(cursor)); }
+  const futureDays = [];
+  cursor.setTime(jobAt.getTime()); cursor.setUTCHours(0, 0, 0, 0);
+  while (futureDays.length < 6) { cursor.setUTCDate(cursor.getUTCDate() + 1); if (fullDay(cursor)) futureDays.push(new Date(cursor)); }
+  const windows = { training: { start_at: session(days[0]).session_open, end_at: session(days[2]).session_close },
+    held_out: { start_at: session(futureDays[0]).session_open, end_at: session(futureDays[2]).session_close },
+    walk_forward: { start_at: session(futureDays[3]).session_open, end_at: session(futureDays[5]).session_close } };
+  // Past plan is explicitly isolated admin fixture setup, NEVER backdated
+  // production acceptance. Model sealing/confirmation still use ACTUAL DB time.
+  const frozenAt = new Date(Date.parse(windows.training.start_at) - 86400000).toISOString();
+  const plan = readers.buildRelativePlanProspectivePlan({ ...readers.prospectiveInput, windows }, frozenAt); assert(plan);
+  const literal = value => `'${JSON.stringify(value).replaceAll("'", "''")}'::jsonb`;
+  sql(`insert into public.relative_plan_prospective_comparisons(id,owner_user_id,model_version,plan_fingerprint,plan_json,frozen_at)
+    values('22222222-2222-4222-8222-222222222222','${owner}','${plan.model_version}','${plan.plan_fingerprint}',${literal(plan)},'${frozenAt}');`);
+  const freeze = (await readers.relativePlanProspectiveStore().read(owner)).receipt; assert(freeze);
+  const persist = async (part, omittedId = null) => {
+    for (const run of part.scanRuns) assert.equal((await readers.persistRecommendationScanRun(run, { supabaseClient: client, server: true })).status, "saved");
+    for (const snapshot of part.snapshots) assert.equal((await readers.persistRecommendationSnapshot(snapshot, { supabaseClient: client, server: true })).status, "saved");
+    for (const outcome of part.outcomes.filter(row => row.id !== omittedId)) assert.equal((await readers.persistRecommendationOutcome(outcome, { supabaseClient: client, server: true })).status, "saved");
+  };
+  for (const day of days) for (let n = 0; n < 4; n++) {
+    await persist(await readers.prospectiveSource({ now: new Date(Date.parse(session(day).session_open) + 3.5 * 3600000 + n * 300000) }));
+  }
+  const training = await readers.createRelativePlanTrainedProbabilityService().train(owner, {});
+  assert.equal(training.status, "materialized", training.blocker); const sealed = training.receipt;
+  assert.equal(sealed.trained_model.original_population_count, 48);
+  assert(Date.parse(sealed.committed_read_at) < Date.parse(windows.held_out.start_at));
+  const parts = [], runtimeRows = [];
+  for (const day of futureDays) for (let n = 0; n < 10; n++) {
+    const at = new Date(Date.parse(session(day).session_open) + 2.5 * 3600000 + n * 900000);
+    const part = await readers.prospectiveSource({ now: at });
+    const context = { contract_version: "market_regime_decision_context_v1", classifier_version: "market_regime_v1",
+      captured_at: at.toISOString(), regime: "risk_on" };
+    Object.assign(part.scanRuns[0].payload_json, { market_regime: "risk_on", market_regime_context: context });
+    for (const snapshot of part.snapshots) Object.assign(snapshot.payload_json, {
+      setup_type: "BREAKOUT_CONTINUATION", market_regime: "risk_on", market_regime_context: context });
+    parts.push(part); runtimeRows.push(readers.charterRuntimeRows({ at: at.toISOString(), fingerprint: part.scanRuns[0].run_fingerprint }));
+  }
+  const pending = parts[0].outcomes[0];
+  for (const part of parts) await persist(part, pending.id);
+  const failed = readers.charterRuntimeRows({ at: new Date(Date.parse(session(futureDays[0]).session_open) + 5 * 3600000).toISOString(), fingerprint: null, failed: true });
+  runtimeRows.push(failed);
+  for (const row of runtimeRows) {
     assert.equal((await client.from("scheduled_scan_attempts").insert(row.attempt)).error, null);
     assert.equal((await client.from("observation_cycle_receipts").insert(row.cycle)).error, null);
   }
-  const now = new Date("2026-10-12T19:00:00.000Z");
-  const sourceResult = await readers.readRecommendationLearningBaselineSource(owner); assert.equal(sourceResult.status, "available");
-  const source = readers.parseRecommendationLearningBaselineSource(sourceResult.data); assert(source);
+  // Future evaluation clocks and source rows are explicit CLOSED fixtures,
+  // not evidence that a real forward market cohort has already completed.
+  const now = new Date(Date.parse(windows.walk_forward.end_at) + 3600000);
   const read = async () => {
-    const runtime = await readers.readRelativePlanCharterRuntimeSource({ owner, freeze, now }); assert.equal(runtime.status, "available");
-    return readers.summarizeRelativePlanCharterOperational({ owner, freeze, now, runtime, source,
-      partition: "held_out", enrolledFingerprints: [fixture.scanRuns[0].run_fingerprint] });
+    const result = await readers.createRelativePlanProspectiveService().read(owner, now);
+    assert.equal(result.status, "available", result.blocker); assert.deepEqual(result.learning.trained_probability_model, sealed);
+    assert.equal(result.learning.terminal_quality_decision, null); assert(Object.values(result.learning.authority).every(value => value === false));
+    const charter = result.learning.full_charter; assert(charter);
+    assert.equal(charter.terminal_quality_decision, null); assert.equal(charter.context_triage, null);
+    assert.equal(charter.quality_improvement_claimed, false);
+    for (const partition of charter.partitions) {
+      assert.equal(partition.enrolled_decision_count, 30); assert.equal(partition.original_population_count, 120);
+      assert.deepEqual(partition.probability.model, sealed.trained_model.model);
+      assert.equal(partition.thresholds.checks.length, 11);
+    }
+    return result;
   };
-  const full = await read(); assert.equal(full.reliability.value.value, 0.5); assert.equal(full.cost.credits_per_decision, 8);
-  assert.equal(full.reliability.terminal_failure_count, 1); assert.equal(full.cost.reserved_provider_credits, 16);
-  const observations = readers.buildRelativePlanCharterObservations({ scanRun: source.scanRuns[0], source, now });
-  assert.equal(observations.retained_original_population_count, 4); assert.equal(observations.rows.every(row => row.trigger_attainment === true), true);
-  assert.equal(observations.rows.every(row => row.setup === null && row.regime === null), true);
-  assert.deepEqual(await read(), full); // new SDK query and consumer, no in-memory result reuse
+  const missing = await read(); assert.equal(missing.learning.full_charter.computed_disposition, "evidence_incomplete");
+  assert.equal(missing.learning.full_charter.partitions[0].quality.original_population_count, 120);
+  assert.equal(missing.learning.full_charter.partitions[0].quality.outcome_coverage.value, 119 / 120);
+  assert.equal((await readers.persistRecommendationOutcome(pending, { supabaseClient: client, server: true })).status, "saved");
+  const full = await read(), charter = full.learning.full_charter;
+  assert.equal(charter.evidence_complete, true); assert.equal(charter.computed_disposition, "reject");
+  assert.deepEqual(charter.missing_dimensions, []);
+  assert(charter.measured_limit_failures.includes("held_out_sector_concentration_charter_limit_not_met"));
+  const held = charter.partitions[0].operational;
+  assert.equal(held.reliability.value.value, 30 / 31); assert.equal(held.reliability.terminal_failure_count, 1);
+  assert.equal(held.cost.credits_per_decision, 8); assert.equal(held.cost.reserved_provider_credits, 248);
+  assert.equal(charter.partitions[1].operational.reliability.value.value, 1);
+  const response = readers.relativePlanCompleteHttpResponse(full, { status: 200, headers: { "Cache-Control": "no-store" } });
+  assert.equal(response.status, 200); assert.equal(response.headers.get("cache-control"), "no-store");
+  const httpBytes = Buffer.byteLength(await response.clone().text(), "utf8");
+  assert.deepEqual(await response.json(), JSON.parse(JSON.stringify(full)));
+  assert.deepEqual(await read(), full); // restarted service and actual fresh SDK reads, not cached source
   const payload = structuredClone(failed.attempt.payload_json);
   Object.assign(payload.basic_free_scheduled_scan_credit_reservation, { finalization_status: "reservation_unavailable",
     finalization_proven: false, safe_blocker: "basic_free_credit_reservation_unavailable" });
   assert.equal((await client.from("scheduled_scan_attempts").update({ payload_json: payload }).eq("attempt_fingerprint", failed.attempt.attempt_fingerprint)).error, null);
-  const missingCost = await read(); assert.equal(missingCost.cost.credits_per_decision, null);
-  assert.equal(missingCost.reliability.value.value, 0.5); assert.equal(missingCost.reliability.terminal_failure_count, 1);
+  const missingCost = (await read()).learning.full_charter;
+  assert.equal(missingCost.computed_disposition, "evidence_incomplete");
+  assert.equal(missingCost.partitions[0].operational.cost.credits_per_decision, null);
+  assert.equal(missingCost.partitions[0].operational.reliability.value.value, 30 / 31);
+  assert.equal(missingCost.partitions[0].operational.reliability.terminal_failure_count, 1);
+  assert.equal((await client.from("scheduled_scan_attempts").update({ payload_json: failed.attempt.payload_json }).eq("attempt_fingerprint", failed.attempt.attempt_fingerprint)).error, null);
+  // Corrected unfavorable forward labels change errors, never the immutable
+  // fitting job, original first thirty or thresholds.
+  for (const part of [parts[0], parts[30]]) {
+    const losses = await readers.prospectiveSource({ now: new Date(part.snapshots[0].recommended_at), allLosses: true });
+    for (const outcome of losses.outcomes) assert.equal((await readers.persistRecommendationOutcome(outcome, { supabaseClient: client, server: true })).status, "saved");
+  }
+  const corrected = (await read()).learning.full_charter;
+  assert.deepEqual(corrected.partitions.map(row => row.original_membership_fingerprint), charter.partitions.map(row => row.original_membership_fingerprint));
+  assert.notDeepEqual(corrected.partitions[0].probability.forward.baseline, charter.partitions[0].probability.forward.baseline);
+  assert.equal((await readers.createRelativePlanProspectiveService().read(other, now)).status, "not_found");
   const otherRuntime = await readers.readRelativePlanCharterRuntimeSource({ owner: other, freeze, now }); assert.equal(otherRuntime.status, "unavailable");
   assert.equal(blockedExternalRequests, 0);
   console.log(JSON.stringify({ status: "pass", environment: "isolated_postgres_postgrest_actual_sdk",
-    evidence: "synthetic_closed_not_market_alpha", original_candidates: 4, admitted_attempts: 2,
-    terminal_failures: 1, reserved_fixture_credits: 16, unknown_cost_retains_failure: true,
-    full_charter_consumer_verified: false, provider_requests: 0, production_writes: 0, broker_actions: 0 }));
+    evidence: "synthetic_closed_not_market_alpha", immutable_actual_database_training_members: 48,
+    original_held_out_decisions: 30, original_walk_forward_decisions: 30, original_candidates_per_forward_partition: 120,
+    held_out_admitted_attempts: 31, terminal_failures: 1, held_out_reserved_fixture_credits: 248,
+    unknown_cost_retains_failure: true, missing_label_retains_original_denominator: true,
+    actual_restarted_full_charter_consumer_verified: true, eleven_charter_checks_per_partition: true,
+    known_concentration_failure_separate_from_missing_evidence: true, forward_losses_never_refit_model: true,
+    durable_terminal_result_verified: false, quality_improvement_verified: false,
+    complete_original_product_http_bytes: httpBytes,
+    provider_requests: 0, production_writes: 0, broker_actions: 0 }));
 } finally {
   globalThis.fetch = originalFetch;
   for (const name of Object.keys(process.env)) if (!Object.hasOwn(originalEnvironment, name)) delete process.env[name];

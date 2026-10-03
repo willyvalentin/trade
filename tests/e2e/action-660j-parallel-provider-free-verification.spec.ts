@@ -280,6 +280,13 @@ const foundationTests = [
 ];
 
 const intelligenceTests = [
+  "tests/e2e/relative-plan-charter-observations.spec.ts",
+  "tests/e2e/relative-plan-charter-context.spec.ts",
+  "tests/e2e/relative-plan-charter-quality.spec.ts",
+  "tests/e2e/relative-plan-charter-operational.spec.ts",
+  "tests/e2e/relative-plan-charter-runtime-source.spec.ts",
+  "tests/e2e/relative-plan-charter-thresholds.spec.ts",
+  "tests/e2e/relative-plan-charter-evaluation.spec.ts",
   "tests/e2e/relative-plan-prospective-comparison.spec.ts",
   "tests/e2e/relative-plan-prospective-store.spec.ts",
   "tests/e2e/relative-plan-prospective-learning.spec.ts",

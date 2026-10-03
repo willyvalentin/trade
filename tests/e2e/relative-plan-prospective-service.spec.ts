@@ -24,6 +24,7 @@ function harness(overrides: Partial<Dependencies> = {}) {
   const dependencies: Dependencies = {
     store: () => createRelativePlanProspectiveStore(database),
     revision: () => prospectiveInput.source_revision,
+    readRuntime: async () => ({ status: "unavailable", partitions: null, blocker: "synthetic_runtime_not_provided" }),
     modelStore: () => createRelativePlanTrainedProbabilityStore({
       async read() { return { status: "not_found", receipt: null }; },
       async materialize() { throw new Error("read_must_not_train"); },
@@ -102,6 +103,24 @@ test("raw persisted outcome clocks are checked before a legacy decoder can manuf
       blocker: "prospective_explicit_outcome_recording_times_unavailable" });
     expect(h.writes()).toBe(1);
   }
+});
+
+test("runtime reads occur only after a trusted owner freeze and complete source and cannot train or expose private errors", async () => {
+  const requests: Parameters<Dependencies["readRuntime"]>[0][] = [];
+  const h = harness({ readRuntime: async request => { requests.push(request); throw new Error("private_transport_details"); } });
+  expect((await h.service.read(prospectiveOwner)).status).toBe("not_found");
+  expect(requests).toEqual([]);
+  await h.service.freeze(prospectiveOwner, { windows: prospectiveInput.windows }, new Date(prospectiveFrozenAt));
+  const now = new Date("2026-11-07T00:00:00.000Z"), result = await h.service.read(prospectiveOwner, now);
+  expect(result.status).toBe("available");
+  expect(requests).toHaveLength(1);
+  expect(requests[0]).toMatchObject({ owner: prospectiveOwner, freeze: prospectiveReceipt(), now });
+  expect(result.learning?.full_charter.computed_disposition).toBe("evidence_incomplete");
+  expect(result.learning?.full_charter.missing_dimensions).toContain("held_out_relative_plan_runtime_source_read_failed");
+  expect(JSON.stringify(result)).not.toContain("private_transport_details");
+  expect((await h.service.read("33333333-3333-4333-8333-333333333333", now)).status).toBe("not_found");
+  expect(requests).toHaveLength(1);
+  expect(h.writes()).toBe(1);
 });
 
 test("original source writers, immutable freeze and restarted canonical learner share the exact isolated owner population", () => {

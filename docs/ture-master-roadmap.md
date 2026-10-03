@@ -93,6 +93,20 @@ silent qualified fallback. The complete charter/runtime/feasibility comparison
 still follows materialization; keep the terminal quality gate closed. Do not
 reinterpret ordinal confidence, underfilled buckets or a good synthetic Brier
 score as accepted recommendation quality.
+
+The training-capsule vertical is inert production-integrated in PR #731;
+actual isolated DB/SDK/restarted consumption is separately verified. No
+production comparison, fitting job or useful forward cohort is thereby proven.
+The selected full-charter reader now closes the numerical comparison link on
+that same sealed model and original first-thirty populations: all absolute
+limits, paired trading-day uncertainty, context, disclosed feasibility and every
+admitted scheduled attempt's finalized cost/reliability. Known violations are
+separate from unavailable evidence. Its computed disposition remains read-only,
+not a durable terminal result, context-triage qualification or promotion.
+Retain the complete as-of forward evidence and one immutable terminal result
+before advancing that gate; an outcome upsert must not rewrite the accepted
+result or refit its model. Preserve the existing frozen charter and new reader's
+named durability gap rather than creating another ranking hypothesis.
 When those first two links pass their declared acceptance, return the primary
 delivery to the largest attributable recommendation-quality defect; do not
 extend input or outcome infrastructure without a new reproduced blocker.

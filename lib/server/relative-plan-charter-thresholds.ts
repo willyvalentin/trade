@@ -34,7 +34,9 @@ export function summarizeRelativePlanCharterThresholds(input: {
   check("outcome_coverage", q.outcome_coverage?.value, t.minimum_outcome_coverage, "minimum");
   check("evidence_missingness", q.evidence_missingness?.value, t.maximum_missingness, "maximum");
   check("runtime_reliability", op.reliability?.value?.value, t.minimum_reliability, "minimum");
-  check("provider_credits_per_decision", op.cost?.credits_per_decision, t.maximum_provider_credits_per_decision, "maximum", false);
+  const cost = op.cost?.credits_per_decision;
+  check("provider_credits_per_decision", typeof cost === "number" && cost >= 0 ? cost : null,
+    t.maximum_provider_credits_per_decision, "maximum", false);
   for (const [dimension, limit] of [["ticker", c.maximum_single_ticker_share], ["sector", c.maximum_single_sector_share],
     ["setup", c.maximum_single_setup_share], ["regime", c.maximum_single_regime_share]] as const) {
     check(`${dimension}_concentration`, q.context.concentration[dimension].maximum_single_share?.value, limit, "maximum");
@@ -45,7 +47,8 @@ export function summarizeRelativePlanCharterThresholds(input: {
   // under-sampled score bucket from predicting an original forward identity.
   if (!q.calibration || q.calibration.original_probability_coverage !== 1 || q.calibration.binary_probability_coverage !== 1 ||
     !q.calibration.baseline || !q.calibration.challenger ||
-    !Number.isFinite(q.calibration.baseline.brier_score) || !Number.isFinite(q.calibration.challenger.brier_score)) {
+    ![q.calibration.baseline.brier_score, q.calibration.challenger.brier_score].every(value =>
+      Number.isFinite(value) && value >= 0 && value <= 1)) {
     gaps.add("complete_original_probability_error_required");
   }
   for (const gap of op.blockers) gaps.add(gap);
