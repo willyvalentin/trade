@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import { createRelativePlanProspectiveService } from "@/lib/server/relative-plan-prospective-service";
 import { createRelativePlanProspectiveStore } from "@/lib/server/relative-plan-prospective-store";
 import { createRelativePlanTrainedProbabilityStore } from "@/lib/server/relative-plan-trained-probability-store";
+import { createRelativePlanCharterResultStore } from "@/lib/server/relative-plan-charter-result-store";
 import { prospectiveOwner, prospectiveFrozenAt, prospectiveInput, prospectiveReceipt } from "../fixtures/relative-plan-prospective";
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
@@ -25,6 +26,8 @@ function harness(overrides: Partial<Dependencies> = {}) {
     store: () => createRelativePlanProspectiveStore(database),
     revision: () => prospectiveInput.source_revision,
     readRuntime: async () => ({ status: "unavailable", partitions: null, blocker: "synthetic_runtime_not_provided" }),
+    resultStore: () => createRelativePlanCharterResultStore({ async read() { return { status: "not_found",receipt: null }; },
+      async finalize() { throw new Error("read_must_not_finalize"); } }),
     modelStore: () => createRelativePlanTrainedProbabilityStore({
       async read() { return { status: "not_found", receipt: null }; },
       async materialize() { throw new Error("read_must_not_train"); },

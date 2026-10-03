@@ -67,6 +67,7 @@ try {
   sql("grant all on all tables in schema public to service_role;");
   sql(readFileSync(resolve(root, "supabase/migrations/20261002213547_if4_relative_plan_prospective_comparison.sql"), "utf8"));
   sql(readFileSync(resolve(root, "supabase/migrations/20261002233358_if4_relative_plan_trained_probability_model.sql"), "utf8"));
+  sql(readFileSync(resolve(root, "supabase/migrations/20261003015239_if4_relative_plan_charter_result.sql"), "utf8"));
   const key = "closed-proof-jwt-only-0123456789012345678901234567890123456789";
   const encoded = value => Buffer.from(JSON.stringify(value)).toString("base64url");
   const tokenFor = role => {

@@ -107,6 +107,19 @@ Retain the complete as-of forward evidence and one immutable terminal result
 before advancing that gate; an outcome upsert must not rewrite the accepted
 result or refit its model. Preserve the existing frozen charter and new reader's
 named durability gap rather than creating another ranking hypothesis.
+The same local vertical now retains the complete original as-of source and
+runtime rows with one immutable full-charter result. An isolated actual
+Postgres/PostgREST/SDK proof verifies database-clock finalization and restarted
+consumption that survives later outcome upserts; its historical synthetic
+model-clock fixture is not a production seal or market-quality result. Complete
+source uses lossless, independently bounded compression, never reduced cohorts.
+The fixed-purpose owner command accepts no caller source, model, metric or clock;
+GET is read-only. Production integration and the full release gates are still
+unverified for this vertical. The unchanged mandatory dependency audit has an
+unpatched high-severity dev-only transitive advisory; no audit exclusion or
+forced framework downgrade is permitted. Continue independent CLOSED
+intelligence work while retaining that release blocker. No actual forward
+cohort, context-triage qualification, policy promotion or quality lift is claimed.
 When those first two links pass their declared acceptance, return the primary
 delivery to the largest attributable recommendation-quality defect; do not
 extend input or outcome infrastructure without a new reproduced blocker.

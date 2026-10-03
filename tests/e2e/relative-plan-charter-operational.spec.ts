@@ -48,6 +48,7 @@ async function input() {
   const runtime: RelativePlanCharterRuntimeSource = { status: "available", blocker: null, partitions: [{
     partition: "held_out", status: "available", evidence: rows, observation_cycle_count: 2, scheduled_attempt_count: 2,
     unattributed_attempt_count: 0, original_window: prospectiveInput.windows.held_out, read_as_of: now.toISOString(),
+    retained_rows: { partition: "held_out",observation_cycles: [],scheduled_attempts: [] },
   }] };
   return { owner: prospectiveOwner, freeze: prospectiveReceipt(), partition: "held_out" as const, source,
     runtime, enrolledFingerprints: [fingerprint], now };

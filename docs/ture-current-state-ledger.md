@@ -2,7 +2,44 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
-**Current queue — 2026-10-03 01:30Z:** PR #731 normally merged at
+**Current queue — 2026-10-03 02:19Z:** The same primary CLOSED full-charter
+vertical now includes complete as-of result retention and restarted terminal
+consumption, closing the reproduced `durably_finalized_full_charter_result_required`
+link without opening a second ranking hypothesis or development stream. Codex
+owns the new additive result relation/RPC and fixed-purpose owner command on
+the existing isolated primary branch, within its twelve-active-hour budget.
+Source and runtime replay must independently reproduce both original populations,
+all eleven checks and the sealed model; database time must be past both forward
+windows plus maturity. GET never finalizes or reads mutable history after a
+result exists. No provider, ranking, promotion or broker authority is added.
+
+The first isolated actual Postgres/PostgREST/SDK finalization proof now passes:
+database-clock finalization, one immutable terminal result, restarted native
+service/learner consumption, owner isolation and unchanged result after actual
+outcome upserts. It retains thirty original decisions/120 candidates in each
+forward partition and all eleven checks. This mode explicitly uses a historical
+synthetic model-clock fixture, not an actual pre-forward training seal or market
+alpha; the separate default proof supplies the actual pre-forward seal.
+An operator-precedence failure in the local SQL model-binding expression was
+reproduced and corrected without weakening that binding. Complete source is
+losslessly compressed with an independent 8 MiB decoded bound, not sampled or
+truncated. The prior full original product HTTP response is 3,187,746 UTF-8
+bytes. Finalized transport, direct clock/model/owner rejection, optimized
+committed-read verification and the combined regression remain in progress.
+Everything in this vertical remains local: no PR, merge, production migration,
+configuration, provider request, scan or broker action has occurred.
+
+Release is currently blocked by unchanged mandatory `npm audit --audit-level=high`:
+GHSA-vfj7-8cjw-p6xm affects braces 3.0.3 via the dev-only Next ESLint chain.
+The official advisory and registry have no patched version on this read;
+`npm audit --omit=dev` is clean but does not replace the mandatory full audit.
+No force downgrade, exclusion, local untracked dependency patch or CI bypass is
+selected. Lint/types, focused behavior and exact Linux build passed the prior
+measurement revision `d70dfa42`; remaining registered checks run diagnostically,
+not release acceptance. Continue useful local intelligence work while retaining
+this explicit security blocker; do not spend repeated attempts on the same audit.
+
+**Verified predecessor — 2026-10-03 01:30Z:** PR #731 normally merged at
 01:23:26Z after all six protected shards, aggregate and provenance in
 `37083368778` passed; exact-main CI `37085906922` also passes. Main
 `55576078e102e7019c271aeb5e67de4a353f2e8f` has the exact reviewed tree

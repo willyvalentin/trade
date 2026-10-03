@@ -38,7 +38,8 @@ export async function charterEvaluationInput() {
     if (decoded.status !== "available") throw new Error("synthetic_charter_runtime_invalid");
     return { partition, status: "available" as const, evidence: decoded.evidence,
       observation_cycle_count: 30, scheduled_attempt_count: 30, unattributed_attempt_count: 0,
-      original_window: freeze.plan.windows[partition], read_as_of: now.toISOString() };
+      original_window: freeze.plan.windows[partition], read_as_of: now.toISOString(),
+      retained_rows: { partition, observation_cycles: rows.map(row => row.cycle), scheduled_attempts: rows.map(row => row.attempt) } };
   });
   const runtime: RelativePlanCharterRuntimeSource = { status: "available", blocker: null, partitions };
   return { owner, freeze, source, now, trainedModelReceipt, runtime };

@@ -11,6 +11,7 @@ import { setTimeout as delay } from "node:timers/promises";
 import { build } from "esbuild";
 
 const root = process.cwd(), directory = mkdtempSync(join(tmpdir(), "ture-relative-plan-charter-proof-"));
+const finalizedMode = process.argv.includes("--finalized-result");
 const db = `ture-relative-plan-charter-db-${process.pid}`, api = `ture-relative-plan-charter-api-${process.pid}`;
 const network = `ture-relative-plan-charter-net-${process.pid}`;
 const docker = (...args) => execFileSync("docker", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
@@ -18,6 +19,7 @@ const sql = query => execFileSync("docker", ["exec", "-i", db, "psql", "-h", "12
   "-At", "-v", "ON_ERROR_STOP=1"], { input: query, encoding: "utf8", stdio: ["pipe", "pipe", "pipe"] }).trim();
 const originalFetch = globalThis.fetch, originalEnvironment = { ...process.env };
 let dbCreated = false, apiCreated = false, networkCreated = false, blockedExternalRequests = 0;
+let finalizedHttpBytes = null, resultPrewriteGuardsVerified = false;
 try {
   await build({ bundle: true, platform: "node", format: "cjs", conditions: ["react-server"], alias: { "@": root },
     plugins: [{ name: "real-fixture-expect", setup(builder) { builder.onResolve({ filter: /^@playwright\/test$/ }, () => ({
@@ -30,6 +32,9 @@ try {
       export { relativePlanProspectiveStore } from './lib/server/relative-plan-prospective-store';
       export { createRelativePlanTrainedProbabilityService } from './lib/server/relative-plan-trained-probability-service';
       export { createRelativePlanProspectiveService } from './lib/server/relative-plan-prospective-service';
+      export { createRelativePlanCharterResultService } from './lib/server/relative-plan-charter-result-service';
+      export { relativePlanCharterResultStore } from './lib/server/relative-plan-charter-result-store';
+      export { buildRelativePlanTrainedProbabilityModel } from './lib/server/relative-plan-trained-probability-model';
       export { relativePlanCompleteHttpResponse } from './lib/server/relative-plan-complete-http-response';
       export { getUsEquityMarketSession } from './lib/us-equity-market-calendar';
       export { readRelativePlanCharterRuntimeSource } from './lib/server/relative-plan-charter-runtime-source';
@@ -64,6 +69,7 @@ try {
   sql("grant all on all tables in schema public to service_role;");
   sql(readFileSync(resolve(root, "supabase/migrations/20261002213547_if4_relative_plan_prospective_comparison.sql"), "utf8"));
   sql(readFileSync(resolve(root, "supabase/migrations/20261002233358_if4_relative_plan_trained_probability_model.sql"), "utf8"));
+  sql(readFileSync(resolve(root, "supabase/migrations/20261003015239_if4_relative_plan_charter_result.sql"), "utf8"));
   const key = "closed-proof-jwt-only-0123456789012345678901234567890123456789";
   const encoded = value => Buffer.from(JSON.stringify(value)).toString("base64url");
   const body = `${encoded({ alg: "HS256", typ: "JWT" })}.${encoded({ role: "service_role", exp: Math.floor(Date.now() / 1000) + 3600 })}`;
@@ -74,7 +80,26 @@ try {
   const endpoint = `http://${docker("port", api, "3000/tcp")}`;
   globalThis.fetch = async (input, options) => { const url = new URL(typeof input === "string" || input instanceof URL ? input : input.url);
     if (url.origin !== endpoint) { blockedExternalRequests++; throw new Error("external_request_forbidden"); }
-    url.pathname = url.pathname.replace(/^\/rest\/v1\//, "/"); return originalFetch(url, options); };
+    url.pathname = url.pathname.replace(/^\/rest\/v1\//, "/");
+    if (finalizedMode && !resultPrewriteGuardsVerified && url.pathname === "/rpc/finalize_relative_plan_charter_result_v1") {
+      // Real SQL-clock/model/owner rejection BEFORE the first result insert.
+      // These are isolated synthetic fixtures, not production route calls.
+      const request = JSON.parse(options.body), candidate = request.p_result;
+      const rpc = (who, result) => JSON.parse(sql(`select public.finalize_relative_plan_charter_result_v1(
+        '${who}','${candidate.prospective_freeze_id}','${JSON.stringify(result).replaceAll("'","''")}'::jsonb,
+        'relative_plan_charter_result_receipt_v1')`));
+      const future = structuredClone(candidate);
+      future.source_as_of = new Date(Date.now()+86400000).toISOString();
+      future.measurement.read_as_of = future.source_as_of;
+      assert.equal(rpc(owner,future).status,"not_ready");
+      assert.equal(rpc(other,candidate).status,"unavailable");
+      const drifted = structuredClone(candidate);
+      drifted.trained_model_receipt.committed_read_at = new Date(Date.parse(drifted.trained_model_receipt.committed_read_at)+1).toISOString();
+      assert.equal(rpc(owner,drifted).status,"unavailable");
+      assert.equal(sql("select count(*) from public.relative_plan_charter_results"),"0");
+      resultPrewriteGuardsVerified = true;
+    }
+    return originalFetch(url, options); };
   for (let i = 0; i < 40; i++) {
     try { if ((await fetch(endpoint)).ok) break; } catch { /* bounded startup only */ }
     if (i === 39) throw new Error("isolated_postgrest_not_ready"); await delay(250);
@@ -86,15 +111,17 @@ try {
   const session = day => readers.getUsEquityMarketSession(day.toISOString().slice(0, 10));
   const fullDay = day => { const s = session(day); return s.session_open && Date.parse(s.session_close) - Date.parse(s.session_open) >= 6 * 3600000; };
   const jobAt = new Date(), days = [], cursor = new Date(jobAt); cursor.setUTCHours(0, 0, 0, 0);
-  while (days.length < 3) { cursor.setUTCDate(cursor.getUTCDate() - 1); if (fullDay(cursor)) days.unshift(new Date(cursor)); }
+  while (days.length < (finalizedMode ? 9 : 3)) { cursor.setUTCDate(cursor.getUTCDate() - 1); if (fullDay(cursor)) days.unshift(new Date(cursor)); }
   const futureDays = [];
   cursor.setTime(jobAt.getTime()); cursor.setUTCHours(0, 0, 0, 0);
-  while (futureDays.length < 6) { cursor.setUTCDate(cursor.getUTCDate() + 1); if (fullDay(cursor)) futureDays.push(new Date(cursor)); }
+  if (finalizedMode) futureDays.push(...days.splice(3));
+  else while (futureDays.length < 6) { cursor.setUTCDate(cursor.getUTCDate() + 1); if (fullDay(cursor)) futureDays.push(new Date(cursor)); }
   const windows = { training: { start_at: session(days[0]).session_open, end_at: session(days[2]).session_close },
     held_out: { start_at: session(futureDays[0]).session_open, end_at: session(futureDays[2]).session_close },
     walk_forward: { start_at: session(futureDays[3]).session_open, end_at: session(futureDays[5]).session_close } };
   // Past plan is explicitly isolated admin fixture setup, NEVER backdated
-  // production acceptance. Model sealing/confirmation still use ACTUAL DB time.
+  // production acceptance. Default-mode model sealing uses actual DB time;
+  // finalized mode uses a disclosed historical synthetic model fixture.
   const frozenAt = new Date(Date.parse(windows.training.start_at) - 86400000).toISOString();
   const plan = readers.buildRelativePlanProspectivePlan({ ...readers.prospectiveInput, windows }, frozenAt); assert(plan);
   const literal = value => `'${JSON.stringify(value).replaceAll("'", "''")}'::jsonb`;
@@ -109,7 +136,24 @@ try {
   for (const day of days) for (let n = 0; n < 4; n++) {
     await persist(await readers.prospectiveSource({ now: new Date(Date.parse(session(day).session_open) + 3.5 * 3600000 + n * 300000) }));
   }
-  const training = await readers.createRelativePlanTrainedProbabilityService().train(owner, {});
+  let training;
+  if (finalizedMode) {
+    // Explicit HISTORICAL SYNTHETIC admin fixture only, not an actual
+    // pre-forward model seal. The default proof above separately proves actual
+    // DB sealing before future windows. Here only finalization uses REAL time.
+    const sourceRead = await readers.readRecommendationLearningBaselineSource(owner);
+    const source = readers.parseRecommendationLearningBaselineSource(sourceRead.data); assert(source);
+    const modelAt = new Date(Date.parse(windows.training.end_at) + 3600001).toISOString();
+    const model = readers.buildRelativePlanTrainedProbabilityModel({ owner,freeze,source,now: new Date(modelAt) }).trained_model;
+    assert(model);
+    sql(`insert into public.relative_plan_trained_probability_models(id,owner_user_id,prospective_freeze_id,plan_fingerprint,
+      model_binding_fingerprint,trained_model_json,materialized_at,materialization_txid) values(
+      '44444444-4444-4444-8444-444444444444','${owner}','${freeze.freeze_id}','${plan.plan_fingerprint}',
+      '${model.model_binding_fingerprint}',${literal(model)},'${modelAt}',txid_current());
+      insert into public.relative_plan_trained_probability_confirmations values(
+      '44444444-4444-4444-8444-444444444444','${modelAt}');`);
+    training = { status: "materialized",receipt: (await readers.createRelativePlanTrainedProbabilityService().read(owner)).receipt };
+  } else training = await readers.createRelativePlanTrainedProbabilityService().train(owner, {});
   assert.equal(training.status, "materialized", training.blocker); const sealed = training.receipt;
   assert.equal(sealed.trained_model.original_population_count, 48);
   assert(Date.parse(sealed.committed_read_at) < Date.parse(windows.held_out.start_at));
@@ -134,7 +178,7 @@ try {
   }
   // Future evaluation clocks and source rows are explicit CLOSED fixtures,
   // not evidence that a real forward market cohort has already completed.
-  const now = new Date(Date.parse(windows.walk_forward.end_at) + 3600000);
+  const now = finalizedMode ? new Date() : new Date(Date.parse(windows.walk_forward.end_at) + 3600000);
   const read = async () => {
     const result = await readers.createRelativePlanProspectiveService().read(owner, now);
     assert.equal(result.status, "available", result.blocker); assert.deepEqual(result.learning.trained_probability_model, sealed);
@@ -166,15 +210,60 @@ try {
   const httpBytes = Buffer.byteLength(await response.clone().text(), "utf8");
   assert.deepEqual(await response.json(), JSON.parse(JSON.stringify(full)));
   assert.deepEqual(await read(), full); // restarted service and actual fresh SDK reads, not cached source
+  let durable = null;
+  if (finalizedMode) {
+    const beforeFinalization = Date.now();
+    durable = await readers.createRelativePlanCharterResultService().finalize(owner,{});
+    assert.equal(durable.status,"finalized",durable.blocker);
+    assert.equal(durable.terminal_quality_decision.disposition,"reject");
+    assert(durable.receipt.result.measurement.evidence_complete);
+    assert(Date.parse(durable.receipt.finalized_at) >= beforeFinalization);
+    assert(Date.parse(durable.receipt.finalized_at) <= Date.now());
+    assert.deepEqual((await readers.createRelativePlanCharterResultService().read(owner)).receipt,durable.receipt);
+    assert.equal((await readers.createRelativePlanCharterResultService().finalize(owner,{})).status,"already_finalized");
+    const persisted = await readers.createRelativePlanProspectiveService().read(owner,now);
+    assert.equal(persisted.learning.status,"evaluated");
+    assert.equal(persisted.learning.terminal_quality_decision.result_fingerprint,durable.receipt.result.result_fingerprint);
+    for (const body of [durable,persisted]) {
+      const transported = readers.relativePlanCompleteHttpResponse(body,{ status:200,headers:{ "Cache-Control":"no-store" } });
+      assert.equal(transported.status,200);
+      assert.equal(transported.headers.get("cache-control"),"no-store");
+      const bytes = Buffer.byteLength(await transported.clone().text(),"utf8");
+      assert(bytes <= 5*1048576);
+      assert.deepEqual(await transported.json(),JSON.parse(JSON.stringify(body)));
+      finalizedHttpBytes = Math.max(finalizedHttpBytes ?? 0,bytes);
+    }
+    for (const role of ["anon","authenticated","service_role"]) for (const privilege of ["select","insert","update","delete","truncate","references","trigger"]) {
+      assert.equal(sql(`select has_table_privilege('${role}','public.relative_plan_charter_results','${privilege}')`),"f");
+    }
+    for (const role of ["anon","authenticated","service_role"]) for (const rpc of [
+      "read_relative_plan_charter_result_v1(uuid,uuid,text)","finalize_relative_plan_charter_result_v1(uuid,uuid,jsonb,text)"]) {
+      assert.equal(sql(`select has_function_privilege('${role}','public.${rpc}','execute')`),role === "service_role" ? "t" : "f");
+    }
+    const conflicting = structuredClone(durable.receipt.result); conflicting.result_fingerprint = "c".repeat(64);
+    assert.equal(JSON.parse(sql(`select public.finalize_relative_plan_charter_result_v1('${owner}','${freeze.freeze_id}',
+      ${literal(conflicting)},'relative_plan_charter_result_receipt_v1')`)).status,"conflicting");
+    assert.throws(() => sql("update public.relative_plan_charter_results set finalized_at=now()"),/immutable/);
+    assert.throws(() => sql("delete from public.relative_plan_charter_results"),/immutable/);
+    assert.equal(sql("select count(*) from public.relative_plan_charter_results"),"1");
+  } else {
+    assert.equal((await readers.createRelativePlanCharterResultService().finalize(owner,{})).status,"not_ready");
+    assert.equal(sql("select count(*) from public.relative_plan_charter_results"),"0");
+  }
   const payload = structuredClone(failed.attempt.payload_json);
   Object.assign(payload.basic_free_scheduled_scan_credit_reservation, { finalization_status: "reservation_unavailable",
     finalization_proven: false, safe_blocker: "basic_free_credit_reservation_unavailable" });
   assert.equal((await client.from("scheduled_scan_attempts").update({ payload_json: payload }).eq("attempt_fingerprint", failed.attempt.attempt_fingerprint)).error, null);
-  const missingCost = (await read()).learning.full_charter;
+  // The diagnostic computation remains available independently; terminal
+  // reads in finalized mode MUST stay on their retained immutable source.
+  const missingCost = finalizedMode ? (await readers.createRelativePlanCharterResultService().read(owner)).receipt.result.measurement
+    : (await read()).learning.full_charter;
+  if (!finalizedMode) {
   assert.equal(missingCost.computed_disposition, "evidence_incomplete");
   assert.equal(missingCost.partitions[0].operational.cost.credits_per_decision, null);
   assert.equal(missingCost.partitions[0].operational.reliability.value.value, 30 / 31);
   assert.equal(missingCost.partitions[0].operational.reliability.terminal_failure_count, 1);
+  } else assert.equal(missingCost.computed_disposition,"reject");
   assert.equal((await client.from("scheduled_scan_attempts").update({ payload_json: failed.attempt.payload_json }).eq("attempt_fingerprint", failed.attempt.attempt_fingerprint)).error, null);
   // Corrected unfavorable forward labels change errors, never the immutable
   // fitting job, original first thirty or thresholds.
@@ -182,21 +271,29 @@ try {
     const losses = await readers.prospectiveSource({ now: new Date(part.snapshots[0].recommended_at), allLosses: true });
     for (const outcome of losses.outcomes) assert.equal((await readers.persistRecommendationOutcome(outcome, { supabaseClient: client, server: true })).status, "saved");
   }
-  const corrected = (await read()).learning.full_charter;
+  const corrected = (await readers.createRelativePlanProspectiveService().read(owner,now)).learning.full_charter;
   assert.deepEqual(corrected.partitions.map(row => row.original_membership_fingerprint), charter.partitions.map(row => row.original_membership_fingerprint));
-  assert.notDeepEqual(corrected.partitions[0].probability.forward.baseline, charter.partitions[0].probability.forward.baseline);
+  if (!finalizedMode) assert.notDeepEqual(corrected.partitions[0].probability.forward.baseline, charter.partitions[0].probability.forward.baseline);
+  else {
+    assert.deepEqual(corrected,durable.receipt.result.measurement);
+    assert.deepEqual((await readers.createRelativePlanCharterResultService().read(owner)).receipt,durable.receipt);
+    assert.equal((await readers.createRelativePlanCharterResultService().read(other)).status,"not_found");
+  }
   assert.equal((await readers.createRelativePlanProspectiveService().read(other, now)).status, "not_found");
   const otherRuntime = await readers.readRelativePlanCharterRuntimeSource({ owner: other, freeze, now }); assert.equal(otherRuntime.status, "unavailable");
   assert.equal(blockedExternalRequests, 0);
   console.log(JSON.stringify({ status: "pass", environment: "isolated_postgres_postgrest_actual_sdk",
-    evidence: "synthetic_closed_not_market_alpha", immutable_actual_database_training_members: 48,
+    evidence: finalizedMode ? "historical_synthetic_model_fixture_actual_database_finalization_not_market_alpha" : "synthetic_closed_not_market_alpha",
+    immutable_actual_database_training_members: finalizedMode ? null : 48,
     original_held_out_decisions: 30, original_walk_forward_decisions: 30, original_candidates_per_forward_partition: 120,
     held_out_admitted_attempts: 31, terminal_failures: 1, held_out_reserved_fixture_credits: 248,
-    unknown_cost_retains_failure: true, missing_label_retains_original_denominator: true,
+    unknown_cost_retains_failure: !finalizedMode, missing_label_retains_original_denominator: true,
     actual_restarted_full_charter_consumer_verified: true, eleven_charter_checks_per_partition: true,
     known_concentration_failure_separate_from_missing_evidence: true, forward_losses_never_refit_model: true,
-    durable_terminal_result_verified: false, quality_improvement_verified: false,
+    durable_terminal_result_verified: finalizedMode, actual_database_finalization_clock_verified: finalizedMode,
+    historical_model_clock_fixture: finalizedMode, quality_improvement_verified: false,
     complete_original_product_http_bytes: httpBytes,
+    complete_finalized_product_http_bytes: finalizedHttpBytes, result_prewrite_guards_verified: resultPrewriteGuardsVerified,
     provider_requests: 0, production_writes: 0, broker_actions: 0 }));
 } finally {
   globalThis.fetch = originalFetch;
