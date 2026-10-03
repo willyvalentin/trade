@@ -449,12 +449,16 @@ try {
   });
   assert.equal((await client.from("scheduled_scan_attempts").insert(duplicate.attempt)).error, null);
   assert.equal((await client.from("observation_cycle_receipts").insert(duplicate.cycle)).error, null);
-  const duplicateRuntime = await readers.readRelativePlanCharterRuntimeSource({ owner, freeze, now });
-  assert.equal(duplicateRuntime.status, "available");
+  // The actual producer finalizes a historical receipt at its real creation
+  // time. Observe this later injection AFTER that time; never backdate it into
+  // the earlier immutable result or weaken the runtime's as-of clock guard.
+  const duplicateNow = finalizedMode ? new Date() : now;
+  const duplicateRuntime = await readers.readRelativePlanCharterRuntimeSource({ owner, freeze, now: duplicateNow });
+  assert.equal(duplicateRuntime.status, "available", duplicateRuntime.blocker);
   assert.equal(duplicateRuntime.partitions[0].evidence.length, 32);
   const duplicateSource = await readers.readRecommendationLearningBaselineSource(owner);
   assert.deepEqual(duplicateSource, sourceBeforeDuplicate);
-  const duplicateSummary = readers.summarizeRelativePlanCharterOperational({ owner, freeze, now,
+  const duplicateSummary = readers.summarizeRelativePlanCharterOperational({ owner, freeze, now: duplicateNow,
     partition: "held_out", runtime: duplicateRuntime,
     source: readers.parseRecommendationLearningBaselineSource(duplicateSource.data),
     enrolledFingerprints: parts.slice(0, 30).map(part => part.scanRuns[0].run_fingerprint),

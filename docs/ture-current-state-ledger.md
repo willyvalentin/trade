@@ -2,7 +2,7 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
-**Now / Next / Blocked — bounded original-decision attribution review, 2026-10-03:**
+**Now / Next / Blocked — original-decision attribution correction locally verified, 2026-10-03:**
 Codex retains the same IF-4 full-charter primary in draft #732. A newly
 reproduced review defect lets distinct completed cycle/attempt IDs qualify the
 same original scan decision twice. The actual operational consumer returns
@@ -18,12 +18,43 @@ The minimum six-line operational correction detects reused completed decision
 fingerprints while retaining every attempt, cost receipt and original candidate.
 Reliability/cost qualification becomes unavailable with the named conflict;
 there is no source rewrite, denominator trimming, new schema, ranking change or
-charter relaxation. Twelve focused runtime/operational checks pass. Full original
-charter, actual SQL/SDK finalization/restarted reads, types, lint and exact build
-are the remaining local acceptance checks before one coherent same-PR update.
-This is bounded `supporting_blocker_removal`; exit immediately after those checks
-and return to release/forward-quality acceptance. Main remains `55576078`; the
-old-head CI run `37139042287` is live on `505c68ae`, not this local correction.
+charter relaxation. Twelve focused runtime/operational checks pass; nonincremental
+types, normal full lint (zero errors/eight existing warnings) and four active
+governance checks pass. Exact clean locked Linux Node 22 / Next 16.3.8 build
+passes on `ca395f3dfa042fa5c7c9053d9890f44ebf338d2a`, without install/build
+network or production credentials. Log:
+`/private/tmp/ture-duplicate-original-decision-exact-linux-build-oct3.log`.
+
+The broader original-charter/prospective verification is terminal: 33 pass and
+two actual finalization cases fail in 8.7m. The default actual SQL/SDK duplicate
+case passes. Both failures are the new historical fixture injection being read
+with the earlier pre-injection `now`; the real receipt producer finalizes it
+at actual creation time, so the reader truthfully rejects the future receipt.
+Only that later diagnostic read now uses a post-injection clock; the earlier
+immutable result and product clock guards are unchanged. Log:
+`/private/tmp/ture-duplicate-original-decision-full-charter-oct3.log`.
+The failed run also lost one trace artifact during concurrent local Playwright
+output cleanup; this is not passing artifact evidence. Both corrected native
+cases now pass serially in 4.7m, terminal exit zero. Log:
+`/private/tmp/ture-duplicate-original-decision-finalized-corrected-oct3.log`.
+The eight-member case retains 30 decisions/240 candidates per forward partition,
+twelve unrelated pre-window decisions, and all eleven charter dimensions.
+Actual restarted SQL/SDK and negotiated HTTP preserve the whole 5,680,433-byte
+decoded source, with gzip transport 200,619 bytes and finalized product
+4,890,303 bytes. Later duplicate attempts remain visible but cannot qualify
+reliability or cost; the earlier immutable result is unchanged. These are
+historical synthetic fixtures, not market-quality or hosted production evidence.
+The preceding 33 passing checks and these two corrected cases are separate runs,
+not a newly rerun green 35-check suite. No test/gate is removed.
+All four active governance checks also pass after this final ledger update
+(471ms), and `git diff --check` is clean. Log:
+`/private/tmp/ture-duplicate-original-decision-final-governance-oct3.log`.
+Next: make one coherent same-PR update, then resume protected release and original
+forward-quality acceptance; this minimum `supporting_blocker_removal` is complete
+locally. The tested application is `ca395f3d`; only the native proof's truthful
+later read clock and this ledger follow it locally, with no application change.
+Main remains `55576078`; old-head CI run `37139042287` is live on `505c68ae`,
+not this local correction and not protected release acceptance.
 The separate unpatched mandatory audit still holds release; quality lift remains
 unproved. No production/provider/broker operation is selected.
 
