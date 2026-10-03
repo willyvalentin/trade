@@ -2,6 +2,58 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
+**Now — bounded fair-tie acquisition investigation, frozen before execution:**
+The first-observation guard below is rejected: its actual packaged full-session
+result is unchanged at 115 fresh observations/64 unique tickers. Diagnostic
+readback validates 51 archival pairs and changes fifteen slot orders, but not a
+single fresh-member set. The failure is not lost cache or freshness admission;
+one protected unseen member was already within the minimum-cost allocation.
+Its diagnostic log is `/private/tmp/ture-first-observation-guard-diagnostic-oct3.log`.
+No integration or quality claim follows. A lightweight allocation-only design
+check also rejects protecting the first budget-excluded unseen member: shifting
+one member can merely exchange original omissions, rather than broaden them.
+That design check is not runtime evidence and no such product was implemented.
+
+Within the same IF-2b primary, next test `completed_input_fair_cost_ties_v1`:
+retain validated zero/one/two-request cost as the primary ordering, but break
+equal-cost ties by a deterministic quarter-hour cyclic original-index offset,
+not the permanently favored low original index. Offset is the current Unix
+quarter-hour batch modulo original member count, never ticker identity, future
+outcomes or a fitted parameter. Keep all original identities and restore their
+returned order before ranking. This targets repeat exclusions without a new
+cache, schema, query, data source, budget or quality-rule change. Freeze the
+same 26-slot/95-ticker/208-member zero-setup cohort and all original safety gates.
+Acceptance stays breadth greater than 69 and 64 with at least 110 fresh member
+observations; report any loss versus 115. Retain the rejected guard as an exact
+committed comparison arm. Investigate within the original four-active-hour cap;
+release prerequisites and OPEN/quality gaps remain unchanged.
+
+**Rejected predecessor — first-observation guard, frozen 05:24Z before results:**
+Within the same primary IF-2b slice, compare `43fa089e` original order,
+`6726ba67` minimum requests and `completed_input_first_observation_guard_v1`.
+Retain the full cold-session contract below and its exact 95 original tickers,
+26 slots/208 member observations, zero setup and whole eight-credit cap. No
+selection, ranking, original plan, publication, provider or live control change.
+After free fully fresh cached members, give at most one currently unobserved
+member (lowest validated request cost, then original index) priority before
+cheap revisits; then retain minimum-cost order. "Previously acquired" requires
+both original same-session histories and original intraday candles revalidated
+at their actual capture time, matching response identity/clock/interval. It is
+not a current-price admission or evidence of a previously successful decision.
+Invalid, future, prior-day or contradictory cache remains unobserved.
+
+Acceptance for this data-fitness correction: breadth must exceed both 69- and
+64-ticker baselines, and total fresh-complete observations must not fall below
+the 110-observation original baseline, under exactly the same population/cost;
+report any loss versus minimum-cost's 115 explicitly. Preserve cold, warm,
+mixed, zero-cost cache, invalid-context, abort/budget and restarted-owner
+behavior. Persist version, selected original guard index and bound archival
+context clocks/digests in the existing trace, never a new schema or hidden setup.
+Any failed metric is a retained negative/incomplete result, not reason to edit
+the denominator or limits. Investigate at most four active hours. Integration
+still follows the declared predecessors after protected release requirements;
+no production or recommendation-quality acceptance follows a fixture pass.
+
 **Now / Next / Blocked — full-session coverage regression reproduced:** the
 existing IF-2b primary remains with Codex on the isolated branch below. The
 frozen zero-setup, twenty-six-slot actual packaged/SQL/SDK comparison finishes

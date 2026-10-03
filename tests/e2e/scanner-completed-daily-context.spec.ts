@@ -728,7 +728,7 @@ test(`real scanner acquires raw history then reuses it after restart with ${stor
     expect(fullyCached.map(candidate => candidate.ticker)).toEqual(base.map(candidate => candidate.ticker));
     expect(fullyCached.every(candidate => candidate.intraday_indicator_stale === false)).toBe(true);
     expect(cachedTrace.trace.market_data_fetch.completed_input_acquisition).toMatchObject({
-      policy_version: "completed_input_minimum_requests_first_v1", provider_call_cap: 0,
+      policy_version: "completed_input_first_observation_guard_v1", provider_call_cap: 0,
       acquisition_order: [0, 1, 2, 3, 4, 5, 6, 7],
     });
     expect(cachedTrace.trace.market_data_fetch.completed_input_acquisition!.original_members.every(member =>

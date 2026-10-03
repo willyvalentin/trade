@@ -159,7 +159,7 @@ for (const mode of ["baseline", "minimum_requests_first", "invalid_history"] as 
       attempts: 2, cycles: 2, claims: 2, actual_provider_requests: 0,
       production_actions: 0, publications: 0, broker_actions: 0, cleanup: "inert",
       benchmark_reuse_evidence: { baseline_revision: "43fa089e2c7410f10834e148179dda1564765e46", history_start: "mixed",
-        acquisition_mode: mode === "baseline" ? "original_order" : "minimum_requests_first",
+        acquisition_mode: mode === "baseline" ? "original_order" : "first_observation_guard",
         historical_context_integrity: mode === "invalid_history" ? "tampered" : "valid",
         first_scan_requests: 8, second_scan_requests: 8,
         first_fresh_inputs: mode === "minimum_requests_first" ? 5 : 3,
@@ -171,9 +171,9 @@ for (const mode of ["baseline", "minimum_requests_first", "invalid_history"] as 
 
 test("a full cold session retains every rotating member and reveals the minimum-cost discovery tradeoff", () => {
   test.setTimeout(420000);
-  const evidence = [true, false].map(baseline => {
+  const evidence = ["baseline", "minimum", "guard"].map(mode => {
     const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--rotation-day", "--cold",
-      ...(baseline ? ["--acquisition-baseline"] : [])], { cwd: process.cwd(), encoding: "utf8", timeout: 180000 });
+      ...(mode === "baseline" ? ["--acquisition-baseline"] : mode === "minimum" ? ["--minimum-order-baseline"] : [])], { cwd: process.cwd(), encoding: "utf8", timeout: 180000 });
     expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
     return JSON.parse(result.stdout.trim().split("\n").at(-1)!);
   });
@@ -195,9 +195,11 @@ test("a full cold session retains every rotating member and reveals the minimum-
     expect(arm.slots.slice(-2).map((slot: { no_trade_reason: string }) => slot.no_trade_reason))
       .toEqual(["power_hour_publication_withheld", "power_hour_publication_withheld"]);
   }
-  const [baseline, minimum] = evidence;
+  const [baseline, minimum, guard] = evidence;
   for (const [index, slot] of baseline.slots.entries()) {
     expect(minimum.slots[index].members.map((member: { ticker: string }) => member.ticker))
+      .toEqual(slot.members.map((member: { ticker: string }) => member.ticker));
+    expect(guard.slots[index].members.map((member: { ticker: string }) => member.ticker))
       .toEqual(slot.members.map((member: { ticker: string }) => member.ticker));
   }
   // This retained negative evidence prevents the favorable two-slot fixture
@@ -207,4 +209,12 @@ test("a full cold session retains every rotating member and reveals the minimum-
   expect(minimum).toMatchObject({ fresh_member_observations: 115, ever_complete_tickers: 64, revisit_missing_observations: 32 });
   expect(baseline.never_complete_tickers).toHaveLength(26);
   expect(minimum.never_complete_tickers).toHaveLength(31);
+  // Retain the failed guard, rather than silently weakening its frozen >69
+  // breadth criterion. It changes order but not a single completed member set.
+  expect(guard).toMatchObject({ ever_complete_tickers: 64, fresh_member_observations: 115 });
+  expect(guard.ever_complete_tickers > baseline.ever_complete_tickers).toBe(false);
+  expect(guard.slots.map((slot: { members: { ticker: string; freshness: string }[] }) =>
+    slot.members.filter(member => member.freshness === "fresh").map(member => member.ticker)))
+    .toEqual(minimum.slots.map((slot: { members: { ticker: string; freshness: string }[] }) =>
+      slot.members.filter(member => member.freshness === "fresh").map(member => member.ticker)));
 });

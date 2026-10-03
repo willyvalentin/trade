@@ -18,9 +18,12 @@ const benchmarkReuse = process.argv.includes("--benchmark-reuse");
 const mixedHistory = process.argv.includes("--mixed-history");
 const invalidMixedHistory = process.argv.includes("--mixed-history-invalid");
 const acquisitionBaseline = process.argv.includes("--acquisition-baseline");
+const minimumOrderBaseline = process.argv.includes("--minimum-order-baseline");
+const minimumOrderBaselineRevision = "6726ba67a9aaa276bfa9cfde7b246354bebcf872";
 const acquisitionBaselineRevision = "43fa089e2c7410f10834e148179dda1564765e46";
 assert(!mixedHistory || benchmarkReuse && !cold);
 assert(!acquisitionBaseline || mixedHistory || rotationDay);
+assert(!minimumOrderBaseline || (mixedHistory || rotationDay) && !acquisitionBaseline);
 assert(!invalidMixedHistory || mixedHistory && !acquisitionBaseline);
 const invalidBenchmarkReuse = process.argv.includes("--benchmark-reuse-invalid");
 const baselineBenchmarkReuse = process.argv.includes("--benchmark-reuse-baseline");
@@ -113,10 +116,10 @@ try {
   // in memory; neither product checkout nor fixtures/cohort are rewritten.
   const baselinePlugin = { name: "frozen-original-benchmark-allocation", setup(builder) {
     builder.onLoad({ filter: /\/lib\/(scanner|recommendation-generator|market-regime)\.ts$/ }, args => ({
-      contents: execFileSync("git", ["show", `${acquisitionBaseline ? acquisitionBaselineRevision : reuseBaselineRevision}:${args.path.slice(root.length + 1)}`], {cwd:root,encoding:"utf8"}),
+      contents: execFileSync("git", ["show", `${minimumOrderBaseline ? minimumOrderBaselineRevision : acquisitionBaseline ? acquisitionBaselineRevision : reuseBaselineRevision}:${args.path.slice(root.length + 1)}`], {cwd:root,encoding:"utf8"}),
       loader:"ts", resolveDir:join(root,"lib") }));
   } };
-  await build({ ...options, ...(baselineBenchmarkReuse || acquisitionBaseline ? {plugins:[baselinePlugin]} : {}),
+  await build({ ...options, ...(baselineBenchmarkReuse || acquisitionBaseline || minimumOrderBaseline ? {plugins:[baselinePlugin]} : {}),
     entryPoints: [resolve(root, "app/api/automation/run-scan/route.ts")], outfile: join(generated, "scheduled-scan-runtime.cjs") });
   if (diagnoseOutcomes) buildSync({ ...options, entryPoints: [resolve(root, "app/api/recommendations/evaluate-outcomes/route.ts")], outfile: join(generated, "outcome-route.cjs") });
   buildSync({ ...options, entryPoints: [resolve(root, "netlify/functions/scheduled-scan.ts")], outfile: join(directory, "functions/scheduled.cjs") });
@@ -397,7 +400,7 @@ try {
         const acquisition=run.payload_json.active_scan_trace.market_data_fetch.completed_input_acquisition;
         if(acquisitionBaseline) assert.equal(acquisition,undefined);
         else {
-          assert.equal(acquisition.policy_version,"completed_input_minimum_requests_first_v1");
+          assert.equal(acquisition.policy_version,minimumOrderBaseline?"completed_input_minimum_requests_first_v1":"completed_input_first_observation_guard_v1");
           assert.deepEqual(acquisition.original_members.map(member=>member.ticker),selected.map(candidate=>candidate.ticker));
         }
         for(const candidate of decision.candidates.filter(candidate=>candidate.data.freshness==="fresh")) {
@@ -420,6 +423,7 @@ try {
         decision_disposition:decision?.final_decision.disposition??null,no_trade_reason:decision?.final_decision.no_trade_reason??null,
         requests:requestCount,benchmark_requests:benchmarkCalls,stock_requests:requestCount-benchmarkCalls,
         fresh_members:members.filter(member=>member.freshness==="fresh").length,members,
+        acquisition:run?.payload_json.active_scan_trace.market_data_fetch.completed_input_acquisition??null,
         ...(attemptCount===0 || runCount===0 ? {bounded_result:resultBody} : {})});
     }
     const totalClaims=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from basic_free_discovery_credit_reservations t;"));
@@ -456,8 +460,8 @@ try {
     assert.equal(Number(sql("select count(*) from scheduled_scan_attempts;")),attemptFingerprints.size);
     const tickerCoverage=[...observations.values()].sort((a,b)=>a.ticker.localeCompare(b.ticker));
     originalLog(JSON.stringify({evidence_mode:"synthetic_closed_packaged_input_runtime_actual_source_schema",
-      scenario:"full_session_cold_rotation",acquisition_mode:acquisitionBaseline?"original_order":"minimum_requests_first",
-      baseline_revision:acquisitionBaselineRevision,product_revision:"6726ba67a9aaa276bfa9cfde7b246354bebcf872",
+      scenario:"full_session_cold_rotation",acquisition_mode:acquisitionBaseline?"original_order":minimumOrderBaseline?"minimum_requests_first":"first_observation_guard",
+      baseline_revision:acquisitionBaselineRevision,minimum_order_baseline_revision:minimumOrderBaselineRevision,
       original_slots:26,original_member_observations:26*8,eligible_tickers:eligible,slots,ticker_coverage:tickerCoverage,
       selected_unique_tickers:tickerCoverage.length,ever_complete_tickers:tickerCoverage.filter(ticker=>ticker.fresh>0).length,
       never_complete_tickers:tickerCoverage.filter(ticker=>ticker.fresh===0).map(ticker=>ticker.ticker),
@@ -1085,11 +1089,12 @@ try {
         const plan=source.payload_json.active_scan_trace.market_data_fetch.completed_input_acquisition;
         if(acquisitionBaseline) assert.equal(plan,undefined);
         else {
-          assert.equal(plan.policy_version,"completed_input_minimum_requests_first_v1");
+          assert.equal(plan.policy_version,minimumOrderBaseline?"completed_input_minimum_requests_first_v1":"completed_input_first_observation_guard_v1");
           assert.equal(plan.provider_call_cap,sourceSlot===slot?6:8);
           assert.deepEqual(plan.original_members.map(member=>member.ticker),originalSelection.map(candidate=>candidate.ticker));
           assert.deepEqual(plan.original_members.map(member=>member.ticker_index),[0,1,2,3,4,5,6,7]);
-          assert.deepEqual(plan.acquisition_order,invalidMixedHistory?[0,1,2,3,4,5,6,7]:[4,5,6,7,0,1,2,3]);
+          assert.deepEqual(plan.acquisition_order,invalidMixedHistory?[0,1,2,3,4,5,6,7]:minimumOrderBaseline?[4,5,6,7,0,1,2,3]:[0,4,5,6,7,1,2,3]);
+          if(!minimumOrderBaseline) assert.equal(plan.first_observation_ticker_index,0);
           assert.deepEqual(plan.original_members.map(member=>member.estimated_requests),invalidMixedHistory?[2,2,2,2,2,2,2,2]:[2,2,2,2,1,1,1,1]);
           for(const member of plan.original_members) {
             assert.equal(member.current_context_sha256,null);
@@ -1158,7 +1163,7 @@ try {
     benchmarkReuseEvidence={mode:baselineBenchmarkReuse?"original_committed_baseline":invalidBenchmarkReuse?"invalid_original_falls_back":"validated_owner_reuse",
       baseline_revision:mixedHistory?acquisitionBaselineRevision:reuseBaselineRevision,
       history_start:mixedHistory?"mixed":cold?"cold":"prewarmed",
-      ...(mixedHistory ? {acquisition_mode:acquisitionBaseline?"original_order":"minimum_requests_first"} : {}),
+      ...(mixedHistory ? {acquisition_mode:acquisitionBaseline?"original_order":minimumOrderBaseline?"minimum_requests_first":"first_observation_guard"} : {}),
       ...(mixedHistory ? {historical_context_integrity:invalidMixedHistory?"tampered":"valid"} : {}),
       first_scan_requests:firstRequests,second_scan_requests:externalRequests,
       first_fresh_inputs:firstFresh,second_fresh_inputs:fresh,original_members_per_decision:8,

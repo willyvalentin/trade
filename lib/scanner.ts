@@ -19,7 +19,8 @@ import {
 import { getDailyCandles, getDailyCandlesWithIdentity, type DailyCandle } from "@/lib/market-data";
 import { captureCompletedDailyContext, readCompletedDailyContext,
   type CompletedDailyContext } from "@/lib/scanner-completed-daily-context";
-import { currentSessionFeatures, type CurrentSessionContext } from "@/lib/scanner-current-session-context";
+import { currentSessionFeatures, readCurrentSessionContext, type CurrentSessionContext } from "@/lib/scanner-current-session-context";
+import { twelveDataResponseIdentityFromUnknown } from "@/lib/twelve-data-response-identity";
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { throwIfAborted, waitForAbortableDelay } from "@/lib/operation-abort";
 import {
@@ -660,6 +661,31 @@ async function upsertCachedValues(
   }
 }
 
+// Archival evidence only: proving a complete pair was acquired earlier must
+// never admit its old price/indicators as fresh for the current decision.
+async function readPreviouslyAcquiredSessionContext(
+  raw: unknown, ticker: string, history: CompletedDailyContext | null, now: number,
+): Promise<CurrentSessionContext | null> {
+  if (!history || !raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const cache = (raw as Record<string, unknown>).intraday_indicator_cache;
+  if (!cache || typeof cache !== "object" || Array.isArray(cache)) return null;
+  const stored = cache as Record<string, unknown>;
+  const value = stored.session_context;
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const captured = Date.parse(String((value as Record<string, unknown>).captured_at ?? ""));
+  const cached = Date.parse(String(stored.cached_at ?? ""));
+  const response = twelveDataResponseIdentityFromUnknown(stored.response_identity);
+  if (!Number.isFinite(captured) || !Number.isFinite(cached) || captured > now ||
+    cached < captured || cached > now || Date.parse(history.captured_at) > captured ||
+    stored.response_symbol !== ticker || !response) return null;
+  const context = await readCurrentSessionContext(value, ticker, new Date(captured));
+  if (!context || context.market_date !== getUsEquityMarketSession(new Date(now)).market_date ||
+    context.calendar_fingerprint !== history.calendar_fingerprint || stored.interval !== context.interval ||
+    response.payload_sha256 !== context.response_identity.payload_sha256 ||
+    response.payload_byte_length !== context.response_identity.payload_byte_length) return null;
+  return context;
+}
+
 export async function scanMarket(
   baseCandidates: ScannerCandidate[],
   options: ScanMarketOptions,
@@ -833,8 +859,11 @@ async function scanMarketCore(
         candidate.ticker, new Date(now)) : null;
     const current = intradayCacheSnapshotByTicker.get(candidate.ticker);
     const reusableCurrent = current?.source === "cache" && !current.stale && !!current.session_context;
+    const previouslyAcquired = completedContextMode && options.source === "scheduled"
+      ? await readPreviouslyAcquiredSessionContext(raw, candidate.ticker, completedContext, now) : null;
     acquisitionEntries.push({ candidate, tickerIndex, completedContext,
       estimatedRequests: Number(!completedContext) + Number(!reusableCurrent),
+      previouslyAcquired,
       currentContextSha256: reusableCurrent ? current.session_context!.content_sha256 : null });
   }
   throwIfAborted(options.signal);
@@ -846,11 +875,24 @@ async function scanMarketCore(
       historical_context_sha256: entry.completedContext?.content_sha256 ?? null,
       historical_captured_at: entry.completedContext?.captured_at ?? null,
       current_context_sha256: entry.currentContextSha256,
+      previously_acquired_context_sha256: entry.previouslyAcquired?.content_sha256 ?? null,
+      previously_acquired_at: entry.previouslyAcquired?.captured_at ?? null,
     }));
     acquisitionEntries.sort((a, b) => a.estimatedRequests - b.estimatedRequests || a.tickerIndex - b.tickerIndex);
+    // Preserve free fresh members. Reserve one first complete observation for
+    // the cheapest eligible unseen member before refreshing already observed
+    // histories; remaining work retains the validated minimum-request order.
+    const firstObservation = acquisitionEntries.find(entry => entry.estimatedRequests > 0 &&
+      entry.estimatedRequests <= maxFreshProviderCalls && !entry.previouslyAcquired);
+    if (firstObservation) {
+      acquisitionEntries.splice(acquisitionEntries.indexOf(firstObservation), 1);
+      const firstPaid = acquisitionEntries.findIndex(entry => entry.estimatedRequests > 0);
+      acquisitionEntries.splice(firstPaid < 0 ? acquisitionEntries.length : firstPaid, 0, firstObservation);
+    }
     options.activeScanTrace?.updateMarketDataFetch({ completed_input_acquisition: {
-      policy_version: "completed_input_minimum_requests_first_v1", evaluated_at: new Date(now).toISOString(),
+      policy_version: "completed_input_first_observation_guard_v1", evaluated_at: new Date(now).toISOString(),
       provider_call_cap: maxFreshProviderCalls,
+      first_observation_ticker_index: firstObservation?.tickerIndex ?? null,
       acquisition_order: acquisitionEntries.map(entry => entry.tickerIndex), original_members: originalMembers,
     } });
   }
