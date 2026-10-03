@@ -24,9 +24,17 @@ test("complete retained evidence reproduces every original charter dimension wit
   const { input,receipt } = await value();
   expect(receipt.result, "full original capsule must exist without shortening the cohort").not.toBeNull();
   // Frozen synthetic baseline before formatter reuse: every clock, retained
-  // identity and numerical result must remain byte-semantically unchanged.
+  // decoded identity and numerical result must remain semantically unchanged.
+  // Node/zlib's gzip OS header is not an original evidence identity; Node 24
+  // Linux and Node 26 macOS encode identical source with different header bytes.
   expect(receipt.result.measurement.measurement_fingerprint).toBe("cdcf680f51165fc75532c7fc6955d72b8c8c3cd88b2c35af88bd70e0a689d82b");
-  expect(receipt.result.result_fingerprint).toBe("0df42f950d0ab825afd9cf31c2a2524288c2782ec96b14cc77e9f23eb9ce070e");
+  const { result_fingerprint, ...body } = receipt.result;
+  const { payload, ...originalSourceIdentity } = body.retained_source;
+  void payload;
+  expect(relativePlanSemanticFingerprint({ ...body, retained_source: originalSourceIdentity }))
+    .toBe("c8e0fc1b2e0d0d5365d792dc6d0cdabd66f9fc948c8ed8eb64939bc878a6123d");
+  // The exact stored representation remains fully bound, not exempted.
+  expect(result_fingerprint).toBe(relativePlanSemanticFingerprint(body));
   expect(verifiedRelativePlanCharterResultReceipt(receipt,input.freeze,input.owner)).toEqual(receipt);
   expect(receipt.result.retained_runtime.status).toBe("available");
   expect(receipt.result.measurement.partitions.map(p=>p.original_population_count)).toEqual([120,120]);
@@ -34,6 +42,20 @@ test("complete retained evidence reproduces every original charter dimension wit
     quality_improvement_claimed:false,live_policy_effect:false });
   expect(Object.values(receipt.result.authority).every(value=>value===false)).toBe(true);
   expect(decodeRelativePlanRetainedSource(receipt.result.retained_source)).toEqual(JSON.parse(JSON.stringify(input.source)));
+});
+test("runtime-specific gzip framing preserves decoded original evidence but never bypasses the stored binding", async () => {
+  const { input, receipt } = await value();
+  const changed = structuredClone(receipt);
+  const payload = Buffer.from(changed.result.retained_source.payload, "base64");
+  payload[9] = payload[9] === 3 ? 19 : 3; // gzip OS field, outside the deflated source.
+  changed.result.retained_source.payload = payload.toString("base64");
+  expect(decodeRelativePlanRetainedSource(changed.result.retained_source)).toEqual(JSON.parse(JSON.stringify(input.source)));
+  expect(verifiedRelativePlanCharterResultReceipt(changed, input.freeze, input.owner)).toBeNull();
+  const { result_fingerprint: _binding, ...body } = changed.result;
+  void _binding;
+  changed.result.result_fingerprint = relativePlanSemanticFingerprint(body);
+  expect(verifiedRelativePlanCharterResultReceipt(changed, input.freeze, input.owner)).toEqual(changed);
+  expect(changed.result.measurement).toEqual(receipt.result.measurement);
 });
 test("lossless source decoding rejects malformed, altered, noncanonical and oversized envelopes",async () => {
   const { receipt } = await value(), original = receipt.result.retained_source;
