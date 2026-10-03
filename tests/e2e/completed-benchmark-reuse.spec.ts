@@ -346,6 +346,42 @@ test("late original complete inputs retain all eight partial outcomes without qu
   }
 });
 
+test("doubling narrow existing preparation is rejected when original complete decisions remain too late", () => {
+  test.setTimeout(240000);
+  const run = (expanded: boolean) => {
+    const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--cold",
+      "--rotation-day", "--prospective-enrollment", "--existing-premarket-setup",
+      ...(expanded ? ["--existing-premarket-budget8"] : [])],
+    { cwd: process.cwd(), encoding: "utf8", timeout: 110000 });
+    expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
+    return JSON.parse(result.stdout.trim().split("\n").at(-1)!);
+  };
+  const baseline = run(false), expanded = run(true);
+  expect(baseline).toMatchObject({ setup_synthetic_requests: 4, fresh_member_observations: 124 });
+  expect(expanded).toMatchObject({ setup_synthetic_requests: 8, fresh_member_observations: 125,
+    existing_premarket_evidence: { setup_intraday_requests: 3, preparation_whole_request_cap: 8, scanner_request_cap: 6,
+      product_policy_changed: false, capacity_question: { original_decisions: 26, original_member_observations: 208,
+        disposition: "reject_no_earlier_full_regular_horizon", regular_horizon_eligible_decisions: [],
+        quality_improvement_claimed: false, product_policy_changed: false } } });
+  expect(expanded.existing_premarket_evidence.retained_daily_contexts.map((row: { symbol: string }) => row.symbol))
+    .toEqual(["AMD", "COIN", "TSLA"]);
+  expect(expanded.existing_premarket_evidence.original_universe).toEqual(baseline.existing_premarket_evidence.original_universe);
+  const members = (arm: typeof baseline) => arm.slots.map((slot: { slot: string; members: { ticker: string }[] }) =>
+    ({ slot: slot.slot, tickers: slot.members.map(member => member.ticker) }));
+  expect(members(expanded)).toEqual(members(baseline));
+  const complete = baseline.prospective_enrollment_evidence.decisions.filter((row: { status: string }) => row.status === "comparable");
+  expect(complete).toHaveLength(1);
+  expect(expanded.existing_premarket_evidence.capacity_question.complete_original_decisions)
+    .toMatchObject([{ fingerprint: complete[0].fingerprint, decision_at: complete[0].decision_at,
+      original_population_count: 8, required_horizon_end_at: "2026-10-01T20:35:00.000Z" }]);
+  for (const arm of [baseline, expanded]) {
+    expect(arm).toMatchObject({ original_slots: 26, original_member_observations: 208, scheduled_synthetic_requests: 208,
+      reserved_credits: 208, attempts: 26, cycles: 26, scan_runs: 26, reservations: 26,
+      prospective_enrollment_evidence: { enrolled_decisions: 1, excluded_decisions: 25 },
+      actual_provider_requests: 0, production_actions: 0, publications: 0, broker_actions: 0, cleanup: "inert" });
+  }
+});
+
 test("actual original complete input reaches full charter through canonical outcomes without granting quality authority", () => {
   test.setTimeout(120000);
   const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--benchmark-reuse", "--charter-composition"],

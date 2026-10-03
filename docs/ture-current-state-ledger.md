@@ -270,7 +270,7 @@ second-pass eligibility expectation remains
 or evidence that production obtained these synthetic outcomes. PR #732's audit
 and protected-CI release holds remain unchanged.
 
-**Next bounded CLOSED IF-2b selection:** Codex returns the sole primary slice
+**Completed bounded CLOSED IF-2b capacity question:** Codex returns the sole primary slice
 to earlier complete-input fitness on this isolated branch, 4–16 active hours,
 initial investigation at most four. Freeze the original twenty-six slots and
 all 208 member observations from the actual existing premarket source above.
@@ -292,6 +292,63 @@ the experiment or waive the 60m horizon. No live provider request, production
 preparation schedule, external configuration, migration or publication is
 selected. This CLOSED investigation does not establish that production runs
 the existing premarket generator or authorize its activation.
+
+**Rejected narrow preparation capacity arm — 2026-10-03:** The actual existing
+generator's diagnostic reader changes only its scanner cap from two to six,
+keeping two benchmark requests and the whole setup within eight. The normal
+scheduled product bundle and product policy are unchanged. Three validated
+histories (AMD, COIN, TSLA) are retained instead of one (TSLA), but fresh member
+observations improve only 124 to 125 out of the same original 208. Both arms
+retain all twenty-six original slots, original member order, 208 scheduled
+requests/finalized reserved credits and one complete original decision at
+`19:30:20Z` whose immutable horizon ends `20:35Z`, beyond the `20:00Z` close.
+There are zero original complete decisions with a full regular-session 60m
+horizon in either arm. Disposition is `reject_no_earlier_full_regular_horizon`:
+do not increase the product's preparation budget or change its watchlist policy
+on this result. No additional outcome request is justified for this source arm.
+The initial diagnostic exposed a second fixture-only four-call assertion;
+the expanded-arm expectation was explicitly separated from the retained
+baseline, not made permissive. That failed diagnostic is retained as
+`/private/tmp/ture-existing-premarket-budget8-diagnostic-oct3.log`; the actual
+terminal capacity result is `ture-existing-premarket-budget8-capacity-oct3.log`.
+This is bounded local `hypothesis_evidence`, not accepted preparation, production
+behavior or improved recommendations. The earlier history-only exact-information
+rejection and the zero-setup baseline remain unchanged.
+
+All four affected registered preparation/capacity/late-source checks pass,
+including actual baseline/arm SQL/SDK comparisons, with nonincremental types,
+changed-file lint and verified fixture cleanup. Logs:
+`/private/tmp/ture-existing-premarket-budget8-regression-oct3.log`,
+`/private/tmp/ture-existing-premarket-budget8-types-oct3.log` and
+`/private/tmp/ture-existing-premarket-budget8-lint-oct3.log`. The prior forty-one
+checks belong to `9e1a6714`, not a claimed new combined forty-two-check run.
+Application/build/dependency/configuration code remains exactly the verified
+`5474cbb0` product; no new product build, protected CI, main integration or
+production verification is claimed for this diagnostic arm.
+
+**Next bounded CLOSED IF-2b source-feasibility selection:** Codex owns the sole
+next 4–16 active-hour slice, initial investigation at most four hours. The
+verified capacity failure selects the broader missing-history defect, not a
+larger cap for the rejected three-symbol legacy watchlist. Test the existing
+validated one-credit history-only scanner capability on the complete original
+ninety-five-symbol deterministic session universe, using only the same NY day
+before regular open, no more than eight disclosed synthetic calls in any modeled
+minute and exactly ninety-five separately accounted history calls. Preserve
+the zero-setup and existing four-call preparation baselines, all twenty-six
+slots/208 original identities, actual strict provider attribution, current split
+basis, as-of calendar validation and unchanged normalized ranking/publication.
+This is a new full-original-source feasibility question, not revival of the
+rejected sixteen-member exact-information-equality arm: any changed partial
+inputs must be disclosed, not declared identical. Use the actual scanner,
+persisted cache and restarted regular route, not seeded raw contexts or a
+caller-built qualified cohort. Require an earlier complete original decision
+and its actual owner-bound canonical 60m source/outcome/evaluator link wholly
+inside regular-session bars before proposing product orchestration. Maintain
+all missing/unassessed members. Reject stale/misattributed setup; never use raw
+history as a current price or claim that synthetic access proves Basic Free
+entitlements for all symbols. This selects no new live preparation schedule,
+general-purpose worker, migration, provider, configuration or broker action.
+The observation/release holds remain separate and unchanged.
 
 **Completed original scanner to existing full-charter composition:**
 Codex reuses existing draft PR #732's isolated

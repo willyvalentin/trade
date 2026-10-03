@@ -14,9 +14,13 @@ import { setTimeout as syntheticDelay } from "node:timers/promises";
 const root = process.cwd();
 const cold = process.argv.includes("--cold");
 const existingPremarketSetup = process.argv.includes("--existing-premarket-setup");
+const expandedPremarketSetup = process.argv.includes("--existing-premarket-budget8");
 const rotationDay = process.argv.includes("--rotation-day");
 const prospectiveEnrollment = process.argv.includes("--prospective-enrollment");
 const lateOriginalOutcomes = process.argv.includes("--late-original-outcomes");
+assert(!expandedPremarketSetup || existingPremarketSetup && rotationDay && prospectiveEnrollment &&
+  !lateOriginalOutcomes && !process.argv.includes("--legacy-retention-baseline"),
+  "Eight-call preparation is one isolated source-capacity arm, not an outcome or live policy");
 assert(!lateOriginalOutcomes || rotationDay && prospectiveEnrollment && existingPremarketSetup &&
   !process.argv.includes("--legacy-retention-baseline"),
   "Late outcome coverage retains the actual original prepared population, not a manufactured source");
@@ -178,6 +182,16 @@ try {
     builder.onLoad({filter:/\/lib\/(scanner|market-data)\.ts$/},args=>({
       contents:execFileSync("git",["show",`3c736f99:${args.path.slice(root.length+1)}`],{cwd:root,encoding:"utf8"}),
       loader:"ts",resolveDir:join(root,"lib")}));
+  }}]} : expandedPremarketSetup ? {plugins:[{name:"frozen-existing-premarket-capacity-arm",setup(builder) {
+    // Only the existing preparation entry in this diagnostic reader receives
+    // the six-call scanner cap. The scheduled product bundle is unchanged.
+    builder.onLoad({filter:/\/lib\/recommendation-generator\.ts$/},args=>{
+      const source=readFileSync(args.path,"utf8");
+      const baseline="maxFreshProviderCalls: source === \"scheduled\" ? 2 : 1,";
+      assert.equal(source.split(baseline).length,2,"The frozen preparation cap must match exactly once");
+      return {contents:source.replace(baseline,"maxFreshProviderCalls: source === \"scheduled\" ? 6 : 1,"),
+        loader:"ts",resolveDir:join(root,"lib")};
+    });
   }}]} : {}), stdin: {
     resolveDir: root,
     contents: `export { observationSeriesControlFromEnvironment, buildObservationSeriesSlotAdmission } from './lib/observation-series-control';
@@ -447,8 +461,12 @@ try {
       requestedScanBudget:8,selectionMode:"scheduled_rotating",now:new OriginalDate(slot)});
     setupRequests=externalRequests;
     setupIntradayRequests=syntheticRequestEvidence.filter(request=>request.interval!=="1day").length;
+    assert.equal(setupRequests,expandedPremarketSetup?8:4);
+    assert.equal(setupIntradayRequests,expandedPremarketSetup?3:1);
     existingPremarketEvidence={scope:"actual_existing_generator_synthetic_provider_sql_sdk_not_live_preparation_policy",
       history_retention:legacyRetentionBaseline?"original_legacy_without_raw_history":"validated_already_paid_legacy_history",
+      ...(expandedPremarketSetup?{capacity_arm_version:"existing_premarket_eight_call_closed_capacity_arm_v1",
+        preparation_whole_request_cap:8,scanner_request_cap:6,product_policy_changed:false}:{}),
       setup_intraday_requests:setupIntradayRequests,
       original_universe:preUniverse.candidates.map(candidate=>candidate.ticker),requests:structuredClone(syntheticRequestEvidence),
       retained_daily_contexts:retained.map(context=>({symbol:context.symbol,captured_at:context.captured_at,
@@ -463,7 +481,7 @@ try {
   const scheduledRequestEvidenceOffset=syntheticRequestEvidence.length;
   const scheduler = require(join(directory, "functions/scheduled.cjs")).default;
   if(rotationDay) {
-    assert.equal(setupRequests,existingPremarketSetup?4:0);
+    assert.equal(setupRequests,existingPremarketSetup?(expandedPremarketSetup?8:4):0);
     const slots=[];
     const observations=new Map();
     const eligible=readers.scannerUniverseTickers.filter(ticker=>ticker.enabled && ticker.tradable).map(ticker=>ticker.ticker).sort();
@@ -624,6 +642,22 @@ try {
           original_membership_fingerprint:partition.original_membership_fingerprint})),
         diagnostics:enrollment.diagnostics,decisions:decisionEvidence,
         actual_provider_requests:0,quality_improvement_claimed:false};
+      if(expandedPremarketSetup) {
+        const session=readers.getUsEquityMarketSession("2026-10-01");
+        assert.equal(session.verification_status,"verified");
+        const complete=decisionEvidence.filter(row=>row.status==="comparable").map(row=>({
+          fingerprint:row.fingerprint,decision_at:row.decision_at,
+          original_population_count:row.original_population_count,
+          required_horizon_end_at:new OriginalDate(Math.ceil(OriginalDate.parse(row.decision_at)/300000)*300000+3600000).toISOString(),
+          original_tickers:row.members.map(member=>member.ticker),
+        }));
+        const eligible=complete.filter(row=>OriginalDate.parse(row.required_horizon_end_at)<=OriginalDate.parse(session.session_close));
+        existingPremarketEvidence.capacity_question={original_decisions:26,original_member_observations:208,
+          session_close:session.session_close,complete_original_decisions:complete,
+          regular_horizon_eligible_decisions:eligible,
+          disposition:eligible.length?"source_feasibility_only_requires_actual_canonical_outcomes":"reject_no_earlier_full_regular_horizon",
+          quality_improvement_claimed:false,product_policy_changed:false};
+      }
       if(lateOriginalOutcomes) {
         assert.equal(enrolledDecisions.length,1);
         const original=decisionEvidence.find(row=>row.status==="comparable");
