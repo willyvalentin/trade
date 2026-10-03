@@ -42,8 +42,15 @@ It is not a passing 17-check suite and those historical gates were not weakened.
 
 This is `supporting_blocker_removal`, not verified recommendation-quality lift.
 Owner, budgets, original horizon, ranking and all charter gates are unchanged.
-Next: exact clean locked Linux build and focused review/update of the same draft,
-then stop this integrity interruption and return to release/forward acceptance.
+Exact product revision `2212dafd3232eb875173feb46e8c8b913b7e9418` passes
+the normal clean locked Linux Node 22 / Next 16.3.8 build, with read-only
+dependencies, no build network and no production keys. Its source stayed clean
+and frozen through both revision guards. Log:
+`/private/tmp/ture-off-grid-exact-linux-build-oct3.log`.
+Next: finish the already-running exact CI before the single focused update of
+the same draft, then stop this integrity interruption and return to
+release/forward acceptance. Do not cancel an almost-finished run for a ledger
+push or count the earlier head's eventual CI/preview as verification of this fix.
 No production/provider/broker action, new experiment or schema is selected.
 CI remains attributable to committed `183e70d6`, not these local review changes;
 the mandatory high-severity dependency audit remains a separate release blocker.
