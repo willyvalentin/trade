@@ -47,6 +47,38 @@ qualification does not prove hosted cold-pull success; that requires exact-head
 CI. The trained-model launcher retains its existing `--pull=never` contract and
 depends on the preceding native image-acquisition path, as before.
 
+Final local verification passes all 128 affected checks across the seven
+existing scanner, acquisition/reuse, canonical-outcome, prospective, model-store
+and complete-charter suites in one serial 32.9m run. The actual isolated
+Postgres/PostgREST/SDK proofs exercise all five changed image launch paths;
+original memberships, historical model/result goldens, source clocks, missing
+outcomes and immutable restarted readback remain intact. Earlier 105-check
+learning verification overlaps this run and is not an additive unique total.
+Log: `/private/tmp/ture-pinned-postgrest-verified-pull-regression-oct4.log`.
+The retained synthetic 176-member continuation still has 144 canonical outcomes
+and 32 missing members, with full-charter `evidence_incomplete`, known coverage/
+concentration failures and no quality-improvement claim. This is not new
+production evidence or an alpha result.
+
+Nonincremental types pass; normal full lint has zero errors/eight existing
+warnings. Logs: `/private/tmp/ture-pinned-postgrest-types-oct4.log` and
+`/private/tmp/ture-pinned-postgrest-lint-oct4.log`. Exact clean locked Linux
+Node 22 / Next 16.3.8 build passes on
+`24d3a48ada323da55f8d42a3ec9672d54bd2f874`, using read-only lock-verified
+dependencies, no install/build network or production keys, and unchanged clean
+source through the final guard. Log:
+`/private/tmp/ture-pinned-postgrest-exact-linux-build-oct4.log`.
+Four existing active governance checks pass after the factual receipt (468ms);
+log `/private/tmp/ture-pinned-postgrest-final-governance-oct4.log`. The initial
+governance run overlaps these same checks and is not additional unique evidence.
+The minimum correction is locally complete; this factual receipt follows
+without application changes. Next is one coherent existing-Draft update and
+exact-head hosted cold-acquisition/verification, not a blind rerun or another
+registry/control stream. Protected Ready acceptance and the separate mandatory
+unpatched full-audit blocker remain. No main integration, production deploy,
+migration, provider request, broker action or recommendation-quality lift is
+claimed.
+
 **Retained local evidence — terminal-label contradiction correction, 2026-10-04:**
 Codex retains the same bounded IF-4 primary in draft #732, isolated branch
 `codex/original-outcome-pages-oct3`; budget 4–8 active hours, initial investigation
