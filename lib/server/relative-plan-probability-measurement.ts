@@ -6,6 +6,7 @@ import { buildScannerScoreProbabilityCalibrationModel, applyScannerScoreProbabil
 import { RELATIVE_PLAN_CONTEXT_SHADOW_VERSION } from "@/lib/scanner-relative-plan-context-shadow";
 import type { RelativePlanContextOutcomeComparison } from "@/lib/scanner-relative-plan-context-outcomes";
 import type { RecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
+import { verifiedRelativePlanTrainedProbabilityReceipt, relativePlanTrainedPopulationMatches } from "@/lib/server/relative-plan-trained-probability-model";
 
 type Window = { start_at: string; end_at: string };
 type OutcomeTime = Pick<RecommendationOutcome, "id" | "snapshot_fingerprint" | "ticker" | "evaluated_at" | "created_at">;
@@ -61,6 +62,7 @@ function error(rows: Array<{ probability: number; actual: 0 | 1 }>) {
 export function buildRelativePlanProbabilityMeasurement(input: {
   trainingWindow: Window; fittedAt: string; forwardStartsAt: string; now: Date;
   training: Comparison[]; forward: Comparison[]; outcomes: OutcomeTime[];
+  frozen?: { receipt: unknown; freeze: unknown; owner: string };
 }) {
   const invalid = () => ({ contract_version: "relative_plan_probability_measurement_v1" as const,
     status: "conflicting" as const, model: null, training: null, forward: null,
@@ -68,6 +70,10 @@ export function buildRelativePlanProbabilityMeasurement(input: {
     publication_effect: false as const, provider_effect: false as const, broker_effect: false as const,
     quality_improvement_claimed: false as const });
   const start = Date.parse(input.trainingWindow.start_at), end = Date.parse(input.trainingWindow.end_at), cutoff = Date.parse(input.fittedAt);
+  const sealed = input.frozen ? verifiedRelativePlanTrainedProbabilityReceipt(input.frozen.receipt, input.frozen.freeze, input.frozen.owner) : null;
+  if (input.frozen && (!sealed || sealed.trained_model.training_window.start_at !== input.trainingWindow.start_at ||
+    sealed.trained_model.training_window.end_at !== input.trainingWindow.end_at || sealed.trained_model.forward_cutoff !== input.fittedAt ||
+    Date.parse(sealed.committed_read_at) > input.now.getTime() || !relativePlanTrainedPopulationMatches(sealed, input.training))) return invalid();
   if (![input.trainingWindow.start_at, input.trainingWindow.end_at, input.fittedAt, input.forwardStartsAt].every(instant) ||
     !Number.isFinite(input.now.getTime()) || start >= end || end + 3600000 > cutoff ||
     cutoff !== Date.parse(input.forwardStartsAt) || input.training.length + input.forward.length > 10000 || input.outcomes.length > 100000) return invalid();
@@ -117,9 +123,9 @@ export function buildRelativePlanProbabilityMeasurement(input: {
       terminal_outcome: label === 1 ? "target_before_stop" : "stop_before_target" });
   }
   const fittingBoundaryReached = input.now.getTime() >= cutoff;
-  const model = fittingBoundaryReached ? buildScannerScoreProbabilityCalibrationModel({
+  const model = sealed?.trained_model.model ?? (fittingBoundaryReached ? buildScannerScoreProbabilityCalibrationModel({
     fittedAt: input.fittedAt, trainingStartAt: input.trainingWindow.start_at, trainingEndAt: input.fittedAt,
-    observations: fittingRows }) : null;
+    observations: fittingRows }) : null);
   const rows = ordered(input.forward).flatMap(comparison => comparison.candidates.map(row => {
     const receipt = receiptFor(comparison, row), label = receipt ? binary(row) : null;
     const baseline = applyScannerScoreProbabilityCalibration({ model, arm: "baseline", score: row.baseline_score!, decisionAt: comparison.decision_timestamp! });
@@ -136,7 +142,7 @@ export function buildRelativePlanProbabilityMeasurement(input: {
   const errorsComparable = allLabels && paired.length === binaryRows.length &&
     paired.length >= canonicalQualityPublishabilityPolicy.minimum_calibration_identities;
   const blockers = [];
-  if (!fittingBoundaryReached) blockers.push("declared_training_boundary_not_reached");
+  if (!fittingBoundaryReached && !sealed) blockers.push("declared_training_boundary_not_reached");
   if (!model) blockers.push("training_only_probability_model_insufficient");
   if (!allLabels) blockers.push("forward_original_outcome_population_incomplete");
   if (!errorsComparable) blockers.push("forward_probability_error_not_comparable");
@@ -145,13 +151,26 @@ export function buildRelativePlanProbabilityMeasurement(input: {
     status: errorsComparable ? "measured" as const : "evidence_incomplete" as const, model,
     training: { original_decision_window: { ...input.trainingWindow }, fitting_boundary: input.fittedAt,
       fitting_boundary_semantics: "declared_data_cutoff_not_training_job_execution_time" as const,
-      model_materialization: "recomputed_from_bound_persisted_training_receipts" as const,
-      immutable_training_history_verified: false as const,
-      training_job_execution_at: "unavailable_disclosed" as const,
-      original_population_count: trainingRows.length, binary_fitting_sample_count: fittingRows.length,
-      missing_or_unavailable_label_count: missingLabels, late_label_count: lateLabels, non_binary_label_count: nonBinaryLabels,
-      fitted_input_fingerprint: hash(fittingRows),
-      original_membership_fingerprint: hash(trainingRows.map(({ comparison, row }) => [comparison.scan_run_fingerprint, row.candidate_id])) },
+      model_materialization: sealed ? "immutable_database_attested_pre_forward_training_capsule" as const
+        : "recomputed_from_bound_persisted_training_receipts" as const,
+      immutable_training_history_verified: sealed !== null,
+      immutable_training_history_scope: sealed ? "retained_training_capsule_not_mutable_outcome_tables" as const : "unverified" as const,
+      training_job_execution_at: sealed?.materialized_at ?? "unavailable_disclosed",
+      training_job_clock_semantics: sealed ? "database_materialization_statement_time_separate_committed_read_attested" as const
+        : "no_training_job_clock_available" as const,
+      training_source_as_of: sealed?.trained_model.training_source_as_of ?? null,
+      committed_model_observed_at: sealed?.committed_read_at ?? null,
+      materialization_id: sealed?.materialization_id ?? null,
+      model_binding_fingerprint: sealed?.trained_model.model_binding_fingerprint ?? null,
+      original_population_count: sealed?.trained_model.original_population_count ?? trainingRows.length,
+      binary_fitting_sample_count: sealed?.trained_model.model.sample_count ?? fittingRows.length,
+      missing_or_unavailable_label_count: sealed?.trained_model.missing_outcome_count ?? missingLabels,
+      late_label_count: sealed ? sealed.trained_model.original_training_receipts.filter(row =>
+        Math.max(Date.parse(row.evaluated_at ?? ""), Date.parse(row.recorded_at ?? "")) >= cutoff).length : lateLabels,
+      non_binary_label_count: sealed?.trained_model.non_binary_outcome_count ?? nonBinaryLabels,
+      fitted_input_fingerprint: sealed?.trained_model.fitting_input_fingerprint ?? hash(fittingRows),
+      original_membership_fingerprint: sealed?.trained_model.original_training_membership_fingerprint ??
+        hash(trainingRows.map(({ comparison, row }) => [comparison.scan_run_fingerprint, row.candidate_id])) },
     forward: { original_population_count: rows.length, canonical_outcome_count: rows.filter(row => row.canonical_outcome_available).length,
       missing_outcome_count: rows.filter(row => !row.canonical_outcome_available).length,
       non_binary_outcome_count: rows.filter(row => row.canonical_outcome_available && row.terminal_binary === null).length,

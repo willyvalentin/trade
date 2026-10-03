@@ -2,7 +2,44 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
-**Current queue — 2026-10-03 00:47Z:** PR #730 is normally merged and
+**Current queue — 2026-10-03 01:30Z:** PR #731 normally merged at
+01:23:26Z after all six protected shards, aggregate and provenance in
+`37083368778` passed; exact-main CI `37085906922` also passes. Main
+`55576078e102e7019c271aeb5e67de4a353f2e8f` has the exact reviewed tree
+`a6b88d60a9b4d4d18197721538bad95d43e02d0c`. Automatic Git production deploy
+`6ac059102df2c60008151e2a` is ready/published at 01:25:23.701Z. The reviewed
+SQL `20261002233358_if4_relative_plan_trained_probability_model.sql`, SHA256
+`9035871483bffa9216b76dba6ccc4ca7aede6a9cb40c594c6dc17d71f19ba478`, is
+applied as actual production migration
+`20261003012708_if4_relative_plan_trained_probability_model`. Fresh preflight
+has zero old transactions/waiting target locks. Postflight verifies two empty
+immutable relations, restrictive FKs, RLS/no client policies, no ordinary direct
+privileges including service, and three service-only RPCs with empty search
+paths. Advisor INFOs for deny-all RLS and unused empty-table indexes do not
+authorize adding client access or dropping the owner index. Existing unrelated
+Auth and FK advisories are unchanged; no configuration is changed.
+
+Authenticated inert readback at 01:27:30.557Z verifies the exact revision,
+both native routes HTTP 200 `not_found`, no comparison/model, global disable
+true, all competing workers/input selector off and zero active/unresolved/
+unattributed work. Unauthorized model GET is 401. No production training,
+freeze, provider request, scan, outcome, publication or broker action occurs.
+This closes inert production integration of the immutable fitting capsule;
+it does not establish real forward quality or satisfy engine graduation.
+
+The already selected full-charter relative-plan comparison is now the sole
+primary CLOSED IF-4 slice, Codex, twelve active hours from 00:47Z, on
+`codex/relative-plan-charter-comparison-oct3`, integrating the main above.
+The frozen hypothesis and numeric charter are unchanged. Local component
+measurements pass affected tests and actual isolated Postgres/PostgREST/SDK
+runtime proof: a failed admitted attempt and its credits stay in the original
+denominator; missing cost does not erase the known failure. This is not vertical
+completion. Next wire the same sealed model, original first thirty per partition,
+full quality/context/feasibility and attributable runtime into the actual reader,
+then prove restarted integrated consumption and unchanged terminal rules.
+No second/third slice, new OPEN experiment, provider, paper or broker work.
+
+**Historical queue — 2026-10-03 00:47Z:** PR #730 is normally merged and
 production-verified on main `58f64956bce08216cd80d482a43ced5a26433fd1`,
 exact tree `69a4771f90b07e95ae5e6bdbd38204e3d36125e6`, Git production deploy
 `6ac0461b0893840008c9345c`. Authenticated inert readback at 00:04:02.277Z
@@ -40,6 +77,77 @@ metrics, sample/uncertainty gates, unchanged thresholds and no promotion/live
 effect. A component-only PR, synthetic alpha or point precision lift is not
 completion. No third slice, broker/paper expansion, provider/configuration or
 new OPEN experiment is selected. Production/forward acceptance stays separate.
+**Historical queue — 2026-10-03 00:04Z:** PR #730 normally merges at
+00:02:34Z after all six protected shards, aggregate and merge provenance in
+CI `37078162782` pass on head `25fd0b726956bb109790af684de57e4fee47d18b`.
+Post-main CI `37080337424` also passes on that exact merge revision.
+Main `58f64956bce08216cd80d482a43ced5a26433fd1` retains exact tested tree
+`69a4771f90b07e95ae5e6bdbd38204e3d36125e6`. Automatic Git production deploy
+`6ac0461b0893840008c9345c` is ready/published at 00:03:26.117Z;
+authenticated provider-free readback at 00:04:02.277Z verifies that revision,
+HTTP 200 `not_found`, no comparison freeze, global scheduler disable true,
+all competing workers/input selector off and zero active/unresolved/unattributed
+work. No schema, configuration, provider request, scan, outcome or broker action
+occurred. The actual enrolled learner now measures training-only probabilities
+and separate forward errors, but still discloses mutable-history recomputation,
+not a durably fitted model or demonstrated recommendation-quality lift.
+
+The selected independent trained-model slice now owns the sole primary,
+CLOSED IF-4, Codex, twelve active hours and at most four investigation hours,
+`codex/relative-plan-model-materialization-oct3` fast-forwarded to verified
+main above. Its acceptance is an actual owner-bound pre-forward training job,
+complete immutable source/label capsule, separate-transaction committed model
+witness, exact restarted forward consumer, original populations/unknowns,
+idempotency, rejected retrospective/future-clock substitution and owner
+isolation. A stored component without actual product consumption is insufficient.
+The unchanged fixed-bucket model, prospective definition and full quality charter
+remain frozen. No second or third delivery, provider/collection/live-policy change,
+paper/broker expansion or new OPEN experiment is selected. Production schema
+and prospective model behavior remain unverified until their own integration.
+
+The local vertical now uses one shared unchanged original-input enrollment
+rule. Its fixed-purpose authenticated command accepts only an empty request;
+owner, source and job clock are server-owned. It retains the complete normalized
+training source, original membership, missing/non-binary labels and unchanged
+30/10/three-day/three-ticker fixed-bucket policy. SQL records its actual sealing
+clock and requires a second transaction to observe the already committed model
+before forward begins; a timestamp inside the write transaction is insufficient.
+The restarted original-population learner consumes that same receipt in both
+forward partitions. Training-label upserts cannot refit it; forward losses can
+change measured errors but not probabilities or original membership.
+
+Local isolated Postgres/PostgREST/SDK/server-command/forward-consumer proof
+passes with 48 training members and twelve members in each forward partition:
+concurrent jobs share one immutable model, lost acknowledgement resumes the
+original capsule, missing forward labels stay unknown, unfavorable upserts
+change errors rather than the fitted model, actual DB clocks reject retroactive
+and premature jobs, client RPC/direct mutation and wrong-owner reads are denied.
+Past plans/future evaluation clocks are explicitly synthetic CLOSED fixtures,
+not production or OPEN acceptance. A second owner's recovery now retains that
+owner's own persisted source; final registered regression also passes.
+The integrated affected regression passes 62 tests, including both actual
+database lifecycles; three separate UTF-8/complete-capsule transport tests pass.
+Product revision `5ee447dea761394e717196274aafb634b91f3976` passes all nineteen
+registered foundation non-build commands: 1,035 containment, 469 intelligence,
+12 auth, 41 explanation, 42 proposal, 34 adapter, 32 capture and 32 binding tests,
+catalog/provenance checks and three actual database lifecycles. Normal lint
+reports zero errors/eight existing warnings; strict types and dependency audit
+(zero vulnerabilities) pass. The normal locked Next 16.3.8 Turbopack build
+passes on the same product revision in isolated Linux, Node 22.23.1, no
+production credentials and network disabled during build. Host CSS-worker
+binding is denied; framework settings and protected CI are unchanged.
+Documentation-only reconciliation follows this exact product verification.
+
+Complete-capsule storage is bounded at 8 MiB and buffered HTTP output at 5 MiB,
+below Netlify's documented [6 MB envelope](https://docs.netlify.com/build/functions/configuration/).
+Oversized complete evidence fails closed with a named gap; no member is
+truncated or selected away. These are physical transport/storage bounds,
+not reduced sample or quality thresholds. The new route does no training on
+GET, and normal scans/workers remain off. No production model, migration,
+provider call, policy/publishing change or quality claim is made. Exact
+protected CI, protected merge, additive production schema
+and inert readback still precede integration; full-charter forward/runtime/
+feasibility evidence remains the next missing link.
 
 **Historical queue — 2026-10-02 23:13Z (Oct 3 CEST):** PR #729 is normally
 merged after protected CI `37073054385` passes every shard, aggregate and
