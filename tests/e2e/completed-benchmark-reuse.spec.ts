@@ -67,8 +67,12 @@ test("only revalidated owned original benchmark capsules can free the two reserv
       runtime.readOwnedCompletedBenchmarkReuse({ row: source, owner: currentOwner, now });
     const reused = await read();
     expect(reused).not.toBeNull();
+    // The legacy serving-window label is not a historical input-fitness gate.
+    expect(await read({ ...row, window: "outside_window" })).not.toBeNull();
     expect(await runtime.isValidCompletedBenchmarkReuse(reused!, next)).toBe(true);
     expect(await runtime.isValidCompletedBenchmarkReuse(structuredClone(reused!), next)).toBe(false);
+    expect(await runtime.isValidCompletedBenchmarkReuse(reused!, new OriginalDate("2026-10-01T20:00:00Z"))).toBe(false);
+    expect(await runtime.isValidCompletedBenchmarkReuse(reused!, new OriginalDate("invalid"))).toBe(false);
     // Exercise the actual scanner admission, not just the brand helper. These
     // failures must happen before any cache read or additional provider call.
     for (const options of [
@@ -82,10 +86,11 @@ test("only revalidated owned original benchmark capsules can free the two reserv
       completedDailyContextPolicyVersion: "completed_daily_intraday_input_v1", maxFreshProviderCalls: 8,
       signal: AbortSignal.abort() })).rejects.toMatchObject({ name: "OperationAbortedError" });
     expect(reused!.market_regime.input_evidence!.reuse).toMatchObject({
-      policy_version: "completed_benchmark_reuse_allocation_v1", source_scan_run_id: run.id,
+      policy_version: "completed_benchmark_regular_session_reuse_v2", source_scan_run_id: run.id,
       source_scan_run_fingerprint: run.run_fingerprint, source_decision_timestamp: decision.decision_timestamp,
       original_classified_at: captured.toISOString(), revalidated_at: next.toISOString(),
       benchmark_provider_calls: 0, scanner_provider_call_cap: 8, whole_scan_provider_call_cap: 8,
+      source_window: "midday", source_regular_session_verified: true,
     });
     for (const symbol of ["spy", "qqq"] as const) {
       expect(reused!.market_regime.input_evidence![symbol]).toEqual(regime.input_evidence![symbol]);
@@ -99,6 +104,12 @@ test("only revalidated owned original benchmark capsules can free the two reserv
       (v: typeof row) => { v.data_mode = "demo_preview"; },
       (v: typeof row) => { v.status = "failed"; },
       (v: typeof row) => { v.status = "stale"; },
+      (v: typeof row) => { v.window = "closed"; },
+      (v: typeof row) => { v.window = "unknown"; },
+      (v: typeof row) => { v.observed_at = "invalid"; },
+      (v: typeof row) => { v.completed_at = "invalid"; },
+      (v: typeof row) => { v.observed_at = "2026-10-01T13:29:59.000Z"; },
+      (v: typeof row) => { v.completed_at = "2026-10-01T20:00:00.000Z"; },
       (v: typeof row) => { delete v.payload_json.candidate_decision_record.versions.input_policy_version; },
       (v: typeof row) => { v.completed_at = "2026-10-01T18:00:00Z"; },
       (v: typeof row) => { v.payload_json.market_regime.spy.ma20 = 999; },
@@ -147,11 +158,11 @@ for (const mode of ["baseline", "reuse", "invalid"] as const) {
 }
 }
 
-for (const mode of ["baseline", "fair_cost_ties", "invalid_history"] as const) {
-  test(`mixed original population ${mode} acquires more complete inputs without more credits`, () => {
+for (const mode of ["baseline", "minimum_requests_first", "regular_session_reuse", "invalid_history"] as const) {
+  test(`mixed original population ${mode} preserves original inputs and explicit acquisition costs`, () => {
     test.setTimeout(90000);
     const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--benchmark-reuse", "--mixed-history",
-      ...(mode === "baseline" ? ["--acquisition-baseline"] : mode === "invalid_history" ? ["--mixed-history-invalid"] : [])],
+      ...(mode === "baseline" ? ["--acquisition-baseline"] : mode === "minimum_requests_first" ? ["--minimum-order-baseline"] : mode === "invalid_history" ? ["--mixed-history-invalid"] : [])],
     { cwd: process.cwd(), encoding: "utf8", timeout: 80000 });
     expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
     const evidence = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
@@ -159,21 +170,21 @@ for (const mode of ["baseline", "fair_cost_ties", "invalid_history"] as const) {
       attempts: 2, cycles: 2, claims: 2, actual_provider_requests: 0,
       production_actions: 0, publications: 0, broker_actions: 0, cleanup: "inert",
       benchmark_reuse_evidence: { baseline_revision: "43fa089e2c7410f10834e148179dda1564765e46", history_start: "mixed",
-        acquisition_mode: mode === "baseline" ? "original_order" : "fair_cost_ties",
+        acquisition_mode: mode === "minimum_requests_first" ? "minimum_requests_first" : "original_order",
         historical_context_integrity: mode === "invalid_history" ? "tampered" : "valid",
         first_scan_requests: 8, second_scan_requests: 8,
-        first_fresh_inputs: mode === "fair_cost_ties" ? 5 : 3,
-        second_fresh_inputs: mode === "fair_cost_ties" ? 6 : 4,
+        first_fresh_inputs: mode === "minimum_requests_first" ? 5 : 3,
+        second_fresh_inputs: mode === "minimum_requests_first" ? 6 : 4,
         original_members_per_decision: 8, reservations: 2, reserved_credits: 16,
         benchmark_calls_second: 0, restarted_owner_read: true, wrong_owner_runs: 0 } });
   });
 }
 
-test("a full cold session retains every rotating member and reveals the minimum-cost discovery tradeoff", () => {
+test("full-session historical reuse improves breadth while retaining rejected allocation baselines", () => {
   test.setTimeout(420000);
-  const evidence = ["baseline", "minimum", "guard", "fair"].map(mode => {
+  const evidence = ["baseline", "minimum", "guard", "fair", "regular"].map(mode => {
     const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--rotation-day", "--cold",
-      ...(mode === "baseline" ? ["--acquisition-baseline"] : mode === "minimum" ? ["--minimum-order-baseline"] : mode === "guard" ? ["--first-observation-baseline"] : [])], { cwd: process.cwd(), encoding: "utf8", timeout: 180000 });
+      ...(mode === "baseline" ? ["--acquisition-baseline"] : mode === "minimum" ? ["--minimum-order-baseline"] : mode === "guard" ? ["--first-observation-baseline"] : mode === "fair" ? ["--fair-order-baseline"] : [])], { cwd: process.cwd(), encoding: "utf8", timeout: 180000 });
     expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
     return JSON.parse(result.stdout.trim().split("\n").at(-1)!);
   });
@@ -181,9 +192,10 @@ test("a full cold session retains every rotating member and reveals the minimum-
     expect(arm).toMatchObject({ scenario: "full_session_cold_rotation", original_slots: 26,
       original_member_observations: 208, setup_synthetic_requests: 0, scheduled_synthetic_requests: 208,
       attempts: 26, cycles: 26, scan_runs: 26, reservations: 26, reserved_credits: 208,
-      selected_unique_tickers: 95, synthetic_benchmark_requests: 20,
+      selected_unique_tickers: 95,
       unselected_eligible_tickers: [], restarted_owner_read: true, wrong_owner_runs: 0,
       actual_provider_requests: 0, production_actions: 0, publications: 0, broker_actions: 0, cleanup: "inert" });
+    expect(arm.synthetic_benchmark_requests).toBe(arm.acquisition_mode === "original_order_regular_session_reuse" ? 2 : 20);
     expect(arm.slots).toHaveLength(26);
     expect(arm.ticker_coverage).toHaveLength(95);
     for (const [index, slot] of arm.slots.entries()) {
@@ -195,13 +207,15 @@ test("a full cold session retains every rotating member and reveals the minimum-
     expect(arm.slots.slice(-2).map((slot: { no_trade_reason: string }) => slot.no_trade_reason))
       .toEqual(["power_hour_publication_withheld", "power_hour_publication_withheld"]);
   }
-  const [baseline, minimum, guard, fair] = evidence;
+  const [baseline, minimum, guard, fair, regular] = evidence;
   for (const [index, slot] of baseline.slots.entries()) {
     expect(minimum.slots[index].members.map((member: { ticker: string }) => member.ticker))
       .toEqual(slot.members.map((member: { ticker: string }) => member.ticker));
     expect(guard.slots[index].members.map((member: { ticker: string }) => member.ticker))
       .toEqual(slot.members.map((member: { ticker: string }) => member.ticker));
     expect(fair.slots[index].members.map((member: { ticker: string }) => member.ticker))
+      .toEqual(slot.members.map((member: { ticker: string }) => member.ticker));
+    expect(regular.slots[index].members.map((member: { ticker: string }) => member.ticker))
       .toEqual(slot.members.map((member: { ticker: string }) => member.ticker));
     const plan = fair.slots[index].acquisition;
     const offset = Math.floor(Date.parse(slot.slot) / 900000) % 8;
@@ -229,4 +243,13 @@ test("a full cold session retains every rotating member and reveals the minimum-
   // discovery, and the predeclared >69 breadth criterion remains unmet.
   expect(fair).toMatchObject({ ever_complete_tickers: 63, fresh_member_observations: 116 });
   expect(fair.ever_complete_tickers > baseline.ever_complete_tickers).toBe(false);
+  // The corrected input-fitness gate passes the unchanged frozen acceptance.
+  // Ranking, publication and provider budgets have not been relaxed.
+  expect(regular.ever_complete_tickers).toBeGreaterThan(baseline.ever_complete_tickers);
+  expect(regular.ever_complete_tickers).toBeGreaterThan(minimum.ever_complete_tickers);
+  expect(regular.fresh_member_observations).toBeGreaterThanOrEqual(baseline.fresh_member_observations);
+  expect(regular).toMatchObject({ ever_complete_tickers: 76, fresh_member_observations: 123,
+    synthetic_benchmark_requests: 2, revisit_missing_observations: 32 });
+  expect(regular.slots.slice(1).every((slot: { benchmark_requests: number; benchmark_reuse_preflight: { owned_reuse_admitted: boolean } }) =>
+    slot.benchmark_requests === 0 && slot.benchmark_reuse_preflight.owned_reuse_admitted)).toBe(true);
 });

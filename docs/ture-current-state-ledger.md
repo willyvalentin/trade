@@ -2,7 +2,64 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
-**Now — benchmark-input reuse diagnosis after rejected allocation variants:**
+**Local regular-session reuse result — broader verification pending:** the
+second diagnostic confirms every one of the nine redundant two-credit benchmark
+refreshes follows an original `outside_window` run, whose completed SPY/QQQ
+capsules independently replay as valid. The new outside-window regression fails
+before correction and passes afterward, including unchanged stale/failed/closed/
+unknown/owner/digest/lineage rejection and new invalid/out-of-session clocks.
+
+The actual packaged full-session/isolated PostgreSQL/PostgREST/SDK scenario then
+finishes with original scanner ordering: 123 fresh member observations across
+76 unique tickers versus 110/69 original baseline, 115/64 minimum-request order,
+115/64 rejected one-member guard and 116/63 rejected fair ties. Benchmark requests
+fall from twenty to two, freeing eighteen of the same 208 synthetic credits for
+stock data; every original slot still uses at most eight. All 95 eligible
+original tickers/208 member observations, 26 attempts/runs/finalized reservations,
+exact decisions/lineage, restarted owner source read and zero wrong-owner rows
+are retained. Nineteen tickers remain never-complete, opening coverage remains
+zero and late publication is withheld. No setup, external provider/model calls,
+production changes, publications or broker actions occur.
+Log `/private/tmp/ture-benchmark-regular-session-full-oct3.log`.
+
+This passes the unchanged local data-fitness comparison, not market-wide
+discovery, production behavior, alpha or recommendation-quality acceptance.
+The broader actual-runtime, budget, registration, lint/types and exact build are
+running or pending; do not inherit their old revision results. The two rejected
+allocation products are retained as committed historical test arms, not current
+runtime. Scanner and trace source are restored exactly to `43fa089e`; only the
+validated benchmark reuse scope changes. Release/integration remains blocked
+behind PR #732 and mandatory security requirements; no new push/PR is selected.
+
+**Now — selected regular-session benchmark reuse correction, frozen before code:**
+Diagnostic replay on exact `6726ba67` finds all twenty-five preceding benchmark
+capsules valid at the next slot, with every original run terminal `empty`.
+Nine otherwise valid reads are rejected; the validator still accepts only old
+morning/midday/power-hour window labels, while normal full-session analysis also
+persists `outside_window`. The second bounded diagnostic adds the exact original
+window for causal confirmation; do not classify this as a stale-status defect.
+Logs `/private/tmp/ture-benchmark-input-fitness-diagnostic-oct3.log` and
+`/private/tmp/ture-benchmark-window-diagnostic-oct3.log` retain original evidence.
+
+Test `completed_benchmark_regular_session_reuse_v2` only after confirming those
+labels: allow the known `outside_window` label only when the original observation,
+decision and completion are within an independently verified regular session,
+same New York day, with unchanged terminal-status, exact v4 decision/lineage,
+owner and independently replayed SPY/QQQ daily capsules. Unknown/closed/failed
+sources, invalid clocks or histories still fail closed. This does not admit an
+old current benchmark price or a stale candidate; it reuses only unchanged
+latest completed daily historical context. Disclose original source window and
+verified-session scope in existing provenance, without schema/config changes.
+
+Restore original scanner order from `43fa089e`, retaining rejected allocations
+as exact historical arms instead of shipping them. Compare against all retained
+arms with the same full session/cohort/eight-credit cap, zero setup and no external
+provider/model calls. Acceptance remains >69 and >64 unique complete tickers and
+at least 110 fresh observations, plus correct owner restart, original decisions,
+negative admission and no publication/broker effects. Separate improved data
+fitness from OPEN or quality acceptance. PR #732/security prerequisites remain.
+
+**Retained rejected allocation disposition:**
 The fair-tie runtime below also fails the original breadth criterion: 116 fresh
 observations but only 63 unique tickers, using all 208 credits/26 slots and the
 same original population. Log `/private/tmp/ture-fair-cost-ties-full-session-oct3.log`.

@@ -6,7 +6,7 @@ import { getUsEquityMarketSession } from "@/lib/us-equity-market-calendar";
 import { throwIfAborted } from "@/lib/operation-abort";
 import { COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION } from "@/lib/scanner-decision-input-snapshot";
 
-export const COMPLETED_BENCHMARK_REUSE_ALLOCATION_VERSION = "completed_benchmark_reuse_allocation_v1" as const;
+export const COMPLETED_BENCHMARK_REUSE_ALLOCATION_VERSION = "completed_benchmark_regular_session_reuse_v2" as const;
 export type CompletedBenchmarkReuse = Readonly<{ market_regime: MarketRegime }>;
 // Only a server-side validated owner/source read can free benchmark credits.
 // Caller-supplied JSON, serialized objects and old process cache do not qualify.
@@ -28,14 +28,24 @@ export async function readOwnedCompletedBenchmarkReuse(input: {
     typeof row.id !== "string" || !row.id || typeof row.run_fingerprint !== "string" || !row.run_fingerprint ||
     !record(row.payload_json) || !Number.isFinite(input.now.getTime())) return null;
   const observed = instant(row.observed_at), completed = instant(row.completed_at);
+  if (!Number.isFinite(observed) || !Number.isFinite(completed)) return null;
   const session = getUsEquityMarketSession(input.now);
+  const originalSession = getUsEquityMarketSession(new Date(observed));
+  // Serving-window labels describe an old publication cadence, not whether
+  // completed historical inputs remain valid. Require actual regular-session
+  // clocks before accepting its known between-window label; never unknown/closed.
   if (!Number.isFinite(observed) || !Number.isFinite(completed) || completed < observed || completed > input.now.getTime() ||
     session.verification_status !== "verified" || session.freshness_status !== "current" ||
-    row.trading_date !== session.market_date || !["morning", "midday", "power_hour"].includes(String(row.window)) ||
-    getUsEquityMarketSession(new Date(observed)).market_date !== session.market_date) return null;
+    !session.session_open || !session.session_close ||
+    input.now.getTime() < Date.parse(session.session_open) || input.now.getTime() >= Date.parse(session.session_close) ||
+    originalSession.verification_status !== "verified" || originalSession.freshness_status !== "current" ||
+    !originalSession.session_open || !originalSession.session_close ||
+    observed < Date.parse(originalSession.session_open) || completed >= Date.parse(originalSession.session_close) ||
+    row.trading_date !== session.market_date || originalSession.market_date !== session.market_date ||
+    !["morning", "midday", "power_hour", "outside_window"].includes(String(row.window))) return null;
   const source = { id: row.id, run_fingerprint: row.run_fingerprint,
     trading_date: row.trading_date as string,
-    window: row.window as "morning" | "midday" | "power_hour",
+    window: row.window as "morning" | "midday" | "power_hour" | "outside_window",
     observed_at: row.observed_at as string, payload_json: row.payload_json };
   const decision = candidateDecisionRecordFromScanRun(source);
   if (!decision || decision.record_version !== "candidate_decision_record_v4" ||
@@ -47,6 +57,7 @@ export async function readOwnedCompletedBenchmarkReuse(input: {
   if (!regime?.input_evidence || instant(regime.input_evidence.evaluated_at) > instant(decision.decision_timestamp)) return null;
   regime.input_evidence.reuse = {
     policy_version: COMPLETED_BENCHMARK_REUSE_ALLOCATION_VERSION,
+    source_window: source.window, source_regular_session_verified: true,
     source_scan_run_id: row.id, source_scan_run_fingerprint: row.run_fingerprint,
     source_decision_timestamp: decision.decision_timestamp,
     original_classified_at: regime.input_evidence.evaluated_at,
@@ -59,5 +70,10 @@ export async function readOwnedCompletedBenchmarkReuse(input: {
 }
 
 export async function isValidCompletedBenchmarkReuse(value: CompletedBenchmarkReuse, now: Date) {
-  return validated.has(value) && (await readCompletedMarketRegime(value.market_regime, now)) !== null;
+  if (!validated.has(value) || !Number.isFinite(now.getTime())) return false;
+  const session = getUsEquityMarketSession(now);
+  return session.verification_status === "verified" && session.freshness_status === "current" &&
+    !!session.session_open && !!session.session_close && now.getTime() >= Date.parse(session.session_open) &&
+    now.getTime() < Date.parse(session.session_close) &&
+    (await readCompletedMarketRegime(value.market_regime, now)) !== null;
 }

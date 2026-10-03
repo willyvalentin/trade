@@ -37,7 +37,9 @@ export type MarketRegime = {
     spy: CompletedDailyContext;
     qqq: CompletedDailyContext;
     reuse?: {
-      policy_version: "completed_benchmark_reuse_allocation_v1";
+      policy_version: "completed_benchmark_reuse_allocation_v1" | "completed_benchmark_regular_session_reuse_v2";
+      source_window?: "morning" | "midday" | "power_hour" | "outside_window";
+      source_regular_session_verified?: true;
       source_scan_run_id: string;
       source_scan_run_fingerprint: string;
       source_decision_timestamp: string;

@@ -19,7 +19,7 @@ import {
 import { getDailyCandles, getDailyCandlesWithIdentity, type DailyCandle } from "@/lib/market-data";
 import { captureCompletedDailyContext, readCompletedDailyContext,
   type CompletedDailyContext } from "@/lib/scanner-completed-daily-context";
-import { currentSessionFeatures } from "@/lib/scanner-current-session-context";
+import { currentSessionFeatures, type CurrentSessionContext } from "@/lib/scanner-current-session-context";
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { throwIfAborted, waitForAbortableDelay } from "@/lib/operation-abort";
 import {
@@ -818,51 +818,6 @@ async function scanMarketCore(
   }
   throwIfAborted(options.signal);
 
-  // Acquisition order is not ranking or universe selection. Revalidate every
-  // original member before spending the shared cap; a fully cached member costs
-  // zero, daily history + missing current bars one, and a cold member two.
-  // Invalid/prior-day history cannot receive the cheaper allocation. Keep
-  // missing members and original indices even when no calls remain for them.
-  const acquisitionEntries = [];
-  for (const [tickerIndex, candidate] of baseCandidates.entries()) {
-    throwIfAborted(options.signal);
-    const raw = cachedRowsByTicker.get(candidate.ticker)?.raw;
-    const completedContext = completedContextMode
-      ? await readCompletedDailyContext(
-        raw && typeof raw === "object" ? (raw as Record<string, unknown>).completed_daily_context : null,
-        candidate.ticker, new Date(now)) : null;
-    const current = intradayCacheSnapshotByTicker.get(candidate.ticker);
-    const reusableCurrent = current?.source === "cache" && !current.stale && !!current.session_context;
-    acquisitionEntries.push({ candidate, tickerIndex, completedContext,
-      estimatedRequests: Number(!completedContext) + Number(!reusableCurrent),
-      currentContextSha256: reusableCurrent ? current.session_context!.content_sha256 : null });
-  }
-  throwIfAborted(options.signal);
-  const minimumRequestsFirst = completedContextMode && options.source === "scheduled";
-  if (minimumRequestsFirst) {
-    const originalMembers = acquisitionEntries.map(entry => ({
-      ticker: entry.candidate.ticker, ticker_index: entry.tickerIndex,
-      estimated_requests: entry.estimatedRequests,
-      historical_context_sha256: entry.completedContext?.content_sha256 ?? null,
-      historical_captured_at: entry.completedContext?.captured_at ?? null,
-      current_context_sha256: entry.currentContextSha256,
-    }));
-    // Cheapest complete pairs still win. Equal-cost members must not repeatedly
-    // favor the same original prefix. Rotate only that tie at scheduler cadence;
-    // universe selection, returned ranking order and data freshness are unchanged.
-    const memberCount = acquisitionEntries.length;
-    const tieOffset = memberCount ? Math.floor(now / (15 * 60 * 1000)) % memberCount : 0;
-    const tieIndex = (index: number) => (index - tieOffset + memberCount) % memberCount;
-    acquisitionEntries.sort((a, b) => a.estimatedRequests - b.estimatedRequests ||
-      tieIndex(a.tickerIndex) - tieIndex(b.tickerIndex));
-    options.activeScanTrace?.updateMarketDataFetch({ completed_input_acquisition: {
-      policy_version: "completed_input_fair_cost_ties_v1", evaluated_at: new Date(now).toISOString(),
-      provider_call_cap: maxFreshProviderCalls,
-      cost_tie_offset: tieOffset,
-      acquisition_order: acquisitionEntries.map(entry => entry.tickerIndex), original_members: originalMembers,
-    } });
-  }
-
   const runtimeAdmission = options.providerCreditAllocationRuntimeAdmission;
   const runtimePlanEnforced =
     runtimeAdmission?.status === "admitted" &&
@@ -1125,10 +1080,14 @@ async function scanMarketCore(
     };
   }
 
-  for (const { tickerIndex, candidate: baseCandidate, completedContext } of acquisitionEntries) {
+  for (const [tickerIndex, baseCandidate] of baseCandidates.entries()) {
     throwIfAborted(options.signal);
     const cachedRow = cachedRowsByTicker.get(baseCandidate.ticker);
     const cachedValues = !completedContextMode && cachedRow ? scannerValuesFromCache(cachedRow) : null;
+    const contextRaw = cachedRow?.raw && typeof cachedRow.raw === "object"
+      ? (cachedRow.raw as Record<string, unknown>).completed_daily_context : null;
+    const completedContext = completedContextMode
+      ? await readCompletedDailyContext(contextRaw, baseCandidate.ticker, new Date(now)) : null;
     const buildHistoricalCandidate = (history: CompletedDailyContext) => {
       const { candles, ...evidence } = history;
       return { ...buildCandidate(baseCandidate, calculateScannerValues(candles)),
@@ -1392,10 +1351,7 @@ async function scanMarketCore(
   logScanner("tickers_skipped_due_to_fresh_call_limit", skippedDueToFreshCallLimit);
   logScanner("candidates_returned", candidates.length);
 
-  // Preserve the pre-existing ranking tie order and the original population.
-  return minimumRequestsFirst
-    ? candidates.sort((a, b) => tickers.indexOf(a.ticker) - tickers.indexOf(b.ticker))
-    : candidates;
+  return candidates;
 }
 
 export async function getScannerCandidates(
