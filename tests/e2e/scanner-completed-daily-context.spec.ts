@@ -38,14 +38,14 @@ test(`closing regular-session analysis retains ${strongInput ? "directional" : "
     actual_provider_requests:0,production_actions:0,broker_actions:0,cleanup:"inert"});
 });
 }
-for (const bounded of [true, false]) {
-test(`market context ${bounded ? "drains owned transports" : "preserves unbounded legacy rejection"} on benchmark failure`, async () => {
+for (const [bounded, selected] of [[true,false],[true,true],[false,false]]) {
+test(`market context ${bounded ? "drains owned transports" : "preserves unbounded legacy rejection"}${selected ? " with completed inputs" : ""} on benchmark failure`, async () => {
   const bundle = await build({ entryPoints: [resolve(process.cwd(), "lib/market-regime.ts")],
     bundle: true, write: false, platform: "node", format: "cjs", conditions: ["react-server"] });
   const loaded = { exports: {} };
   new Function("require", "module", "exports", bundle.outputFiles[0].text)(
     createRequire(resolve(process.cwd(), "package.json")), loaded, loaded.exports);
-  const { getMarketRegime } = loaded.exports as typeof import("@/lib/market-regime");
+  const { getMarketRegime, COMPLETED_DAILY_MARKET_REGIME_INPUT_POLICY_VERSION } = loaded.exports as typeof import("@/lib/market-regime");
   const originalFetch = globalThis.fetch, originalKey = process.env.TWELVE_DATA_API_KEY;
   process.env.TWELVE_DATA_API_KEY = "synthetic-closed-boundary-only";
   let release!: () => void, settled = false;
@@ -60,7 +60,9 @@ test(`market context ${bounded ? "drains owned transports" : "preserves unbounde
     return Response.json({ values: bars().map(bar => ({datetime:new Date(bar.timestamp*1000).toISOString().slice(0,10),
       open:"100",high:"103",low:"99",close:"101",volume:"1000"})) });
   };
-  const running = getMarketRegime(bounded ? {signal:new AbortController().signal} : {}).then(() => { settled = true; return null; }, error => { settled = true; return error; });
+  const running = getMarketRegime(bounded ? {signal:new AbortController().signal,
+    ...(selected ? {inputPolicyVersion:COMPLETED_DAILY_MARKET_REGIME_INPUT_POLICY_VERSION} : {})} : {})
+    .then(() => { settled = true; return null; }, error => { settled = true; return error; });
   try {
     await new Promise(resolve => setImmediate(resolve));
     expect(symbols.sort()).toEqual(["QQQ","SPY"]);
@@ -73,6 +75,84 @@ test(`market context ${bounded ? "drains owned transports" : "preserves unbounde
     if (originalKey === undefined) delete process.env.TWELVE_DATA_API_KEY;
     else process.env.TWELVE_DATA_API_KEY = originalKey;
   }
+});
+}
+
+test("normalized benchmark inputs reject stale or misidentified history without changing legacy evidence", async () => {
+  const bundle = await build({ entryPoints: [resolve(process.cwd(), "lib/market-regime.ts")],
+    bundle: true, write: false, platform: "node", format: "cjs", conditions: ["react-server"] });
+  const loaded = { exports: {} };
+  new Function("require", "module", "exports", bundle.outputFiles[0].text)(
+    createRequire(resolve(process.cwd(), "package.json")), loaded, loaded.exports);
+  const { getMarketRegime, marketRegimePromptInput, COMPLETED_DAILY_MARKET_REGIME_INPUT_POLICY_VERSION } = loaded.exports as typeof import("@/lib/market-regime");
+  const OriginalDate = globalThis.Date, originalFetch = globalThis.fetch, originalKey = process.env.TWELVE_DATA_API_KEY;
+  const clock = new OriginalDate("2026-10-01T17:30:00.000Z").getTime();
+  globalThis.Date = class extends OriginalDate {
+    constructor(...args: ConstructorParameters<typeof Date>) { super(...(args.length ? args : [clock]) as ConstructorParameters<typeof Date>); }
+    static now() { return clock; }
+  } as typeof Date;
+  process.env.TWELVE_DATA_API_KEY = "synthetic-closed-boundary-only";
+  let scenario = "stale", requests = 0;
+  globalThis.fetch = async (input) => {
+    const url = new URL(typeof input === "string" || input instanceof URL ? input : input.url);
+    expect(url.origin).toBe("https://api.twelvedata.com"); expect(url.pathname).toBe("/time_series");
+    expect(url.searchParams.get("outputsize")).toBe("60"); requests++;
+    const values = bars(scenario === "stale" ? "2026-05-26" : "2026-09-30").map(bar => ({
+      datetime:new OriginalDate(bar.timestamp*1000).toISOString().slice(0,10),
+      open:"100",high:"103",low:"99",close:"101",volume:"1000" }));
+    if (scenario === "partial") {
+      values.shift(); values.push({datetime:"2026-10-01",open:"100",high:"1001",low:"99",close:"1000",volume:"1000"});
+    }
+    if (scenario === "missing_session") values.splice(58,1);
+    if (scenario === "future") { values.shift(); values.push({...values.at(-1)!,datetime:"2026-10-02"}); }
+    if (scenario === "duplicate") values[58] = {...values[57]};
+    return Response.json({meta:{symbol:scenario === "wrong_symbol" ? "OTHER" : url.searchParams.get("symbol"),
+      interval:"1day",exchange_timezone:scenario === "wrong_timezone" ? "UTC" : "America/New_York"},values});
+  };
+  try {
+    const selected = () => getMarketRegime({signal:new AbortController().signal,
+      inputPolicyVersion:COMPLETED_DAILY_MARKET_REGIME_INPUT_POLICY_VERSION});
+    const legacy = await getMarketRegime();
+    expect(legacy.spy.close).toBe(101); expect(legacy.input_evidence).toBeUndefined();
+    expect(JSON.stringify(marketRegimePromptInput(legacy))).toBe(JSON.stringify(legacy));
+    await expect(selected()).rejects.toThrow("market_regime_completed_daily_input_unavailable");
+    for (scenario of ["wrong_symbol","wrong_timezone","missing_session","future","duplicate"]) await expect(selected()).rejects.toThrow();
+    scenario = "partial";
+    const observed = await selected();
+    expect(observed.regime).toBe("risk_off"); expect(observed.spy.close).toBe(101);
+    expect(observed.input_evidence).toMatchObject({policy_version:COMPLETED_DAILY_MARKET_REGIME_INPUT_POLICY_VERSION,
+      role:"completed_historical_daily_only",evaluated_at:"2026-10-01T17:30:00.000Z",
+      spy:{symbol:"SPY",latest_completed_market_date:"2026-09-30",latest_completed_at:"2026-09-30T20:00:00.000Z"},
+      qqq:{symbol:"QQQ",latest_completed_market_date:"2026-09-30"}});
+    expect(observed.input_evidence!.spy.candles).toHaveLength(59);
+    expect(observed.input_evidence!.spy.response_identity.payload_byte_length).toBeGreaterThan(0);
+    expect(observed.input_evidence!.spy.content_sha256).toMatch(/^sha256:[a-f0-9]{64}$/);
+    expect(marketRegimePromptInput(observed)).toEqual({regime:observed.regime,summary:observed.summary,spy:observed.spy,qqq:observed.qqq});
+    expect(JSON.stringify(marketRegimePromptInput(observed))).not.toContain("candles");
+    expect(JSON.stringify(marketRegimePromptInput(observed))).not.toContain("response_identity");
+    expect((await getMarketRegime()).spy.close).toBe(1000);
+    expect(requests).toBe(18); // Exactly two original reads per call; no fallback/retry.
+    await expect(getMarketRegime({inputPolicyVersion:"unknown" as never})).rejects.toThrow("market_regime_input_policy_unavailable");
+    expect(requests).toBe(18);
+  } finally {
+    globalThis.Date = OriginalDate; globalThis.fetch = originalFetch;
+    if (originalKey === undefined) delete process.env.TWELVE_DATA_API_KEY; else process.env.TWELVE_DATA_API_KEY = originalKey;
+  }
+});
+
+for (const scenario of ["stale", "partial"]) {
+test(`packaged ${scenario} benchmark evidence reaches the actual data gate and retained source`, () => {
+  test.setTimeout(90000);
+  const proof = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--cold", `--benchmark-${scenario}`],
+    {cwd:process.cwd(),encoding:"utf8",timeout:80000});
+  expect(proof.status, `${proof.stdout}\n${proof.stderr}`).toBe(0);
+  const evidence = JSON.parse(proof.stdout.trim().split("\n").at(-1)!);
+  expect(evidence).toMatchObject({scheduled_synthetic_requests:8,attempts:1,claims:1,
+    benchmark_input_fitness:scenario === "stale" ? "stale_rejected_not_no_trade" : "partial_current_bar_discarded",
+    terminal_reservation_status:scenario === "stale" ? "failed" : "completed",
+    decision_count:scenario === "stale" ? 0 : 1,
+    retained_market_regime_input_policy:scenario === "stale" ? null : "completed_daily_market_regime_input_v1",
+    actual_provider_requests:0,production_actions:0,publications:0,broker_actions:0,cleanup:"inert"});
 });
 }
 
@@ -207,7 +287,8 @@ test("scheduled input selection stays default-off and requires a matching claim 
 function bars(last = "2026-09-30", count = 60) {
   const result = [];
   const day = new Date(`${last}T00:00:00.000Z`);
-  while (result.length < count) {
+  let inspected = 0;
+  while (result.length < count && inspected++ < 200) {
     const date = day.toISOString().slice(0, 10);
     if (getUsEquityMarketSession(date).session_close) {
       result.unshift({ timestamp: day.getTime() / 1000, open: 100, high: 103,
@@ -215,6 +296,7 @@ function bars(last = "2026-09-30", count = 60) {
     }
     day.setUTCDate(day.getUTCDate() - 1);
   }
+  if (result.length !== count) throw new Error("Synthetic history exceeds verified calendar coverage");
   return result;
 }
 

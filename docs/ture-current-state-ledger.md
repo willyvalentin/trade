@@ -2,6 +2,75 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
+**Now / Next / Blocked — original scanner to existing full-charter composition:**
+Codex reuses existing draft PR #732's isolated
+`codex/relative-plan-charter-comparison-oct3`, predecessor `bf457f45`, and locally
+merges the completed selected-input delivery `9c42a596` with both histories
+retained. Fresh main is still `55576078`; remote PR/CI remains unchanged.
+One primary, CLOSED IF-2b -> IF-4 original-source composition, 4–16 active
+hours and <=4 investigation hours. This is local integration, not protected
+merge, deployed behavior or scientific acceptance. The actual cold 26-slot
+composition below enrolls zero decisions despite 76 unique complete tickers;
+do not alter its population, eligibility, result or quality criteria.
+
+Freeze the next acceptance before collecting it: use the actual existing
+prewarmed two-slot scheduler/scanner/SQL/SDK scenario, disclose every setup
+request separately (32), keep eight original members and eight credits per
+scan, and retain the first partial decision. A complete second original set
+must reach the existing full-charter evaluator through its actual persisted
+research sources and canonical 60m outcomes. Missing training model, forward
+sample/diversity, context or outcomes must remain explicit and keep terminal
+quality authority closed. No source-factory decisions, reconstructed feature
+vectors, post-outcome subsets, historical database forward-seal claim or extra
+allocation heuristic. Preserve wrong-owner, lineage/source tampering, outcome
+resumption/idempotency, no publication/broker and inert cleanup. The controlled
+chronology is synthetic CLOSED composition only. Integration/security and
+actual OPEN/forward acceptance remain held; no external write is selected.
+
+**Actual original-source composition — 2026-10-03 06:54Z:** The frozen
+prewarmed two-slot packaged scheduler/route/scanner, real SDK/PostgREST/isolated
+Postgres and restarted original full-charter service now retain the first
+partial decision as a diagnostic and enroll the complete second decision.
+All sixteen original identities remain. Fourteen actual generator research
+snapshots produce fourteen mature synthetic canonical 60m outcomes in bounded
+4/2/4/4 batches; the enrolled eight contain four target-before-stop and four
+stop-before-target labels. Setup costs 32 synthetic requests, scheduled scans
+16, and outcome evaluation a separate 14. These are not zero-setup/cold results
+or actual market outcomes. An historical isolated admin freeze supplies test
+chronology only, not a real pre-forward database/model seal.
+
+The original full-charter read exposed a cost-producer defect: the first cycle
+reported six scanner credits while its actual confirmed whole-scan reservation
+was eight, including two SPY/QQQ calls. The second cycle used all eight for
+acquisition. Both reservations were finalized, but the unchanged strict
+evaluator correctly kept aggregate cost unknown. A failing focused regression
+reproduces 6 versus 8. The minimal cycle-builder correction reads the existing
+versioned, same-trading-date confirmed guard for whole reserved credits;
+scanner request/success evidence stays unchanged, and a contradictory larger
+trace is never hidden. No credit allowance, evaluator gate, schema, historic
+receipt or ranking rule changes. Thirteen affected receipt/readback checks pass.
+
+The registered actual original-source composition passes with both terminal
+attempts and exact sixteen reserved scan credits. Completed outcome repeat
+makes zero requests and preserves prior rows. Actual persisted source mutation
+leaves eight enrolled identities with one unavailable label and null comparable
+quality metrics; missing/wrong lineage admits zero decisions. Unproven credit
+finalization keeps cost null without erasing two completed attempts. A read
+before actual database recording time admits zero outcomes; wrong-owner read
+returns no learning. Restoration/restart reproduces the same complete charter
+without acquiring data. Observed sector/setup/regime/context is present for all
+eight; training model, first-thirty forward populations, day/ticker diversity,
+paired uncertainty and walk-forward evidence remain missing. Disposition stays
+`evidence_incomplete`, terminal decision/model null and graduation `not_met`.
+Strict nonincremental types and changed-file lint pass. The combined regression
+and exact integrated build are still pending; no main, hosted behavior or
+recommendation-quality acceptance is claimed. Mandatory audit is revalidated:
+five high findings still trace to unpatched braces GHSA-vfj7-8cjw-p6xm in dev
+tooling. Do not exclude audit or force the suggested incompatible Next 14
+downgrade. Finish this coherent local integration, then resume the earliest
+input-fitness gap without expanding cost/receipt infrastructure.
+
+**Retained PR #732 predecessor evidence (superseded for work selection):**
 **Exact Draft CI diagnosis and portable identity correction — 2026-10-03 04:08Z:**
 PR #732's exact `d0d84fa07db62221021eb66ef6467da9b02dfcfd` Draft workflow
 `37094676033` terminates failed. Its complete actual four/eight-member SQL and
@@ -335,6 +404,669 @@ metrics, sample/uncertainty gates, unchanged thresholds and no promotion/live
 effect. A component-only PR, synthetic alpha or point precision lift is not
 completion. No third slice, broker/paper expansion, provider/configuration or
 new OPEN experiment is selected. Production/forward acceptance stays separate.
+**Retained selected-input predecessor evidence:**
+
+**Historical original-input to prospective-enrollment composition:**
+Codex resumes the earliest missing quality link on the existing isolated
+`codex/retained-benchmark-allocation-oct3`, selected product `f9640dcb`, retained
+head `36263100` and freshly verified main `55576078` (2026-10-03). Reuse the
+existing original-source reader and frozen relative-plan enrollment, not a new
+evaluator or ranking policy. Existing draft PR #732 remains at `bf457f45`,
+blocked; do not compete with its full-charter implementation.
+
+Before collecting results, freeze this bounded CLOSED question: how many of the
+unchanged 26 actual packaged decisions, 208 original members and 95 tickers
+reach the existing complete-assessed-population enrollment? Retain every
+excluded decision and reason. Read actual persisted original sources after
+restart; never manufacture a qualified source from a subset of fresh members.
+The controlled pre-decision freeze is explicitly a synthetic composition
+fixture, not an actual database pre-forward commitment or prospective market
+evidence. Preserve the existing full numerical charter, first-thirty rule,
+source clocks, owner isolation, eight-credit slot/208-credit session cap and
+zero provider/production/publication/broker effects. A positive input-coverage
+result alone does not establish a measurable comparison. Zero enrolled
+decisions or other missing dimensions require `evidence_incomplete`, not a
+changed eligibility rule. Initial investigation <=4 active hours; finish the
+selected original-source/canonical-learning composition within 4–16 hours.
+No new allocation-heuristic arm, OPEN job or release authority is selected.
+
+**Original-source composition result — 2026-10-03:** the unchanged packaged
+26-slot run, real SDK/PostgREST persistence and restarted original-source
+consumer reproduce 123 fresh member observations/76 unique complete tickers,
+but enroll zero of 26 decisions. All 208 original members remain: 111 are
+assessed, twelve have a short closed range, sixty-one are unranked and
+twenty-four lack complete fresh inputs. Every decision has at least one
+unassessed member, so all 26 retain
+`original_complete_assessed_population_unavailable`. Exact original membership
+and excluded diagnostics survive restart; wrong-owner enrollment returns null.
+The existing first-thirty rule, full-population requirement and charter remain
+unchanged. Log `/private/tmp/ture-original-source-enrollment-composition-oct3.log`,
+exit zero, zero actual provider/production/publication/broker actions.
+Disposition `evidence_incomplete`: broader input coverage is not a measurable
+relative-plan opportunity-set comparison. Resume local composition with the
+existing PR #732 evaluator; verify an actual complete prewarmed set separately
+with explicit setup cost and canonical outcomes, alongside this retained
+unchanged zero-setup negative. Do not relabel setup cost as cold improvement,
+reduce either original population or introduce a new allocation heuristic.
+
+**Historical IF-2b first-pair guard rejected; stop allocation heuristics:**
+The frozen otherwise-omitted first-pair correction executes through the actual
+packaged scheduler, scanner, SQL/SDK and original decision readback. It retains
+95 tickers/208 members, 26 attributable attempts/runs/reservations and 208
+credits, with zero setup, actual-provider, production, publication or broker
+work. Result: 80 distinct complete tickers but 122 complete observations versus
+76/123 on exact `f9640dcb`. It gains ANET/COP/COST/CRM/CRWD/GE/HD/LULU/MA/RIOT/
+ROKU/TGT, but loses AMAT/AVGO/BA/DDOG/GOOGL/NFLX/RDDT/SBUX. Both the >=123
+fresh-observation and predecessor-identity-preservation gates fail. Disposition
+`reject`; increased breadth does not compensate for those frozen failures.
+Log `/private/tmp/ture-omitted-pair-full-oct3.log`.
+
+The exact-baseline native regression fails with XOM still a gap; the corrected
+native regression passes with XOM fresh, all eight original decision members,
+unchanged eight-credit cap and inert cleanup (37.1 seconds). The first attempted
+before-test failed on denied Docker socket access, not an engine defect; its
+log is preserved separately. Ten pure admission/planning tests, scoped lint
+and strict nonincremental types pass. This verifies the narrow intended
+intervention, not the frozen whole-session acceptance or recommendation quality.
+Exact rejected arm `4b41d066953b7b23cf582b43f0c50a9222355e64` is retained locally.
+Selected application/dependency/configuration bytes are restored exactly to
+`f9640dcb`. Archived guard tests now load its committed implementation rather
+than importing it into the product. The serial 42-check final suite, including
+all seven full-session arms and actual CI-registration tests, passes all 42
+checks in 6.5 minutes; log `/private/tmp/ture-omitted-pair-retained-final-oct3.log`.
+Final standard lint passes with zero errors/eight existing warnings and strict
+nonincremental types pass. Owned proof containers are gone; unrelated local
+Supabase containers remain untouched. The verified unchanged-product Linux build
+remains reusable, not a
+build or release approval of the rejected guard. No push/merge/deploy/migration
+or other external write occurred. Read-only GitHub verification at 06:28Z keeps
+main `55576078` and draft PR #732 at unchanged blocked head `bf457f45`.
+
+Stop this allocation-heuristic series; do not tune guard count, tie offset,
+ticker membership or thresholds against the fixture. Resume the selected
+original-input/canonical-learning and frozen relative-plan comparison chain,
+with the locally accepted input predecessor and explicit pending OPEN fitness.
+Integration/security prerequisites remain held below. No new provider,
+production activation, budget or broker permission follows.
+
+**Historical IF-2b otherwise-omitted first-pair guard, frozen 2026-10-03 before results:**
+Codex continues the same isolated primary from verified local `7afc800c` and
+unchanged main `55576078`. Boundary diagnosis shows the four history-only
+members first acquire history on their final selected appearance; prioritizing
+a later continuation cannot recover them. Fifteen more selected members never
+receive a request. Do not revive the rejected cheapest-first or rotating-tie
+policies or mine ticker-specific offsets.
+
+Frozen `completed_input_omitted_first_pair_guard_v1`: validate each original
+member's history, current cache and archival same-session acquisition evidence
+before requests. Simulate original-order spending under the existing cap; move
+at most one otherwise-incomplete, never-completely-acquired member that fits the
+cap ahead of paid work, preserving free fresh members and all remaining order.
+This differs from the rejected guard, which selected the cheapest unseen member
+even when original order already admitted it. Old bars prove only past
+acquisition, never current freshness. Reuse the rejected opening experiment's
+verified first-closed-bar admission only as part of this separately frozen
+composite comparison; its old rejection remains unchanged. Restore original
+candidate return order before ranking. No schema, permission, provider budget,
+publication threshold, live flag, source population or broker change.
+
+Compare once against exact `f9640dcb` on the same 95 original tickers, 26 slots,
+208 original members, zero setup and maximum 208 whole-session/eight per-slot
+credits. Acceptance remains >76 distinct complete tickers, >=123 complete fresh
+observations and every predecessor-complete identity retained, with unchanged
+lineage, owner restart, invalid history, abort, stale inputs and no-publication
+safety. Preserve opening's zero complete current inputs. A failed gate rejects
+this composite; retain its exact revision, restore the selected product and
+stop this allocation-heuristic line rather than tuning parameters to the
+fixture. Investigation <=4 active hours within the primary's remaining
+engineering allowance. Release and OPEN/quality acceptance remain held below.
+
+**Historical IF-2b rejected comparison retained, selected product restored:**
+The actual corrected packaged 26-slot run keeps all 95 original tickers, eight
+members/slot, 208 requests and zero setup/actual-provider/publication/broker work.
+It eliminates all three opening five-minute requests and acquires six completed
+stock histories instead of three. Opening current completeness remains zero;
+same-budget later fresh observations increase from 123 to 126, but unique
+complete tickers stay 76, with no gained/lost predecessor-complete identity.
+The unchanged nineteen never-complete members remain. The frozen >76 breadth
+criterion fails: disposition `reject` for integration as the selected broad
+discovery improvement, not alpha, a quality failure or permission to lower the
+gate. Log `/private/tmp/ture-first-closed-bar-full-oct3.log`.
+
+The native opening regression fails before correction with three premature
+requests; the isolated calendar/admission tests pass seven checks afterward,
+including exact first close, legacy budget/cache semantics, unknown/invalid
+clock, holiday/weekend and early close. Retain the experimental implementation
+only as exact historical arm `3007a456af1584d3e0ed7c09f5ae600fa46124ed`.
+The application, dependency and configuration source is restored exactly to
+selected product `f9640dcb`; its previously verified Linux/Node 22.23.1 build
+therefore applies to those unchanged bytes, not to the rejected prototype.
+The final serial suite passes all 31 benchmark/runtime/admission/budget checks,
+including six exact historical/current full-session arms. Log
+`/private/tmp/ture-opening-allocation-retained-final-oct3.log` (5.2 minutes).
+Six CI-registration/cancellation checks pass separately in 2.3 seconds using
+the actual registered `action-660j-parallel-provider-free-verification.spec.ts`;
+log `/private/tmp/ture-opening-allocation-final-registration-oct3.log`. The
+31-check command's unmatched `ci-shard-registration.spec.ts` selector supplied
+no registration coverage and is not counted as such. Owned proof containers
+are gone; unrelated existing local Supabase containers are left untouched.
+Standard lint passes with zero errors/eight existing warnings and strict
+nonincremental types pass. The current comparison is local synthetic evidence,
+not protected CI, main, production or recommendation-quality acceptance.
+No new push/PR or production effect is selected. Next investigate repeated
+never-complete original members' actual daily/intraday allocation, not the
+opening clock alone. This result changes the next action because opening
+efficiency does not recover their missing coverage. Sanitized boundary readback
+on unchanged `f9640dcb` finds 80 stock daily and 126 intraday requests: fifteen
+of the nineteen never-complete tickers receive no request at all; HD, INTU,
+LULU and RIOT receive one daily request each, but no intraday request. These
+are budget-allocation omissions in a synthetic successful-provider fixture,
+not observed provider outages. Retain the full original population and freeze
+any next hypothesis before collecting its comparison; do not tune tie offsets
+or lower breadth/fresh-observation gates against this fixture. Release prerequisites and
+OPEN/full-charter quality gaps below remain unchanged.
+
+**Historical IF-2b opening-credit diagnosis and frozen comparison, 2026-10-03 06:05Z:**
+Codex refines the same isolated main-based acquisition delivery below; there is
+no second development slice or external activation. The actual packaged
+26-slot/SQL/SDK diagnostic on unchanged product `f9640dcb` reproduces 123 fresh
+observations/76 unique tickers and retains the existing provider boundary's
+sanitized ticker/interval/request clocks. At 13:30:20Z it spends three stock
+credits on five-minute reads before the first possible regular-session closed
+bar at 13:35Z, alongside three completed-history and two benchmark requests.
+Opening has zero fresh candidates, so these are not successful usable inputs.
+Log `/private/tmp/ture-opening-credit-boundary-diagnostic-oct3.log`.
+
+Frozen bounded hypothesis: `completed_input_first_closed_bar_allocation_v1`
+denies only refreshes that cannot yet yield a closed regular-session five-minute
+bar, before credit reservation. Continue original-order completed daily-history
+acquisition with those credits; retain all eight identities and honest missing
+current inputs, without a wait, added requests or changed publication gate.
+After the first bar may close, retain existing refresh/cache/budget admission.
+Legacy profiles stay unchanged. Version the admission and disclose a session-bar
+gap separately from provider outage, stale fallback or exhausted credit.
+
+Compare the exact `f9640dcb` predecessor with the correction on the same original
+95-ticker, 26-slot/208-member, zero-setup fixture and eight-credit whole-scan cap.
+Acceptance requires >76 unique complete tickers, at least 123 fresh observations
+and retention of every predecessor-complete identity. Opening must still have
+zero current complete inputs, exact decisions/lineage and no intraday request
+before first close. Normal/first-close/holiday/early-close/invalid-clock/abort,
+owner restart, canonical outcomes and no-publication/broker gates must retain
+their semantics. A failed coverage criterion rejects integration of this
+allocation hypothesis; do not reinterpret the population or change criteria.
+Investigate at most four active hours, complete within the primary's remaining
+six-hour engineering allowance. PR #732/security release prerequisites below
+remain unchanged; no production or recommendation-quality acceptance follows.
+
+**Historical verified local IF-2b acquisition delivery, 2026-10-03:**
+Codex completes `completed_benchmark_regular_session_reuse_v2` on isolated
+`codex/retained-benchmark-allocation-oct3`; product revision
+`f9640dcb57b22cab1bfb305143382bafffe133cc`, from unchanged remote main
+`55576078e102e7019c271aeb5e67de4a353f2e8f`. Classification:
+`recommendation_capability` plus retained `hypothesis_evidence`, not alpha.
+The corrected regular-session historical-input reuse retains all 69 previously
+complete tickers and adds AMAT/AVGO/CAT/GOOGL/IBM/NFLX/PYPL: 76 distinct tickers
+and 123 fresh observations, versus original 69/110, on the identical 95-ticker,
+26-slot, 208-member, zero-setup synthetic population and eight-credit slot cap.
+No current price, source clock, selection, ranking or publication rule is relaxed.
+
+Final serial native verification passes all 43 affected runtime/admission tests
+in 7.1 minutes, including all five exact historical/current full-session arms,
+canonical outcomes, owner restart, partial/stale history, timeout/draining,
+rate limit, original publication-clock binding and dynamic-mover budget denial.
+Log `/private/tmp/ture-benchmark-regular-session-final-native-oct3.log`.
+Another 18 budget/CI-registration checks pass. Standard lint passes with zero
+errors/eight existing warnings; strict nonincremental types pass. Exact committed
+product `f9640dcb` passes the unchanged Next 16.3.8 Turbopack build in isolated
+Linux/Node 22.23.1 with locked dependencies, network-free build and no production
+credentials. Final script-only corrections restore the original-order mixed
+fixture's 3/4 expectations (the rejected minimum-order arm remains 5/6); script
+ESLint passes. Application, dependency and configuration source are unchanged
+from that built revision. The first broader run remains 42 passed/one failed
+due to the obsolete mixed expectation, with an overlapping Playwright artifact
+collision; the complete final serial run resolves both without weakening any
+full-session metric. Do not represent the original failed invocation as green.
+
+Next: inspect the retained nineteen never-complete original members before
+choosing another bounded IF-2b acquisition hypothesis. Readback finds all at
+original positions 4–7 with `candidate_provider_gap` in eight-stock-request
+slots; fourteen are selected twice, five once. This is an attributable local
+coverage gap, not evidence of a provider outage or a license to change the
+population, budget or freshness gate. Freeze any next comparison before its
+result; retain both breadth and total complete observations against this baseline.
+Return to original-source/canonical-learning and the frozen relative-plan
+comparison rather than a scheduler or execution stream. Opening coverage is
+still zero, late publication remains withheld, and the 95-member universe is
+not market-wide discovery. Graduation remains `not_met`; OPEN data fitness,
+forward outcomes, full-charter quality and promotion remain unaccepted.
+
+Integration is held behind draft PR #732, exact head
+`bf457f45c53c122c96929f167df156e1fde15ccf`, whose CI run `37095555550` is terminal
+failed on the PostgREST v16.1 registry's `toomanyrequests: Rate exceeded`.
+Read-only revalidation finds no changed main or PR state. Full audit separately
+still reports five high findings through braces/GHSA-vfj7-8cjw-p6xm; registry
+readback still gives braces 3.0.3 and eslint-config-next 16.3.8. Audit exit one
+is retained; no exclusion, downgrade or release bypass is selected. The exact
+historical fixture commits must stay reachable through integration; full-history
+CI checkout and allowed normal merge commits provide that route, not a squash
+that discards these baselines. No new push/PR, merge, deploy, migration,
+configuration change, actual provider/model request or broker action occurs.
+
+**Retained local regular-session reuse result — before broader verification:** the
+second diagnostic confirms every one of the nine redundant two-credit benchmark
+refreshes follows an original `outside_window` run, whose completed SPY/QQQ
+capsules independently replay as valid. The new outside-window regression fails
+before correction and passes afterward, including unchanged stale/failed/closed/
+unknown/owner/digest/lineage rejection and new invalid/out-of-session clocks.
+
+The actual packaged full-session/isolated PostgreSQL/PostgREST/SDK scenario then
+finishes with original scanner ordering: 123 fresh member observations across
+76 unique tickers versus 110/69 original baseline, 115/64 minimum-request order,
+115/64 rejected one-member guard and 116/63 rejected fair ties. Benchmark requests
+fall from twenty to two, freeing eighteen of the same 208 synthetic credits for
+stock data; every original slot still uses at most eight. All 95 eligible
+original tickers/208 member observations, 26 attempts/runs/finalized reservations,
+exact decisions/lineage, restarted owner source read and zero wrong-owner rows
+are retained. Nineteen tickers remain never-complete, opening coverage remains
+zero and late publication is withheld. No setup, external provider/model calls,
+production changes, publications or broker actions occur.
+Log `/private/tmp/ture-benchmark-regular-session-full-oct3.log`.
+
+This passes the unchanged local data-fitness comparison, not market-wide
+discovery, production behavior, alpha or recommendation-quality acceptance.
+The broader actual-runtime, budget, registration, lint/types and exact build are
+running or pending; do not inherit their old revision results. The two rejected
+allocation products are retained as committed historical test arms, not current
+runtime. Scanner and trace source are restored exactly to `43fa089e`; only the
+validated benchmark reuse scope changes. Release/integration remains blocked
+behind PR #732 and mandatory security requirements; no new push/PR is selected.
+
+**Historical selection — regular-session benchmark reuse, frozen before code:**
+Diagnostic replay on exact `6726ba67` finds all twenty-five preceding benchmark
+capsules valid at the next slot, with every original run terminal `empty`.
+Nine otherwise valid reads are rejected; the validator still accepts only old
+morning/midday/power-hour window labels, while normal full-session analysis also
+persists `outside_window`. The second bounded diagnostic adds the exact original
+window for causal confirmation; do not classify this as a stale-status defect.
+Logs `/private/tmp/ture-benchmark-input-fitness-diagnostic-oct3.log` and
+`/private/tmp/ture-benchmark-window-diagnostic-oct3.log` retain original evidence.
+
+Test `completed_benchmark_regular_session_reuse_v2` only after confirming those
+labels: allow the known `outside_window` label only when the original observation,
+decision and completion are within an independently verified regular session,
+same New York day, with unchanged terminal-status, exact v4 decision/lineage,
+owner and independently replayed SPY/QQQ daily capsules. Unknown/closed/failed
+sources, invalid clocks or histories still fail closed. This does not admit an
+old current benchmark price or a stale candidate; it reuses only unchanged
+latest completed daily historical context. Disclose original source window and
+verified-session scope in existing provenance, without schema/config changes.
+
+Restore original scanner order from `43fa089e`, retaining rejected allocations
+as exact historical arms instead of shipping them. Compare against all retained
+arms with the same full session/cohort/eight-credit cap, zero setup and no external
+provider/model calls. Acceptance remains >69 and >64 unique complete tickers and
+at least 110 fresh observations, plus correct owner restart, original decisions,
+negative admission and no publication/broker effects. Separate improved data
+fitness from OPEN or quality acceptance. PR #732/security prerequisites remain.
+
+**Historical rejected allocation disposition — diagnosis below subsequently completed:**
+The fair-tie runtime below also fails the original breadth criterion: 116 fresh
+observations but only 63 unique tickers, using all 208 credits/26 slots and the
+same original population. Log `/private/tmp/ture-fair-cost-ties-full-session-oct3.log`.
+Neither rejected ordering may be integrated as a discovery improvement. Next
+read the prior original scan status versus independently replayed completed
+SPY/QQQ capsules at each original slot, on the unchanged `6726ba67` baseline.
+This is bounded provider-free diagnosis: no status/freshness admission change
+has been authorized by the evidence yet. Existing full-session logs show twenty
+benchmark requests, not two; establish why before choosing the minimum fix.
+
+**Rejected predecessor — fair-tie investigation, frozen before execution:**
+The first-observation guard below is rejected: its actual packaged full-session
+result is unchanged at 115 fresh observations/64 unique tickers. Diagnostic
+readback validates 51 archival pairs and changes fifteen slot orders, but not a
+single fresh-member set. The failure is not lost cache or freshness admission;
+one protected unseen member was already within the minimum-cost allocation.
+Its diagnostic log is `/private/tmp/ture-first-observation-guard-diagnostic-oct3.log`.
+No integration or quality claim follows. A lightweight allocation-only design
+check also rejects protecting the first budget-excluded unseen member: shifting
+one member can merely exchange original omissions, rather than broaden them.
+That design check is not runtime evidence and no such product was implemented.
+
+Within the same IF-2b primary, next test `completed_input_fair_cost_ties_v1`:
+retain validated zero/one/two-request cost as the primary ordering, but break
+equal-cost ties by a deterministic quarter-hour cyclic original-index offset,
+not the permanently favored low original index. Offset is the current Unix
+quarter-hour batch modulo original member count, never ticker identity, future
+outcomes or a fitted parameter. Keep all original identities and restore their
+returned order before ranking. This targets repeat exclusions without a new
+cache, schema, query, data source, budget or quality-rule change. Freeze the
+same 26-slot/95-ticker/208-member zero-setup cohort and all original safety gates.
+Acceptance stays breadth greater than 69 and 64 with at least 110 fresh member
+observations; report any loss versus 115. Retain the rejected guard as an exact
+committed comparison arm. Investigate within the original four-active-hour cap;
+release prerequisites and OPEN/quality gaps remain unchanged.
+
+**Rejected predecessor — first-observation guard, frozen 05:24Z before results:**
+Within the same primary IF-2b slice, compare `43fa089e` original order,
+`6726ba67` minimum requests and `completed_input_first_observation_guard_v1`.
+Retain the full cold-session contract below and its exact 95 original tickers,
+26 slots/208 member observations, zero setup and whole eight-credit cap. No
+selection, ranking, original plan, publication, provider or live control change.
+After free fully fresh cached members, give at most one currently unobserved
+member (lowest validated request cost, then original index) priority before
+cheap revisits; then retain minimum-cost order. "Previously acquired" requires
+both original same-session histories and original intraday candles revalidated
+at their actual capture time, matching response identity/clock/interval. It is
+not a current-price admission or evidence of a previously successful decision.
+Invalid, future, prior-day or contradictory cache remains unobserved.
+
+Acceptance for this data-fitness correction: breadth must exceed both 69- and
+64-ticker baselines, and total fresh-complete observations must not fall below
+the 110-observation original baseline, under exactly the same population/cost;
+report any loss versus minimum-cost's 115 explicitly. Preserve cold, warm,
+mixed, zero-cost cache, invalid-context, abort/budget and restarted-owner
+behavior. Persist version, selected original guard index and bound archival
+context clocks/digests in the existing trace, never a new schema or hidden setup.
+Any failed metric is a retained negative/incomplete result, not reason to edit
+the denominator or limits. Investigate at most four active hours. Integration
+still follows the declared predecessors after protected release requirements;
+no production or recommendation-quality acceptance follows a fixture pass.
+
+**Historical queue — full-session coverage regression reproduced:** the
+existing IF-2b primary remains with Codex on the isolated branch below. The
+frozen zero-setup, twenty-six-slot actual packaged/SQL/SDK comparison finishes
+both arms with all 208 original member observations, 95 selected eligible
+tickers, 26 attributable attempts/runs/finalized eight-credit reservations and
+208 synthetic requests per arm (20 benchmark, 188 stock). Original order
+`43fa089e` produces 110 fresh-complete observations across 69 distinct tickers;
+minimum-request-first `6726ba67` produces 115 across only 64. Neither arm fully
+observes any eight-member slot. All opening/closing members remain retained;
+opening has zero fresh inputs, and the last two slots withhold publication.
+
+This is `hypothesis_evidence`, not OPEN data or a full-charter quality decision.
+The minimum-cost change's favorable mixed-history result does not justify its
+integration as broad-discovery improvement: seven previously observed tickers
+lose complete coverage while only NFLX/PYPL gain it. Twenty-three of its thirty-one
+never-complete tickers are selected more than once; AMAT/CAT/KLAC/RKLB each three
+times. The current 95-member static universe is not the whole US market.
+Disposition: input-fitness evidence is incomplete and contains a breadth
+regression; retain both baselines unchanged, not an accepted live allocation.
+
+Next: within this same bounded acquisition slice, test a versioned first-complete
+observation guard before cheap revisits, using only revalidated same-session
+original cache evidence and unchanged selection/eight-credit cap. Freeze and
+report both breadth and total-complete-input effects, plus any tradeoff, before
+choosing a policy. No quality/ranking/publication or provider expansion follows.
+PR #732/security remain release-blocked; no new push, PR, merge or production
+operation is selected by this experiment. Integration order is unchanged.
+
+**Verification — 2026-10-03 05:23Z:** all eleven actual packaged/native and
+source-integrity checks in the existing registered benchmark-reuse suite pass,
+including the paired full-session regression (2.1 minutes total). All six
+CI-registration checks pass, standard lint passes with zero errors/eight existing
+warnings and strict nonincremental TypeScript passes. Logs:
+`/private/tmp/ture-full-session-cold-rotation-native-oct3.log`,
+`/private/tmp/ture-full-session-cold-rotation-registration-oct3.log`,
+`/private/tmp/ture-full-session-cold-rotation-lint-oct3.log`,
+`/private/tmp/ture-full-session-cold-rotation-types-oct3.log`.
+Both independent direct scenario runs also finish with full restarted owner
+readback, correct decision/lineage and inert expiry/cleanup; their baseline and
+minimum logs retain every original slot/member. Only the existing proof script,
+registered test and ledger change: runtime/app/schema/dependency source remains
+byte-for-byte unchanged from tested product `6726ba67`, whose recorded exact
+locked Linux build still applies to that product, not a new CI run. The npm
+static wrapper separately ran its own sixteen containment tests, not the named
+benchmark suite; those are not substituted for this seventeen-test evidence.
+No main/production/OPEN or recommendation-quality acceptance is claimed.
+
+**Frozen full-session cold rotation question, retained before-result contract:**
+Codex continues the existing primary IF-2b slice on
+`codex/retained-benchmark-allocation-oct3`, verified main `55576078`, locally
+verified product `6726ba67`. Initial investigation remains capped at four active
+hours. Question: under the actual unchanged scheduled rotating selection and
+eight-credit whole-scan limit, which original members ever receive complete
+fresh inputs across a full regular session, and which remain unobserved despite
+revisits? Compare committed original-order baseline `43fa089e` with `6726ba67`
+minimum-request-first acquisition, not a fixed favorable shortlist.
+
+Use the existing packaged scheduler/route/scanner and actual isolated
+PostgreSQL/PostgREST/SDK reader. The explicitly synthetic date is 2026-10-01;
+all twenty-six slots 13:30Z through 19:45Z are retained, twenty seconds after
+each slot, expiry 20:00Z. No warm-history setup: zero setup requests. Use the
+unchanged dynamic-discovery-off selection, existing flat provider-boundary
+fixtures, completed split-adjusted daily history and all original identities
+per slot. Learning acceleration retains hidden research sources only; outcome,
+paper, normal one-shot and allocation-experiment controls remain off, with
+global scheduler disable true. Existing series limits stay 26 attempts/208 reserved credits total,
+eight per scan, with the original stop/expiry/duplicate controls. These are
+isolated synthetic requests, not actual account capacity or live authorization.
+
+Measure attempted/admitted/terminal slots, original selected and fresh-complete
+member observations, unique eligible/selected/ever-complete/never-complete
+tickers, revisit missingness, separately attributable benchmark/stock requests
+and reservation totals. Keep opening absence, failed/skipped slots, publication
+withholding, original source clocks, decision/lineage, restarted owner read and
+wrong-owner exclusion explicit. Do not remove an inconvenient slot, prewarm a
+history, invent an input, relax a gate or call a real provider. A missing reader
+or contradictory lineage is an evidence failure, not a data-quality conclusion.
+This is `hypothesis_evidence`: no full-coverage or recommendation-quality pass
+is predeclared. The measured gap selects the next smallest real acquisition
+improvement, if justified; full-charter/outcome acceptance remains separate.
+No schema, live control, provider, ranking or publication change is selected.
+
+**Prior locally complete acquisition capability — not breadth-accepted:** the
+selected IF-2b capability is implemented and tested at product
+`6726ba67a9aaa276bfa9cfde7b246354bebcf872`, tree
+`a2b7b32a121c35b2070d608e2b2db67fc3bb7274`. The original-order mixed-history
+runtime reproduces three complete members where the frozen question requires
+five. Its unmodified committed baseline `43fa089e` then observes three and four
+members across two distinct original rotating slots; the new
+`completed_input_minimum_requests_first_v1` observes five and six. Both arms
+acquire the same eight histories with sixteen separately counted synthetic
+setup requests, then exactly eight requests/eight reserved credits per normal
+scan. Neither arm changes the original eight-member population, ranking
+formula, plan geometry, publication rules or full-denominator missingness.
+The scanner restores original return order after acquisition; its existing
+persisted trace retains version, original indices, revalidated source digests,
+historical capture clocks, estimated request costs and chosen acquisition order.
+This is acquisition order, not a ranking policy or a fitted probability.
+
+Tampered historical digests receive no cheaper cost and retain cold three/four
+coverage. Wholly cold and wholly warm two-slot behavior remain unchanged by this
+ordering correction. Fully cached valid inputs survive an actual SDK/isolated
+database restart with zero new provider calls at a zero-call cap. All 46 affected
+native/runtime, history, source/decision/publication, cancellation, timeout,
+budget-draining and CI-registration checks pass, plus all twelve separate
+scheduled-budget checks. Standard lint passes with zero errors/eight existing
+warnings; strict nonincremental TypeScript passes. Exact committed product above
+passes the normal locked Linux Node 22.23.1 / Next 16.3.8 Turbopack build with no
+build network or production credentials. Logs:
+`/private/tmp/ture-minimum-request-allocation-final.log`,
+`/private/tmp/ture-minimum-request-allocation-budget.log`,
+`/private/tmp/ture-minimum-request-allocation-exact-linux-build.log`.
+
+No external provider/model call, production write, PR, merge, deploy, migration
+or OPEN observation is claimed. This is local `recommendation_capability`
+(input fitness), not recommendation-quality lift or complete market discovery.
+Full eight-member cold coverage still needs attributable historical acquisition;
+do not treat the sixteen-request mixed setup as free or solve that gap by
+dropping missing members. Next: quantify cold/revisit coverage and systematic
+misses under the unchanged real rotating universe and whole per-scan cap before
+selecting another acquisition change; keep canonical outcomes/full-charter
+acceptance separate. Integration remains ordered behind PR #732 and the strict
+benchmark predecessor. PR #732's exact registry failure remains terminal, and
+the mandatory dependency audit remains unsatisfied. Official npm metadata still
+reports eslint-config-next 16.3.8 and braces 3.0.3; the
+[reviewed advisory](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) still names
+no patched release. No audit omission, downgrade, fake patch or CI rerun is
+selected. This release blocker does not prevent the bounded CLOSED investigation.
+
+**Cold acquisition investigation — checked 2026-10-03:** all seven actual
+packaged baseline/reuse/corruption checks pass, now including a genuinely cold
+start with zero setup requests. Across the two unchanged rotating populations,
+the predecessor observes three then three complete members; benchmark reuse
+observes three then four. Each scan retains all eight identities, its own
+terminal eight-credit reservation and restarted owner-bound readback. Warm
+coverage remains six then eight only after its separately accounted thirty-two
+setup requests. Log: `/private/tmp/ture-benchmark-reuse-cold-start-proof.log`.
+This is hypothesis evidence, not complete cold coverage or recommendation lift.
+
+The same primary IF-2b investigation now tests one narrower acquisition defect:
+original iteration order may spend two requests on each cold early member
+before reaching later members with already verified historical context. Freeze
+baseline product `43fa089e2c7410f10834e148179dda1564765e46`, same two original
+rotating eight-member populations, identical actual history setup and unchanged
+whole eight-credit cap. Compare strictly revalidated minimum-request-first
+acquisition against original order. Preserve original indices, all missing
+members, ranking tie order, source clocks and publication/quality rules; persist
+the allocation version and original-index cost/order in the existing scan trace.
+Investigate at most four active hours within the existing twelve-hour primary,
+with no competing delivery. Mixed-history coverage must improve without any
+extra request or smaller denominator; wholly cold/warm behavior, invalid history,
+owner restart, cancellation and existing budget limits must remain honest.
+No new schema, provider, scheduler control or live activation is selected.
+The simple one-call intraday aggregation alternative is not adopted: Twelve
+Data's official adjustment contract distinguishes unadjusted intraday bars from
+split-adjusted daily history, so it cannot replace the frozen daily basis.
+PR #732 remains Draft/blocked at `bf457f45`, with the same terminal registry
+failure; main is read-only verified unchanged at `55576078` on this turn.
+Integrate in the existing declared predecessor order only after protected
+security/release requirements pass. This comparison is data fitness, not alpha.
+
+**Prior IF-2b acquisition selection — 2026-10-03 04:24Z:**
+Codex starts the bounded four-active-hour investigation / twelve-active-hour
+vertical in isolated `codex/retained-benchmark-allocation-oct3`, from verified
+main `55576078` plus the locally verified benchmark-input predecessor. Existing
+code has both a fixed six-plus-two split and a separate scanner six-call cap;
+warm completed daily stock history therefore yields only six fresh members.
+The selected correction revalidates both same-New-York-day, owner-bound original
+SPY/QQQ capsules from the existing last-run read before acquisition. Only an
+exact decision/lineage binding and recomputed original classification can free
+the two benchmark calls for the scanner, still within the whole eight-credit
+reservation. No global cache, new query stream, schema or provider is selected.
+Keep all eight population identities and every missing input visible. Cold or
+unavailable/tampered/prior-day evidence retains the six-plus-two allocation;
+unavailable current data is not an evaluated no_trade. No publication/ranking
+threshold, original plan, live flag or observation is changed.
+
+Acceptance: actual packaged scheduler/route/provider-boundary/isolated SQL/SDK
+and restarted owner read retain two distinct original decisions, source reuse
+identity, unchanged original source clocks and all-eight fresh input coverage
+with at most eight requests per reserved scan. Account for all prior warm/setup
+requests separately, not as free data. Negative source/owner/day/digest/clock,
+timeout/abort and forged-allocation checks must fail closed or retain the
+bounded original allocation without exceeding the whole budget. This is data
+fitness, not alpha. Integrate after PR #732 and its verified benchmark-input
+predecessor; the security/CI-release blocker is separate. Only this primary
+development slice is selected, and production remains inert.
+
+**Local acquisition behavior — 2026-10-03 04:40Z:** the actual packaged
+scheduler, route, real provider adapters, Supabase SDK, isolated PostgreSQL /
+PostgREST and restarted owner reader now compare two original rotating slots
+against the exact committed predecessor. Baseline ancestor
+`92374a300f986a4241ba41a1a35a83b5335caf2e` has the same complete tree
+`640df041b8780b73868204c9c9450b3df2cf7f93` as verified predecessor `3f7cdc6f`;
+it travels with this branch. When integrating after that predecessor, retain a
+reachable immutable baseline revision rather than losing it in a squash.
+Both baseline slots produce six fresh original members; valid same-day
+benchmark reuse produces six then eight. Each scan still issues exactly eight
+synthetic requests and finalizes its own eight-credit reservation. The two
+actual cycle receipts complete, original eight identities per rotating slot,
+decision/lineage and source clocks survive persistence, and restarted readback
+revalidates the original capsules. Wrong-owner read exposes zero runs. A
+tampered original digest issues two benchmark calls and six stock calls again;
+forged serialized admission, wrong source mode, failed/stale source, missing
+normalized-input version, bad owner/clock/day/classification and cancellation
+cannot grant the extra two scanner calls. This is historical-context reuse,
+not current-price cache freshness or a new confidence/ranking policy.
+
+The fixture acquires history for the union of the two rotating populations
+before either scan: **32 separate synthetic setup requests**, then 16 requests
+across the two eight-credit scans. This is not an eight-credit cold bootstrap
+or proof that the entire real market is observed. The first cold scan still
+has only three complete members; missing members are not removed. All **52**
+affected component/native baseline/reuse/corruption, transport, timeout/draining,
+history, publication, budget and CI-registration tests pass on exact product
+`43fa089e2c7410f10834e148179dda1564765e46`, tree
+`a2cd0cf57b0597f0d1b1e19fadbebe1076e48fe8`. Final standard lint passes with zero
+errors and eight pre-existing warnings; non-incremental TypeScript passes.
+The same clean committed source passes the ordinary locked Linux Node 22.23.1 /
+Next 16.3.8 Turbopack build, with no build network or credentials. Logs:
+`/private/tmp/ture-benchmark-reuse-final-52-tests.log` and
+`/private/tmp/ture-benchmark-reuse-exact-linux-build.log`.
+The final review caught and corrected a local schema mismatch: source is not
+a database column, so admission reads the existing `data_mode` and status.
+No test contract or schema was loosened to conceal that failure. No migration,
+extra query, provider request, production change, quality lift, PR or merge is
+claimed. This is locally complete IF-2b acquisition behavior, not main/OPEN
+acceptance. PR #732's exact external registry CI failure and mandatory security
+release requirement remain unresolved; do not bypass either or create a
+competing release. Preserve the complete-charter and benchmark-input predecessors
+when preparing ordinary integration.
+
+**Local benchmark-input predecessor — 2026-10-03 04:13Z:** Codex's
+bounded investigation reproduces stale benchmark acceptance through the actual
+daily parser/classifier, then implements the selected correction on isolated
+`codex/market-context-input-fitness-oct3` from verified main
+`55576078e102e7019c271aeb5e67de4a353f2e8f`. The explicit normalized-input path
+now uses `completed_daily_market_regime_input_v1`: attributable split-adjusted
+SPY/QQQ history, verified calendar, latest fifty consecutive completed sessions,
+validated OHLC/volume and one original as-of instant. Only today's unfinished
+daily bar is discarded; unknown, stale, gapped, future or misidentified series
+cannot become an observed context. This is historical trend context, not a
+current benchmark quote. Its two original source capsules, exact response byte
+identities and original used values survive actual isolated database persistence
+and restarted owner-bound SDK readback. Wrong-owner read exposes no run.
+
+The normalized generator rejects unavailable benchmarks without substituting
+neutral market evidence, publishing a recommendation or recording an evaluated
+`no_trade`. Legacy/default callers retain their original classifier, input
+shape and fallback; there is no historical rewrite. The classifier's arithmetic
+is unchanged, but the new input basis is explicitly retained. Frozen prospective
+comparisons still require their exact original source commit/build; they may not
+pool this new revision into an old cohort. The existing reservation remains six
+scanner plus two benchmark requests, at most eight total. No provider retry,
+new data source, quality threshold, live flag or execution change is selected.
+Raw evidence stays outside the existing AI prompt shape; no new credential,
+live AI call or provider expense was introduced by these CLOSED checks.
+
+All thirty affected component/packaged runtime/actual database/owner-readback
+checks pass on the final source, including stale rejection, unfinished-bar
+exclusion, unchanged publication geometry, timeout/draining, rate limit,
+duplicate/cleanup and existing daily/intraday history cases. These synthetic
+fixtures are not market evidence or quality lift. Final standard lint passes
+with zero errors and eight pre-existing warnings; non-incremental TypeScript
+checking also passes. Exact product `3f7cdc6f779999d274b8a41f76f025716e37073d`,
+tree `640df041b8780b73868204c9c9450b3df2cf7f93`, passes the ordinary locked
+Linux Node 22.23.1 / Next 16.3.8 Turbopack build with build network disabled,
+no production credentials, zero provider requests and zero production changes.
+The local log is `/private/tmp/ture-benchmark-fitness-exact-linux-build.log`.
+No PR,
+merge, production deploy or migration is claimed for this source correction.
+Integrate it after PR #732's complete-charter/original-context delivery, never
+instead of that delivery. PR #732's portable compressed-identity regression is
+locally verified on macOS and Linux; its coherent existing Draft update is
+`bf457f45` and protected release/security acceptance remains unfulfilled.
+Its exact Draft CI `37095555550` additionally stops at an external ECR
+`toomanyrequests: Rate exceeded` while fetching the named PostgREST test image,
+before the native database proof. Lint, types and preceding checks pass;
+interrupted/later checks are not inferred as passed. No retry or bypass is
+selected. This CI availability gap is separate from input-fitness evidence.
+
+**Next intelligence evidence gap:** integrate the locally complete strict
+benchmark/reuse links in the declared predecessor order, then actual complete
+fresh original inputs and prospective forward outcomes/full-charter comparison.
+Validated daily context does not grant current-price freshness. The first cold
+acquisition still observes three complete members; the original warmed path
+observes six, while the locally verified reuse path observes eight only when
+the selected stock history already exists. Account for acquisition of that
+history rather than treating the 32-request warm setup as a solved cold start.
+The remaining CLOSED investigation is the actual cold/rotating-population
+acquisition and its bounded whole-scan cost; missing members stay explicit.
+No extra requests, cache-clock substitution, population reduction, provider
+purchase, policy promotion or live activation follows from the local warm proof.
+
 **Historical queue — 2026-10-03 00:04Z:** PR #730 normally merges at
 00:02:34Z after all six protected shards, aggregate and merge provenance in
 CI `37078162782` pass on head `25fd0b726956bb109790af684de57e4fee47d18b`.

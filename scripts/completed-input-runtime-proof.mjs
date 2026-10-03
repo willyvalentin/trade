@@ -8,11 +8,52 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "nod
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { buildSync } from "esbuild";
+import { build, buildSync } from "esbuild";
 import { setTimeout as syntheticDelay } from "node:timers/promises";
 
 const root = process.cwd();
 const cold = process.argv.includes("--cold");
+const rotationDay = process.argv.includes("--rotation-day");
+const prospectiveEnrollment = process.argv.includes("--prospective-enrollment");
+assert(!prospectiveEnrollment || rotationDay && process.argv.includes("--cold"),
+  "Original-population enrollment consumes the unchanged full-session CLOSED source");
+const benchmarkReuse = process.argv.includes("--benchmark-reuse");
+const charterComposition = process.argv.includes("--charter-composition");
+assert(!charterComposition || benchmarkReuse && !cold && !rotationDay &&
+  !process.argv.some(value=>["--mixed-history","--benchmark-reuse-invalid","--benchmark-reuse-baseline"].includes(value)),
+  "Charter composition retains the existing original prewarmed two-slot source and discloses setup cost");
+const mixedHistory = process.argv.includes("--mixed-history");
+const invalidMixedHistory = process.argv.includes("--mixed-history-invalid");
+const acquisitionBaseline = process.argv.includes("--acquisition-baseline");
+const minimumOrderBaseline = process.argv.includes("--minimum-order-baseline");
+const firstObservationBaseline = process.argv.includes("--first-observation-baseline");
+const firstObservationBaselineRevision = "e54c9cf36baf31d5548e307fc7ff7b2c5c06a5a7";
+const fairOrderBaseline = process.argv.includes("--fair-order-baseline");
+const fairOrderBaselineRevision = "bdb3da00";
+const minimumOrderBaselineRevision = "6726ba67a9aaa276bfa9cfde7b246354bebcf872";
+const acquisitionBaselineRevision = "43fa089e2c7410f10834e148179dda1564765e46";
+const regularSessionBaseline = process.argv.includes("--regular-session-baseline");
+const regularSessionBaselineRevision = "f9640dcb57b22cab1bfb305143382bafffe133cc";
+assert(!regularSessionBaseline || rotationDay && !acquisitionBaseline && !minimumOrderBaseline && !firstObservationBaseline && !fairOrderBaseline);
+const firstClosedBarBaseline = process.argv.includes("--first-closed-bar-baseline");
+const firstClosedBarBaselineRevision = "3007a456af1584d3e0ed7c09f5ae600fa46124ed";
+assert(!firstClosedBarBaseline || rotationDay && !regularSessionBaseline && !acquisitionBaseline && !minimumOrderBaseline && !firstObservationBaseline && !fairOrderBaseline);
+const omittedPairBaseline = process.argv.includes("--omitted-pair-baseline");
+const omittedPairBaselineRevision = "4b41d066953b7b23cf582b43f0c50a9222355e64";
+assert(!omittedPairBaseline || rotationDay && !firstClosedBarBaseline && !regularSessionBaseline && !acquisitionBaseline && !minimumOrderBaseline && !firstObservationBaseline && !fairOrderBaseline);
+assert(!mixedHistory || benchmarkReuse && !cold);
+assert(!acquisitionBaseline || mixedHistory || rotationDay);
+assert(!minimumOrderBaseline || (mixedHistory || rotationDay) && !acquisitionBaseline);
+assert(!firstObservationBaseline || rotationDay && !acquisitionBaseline && !minimumOrderBaseline);
+assert(!fairOrderBaseline || rotationDay && !acquisitionBaseline && !minimumOrderBaseline && !firstObservationBaseline);
+assert(!invalidMixedHistory || mixedHistory && !acquisitionBaseline);
+const invalidBenchmarkReuse = process.argv.includes("--benchmark-reuse-invalid");
+const baselineBenchmarkReuse = process.argv.includes("--benchmark-reuse-baseline");
+// Branch ancestor with the exact verified predecessor tree 640df041; unlike
+// the original local cherry-pick source, this commit travels with this branch.
+const reuseBaselineRevision = "92374a300f986a4241ba41a1a35a83b5335caf2e";
+assert(!(invalidBenchmarkReuse && baselineBenchmarkReuse) &&
+  (!(invalidBenchmarkReuse || baselineBenchmarkReuse) || benchmarkReuse));
 const wrongPolicy = process.argv.includes("--wrong-policy");
 const diagnoseOutcomes = process.argv.includes("--diagnose-outcomes");
 const relativePlan60m = process.argv.includes("--relative-plan-60m");
@@ -28,6 +69,11 @@ const pointInTimeContext = process.argv.includes("--point-in-time-context");
 assert(!pointInTimeContext || cold && !wrongPolicy,
   "Point-in-time context proof requires the actual bounded cold input path");
 const contextBudgetTimeout = process.argv.includes("--context-budget-timeout");
+const staleBenchmark = process.argv.includes("--benchmark-stale");
+const partialBenchmark = process.argv.includes("--benchmark-partial");
+assert(!(staleBenchmark && partialBenchmark) && (!(staleBenchmark || partialBenchmark) ||
+  cold && !wrongPolicy && !opening && !closing && !diagnoseOutcomes && !contextLatency),
+  "Benchmark fitness is one isolated cold original-input scenario");
 const scannerRateLimit = process.argv.includes("--scanner-rate-limit");
 const expectContextTimeout = process.argv.includes("--expect-context-timeout") || contextBudgetTimeout;
 assert(!contextLatency || publicationClock && cold,
@@ -38,8 +84,8 @@ const benchmarkDelayMs = contextBudgetTimeout || scannerRateLimit ? 30000 : 9000
 assert(!publicationClock || cold && !opening && !wrongPolicy && !diagnoseOutcomes,
   "Publication clock proof is one isolated cold normal scanner path");
 assert(!opening || cold, "Opening proof has no pre-session warm-history acquisition");
-const slot = closing ? "2026-10-01T19:45:00.000Z" : opening ? "2026-10-01T13:45:00.000Z" : "2026-10-01T17:30:00.000Z";
-const expiry = new Date(Date.parse(slot) + 900000).toISOString();
+const slot = rotationDay ? "2026-10-01T13:30:00.000Z" : closing ? "2026-10-01T19:45:00.000Z" : opening ? "2026-10-01T13:45:00.000Z" : "2026-10-01T17:30:00.000Z";
+const expiry = rotationDay ? "2026-10-01T20:00:00.000Z" : new Date(Date.parse(slot) + 900000).toISOString();
 const nextSlot = new Date(Date.parse(expiry) + 900000).toISOString();
 const futureBoundary = new Date(Date.parse(slot) + (relativePlan60m ? 4500000 : 1800000)).toISOString();
 const zeroLatestVolume = process.argv.includes("--zero-latest-volume");
@@ -47,6 +93,13 @@ assert(!zeroLatestVolume || cold && !wrongPolicy, "Zero-volume proof requires th
 const missingLatestVolume = process.argv.includes("--missing-latest-volume");
 assert(!missingLatestVolume || cold && !wrongPolicy && !zeroLatestVolume && !diagnoseOutcomes,
   "Missing-volume proof requires its own cold acquisition scenario");
+assert(!benchmarkReuse || !wrongPolicy && !opening && !closing && !diagnoseOutcomes &&
+  !publicationClock && !contextLatency && !staleBenchmark && !partialBenchmark && !zeroLatestVolume && !missingLatestVolume,
+  "Benchmark reuse is a separately frozen cold/warm two-slot acquisition proof");
+assert(!rotationDay || cold && !benchmarkReuse && !mixedHistory && !invalidMixedHistory &&
+  !wrongPolicy && !opening && !closing && !diagnoseOutcomes && !publicationClock &&
+  !contextLatency && !staleBenchmark && !partialBenchmark && !zeroLatestVolume && !missingLatestVolume,
+  "Full-day rotation keeps its own zero-setup original population and unchanged flat provider fixture");
 const directory = mkdtempSync(join(tmpdir(), "ture-input-runtime-proof-"));
 const database = `ture-input-runtime-db-${process.pid}`;
 const api = `ture-input-runtime-api-${process.pid}`;
@@ -62,11 +115,14 @@ const originalFetch = globalThis.fetch;
 const originalLog = console.log;
 const originalEnvironment = { ...process.env };
 let externalRequests = 0;
+let externalBenchmarkRequests = 0;
+const syntheticRequestEvidence = [];
 let syntheticPublicationCount = 0;
 let clock = 0;
 let durationStartedAt = null;
 let pendingSyntheticTransports = 0;
 let futureOutcomePlans = [];
+let benchmarkReuseEvidence = null;
 const fixtureNow = () => clock + (durationStartedAt === null ? 0 : Math.round(performance.now() - durationStartedAt));
 const logs = [];
 const docker = (...args) => execFileSync("docker", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
@@ -82,8 +138,16 @@ try {
   mkdirSync(join(directory, "functions"));
   writeFileSync(join(generated, "scheduled-scan-deployment-identity.json"), JSON.stringify(identity));
   const options = { bundle: true, platform: "node", format: "cjs", conditions: ["react-server"], alias: { "@": root }, logLevel: "silent" };
-  buildSync({ ...options, entryPoints: [resolve(root, "app/api/automation/run-scan/route.ts")], outfile: join(generated, "scheduled-scan-runtime.cjs") });
-  if (diagnoseOutcomes) buildSync({ ...options, entryPoints: [resolve(root, "app/api/recommendations/evaluate-outcomes/route.ts")], outfile: join(generated, "outcome-route.cjs") });
+  // Before/after comparison uses the exact original committed product modules
+  // in memory; neither product checkout nor fixtures/cohort are rewritten.
+  const baselinePlugin = { name: "frozen-original-benchmark-allocation", setup(builder) {
+    builder.onLoad({ filter: /\/lib\/(scanner|recommendation-generator|market-regime|completed-benchmark-reuse|intraday-indicator-refresh-admission)\.ts$/ }, args => ({
+      contents: execFileSync("git", ["show", `${omittedPairBaseline ? omittedPairBaselineRevision : firstClosedBarBaseline ? firstClosedBarBaselineRevision : regularSessionBaseline ? regularSessionBaselineRevision : fairOrderBaseline ? fairOrderBaselineRevision : firstObservationBaseline ? firstObservationBaselineRevision : minimumOrderBaseline ? minimumOrderBaselineRevision : acquisitionBaseline ? acquisitionBaselineRevision : reuseBaselineRevision}:${args.path.slice(root.length + 1)}`], {cwd:root,encoding:"utf8"}),
+      loader:"ts", resolveDir:join(root,"lib") }));
+  } };
+  await build({ ...options, ...(baselineBenchmarkReuse || acquisitionBaseline || minimumOrderBaseline || firstObservationBaseline || fairOrderBaseline || regularSessionBaseline || firstClosedBarBaseline || omittedPairBaseline ? {plugins:[baselinePlugin]} : {}),
+    entryPoints: [resolve(root, "app/api/automation/run-scan/route.ts")], outfile: join(generated, "scheduled-scan-runtime.cjs") });
+  if (diagnoseOutcomes || charterComposition) buildSync({ ...options, entryPoints: [resolve(root, "app/api/recommendations/evaluate-outcomes/route.ts")], outfile: join(generated, "outcome-route.cjs") });
   buildSync({ ...options, entryPoints: [resolve(root, "netlify/functions/scheduled-scan.ts")], outfile: join(directory, "functions/scheduled.cjs") });
   buildSync({ ...options, stdin: {
     resolveDir: root,
@@ -95,6 +159,8 @@ try {
       export { buildScannerProviderCreditAllocationExecutionPlan } from './lib/scanner-provider-credit-allocation-plan';
       export { scannerUniverseTickers } from './lib/scanner-universe';
       export { scanMarket } from './lib/scanner';
+      export { readOwnedCompletedBenchmarkReuse, isValidCompletedBenchmarkReuse } from './lib/completed-benchmark-reuse';
+      export { readCompletedMarketRegime } from './lib/market-regime';
       export { buildRealScannerBaseCandidateSelection } from './lib/real-scanner-candidate-generation';
       export { getUsEquityMarketSession } from './lib/us-equity-market-calendar';
       export { getIntradayScanWindow } from './lib/intraday-scan-window';
@@ -105,6 +171,11 @@ try {
       export { buildRecommendationLearningEvaluationPlans } from './lib/recommendation-learning-evaluation-plan';
       export { recommendationDecisionSourceProvenanceFromSnapshot } from './lib/recommendation-decision-source-provenance';
       export { buildRecommendationIntakeQualityProvenance } from './lib/recommendation-intake-quality-provenance';
+      ${charterComposition ? `export { createRelativePlanProspectiveService } from './lib/server/relative-plan-prospective-service';
+      export { buildRelativePlanProspectivePlan, relativePlanCanonicalBuildIdentity } from './lib/server/relative-plan-prospective-comparison';` : ""}
+      ${prospectiveEnrollment ? `export { buildRelativePlanProspectiveEnrollment } from './lib/server/relative-plan-prospective-enrollment';
+      export { buildRelativePlanProspectivePlan, relativePlanCanonicalBuildIdentity, RELATIVE_PLAN_PROSPECTIVE_RECEIPT_VERSION } from './lib/server/relative-plan-prospective-comparison';
+      export { buildRelativePlanContextShadow } from './lib/scanner-relative-plan-context-shadow';` : ""}
       export { recommendationScanRunFromPersistenceRow } from './lib/recommendation-scan-run';
       export { candidateDecisionRecordFromScanRun } from './lib/candidate-decision-readback';
       export { decisionLineageReceiptFromScanRun } from './lib/decision-lineage-receipt';
@@ -121,16 +192,16 @@ try {
     TURE_DISABLE_SCHEDULED_FUNCTIONS: "true", TURE_OBSERVATION_SERIES_ENABLED: "true",
     TURE_OBSERVATION_SERIES_DATE: contract.trading_date,
     TURE_OBSERVATION_SERIES_START_SLOT_UTC: slot,
-    TURE_OBSERVATION_SERIES_EXPIRES_AT_UTC: expiry,
-    TURE_OBSERVATION_SERIES_MAX_ATTEMPTS: "1",
-    TURE_OBSERVATION_SERIES_MAX_PROVIDER_CREDITS: "8",
+    TURE_OBSERVATION_SERIES_EXPIRES_AT_UTC: benchmarkReuse ? nextSlot : expiry,
+    TURE_OBSERVATION_SERIES_MAX_ATTEMPTS: rotationDay ? "26" : benchmarkReuse ? "2" : "1",
+    TURE_OBSERVATION_SERIES_MAX_PROVIDER_CREDITS: rotationDay ? "208" : benchmarkReuse ? "16" : "8",
     TURE_PROVIDER_CREDIT_ALLOCATION_EXPERIMENT_ENABLED: "false",
     TURE_SCANNER_INPUT_POLICY_VERSION: wrongPolicy ? "unknown_input_policy" : "completed_daily_intraday_input_v1",
     TURE_BASIC_FREE_CATALOG_OBSERVATION_ONE_SHOT_ENABLED: "false",
     TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_ENABLED: "false",
     TURE_NORMAL_SCAN_ONE_SHOT_ENABLED: "false", TURE_OUTCOME_EVALUATION_ONE_SHOT_ENABLED: "false",
     TURE_INTERNAL_PAPER_WORKER_ENABLED: "false",
-    TURE_LEARNING_ACCELERATION_ENABLED: diagnoseOutcomes || closing ? "true" : "false",
+    TURE_LEARNING_ACCELERATION_ENABLED: diagnoseOutcomes || closing || rotationDay || charterComposition ? "true" : "false",
     TURE_BASIC_FREE_CATALOG_DAILY_CREDIT_BUDGET: "800", TURE_BASIC_FREE_CATALOG_PER_MINUTE_CREDIT_BUDGET: "8",
     TWELVE_DATA_API_KEY: "synthetic-boundary-only",
     OPENAI_API_KEY: "synthetic-boundary-only-no-ai-calls-permitted",
@@ -161,7 +232,7 @@ try {
     "20260519000000_create_legacy_baseline_schema_draft.sql",
     "20260528000000_create_recommendation_snapshots.sql",
     "20260528001000_create_recommendation_outcomes.sql",
-    ...(diagnoseOutcomes ? ["20260605000000_add_recommendation_outcomes_snapshot_horizon_unique_index.sql"] : []),
+    ...(diagnoseOutcomes || charterComposition ? ["20260605000000_add_recommendation_outcomes_snapshot_horizon_unique_index.sql"] : []),
     "20260528002000_create_recommendation_scan_runs.sql",
     "20260528003000_create_recommendation_batches.sql",
     "20260614000000_create_execution_records.sql",
@@ -171,6 +242,9 @@ try {
     "20260926091134_sv_a2_observation_cycle_receipts.sql",
     "20260915222537_basic_free_discovery_credit_reservations.sql",
     "20260917135646_if2_basic_free_daily_observation_claim.sql",
+    ...(charterComposition ? ["20261002213547_if4_relative_plan_prospective_comparison.sql",
+      "20261002233358_if4_relative_plan_trained_probability_model.sql",
+      "20261003015239_if4_relative_plan_charter_result.sql"] : []),
   ];
   // Source schema/owner constraints and real reservation functions, all isolated.
   sql(`create role anon nologin; create role authenticated nologin; create role service_role nologin bypassrls;
@@ -181,7 +255,8 @@ try {
     ${migrations.map(file=>readFileSync(resolve(root,"supabase/migrations",file),"utf8")).join("\n")}
     grant usage on schema public to service_role; grant all on all tables in schema public to service_role;
     insert into market_calendar_cache(cache_date,provider,is_open_day,reason,day_type,market_open_time,market_close_time,raw,updated_at)
-      values('2026-10-01','polygon',true,'Synthetic CLOSED calendar','trading_day','09:30','16:00','{}','2026-10-01T17:30:00Z');
+      values('2026-10-01','polygon',true,'Synthetic CLOSED calendar','trading_day','09:30','16:00','{}',
+        '${rotationDay ? "2026-10-01T13:00:00Z" : "2026-10-01T17:30:00Z"}');
     insert into user_settings(owner_user_id) values('${owner}');`);
   globalThis.Date = class extends OriginalDate {
     constructor(...args) { super(...(args.length ? args : [fixtureNow()])); }
@@ -202,6 +277,7 @@ try {
     const url = new URL(typeof input === "string" || input instanceof URL ? input : input.url);
     if (url.origin === "https://api.twelvedata.com" && url.pathname === "/time_series") {
       externalRequests++;
+      if (["SPY", "QQQ"].includes(url.searchParams.get("symbol"))) externalBenchmarkRequests++;
       if(contextLatency) {
         pendingSyntheticTransports++;
         try { await syntheticDelay(
@@ -213,6 +289,10 @@ try {
         return Response.json({status:"error",code:429,message:"Synthetic API credits rate limit"},{status:429});
       }
       const interval = url.searchParams.get("interval");
+      const benchmark = ["SPY", "QQQ"].includes(url.searchParams.get("symbol"));
+      syntheticRequestEvidence.push({ ticker: url.searchParams.get("symbol"), interval,
+        requested_at: new OriginalDate(clock).toISOString() });
+      if (benchmark) assert.equal(url.searchParams.get("adjust"), "splits");
       const intraday = interval !== "1day";
       const values = [];
       if (intraday) {
@@ -224,7 +304,7 @@ try {
           const volume = missingLatestVolume && latestClosed ? " " : zeroLatestVolume && latestClosed ? "0" : "1000";
           const index=(time-OriginalDate.parse("2026-10-01T13:30:00Z"))/300000;
           const close=100+index*0.06;
-          const futurePlan=relativePlan60m ? futureOutcomePlans.find(plan=>plan.ticker===url.searchParams.get("symbol")) : null;
+          const futurePlan=relativePlan60m || charterComposition ? futureOutcomePlans.find(plan=>plan.ticker===url.searchParams.get("symbol")) : null;
           const anchor=futurePlan ? Math.ceil(OriginalDate.parse(futurePlan.payload_json.decision_timestamp)/300000)*300000 : null;
           if(futurePlan && time>=anchor) {
             // Explicitly synthetic future bars, supplied only at the provider
@@ -242,11 +322,15 @@ try {
             : {datetime,open:"100",high:"101",low:"99",close:"100",volume});
         }
       } else {
-        const day=new OriginalDate("2026-09-30T00:00:00Z");
+        const day=new OriginalDate(staleBenchmark && benchmark ? "2026-05-26T00:00:00Z" : "2026-09-30T00:00:00Z");
         while(values.length<60) {
           const date=day.toISOString().slice(0,10);
           if(readers.getUsEquityMarketSession(date).session_close) values.unshift({datetime:date,open:"100",high:"103",low:"99",close:"101",volume:"1000"});
           day.setUTCDate(day.getUTCDate()-1);
+        }
+        if (partialBenchmark && benchmark) {
+          values.shift();
+          values.push({datetime:"2026-10-01",open:"100",high:"1001",low:"99",close:"1000",volume:"1000"});
         }
       }
       return Response.json({meta:{symbol:url.searchParams.get("symbol"),interval,exchange_timezone:"America/New_York"},values});
@@ -278,20 +362,218 @@ try {
   console.log = (...items) => logs.push(items);
   globalThis.Netlify = { env: { get: (name) => process.env[name] } };
   // Warm history is acquired by the actual scanner/SDK, not seeded JSON.
-  // Its sixteen synthetic requests are separate setup, never hidden in scan cost.
+  // Its sixteen (two-slot proof: thirty-two) synthetic requests are separate
+  // setup, never hidden in scan cost or treated as free historical coverage.
   clock=OriginalDate.parse("2026-10-01T17:00:00Z");
   let setupRequests=0;
   if(!cold && !wrongPolicy) {
     const selected=readers.buildRealScannerBaseCandidateSelection({scanWindow:readers.getIntradayScanWindow(new Date("2026-10-01T17:30:00Z")),requestedScanBudget:8,
       selectionMode:"scheduled_rotating",now:new OriginalDate("2026-10-01T17:30:00Z")}).candidates;
     assert.equal(selected.length,8);
-    for(const candidate of selected) await readers.scanMarket([candidate],{source:"scheduled",maxFreshProviderCalls:2,
+    const secondSelected=benchmarkReuse ? readers.buildRealScannerBaseCandidateSelection({scanWindow:readers.getIntradayScanWindow(new OriginalDate(expiry)),requestedScanBudget:8,
+      selectionMode:"scheduled_rotating",now:new OriginalDate(expiry)}).candidates : [];
+    if(benchmarkReuse) assert.equal(secondSelected.length,8);
+    const setupPopulation=[...new Map([...(mixedHistory ? selected.slice(4) : selected),
+      ...(mixedHistory ? secondSelected.slice(4) : secondSelected)].map(candidate=>[candidate.ticker,candidate])).values()];
+    for(const candidate of setupPopulation) await readers.scanMarket([candidate],{source:"scheduled",maxFreshProviderCalls:2,
       freshProviderCallPacingMs:0,completedDailyContextPolicyVersion:"completed_daily_intraday_input_v1"});
     setupRequests=externalRequests;
-    assert.equal(setupRequests,16);
+    assert.equal(setupRequests,setupPopulation.length*2);
+    if(invalidMixedHistory) sql(`update scanner_cache set raw=jsonb_set(raw,
+      '{completed_daily_context,content_sha256}','"invalid-fixture-history-digest"');`);
   }
   externalRequests=0;
+  externalBenchmarkRequests=0;
   const scheduler = require(join(directory, "functions/scheduled.cjs")).default;
+  if(rotationDay) {
+    assert.equal(setupRequests,0);
+    const slots=[];
+    const observations=new Map();
+    const eligible=readers.scannerUniverseTickers.filter(ticker=>ticker.enabled && ticker.tradable).map(ticker=>ticker.ticker).sort();
+    const runFingerprints=new Set();
+    const attemptFingerprints=new Set();
+    let previousOriginalRun=null;
+    for(let index=0;index<26;index++) {
+      const sourceSlot=new OriginalDate(OriginalDate.parse(slot)+index*900000).toISOString();
+      const followingSlot=new OriginalDate(OriginalDate.parse(sourceSlot)+900000).toISOString();
+      clock=OriginalDate.parse(sourceSlot)+20000;
+      const selected=readers.buildRealScannerBaseCandidateSelection({
+        scanWindow:readers.getIntradayScanWindow(new OriginalDate(sourceSlot)),requestedScanBudget:8,
+        selectionMode:"scheduled_rotating",now:new OriginalDate(sourceSlot)}).candidates;
+      assert.equal(selected.length,8);
+      const before=externalRequests, benchmarkBefore=externalBenchmarkRequests;
+      const attemptedBefore=Number(sql("select count(*) from scheduled_scan_attempts;"));
+      const runsBefore=Number(sql("select count(*) from recommendation_scan_runs;"));
+      const claimCountBefore=Number(sql("select count(*) from basic_free_discovery_credit_reservations;"));
+      const reusePreflight=previousOriginalRun?{
+        original_status:previousOriginalRun.status,
+        original_window:previousOriginalRun.window,
+        original_observed_at:previousOriginalRun.observed_at,
+        completed_benchmark_capsules_valid:!!await readers.readCompletedMarketRegime(previousOriginalRun.payload_json.market_regime,new OriginalDate(clock)),
+        owned_reuse_admitted:!!await readers.readOwnedCompletedBenchmarkReuse({row:previousOriginalRun,owner,now:new OriginalDate(clock)}),
+      }:null;
+      const result=await scheduler(new Request("http://closed-scheduler",{method:"POST",body:JSON.stringify({next_run:followingSlot})}),
+        {deploy:{id:identity.deploy_id,context:"production",published:true}});
+      const resultBody=result.status===204?null:await result.json();
+      const requestCount=externalRequests-before, benchmarkCalls=externalBenchmarkRequests-benchmarkBefore;
+      assert(requestCount<=8,"No slot may exceed the unchanged whole-scan cap");
+      const attemptCount=Number(sql("select count(*) from scheduled_scan_attempts;"))-attemptedBefore;
+      const runCount=Number(sql("select count(*) from recommendation_scan_runs;"))-runsBefore;
+      const claimCount=Number(sql("select count(*) from basic_free_discovery_credit_reservations;"))-claimCountBefore;
+      assert(attemptCount<=1 && runCount<=1 && claimCount<=1,"One attributable attempt/run/reservation per original slot");
+      const attempt=attemptCount?JSON.parse(sql("select row_to_json(t) from scheduled_scan_attempts t order by utc_timestamp desc,id desc limit 1;")):null;
+      const run=runCount?JSON.parse(sql("select row_to_json(t) from recommendation_scan_runs t order by observed_at desc,id desc limit 1;")):null;
+      const claim=claimCount?JSON.parse(sql("select row_to_json(t) from basic_free_discovery_credit_reservations t order by created_at desc,id desc limit 1;")):null;
+      if(attempt) {
+        assert(!attemptFingerprints.has(attempt.attempt_fingerprint));
+        attemptFingerprints.add(attempt.attempt_fingerprint);
+      }
+      if(claim) {
+        assert.equal(claim.requested_credits,8); assert(claim.finalized_at);
+        assert(["completed","failed"].includes(claim.status));
+      }
+      const decision=run?readers.candidateDecisionRecordFromScanRun(run):null;
+      if(run) {
+        assert(decision && readers.decisionLineageReceiptFromScanRun(run,decision),
+          `Missing/mismatched original decision lineage at ${sourceSlot}`);
+        assert(!runFingerprints.has(run.run_fingerprint)); runFingerprints.add(run.run_fingerprint);
+        assert.equal(attempt.scan_run_fingerprint,run.run_fingerprint);
+        assert.equal(decision.candidates.length,8);
+        assert.deepEqual(decision.candidates.map(candidate=>candidate.ticker).sort(),selected.map(candidate=>candidate.ticker).sort());
+        assert(OriginalDate.parse(run.observed_at)<=OriginalDate.parse(decision.decision_timestamp));
+        assert(OriginalDate.parse(decision.decision_timestamp)<=OriginalDate.parse(run.completed_at));
+        const acquisition=run.payload_json.active_scan_trace.market_data_fetch.completed_input_acquisition;
+        if(omittedPairBaseline) {
+          assert.equal(acquisition.policy_version,"completed_input_omitted_first_pair_guard_v1");
+          assert.deepEqual(acquisition.original_members.map(member=>member.ticker),selected.map(candidate=>candidate.ticker));
+          assert.deepEqual([...acquisition.acquisition_order].sort((a,b)=>a-b),[0,1,2,3,4,5,6,7]);
+        }
+        else if(acquisitionBaseline || !minimumOrderBaseline && !firstObservationBaseline && !fairOrderBaseline) assert.equal(acquisition,undefined);
+        else {
+          assert.equal(acquisition.policy_version,firstObservationBaseline?"completed_input_first_observation_guard_v1":minimumOrderBaseline?"completed_input_minimum_requests_first_v1":"completed_input_fair_cost_ties_v1");
+          assert.deepEqual(acquisition.original_members.map(member=>member.ticker),selected.map(candidate=>candidate.ticker));
+        }
+        for(const candidate of decision.candidates.filter(candidate=>candidate.data.freshness==="fresh")) {
+          assert(OriginalDate.parse(candidate.data.input_snapshot.current_session.captured_at)<=OriginalDate.parse(decision.decision_timestamp));
+          assert(OriginalDate.parse(candidate.data.input_snapshot.historical_context.captured_at)<=OriginalDate.parse(decision.decision_timestamp));
+        }
+      }
+      const members=selected.map(candidate=>{
+        const original=decision?.candidates.find(member=>member.ticker===candidate.ticker);
+        const fresh=original?.data.freshness==="fresh";
+        const previous=observations.get(candidate.ticker)??{ticker:candidate.ticker,selected:0,fresh:0,missing:0,revisit_missing:0,first_complete_slot:null};
+        if(!fresh && previous.selected>0) previous.revisit_missing++;
+        previous.selected++; previous.fresh+=Number(fresh); previous.missing+=Number(!fresh);
+        if(fresh && previous.first_complete_slot===null) previous.first_complete_slot=sourceSlot;
+        observations.set(candidate.ticker,previous);
+        return {ticker:candidate.ticker,freshness:original?.data.freshness??"no_decision",gap_codes:original?.data.gap_codes??[]};
+      });
+      slots.push({slot:sourceSlot,http_status:result.status,attempts:attemptCount,runs:runCount,reservations:claimCount,
+        outcome:attempt?.outcome??null,skip_reason:attempt?.skip_reason??null,
+        decision_disposition:decision?.final_decision.disposition??null,no_trade_reason:decision?.final_decision.no_trade_reason??null,
+        requests:requestCount,benchmark_requests:benchmarkCalls,stock_requests:requestCount-benchmarkCalls,
+        fresh_members:members.filter(member=>member.freshness==="fresh").length,members,
+        synthetic_request_evidence:syntheticRequestEvidence.slice(before,externalRequests),
+        intraday_session_admission_policy_version:run?.payload_json.active_scan_trace.market_data_fetch.intraday_session_admission_policy_version??null,
+        provider_observations:run?.payload_json.active_scan_trace.market_data_fetch.candidate_observations??[],
+        acquisition:run?.payload_json.active_scan_trace.market_data_fetch.completed_input_acquisition??null,
+        benchmark_reuse_preflight:reusePreflight,
+        ...(attemptCount===0 || runCount===0 ? {bounded_result:resultBody} : {})});
+      previousOriginalRun=run;
+    }
+    const totalClaims=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from basic_free_discovery_credit_reservations t;"));
+    const cycles=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from observation_cycle_receipts t;"));
+    const cycleReadback=readers.buildObservationCycleReadback(cycles);
+    assert.equal(cycleReadback.invalid_row_count,0);
+    assert(totalClaims.reduce((sum,claim)=>sum+claim.requested_credits,0)<=208);
+    assert(totalClaims.every(claim=>claim.status!=="reserved" && claim.finalized_at));
+    assert.equal(Number(sql("select count(*) from recommendations;")),0);
+    assert.equal(Number(sql("select count(*) from positions;")),0);
+    delete require.cache[require.resolve(join(generated,"reader.cjs"))];
+    const restarted=require(join(generated,"reader.cjs"));
+    const owned=await restarted.readRecommendationLearningBaselineSource(owner);
+    assert.equal(owned.status,"available","Actual full-population SDK read must not truncate or silently exclude a row");
+    const source=restarted.parseRecommendationLearningBaselineSource(owned.data);
+    assert(source && source.scanRuns.length===runFingerprints.size);
+    assert.deepEqual(source.scanRuns.map(run=>run.run_fingerprint).sort(),[...runFingerprints].sort());
+    for(const run of source.scanRuns) {
+      const decision=restarted.candidateDecisionRecordFromScanRun(run);
+      assert(decision && restarted.decisionLineageReceiptFromScanRun(run,decision));
+    }
+    const wrongOwner=await restarted.readRecommendationLearningBaselineSource("00000000-0000-4000-8000-000000000002");
+    assert.equal(wrongOwner.data.recommendation_scan_runs.length,0);
+    let enrollmentEvidence=null;
+    if(prospectiveEnrollment) {
+      // Synthetic controlled chronology ONLY: this does not fabricate an
+      // actual pre-forward database seal or retrospectively enroll market data.
+      const frozenAt="2026-09-25T12:00:00.000Z";
+      const plan=restarted.buildRelativePlanProspectivePlan({owner_user_id:owner,
+        source_revision:{commit_ref:identity.commit_ref,build_identity:restarted.relativePlanCanonicalBuildIdentity,
+          deploy_id:identity.deploy_id},windows:{
+          training:{start_at:"2026-09-28T13:30:00.000Z",end_at:"2026-09-29T20:00:00.000Z"},
+          held_out:{start_at:slot,end_at:expiry},
+          walk_forward:{start_at:"2026-10-05T13:30:00.000Z",end_at:"2026-10-06T20:00:00.000Z"},
+        }},frozenAt);
+      assert(plan);
+      const freeze={contract_version:restarted.RELATIVE_PLAN_PROSPECTIVE_RECEIPT_VERSION,
+        freeze_id:"22222222-2222-4222-8222-222222222222",owner_user_id:owner,frozen_at:frozenAt,plan};
+      const readEnrollment=(ownedSource=source,currentOwner=owner)=>restarted.buildRelativePlanProspectiveEnrollment({
+        owner:currentOwner,freeze,source:ownedSource,now:new OriginalDate(OriginalDate.parse(expiry)+3600000)});
+      const enrollment=readEnrollment(); assert(enrollment);
+      assert.deepEqual(readEnrollment(),enrollment,"Restarted unchanged original source retains membership and exclusions");
+      assert.equal(readEnrollment(source,"00000000-0000-4000-8000-000000000002"),null);
+      const decisionEvidence=source.scanRuns.map(run=>{
+        const record=restarted.candidateDecisionRecordFromScanRun(run);
+        const shadow=restarted.buildRelativePlanContextShadow(record);
+        return {fingerprint:run.run_fingerprint,decision_at:record.decision_timestamp,
+          original_population_count:shadow.original_population_count,status:shadow.status,
+          assessed_count:shadow.assessed_count,unassessed_count:shadow.unassessed_count,
+          members:shadow.candidates.map(member=>({candidate_id:member.candidate_id,ticker:member.ticker,
+            context_status:member.context_status,reason:member.reason})),
+          exclusion:enrollment.diagnostics.find(row=>row.fingerprint===run.run_fingerprint)?.reason??null};
+      }).sort((a,b)=>a.decision_at.localeCompare(b.decision_at));
+      const enrolledDecisions=enrollment.partitions.flatMap(partition=>partition.decisions);
+      assert.equal(enrolledDecisions.length+enrollment.diagnostics.length,source.scanRuns.length);
+      assert.equal(decisionEvidence.reduce((sum,row)=>sum+row.original_population_count,0),208);
+      assert(enrolledDecisions.every(row=>decisionEvidence.find(original=>original.fingerprint===row.fingerprint)?.status==="comparable"));
+      enrollmentEvidence={evidence_scope:"synthetic_controlled_original_source_composition_not_database_forward_seal",
+        source_decisions:source.scanRuns.length,original_member_observations:208,
+        enrolled_decisions:enrolledDecisions.length,excluded_decisions:enrollment.diagnostics.length,
+        partitions:enrollment.partitions.map(partition=>({partition:partition.partition,
+          enrolled_decision_count:partition.enrolled_decision_count,required_decisions:partition.required_decisions,
+          original_population_count:partition.original_population_count,missing_outcome_count:partition.missing_outcome_count,
+          original_membership_fingerprint:partition.original_membership_fingerprint})),
+        diagnostics:enrollment.diagnostics,decisions:decisionEvidence,
+        actual_provider_requests:0,quality_improvement_claimed:false};
+    }
+    const beforeCleanup=externalRequests;
+    clock=OriginalDate.parse(expiry)+20000;
+    // First exercise automatic expiry while the fixture's series flag is still on.
+    const expired=await scheduler(new Request("http://closed-scheduler",{method:"POST",body:JSON.stringify({next_run:nextSlot})}),
+      {deploy:{id:identity.deploy_id,context:"production",published:true}});
+    assert.equal(expired.status,204);
+    process.env.TURE_OBSERVATION_SERIES_ENABLED="false";
+    const disabled=await scheduler(new Request("http://closed-scheduler",{method:"POST",body:JSON.stringify({next_run:nextSlot})}),
+      {deploy:{id:identity.deploy_id,context:"production",published:true}});
+    assert.equal(disabled.status,204); assert.equal(externalRequests,beforeCleanup);
+    assert.equal(Number(sql("select count(*) from scheduled_scan_attempts;")),attemptFingerprints.size);
+    const tickerCoverage=[...observations.values()].sort((a,b)=>a.ticker.localeCompare(b.ticker));
+    originalLog(JSON.stringify({evidence_mode:"synthetic_closed_packaged_input_runtime_actual_source_schema",
+      scenario:"full_session_cold_rotation",acquisition_mode:omittedPairBaseline?"otherwise_omitted_first_pair_guard":acquisitionBaseline?"original_order":firstObservationBaseline?"first_observation_guard":minimumOrderBaseline?"minimum_requests_first":fairOrderBaseline?"fair_cost_ties":firstClosedBarBaseline?"original_order_first_closed_bar":"original_order_regular_session_reuse",
+      baseline_revision:acquisitionBaselineRevision,minimum_order_baseline_revision:minimumOrderBaselineRevision,
+      original_slots:26,original_member_observations:26*8,eligible_tickers:eligible,slots,ticker_coverage:tickerCoverage,
+      selected_unique_tickers:tickerCoverage.length,ever_complete_tickers:tickerCoverage.filter(ticker=>ticker.fresh>0).length,
+      never_complete_tickers:tickerCoverage.filter(ticker=>ticker.fresh===0).map(ticker=>ticker.ticker),
+      unselected_eligible_tickers:eligible.filter(ticker=>!observations.has(ticker)),
+      fresh_member_observations:slots.reduce((sum,item)=>sum+item.fresh_members,0),
+      revisit_missing_observations:tickerCoverage.reduce((sum,item)=>sum+item.revisit_missing,0),
+      attempts:attemptFingerprints.size,cycles:cycles.length,scan_runs:runFingerprints.size,
+      reservations:totalClaims.length,reserved_credits:totalClaims.reduce((sum,claim)=>sum+claim.requested_credits,0),
+      setup_synthetic_requests:setupRequests,scheduled_synthetic_requests:externalRequests,
+      synthetic_benchmark_requests:externalBenchmarkRequests,restarted_owner_read:true,wrong_owner_runs:0,
+      ...(prospectiveEnrollment?{prospective_enrollment_evidence:enrollmentEvidence}:{}),
+      actual_provider_requests:0,production_actions:0,publications:0,broker_actions:0,cleanup:"inert"}));
+  } else {
   clock = OriginalDate.parse(slot) + 20000;
   if(contextLatency) durationStartedAt = performance.now();
   const response = await scheduler(new Request("http://closed-scheduler", {method:"POST", body:JSON.stringify({next_run:expiry})}), {deploy:{id:identity.deploy_id,context:"production",published:true}});
@@ -308,11 +590,22 @@ try {
   const researchSnapshots=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_snapshots t;"));
   if(relativePlan60m) futureOutcomePlans=researchSnapshots.map((snapshot,index)=>({...snapshot,synthetic_win:index%2===0}));
   let outcomeChainEvidence = null;
+  let charterCompositionEvidence = null;
   if(wrongPolicy) {
     assert.equal(response.status,503);
     assert.equal(externalRequests,0);
     assert.equal(claims.length,0);
     assert.equal(scanRuns.length,0);
+  } else if(staleBenchmark) {
+    assert.equal(response.status,500,JSON.stringify({body,logs:logs.slice(-15)}));
+    assert.equal(rows.length,1); assert.equal(receipts.length,1);
+    assert.notEqual(rows[0].outcome,"scanned");
+    assert.equal(scanRuns.length,0); assert.equal(researchSnapshots.length,0);
+    assert.equal(claims.length,1); assert.equal(claims[0].requested_credits,8);
+    assert.equal(claims[0].status,"failed"); assert(claims[0].finalized_at);
+    assert.equal(externalRequests,8);
+    assert.equal(Number(sql("select count(*) from recommendations;")),0);
+    assert(logs.some(items=>JSON.stringify(items).includes("market_regime_completed_daily_input_unavailable")));
   } else if(scannerRateLimit) {
     assert.equal(response.status,500);
     assert.equal(rows.length,1); assert.equal(receipts.length,1);
@@ -346,6 +639,30 @@ try {
     assert.equal(claims[0].status,"completed");
     assert(claims[0].finalized_at);
     assert.equal(externalRequests,8);
+    const regimeEvidence=scanRuns[0].payload_json.market_regime?.input_evidence;
+    assert.equal(regimeEvidence?.policy_version,"completed_daily_market_regime_input_v1",
+      "Original benchmark source policy must survive actual database persistence");
+    for (const symbol of ["spy","qqq"]) {
+      assert.equal(regimeEvidence[symbol].latest_completed_market_date,"2026-09-30");
+      assert.equal(regimeEvidence[symbol].latest_completed_at,"2026-09-30T20:00:00.000Z");
+      assert(regimeEvidence[symbol].response_identity.payload_byte_length>0);
+      assert.match(regimeEvidence[symbol].content_sha256,/^sha256:[a-f0-9]{64}$/);
+      assert(OriginalDate.parse(regimeEvidence[symbol].captured_at)<=OriginalDate.parse(record.decision_timestamp));
+    }
+    if (partialBenchmark) {
+      assert.equal(scanRuns[0].payload_json.market_regime.spy.close,101);
+      assert.equal(scanRuns[0].payload_json.market_regime.regime,"risk_off");
+      assert.equal(regimeEvidence.spy.candles.length,59);
+    }
+    // Actual restarted SDK + owner decoder, not only direct SQL inspection.
+    delete require.cache[require.resolve(join(generated,"reader.cjs"))];
+    const benchmarkReader=require(join(generated,"reader.cjs"));
+    const benchmarkRead=await benchmarkReader.readRecommendationLearningBaselineSource(owner);
+    const benchmarkSource=benchmarkReader.parseRecommendationLearningBaselineSource(benchmarkRead.data);
+    assert(benchmarkSource && benchmarkSource.scanRuns.length===1);
+    assert.deepEqual(benchmarkSource.scanRuns[0].payload_json.market_regime.input_evidence,regimeEvidence);
+    const benchmarkWrongOwner=await benchmarkReader.readRecommendationLearningBaselineSource("00000000-0000-4000-8000-000000000002");
+    assert.equal(benchmarkWrongOwner.data.recommendation_scan_runs.length,0);
     const cycle=readers.buildObservationCycleReadback(receipts);
     assert.equal(cycle.status,"available");
     assert.equal(cycle.invalid_row_count,0);
@@ -433,7 +750,8 @@ try {
     }
     assert.equal(scanRuns[0].payload_json.scanner_clock_prior_shadow_comparison ?? null,null);
     assert.equal(scanRuns[0].payload_json.scanner_intraday_liquidity_shadow_comparison ?? null,null);
-    assert.equal(record.candidates.filter(c=>c.data.freshness==="fresh").length,missingLatestVolume?0:cold?3:6);
+    assert.equal(record.candidates.filter(c=>c.data.freshness==="fresh").length,
+      missingLatestVolume?0:mixedHistory?(minimumOrderBaseline&&!invalidMixedHistory?5:3):cold?3:6);
     if(missingLatestVolume) {
       assert.equal(researchSnapshots.length,0,"A missing provider volume cannot create completed-input research sources");
       assert(record.candidates.every(candidate => !candidate.data.input_snapshot ||
@@ -855,6 +1173,275 @@ try {
     assert.equal(duplicate.status,204);
     assert.equal(externalRequests,8);
   }
+  if(benchmarkReuse) {
+    assert.equal(record.candidates.length,8); // The first complete original population is never replaced.
+    const firstFresh=record.candidates.filter(candidate=>candidate.data.freshness==="fresh").length;
+    assert.equal(firstFresh,mixedHistory?(minimumOrderBaseline&&!invalidMixedHistory?5:3):cold?3:6);
+    const originalRegime=scanRuns[0].payload_json.market_regime;
+    if(invalidBenchmarkReuse) sql(`update recommendation_scan_runs set payload_json=jsonb_set(payload_json,
+      '{market_regime,input_evidence,qqq,content_sha256}','"invalid-fixture-digest"') where id='${scanRuns[0].id}';`);
+    const firstRequests=externalRequests;
+    assert.equal(externalBenchmarkRequests,2);
+    clock=OriginalDate.parse(expiry)+20000;
+    externalRequests=0;
+    externalBenchmarkRequests=0;
+    const second=await scheduler(new Request("http://closed-scheduler",{method:"POST",body:JSON.stringify({next_run:nextSlot})}),
+      {deploy:{id:identity.deploy_id,context:"production",published:true}});
+    assert.equal(second.status,200,JSON.stringify({body:await second.json(),logs:logs.slice(-15)}).slice(-12000));
+    const allRuns=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_scan_runs t;"));
+    assert.equal(allRuns.length,2);
+    const secondRun=allRuns.find(run=>run.id!==scanRuns[0].id);
+    const secondDecision=readers.candidateDecisionRecordFromScanRun(secondRun);
+    assert(secondDecision && readers.decisionLineageReceiptFromScanRun(secondRun,secondDecision));
+    assert.equal(secondDecision.candidates.length,8);
+    for (const [source,decision,sourceSlot] of [[scanRuns[0],record,slot],[secondRun,secondDecision,expiry]]) {
+      const originalSelection=readers.buildRealScannerBaseCandidateSelection({
+        scanWindow:readers.getIntradayScanWindow(new OriginalDate(sourceSlot)),requestedScanBudget:8,
+        selectionMode:"scheduled_rotating",now:new OriginalDate(sourceSlot)}).candidates;
+      assert.deepEqual(decision.candidates.map(candidate=>candidate.ticker).sort(),
+        originalSelection.map(candidate=>candidate.ticker).sort());
+      if(mixedHistory) {
+        const plan=source.payload_json.active_scan_trace.market_data_fetch.completed_input_acquisition;
+        if(!minimumOrderBaseline) assert.equal(plan,undefined);
+        else {
+          assert.equal(plan.policy_version,minimumOrderBaseline?"completed_input_minimum_requests_first_v1":"completed_input_fair_cost_ties_v1");
+          assert.equal(plan.provider_call_cap,sourceSlot===slot?6:8);
+          assert.deepEqual(plan.original_members.map(member=>member.ticker),originalSelection.map(candidate=>candidate.ticker));
+          assert.deepEqual(plan.original_members.map(member=>member.ticker_index),[0,1,2,3,4,5,6,7]);
+          const offset=Math.floor(OriginalDate.parse(sourceSlot)/900000)%8;
+          const costs=invalidMixedHistory?[2,2,2,2,2,2,2,2]:[2,2,2,2,1,1,1,1];
+          const expectedOrder=[0,1,2,3,4,5,6,7].sort((a,b)=>costs[a]-costs[b] ||
+            (minimumOrderBaseline?a-b:(a-offset+8)%8-(b-offset+8)%8));
+          assert.deepEqual(plan.acquisition_order,expectedOrder);
+          if(!minimumOrderBaseline) assert.equal(plan.cost_tie_offset,offset);
+          assert.deepEqual(plan.original_members.map(member=>member.estimated_requests),invalidMixedHistory?[2,2,2,2,2,2,2,2]:[2,2,2,2,1,1,1,1]);
+          for(const member of plan.original_members) {
+            assert.equal(member.current_context_sha256,null);
+            assert.equal(member.historical_captured_at,member.estimated_requests===1?"2026-10-01T17:00:00.000Z":null);
+            if(member.estimated_requests===1) {
+              const original=decision.candidates.find(candidate=>candidate.ticker===member.ticker);
+              assert.equal(original.data.input_snapshot.historical_context.content_sha256,member.historical_context_sha256);
+              assert.equal(original.data.input_snapshot.historical_context.captured_at,member.historical_captured_at);
+            } else assert.equal(member.historical_context_sha256,null);
+          }
+        }
+      }
+      assert(OriginalDate.parse(source.observed_at)<=OriginalDate.parse(decision.decision_timestamp));
+      assert(OriginalDate.parse(decision.decision_timestamp)<=OriginalDate.parse(source.completed_at));
+    }
+    const expectReuse=!invalidBenchmarkReuse && !baselineBenchmarkReuse;
+    const fresh=secondDecision.candidates.filter(candidate=>candidate.data.freshness==="fresh").length;
+    assert.equal(fresh,mixedHistory?(minimumOrderBaseline&&!invalidMixedHistory?6:4):cold?(expectReuse?4:3):(expectReuse?8:6),JSON.stringify({
+      selected:secondDecision.candidates.map(candidate=>({ticker:candidate.ticker,freshness:candidate.data.freshness,
+        daily:candidate.data.input_snapshot?.historical_context?.captured_at,
+        current:candidate.data.input_snapshot?.current_session?.latest_bar_started_at,gaps:candidate.data.gap_codes})),
+      trace:logs.filter(items=>JSON.stringify(items).includes("fresh_call_admission")),
+    }).slice(-6000));
+    assert.equal(externalRequests,8);
+    assert.equal(externalBenchmarkRequests,expectReuse?0:2);
+    const retained=secondRun.payload_json.market_regime.input_evidence;
+    if(expectReuse) {
+      assert.equal(retained.reuse.source_scan_run_id,scanRuns[0].id);
+      assert.equal(retained.reuse.source_scan_run_fingerprint,scanRuns[0].run_fingerprint);
+      assert.equal(retained.reuse.original_classified_at,originalRegime.input_evidence.evaluated_at);
+      assert.equal(retained.reuse.scanner_provider_call_cap,8);
+      assert.equal(retained.reuse.benchmark_provider_calls,0);
+      assert.deepEqual(retained.spy,originalRegime.input_evidence.spy);
+      assert.deepEqual(retained.qqq,originalRegime.input_evidence.qqq);
+    } else assert.equal(retained.reuse,undefined);
+    const allClaims=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from basic_free_discovery_credit_reservations t;"));
+    assert.equal(allClaims.length,2);
+    assert(allClaims.every(claim=>claim.requested_credits===8 && claim.status==="completed" && claim.finalized_at));
+    const allAttempts=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from scheduled_scan_attempts t;"));
+    const allCycles=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from observation_cycle_receipts t;"));
+    assert.equal(allAttempts.length,2);
+    assert.equal(allCycles.length,2);
+    assert(allCycles.every(cycle=>cycle.cycle_status==="completed"));
+    assert(allCycles.every(cycle=>cycle.receipt_json.provider_request.reserved_credits===8),
+      "Every cycle must retain its whole finalized reservation, including separately acquired benchmarks");
+    const cycleReadback=readers.buildObservationCycleReadback(allCycles);
+    assert.equal(cycleReadback.status,"available"); assert.equal(cycleReadback.invalid_row_count,0);
+    delete require.cache[require.resolve(join(generated,"reader.cjs"))];
+    const restarted=require(join(generated,"reader.cjs"));
+    const owned=await restarted.readRecommendationLearningBaselineSource(owner);
+    const source=restarted.parseRecommendationLearningBaselineSource(owned.data);
+    assert(source && source.scanRuns.length===2);
+    assert.deepEqual(source.scanRuns.find(run=>run.id===secondRun.id).payload_json.market_regime.input_evidence,retained);
+    const latestOwned=owned.data.recommendation_scan_runs.find(run=>run.id===secondRun.id);
+    const restartedReuse=await restarted.readOwnedCompletedBenchmarkReuse({row:latestOwned,owner,now:new OriginalDate(clock)});
+    assert(restartedReuse && await restarted.isValidCompletedBenchmarkReuse(restartedReuse,new OriginalDate(clock)),
+      JSON.stringify({data_mode:latestOwned?.data_mode,status:latestOwned?.status,owner:latestOwned?.owner_user_id,
+        input_policy:secondDecision.versions.input_policy_version,observed_at:latestOwned?.observed_at,
+        completed_at:latestOwned?.completed_at,decision_timestamp:secondDecision.decision_timestamp}));
+    assert.equal(await restarted.isValidCompletedBenchmarkReuse(structuredClone(restartedReuse),new OriginalDate(clock)),false);
+    assert.deepEqual(restartedReuse.market_regime.input_evidence.spy,retained.spy);
+    assert.deepEqual(restartedReuse.market_regime.input_evidence.qqq,retained.qqq);
+    const other=await restarted.readRecommendationLearningBaselineSource("00000000-0000-4000-8000-000000000002");
+    assert.equal(other.data.recommendation_scan_runs.length,0);
+    const secondDuplicate=await scheduler(new Request("http://closed-scheduler",{method:"POST",body:JSON.stringify({next_run:nextSlot})}),
+      {deploy:{id:identity.deploy_id,context:"production",published:true}});
+    assert.equal(secondDuplicate.status,204); assert.equal(externalRequests,8);
+    benchmarkReuseEvidence={mode:baselineBenchmarkReuse?"original_committed_baseline":invalidBenchmarkReuse?"invalid_original_falls_back":"validated_owner_reuse",
+      baseline_revision:mixedHistory?acquisitionBaselineRevision:reuseBaselineRevision,
+      history_start:mixedHistory?"mixed":cold?"cold":"prewarmed",
+      ...(mixedHistory ? {acquisition_mode:minimumOrderBaseline?"minimum_requests_first":"original_order"} : {}),
+      ...(mixedHistory ? {historical_context_integrity:invalidMixedHistory?"tampered":"valid"} : {}),
+      first_scan_requests:firstRequests,second_scan_requests:externalRequests,
+      first_fresh_inputs:firstFresh,second_fresh_inputs:fresh,original_members_per_decision:8,
+      attempts:allAttempts.length,cycles:allCycles.length,reservations:allClaims.length,
+      reserved_credits:allClaims.reduce((sum,claim)=>sum+claim.requested_credits,0),benchmark_calls_second:externalBenchmarkRequests,
+      original_source_clocks_unchanged:expectReuse,restarted_owner_read:true,wrong_owner_runs:0};
+    if(charterComposition) {
+      assert.equal(setupRequests,32); assert.equal(firstFresh,6); assert.equal(fresh,8);
+      assert.equal(source.snapshots.length,14,"Actual generator retains the six partial and eight complete original sources");
+      const frozenAt="2026-09-25T12:00:00.000Z";
+      const plan=restarted.buildRelativePlanProspectivePlan({owner_user_id:owner,
+        source_revision:{commit_ref:identity.commit_ref,build_identity:restarted.relativePlanCanonicalBuildIdentity,
+          deploy_id:identity.deploy_id},windows:{
+          training:{start_at:"2026-09-28T13:30:00.000Z",end_at:"2026-09-29T20:00:00.000Z"},
+          held_out:{start_at:slot,end_at:nextSlot},
+          walk_forward:{start_at:"2026-10-05T13:30:00.000Z",end_at:"2026-10-06T20:00:00.000Z"},
+        }},frozenAt); assert(plan);
+      // Isolated historical admin fixture ONLY. No real pre-forward database
+      // freeze/model witness, market-quality acceptance or refitting is claimed.
+      sql(`insert into relative_plan_prospective_comparisons(id,owner_user_id,model_version,plan_fingerprint,plan_json,frozen_at)
+        values('22222222-2222-4222-8222-222222222222','${owner}','${plan.model_version}','${plan.plan_fingerprint}',
+          '${JSON.stringify(plan).replaceAll("'","''")}'::jsonb,'${frozenAt}');`);
+      const asOf=new OriginalDate(Math.max(OriginalDate.parse("2026-10-07T21:00:00.000Z"),OriginalDate.now()));
+      const read=()=>restarted.createRelativePlanProspectiveService().read(owner,asOf);
+      const before=await read(); assert.equal(before.status,"available",before.blocker);
+      const heldBefore=before.learning.partitions.find(partition=>partition.partition==="held_out");
+      assert.equal(heldBefore.enrolled_decision_count,1); assert.equal(heldBefore.original_population_count,8);
+      assert.equal(heldBefore.missing_outcome_count,8);
+      assert.equal(before.learning.diagnostics.length,1);
+      assert.equal(before.learning.diagnostics[0].fingerprint,record.scan_run_fingerprint);
+      assert.equal(before.learning.diagnostics[0].reason,"original_complete_assessed_population_unavailable");
+      const originalIds=secondDecision.candidates.map(member=>member.candidate_id).sort();
+      const beforeCharter=before.learning.full_charter.partitions.find(partition=>partition.partition==="held_out");
+      assert.deepEqual(beforeCharter.observations[0].rows.map(row=>row.candidate_id).sort(),originalIds);
+      assert.equal(beforeCharter.operational.reliability.admitted_attempt_count,2);
+      assert.equal(beforeCharter.operational.cost.reserved_provider_credits,16,JSON.stringify({
+        operational:beforeCharter.operational,
+        attempt_credit_summaries:allAttempts.map(attempt=>({
+          keys:Object.keys(attempt.payload_json),
+          normal:attempt.payload_json.basic_free_scheduled_scan_credit_reservation??null,
+          series:attempt.payload_json.observation_series_credit_reservation??null,
+        })),
+      }));
+      futureOutcomePlans=source.snapshots.map((snapshot,index)=>({...snapshot,synthetic_win:index%2===0}));
+      clock=OriginalDate.parse(expiry)+4500000;
+      const scanRequests=externalRequests;
+      const evaluate=()=>require(join(generated,"outcome-route.cjs")).POST(new Request("http://closed-fixture/api/recommendations/evaluate-outcomes",{
+        method:"POST",headers:{"x-automation-secret":environment.AUTOMATION_SECRET,"Content-Type":"application/json"},
+        body:JSON.stringify({mode:"official_live_today",horizons:["60m"],max_candle_requests:4,max_batches:1}),
+      }));
+      const outcomePasses=[];
+      for(let index=0;index<4;index++) {
+        const initial=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_outcomes t;"));
+        const creditsBefore=externalRequests;
+        delete require.cache[require.resolve(join(generated,"outcome-route.cjs"))];
+        const evaluated=await evaluate(),body=await evaluated.json();
+        assert.equal(evaluated.status,200,JSON.stringify(body));
+        const current=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_outcomes t;"));
+        assert(externalRequests-creditsBefore<=4);
+        for(const prior of initial) assert.deepEqual(current.find(row=>row.id===prior.id),prior);
+        outcomePasses.push({requests:externalRequests-creditsBefore,persisted_outcomes:current.length});
+      }
+      assert.equal(Number(sql("select count(*) from recommendation_outcomes;")),14);
+      assert.equal(externalRequests-scanRequests,14);
+      const completedOutcomes=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_outcomes t;"));
+      const completedRequests=externalRequests;
+      const repeated=await evaluate(); assert.equal(repeated.status,200); assert.equal(externalRequests,completedRequests);
+      assert.deepEqual(JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_outcomes t;")),completedOutcomes);
+      delete require.cache[require.resolve(join(generated,"reader.cjs"))];
+      const refreshed=require(join(generated,"reader.cjs"));
+      const after=await refreshed.createRelativePlanProspectiveService().read(owner,asOf);
+      assert.equal(after.status,"available",after.blocker);
+      const held=after.learning.partitions.find(partition=>partition.partition==="held_out");
+      assert.equal(held.enrolled_decision_count,1); assert.equal(held.original_population_count,8);
+      assert.equal(held.canonical_outcome_count,8); assert.equal(held.missing_outcome_count,0);
+      assert.equal(held.original_membership_fingerprint,heldBefore.original_membership_fingerprint);
+      const charter=after.learning.full_charter,measured=charter.partitions.find(partition=>partition.partition==="held_out");
+      assert.deepEqual(measured.observations[0].rows.map(row=>row.candidate_id).sort(),originalIds);
+      assert.equal(measured.quality.outcome_coverage.value,1);
+      assert.equal(measured.quality.original_population_count,8);
+      assert.equal(charter.computed_disposition,"evidence_incomplete");
+      assert.equal(charter.terminal_quality_decision,null); assert.equal(after.learning.terminal_quality_decision,null);
+      assert.equal(after.learning.trained_probability_model,null);
+      assert.equal(after.learning.quality_improvement_claimed,false);
+      assert(charter.missing_dimensions.includes("held_out_durably_frozen_training_probability_model_required"));
+      assert.equal((await refreshed.createRelativePlanProspectiveService().read("00000000-0000-4000-8000-000000000002",asOf)).learning,null);
+      const heldRows=held.decisions[0].comparison.candidates;
+      assert.equal(heldRows.filter(row=>row.terminal_outcome==="target_before_stop").length,4);
+      assert.equal(heldRows.filter(row=>row.terminal_outcome==="stop_before_target").length,4);
+      const readActual=()=>refreshed.createRelativePlanProspectiveService().read(owner,asOf);
+      const originalSnapshot=source.snapshots.find(snapshot=>snapshot.scan_run_id===secondRun.run_fingerprint);
+      assert(originalSnapshot);
+      const jsonSql=value=>`'${JSON.stringify(value).replaceAll("'","''")}'::jsonb`;
+      for(const path of ["{provider_source}","{scanner_decision_input_snapshot,features,proposed_entry_low}"]) {
+        sql(`update recommendation_snapshots set payload_json=jsonb_set(payload_json,'${path}',
+          ${path==="{provider_source}" ? `'"wrong_provider"'::jsonb` : "'999999'::jsonb"}) where id='${originalSnapshot.id}';`);
+        const changed=await readActual(); assert.equal(changed.status,"available",changed.blocker);
+        const partial=changed.learning.partitions.find(partition=>partition.partition==="held_out");
+        assert.equal(partial.enrolled_decision_count,1); assert.equal(partial.original_population_count,8);
+        assert.equal(partial.original_membership_fingerprint,held.original_membership_fingerprint);
+        assert.equal(partial.canonical_outcome_count,7); assert.equal(partial.missing_outcome_count,1);
+        assert.equal(partial.baseline.precision_at_3,null); assert.equal(partial.challenger.expectancy_r,null);
+        assert.equal(changed.learning.terminal_quality_decision,null);
+        sql(`update recommendation_snapshots set payload_json=${jsonSql(originalSnapshot.payload_json)} where id='${originalSnapshot.id}';`);
+      }
+      const originalRunPayload=secondRun.payload_json;
+      for(const invalidRunPayload of [
+        Object.fromEntries(Object.entries(originalRunPayload).filter(([name])=>name!=="decision_lineage_receipt")),
+        {...originalRunPayload,decision_lineage_receipt:{...originalRunPayload.decision_lineage_receipt,scan_run_fingerprint:"wrong_run"}},
+      ]) {
+        sql(`update recommendation_scan_runs set payload_json=${jsonSql(invalidRunPayload)} where id='${secondRun.id}';`);
+        const invalid=await readActual(); assert.equal(invalid.status,"available",invalid.blocker);
+        const rejected=invalid.learning.partitions.find(partition=>partition.partition==="held_out");
+        assert.equal(rejected.enrolled_decision_count,0); assert.equal(rejected.canonical_outcome_count,0);
+        assert(invalid.learning.diagnostics.some(row=>row.fingerprint===secondRun.run_fingerprint &&
+          row.reason==="original_decision_or_lineage_missing_ambiguous"));
+        assert.equal(invalid.learning.terminal_quality_decision,null);
+      }
+      sql(`update recommendation_scan_runs set payload_json=${jsonSql(originalRunPayload)} where id='${secondRun.id}';`);
+      const originalAttempt=allAttempts.find(attempt=>attempt.scan_run_fingerprint===secondRun.run_fingerprint);
+      assert(originalAttempt);
+      const invalidCredit={...originalAttempt.payload_json,
+        basic_free_scheduled_scan_credit_reservation:{...originalAttempt.payload_json.basic_free_scheduled_scan_credit_reservation,
+          finalization_status:"invalid_transition",finalization_proven:false,safe_blocker:"invalid_transition"}};
+      sql(`update scheduled_scan_attempts set payload_json=${jsonSql(invalidCredit)} where id='${originalAttempt.id}';`);
+      const uncertain=await readActual(); assert.equal(uncertain.status,"available",uncertain.blocker);
+      const uncertainRuntime=uncertain.learning.full_charter.partitions.find(partition=>partition.partition==="held_out").operational;
+      assert.equal(uncertainRuntime.reliability.completed_attempt_count,2);
+      assert.equal(uncertainRuntime.cost.reserved_provider_credits,null);
+      assert(uncertainRuntime.blockers.includes("relative_plan_operational_exact_finalized_credit_evidence_incomplete"));
+      sql(`update scheduled_scan_attempts set payload_json=${jsonSql(originalAttempt.payload_json)} where id='${originalAttempt.id}';`);
+      const beforeRecording=new OriginalDate(Math.min(...completedOutcomes.map(row=>OriginalDate.parse(row.created_at)))-1);
+      const historicalRead=await refreshed.createRelativePlanProspectiveService().read(owner,beforeRecording);
+      assert.equal(historicalRead.status,"available",historicalRead.blocker);
+      const unrecorded=historicalRead.learning.partitions.find(partition=>partition.partition==="held_out");
+      assert.equal(unrecorded.enrolled_decision_count,1); assert.equal(unrecorded.original_population_count,8);
+      assert.equal(unrecorded.canonical_outcome_count,0); assert.equal(unrecorded.missing_outcome_count,8);
+      const restored=await readActual(); assert.equal(restored.status,"available",restored.blocker);
+      assert.deepEqual(restored.learning,after.learning,"All original membership, outcomes and charter measurements survive restored isolated tampering");
+      assert.deepEqual(JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_outcomes t;")),completedOutcomes);
+      assert.equal(externalRequests,completedRequests,"Readback and isolated negative controls cannot acquire market data");
+      charterCompositionEvidence={evidence_scope:"synthetic_actual_original_source_and_canonical_outcomes_not_forward_seal",
+        setup_requests:setupRequests,scheduled_requests:16,separate_synthetic_outcome_requests:14,outcome_passes:outcomePasses,
+        source_decisions:2,source_research_snapshots:14,retained_original_members:16,enrolled_decisions:1,
+        excluded_partial_decisions:1,original_enrolled_population:8,canonical_enrolled_outcomes:8,
+        original_membership_stable:true,completed_repeat_requests:0,prior_outcomes_unchanged:true,
+        positive_enrolled_outcomes:4,negative_enrolled_outcomes:4,wrong_owner_learning:null,
+        tampered_source_missing_outcomes:1,tampered_lineage_enrolled_decisions:0,
+        unproven_finalization_cost:null,unrecorded_as_of_outcomes:0,restored_charter_unchanged:true,
+        operational_attempts:measured.operational.reliability.admitted_attempt_count,
+        reserved_provider_credits:measured.operational.cost.reserved_provider_credits,
+        disposition:charter.computed_disposition,missing_dimensions:charter.missing_dimensions,
+        observed_context_blockers:measured.observations[0].rows.map(row=>({ticker:row.ticker,blockers:row.blockers})),
+        trained_model:null,terminal_quality_decision:null,quality_improvement_claimed:false};
+      externalRequests=scanRequests;
+    }
+  }
   assert.equal(Number(sql("select count(*) from recommendations;")),syntheticPublicationCount);
   assert.equal(Number(sql("select count(*) from positions;")),0);
   // Disable/expiry are exercised by the real scheduled entrypoint, not a mock.
@@ -863,14 +1450,19 @@ try {
   const cleanup=await scheduler(new Request("http://closed-scheduler",{method:"POST",
     body:JSON.stringify({next_run:nextSlot})}),{deploy:{id:identity.deploy_id,context:"production",published:true}});
   assert.equal(cleanup.status,204);
-  assert.equal(Number(sql("select count(*) from scheduled_scan_attempts;")),1);
+  assert.equal(Number(sql("select count(*) from scheduled_scan_attempts;")),benchmarkReuse?2:1);
   assert.equal(Number(sql("select count(*) from recommendations;")),syntheticPublicationCount);
   originalLog(JSON.stringify({evidence_mode:"synthetic_closed_packaged_input_runtime_actual_source_schema",
-    scenario:closing?"closing_research_only":wrongPolicy?"invalid_policy":opening?"opening_cold_history":cold?"cold_history":"warm_history_restart",
+    scenario:benchmarkReuse?"retained_benchmark_two_slot":closing?"closing_research_only":wrongPolicy?"invalid_policy":opening?"opening_cold_history":cold?"cold_history":"warm_history_restart",
     ...(closing?{late_publication_withheld:true,original_research_sources:researchSnapshots.length}:{}),
-    setup_synthetic_requests:setupRequests,scheduled_synthetic_requests:externalRequests,
-    attempts:rows.length,cycles:receipts.length,claims:claims.length,decision_version:record?.record_version,
-    fresh_inputs:record?.candidates.filter(c=>c.data.freshness==="fresh").length,
+    setup_synthetic_requests:setupRequests,scheduled_synthetic_requests:benchmarkReuse?
+      benchmarkReuseEvidence.first_scan_requests+benchmarkReuseEvidence.second_scan_requests:externalRequests,
+    ...(benchmarkReuse ? {benchmark_reuse_evidence:benchmarkReuseEvidence} : {}),
+    ...(charterComposition ? {charter_composition_evidence:charterCompositionEvidence} : {}),
+    attempts:benchmarkReuse?benchmarkReuseEvidence.attempts:rows.length,
+    cycles:benchmarkReuse?benchmarkReuseEvidence.cycles:receipts.length,
+    claims:benchmarkReuse?benchmarkReuseEvidence.reservations:claims.length,decision_version:record?.record_version,
+    fresh_inputs:benchmarkReuse?benchmarkReuseEvidence.second_fresh_inputs:record?.candidates.filter(c=>c.data.freshness==="fresh").length,
     ...(diagnoseOutcomes ? {outcome_chain_evidence:outcomeChainEvidence,outcome_chain_diagnostic:{learning_acceleration_enabled:true,
       candidate_population:record?.candidates.length,
       research_snapshot_count:researchSnapshots.length,
@@ -883,6 +1475,9 @@ try {
         freshness:record?.candidates.find(candidate=>candidate.candidate_id===row.payload_json?.candidate_id)?.data.freshness??null}))}} : {}),
     ...(zeroLatestVolume ? { zero_latest_volume_inputs:record.candidates.filter(candidate=>candidate.data.input_snapshot?.intraday_indicators?.latestVolume===0).length } : {}),
     ...(missingLatestVolume ? {missing_volume_research_sources:researchSnapshots.length} : {}),
+    ...((staleBenchmark || partialBenchmark) ? {benchmark_input_fitness:staleBenchmark?"stale_rejected_not_no_trade":"partial_current_bar_discarded",
+      retained_market_regime_input_policy:scanRuns[0]?.payload_json.market_regime?.input_evidence?.policy_version??null,
+      terminal_reservation_status:claims[0]?.status,decision_count:scanRuns.length} : {}),
     ...(contextLatency ? {context_latency_proof:scannerRateLimit?"preserved_scanner_rate_limit":expectContextTimeout?"reproduced_timeout":"completed",
       bounded_duration_ms:boundedDurationMs,route_budget_ms:23000,cleanup_reserve_ms:3000,
       synthetic_scanner_delay_ms:1800,synthetic_benchmark_delay_ms:benchmarkDelayMs,
@@ -892,6 +1487,7 @@ try {
   if(diagnoseOutcomes && !wrongPolicy) {
     assert.equal(researchSnapshots.length,cold?3:6,
       "Fresh, non-published versioned inputs must retain research outcome sources during a regular afternoon session");
+  }
   }
 
 } catch (error) {

@@ -109,6 +109,61 @@ function buildReceipt({
 }
 
 test.describe("SV-A.2 observation-cycle receipts", () => {
+  test("retains the whole confirmed scan reservation, not just its scanner subset", () => {
+    const summary = {
+      guard_version: "basic_free_scheduled_scan_credit_guard_v1",
+      contract_version: "basic_free_discovery_credit_reservation_v1",
+      scope: "normal_scheduled_scan",
+      status: "provider_execution_allowed",
+      provider_execution_allowed: true,
+      trading_date: "2026-09-25",
+      minute_bucket: "2026-09-25T16:15:00.000Z",
+      requested_credits: 8,
+      declared_daily_credit_budget: 800,
+      declared_per_minute_credit_budget: 8,
+      daily_reserved_credits: 8,
+      daily_remaining_credits: 792,
+      minute_reserved_credits: 8,
+      minute_remaining_credits: 0,
+      idempotent: false,
+      finalization_status: "finalized",
+      finalization_proven: true,
+      safe_blocker: null,
+    };
+    const receipt = (reservation: unknown = summary, scannerCredits = 6) =>
+      buildReceipt({
+        outcome: "scanned",
+        scanLog: {
+          basic_free_scheduled_scan_credit_reservation: reservation,
+        } as ScanLogEntry,
+        configure(recorder) {
+          recorder.updateMarketDataFetch({
+            attempted_tickers: 8,
+            provider_calls_reserved_count: scannerCredits,
+          });
+        },
+      });
+    // Six acquisition credits plus two separately reserved benchmarks are
+    // still one eight-credit scan. Reuse can allocate all eight to acquisition.
+    for (const scannerCredits of [6, 8]) {
+      const record = receipt(summary, scannerCredits);
+      expect(record?.receipt_json.provider_request.reserved_credits).toBe(8);
+      expect(observationCycleReceiptFromUnknown(record?.receipt_json)).not.toBeNull();
+    }
+    // A confirmed reservation is not a provider-success or outcome assertion.
+    expect(receipt()?.receipt_json.provider_response.status).toBe("failed");
+    for (const reservation of [
+      null,
+      { ...summary, guard_version: "unknown" },
+      { ...summary, requested_credits: 99 },
+      { ...summary, trading_date: "2026-09-24" },
+      { ...summary, status: "per_minute_credit_limit_reached", provider_execution_allowed: false,
+        finalization_status: "not_started", finalization_proven: null, safe_blocker: "per_minute_credit_limit_reached" },
+    ]) expect(receipt(reservation)?.receipt_json.provider_request.reserved_credits).toBe(6);
+    // Never hide a contradictory larger observed scanner allocation.
+    expect(receipt(summary, 9)?.receipt_json.provider_request.reserved_credits).toBe(9);
+  });
+
   test("records an active route receipt with inert authority", () => {
     const record = buildReceipt();
 
