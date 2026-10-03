@@ -2,6 +2,49 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
+**Completed local integration / Next / Blocked — original-input to full-charter chain:**
+Codex consolidates the completed IF-2b → IF-4 input-fitness, canonical outcome
+and indivisible charter implementation into existing draft PR #732. No competing
+ranking hypothesis, new product track or additional schema is selected. The
+combined affected suite covers all 27 changed test files: 302 serial checks pass
+in 31.8 minutes, exit zero, at clean local source
+`daa590ad4788884893654122d490ad52d7e4c6ed`. Product code is exactly
+`6c01a5d550b79efec51d28c7faa492acd9ec847f`; subsequent edits are ledger-only.
+The prior normal exact Linux build, nonincremental types and full lint therefore
+remain applicable to that unchanged product tree. Earlier slice counts overlap
+and are not additive unique coverage. The first combined invocation lacked the
+required react-server condition and failed at module loading before tests ran;
+only the corrected terminal run is passing evidence. Combined log:
+`/private/tmp/ture-original-chain-integration-regression-oct3.log`.
+
+The actual isolated database, PostgREST, SDK, owner service and scheduled caller
+retain the original population through input acquisition/reuse, visible/hidden
+source retention, canonical original horizons, capped outcome recovery, restart,
+committed training, prospective measurement and immutable full-charter result.
+Synthetic transport prices and historical model-clock fixtures are disclosed:
+these prove local integrity and behavior, not a completed live forward series,
+hosted behavior or recommendation-quality lift. Original missing members remain
+missing, all eleven charter dimensions remain required, and no ranking formula,
+confidence threshold or live policy is promoted. Ordinary acquisition/recovery
+behavior changes as documented below; frozen observation authority remains intact.
+
+Remote main and production still read back as `55576078`; ready production
+deploy is `6ac059102df2c60008151e2a`. PR #732 remains draft at remote head
+`bf457f45` before the selected single normal fast-forward integration push.
+Its last draft CI run `37095555550` failed before the native proof on public ECR
+rate limiting; old CI/preview status cannot attest to this local revision. The
+unchanged mandatory audit has five high findings, so release remains held.
+This integration selects no merge, production deploy, migration, configuration
+change, real provider request or broker action. The additive result migration
+remains unapplied in production. Netlify account readback is credit-pro with
+auto-top-up false; plan credits and legacy build-minute statistics are not a
+verified remaining balance. Official credit pricing makes the selected draft
+preview deployment zero deploy credits; no intentional preview traffic or paid
+production event is selected. Next: update and review this existing draft,
+satisfy protected release requirements without bypass, then collect the exact
+input-qualified original forward evidence against the frozen baseline. Complete
+local tests are not `main` verification or the recommendation graduation gate.
+
 **Completed local implementation / Next / Blocked — complete paged original outcome recovery:**
 Codex owns one CLOSED IF-4 vertical on `codex/original-outcome-pages-oct3`,
 following the completed local `a75e782f` and freshly verified GitHub main
