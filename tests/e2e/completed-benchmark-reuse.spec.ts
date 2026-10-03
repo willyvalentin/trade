@@ -484,7 +484,10 @@ test("durable history preparation preserves the full original session while resu
     ({ slot: slot.slot, tickers: slot.members.map(member => member.ticker) }));
   expect(original(adopted)).toEqual(original(feasibility));
   const preparation = adopted.full_original_history_evidence;
-  expect(preparation).toMatchObject({ setup_credit_reservations: 95, setup_requests: 95, setup_intraday_requests: 0,
+  expect(preparation).toMatchObject({
+    scope: "actual_budgeted_history_sql_sdk_full_original_history_synthetic_not_live",
+    preparation_policy: "completed_session_history_preparation_v1",
+    setup_credit_reservations: 95, setup_requests: 95, setup_intraday_requests: 0,
     setup_budget_scope: "actual_isolated_durable_owner_bound_reservation", restarted_batches: 12,
     maximum_requests_in_modeled_minute: 8, minute_budget_blocked_without_provider: true,
     corrupted_paid_history_retry_blocked: true, legacy_derived_price_unchanged: true,
@@ -497,6 +500,8 @@ test("durable history preparation preserves the full original session while resu
   expect(preparation.preparation_passes).toHaveLength(12);
   expect(preparation.preparation_passes.every((pass: { original_members: unknown[]; publication_allowed: boolean; broker_allowed: boolean }) =>
     pass.original_members.length === 95 && !pass.publication_allowed && !pass.broker_allowed)).toBe(true);
+  expect(preparation.preparation_passes.every((pass: { reservation_accounting_complete: boolean; cost_scope: string }) =>
+    pass.reservation_accounting_complete && pass.cost_scope === "current_invocation_known_credits_durable_ledger_is_authoritative")).toBe(true);
   expect(preparation.preparation_passes.map((pass: { reserved_credits: number }) => pass.reserved_credits))
     .toEqual([...Array(11).fill(8), 7]);
   expect(new Set(preparation.preparation_passes.map((pass: { universe_fingerprint: string }) => pass.universe_fingerprint)).size).toBe(1);
@@ -516,6 +521,7 @@ for (const fault of ["rate_limit", "provider_identity", "cache_write", "reservat
         repeated_provider_requests: 0, first: { status: "blocked" },
         same_minute_restart: { status: "blocked" }, later_minute_restart: { status: "blocked" } } });
     const evidence = receipt.preparation_failure_evidence;
+    expect(evidence.first.reservation_accounting_complete).toBe(!["reservation", "finalization"].includes(fault));
     for (const pass of [evidence.first, evidence.same_minute_restart, evidence.later_minute_restart]) {
       expect(pass.original_members).toHaveLength(95);
       expect(pass.original_members.map((row: { ticker: string }) => row.ticker))
@@ -533,6 +539,32 @@ for (const fault of ["rate_limit", "provider_identity", "cache_write", "reservat
       blocker: "daily_credit_limit_reached", requested_credits: 0 });
   });
 }
+
+test("concurrent history preparation has one provider winner and resumes different missing members", () => {
+  test.setTimeout(90000);
+  const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--cold",
+    "--rotation-day", "--prospective-enrollment", "--full-original-history-setup", "--budgeted-history-setup",
+    "--history-preparation-fault=concurrent"], { cwd: process.cwd(), encoding: "utf8", timeout: 70000 });
+  expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
+  const receipt = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
+  expect(receipt).toMatchObject({ actual_provider_requests: 0, production_actions: 0, publications: 0,
+    broker_actions: 0, cleanup: "inert", preparation_concurrency_evidence: {
+      original_population_count: 95, synthetic_provider_requests: 16, unique_requested_tickers: 16,
+      repeated_provider_requests: 0, reserved_credits: 16, finalized_credits: 16, maximum_minute_credits: 8,
+      same_minute_restart: { blocker: "per_minute_credit_limit_reached", requested_credits: 0 },
+      later_minute_restart: { status: "partial", requested_credits: 8, reserved_credits: 8, finalized_credits: 8 },
+    } });
+  const evidence = receipt.preparation_concurrency_evidence;
+  expect(evidence.overlapping.filter((pass: { status: string }) => pass.status === "partial")).toHaveLength(1);
+  expect(evidence.overlapping.filter((pass: { blocker: string }) => pass.blocker === "attempt_in_progress")).toHaveLength(1);
+  for (const pass of [...evidence.overlapping, evidence.same_minute_restart, evidence.later_minute_restart]) {
+    expect(pass.original_members).toHaveLength(95);
+    expect(pass.original_members.map((member: { ticker: string }) => member.ticker))
+      .toEqual(evidence.overlapping[0].original_members.map((member: { ticker: string }) => member.ticker));
+    expect(pass.publication_allowed).toBe(false);
+    expect(pass.broker_allowed).toBe(false);
+  }
+});
 
 test("actual original complete input reaches full charter through canonical outcomes without granting quality authority", () => {
   test.setTimeout(120000);

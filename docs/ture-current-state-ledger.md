@@ -3,13 +3,29 @@
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
 **Now / Next / Blocked — completed-history input fitness:**
-Full-original same-day history feasibility now passes the actual isolated
-scanner/cache/scheduled-route/canonical-outcome/full-charter composition below.
-The result selects bounded product adoption of existing history acquisition,
-not a larger narrow watchlist, another allocation heuristic or a ranking change.
-The next primary must enforce real durable preparation cost and resumption;
-the synthetic minute cap is not production budget enforcement. Keep release,
-data-entitlement and OPEN acceptance holds separate. No live preparation is armed.
+Full-original same-day history preparation is locally implemented on product
+`00e2a298132a7e3966349d59213c7c3cfa7dddb9`, with actual isolated SQL/SDK credit
+reservation, finalization and restart behavior, consumed by the existing normal
+scanner/source/canonical/full-charter composition. The operation has no installed
+runtime caller or scheduler hook; production preparation is not armed. The
+receipt below distinguishes its verified local behavior from integration and
+OPEN authority. Release audit/CI, data entitlement/shared-key capacity and full
+forward quality acceptance remain separate holds.
+
+**Next primary — bounded CLOSED IF-4 original-population outcome continuation:**
+Codex owns one 4–16 active-hour investigation/delivery, initial investigation
+capped at four. Determine whether the existing owner-bound outcome route can
+resume the full original session's research population through canonical 60m
+learning readback under its unchanged per-pass limits. The preparation proof
+currently follows only the first complete eight-member decision; its 168 missing
+labels are not proof of a product defect. Reproduce the actual remaining-source
+selection, persistence and restarted consumer before selecting any correction.
+Retain all 26 original decisions, 22 enrolled decisions/176 enrolled members,
+opening exclusions and late-session incomplete horizons; no winner selection,
+denominator reduction, shorter horizon, new ranking hypothesis, model seal,
+general worker or live activation. A passing continuation closes only the
+outcome-coverage link, not the full forward quality charter. Release and OPEN
+holds do not prevent this provider-free isolated investigation.
 The already-paid legacy history retention is locally complete and behavior-
 verified on `5474cbb0c2af7204dd092cb3da0fb0c6328bc855`, tree
 `c9ceb742f5199222ddc5579d4a6bf9c904eeaf85`. The original-source composition
@@ -432,7 +448,7 @@ not claimed as a new build, protected CI, main merge or production verification.
 This delivery is local comparison evidence and regression coverage; no provider,
 production configuration, migration, publication or broker action occurred.
 
-**Next bounded CLOSED IF-2b adoption:** Codex owns one primary 4–16 active-hour
+**Historical selected bounded CLOSED IF-2b adoption:** Codex owns one primary 4–16 active-hour
 slice, initial investigation at most four. Reuse the existing legacy acquisition,
 strict raw-cache validation and Basic Free transactional credit store to make
 same-day historical preparation usable on the complete server-selected original
@@ -447,6 +463,63 @@ Before any OPEN preparation, verify actual entitlements and remaining shared-key
 capacity and freeze a separate bounded observation. This is product adoption
 after the positive composition, not authority to fetch ninety-five live symbols.
 Audit/CI release holds and the full forward recommendation-quality gate remain.
+
+**Locally complete bounded original-session preparation — 2026-10-03:**
+`completed_session_history_preparation_v1` selects the existing rotating
+scanner's original regular-session universe server-side before a verified open.
+It accepts no caller ticker/date/owner/budget. Reuse of the existing validated
+legacy daily-response acquisition and Basic Free transactional reservation
+store adds no schema, route, scheduler or publication authority. Each invocation
+acquires at most the configured minute allowance (maximum eight), with a 45s
+operation deadline and separate bounded finalization. Same-day valid histories
+are reused; stable owner/date/ticker claims cannot be replaced by changing
+invocation minute or population. Saved, validated sources may repair only their
+existing claim's finalization, never re-fetch. Missing/ambiguous reservation or
+finalization makes accounting explicitly incomplete; failed claims remain
+charged. A history-only write never freshens legacy derived prices or their
+clock, and uses conditional persistence to avoid overwriting a scanner update.
+
+The actual isolated Postgres/PostgREST/SDK proof restarts twelve batches and
+retains all 95 original symbols: 95 finalized one-credit preparation claims,
+maximum eight per minute, separately from 26 scheduled claims/208 credits and
+eight synthetic outcome requests. No paid preparation is hidden as free cache.
+The unchanged original 26-slot/208-member population has 200 fresh observations,
+22 complete enrolled decisions and four explicit exclusions. Its first complete
+decision is `rec_scan_run_r1l45` at 14:30:20Z, whose eight original members reach
+the unchanged canonical 60m source/outcome reader. Full charter still retains
+176 members, eight canonical outcomes and 168 missing labels, with precision
+delta zero, model/terminal-quality decision null and `evidence_incomplete`.
+This is synthetic input-fitness evidence, not measured recommendation lift or
+market-wide access. Partial legacy information is not represented as identical
+to the rejected historical setup arm.
+
+On exact product revision `00e2a298`, 96 affected acquisition, reservation,
+scheduled-runtime, canonical-coverage and original-learning tests pass (17.2m).
+Final test-only review corrects preparation-policy attribution and checks
+uncertain accounting plus an actual simultaneous SDK race. Its ten final
+behavior checks pass (2.2m): full composition; rate limit, wrong provider identity,
+cache/claim/finalization failure, daily limit, cancellation/deadline; and one
+provider winner with no duplicated purchase across same/later-minute restart.
+Two minutes in the concurrency proof retain 16 distinct finalized claims with
+eight maximum per minute and zero repeated ticker request. Strict nonincremental
+types and scoped lint pass. The exact archived product passes the normal locked
+Linux Node 22 / Next 16.3.8 build, full TypeScript and all 33 pages, with no
+production credentials or build network; its product files/lockfile are compared
+byte-for-byte with the worktree. Test-only receipt/review additions do not change
+those product bytes. Logs: `/private/tmp/ture-budgeted-history-combined-oct3.log`,
+`/private/tmp/ture-budgeted-history-final-behavior-oct3.log`,
+`/private/tmp/ture-budgeted-history-final-review-types-oct3.log` and
+`/private/tmp/ture-budgeted-history-exact-linux-build-oct3.log`.
+
+Classification: local `recommendation_capability` for attributable data
+preparation, not main or production behavior. No external provider, production,
+configuration, migration, publication or broker action occurs. No automatic
+production caller is installed. Existing declared owner-bound NY-day/minute
+budgets are not proof of actual shared-provider-key remaining quota/reset or
+entitlements; freeze those separately before any OPEN preparation. Main remains
+`55576078`, remote draft #732 remains `bf457f45`, failed protected verification
+and the unpatched mandatory dependency audit remain release holds. No push,
+retry, merge or bypass is selected. Graduation remains `not_met`.
 
 **Completed original scanner to existing full-charter composition:**
 Codex reuses existing draft PR #732's isolated

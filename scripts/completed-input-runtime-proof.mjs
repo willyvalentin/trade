@@ -21,7 +21,7 @@ const lateOriginalOutcomes = process.argv.includes("--late-original-outcomes");
 const fullOriginalHistorySetup = process.argv.includes("--full-original-history-setup");
 const budgetedHistorySetup = process.argv.includes("--budgeted-history-setup");
 const historyPreparationFault = process.argv.find(value=>value.startsWith("--history-preparation-fault="))?.split("=")[1];
-assert(!historyPreparationFault || budgetedHistorySetup && ["rate_limit","provider_identity","cache_write","reservation","finalization","daily_limit","abort","deadline"].includes(historyPreparationFault),
+assert(!historyPreparationFault || budgetedHistorySetup && ["rate_limit","provider_identity","cache_write","reservation","finalization","daily_limit","abort","deadline","concurrent"].includes(historyPreparationFault),
   "Preparation fault uses only its isolated actual acquisition/budget boundary");
 assert(!budgetedHistorySetup || fullOriginalHistorySetup,
   "Budgeted history is the actual same original-source composition, not another schedule or ranking arm");
@@ -219,7 +219,7 @@ try {
       export { scannerUniverseTickers } from './lib/scanner-universe';
       export { scanMarket } from './lib/scanner';
       ${fullOriginalHistorySetup ? "export { readCompletedDailyContext } from './lib/scanner-completed-daily-context';" : ""}
-      ${budgetedHistorySetup ? "export { prepareCompletedSessionHistories } from './lib/server/completed-session-history-preparation';" : ""}
+      ${budgetedHistorySetup ? "export { prepareCompletedSessionHistories, COMPLETED_SESSION_HISTORY_PREPARATION_VERSION } from './lib/server/completed-session-history-preparation';" : ""}
       ${fullOriginalHistorySetup ? "export { createRelativePlanProspectiveService } from './lib/server/relative-plan-prospective-service';" : ""}
       ${existingPremarketSetup ? "export { generateRecommendations } from './lib/recommendation-generator';" : ""}
       export { readOwnedCompletedBenchmarkReuse, isValidCompletedBenchmarkReuse } from './lib/completed-benchmark-reuse';
@@ -358,6 +358,7 @@ try {
       if(historyPreparationFault==="rate_limit") return Response.json({status:"error",code:429,message:"Synthetic CLOSED credit limit"},{status:429});
       if(historyPreparationFault==="abort") preparationFaultController.abort();
       if(historyPreparationFault==="deadline") await syntheticDelay(2000,undefined,{signal:init?.signal});
+      if(historyPreparationFault==="concurrent") await syntheticDelay(100,undefined,{signal:init?.signal});
       if (benchmark) assert.equal(url.searchParams.get("adjust"),
         existingPremarketSetup && clock===OriginalDate.parse("2026-10-01T13:00:00Z") ? null : "splits");
       const intraday = interval !== "1day";
@@ -499,7 +500,35 @@ try {
       returned_watchlist:prepared.pre_market_candidates,publication_count:0};
     originalLog(JSON.stringify({existing_premarket_evidence:existingPremarketEvidence}));
   }
-  if(historyPreparationFault) {
+  if(historyPreparationFault==="concurrent") {
+    clock=OriginalDate.parse("2026-10-01T12:45:00Z");
+    process.env.TURE_BASIC_FREE_CATALOG_DAILY_CREDIT_BUDGET="16";
+    const overlapping=await Promise.all([readers.prepareCompletedSessionHistories(),readers.prepareCompletedSessionHistories()]);
+    assert.equal(overlapping.filter(pass=>pass.status==="partial").length,1);
+    assert.equal(overlapping.filter(pass=>pass.blocker==="attempt_in_progress").length,1);
+    assert(overlapping.every(pass=>pass.original_members.length===95));
+    assert.equal(externalRequests,8);
+    assert.equal(new Set(syntheticRequestEvidence.map(row=>row.ticker)).size,8);
+    delete require.cache[require.resolve(join(generated,"reader.cjs"))];
+    const restarted=require(join(generated,"reader.cjs"));
+    const same=await restarted.prepareCompletedSessionHistories();
+    assert.equal(same.blocker,"per_minute_credit_limit_reached");
+    assert.equal(externalRequests,8);
+    clock+=60000;
+    const later=await restarted.prepareCompletedSessionHistories();
+    assert.equal(later.status,"partial");
+    assert.equal(later.original_members.filter(row=>row.status==="available").length,8);
+    assert.equal(later.original_members.filter(row=>row.status==="acquired").length,8);
+    assert.equal(externalRequests,16);
+    assert.equal(new Set(syntheticRequestEvidence.map(row=>row.ticker)).size,16);
+    const claims=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from basic_free_discovery_credit_reservations t;"));
+    assert.equal(claims.length,16);
+    assert(claims.every(row=>row.requested_credits===1&&row.status==="completed"&&row.finalized_at));
+    assert.equal(Number(sql("select max(credits) from (select sum(requested_credits) credits from basic_free_discovery_credit_reservations group by minute_bucket) t;")),8);
+    fullOriginalHistoryEvidence={original_population_count:95,overlapping,same_minute_restart:same,later_minute_restart:later,
+      synthetic_provider_requests:externalRequests,unique_requested_tickers:16,repeated_provider_requests:0,
+      reserved_credits:16,finalized_credits:16,maximum_minute_credits:8,physical_claims:claims};
+  } else if(historyPreparationFault) {
     clock=OriginalDate.parse("2026-10-01T12:45:00Z");
     process.env.TURE_BASIC_FREE_CATALOG_DAILY_CREDIT_BUDGET="1";
     if(historyPreparationFault==="reservation") sql("revoke execute on function public.claim_basic_free_discovery_credit_reservation(text,text,uuid,date,timestamptz,boolean,smallint,smallint,smallint,text) from service_role;");
@@ -651,8 +680,11 @@ try {
       {...retainedExample,response_identity:{...retainedExample.response_identity,payload_sha256:"wrong-response-digest"}},
     ]) assert.equal(await readers.readCompletedDailyContext(changed,retainedExample.symbol,new OriginalDate(slot)),null);
     assert.equal(externalRequests,requestsBeforeValidation,"Negative history validation cannot refresh a provider");
-    fullOriginalHistoryEvidence={scope:"actual_legacy_scanner_sql_sdk_full_original_history_synthetic_not_live",
-      preparation_policy:"existing_legacy_one_call_retained_history_not_current_input",
+    fullOriginalHistoryEvidence={scope:budgetedHistorySetup
+      ? "actual_budgeted_history_sql_sdk_full_original_history_synthetic_not_live"
+      : "actual_legacy_scanner_sql_sdk_full_original_history_synthetic_not_live",
+      preparation_policy:budgetedHistorySetup ? readers.COMPLETED_SESSION_HISTORY_PREPARATION_VERSION
+        : "existing_legacy_one_call_retained_history_not_current_input",
       normalized_preopen_guard:"completed_context_current_session_unavailable",
       original_universe:originalUniverse.map(candidate=>candidate.ticker),
       original_slots:originalSlots.map(row=>({slot:row.slot,tickers:row.candidates.map(candidate=>candidate.ticker)})),
@@ -677,7 +709,8 @@ try {
     assert.equal(Number(sql("select count(*) from recommendation_scan_runs;")),0);
     assert.equal(Number(sql("select count(*) from positions;")),0);
     originalLog(JSON.stringify({evidence_mode:"synthetic_closed_actual_history_acquisition_sql_sdk_failure",
-      preparation_failure_evidence:fullOriginalHistoryEvidence,actual_provider_requests:0,
+      ...(historyPreparationFault==="concurrent"?{preparation_concurrency_evidence:fullOriginalHistoryEvidence}
+        :{preparation_failure_evidence:fullOriginalHistoryEvidence}),actual_provider_requests:0,
       production_actions:0,publications:0,broker_actions:0,cleanup:"inert"}));
   } else if(rotationDay) {
     assert.equal(setupRequests,fullOriginalHistorySetup?95:existingPremarketSetup?(expandedPremarketSetup?8:4):0);
