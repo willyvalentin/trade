@@ -139,8 +139,18 @@ test("original source writers, immutable freeze and restarted canonical learner 
     missing_label_retained_in_12_original_population: true, later_forward_labels_never_fit_model: true,
     persisted_late_training_label_excluded: true, persisted_future_forward_recording_retained_as_missing: true,
     retained_original_population: 4, missing_outcome_progression: [4, 1, 0], concurrent_single_owner_freeze: true,
+    malformed_ohlc_synthetic_requests: 5, persisted_malformed_terminal_labels_retained_as_missing: true,
+    original_other_outcomes_unchanged: true,
     full_charter_decision: "evidence_incomplete", provider_requests: 0, production_changes: 0,
     broker_actions: 0, quality_improvement_verified: false });
+  expect(receipt.malformed_ohlc_cases.map((row: { fault: string }) => row.fault)).toEqual([
+    "winning_close_above_high", "winning_open_above_high", "losing_negative_close",
+    "losing_close_below_low", "losing_inverted_range",
+  ]);
+  for (const row of receipt.malformed_ohlc_cases) {
+    expect(row).toMatchObject({ original_population_count: 4, canonical_outcome_count: 3,
+      missing_outcome_count: 1, quality_improvement_claimed: false });
+  }
 });
 
 test("the real proxy rejects anonymous, cross-owner and cross-origin comparison requests before command work", async () => {

@@ -39,7 +39,8 @@ try {
       export { getUsEquityMarketSession } from './lib/us-equity-market-calendar';
       export { persistRecommendationScanRun } from './lib/server/recommendation-scan-run-persistence';
       export { persistRecommendationSnapshot } from './lib/server/recommendation-snapshot-persistence';
-      export { persistRecommendationOutcome } from './lib/server/recommendation-outcome-persistence';` },
+      export { persistRecommendationOutcome } from './lib/server/recommendation-outcome-persistence';
+      export { runRecommendationOutcomeEvaluation } from './lib/recommendation-outcome-evaluation-runner';` },
     outfile: join(directory, "reader.cjs") });
   const readers = createRequire(import.meta.url)(join(directory, "reader.cjs"));
   docker("network", "create", network); networkCreated = true;
@@ -152,6 +153,61 @@ try {
   assert.equal(partial.learning.partitions[1].missing_outcome_count, 1);
   assert.equal(partial.learning.partitions[1].original_membership_fingerprint, enrolledBefore.original_membership_fingerprint);
   assert.equal(partial.learning.partitions[1].precision_delta, null);
+  // The actual new-outcome writer and SDK persist malformed terminal candles;
+  // the restarted learner must retain the ORIGINAL member as missing, not a
+  // win, a loss or zero exposure. Stored historical sources are not patched.
+  const originalOtherOutcomes=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_outcomes t;"));
+  const originalSnapshot=source.snapshots[0];
+  const anchor=originalSnapshot.payload_json.outcome_evaluation_anchor;
+  const start=Date.parse(anchor.evaluation_anchor_start_at);
+  let integritySyntheticRequests=0;
+  const integrityCases=[];
+  for(const [fault,patch] of [
+    ["winning_close_above_high",{high:originalSnapshot.target+1,close:originalSnapshot.target+5}],
+    ["winning_open_above_high",{high:originalSnapshot.target+1,open:originalSnapshot.target+5}],
+    ["losing_negative_close",{low:originalSnapshot.stop-1,close:-1}],
+    ["losing_close_below_low",{low:originalSnapshot.stop-1,close:originalSnapshot.stop-5}],
+    ["losing_inverted_range",{high:originalSnapshot.stop-2,low:originalSnapshot.stop-1,close:originalSnapshot.stop}],
+  ]) {
+    const candles=Array.from({length:12},(_,index)=>({timestamp:new Date(start+index*300000).toISOString(),
+      open:originalSnapshot.entry,high:originalSnapshot.entry+0.1,low:originalSnapshot.entry-0.1,
+      close:originalSnapshot.entry,volume:1000,...(index===1?patch:{})}));
+    const acquired=await readers.runRecommendationOutcomeEvaluation({
+      snapshots:[{...originalSnapshot,is_visible:true}],horizons:["60m"],now:new Date(start+3900000),
+      maxCandleRequests:1,fetchCandles:async request=>{integritySyntheticRequests++;return {
+        request,candles,status:"available",provider:"twelve_data",warnings:[],error:null};},
+      persistOutcome:outcome=>readers.persistRecommendationOutcome(outcome,{supabaseClient:client,server:true}),
+    });
+    assert.equal(acquired.persisted_outcome_count,1);
+    const physical=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_outcomes t;"));
+    assert.equal(physical.length,4);
+    for(const prior of originalOtherOutcomes) assert.deepEqual(physical.find(row=>row.id===prior.id),prior);
+    const persisted=physical.find(row=>row.snapshot_fingerprint===originalSnapshot.snapshot_fingerprint);
+    assert.equal(persisted.payload_json.canonical_provider_coverage.candle_validation_policy_version,
+      "positive_coherent_original_horizon_ohlc_v1");
+    assert.equal(persisted.payload_json.canonical_provider_coverage.malformed_candle_count,1);
+    assert(persisted.payload_json.canonical_provider_coverage.blockers.includes("malformed_candle_observed"));
+    const reread=await readers.createRelativePlanProspectiveService().read(owner,readAt);
+    assert.equal(reread.status,"available");
+    const retained=reread.learning.partitions[1];
+    assert.equal(retained.original_population_count,4);
+    assert.equal(retained.original_membership_fingerprint,enrolledBefore.original_membership_fingerprint);
+    assert.equal(retained.canonical_outcome_count,3);
+    assert.equal(retained.missing_outcome_count,1);
+    assert.equal(retained.precision_delta,null);
+    assert.equal(retained.baseline.precision_at_3,null);
+    assert.equal(retained.challenger.expectancy_r,null);
+    const missing=retained.decisions[0].comparison.candidates.find(row=>row.snapshot_fingerprint===originalSnapshot.snapshot_fingerprint);
+    assert.equal(missing.outcome_status,"missing");
+    assert.equal(missing.positive_outcome,null);assert.equal(missing.r_result,null);
+    assert.equal(reread.learning.terminal_quality_decision,null);
+    assert(Object.values(reread.learning.authority).every(value=>value===false));
+    assert.equal((await readers.createRelativePlanProspectiveService().read(concurrentOwner,readAt))
+      .learning.partitions[1].original_population_count,0);
+    integrityCases.push({fault,physical_status:persisted.status,original_population_count:4,
+      canonical_outcome_count:3,missing_outcome_count:1,quality_improvement_claimed:false});
+  }
+  assert.equal(integritySyntheticRequests,5);
   assert.equal((await readers.persistRecommendationOutcome(source.outcomes[0], { supabaseClient: client, server: true })).status, "saved");
   const complete = await readers.createRelativePlanProspectiveService().read(owner, readAt);
   const held = complete.learning.partitions[1];
@@ -287,6 +343,8 @@ try {
     persisted_late_training_label_excluded: true, persisted_future_forward_recording_retained_as_missing: true,
     durable_freeze_count: 2, restarted_exact_readback: true, idempotent_repeats: 7, concurrent_single_owner_freeze: true, retroactive_rejected: true,
     actual_source_persistence_and_restarted_learner: true, retained_original_population: 4,
+    malformed_ohlc_synthetic_requests:integritySyntheticRequests,malformed_ohlc_cases:integrityCases,
+    persisted_malformed_terminal_labels_retained_as_missing:true,original_other_outcomes_unchanged:true,
     missing_outcome_progression: [4, 1, 0], mixed_canonical_outcomes: 4, baseline_precision_at_3: held.baseline.precision_at_3,
     challenger_precision_at_3: held.challenger.precision_at_3, full_charter_decision: "evidence_incomplete",
     model_fingerprint: result.receipt.plan.model_fingerprint, charter_fingerprint: result.receipt.plan.charter_fingerprint,

@@ -10,6 +10,10 @@ export const CANONICAL_OUTCOME_PROVIDER_COVERAGE_RECEIPT_VERSION =
   "canonical_outcome_provider_coverage_receipt_v2" as const;
 export const LEGACY_CANONICAL_OUTCOME_PROVIDER_COVERAGE_RECEIPT_VERSION =
   "canonical_outcome_provider_coverage_receipt_v1" as const;
+// Acquisition policy only: retained v1/v2 receipts and immutable evaluation
+// capsules are not retroactively reinterpreted or rewritten.
+export const CANONICAL_OUTCOME_CANDLE_VALIDATION_POLICY_VERSION =
+  "positive_coherent_original_horizon_ohlc_v1" as const;
 
 type CandleRequest = {
   interval: "5min" | "15min";
@@ -29,6 +33,7 @@ type CandleResult = {
 
 export type CanonicalOutcomeProviderCoverageReceipt = {
   contract_version: typeof CANONICAL_OUTCOME_PROVIDER_COVERAGE_RECEIPT_VERSION;
+  candle_validation_policy_version: typeof CANONICAL_OUTCOME_CANDLE_VALIDATION_POLICY_VERSION;
   provider_status: "available" | "gap" | "error" | "unavailable";
   freshness: "fresh" | "unknown";
   expected_candle_count: number | null;
@@ -102,10 +107,11 @@ function candleTimestamp(value: RecommendationOutcomeCandle["timestamp"]) {
   return null;
 }
 
-function hasFiniteOhlc(candle: RecommendationOutcomeCandle) {
-  return [candle.open, candle.high, candle.low, candle.close].every(
-    (value) => typeof value === "number" && Number.isFinite(value),
-  );
+function hasValidOhlc(candle: RecommendationOutcomeCandle) {
+  const { open, high, low, close } = candle;
+  return [open, high, low, close].every(
+    value => typeof value === "number" && Number.isFinite(value) && value > 0,
+  ) && low! <= high! && open! >= low! && open! <= high! && close! >= low! && close! <= high!;
 }
 
 function providerStatus(result: CandleResult) {
@@ -178,7 +184,9 @@ export function buildCanonicalOutcomeProviderCoverageReceipt({
     }
 
     if (!expectedSlots.has(timestamp)) continue;
-    if (!hasFiniteOhlc(candle)) {
+    // Terminal target/stop labels need the same coherent prices as the horizon
+    // mark. A finite but impossible OHLC bar is not an observed usable slot.
+    if (!hasValidOhlc(candle)) {
       malformedCandleCount += 1;
       continue;
     }
@@ -208,6 +216,7 @@ export function buildCanonicalOutcomeProviderCoverageReceipt({
 
   return {
     contract_version: CANONICAL_OUTCOME_PROVIDER_COVERAGE_RECEIPT_VERSION,
+    candle_validation_policy_version: CANONICAL_OUTCOME_CANDLE_VALIDATION_POLICY_VERSION,
     provider_status: status,
     freshness,
     expected_candle_count: expectedCount,

@@ -12,7 +12,7 @@ receipt below distinguishes its verified local behavior from integration and
 OPEN authority. Release audit/CI, data entitlement/shared-key capacity and full
 forward quality acceptance remain separate holds.
 
-**Current primary — bounded CLOSED IF-4 original-population outcome continuation:**
+**Completed predecessor — bounded CLOSED IF-4 original-population outcome continuation:**
 Codex owns one 4–16 active-hour investigation/delivery, initial investigation
 capped at four. Determine whether the existing owner-bound outcome route can
 resume the full original session's research population through canonical 60m
@@ -42,10 +42,21 @@ uncertainty remain unavailable. This original single-day history cannot supply
 the absent regular-session bars, first thirty forward decisions, durable
 pre-forward model or cross-day evidence through another acquisition retry.
 Stop this historical acceptance attempt; retain it as a diagnostic, not a
-substitute prospective cohort. The next learning action must preserve this
-negative result and target a reproduced measurement defect or a separately
-frozen prospective comparison, not a competing ranking hypothesis or new
-readiness/receipt infrastructure.
+substitute prospective cohort.
+
+**Current primary — bounded CLOSED IF-4 malformed terminal-label integrity:**
+The next learning action preserves this negative result: the sole selected
+CLOSED IF-4 slice (Codex, 4–16 active hours; initial
+investigation capped at four) removes reproduced invalid-OHLC terminal-label
+admission. A synthetic actual runner-to-original-comparison regression receives
+four usable labels instead of three when one winning candle's close exceeds
+its high. Its horizon mark is correctly unavailable, but finite-only provider
+coverage still admits the target event. Minimum exit: newly acquired invalid
+positive/negative/inverted candles retain malformed/incomplete coverage and
+missing original labels through actual persistence/restarted readback, while
+valid original labels and immutable historical replay stay unchanged. Version
+the acquisition validation; do not rewrite old rows/models/results or expand
+workers, ranking, schema or live scope.
 Preserve the frozen v1 population/thresholds and historical results; do not
 discard the late members, shorten their horizons, retry acquisition or build
 another general outcome worker to force coverage.
@@ -58,6 +69,42 @@ denominator reduction, shorter horizon, new ranking hypothesis, model seal,
 general worker or live activation. A passing continuation closes only the
 outcome-coverage link, not the full forward quality charter. Release and OPEN
 holds do not prevent this provider-free isolated investigation.
+
+**Malformed terminal-label correction — local IF-4 quality measurement, 2026-10-03:**
+The actual runner-to-original-comparison regression reproduces a physically
+impossible winning candle counted as resolved despite its unavailable horizon
+price mark. The new acquisition-only
+`positive_coherent_original_horizon_ohlc_v1` policy requires finite positive
+OHLC and low <= open/close <= high for every original expected slot. Invalid
+bars contribute malformed/incomplete coverage, so the unchanged canonical
+reader preserves the original candidate as missing, not win/loss/zero exposure.
+The provider-coverage receipt remains v2 with an explicit additive validation
+policy field; historical v1/v2 receipts, stored outcomes and sealed model/result
+capsules are not rewritten or reinterpreted. Raw target/stop diagnostics may
+still be retained; their invalid coverage prevents quality-label admission.
+
+Five winning/losing/inverted cases pass actual isolated SQL/PostgREST/SDK outcome
+persistence and restarted owner-bound learning: four original members, three
+usable labels and one missing in each case, unchanged membership, other stored
+outcomes and cross-owner isolation. A valid original replacement restores the
+existing mixed-outcome measurements. Thirty-one focused tests, nine prospective
+service tests and 54 affected outcome/budget/retry/entry checks pass. All slot
+positions and positive boundary/flat bars are covered, and historical receipt
+reads remain unchanged. Nonincremental types and final scoped lint pass after
+fixing an overwritten-key test-construction warning, without a product change.
+The first diagnostic supplied an unadmitted hidden source directly to the
+visible-only runner and made zero requests; it is a test setup error, not the
+product reproduction. The corrected setup matches the route's admitted-source
+projection, leaves stored visibility intact and reproduces the real false label.
+Full-original/immutable-result verification and exact-product build remain
+pending at this implementation checkpoint. No external provider, production
+write, migration, ranking/publication change, policy promotion or broker action.
+Logs: `/private/tmp/ture-outcome-ohlc-learning-reproduced-oct3.log`,
+`/private/tmp/ture-outcome-ohlc-learning-after-oct3.log`,
+`/private/tmp/ture-outcome-ohlc-persisted-learning-oct3.log`,
+`/private/tmp/ture-outcome-ohlc-affected-oct3.log`,
+`/private/tmp/ture-outcome-ohlc-final-types-oct3.log` and
+`/private/tmp/ture-outcome-ohlc-final-lint-oct3.log`.
 
 **Canonical original-horizon measurement — locally behavior-verified 2026-10-03:**
 Product `138a69981648a8e09b9b0edac8f147c60be5be74` fixes the reproduced
