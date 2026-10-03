@@ -22,16 +22,34 @@ function hash(value: unknown) { return createHash("sha256").update(JSON.stringif
  * substitute evaluated_at or the current clock for an absent recorded time.
  * This grants no source admission: the normal owner/lineage parser still runs.
  */
+function explicitOutcomeRecordingInstant(value: unknown): value is string {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/.test(value) || !instant(value)) return false;
+  const suffix = value.slice(-6);
+  const offset = value.endsWith("Z") ? 0 : (suffix[0] === "+" ? 1 : -1) *
+    (Number(suffix.slice(1, 3)) * 60 + Number(suffix.slice(4)));
+  return new Date(Date.parse(value) + offset * 60000).toISOString().slice(0, 19) === value.slice(0, 19);
+}
 export function hasExplicitRelativePlanOutcomeRecordingTimes(rows: unknown): boolean {
-  const recorded = (value: unknown) => {
-    if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/.test(value) || !instant(value)) return false;
-    const suffix = value.slice(-6);
-    const offset = value.endsWith("Z") ? 0 : (suffix[0] === "+" ? 1 : -1) *
-      (Number(suffix.slice(1, 3)) * 60 + Number(suffix.slice(4)));
-    return new Date(Date.parse(value) + offset * 60000).toISOString().slice(0, 19) === value.slice(0, 19);
-  };
   return Array.isArray(rows) && rows.length <= 100000 && rows.every(row => row && typeof row === "object" && !Array.isArray(row) &&
-    recorded(row.evaluated_at) && recorded(row.created_at));
+    explicitOutcomeRecordingInstant(row.evaluated_at) && explicitOutcomeRecordingInstant(row.created_at));
+}
+
+/** Admission for a NEW server-owned training job only. The current mutable
+ * row's revision must be explicit, chronologically possible and already
+ * observed. Do not apply this to retained historical models or change their
+ * frozen fitting semantics; the immutable capsule remains their sole source.
+ */
+export function hasAdmissibleRelativePlanOutcomeRevisionTimes(rows: unknown, now: Date): boolean {
+  const asOf = now.getTime();
+  // Postgres records microseconds. Date.parse truncation must not turn a
+  // revision just after the sampled millisecond into already observed data.
+  const scale = BigInt(1000);
+  const micros = (value: string) => BigInt(Date.parse(value)) * scale +
+    BigInt((value.match(/\.(\d{1,6})(?:Z|[+-]\d{2}:\d{2})$/)?.[1] ?? "").padEnd(6, "0").slice(3));
+  return Number.isFinite(asOf) && hasExplicitRelativePlanOutcomeRecordingTimes(rows) &&
+    (rows as Record<string, unknown>[]).every(row => explicitOutcomeRecordingInstant(row.updated_at) &&
+      micros(row.updated_at) >= micros(row.evaluated_at as string) &&
+      micros(row.updated_at) >= micros(row.created_at as string) && micros(row.updated_at) <= BigInt(asOf) * scale);
 }
 function ordered(rows: Comparison[]) {
   return [...rows].sort((a, b) => (a.decision_timestamp ?? "").localeCompare(b.decision_timestamp ?? "") ||

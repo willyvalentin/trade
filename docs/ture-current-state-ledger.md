@@ -12,6 +12,57 @@ receipt below distinguishes its verified local behavior from integration and
 OPEN authority. Release audit/CI, data entitlement/shared-key capacity and full
 forward quality acceptance remain separate holds.
 
+**Current primary — bounded CLOSED IF-4 new-training revision integrity, 2026-10-03:**
+Owner Codex, one 4–16 active-hour slice with initial investigation capped at
+four, isolated `codex/preseal-outcome-revision-integrity-oct3` from verified main
+`55576078` through the completed local intelligence predecessor `591491e4`.
+The exact service and actual isolated SQL/PostgREST/SDK reproduction both
+materialize a new model from a current outcome whose `updated_at` is in the
+future, despite older valid evaluation/creation clocks. Minimum correction:
+validate complete raw revision clocks against the server's post-read clock
+before NEW model creation; invalid/missing/contradictory/future revisions must
+make zero model/confirmation writes, without dropping an original member.
+Valid current sources must retain all 48 synthetic original training members;
+existing and pending immutable capsules bypass mutable-source reads and keep
+their exact old semantics/fingerprints. Keep historical model/result verifiers,
+source-to-label fitting, freeze, schema, ranking, publication and provider budget
+unchanged. This closes new-training data integrity, not alpha or acceptance of
+an historical recomputed model. No production activation or new live question.
+
+**New-training revision correction — implementation checkpoint, 2026-10-03:**
+Both initial regressions return `materialized` where `unavailable` is required;
+the database case uses the actual owner-bound source writer, SDK, SQL model
+materialization and separate confirmation, not a mock outcome or claimed hash.
+New training now validates explicit raw `updated_at` at or after evaluation and
+creation, and at or before the post-read server clock, retaining PostgreSQL
+microseconds and timezone equivalence. A future one-microsecond revision is not
+rounded into availability. Invalid complete-source clocks reject the job with
+`trained_probability_outcome_revision_times_invalid`; no subset is selected.
+
+The isolated database proof passes both future and reversed revisions with zero
+models/confirmations, unchanged 48-member source and other outcomes. Restoring
+the original valid source restores full 48-sample training, one concurrent seal,
+separate committed read, exact restarted model, lost-acknowledgement recovery and
+both existing forward probability consumers. Future loss revisions still change
+forward error, never refit the old model. The fitted policy, model/result/freeze
+shapes, raw source reader, diagnostic historical fitting and old receipt verifier
+are unchanged. Existing or pending committed capsules return before this NEW-job
+admission and never reread mutable revision clocks.
+
+Twenty-four initial service/model tests, 71 broader learning/model checks and 30
+final revision-boundary/service checks pass. Strict type verification caught
+ES2017-incompatible BigInt literals; the source now uses the project's existing
+BigInt-constructor convention without changing compiler configuration. Final
+nonincremental types, exact-product build and full historical replay remain
+pending at this checkpoint. Final scoped lint passes. No provider request,
+production mutation, migration, publication, promotion or broker action.
+Logs: `/private/tmp/ture-preseal-revision-reproduced-oct3.log`,
+`/private/tmp/ture-preseal-revision-database-reproduced-oct3.log`,
+`/private/tmp/ture-preseal-revision-database-after-oct3.log`,
+`/private/tmp/ture-preseal-revision-full-learning-oct3.log`,
+`/private/tmp/ture-preseal-revision-final-boundary-oct3.log` and
+`/private/tmp/ture-preseal-revision-final-lint-oct3.log`.
+
 **Completed predecessor — bounded CLOSED IF-4 original-population outcome continuation:**
 Codex owns one 4–16 active-hour investigation/delivery, initial investigation
 capped at four. Determine whether the existing owner-bound outcome route can

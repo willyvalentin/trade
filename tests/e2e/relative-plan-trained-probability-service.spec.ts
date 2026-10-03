@@ -125,6 +125,37 @@ test("raw recording-time gaps and late/premature jobs never become fitted eviden
   expect(complete.calls).not.toContain("materialize");
 });
 
+test("a fresh training job cannot seal a future or contradictory persisted outcome revision", async () => {
+  for (const revision of ["2026-10-10T00:00:00.001Z", "2026-10-10T00:00:00.000001Z",
+    "2026-10-05T16:00:00.000Z", undefined,
+    null, "", "2026-10-07", "2026-02-30T17:00:00.000Z"]) {
+    const h = await harness();
+    h.data.recommendation_outcomes[0].updated_at = revision;
+    const original = JSON.stringify(h.data);
+    expect(await h.service.train(prospectiveOwner, {})).toMatchObject({ status: "unavailable", receipt: null,
+      blocker: "trained_probability_outcome_revision_times_invalid" });
+    expect(h.calls).not.toContain("materialize");
+    expect(h.calls).not.toContain("confirm");
+    expect(JSON.stringify(h.data)).toBe(original);
+  }
+});
+
+test("new training accepts exactly observed revisions and unchanged sealed jobs do not reread mutable clocks", async () => {
+  for (const updated_at of [now.toISOString(), "2026-10-10T02:00:00.000000+02:00",
+    "2026-10-09T23:59:59.999999Z"]) {
+    const h = await harness();
+    h.data.recommendation_outcomes[0].updated_at = updated_at;
+    const first = await h.service.train(prospectiveOwner, {});
+    expect(first).toMatchObject({ status: "materialized", receipt: { trained_model: {
+      original_population_count: 48, canonical_outcome_count: 48, model: { sample_count: 48 } } } });
+    h.data.recommendation_outcomes[0].updated_at = "invalid_later_mutable_history";
+    const restart = createRelativePlanTrainedProbabilityService({ ...h.dependencies,
+      readSource: async () => { throw new Error("sealed_model_cannot_read_current_source"); } });
+    expect(await restart.train(prospectiveOwner, {})).toMatchObject({ status: "already_materialized", receipt: first.receipt });
+    expect(h.calls.filter(call => call === "materialize")).toHaveLength(1);
+  }
+});
+
 test("the real proxy guards anonymous, cross-owner and cross-origin model commands", async () => {
   const password = process.env.TRADE_APP_PASSWORD, owner = process.env.TURE_APPLICATION_OWNER_USER_ID;
   process.env.TRADE_APP_PASSWORD = "isolated-trained-model-session-only"; process.env.TURE_APPLICATION_OWNER_USER_ID = prospectiveOwner;

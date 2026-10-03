@@ -112,6 +112,29 @@ try {
   }
   const readSource = async (sourceOwner = owner) => { const result = await readers.readRecommendationLearningBaselineSource(sourceOwner); assert.equal(result.status, "available");
     const source = readers.parseRecommendationLearningBaselineSource(result.data); assert(source); return source; };
+  // New training must admit the revision that was actually observed, not only
+  // its older evaluation/creation clocks. Existing sealed capsules are tested
+  // separately below and must never be rewritten or fitted again.
+  const originalRevisionSource = await readSource(), originalRevision = originalRevisionSource.outcomes[0];
+  const originalOtherOutcomes = JSON.stringify(originalRevisionSource.outcomes.slice(1));
+  for (const updated_at of [new Date(Date.now() + 86400000).toISOString(),
+    new Date(Date.parse(originalRevision.evaluated_at) - 1).toISOString()]) {
+    assert.equal((await readers.persistRecommendationOutcome({ ...originalRevision, updated_at },
+      { supabaseClient: client, server: true })).status, "saved");
+    const changedSource = await readSource();
+    assert.equal(changedSource.outcomes.length, 48);
+    assert.equal(changedSource.outcomes[0].created_at, originalRevision.created_at);
+    assert.equal(changedSource.outcomes[0].evaluated_at, originalRevision.evaluated_at);
+    assert.equal(changedSource.outcomes[0].updated_at, updated_at);
+    assert.equal(JSON.stringify(changedSource.outcomes.slice(1)), originalOtherOutcomes);
+    const rejected = await readers.createRelativePlanTrainedProbabilityService().train(owner, {});
+    assert.equal(rejected.status, "unavailable");
+    assert.equal(rejected.blocker, "trained_probability_outcome_revision_times_invalid");
+    assert.equal(sql("select count(*) from public.relative_plan_trained_probability_models"), "0");
+    assert.equal(sql("select count(*) from public.relative_plan_trained_probability_confirmations"), "0");
+  }
+  assert.equal((await readers.persistRecommendationOutcome(originalRevision, { supabaseClient: client, server: true })).status, "saved");
+  assert.deepEqual(await readSource(), originalRevisionSource);
   const request = { owner, freeze, source: await readSource(), now: new Date() };
   let model = readers.buildRelativePlanTrainedProbabilityModel(request).trained_model; assert(model);
   assert.equal(model.original_population_count, 48); assert.equal(model.model.sample_count, 48);
@@ -267,6 +290,8 @@ try {
     database_attested_seal_and_separate_committed_read: true, same_transaction_confirmation_rejected: true,
     concurrent_single_materialization: true, exact_restarted_model: true, later_mutable_outcome_upserts_do_not_refit: true,
     actual_server_owned_training_job_verified: true, lost_acknowledgement_resumes_original_capsule: true,
+    new_training_rejects_persisted_future_and_contradictory_revision_times: true,
+    rejected_revision_keeps_48_original_members_and_zero_models: true,
     actual_database_rejects_backdated_and_premature_jobs: true,
     owner_and_client_rpc_isolation: true, direct_mutation_denied: true, actual_forward_product_consumer_verified: true,
     forward_original_members_per_partition: 12, missing_forward_label_remains_unknown: true,

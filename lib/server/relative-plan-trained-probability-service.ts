@@ -2,7 +2,8 @@ import "server-only";
 import { parseRecommendationLearningBaselineSource } from "@/lib/recommendation-learning-baseline-source";
 import { readRecommendationLearningBaselineSource } from "@/lib/server/application-data-access";
 import { relativePlanProspectiveStore } from "@/lib/server/relative-plan-prospective-store";
-import { hasExplicitRelativePlanOutcomeRecordingTimes } from "@/lib/server/relative-plan-probability-measurement";
+import { hasAdmissibleRelativePlanOutcomeRevisionTimes,
+  hasExplicitRelativePlanOutcomeRecordingTimes } from "@/lib/server/relative-plan-probability-measurement";
 import { buildRelativePlanTrainedProbabilityModel } from "@/lib/server/relative-plan-trained-probability-model";
 import { relativePlanTrainedProbabilityStore, type RelativePlanTrainedProbabilityStoreResult } from "@/lib/server/relative-plan-trained-probability-store";
 
@@ -49,11 +50,17 @@ export function createRelativePlanTrainedProbabilityService(d: Dependencies = de
       if (!hasExplicitRelativePlanOutcomeRecordingTimes(result.data.recommendation_outcomes)) {
         return unavailable("trained_probability_explicit_outcome_recording_times_unavailable");
       }
+      // Sample the server clock after the complete read and validate raw
+      // revision clocks BEFORE the legacy decoder can invent updated_at.
+      // Existing and pending capsules returned above never refit or reinterpret
+      // history. SQL independently enforces the pre-forward sealing boundary.
+      const now = d.clock();
+      if (!hasAdmissibleRelativePlanOutcomeRevisionTimes(result.data.recommendation_outcomes, now)) {
+        return unavailable("trained_probability_outcome_revision_times_invalid");
+      }
       const source = parseRecommendationLearningBaselineSource(result.data);
       if (!source) return unavailable("trained_probability_complete_owned_source_unavailable");
-      // Server clock sampled after the complete read. SQL independently checks
-      // its actual clock and requires a separate committed pre-forward read.
-      const now = d.clock(), candidate = buildRelativePlanTrainedProbabilityModel({ owner, freeze: freeze.receipt, source, now });
+      const candidate = buildRelativePlanTrainedProbabilityModel({ owner, freeze: freeze.receipt, source, now });
       if (!candidate.trained_model) return { status: "not_ready", receipt: null, blocker: candidate.blocker };
       const materialized = await store.materialize(candidate.trained_model, freeze.receipt, owner, now);
       if (materialized.status !== "conflicting") return materialized;
