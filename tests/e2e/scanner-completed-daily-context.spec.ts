@@ -13,6 +13,11 @@ import { isScannerDecisionInputPublishable } from "@/lib/scanner-decision-input-
 import { scheduledScannerInputPolicy } from "@/lib/scheduled-scanner-input-policy";
 import { resolveScheduledScanProviderCreditBudget } from "@/lib/scheduled-scan-ticker-cap";
 import type { ScheduledScanInvocationReceipt } from "@/lib/scheduled-scan-invocation-receipt";
+import type { MarketRegime } from "@/lib/market-regime";
+import {
+  buildMarketRegimeDecisionContext,
+  retainMarketRegimeDecisionContext,
+} from "@/lib/market-regime-decision-context";
 import {
   getUsEquityMarketSession,
   usEquityMarketCalendarDataset,
@@ -81,6 +86,44 @@ test("packaged bounded input pipeline overlaps independent context without chang
     route_budget_ms:23000,cleanup_reserve_ms:3000,fresh_inputs:3,actual_provider_requests:0,production_actions:0,cleanup:"inert"});
   expect(evidence.bounded_duration_ms).toBeLessThan(19000);
   expect(evidence.publications).toBeGreaterThan(0);
+});
+
+for (const scenario of ["published", "no_trade", "closing_research"] as const) {
+test(`packaged ${scenario} retains original pre-decision context in its run and any actual snapshots`, () => {
+  test.setTimeout(90000);
+  const proof = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--cold",
+    "--point-in-time-context", ...(scenario !== "no_trade" ? ["--publication-clock", "--context-latency"] : []),
+    ...(scenario === "closing_research" ? ["--closing"] : [])],
+    { cwd: process.cwd(), encoding: "utf8", timeout: 80000 });
+  expect(proof.status, `${proof.stdout}\n${proof.stderr}`).toBe(0);
+  const rows = proof.stdout.trim().split("\n").map(line => JSON.parse(line));
+  const original = rows.find(row => row.point_in_time_market_context_proof === "passed");
+  expect(original).toMatchObject({ actual_provider_requests: 0, production_actions: 0 });
+  expect(Date.parse(original.context_captured_at)).toBeLessThanOrEqual(Date.parse(original.original_decision_at));
+  if (scenario === "no_trade") expect(original.snapshot_count).toBe(0);
+  else expect(original.snapshot_count).toBeGreaterThan(0);
+  expect(original.final_disposition).toBe(scenario === "published" ? "recommendations_published" : "no_trade");
+  expect(rows.at(-1)).toMatchObject({ scheduled_synthetic_requests: 8, route_budget_ms: 23000,
+    cleanup_reserve_ms: 3000, fresh_inputs: 3, cleanup: "inert" });
+});
+}
+
+test("context transport retains its original instant but cannot invent observed evidence", () => {
+  const symbol = { close: 101, ma20: 100, ma50: 99, change_5d_percent: 1,
+    above_ma20: true, above_ma50: true };
+  const marketRegime: MarketRegime = { regime: "risk_on", summary: "Synthetic CLOSED context",
+    spy: symbol, qqq: symbol };
+  const context = buildMarketRegimeDecisionContext({ marketRegime, capturedAt: at });
+  expect(retainMarketRegimeDecisionContext({ marketRegime, capturedContext: context })).toEqual(context);
+  for (const capturedContext of [null, undefined, {}, { ...context, regime: "risk_off" },
+    { ...context, captured_at: "not a date" }, { ...context, classifier_version: "unknown" }]) {
+    expect(retainMarketRegimeDecisionContext({ marketRegime, capturedContext })).toBeNull();
+  }
+  expect(retainMarketRegimeDecisionContext({ marketRegime: null, capturedContext: context })).toBeNull();
+  expect(retainMarketRegimeDecisionContext({ marketRegime: { ...marketRegime, spy: { ...symbol, close: 0 } },
+    capturedContext: context })).toBeNull();
+  expect(retainMarketRegimeDecisionContext({ marketRegime: { ...marketRegime, qqq: { ...symbol, above_ma20: false } },
+    capturedContext: context })).toBeNull();
 });
 
 test("overlapped context still aborts at the unchanged deadline and drains every transport", () => {

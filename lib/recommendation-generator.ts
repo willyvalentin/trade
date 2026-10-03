@@ -16,6 +16,10 @@ import {
   type MarketRegime,
 } from "@/lib/market-regime";
 import {
+  buildMarketRegimeDecisionContext,
+  type MarketRegimeDecisionContext,
+} from "@/lib/market-regime-decision-context";
+import {
   scanMarket,
   type ScannerCandidate,
 } from "@/lib/scanner";
@@ -3648,11 +3652,20 @@ export async function generateRecommendations({
     const contextSignal = contextAbortController
       ? signal ? AbortSignal.any([signal, contextAbortController.signal]) : contextAbortController.signal
       : signal;
+    let originalMarketRegimeContext: MarketRegimeDecisionContext | null = null;
     const loadMarketRegime = async () => {
       try {
         throwIfAborted(signal);
-        return await getMarketRegime({ signal: contextSignal });
+        const marketRegime = await getMarketRegime({ signal: contextSignal });
+        // This is the original classification completion, not scan start or
+        // later artifact persistence. Preserve it across all decision paths.
+        originalMarketRegimeContext = buildMarketRegimeDecisionContext({
+          marketRegime,
+          capturedAt: new Date(),
+        });
+        return marketRegime;
       } catch (error) {
+        originalMarketRegimeContext = null;
         console.error("[recommendations/generate] market_regime_error", {
           error: normalizeUnknownError(error),
         });
@@ -4002,6 +4015,7 @@ export async function generateRecommendations({
             : "Scan completed. No high-quality day trade setup found."),
         duplicate_fallback_used: duplicateFallbackUsed,
         market_regime: marketRegime,
+        market_regime_context: originalMarketRegimeContext,
         scan_window: scanWindow,
         scan_log: {
           ...publishVersionDetails(),
@@ -4294,6 +4308,7 @@ export async function generateRecommendations({
         message,
         duplicate_fallback_used: duplicateFallbackUsed,
         market_regime: marketRegime,
+        market_regime_context: originalMarketRegimeContext,
         scan_window: scanWindow,
         scan_log: {
           ...publishVersionDetails(),
@@ -4662,6 +4677,7 @@ export async function generateRecommendations({
               : "Ranked learning candidates were available but failed recommendation validation.")),
         duplicate_fallback_used: duplicateFallbackUsed,
         market_regime: marketRegime,
+        market_regime_context: originalMarketRegimeContext,
         scan_window: scanWindow,
         scan_log: {
           ...publishVersionDetails(),
@@ -4769,6 +4785,7 @@ export async function generateRecommendations({
         inserted_tickers: [],
         duplicate_fallback_used: duplicateFallbackUsed,
         market_regime: marketRegime,
+        market_regime_context: originalMarketRegimeContext,
         scan_window: scanWindow,
         message:
           "Diagnostic scan built recommendations without publishing live recommendation rows.",
@@ -4891,6 +4908,7 @@ export async function generateRecommendations({
       inserted_tickers: insertedRecommendationTickers,
       duplicate_fallback_used: duplicateFallbackUsed,
       market_regime: marketRegime,
+      market_regime_context: originalMarketRegimeContext,
       scan_window: scanWindow,
       scan_log: {
         ...publishVersionDetails(),

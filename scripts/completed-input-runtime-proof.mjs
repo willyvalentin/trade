@@ -24,6 +24,9 @@ assert(!closing || cold && !opening && !wrongPolicy && !diagnoseOutcomes,
   "Closing analysis is one isolated cold input path, not outcome/forward acceptance");
 const publicationClock = process.argv.includes("--publication-clock");
 const contextLatency = process.argv.includes("--context-latency");
+const pointInTimeContext = process.argv.includes("--point-in-time-context");
+assert(!pointInTimeContext || cold && !wrongPolicy,
+  "Point-in-time context proof requires the actual bounded cold input path");
 const contextBudgetTimeout = process.argv.includes("--context-budget-timeout");
 const scannerRateLimit = process.argv.includes("--scanner-rate-limit");
 const expectContextTimeout = process.argv.includes("--expect-context-timeout") || contextBudgetTimeout;
@@ -381,6 +384,20 @@ try {
       const wrongOwner=await restarted.readRecommendationLearningBaselineSource("00000000-0000-4000-8000-000000000002");
       assert.equal(wrongOwner.data.recommendation_snapshots.length,0);
       assert.equal(wrongOwner.data.recommendation_scan_runs.length,0);
+    }
+    if(pointInTimeContext) {
+      const context = scanRuns[0].payload_json.market_regime_context;
+      assert(context,"Observed synthetic benchmark classification must reach the original run");
+      assert(OriginalDate.parse(context.captured_at)<=OriginalDate.parse(record.decision_timestamp),
+        `Original context must precede decision: captured=${context.captured_at}, decision=${record.decision_timestamp}`);
+      if(publicationClock) assert(researchSnapshots.length>0,
+        "Published or hidden research snapshots must exercise the original context binding");
+      else assert.equal(researchSnapshots.length,0,"Unavailable plans must not manufacture research snapshots");
+      for(const snapshot of researchSnapshots) assert.deepEqual(snapshot.payload_json.market_regime_context,context,
+        "Each original snapshot must share the exact original run context, not a later reconstructed clock");
+      originalLog(JSON.stringify({point_in_time_market_context_proof:"passed",context_captured_at:context.captured_at,
+        original_decision_at:record.decision_timestamp,snapshot_count:researchSnapshots.length,
+        final_disposition:record.final_decision.disposition,actual_provider_requests:0,production_actions:0}));
     }
     if(publicationClock && !closing) {
       const published=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendations t;"));

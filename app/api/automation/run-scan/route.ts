@@ -24,7 +24,7 @@ import {
 import { getUsMarketStatus } from "@/lib/market-calendar";
 import type { MarketRegime } from "@/lib/market-regime";
 import {
-  buildMarketRegimeDecisionContext,
+  retainMarketRegimeDecisionContext,
   type MarketRegimeDecisionContext,
 } from "@/lib/market-regime-decision-context";
 import {
@@ -2694,6 +2694,7 @@ async function persistAutomationArtifacts({
   scheduledInvocationReceipt,
   learningAccelerationInput,
   marketRegime,
+  marketRegimeContext: capturedMarketRegimeContext,
 }: {
   scanDate: string;
   sessionType: SessionType;
@@ -2721,11 +2722,12 @@ async function persistAutomationArtifacts({
     expectedBelowThresholdFromTimeline?: number | null;
   } | null;
   marketRegime: MarketRegime | null;
+  marketRegimeContext?: MarketRegimeDecisionContext | null;
 }) {
   activeScanTrace?.markStage("persistence", "started");
-  const marketRegimeContext = buildMarketRegimeDecisionContext({
+  const marketRegimeContext = retainMarketRegimeDecisionContext({
     marketRegime,
-    capturedAt: new Date(),
+    capturedContext: capturedMarketRegimeContext,
   });
   const serverSupabase = getServerSupabaseClient();
   const observability = buildAutomationScanObservability({
@@ -5548,6 +5550,9 @@ export async function POST(request: Request) {
           generationScanLog?.candidate_decision_capture ?? null,
         scheduledInvocationReceipt,
         marketRegime: generationResult.market_regime ?? null,
+        marketRegimeContext: "market_regime_context" in generationResult
+          ? generationResult.market_regime_context ?? null
+          : null,
         learningAccelerationInput: {
           candidateGeneration:
             generationScanLog?.real_scanner_candidate_generation ?? null,
