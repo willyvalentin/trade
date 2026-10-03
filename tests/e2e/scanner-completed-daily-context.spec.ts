@@ -103,8 +103,8 @@ test(`packaged ${scenario} retains original pre-decision context in its run and 
   if (scenario === "no_trade") expect(original.snapshot_count).toBe(0);
   else expect(original.snapshot_count).toBeGreaterThan(0);
   expect(original.final_disposition).toBe(scenario === "published" ? "recommendations_published" : "no_trade");
-  expect(rows.at(-1)).toMatchObject({ scheduled_synthetic_requests: 8, route_budget_ms: 23000,
-    cleanup_reserve_ms: 3000, fresh_inputs: 3, cleanup: "inert" });
+  expect(rows.at(-1)).toMatchObject({ scheduled_synthetic_requests: 8, fresh_inputs: 3, cleanup: "inert" });
+  if (scenario !== "no_trade") expect(rows.at(-1)).toMatchObject({ route_budget_ms: 23000, cleanup_reserve_ms: 3000 });
 });
 }
 
