@@ -2,7 +2,46 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
-**Current queue — 2026-10-02 23:13Z (Oct 3 CEST):** PR #729 is normally
+**Current queue — 2026-10-03 00:47Z:** PR #730 is normally merged and
+production-verified on main `58f64956bce08216cd80d482a43ced5a26433fd1`,
+exact tree `69a4771f90b07e95ae5e6bdbd38204e3d36125e6`, Git production deploy
+`6ac0461b0893840008c9345c`. Authenticated inert readback at 00:04:02.277Z
+returns HTTP 200 `not_found`, no prospective freeze, global disable true,
+all competing workers/input selector off and zero active/unresolved/unattributed
+work. It delivers diagnostic training-only probabilities, not durable model
+materialization or recommendation-quality lift.
+
+The sole primary, CLOSED IF-4 trained-model materialization, remains Codex's
+twelve-active-hour slice in PR #731, head
+`59e0ed2af780238bc193256bb76c27e62f73498d`; protected CI `37083368778` is
+running. Exact product revision `5ee447dea761394e717196274aafb634b91f3976`
+passes all nineteen registered foundation non-build commands and the normal
+isolated Linux Next build. Only documentation follows that product verification.
+Protected merge, exact automatic Git production deploy, additive schema and
+inert readback remain ahead; no production training, provider or scan occurs.
+
+One independent CLOSED slice is now selected: IF-4 full-charter relative-plan
+comparison, Codex, twelve active hours with initial investigation at most four,
+isolated `codex/relative-plan-charter-comparison-oct3` from verified main above.
+The hypothesis remains unchanged first-target distance relative to twelve
+closed five-minute bars, same-original-population K=3 improvement under the
+entire frozen charter. The reproduced reader names
+`full_charter_forward_scorecard_required` and
+`exact_runtime_cost_reliability_and_feasibility_required` even after numerical
+measurement; those are the selected missing links, not a new ranking hypothesis.
+Initially own only new measurement/source modules and their tests, using stable
+prospective freeze v1, original canonical comparisons and existing metric/
+operational evidence semantics. PR #731 keeps ownership of its existing learner,
+service, numerical consumer and schema. Integrate #731 first; only then wire
+the same sealed model into the actual full-charter reader and finish the vertical.
+Acceptance requires real isolated persisted-source/SDK/restarted consumption,
+both original forward populations, every charter dimension, explicit missing
+metrics, sample/uncertainty gates, unchanged thresholds and no promotion/live
+effect. A component-only PR, synthetic alpha or point precision lift is not
+completion. No third slice, broker/paper expansion, provider/configuration or
+new OPEN experiment is selected. Production/forward acceptance stays separate.
+
+**Historical queue — 2026-10-02 23:13Z (Oct 3 CEST):** PR #729 is normally
 merged after protected CI `37073054385` passes every shard, aggregate and
 merge provenance. Main `9e99ef7e6095525ab77a12a339933c5cbc788906` has exact
 tested tree `c4d388a2845fc4fd55e051964af7390a3ec14053`; post-main CI
