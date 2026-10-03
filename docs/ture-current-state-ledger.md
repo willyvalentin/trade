@@ -2,6 +2,70 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
+**Now — reproduced original forward-order review correction, 2026-10-03:**
+Codex retains the same IF-4 full-charter primary in draft #732; budget four to
+eight active hours, initial investigation at most four. At exact head `9f024dc4`,
+the actual versioned decision/lineage reader accepts an equivalent explicit
+timezone-offset decision clock. The enrollment reader then sorts its text rather
+than its instant, displacing the earliest unresolved original decision into
+overflow and admitting the later thirty. The failing CLOSED reproduction uses
+31 original synthetic decisions, unchanged identities, and no provider or DB
+operation. Log: `/private/tmp/ture-offset-enrollment-review-oct3.log`.
+This threatens the declared first-thirty population; it is not a new ranking
+hypothesis or a reason to relax the charter. Minimum correction: chronological
+instant ordering with the existing fingerprint tie-break, retaining raw clocks,
+all original rows and overflow. Apply the same ordering to the probability and
+trained-population consumers. Acceptance: offset-equivalent and equal-instant
+forward boundaries retain the correct original identities regardless of input
+order or missing labels; existing frozen UTC model/result goldens and replay,
+owner/clock checks, relevant integration, types/lint and exact build still pass.
+Never rewrite a historical capsule, refit a sealed model or substitute a new
+population if its original replay no longer qualifies: return the existing
+explicit unavailable/conflicting result instead. No schema, provider, ranking,
+publication, threshold or broker change is selected. The independent terminal
+context slice remains locally complete and integrates only after this primary.
+The unchanged dependency-security hold still prevents protected release.
+
+The broader first run passes 68 checks and stops three native cases solely at
+the sandbox's Docker-socket permission boundary. Those same three native cases
+then pass in 5.4m with authorized local Docker access, including complete
+eight-member source, actual SQL/SDK finalization and restarted HTTP consumption.
+Logs: `/private/tmp/ture-offset-original-chain-integration-oct3.log` and
+`/private/tmp/ture-offset-original-chain-native-oct3.log`. These precede the
+following newly reproduced clock-projection correction and are not its final
+acceptance. An additional offset training fixture retains 48 identities but
+exposes the model builder returning a receipt that its canonical-UTC verifier
+rejects. New receipt projections now use the same instant in canonical UTC,
+while their retained original source keeps the exact offset encoding; population
+matching uses that same projection and rejects invalid clocks before conversion.
+The old UTC model/result contracts and all quality thresholds remain unchanged.
+The first extra-test invocation also incorrectly expected forward probabilities
+from an original-source inconsistency. Its actual conflicting/null calibration
+is correct and remains required. Log:
+`/private/tmp/ture-offset-boundaries-and-training-oct3.log`. The intermediate
+canonical projection reads a candidate field instead of its decision-level
+clock and passes three/fails one; that invocation is not acceptance. Log:
+`/private/tmp/ture-offset-boundaries-and-training-corrected-oct3.log`.
+The corrected four boundary checks pass in 9.5s. The final broader suite now
+passes all 72 checks serially in 7.7m, including the same three actual isolated
+SQL/PostgREST/SDK and restarted HTTP cases. This is one new green run on the
+final application, not a sum of earlier overlapping checks. Logs:
+`/private/tmp/ture-offset-boundaries-and-training-final-oct3.log` and
+`/private/tmp/ture-offset-final-original-chain-oct3.log`.
+The existing UTC measurement/result goldens remain unchanged, all eleven
+charter dimensions and complete original populations remain, and later mutable
+history cannot refit or replace the sealed result. Nonincremental types and
+normal full lint pass (zero errors/eight existing warnings); logs:
+`/private/tmp/ture-offset-final-types-oct3.log` and
+`/private/tmp/ture-offset-final-lint-oct3.log`. These are CLOSED synthetic/local
+results, with zero provider requests, production writes or broker actions.
+Next: exact clean locked Linux build and one coherent same-PR update; resume
+the frozen recommendation-quality comparison after protected release permits.
+This minimum `supporting_blocker_removal` does not establish quality lift,
+production completion or release acceptance. Main remains `55576078`; the
+successful hosted Draft job on `9f024dc4` does not test this correction or
+satisfy the mandatory full release requirements.
+
 **Now / Next / Blocked — original-decision attribution correction locally verified, 2026-10-03:**
 Codex retains the same IF-4 full-charter primary in draft #732. A newly
 reproduced review defect lets distinct completed cycle/attempt IDs qualify the

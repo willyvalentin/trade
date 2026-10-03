@@ -67,7 +67,7 @@ export function hasAdmissibleRelativePlanCurrentOutcomeRevisionTimes(rows: unkno
       hasAdmissibleRelativePlanOutcomeRevisionTimes([row], now));
 }
 function ordered(rows: Comparison[]) {
-  return [...rows].sort((a, b) => (a.decision_timestamp ?? "").localeCompare(b.decision_timestamp ?? "") ||
+  return [...rows].sort((a, b) => Date.parse(a.decision_timestamp ?? "") - Date.parse(b.decision_timestamp ?? "") ||
     a.scan_run_fingerprint.localeCompare(b.scan_run_fingerprint));
 }
 function binary(row: Comparison["candidates"][number]): 0 | 1 | null {

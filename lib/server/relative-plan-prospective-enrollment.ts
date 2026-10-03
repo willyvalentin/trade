@@ -43,7 +43,9 @@ export function buildRelativePlanProspectiveEnrollment(input: {
     enrolled.push({ partition: partition!, fingerprint: run.run_fingerprint, decision_at: record!.decision_timestamp,
       original_population_count: shadow.original_population_count, comparison });
   }
-  enrolled.sort((a, b) => a.decision_at.localeCompare(b.decision_at) || a.fingerprint.localeCompare(b.fingerprint));
+  // Valid explicit offsets represent instants, not sortable wall-clock text.
+  // Preserve the original encoding; only chronological membership order changes.
+  enrolled.sort((a, b) => Date.parse(a.decision_at) - Date.parse(b.decision_at) || a.fingerprint.localeCompare(b.fingerprint));
   diagnostics.sort((a, b) => a.fingerprint.localeCompare(b.fingerprint) || a.reason.localeCompare(b.reason));
   const partitions = (["training", "held_out", "walk_forward"] as const).map(name => {
     const all = enrolled.filter(row => row.partition === name);

@@ -1,5 +1,8 @@
 import { expect, test } from "@playwright/test";
 import { buildRelativePlanProspectiveLearning } from "@/lib/server/relative-plan-prospective-learning";
+import { buildRelativePlanProspectiveEnrollment } from "@/lib/server/relative-plan-prospective-enrollment";
+import { candidateDecisionRecordFromScanRun } from "@/lib/candidate-decision-readback";
+import { buildDecisionLineageReceipt } from "@/lib/decision-lineage-receipt";
 import { prospectiveOwner, prospectiveReceipt } from "../fixtures/relative-plan-prospective";
 import { prospectiveSource } from "../fixtures/relative-plan-prospective-source";
 import type { RecommendationLearningBaselineSource } from "@/lib/recommendation-learning-baseline-source";
@@ -146,4 +149,59 @@ test("the first thirty input-qualified decisions remain selected despite missing
   expect(unresolved.original_membership_fingerprint).toBe(held.original_membership_fingerprint);
   expect(unresolved.enrolled_decision_count).toBe(30);
   expect(unresolved.missing_outcome_count).toBe(120);
+});
+
+test("equivalent offset clocks cannot displace an unresolved first decision into favorable overflow", async () => {
+  const sources = await Promise.all(Array.from({ length: 31 }, (_, index) => prospectiveSource({
+    now: new Date(Date.UTC(2026, 9, 12, 16, index * 5)), missingOutcome: index === 0,
+  })));
+  const earliest = sources[0].scanRuns[0];
+  const record = earliest.payload_json.candidate_decision_record as {
+    decision_timestamp: string; decision_clock?: { decision_timestamp: string } };
+  const originalInstant = Date.parse(record.decision_timestamp);
+  record.decision_timestamp = "2026-10-12T23:00:00.000+07:00";
+  if (record.decision_clock) record.decision_clock.decision_timestamp = record.decision_timestamp;
+  expect(Date.parse(record.decision_timestamp)).toBe(originalInstant);
+  const source = { scanRuns: sources.flatMap(row => row.scanRuns).reverse(),
+    snapshots: sources.flatMap(row => row.snapshots), outcomes: sources.flatMap(row => row.outcomes) };
+  const before = JSON.stringify(source);
+  const held = buildRelativePlanProspectiveLearning({ owner: prospectiveOwner, freeze: prospectiveReceipt(), source, now: readAt })!.partitions[1];
+  expect(held).toMatchObject({ enrolled_decision_count: 30, overflow_decision_count: 1, original_population_count: 120 });
+  expect(held.decisions[0].fingerprint).toBe(earliest.run_fingerprint);
+  expect(held.decisions[0].decision_at).toBe(record.decision_timestamp);
+  // Original snapshot/source inconsistency must remain explicit; keeping the
+  // identity does not make unavailable forward calibration qualify.
+  expect(held.probability_measurement?.forward).toBeNull();
+  expect(held.overflow_fingerprints).toEqual([sources[30].scanRuns[0].run_fingerprint]);
+  expect(held.missing_outcome_count).toBeGreaterThan(0);
+  expect(held.precision_delta).toBeNull();
+  const shuffled = buildRelativePlanProspectiveLearning({ owner: prospectiveOwner, freeze: prospectiveReceipt(),
+    source: { ...source, scanRuns: [...source.scanRuns].reverse(), outcomes: [] }, now: readAt })!.partitions[1];
+  expect(shuffled.original_membership_fingerprint).toBe(held.original_membership_fingerprint);
+  expect(shuffled.missing_outcome_count).toBe(120);
+  expect(JSON.stringify(source)).toBe(before);
+});
+
+test("equal decision instants use the original fingerprint tie-break at the thirtieth boundary", async () => {
+  const sources = await Promise.all(Array.from({ length: 31 }, (_, index) => prospectiveSource({
+    now: new Date(Date.UTC(2026, 9, 12, 16, index * 5)),
+  })));
+  const earlierCapture = sources[29].scanRuns[0];
+  const original = candidateDecisionRecordFromScanRun(earlierCapture)!;
+  const record = { ...original, decision_timestamp: "2026-10-13T01:30:00.000+07:00",
+    decision_clock: { ...original.decision_clock!, decision_timestamp: "2026-10-13T01:30:00.000+07:00" } };
+  earlierCapture.completed_at = "2026-10-12T18:30:00.100Z";
+  earlierCapture.payload_json.candidate_decision_record = record;
+  earlierCapture.payload_json.decision_lineage_receipt = buildDecisionLineageReceipt(record);
+  expect(candidateDecisionRecordFromScanRun(earlierCapture)).not.toBeNull();
+  const fingerprints = [earlierCapture.run_fingerprint, sources[30].scanRuns[0].run_fingerprint].sort();
+  const source = { scanRuns: sources.flatMap(row => row.scanRuns).reverse(),
+    snapshots: sources.flatMap(row => row.snapshots), outcomes: sources.flatMap(row => row.outcomes) };
+  for (const scanRuns of [source.scanRuns, [...source.scanRuns].reverse()]) {
+    const held = buildRelativePlanProspectiveEnrollment({ owner: prospectiveOwner, freeze: prospectiveReceipt(),
+      source: { ...source, scanRuns }, now: readAt })!.partitions[1];
+    expect(held).toMatchObject({ enrolled_decision_count: 30, overflow_decision_count: 1, original_population_count: 120 });
+    expect(held.decisions[29].fingerprint).toBe(fingerprints[0]);
+    expect(held.overflow_fingerprints).toEqual([fingerprints[1]]);
+  }
 });
