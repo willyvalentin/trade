@@ -11,7 +11,6 @@ import {
 import type { RecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
 import type { RecommendationScanRun } from "@/lib/recommendation-scan-run";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
-import { COMPLETED_INPUT_PUBLISHED_CAPTURE_VERSION } from "@/lib/completed-input-published-source";
 import {
   hasCanonicalOutcomeProviderCoverageWithEvaluationAnchor,
 } from "@/lib/recommendation-outcome-canonical-coverage";
@@ -336,7 +335,9 @@ export function buildRecommendationLearningBaselineReadiness({
     if (existing) return existing;
 
     assessedSnapshotsById.set(snapshot.id, snapshot);
-    const provenance = research || snapshot.payload_json.published_input_capture_version === COMPLETED_INPUT_PUBLISHED_CAPTURE_VERSION
+    // A malformed new capture is not permission to fall back to the legacy
+    // basis (including a provider-version string added after the decision).
+    const provenance = research || snapshot.payload_json.published_input_capture_version !== undefined
       ? recommendationResearchLearningSourceProvenance(snapshot, scanRuns)
       : recommendationDecisionSourceProvenanceFromSnapshot(snapshot);
     sourceProvenanceBySnapshotId.set(snapshot.id, provenance);

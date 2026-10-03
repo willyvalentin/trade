@@ -8,6 +8,7 @@ import { computeRecommendationOutcome } from "@/lib/recommendation-outcome-track
 import { recommendationOutcomeEvaluationAnchorFromSnapshot } from "@/lib/recommendation-outcome-evaluation-anchor";
 import { buildCanonicalOutcomeProviderCoverageReceipt } from "@/lib/recommendation-outcome-canonical-coverage";
 import { buildRelativePlanContextOutcomeComparison } from "@/lib/scanner-relative-plan-context-outcomes";
+import { buildRecommendationLearningBaselineReadiness } from "@/lib/recommendation-learning-baseline-readiness";
 
 async function originalPublication() {
   const evidence = await relativePlanEvidence({ now: new Date("2026-10-02T17:00:20.000Z"), publishedTickers: ["AAA"] });
@@ -55,6 +56,16 @@ test("old publication is not retroactively admitted on the new normalized basis"
   const { snapshot, run } = await originalPublication();
   expect(recommendationResearchLearningSourceProvenance(snapshot, [run]).status).toBe("incomplete");
   expect(snapshot.payload_json.published_input_capture_version).toBeUndefined();
+});
+
+test("an unknown published capture cannot fall back to legacy learning admission via an invented provider version", async () => {
+  const { captured, run } = await originalPublication();
+  const changed = structuredClone(captured);
+  changed.payload_json.published_input_capture_version = "unknown_capture";
+  changed.payload_json.provider_version = "invented_after_capture";
+  const result = buildRecommendationLearningBaselineReadiness({ scanRuns: [run], snapshots: [changed], outcomes: [] });
+  expect(result.decision_time_source_provenance.admissible_snapshot_count).toBe(0);
+  expect(result.status).toBe("not_ready");
 });
 
 test("capture rejects wrong geometry, future inputs, changed horizons and mixed source identities", async () => {

@@ -50,12 +50,18 @@ count and plans remain unchanged. The frozen charter consumes explicit original
 published setup metadata, still retains all eight members and remains incomplete.
 The actual scanner/source regression passes all 37 checks (3.8m), including
 existing hidden sources, opening/closing, missing data and legacy acquisition.
-All 29 canonical/charter measurement checks and all 39 historical/model checks
-pass; the five final published-source tests additionally verify mixed visible
+All 31 final canonical/charter measurement checks and all 39 historical/model checks
+pass; the six final published-source tests additionally verify mixed visible
 and hidden canonical membership, duplicate denial and unchanged missing members.
 All five governance checks pass. Nonincremental types and normal full lint pass
-(zero errors/eight pre-existing warnings). Production build remains to be
-verified before this local handoff is complete. No new schema, real provider
+(zero errors/eight pre-existing warnings). The exact Linux production build of
+`f69abb1da0edf6b5489ac57b496db1670ed198cf` passes. Final review additionally
+reproduces unknown published capture plus an invented upstream-version string
+being counted by legacy source admission. Unknown captures now use the stronger
+normalized gate and stay incomplete; absent markers retain historical behavior.
+All 31 measurement tests, the registered actual publication/outcome test (12.8s),
+types and full lint pass after this correction. Its final build remains pending.
+No new schema, real provider
 request, production write, merge, deploy or broker action occurred.
 
 Next is release verification and the retained full-original forward quality
@@ -69,8 +75,11 @@ unverified. Logs: `/private/tmp/ture-published-original-input-source-fixed-oct3.
 `/private/tmp/ture-published-original-input-historical-model-tests-oct3.log`,
 `/private/tmp/ture-published-original-input-mixed-unit-oct3.log`,
 `/private/tmp/ture-published-original-input-final-unit-governance-oct3.log`,
-`/private/tmp/ture-published-original-input-final-types-oct3.log` and
-`/private/tmp/ture-published-original-input-full-lint-oct3.log`.
+`/private/tmp/ture-published-original-input-final-recheck-types-oct3.log`,
+`/private/tmp/ture-published-original-input-final-recheck-lint-oct3.log`,
+`/private/tmp/ture-published-original-input-final-measurement-tests-oct3.log`,
+`/private/tmp/ture-published-original-input-final-registered-runtime-oct3.log` and
+`/private/tmp/ture-published-original-input-exact-linux-build-oct3.log`.
 
 **Completed bounded investigation / Next / Blocked — original outcome acquisition:**
 On `codex/original-outcome-window-reuse-oct3`, from freshly read main
