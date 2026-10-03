@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { createRelativePlanProspectiveService } from "@/lib/server/relative-plan-prospective-service";
 import { createRelativePlanProspectiveStore } from "@/lib/server/relative-plan-prospective-store";
+import { createRelativePlanTrainedProbabilityStore } from "@/lib/server/relative-plan-trained-probability-store";
 import { prospectiveOwner, prospectiveFrozenAt, prospectiveInput, prospectiveReceipt } from "../fixtures/relative-plan-prospective";
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
@@ -23,6 +24,11 @@ function harness(overrides: Partial<Dependencies> = {}) {
   const dependencies: Dependencies = {
     store: () => createRelativePlanProspectiveStore(database),
     revision: () => prospectiveInput.source_revision,
+    modelStore: () => createRelativePlanTrainedProbabilityStore({
+      async read() { return { status: "not_found", receipt: null }; },
+      async materialize() { throw new Error("read_must_not_train"); },
+      async confirm() { throw new Error("read_must_not_confirm"); },
+    }),
     readSource: async owner => { owners.push(owner); return { status: "available", data: {
       recommendation_scan_runs: [], recommendation_snapshots: [], recommendation_outcomes: [] } }; },
     ...overrides,
