@@ -35,6 +35,17 @@ continuation is locally complete with `evidence_incomplete` full-charter
 disposition, not passing quality. Next inspect the existing prospective
 comparison's decision-time/session eligibility and resulting full-scorecard
 feasibility before selecting a correction or a new collection question.
+The bounded full-original scorecard check now returns the unchanged
+`evidence_incomplete` disposition: coverage, sector/setup/regime concentration
+fail their existing limits; precision, expectancy, calibration and paired
+uncertainty remain unavailable. This original single-day history cannot supply
+the absent regular-session bars, first thirty forward decisions, durable
+pre-forward model or cross-day evidence through another acquisition retry.
+Stop this historical acceptance attempt; retain it as a diagnostic, not a
+substitute prospective cohort. The next learning action must preserve this
+negative result and target a reproduced measurement defect or a separately
+frozen prospective comparison, not a competing ranking hypothesis or new
+readiness/receipt infrastructure.
 Preserve the frozen v1 population/thresholds and historical results; do not
 discard the late members, shorten their horizons, retry acquisition or build
 another general outcome worker to force coverage.
@@ -144,6 +155,33 @@ Logs: `/private/tmp/ture-original-remaining-horizon-reviewed-oct3.log`,
 This test/receipt follow-up leaves the product byte-unchanged from exact built
 `138a6998`. The npm registry also confirms braces' latest version is still
 3.0.3; no published patched version is inferred and release remains held.
+
+**Full original scorecard — CLOSED diagnostic, 2026-10-03:**
+The actual full-session continuation and restarted learning reader return the
+same 176-member fingerprint and 22 enrolled decisions, with no terminal quality
+decision. Coverage is 144/176 (81.82%, below 90%); all original snapshots remain
+present, so snapshot evidence missingness is separately zero. Sector
+concentration is 38.07% against 35%, setup concentration 100% against 60% and
+regime concentration 100% against 70%. These are known failures on synthetic
+original evidence, not inferred production weaknesses. Runtime reliability is
+100% and reserved credits per decision are eight in this isolated composition;
+both pass their frozen limits, without proving actual provider capacity.
+Baseline/challenger precision, expectancy, calibration and paired uncertainty
+remain null. Missing dimensions explicitly include complete original 60m labels,
+first thirty decisions (22 observed), cross-day/ticker diversity (one day), a
+durably frozen training model and full disclosed feasibility. Do not turn the
+known failures into `reject` while the full indivisible charter is incomplete,
+or erase missing original members to manufacture a comparison. No model is
+fitted, quality result sealed, policy changed or live action performed. The
+initial bounded diagnosis passes in 1.7m and registered full-scorecard regression
+passes in 2.2m. Nonincremental types, scoped lint and 27 current intake/governance
+checks pass; product, lockfiles and runtime configuration remain byte-unchanged
+from built `138a6998`, so the exact-product build remains applicable. Logs:
+`/private/tmp/ture-original-full-scorecard-diagnosis-oct3.log`,
+`/private/tmp/ture-original-full-scorecard-reviewed-oct3.log`,
+`/private/tmp/ture-original-scorecard-final-types-oct3.log`,
+`/private/tmp/ture-original-scorecard-final-lint-oct3.log` and
+`/private/tmp/ture-original-scorecard-governance-oct3.log`.
 
 **Historical complete original source discovery — before horizon mark, 2026-10-03:**
 Product `8d7c7cfd6b36be36ac243f8147af244a72ce886e` replaces the silent

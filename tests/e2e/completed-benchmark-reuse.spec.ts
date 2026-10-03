@@ -591,6 +591,33 @@ test("whole-session outcome continuation discovers every original batch before c
   expect(continuation).toMatchObject({ canonical_outcome_count: 144, missing_outcome_count: 32,
     persisted_neither_horizon_marks_verified: 126 });
   expect(continuation.enrolled_coverage_diagnostic.reason_counts).toEqual({ resolved: 144, canonical_60m_outcome_missing: 32 });
+  // Keep the full original scorecard, not a successful eight-member subset.
+  // Known limit failures must remain separate from unavailable quality metrics.
+  const charter = continuation.original_full_charter;
+  expect(charter).toMatchObject({ disposition: "evidence_incomplete",
+    original_population_count: 176, enrolled_decision_count: 22, required_decisions: 30,
+    trading_day_count: 1, outcome_coverage: { numerator: 144, denominator: 176, value: 144 / 176 },
+    evidence_missingness: { numerator: 0, denominator: 176, value: 0 },
+    baseline_precision: null, challenger_precision: null, paired_precision_interval: null,
+    terminal_quality_decision: null, quality_improvement_claimed: false });
+  expect(charter.measured_limit_failures).toEqual([
+    "outcome_coverage_charter_limit_not_met", "regime_concentration_charter_limit_not_met",
+    "sector_concentration_charter_limit_not_met", "setup_concentration_charter_limit_not_met",
+  ]);
+  const threshold = (dimension: string) => charter.thresholds.find((row: { dimension: string }) => row.dimension === dimension);
+  expect(threshold("outcome_coverage")).toMatchObject({ limit: 0.9, status: "fail" });
+  expect(threshold("evidence_missingness")).toMatchObject({ limit: 0.1, status: "pass" });
+  expect(threshold("runtime_reliability")).toMatchObject({ value: 1, limit: 0.95, status: "pass" });
+  expect(threshold("provider_credits_per_decision")).toMatchObject({ value: 8, limit: 8, status: "pass" });
+  for (const dimension of ["challenger_precision_at_3", "challenger_expectancy_r", "challenger_calibration_error"]) {
+    expect(threshold(dimension)).toMatchObject({ value: null, status: "unavailable" });
+  }
+  for (const dimension of ["durably_frozen_training_probability_model_required",
+    "complete_original_canonical_60m_outcomes_required", "original_first_thirty_decisions_required",
+    "original_trading_day_and_ticker_diversity_required", "required_disclosed_feasibility_incomplete",
+    "same_population_trading_day_paired_uncertainty_required"]) {
+    expect(charter.missing_dimensions).toContain(dimension);
+  }
   expect(continuation.remaining_missingness.map((row: {
     decision_at: string; required_horizon_end_at: string; original_population_count: number;
     missing_count: number; full_regular_horizon: boolean; session_close: string;
@@ -625,6 +652,7 @@ test("whole-session outcome continuation discovers every original batch before c
     enrolled_reason_counts: continuation.enrolled_coverage_diagnostic.reason_counts,
     persisted_neither_horizon_marks_verified: continuation.persisted_neither_horizon_marks_verified,
     remaining_missingness: continuation.remaining_missingness,
+    original_full_charter: continuation.original_full_charter,
     missing_r_examples: continuation.enrolled_coverage_diagnostic.members
       .filter((row: { outcome_reason: string }) => row.outcome_reason === "canonical_realized_r_unavailable").slice(0, 2),
     terminal_status: continuation.passes.at(-1).status,

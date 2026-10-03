@@ -1266,6 +1266,12 @@ try {
               }];
             });
             assert.equal(remainingMissingness.reduce((sum,row)=>sum+row.missing_count,0),heldRead.missing_outcome_count);
+            const continuedCharter=nextRead.learning.full_charter;
+            const continuedHeld=continuedCharter.partitions.find(partition=>partition.partition==="held_out");
+            assert.equal(continuedHeld.original_population_count,heldRead.original_population_count);
+            assert.equal(continuedHeld.original_membership_fingerprint,heldRead.original_membership_fingerprint);
+            assert.equal(continuedCharter.computed_disposition,"evidence_incomplete");
+            assert.equal(continuedCharter.terminal_quality_decision,null);
             fullOriginalHistoryEvidence.original_outcome_continuation={
               scope:"synthetic_actual_unselected_outcome_route_sql_sdk_not_quality_or_live",
               passes:continuationPasses,separate_synthetic_requests:externalRequests-continuationStart,
@@ -1273,6 +1279,21 @@ try {
               canonical_outcome_count:heldRead.canonical_outcome_count,missing_outcome_count:heldRead.missing_outcome_count,
               persisted_neither_horizon_marks_verified:measuredNeither.length,
               remaining_missingness:remainingMissingness,
+              original_full_charter:{
+                disposition:continuedCharter.computed_disposition,
+                original_population_count:continuedHeld.original_population_count,
+                enrolled_decision_count:continuedHeld.enrolled_decision_count,required_decisions:continuedHeld.required_decisions,
+                trading_day_count:continuedHeld.quality.trading_day_count,
+                outcome_coverage:continuedHeld.quality.outcome_coverage,
+                evidence_missingness:continuedHeld.quality.evidence_missingness,
+                baseline_precision:continuedHeld.quality.baseline.precision_at_3,
+                challenger_precision:continuedHeld.quality.challenger.precision_at_3,
+                paired_precision_interval:continuedHeld.quality.paired_precision_interval,
+                thresholds:continuedHeld.thresholds.checks,
+                missing_dimensions:continuedHeld.missing_dimensions,
+                measured_limit_failures:continuedHeld.measured_limit_failures,
+                terminal_quality_decision:null,quality_improvement_claimed:false,
+              },
               physical_outcomes:completeSource.outcomes.length,
               original_batch_count:originalBatches.length,unvisited_original_batches:unvisited,
               original_source_read:sourceRead??null,
