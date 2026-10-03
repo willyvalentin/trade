@@ -2,7 +2,7 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
-**Now / Next / Blocked — new-training retained-candle integrity, 2026-10-03:**
+**Completed local / Next / Blocked — new-training retained-candle integrity, 2026-10-03:**
 Codex owns one bounded CLOSED IF-4 correction (4–8 active hours) within existing
 draft #732. The actual pre-fix producer and the current server-owned training
 job admit a legacy target label despite thirteen retained bars contradicting
@@ -36,19 +36,26 @@ assertions were added after the broad suite started; their separate actual
 SQL/SDK check passes in 41.8s, with final focused lint and types also passing.
 Log: `/private/tmp/ture-legacy-training-native-oracle-corrected-oct3.log`.
 The first anchored title filter selected no tests and proves nothing. These
-overlapping checks are not a new 95-check unique total. Exact clean build is
-pending. No new schema/provider/production operation.
+overlapping checks are not a new 95-check unique total. Exact clean locked
+Linux Node 22 / Next 16.3.8 build passes on product revision
+`bcd2a8993d3b694d7a13be63adc55bb1aa54e477`, with source frozen/clean through
+both guards, read-only dependencies, no install/build network or production keys.
+Log: `/private/tmp/ture-legacy-training-exact-linux-build-oct3.log`.
+Only this ledger readback follows that exact tested product. No new schema,
+provider or production operation. This closes the minimum integrity correction;
+do not extend it into a historical refit or another control-plane stream.
 
 Hosted run `37135476293` on #732 head `e1eb5b40` is terminal failed, not waiting:
 1112 broad checks pass and one obsolete scanner normalization source assertion
 fails. Its focused oracle correction preserves actual cache/reference behavior;
 all five reference tests pass locally. No release gate or timeout is weakened.
-Next: finish this correction's regressions/build and update the same PR once,
-then return to original forward-quality acceptance. The unchanged mandatory
-high-severity dependency audit remains a separate release blocker; main remains
+Next: review the coherent update's exact CI and satisfy protected release
+requirements, then resume original forward-quality acceptance. The unchanged
+mandatory high-severity audit remains a separate release blocker: official GHSA
+and npm readback at 17:00Z still show no patch (latest braces 3.0.3). Main remains
 `55576078`. Nothing here is main/production-verified or quality-accepted.
 
-**Completed local review fix / Next — reject extra off-grid canonical labels, 2026-10-03:**
+**Retained completed local review — reject extra off-grid canonical labels, 2026-10-03:**
 Codex implements one bounded CLOSED IF-4 review correction within existing draft
 PR #732 on its isolated branch (4–8 active hours, no parallel ranker). The
 actual outcome runner with all twelve expected 5m bars plus one coherent
@@ -142,7 +149,7 @@ authority or an audit exception. Exact normal Linux build also passes on
 application, lockfile or Netlify build/runtime configuration. New-head hosted
 CI completion inside the unchanged 45m bound is still unverified.
 
-**Completed local review fix / Next — complete original-history cache read:**
+**Retained completed local review — complete original-history cache read:**
 Within existing draft PR #732, Codex reproduces one IF-2b blocker in the
 same original-input → canonical-outcome → full-charter delivery. With a real
 isolated PostgREST cap of ten, preparation stops on its third invocation even
