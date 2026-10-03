@@ -232,6 +232,77 @@ test("actual full-session input coverage does not impersonate complete prospecti
   expect(composition.partitions.map((row: { enrolled_decision_count: number }) => row.enrolled_decision_count)).toEqual([0, 0, 0]);
 });
 
+test("actual premarket preparation preserves its narrow original population rather than preparing arbitrary afternoon members", () => {
+  test.setTimeout(90000);
+  const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--cold",
+    "--benchmark-reuse", "--existing-premarket-setup"], { cwd: process.cwd(), encoding: "utf8", timeout: 80000 });
+  expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
+  const evidence = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
+  expect(evidence).toMatchObject({ setup_synthetic_requests: 4, scheduled_synthetic_requests: 16,
+    attempts: 2, cycles: 2, claims: 2, actual_provider_requests: 0, production_actions: 0,
+    publications: 0, broker_actions: 0, cleanup: "inert",
+    benchmark_reuse_evidence: { history_start: "existing_premarket_paid_setup", first_fresh_inputs: 3,
+      second_fresh_inputs: 4, original_members_per_decision: 8, reserved_credits: 16 },
+    existing_premarket_evidence: { setup_intraday_requests: 1, first_regular_prepared_overlap: [],
+      retained_daily_contexts: [{ symbol: "TSLA", captured_at: "2026-10-01T13:00:00.000Z",
+        latest_completed_market_date: "2026-09-30" }], publication_count: 0 } });
+  expect(evidence.existing_premarket_evidence.original_universe).toHaveLength(50);
+  expect(evidence.existing_premarket_evidence.requests.map((row: { ticker: string; interval: string }) =>
+    [row.ticker, row.interval])).toEqual([["SPY", "1day"], ["QQQ", "1day"], ["TSLA", "1day"], ["TSLA", "5min"]]);
+  expect(evidence.existing_premarket_evidence.returned_watchlist.map((row: { ticker: string }) => row.ticker)).toEqual(["TSLA"]);
+});
+
+test("actual existing premarket history has bounded whole-session utility without replacing the zero-setup baseline", () => {
+  test.setTimeout(300000);
+  const run = (mode: "zero_setup" | "original_preparation" | "retained_preparation") => {
+    const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--cold",
+      "--rotation-day", "--prospective-enrollment",
+      ...(mode === "zero_setup" ? [] : ["--existing-premarket-setup"]),
+      ...(mode === "original_preparation" ? ["--legacy-retention-baseline"] : [])],
+    { cwd: process.cwd(), encoding: "utf8", timeout: 95000 });
+    expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
+    return JSON.parse(result.stdout.trim().split("\n").at(-1)!);
+  };
+  const cold = run("zero_setup"), before = run("original_preparation"), retained = run("retained_preparation");
+  expect(cold).toMatchObject({ scenario: "full_session_cold_rotation", setup_synthetic_requests: 0,
+    fresh_member_observations: 123, prospective_enrollment_evidence: { enrolled_decisions: 0, excluded_decisions: 26 } });
+  expect(before.existing_premarket_evidence.retained_daily_contexts).toEqual([]);
+  expect(retained.existing_premarket_evidence.retained_daily_contexts).toEqual([
+    { symbol: "TSLA", captured_at: "2026-10-01T13:00:00.000Z", latest_completed_market_date: "2026-09-30" }]);
+  for (const property of ["original_universe", "requests", "returned_watchlist"] as const) {
+    expect(retained.existing_premarket_evidence[property]).toEqual(before.existing_premarket_evidence[property]);
+  }
+  expect(retained).toMatchObject({ fresh_member_observations: 124,
+    prospective_enrollment_evidence: { enrolled_decisions: 1, excluded_decisions: 25 } });
+  for (const arm of [before, retained]) {
+    expect(arm).toMatchObject({ scenario: "full_session_existing_premarket_preparation", setup_synthetic_requests: 4 });
+  }
+  for (const arm of [cold, before, retained]) {
+    expect(arm).toMatchObject({ original_slots: 26, original_member_observations: 208, selected_unique_tickers: 95,
+      ever_complete_tickers: 76, scheduled_synthetic_requests: 208, reserved_credits: 208,
+      attempts: 26, cycles: 26, scan_runs: 26, reservations: 26, restarted_owner_read: true, wrong_owner_runs: 0,
+      prospective_enrollment_evidence: { source_decisions: 26, original_member_observations: 208, quality_improvement_claimed: false },
+      actual_provider_requests: 0, production_actions: 0, publications: 0, broker_actions: 0, cleanup: "inert" });
+    expect(arm.slots.map((slot: { slot: string; members: { ticker: string }[] }) =>
+      ({ slot: slot.slot, tickers: slot.members.map(member => member.ticker) })))
+      .toEqual(cold.slots.map((slot: { slot: string; members: { ticker: string }[] }) =>
+        ({ slot: slot.slot, tickers: slot.members.map(member => member.ticker) })));
+    for (const slot of arm.slots) {
+      expect(slot).toMatchObject({ requests: 8, reservations: 1 });
+      expect(slot.synthetic_request_evidence).toHaveLength(slot.requests);
+      expect(slot.synthetic_request_evidence.every((request: { requested_at: string }) =>
+        request.requested_at === new Date(Date.parse(slot.slot) + 20000).toISOString())).toBe(true);
+    }
+  }
+  const complete = retained.prospective_enrollment_evidence.decisions.filter((row: { status: string }) => row.status === "comparable");
+  expect(complete).toHaveLength(1);
+  expect(complete[0]).toMatchObject({ decision_at: "2026-10-01T19:30:20.000Z", original_population_count: 8,
+    assessed_count: 8, unassessed_count: 0, exclusion: null });
+  expect(complete[0].members.map((row: { ticker: string }) => row.ticker)).toEqual(["TSLA", "COIN", "AMD", "AAPL", "ORCL", "DIS", "CAT", "JPM"]);
+  expect(retained.prospective_enrollment_evidence.partitions.map((row: { enrolled_decision_count: number; missing_outcome_count: number }) =>
+    [row.enrolled_decision_count, row.missing_outcome_count])).toEqual([[0, 0], [1, 8], [0, 0]]);
+});
+
 test("actual original complete input reaches full charter through canonical outcomes without granting quality authority", () => {
   test.setTimeout(120000);
   const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--benchmark-reuse", "--charter-composition"],

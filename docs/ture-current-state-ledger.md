@@ -117,10 +117,10 @@ Ubuntu/Node 24 CI or a production build/deploy. This delivery
 is local `recommendation_capability` input reuse plus `quality_measurement`
 continuity; not main, production or acceptance of stronger recommendations.
 Charter remains `evidence_incomplete`, model/terminal result null and graduation
-`not_met`. Release audit/PR #732 CI remain held; do not bypass them. Finish this
+`not_met`. Release audit/PR #732 CI remain held; do not bypass them. This
 coherent local delivery is complete; preserve release/security holds.
 
-**Next bounded CLOSED IF-2b selection:** Codex owns one 4–16 active-hour slice,
+**Completed bounded CLOSED IF-2b selection:** Codex owns one 4–16 active-hour slice,
 initial investigation at most four hours, on the same isolated integration
 branch. Determine whether existing pre-market/watchlist generation actually
 supplies usable paid history to later original regular-session decisions; the
@@ -137,6 +137,88 @@ not a new preparation job, expanded scheduler/budget or ranking hypothesis.
 Reject an unusable existing path rather than forcing coverage or changing the
 frozen cold/first-thirty populations. Release audit/PR #732 CI remain separate
 holds. No provider, production, migration, publication or broker action is selected.
+
+**Actual preparation-path investigation boundary — 2026-10-03:** The actual
+existing pre-market generator selects its unchanged fifty-member universe and
+uses four synthetic calls (SPY/QQQ daily, TSLA daily/intraday). Only TSLA has
+retained completed daily history. Its prepared population does not overlap the
+retained 17:30/17:45Z populations; these still have three/four fresh inputs.
+That two-slot result does not establish whole-day preparation utility. Before
+collecting the larger comparison, extend only the unchanged actual 26-slot
+regular-session/original-enrollment scenario with this same existing four-call
+generator setup. Keep all original slot populations, eight-credit scan limits,
+eligibility, missingness and the zero-setup baseline unchanged. Disclose paid
+setup separately, compare original complete/enrolled decisions, and retain
+zero enrollment as a valid negative result. No new allocator, preparation job,
+ranker or live authority is selected.
+
+For attribution, also compare this same actual generator using the retained
+legacy scanner/market-data predecessor, without raw-history retention, against
+the current retained-history arm. Keep the ordinary scheduled source current
+in both arms; only the preparation modules differ. Require the exact same
+original watchlist, four preparation requests, fifty-member preparation
+universe and all twenty-six original eight-member regular populations. This
+separates retention utility from changing the preparation behavior. Preserve
+the zero-setup baseline as a third, separately costed arm. An enrolled source
+without mature canonical outcomes or a sealed forward model cannot pass quality.
+
+**Actual preparation-path disposition — 2026-10-03:** `narrow`, locally verified
+`hypothesis_evidence`. The actual generator, provider boundary, persisted SQL/SDK
+cache and restarted original-population enrollment preserve all fifty original
+preparation symbols, the exact TSLA watchlist and its four paid setup requests
+against the retained legacy predecessor. This is an invocation of the existing
+generator, not evidence that production scheduling performs this preparation.
+The current arm retains only TSLA's attributable completed history, captured
+13:00Z on the same NY date; the predecessor retains no raw daily capsule.
+Both retain every original eight-member decision in the 26-slot comparison.
+Zero-setup remains separately frozen: 123 fresh member observations, 76 distinct
+complete tickers, zero enrolled complete decisions. Actual retained preparation
+has 124 fresh observations and the same 76 complete tickers, with one enrolled
+eight-member decision at 19:30:20Z and twenty-five excluded decisions. Scheduled
+cost remains 208 requests/reserved credits in every arm; preparation's four
+requests are separate, not free or part of the scheduled cap. The two isolated
+17:30/17:45Z scans still have three/four fresh inputs and no prepared overlap.
+One later complete original set is useful source continuity, not broad
+preparation, canonical-outcome coverage, a training seal or recommendation lift.
+Its eight outcomes remain missing; graduation stays `not_met`.
+
+Two registered actual-runtime tests pass, including the predecessor/current
+watchlist and full-session original-population comparison, owner isolation,
+explicit costs and inert cleanup. The initial restricted invocation could not
+access Docker and failed before any database/provider work; the authorized
+isolated-Docker invocation passes. Nonincremental types and changed-file lint
+pass. All twenty affected benchmark/input/full-charter regressions pass in
+7.4 minutes, including the unchanged zero-setup/full-session baselines and the
+registered rejected allocator/setup arms. The same live process was retained
+through its longer final comparisons; no timeout-based restart occurred.
+Application source/dependencies are unchanged from product
+`5474cbb0`; its exact Linux build evidence above is retained, not represented
+as a fresh build of a new product revision. No provider, production, migration,
+publication or broker action occurred. Fresh main is `55576078`; existing draft
+PR #732 is still remote `bf457f45`, blocked, with failed draft CI. The independent
+mandatory dependency-audit hold remains; no push, retry or release is selected.
+Evidence logs: `/private/tmp/ture-existing-premarket-focused-docker-oct3.log`,
+`/private/tmp/ture-existing-premarket-full-regression-oct3.log`,
+`/private/tmp/ture-existing-premarket-types-oct3.log` and
+`/private/tmp/ture-existing-premarket-lint-oct3.log`; the restricted Docker failure
+is retained separately in `ture-existing-premarket-focused-oct3.log`.
+
+**Next bounded CLOSED IF-4 selection:** Codex owns the sole next 4–16 active-hour
+slice, investigation at most four hours, on this same isolated integration
+branch. Test whether the actual late original complete population above can
+obtain the frozen canonical 60m outcome through existing source admission,
+provider adapter, persistence and restarted owner/evaluation readback, without
+inventing regular-session bars after close. Freeze all eight source identities
+and retain the other twenty-five original decisions; select the exact batch
+using the existing owner-bound outcome route, not caller-built snapshots or
+database deletion. Use only synthetic regular-session provider candles through
+the verified close, disclose at most two four-request outcome batches separately
+and preserve missing labels. An incomplete/non-regular 60m horizon must not
+become a qualified canonical label, even if an earlier observed bar touches a
+target or stop. If the existing path already withholds it correctly, retain that
+bounded result and return to earlier complete-input fitness; do not build a new
+outcome worker, calendar policy, preparation job or ranking hypothesis. No live
+provider, production, migration, publication or broker operation is selected.
 
 **Completed original scanner to existing full-charter composition:**
 Codex reuses existing draft PR #732's isolated

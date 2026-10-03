@@ -13,17 +13,20 @@ import { setTimeout as syntheticDelay } from "node:timers/promises";
 
 const root = process.cwd();
 const cold = process.argv.includes("--cold");
+const existingPremarketSetup = process.argv.includes("--existing-premarket-setup");
 const rotationDay = process.argv.includes("--rotation-day");
 const prospectiveEnrollment = process.argv.includes("--prospective-enrollment");
 assert(!prospectiveEnrollment || rotationDay && process.argv.includes("--cold"),
   "Original-population enrollment consumes the unchanged full-session CLOSED source");
 const benchmarkReuse = process.argv.includes("--benchmark-reuse");
+assert(!existingPremarketSetup || cold && (benchmarkReuse || rotationDay),
+  "Actual pre-market preparation is separately disclosed, never relabelled as cold zero-setup acquisition");
 const charterComposition = process.argv.includes("--charter-composition");
 const historyOnlySetup = process.argv.includes("--history-only-setup");
 const legacyHistorySetup = process.argv.includes("--legacy-history-setup");
 const legacyRetentionBaseline = process.argv.includes("--legacy-retention-baseline");
-assert(!legacyRetentionBaseline || legacyHistorySetup,
-  "The retained predecessor is only the same legacy acquisition baseline");
+assert(!legacyRetentionBaseline || legacyHistorySetup || existingPremarketSetup,
+  "The retained predecessor is only the same actual legacy acquisition baseline");
 assert(!legacyHistorySetup || charterComposition && !historyOnlySetup,
   "Legacy retention consumes its actual existing fetch, never another preparation route");
 const setupCompositionDiagnostic = process.argv.includes("--setup-composition-diagnostic");
@@ -96,6 +99,12 @@ const benchmarkDelayMs = contextBudgetTimeout || scannerRateLimit ? 30000 : 9000
 assert(!publicationClock || cold && !opening && !wrongPolicy && !diagnoseOutcomes,
   "Publication clock proof is one isolated cold normal scanner path");
 assert(!opening || cold, "Opening proof has no pre-session warm-history acquisition");
+assert(!existingPremarketSetup || !process.argv.some(value=>[
+  "--acquisition-baseline", "--minimum-order-baseline", "--first-observation-baseline", "--fair-order-baseline",
+  "--regular-session-baseline", "--first-closed-bar-baseline", "--omitted-pair-baseline",
+  "--benchmark-reuse-invalid", "--benchmark-reuse-baseline", "--wrong-policy", "--opening", "--closing",
+  "--publication-clock", "--point-in-time-context", "--benchmark-stale", "--benchmark-partial",
+].includes(value)), "Actual pre-market preparation uses only the unchanged original regular-session comparison");
 const slot = rotationDay ? "2026-10-01T13:30:00.000Z" : closing ? "2026-10-01T19:45:00.000Z" : opening ? "2026-10-01T13:45:00.000Z" : "2026-10-01T17:30:00.000Z";
 const expiry = rotationDay ? "2026-10-01T20:00:00.000Z" : new Date(Date.parse(slot) + 900000).toISOString();
 const nextSlot = new Date(Date.parse(expiry) + 900000).toISOString();
@@ -175,6 +184,7 @@ try {
       export { buildScannerProviderCreditAllocationExecutionPlan } from './lib/scanner-provider-credit-allocation-plan';
       export { scannerUniverseTickers } from './lib/scanner-universe';
       export { scanMarket } from './lib/scanner';
+      ${existingPremarketSetup ? "export { generateRecommendations } from './lib/recommendation-generator';" : ""}
       export { readOwnedCompletedBenchmarkReuse, isValidCompletedBenchmarkReuse } from './lib/completed-benchmark-reuse';
       export { readCompletedMarketRegime } from './lib/market-regime';
       export { buildRealScannerBaseCandidateSelection } from './lib/real-scanner-candidate-generation';
@@ -308,7 +318,8 @@ try {
       const benchmark = ["SPY", "QQQ"].includes(url.searchParams.get("symbol"));
       syntheticRequestEvidence.push({ ticker: url.searchParams.get("symbol"), interval,
         requested_at: new OriginalDate(clock).toISOString() });
-      if (benchmark) assert.equal(url.searchParams.get("adjust"), "splits");
+      if (benchmark) assert.equal(url.searchParams.get("adjust"),
+        existingPremarketSetup && clock===OriginalDate.parse("2026-10-01T13:00:00Z") ? null : "splits");
       const intraday = interval !== "1day";
       const values = [];
       if (intraday) {
@@ -383,6 +394,7 @@ try {
   clock=OriginalDate.parse("2026-10-01T17:00:00Z");
   let setupRequests=0;
   let setupIntradayRequests=0;
+  let existingPremarketEvidence=null;
   const legacySetupCandidates=[];
   let legacySetupFingerprint=null;
   if(!cold && !wrongPolicy) {
@@ -418,11 +430,35 @@ try {
     if(invalidMixedHistory) sql(`update scanner_cache set raw=jsonb_set(raw,
       '{completed_daily_context,content_sha256}','"invalid-fixture-history-digest"');`);
   }
+  if(existingPremarketSetup) {
+    clock=OriginalDate.parse("2026-10-01T13:00:00Z");
+    const preUniverse=readers.buildRealScannerBaseCandidateSelection({scanWindow:"pre_market",now:new OriginalDate(clock)});
+    const prepared=await readers.generateRecommendations({ownerUserId:owner,sessionType:"morning",
+      scanWindow:"pre_market",targetCount:0,source:"scheduled",skipOpenAi:true});
+    assert.equal(prepared.inserted_count,0);
+    assert.deepEqual(prepared.recommendations,[]);
+    const retained=JSON.parse(sql("select coalesce(jsonb_agg(raw->'completed_daily_context' order by ticker),'[]') from scanner_cache where raw ? 'completed_daily_context';"));
+    const regular=readers.buildRealScannerBaseCandidateSelection({scanWindow:readers.getIntradayScanWindow(new OriginalDate(slot)),
+      requestedScanBudget:8,selectionMode:"scheduled_rotating",now:new OriginalDate(slot)});
+    setupRequests=externalRequests;
+    setupIntradayRequests=syntheticRequestEvidence.filter(request=>request.interval!=="1day").length;
+    existingPremarketEvidence={scope:"actual_existing_generator_synthetic_provider_sql_sdk_not_live_preparation_policy",
+      history_retention:legacyRetentionBaseline?"original_legacy_without_raw_history":"validated_already_paid_legacy_history",
+      setup_intraday_requests:setupIntradayRequests,
+      original_universe:preUniverse.candidates.map(candidate=>candidate.ticker),requests:structuredClone(syntheticRequestEvidence),
+      retained_daily_contexts:retained.map(context=>({symbol:context.symbol,captured_at:context.captured_at,
+        latest_completed_market_date:context.latest_completed_market_date})),
+      first_regular_population:regular.candidates.map(candidate=>candidate.ticker),
+      first_regular_prepared_overlap:regular.candidates.filter(candidate=>retained.some(context=>context.symbol===candidate.ticker)).map(candidate=>candidate.ticker),
+      returned_watchlist:prepared.pre_market_candidates,publication_count:0};
+    originalLog(JSON.stringify({existing_premarket_evidence:existingPremarketEvidence}));
+  }
   externalRequests=0;
   externalBenchmarkRequests=0;
+  const scheduledRequestEvidenceOffset=syntheticRequestEvidence.length;
   const scheduler = require(join(directory, "functions/scheduled.cjs")).default;
   if(rotationDay) {
-    assert.equal(setupRequests,0);
+    assert.equal(setupRequests,existingPremarketSetup?4:0);
     const slots=[];
     const observations=new Map();
     const eligible=readers.scannerUniverseTickers.filter(ticker=>ticker.enabled && ticker.tradable).map(ticker=>ticker.ticker).sort();
@@ -509,7 +545,7 @@ try {
         decision_disposition:decision?.final_decision.disposition??null,no_trade_reason:decision?.final_decision.no_trade_reason??null,
         requests:requestCount,benchmark_requests:benchmarkCalls,stock_requests:requestCount-benchmarkCalls,
         fresh_members:members.filter(member=>member.freshness==="fresh").length,members,
-        synthetic_request_evidence:syntheticRequestEvidence.slice(before,externalRequests),
+        synthetic_request_evidence:syntheticRequestEvidence.slice(scheduledRequestEvidenceOffset+before,scheduledRequestEvidenceOffset+externalRequests),
         intraday_session_admission_policy_version:run?.payload_json.active_scan_trace.market_data_fetch.intraday_session_admission_policy_version??null,
         provider_observations:run?.payload_json.active_scan_trace.market_data_fetch.candidate_observations??[],
         acquisition:run?.payload_json.active_scan_trace.market_data_fetch.completed_input_acquisition??null,
@@ -595,7 +631,7 @@ try {
     assert.equal(Number(sql("select count(*) from scheduled_scan_attempts;")),attemptFingerprints.size);
     const tickerCoverage=[...observations.values()].sort((a,b)=>a.ticker.localeCompare(b.ticker));
     originalLog(JSON.stringify({evidence_mode:"synthetic_closed_packaged_input_runtime_actual_source_schema",
-      scenario:"full_session_cold_rotation",acquisition_mode:omittedPairBaseline?"otherwise_omitted_first_pair_guard":acquisitionBaseline?"original_order":firstObservationBaseline?"first_observation_guard":minimumOrderBaseline?"minimum_requests_first":fairOrderBaseline?"fair_cost_ties":firstClosedBarBaseline?"original_order_first_closed_bar":"original_order_regular_session_reuse",
+      scenario:existingPremarketSetup?"full_session_existing_premarket_preparation":"full_session_cold_rotation",acquisition_mode:omittedPairBaseline?"otherwise_omitted_first_pair_guard":acquisitionBaseline?"original_order":firstObservationBaseline?"first_observation_guard":minimumOrderBaseline?"minimum_requests_first":fairOrderBaseline?"fair_cost_ties":firstClosedBarBaseline?"original_order_first_closed_bar":"original_order_regular_session_reuse",
       baseline_revision:acquisitionBaselineRevision,minimum_order_baseline_revision:minimumOrderBaselineRevision,
       original_slots:26,original_member_observations:26*8,eligible_tickers:eligible,slots,ticker_coverage:tickerCoverage,
       selected_unique_tickers:tickerCoverage.length,ever_complete_tickers:tickerCoverage.filter(ticker=>ticker.fresh>0).length,
@@ -608,6 +644,7 @@ try {
       setup_synthetic_requests:setupRequests,scheduled_synthetic_requests:externalRequests,
       synthetic_benchmark_requests:externalBenchmarkRequests,restarted_owner_read:true,wrong_owner_runs:0,
       ...(prospectiveEnrollment?{prospective_enrollment_evidence:enrollmentEvidence}:{}),
+      ...(existingPremarketSetup?{existing_premarket_evidence:existingPremarketEvidence}:{}),
       actual_provider_requests:0,production_actions:0,publications:0,broker_actions:0,cleanup:"inert"}));
   } else {
   clock = OriginalDate.parse(slot) + 20000;
@@ -1319,7 +1356,7 @@ try {
     assert.equal(secondDuplicate.status,204); assert.equal(externalRequests,8);
     benchmarkReuseEvidence={mode:baselineBenchmarkReuse?"original_committed_baseline":invalidBenchmarkReuse?"invalid_original_falls_back":"validated_owner_reuse",
       baseline_revision:mixedHistory?acquisitionBaselineRevision:reuseBaselineRevision,
-      history_start:mixedHistory?"mixed":cold?"cold":"prewarmed",
+      history_start:existingPremarketSetup?"existing_premarket_paid_setup":mixedHistory?"mixed":cold?"cold":"prewarmed",
       ...(mixedHistory ? {acquisition_mode:minimumOrderBaseline?"minimum_requests_first":"original_order"} : {}),
       ...(mixedHistory ? {historical_context_integrity:invalidMixedHistory?"tampered":"valid"} : {}),
       first_scan_requests:firstRequests,second_scan_requests:externalRequests,
@@ -1507,6 +1544,7 @@ try {
       benchmarkReuseEvidence.first_scan_requests+benchmarkReuseEvidence.second_scan_requests:externalRequests,
     ...(benchmarkReuse ? {benchmark_reuse_evidence:benchmarkReuseEvidence} : {}),
     ...(charterComposition ? {charter_composition_evidence:charterCompositionEvidence} : {}),
+    ...(existingPremarketSetup ? {existing_premarket_evidence:existingPremarketEvidence} : {}),
     attempts:benchmarkReuse?benchmarkReuseEvidence.attempts:rows.length,
     cycles:benchmarkReuse?benchmarkReuseEvidence.cycles:receipts.length,
     claims:benchmarkReuse?benchmarkReuseEvidence.reservations:claims.length,decision_version:record?.record_version,
