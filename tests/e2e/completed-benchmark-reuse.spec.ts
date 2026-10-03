@@ -591,6 +591,27 @@ test("whole-session outcome continuation discovers every original batch before c
   expect(continuation).toMatchObject({ canonical_outcome_count: 144, missing_outcome_count: 32,
     persisted_neither_horizon_marks_verified: 126 });
   expect(continuation.enrolled_coverage_diagnostic.reason_counts).toEqual({ resolved: 144, canonical_60m_outcome_missing: 32 });
+  expect(continuation.remaining_missingness.map((row: {
+    decision_at: string; required_horizon_end_at: string; original_population_count: number;
+    missing_count: number; full_regular_horizon: boolean; session_close: string;
+  }) => [row.decision_at, row.required_horizon_end_at, row.original_population_count,
+    row.missing_count, row.full_regular_horizon, row.session_close])).toEqual([
+    ["2026-10-01T19:00:20.000Z", "2026-10-01T20:05:00.000Z", 8, 8, false, "2026-10-01T20:00:00.000Z"],
+    ["2026-10-01T19:15:20.000Z", "2026-10-01T20:20:00.000Z", 8, 8, false, "2026-10-01T20:00:00.000Z"],
+    ["2026-10-01T19:30:20.000Z", "2026-10-01T20:35:00.000Z", 8, 8, false, "2026-10-01T20:00:00.000Z"],
+    ["2026-10-01T19:45:20.000Z", "2026-10-01T20:50:00.000Z", 8, 8, false, "2026-10-01T20:00:00.000Z"],
+  ]);
+  // These original members remain enrolled and missing. Physical neither_hit
+  // rows and incomplete regular-session candles cannot become usable labels.
+  for (const row of continuation.remaining_missingness) {
+    expect(row.members).toHaveLength(8);
+    for (const member of row.members) {
+      expect(member.reason).toBe("canonical_60m_outcome_missing");
+      expect(member.persisted_original_60m).toHaveLength(1);
+      expect(member.persisted_original_60m[0].status).toBe("neither_hit");
+      expect(member.persisted_original_60m[0].coverage.blockers).toContain("candle_coverage_incomplete");
+    }
+  }
   expect(Object.values(continuation.enrolled_coverage_diagnostic.reason_counts)
     .reduce((sum: number, count) => sum + Number(count), 0)).toBe(176);
   console.info("Original outcome continuation (synthetic, not quality evidence):", JSON.stringify({
@@ -603,6 +624,7 @@ test("whole-session outcome continuation discovers every original batch before c
     missing_outcome_count: continuation.missing_outcome_count,
     enrolled_reason_counts: continuation.enrolled_coverage_diagnostic.reason_counts,
     persisted_neither_horizon_marks_verified: continuation.persisted_neither_horizon_marks_verified,
+    remaining_missingness: continuation.remaining_missingness,
     missing_r_examples: continuation.enrolled_coverage_diagnostic.members
       .filter((row: { outcome_reason: string }) => row.outcome_reason === "canonical_realized_r_unavailable").slice(0, 2),
     terminal_status: continuation.passes.at(-1).status,

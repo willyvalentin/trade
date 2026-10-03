@@ -18,15 +18,26 @@ capped at four. Determine whether the existing owner-bound outcome route can
 resume the full original session's research population through canonical 60m
 learning readback under its unchanged per-pass limits. The preparation proof
 initially followed only the first complete eight-member decision; its 168 missing
-labels were not proof of a product defect. Complete source enumeration is now
-verified below, but canonical continuation still retains 158 missing enrolled
-labels. The restarted original-population diagnosis below attributes 126 to
-missing realized-R despite complete provider coverage and 32 to absent qualified
-60m outcomes. Select the minimum exact-horizon mark correction using already
-retained, original anchored candles, without another provider acquisition.
-Reproduce positive and negative R and the horizon-boundary future-bar trap;
-require all 176 enrolled identities, preserve late missing horizons, original
-terminal events, immutable model/results and versioned measurement semantics.
+labels were not proof of a product defect. Complete source enumeration and the
+minimum exact-horizon mark correction are now locally behavior-verified below.
+The corrected full-original composition has 144 qualified canonical labels and
+32 missing, versus 18 qualified/158 missing before the mark correction, with
+unchanged original identities and acquisition counts. All 126 recovered
+`neither_hit` measurements are checked through persisted outcomes and restarted
+learning readback. Positive, negative and flat R and a post-horizon target trap
+pass independently. The source reader, immutable models/results and historical
+stored rows are not rewritten; only newly computed acquisitions carry the
+versioned fully closed candle filter and exact original-horizon close mark.
+Exact-product build passes. The remaining 32 absent qualified 60m labels are
+now individually attributed below to four original horizons crossing session
+close, not another unexplained source/acquisition defect. This bounded
+continuation is locally complete with `evidence_incomplete` full-charter
+disposition, not passing quality. Next inspect the existing prospective
+comparison's decision-time/session eligibility and resulting full-scorecard
+feasibility before selecting a correction or a new collection question.
+Preserve the frozen v1 population/thresholds and historical results; do not
+discard the late members, shorten their horizons, retry acquisition or build
+another general outcome worker to force coverage.
 Do not fill gaps with a present quote, end-of-day price, zero default or last
 array element. No raw outcome count or zero raw backlog substitutes for
 qualified learning coverage. Investigation remains bounded by the selected slice.
@@ -37,7 +48,104 @@ general worker or live activation. A passing continuation closes only the
 outcome-coverage link, not the full forward quality charter. Release and OPEN
 holds do not prevent this provider-free isolated investigation.
 
-**Complete original source discovery — local behavior verified 2026-10-03:**
+**Canonical original-horizon measurement — locally behavior-verified 2026-10-03:**
+Product `138a69981648a8e09b9b0edac8f147c60be5be74` fixes the reproduced
+acquisition gap without changing the canonical learning reader or its frozen
+semantics. `canonical_horizon_price_mark_v1` measures the close of the exact
+last fully closed original anchored 15/30/60m bar, only with complete elapsed
+v2 coverage, one unique end bar and coherent positive OHLC. Missing, duplicate,
+unclosed or invalid candles retain null mark/R. The separate
+`fully_closed_original_horizon_candles_v1` filter also excludes a bar starting
+at the horizon end and any bar not yet closed at evaluation. Before correction,
+the positive-mark regression returns null R and the post-horizon target trap
+incorrectly resolves `target_hit`; both now pass. This removes measured
+look-ahead, not a new ranking rule or a rewrite of retained historical events.
+
+The complete original isolated SQL/SDK/restarted-consumer proof passes (1.7m):
+26 original decisions, all 26 batches read, the same 25 admitted batches and
+176 enrolled members; 144 canonical labels and 32 explicit
+`canonical_60m_outcome_missing`. Every one of the 126 recovered `neither_hit`
+members joins its persisted price/R to its exact required horizon end, original
+entry/stop and retained fully closed candles. The flat synthetic close is a
+measured zero, not a zero default. Forty-eight bounded four-request passes plus
+a zero-request stop still make the same 192 additional synthetic requests and
+retain 200 physical outcomes. The same initial eight outcome, 95 preparation
+and 208 scheduled synthetic requests remain separate. This is a fresh isolated
+composition using the corrected writer, not a production backfill of legacy
+rows, actual provider capacity or durable after-market cadence. Coverage is
+144/176, below the frozen 90% minimum; 22 enrolled decisions are also below the
+thirty-decision requirement. Full charter remains `evidence_incomplete`, no
+trained model or terminal quality result is created, graduation `not_met`.
+
+All nine acquisition checks, 46 affected outcome/credit/canonical checks, 28
+entry-type/clock-prior checks, 30 immutable model/full-charter/result checks and
+the actual original-source failure/owner/date control pass. Historical/result
+capsules remain reproducible and source failures make zero provider requests
+with unchanged outcomes. An intermediate retry assertion expecting four bars
+is corrected to three: the 17:05 bar closes after its 17:09:49 evaluation clock;
+raw response diagnostics still retain all four. An additional test invocation
+first rejects the wrong client condition; using its registered `react-server`
+condition passes without changing `server-only`. Final nonincremental types and
+scoped lint pass on all four changed code/test files. Exact archived-product
+normal locked Linux Node 22 / Next 16.3.8 build passes, network disabled and no
+production credentials. Twenty-six current intake/governance checks also pass.
+Logs: `/private/tmp/ture-horizon-mark-acquisition-reviewed-oct3.log`,
+`/private/tmp/ture-horizon-mark-affected-oct3.log`,
+`/private/tmp/ture-horizon-mark-additional-outcome-server-oct3.log`,
+`/private/tmp/ture-horizon-mark-immutable-learning-oct3.log`,
+`/private/tmp/ture-horizon-mark-original-reviewed-oct3.log`,
+`/private/tmp/ture-horizon-mark-original-source-controls-oct3.log`,
+`/private/tmp/ture-horizon-mark-final-types-oct3.log` and
+`/private/tmp/ture-horizon-mark-final-lint-oct3.log`,
+`/private/tmp/ture-horizon-mark-exact-linux-build-oct3.log` and
+`/private/tmp/ture-horizon-mark-governance-oct3.log`.
+
+This is local IF-4 `quality_measurement`, not recommendation-quality lift,
+main integration, production behavior or OPEN acceptance. Fresh main readback
+remains `55576078`, draft PR #732 remains open on `bf457f45`; its protected
+draft proof is terminal failed at the external ECR PostgREST v16.1 pull
+(`toomanyrequests`), confirmed by job logs. The separate full dependency-audit
+release hold is reproduced afresh: full audit exits one with five high findings
+in the same braces/Next ESLint dev chain (GHSA-vfj7-8cjw-p6xm); its suggested
+framework-era downgrade is not a permitted fix. Audit log:
+`/private/tmp/ture-horizon-mark-full-audit-oct3.json`.
+Do not bypass either gate or create another speculative
+PR. No push, merge, deploy, migration, real provider, publication or broker
+operation occurs. Resume the original remaining missingness/full-charter link,
+not a new ranking, scheduler or execution stream.
+
+**Remaining original missingness — exact CLOSED source diagnosis, 2026-10-03:**
+The actual complete-source/restarted learning rerun passes (1.8m), keeping the
+same 26 decisions, 176 enrolled members, 144 qualified outcomes, 192 additional
+synthetic requests and all 32 missing. Every missing member has exactly one
+physical original 60m `neither_hit` row with incomplete provider coverage. The
+four original decisions are 19:00:20Z, 19:15:20Z, 19:30:20Z and 19:45:20Z on
+Oct 1; their next-closed-bar anchors require ends at 20:05Z, 20:20Z, 20:35Z and
+20:50Z, respectively, after the verified 20:00Z regular-session close. Each
+retains eight members; the observed coverage is 11/12, 8/12, 5/12 and 2/12 bars.
+The last horizon also exceeds the 20:45Z evaluation clock. These are actual
+original timestamps and stored receipts from the synthetic full-session
+pipeline, not a guess from the missingness aggregate or a selected later cohort.
+Do not change historical eligibility or supply extended-hours/next-day prices
+to make the fixed regular-session 60m comparison pass. Full raw backlog zero
+does not supply the absent regular-session observations. No new acquisition or
+reader semantics are justified by this diagnostic.
+The initial invocation is denied at the Docker socket before fixture startup;
+the same bounded test with its normal isolated-Docker permission passes without
+source/runtime or provider changes. Log:
+`/private/tmp/ture-original-remaining-horizon-diagnosis-authorized-oct3.log`.
+The final registered exact-time/per-member regression also passes (1.8m),
+including every missing identity's physical row and incomplete coverage; final
+nonincremental types, scoped lint and 26 current governance checks pass.
+Logs: `/private/tmp/ture-original-remaining-horizon-reviewed-oct3.log`,
+`/private/tmp/ture-remaining-horizon-final-types-oct3.log`,
+`/private/tmp/ture-remaining-horizon-final-lint-oct3.log` and
+`/private/tmp/ture-remaining-horizon-governance-oct3.log`.
+This test/receipt follow-up leaves the product byte-unchanged from exact built
+`138a6998`. The npm registry also confirms braces' latest version is still
+3.0.3; no published patched version is inferred and release remains held.
+
+**Historical complete original source discovery — before horizon mark, 2026-10-03:**
 Product `8d7c7cfd6b36be36ac243f8147af244a72ce886e` replaces the silent
 twenty-row cut with owner/NY-date-bound stable-ID keyset pages. Exact remaining
 counts and final count readback reject observed population drift; a five-second

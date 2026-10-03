@@ -1248,12 +1248,31 @@ try {
               const reason=row.outcome_reason??row.outcome_status;
               reasonCounts[reason]=(reasonCounts[reason]??0)+1;
             }
+            const remainingMissingness=heldRead.decisions.flatMap(decision=>{
+              const missing=decision.comparison.candidates.filter(row=>row.outcome_status!=="resolved");
+              if(missing.length===0) return [];
+              const anchorAt=Math.ceil(OriginalDate.parse(decision.decision_at)/300000)*300000;
+              return [{scan_run_fingerprint:decision.fingerprint,decision_at:decision.decision_at,
+                original_population_count:decision.original_population_count,missing_count:missing.length,
+                evaluation_anchor_start_at:new OriginalDate(anchorAt).toISOString(),
+                required_horizon_end_at:new OriginalDate(anchorAt+3600000).toISOString(),
+                session_close:session.session_close,
+                full_regular_horizon:anchorAt+3600000<=OriginalDate.parse(session.session_close),
+                members:missing.map(member=>({candidate_id:member.candidate_id,ticker:member.ticker,
+                  reason:member.outcome_reason,snapshot_fingerprint:member.snapshot_fingerprint,
+                  persisted_original_60m:completeSource.outcomes.filter(outcome=>
+                    outcome.snapshot_fingerprint===member.snapshot_fingerprint && outcome.horizon==="60m")
+                    .map(outcome=>({id:outcome.id,status:outcome.status,coverage:outcome.payload_json.canonical_provider_coverage}))})),
+              }];
+            });
+            assert.equal(remainingMissingness.reduce((sum,row)=>sum+row.missing_count,0),heldRead.missing_outcome_count);
             fullOriginalHistoryEvidence.original_outcome_continuation={
               scope:"synthetic_actual_unselected_outcome_route_sql_sdk_not_quality_or_live",
               passes:continuationPasses,separate_synthetic_requests:externalRequests-continuationStart,
               original_decisions:completeSource.scanRuns.length,original_population_count:heldRead.original_population_count,
               canonical_outcome_count:heldRead.canonical_outcome_count,missing_outcome_count:heldRead.missing_outcome_count,
               persisted_neither_horizon_marks_verified:measuredNeither.length,
+              remaining_missingness:remainingMissingness,
               physical_outcomes:completeSource.outcomes.length,
               original_batch_count:originalBatches.length,unvisited_original_batches:unvisited,
               original_source_read:sourceRead??null,
