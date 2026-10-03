@@ -6,6 +6,10 @@ import { buildRelativePlanCharterResult, verifiedRelativePlanCharterResultReceip
 import { relativePlanSemanticFingerprint } from "@/lib/server/relative-plan-prospective-comparison";
 import { decodeRelativePlanRetainedSource,RELATIVE_PLAN_CHARTER_SOURCE_MAX_BYTES } from "@/lib/server/relative-plan-charter-result";
 import { gzipSync } from "node:zlib";
+import { prospectiveSource } from "../fixtures/relative-plan-prospective-source";
+import { scopeRelativePlanCharterResultSource } from "@/lib/server/relative-plan-charter-result";
+import { verifiedRelativePlanProspectiveFreeze, relativePlanSemanticJson } from "@/lib/server/relative-plan-prospective-comparison";
+import type { RecommendationLearningBaselineSource } from "@/lib/recommendation-learning-baseline-source";
 
 const fixture = charterEvaluationInput();
 test.beforeEach(() => test.setTimeout(180000));
@@ -55,6 +59,37 @@ test("eight-member complete source fits bounded storage without dropping a train
   expect(verifiedRelativePlanCharterResultReceipt({ contract_version: RELATIVE_PLAN_CHARTER_RESULT_RECEIPT_VERSION,
     result_id: "55555555-5555-4555-8555-555555555555", owner_user_id: input.owner,
     finalized_at: input.now.toISOString(), result }, input.freeze, input.owner)?.result).toEqual(result);
+});
+test("unrelated pre-window history cannot exhaust full eight-member result retention or change its measurement", async () => {
+  const input = await charterEvaluationInput(8), original = buildRelativePlanCharterResult(input).result!;
+  const older = await Promise.all(Array.from({ length: 12 }, (_, index) =>
+    prospectiveSource({ now: new Date(Date.UTC(2026, 8, 18, 15, index * 5)), rankedCount: 8 })));
+  const source = { scanRuns: [...older.flatMap(part => part.scanRuns), ...input.source.scanRuns],
+    snapshots: [...older.flatMap(part => part.snapshots), ...input.source.snapshots],
+    outcomes: [...older.flatMap(part => part.outcomes), ...input.source.outcomes] };
+  expect(Buffer.byteLength(relativePlanSemanticJson(source))).toBeGreaterThan(RELATIVE_PLAN_CHARTER_SOURCE_MAX_BYTES);
+  const built = buildRelativePlanCharterResult({ ...input, source });
+  expect(built.status, built.blocker ?? "").toBe("ready");
+  expect(built.result).toEqual(original);
+  expect(decodeRelativePlanRetainedSource(built.result!.retained_source)).toEqual(JSON.parse(JSON.stringify(input.source)));
+});
+test("source scoping retains unresolved members, overflow, undecidable clocks and colliding original identities", async () => {
+  const { input } = await value(), freeze = verifiedRelativePlanProspectiveFreeze(input.freeze, input.owner)!;
+  const older = await prospectiveSource({ now: new Date("2026-09-18T15:00:00.000Z") });
+  const overflow = await prospectiveSource({ now: new Date("2026-10-15T17:00:00.000Z") });
+  const unknown: RecommendationLearningBaselineSource["scanRuns"][number] = structuredClone(older.scanRuns[0]);
+  unknown.payload_json = {};
+  const duplicateRun = { ...older.scanRuns[0], run_fingerprint: input.source.scanRuns[0].run_fingerprint };
+  const duplicateSnapshot = { ...older.snapshots[0], snapshot_fingerprint: input.source.snapshots[0].snapshot_fingerprint };
+  const duplicateOutcome = { ...older.outcomes[0], id: input.source.outcomes[0].id };
+  const source = { scanRuns: [...input.source.scanRuns, ...overflow.scanRuns, unknown, duplicateRun],
+    snapshots: [...input.source.snapshots, ...overflow.snapshots, duplicateSnapshot],
+    outcomes: [...input.source.outcomes, ...overflow.outcomes, duplicateOutcome] };
+  const projected = scopeRelativePlanCharterResultSource(source, freeze);
+  expect(projected).toEqual(source);
+  // No label/horizon/status selector may reduce a member or an ambiguity.
+  const missing = structuredClone(input.source); missing.outcomes = [];
+  expect(scopeRelativePlanCharterResultSource(missing, freeze)).toEqual(missing);
 });
 test("a recomputed fingerprint cannot legitimize forged metrics or a changed original runtime envelope",async () => {
   for (const mode of ["disposition","metric","cost"] as const) {
@@ -111,6 +146,7 @@ test("full eight-member population survives actual SQL finalization and negotiat
   expect(proof).toMatchObject({ status: "pass", original_candidates_per_forward_partition: 240,
     durable_terminal_result_verified: true, actual_database_finalization_clock_verified: true,
     historical_model_clock_fixture: true, actual_loopback_http_readback_verified: true,
+    unrelated_pre_window_decisions_persisted_and_preserved: 12,
     full_population_transport_encoding: "gzip", quality_improvement_verified: false,
     provider_requests: 0, production_writes: 0, broker_actions: 0 });
   expect(proof.complete_original_product_decoded_http_bytes).toBeGreaterThan(5 * 1048576);

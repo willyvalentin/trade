@@ -2,7 +2,76 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
-**Current queue — 2026-10-03 03:07Z:** The same primary CLOSED full-charter
+**Current correction — 2026-10-03 03:46Z:** The same primary IF-4 vertical
+has one newly reproduced full-source retention gap, within its existing
+twelve-active-hour delivery budget. Twelve valid owned decisions before the
+frozen windows raise decoded source from 14,815,679 to 17,268,366 bytes, while
+both original 240-member forward populations and the complete measurement are
+identical. The narrow local correction scopes terminal retention by frozen
+clocks and original identity links, not labels, resolution, quality or enrollment
+limits. Undecidable clocks, original overflow, missing labels and colliding
+run/source/outcome identities remain. It still reads the complete owner-bound
+source with existing consistency checks; there is no new SQL, privilege,
+migration or query shortcut. Before accepting a scoped capsule, it recomputes
+the entire charter against the full source and requires exact semantic equality.
+Three focused checks, including unchanged golden fingerprints and the reproduced
+twelve-history case, pass; strict types and changed-file lint pass after a test
+fixture typing correction. Complete affected DB/SDK/HTTP regression and a new
+exact locked Linux build remain pending. Larger scoped evidence or excessive
+full-owner read size still fail closed; this is not unlimited corpus scalability.
+Do not push another partial PR update or promote this correction before those
+checks finish. No second ranking hypothesis or external action is selected.
+
+**Verified transport/context revision — 2026-10-03 03:38Z:** One CLOSED IF-4
+`quality_measurement` delivery is implemented on
+`codex/relative-plan-charter-comparison-oct3`, draft PR #732. Product revision
+`aa4b211e5033553cdb8568d60020cd77af355d45`, tree
+`2bfba125ae4d958ede8e0c7c180c9d63e1edd06b`, integrates the completed original
+market-context correction and full original-population charter/result path.
+The independent context branch is preserved; it is no longer a competing
+active slice. The frozen ranking hypothesis, cohort and eleven quality limits
+are unchanged. This delivery is local/PR work, not main or production behavior.
+
+The normal eight-member source reproduced two physical failures: decoded
+complete evidence exceeded the former 8 MiB bound and the full original
+learner exceeded ordinary 5 MiB JSON transport. The minimum correction keeps
+every original member and dimension: independently bounded 16 MiB decoded
+source, unchanged 8 MiB stored capsule, unchanged 5 MiB plain JSON, and
+explicitly negotiated gzip capped at 4 MiB with binary/base64 framing headroom.
+Unsupported encoding, oversized/incompressible evidence and corrupt compressed
+sources fail closed with named gaps; no sampling or threshold relaxation.
+Actual isolated Postgres/PostgREST/SDK and loopback HTTP verify 96 training
+members and 240 original candidates in each forward partition, actual database
+finalization time, immutable owner/model binding, restarted reads and unchanged
+first results after later outcome upserts. Full original decoded HTTP is
+5,522,567 bytes, gzip wire 196,821 bytes; the finalized capsule response is
+4,880,546 bytes and fits plain JSON. The separately retained four-member golden
+fingerprints and actual pre-forward seal proof remain unchanged. Historical
+synthetic model-clock finalization and actual pre-forward sealing are separate
+proofs, never combined into one market claim. Loopback HTTP is not hosted
+Netlify behavior verification.
+
+On that exact product revision, the whole locked normal Linux Node 22.23.1 /
+Next 16.3.8 build passes without build network or production credentials.
+Strict types, changed-file lint and 102 focused behavior tests pass. The
+broad ordinary post-audit diagnostic completes with 545 intelligence, 41
+explanation, 42 proposal, 34 adapter, 32 capture and 32 binding checks passing
+(726 total; the intelligence portion precedes the source-scope correction). These
+checks do not replace the unchanged failed mandatory audit. The initial draft
+CI database proof failed because a fresh runner lacked its named PostgreSQL
+test image. The correction uses `--pull=missing` for the two isolated test
+images; no audit, test selection, timeout or protected aggregate is weakened.
+The prior draft head/preview cannot verify these subsequent local changes.
+
+Release remains blocked by unpatched GHSA-vfj7-8cjw-p6xm in the dev-only Next
+ESLint chain. No bypass, forced downgrade, production migration, configuration,
+provider acquisition, scan, publication or broker work is authorized by this
+local proof. The earliest intelligence evidence gap is actual budgeted complete
+fresh inputs for the full original population, followed by prospective original
+forward cohorts and their frozen charter. Synthetic eight-member success is
+measurement capability, not input-acquisition acceptance or recommendation lift.
+
+**Historical verification queue — 2026-10-03 03:07Z (superseded above):** The same primary CLOSED full-charter
 vertical now includes complete as-of result retention and restarted terminal
 consumption, closing the reproduced `durably_finalized_full_charter_result_required`
 link without opening a second ranking hypothesis or development stream. Codex

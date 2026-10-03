@@ -1,6 +1,7 @@
 import "server-only";
 import { gzipSync,gunzipSync } from "node:zlib";
 import type { RecommendationLearningBaselineSource } from "@/lib/recommendation-learning-baseline-source";
+import { candidateDecisionRecordFromScanRun } from "@/lib/candidate-decision-readback";
 import { buildRelativePlanCharterEvaluation } from "@/lib/server/relative-plan-charter-evaluation";
 import { replayRelativePlanCharterRuntimePartition, type RelativePlanRetainedRuntimeRows } from "@/lib/server/relative-plan-charter-runtime-replay";
 import type { RelativePlanCharterRuntimeSource } from "@/lib/server/relative-plan-charter-runtime-source";
@@ -40,6 +41,33 @@ function exact(value: unknown, fields: string[]): value is Record<string, unknow
 function instant(value: unknown): value is string {
   return typeof value === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value) &&
     Number.isFinite(Date.parse(value)) && new Date(value).toISOString() === value;
+}
+/** Scope by the prospectively frozen clocks and original links, NEVER labels,
+ * quality, resolution or first-thirty enrollment. Keep undecidable clocks and
+ * identity collisions. The caller separately compares the entire measurement
+ * against the complete server-read source before accepting this projection. */
+export function scopeRelativePlanCharterResultSource(source: RecommendationLearningBaselineSource,
+  freeze: NonNullable<ReturnType<typeof verifiedRelativePlanProspectiveFreeze>>) {
+  const windows = Object.values(freeze.plan.windows);
+  const relevantClock = (value: string | null) => !value || !Number.isFinite(Date.parse(value)) ||
+    windows.some(window => Date.parse(value) >= Date.parse(window.start_at) && Date.parse(value) < Date.parse(window.end_at));
+  const fingerprints = new Set(source.scanRuns.filter(run => {
+    const decision = candidateDecisionRecordFromScanRun(run);
+    return !decision || relevantClock(decision.decision_timestamp) || relevantClock(run.observed_at);
+  }).map(run => run.run_fingerprint));
+  const scanRuns = source.scanRuns.filter(run => fingerprints.has(run.run_fingerprint));
+  const snapshotKeys = new Set(source.snapshots.filter(row =>
+    (row.scan_run_id !== null && fingerprints.has(row.scan_run_id)) || relevantClock(row.recommended_at))
+    .map(row => row.snapshot_fingerprint));
+  // A colliding source cannot disappear merely because its clock/run differs.
+  const snapshots = source.snapshots.filter(row => snapshotKeys.has(row.snapshot_fingerprint));
+  const snapshotIds = new Set(snapshots.map(row => row.id));
+  const outcomeIds = new Set(source.outcomes.filter(row =>
+    (row.snapshot_id !== null && snapshotIds.has(row.snapshot_id)) ||
+    (row.snapshot_fingerprint !== null && snapshotKeys.has(row.snapshot_fingerprint)) ||
+    (row.snapshot_id === null && row.snapshot_fingerprint === null)).map(row => row.id));
+  const outcomes = source.outcomes.filter(row => outcomeIds.has(row.id));
+  return { scanRuns, snapshots, outcomes };
 }
 /** Lossless complete evidence, not truncation. Independently bounded decoded
  * bytes prevent zip bombs. The measurement remains readable JSON. */
@@ -105,7 +133,8 @@ export function buildRelativePlanCharterResult(input: {
   const retained: RetainedRuntime = runtime.status === "unavailable" ? { status: "unavailable",blocker: runtime.blocker }
     : { status: "available",partitions: runtime.partitions.flatMap(partition => partition.retained_rows ? [partition.retained_rows] : []) };
   // Normalize exactly the JSONB representation, not undefined JS-only fields.
-  const source: RecommendationLearningBaselineSource = JSON.parse(JSON.stringify(input.source));
+  const completeSource: RecommendationLearningBaselineSource = JSON.parse(JSON.stringify(input.source));
+  const source = scopeRelativePlanCharterResultSource(completeSource, freeze);
   const encodedSource = relativePlanSemanticJson(source), sourceBytes = Buffer.byteLength(encodedSource,"utf8");
   if (sourceBytes > RELATIVE_PLAN_CHARTER_SOURCE_MAX_BYTES) return blocked("relative_plan_complete_source_exceeds_decoded_bound");
   const retainedSource: RetainedSource = { encoding: "canonical_json_gzip_base64_v1",decoded_byte_length: sourceBytes,
@@ -113,6 +142,14 @@ export function buildRelativePlanCharterResult(input: {
   const measurement = buildRelativePlanCharterEvaluation({ owner: input.owner, freeze, source,
     runtime, now: input.now, trainedModelReceipt: model });
   if (!measurement) return blocked("relative_plan_complete_original_evaluation_required");
+  if (source.scanRuns.length !== completeSource.scanRuns.length || source.snapshots.length !== completeSource.snapshots.length ||
+    source.outcomes.length !== completeSource.outcomes.length) {
+    const original = buildRelativePlanCharterEvaluation({ owner: input.owner, freeze, source: completeSource,
+      runtime, now: input.now, trainedModelReceipt: model });
+    if (!original || relativePlanSemanticJson(original) !== relativePlanSemanticJson(measurement)) {
+      return blocked("relative_plan_original_measurement_changed_by_source_scope");
+    }
+  }
   const body = { contract_version: RELATIVE_PLAN_CHARTER_RESULT_VERSION, owner_user_id: input.owner,
     prospective_freeze_id: freeze.freeze_id, plan_fingerprint: freeze.plan.plan_fingerprint,
     charter_fingerprint: freeze.plan.charter_fingerprint, source_as_of: input.now.toISOString(),

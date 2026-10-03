@@ -67,6 +67,7 @@ try {
       export { createRelativePlanProspectiveService } from './lib/server/relative-plan-prospective-service';
       export { createRelativePlanCharterResultService } from './lib/server/relative-plan-charter-result-service';
       export { relativePlanCharterResultStore } from './lib/server/relative-plan-charter-result-store';
+      export { decodeRelativePlanRetainedSource } from './lib/server/relative-plan-charter-result';
       export { buildRelativePlanTrainedProbabilityModel } from './lib/server/relative-plan-trained-probability-model';
       export { relativePlanCompleteHttpResponse } from './lib/server/relative-plan-complete-http-response';
       export { getUsEquityMarketSession } from './lib/us-equity-market-calendar';
@@ -192,6 +193,18 @@ try {
   assert.equal(training.status, "materialized", training.blocker); const sealed = training.receipt;
   assert.equal(sealed.trained_model.original_population_count, 12 * rankedCount);
   assert(Date.parse(sealed.committed_read_at) < Date.parse(windows.held_out.start_at));
+  const unrelatedPriorDecisions = finalizedMode && rankedCount === 8 ? 12 : 0;
+  if (unrelatedPriorDecisions) {
+    const priorDay = new Date(Date.parse(windows.training.start_at) - 4 * 86400000);
+    for (let previous = 0; !fullDay(priorDay); previous++) {
+      assert(previous < 10, "synthetic_prior_regular_session_not_found");
+      priorDay.setUTCDate(priorDay.getUTCDate() - 1);
+    }
+    // Actual persisted prior history, not a shortened input fixture or mocked
+    // readSource. It remains in the owned database after result finalization.
+    for (let n = 0; n < unrelatedPriorDecisions; n++) await persist(await readers.prospectiveSource({
+      now: new Date(Date.parse(session(priorDay).session_open) + 2.5 * 3600000 + n * 300000), rankedCount }));
+  }
   const parts = [], runtimeRows = [];
   for (const day of futureDays) for (let n = 0; n < 10; n++) {
     const at = new Date(Date.parse(session(day).session_open) + 2.5 * 3600000 + n * 900000);
@@ -251,6 +264,11 @@ try {
     assert.equal(durable.status,"finalized",durable.blocker);
     assert.equal(durable.terminal_quality_decision.disposition,"reject");
     assert(durable.receipt.result.measurement.evidence_complete);
+    if (unrelatedPriorDecisions) {
+      const retained = readers.decodeRelativePlanRetainedSource(durable.receipt.result.retained_source); assert(retained);
+      assert.equal(retained.scanRuns.length, 72);
+      assert.equal(sql(`select count(*) from public.recommendation_scan_runs where owner_user_id='${owner}'`), "84");
+    }
     assert(Date.parse(durable.receipt.finalized_at) >= beforeFinalization);
     assert(Date.parse(durable.receipt.finalized_at) <= Date.now());
     assert.deepEqual((await readers.createRelativePlanCharterResultService().read(owner)).receipt,durable.receipt);
@@ -321,6 +339,7 @@ try {
     known_concentration_failure_separate_from_missing_evidence: true, forward_losses_never_refit_model: true,
     durable_terminal_result_verified: finalizedMode, actual_database_finalization_clock_verified: finalizedMode,
     historical_model_clock_fixture: finalizedMode, quality_improvement_verified: false,
+    unrelated_pre_window_decisions_persisted_and_preserved: unrelatedPriorDecisions,
     complete_original_product_http_bytes: httpBytes,
     complete_original_product_decoded_http_bytes: originalDecodedHttpBytes,
     actual_loopback_http_readback_verified: actualHttpReadbackVerified,
