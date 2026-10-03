@@ -3,7 +3,10 @@
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
 **Now / Next / Blocked — completed-history input fitness:**
-The original-source composition below is locally complete on product
+The already-paid legacy history retention is locally complete and behavior-
+verified on `5474cbb0c2af7204dd092cb3da0fb0c6328bc855`, tree
+`c9ceb742f5199222ddc5579d4a6bf9c904eeaf85`. The original-source composition
+below is locally complete on predecessor product
 `609c38c2b2534830622e855708cfd30389b9e54f`, tree
 `c2a873f78fcef53b49f64f7cbaace7e920ee2a80`; release remains held, not integrated.
 The bounded history-only setup investigation is complete with `reject` against
@@ -49,7 +52,7 @@ recovery or improved recommendations. Both charters remain
 `evidence_incomplete`, model/terminal-quality decision null and graduation
 `not_met`. Do not remove the partial decision to manufacture equality.
 
-**Next bounded IF-2b investigation:** Codex retains one primary CLOSED slice
+**Completed selected IF-2b investigation:** Codex retains one primary CLOSED slice
 on the same isolated integration branch, 4–16 active hours with at most four
 initial investigation hours. Investigate whether attributable completed daily
 history can be retained from the scanner's already-paid legacy daily fetch,
@@ -100,13 +103,40 @@ timezone/date, partial/future/duplicate bars, unchanged malformed-volume error,
 same-day expiry and abort/no-extra-call controls. Initial test-harness failures
 (a Node warning preceding the JSON diagnostic and expecting legacy blank-volume
 acceptance) were corrected without changing product validation. Strict
-nonincremental types and changed-file lint pass. The final broader runtime
-regression and exact-revision normal Linux build remain pending. This delivery
+nonincremental types and changed-file/full lint pass (zero errors/eight existing
+warnings). All 124 affected runtime/input/receipt/ranking/outcome regressions
+pass, plus five price-reference binding checks; actual isolated fixtures are
+cleaned up, with unrelated databases preserved. The exact clean product revision
+passes the normal locked Linux Node 22.23.1 / Next 16.3.8 Turbopack build,
+including full TypeScript and all 33 generated pages, without production
+credentials or build network. The first build compiles but exhausts Node's
+approximately 2 GiB default heap during TypeScript. A single diagnosed retry
+uses 4 GiB heap with identical source/dependencies/compiler/checks; the failed
+generated cache is retained outside the clean build tree. This is not protected
+Ubuntu/Node 24 CI or a production build/deploy. This delivery
 is local `recommendation_capability` input reuse plus `quality_measurement`
 continuity; not main, production or acceptance of stronger recommendations.
 Charter remains `evidence_incomplete`, model/terminal result null and graduation
 `not_met`. Release audit/PR #732 CI remain held; do not bypass them. Finish this
-coherent local delivery before choosing another hypothesis.
+coherent local delivery is complete; preserve release/security holds.
+
+**Next bounded CLOSED IF-2b selection:** Codex owns one 4–16 active-hour slice,
+initial investigation at most four hours, on the same isolated integration
+branch. Determine whether existing pre-market/watchlist generation actually
+supplies usable paid history to later original regular-session decisions; the
+sixteen-member setup proof is not a claim that the normal product prepares
+sixteen members. Use the actual existing generator/scanner entry point, its
+original universe and declared credit limits, raw SQL/SDK persistence and a
+restarted completed-input consumer. Freeze its original population before
+observing outcomes and retain overlaps/misses explicitly. Require unchanged
+watchlist/candidate behavior, same NY capture day, completed versus partial
+daily-bar distinction and no current-price freshness from cached history.
+Missing or non-overlapping histories remain unavailable, not a successful
+preparation policy. This may select a minimum reproduced data-path correction,
+not a new preparation job, expanded scheduler/budget or ranking hypothesis.
+Reject an unusable existing path rather than forcing coverage or changing the
+frozen cold/first-thirty populations. Release audit/PR #732 CI remain separate
+holds. No provider, production, migration, publication or broker action is selected.
 
 **Completed original scanner to existing full-charter composition:**
 Codex reuses existing draft PR #732's isolated
