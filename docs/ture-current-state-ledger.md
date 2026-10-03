@@ -1,8 +1,55 @@
 # Ture Current-State Ledger
 
-## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
+## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
-**Now — raw first-recording precision correction locally tested, 2026-10-03:**
+**Now — retained terminal-label contradiction correction, 2026-10-04:**
+Codex retains the same bounded IF-4 primary in draft #732, isolated branch
+`codex/original-outcome-pages-oct3`; budget 4–8 active hours, initial investigation
+at most four. The independent terminal-context slice remains locally complete,
+not another active implementation. A reproduced `supporting_blocker_removal`
+shows a new training job sealing 48/48 original labels even when complete,
+aligned, coherent retained candles contradict a retained target label. Removing
+only the target touch leaves coverage valid. The failing actual producer/writer/
+training-service regression replaces only the outer storage boundary, not the
+label computation; its retained error/trace is in
+`/private/tmp/ture-terminal-label-reproduction-oct4-results`.
+
+Minimum correction: after existing coverage admission, replay the unchanged
+outcome producer on the original plan and its retained candles; a terminal
+event, entry or event-clock contradiction stops the new job before model or
+confirmation writes. Preserve all original members, raw sources and already
+sealed/pending historical capsules. No relabel, source rewrite, reduced
+denominator, new formula, model refit, schema, scheduler, provider, publication
+or broker operation is selected. Missing retained bars keep the existing
+contract: this is contradiction detection, not complete historical reproof or
+a new canonical-event policy. Acceptance requires valid-label controls,
+contradictory no-hit/opposite-event/no-entry/event-clock rejection, unchanged
+historical goldens, actual SQL/SDK zero-write readback, broader original-chain
+regression, types/lint and an exact clean build.
+
+All 21 service checks pass (17.0s); the actual isolated Postgres/PostgREST/SDK
+training proof passes (33.7s). It retains 48 unchanged source members and zero
+model/confirmation rows after rejecting complete contradictory candles, then
+restores valid original data and verifies normal immutable training, concurrency,
+restart and forward consumption. Nonincremental types pass; normal full lint
+has zero errors/eight existing warnings. Broader regression and exact build
+are still pending; this is not release or acceptance evidence yet.
+
+Bounded owner-scoped, read-only production diagnosis finds 20 original snapshots
+across seven scan runs from September 28 through October 2 and zero joined
+outcomes for these rows. Only the two October 2 hidden sources have both explicit
+decision clocks and normalized original inputs; old missing provenance is not
+retrofitted. These snapshots are not a complete discovery denominator or a
+prospectively frozen comparison cohort. Their absence of outcomes cannot prove
+poor ranking, `no_trade`, or a broken scheduled evaluator. No production write
+or provider request occurred. The exact last PR head `c6eb8493` has a passing
+Draft job, not protected release acceptance; its skipped Ready matrix and the
+unpatched official Next ESLint/braces audit remain release blockers. Main stays
+`55576078`. After this minimum fix, resume the frozen original quality comparison
+when release and prospective evidence permit, not another control-plane stream.
+No recommendation-quality improvement is claimed.
+
+**Retained local evidence — raw first-recording precision correction, 2026-10-03:**
 The same bounded IF-4 primary in draft #732 now has one newly reproduced
 learning-integrity blocker: actual persistence serialization and the new
 server-owned training service accept a first recording one microsecond before

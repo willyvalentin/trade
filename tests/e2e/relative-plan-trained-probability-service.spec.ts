@@ -253,6 +253,45 @@ test("valid retained legacy candles remain eligible without reducing the origina
   expect(JSON.stringify(h.data)).toBe(before);
 });
 
+test("new training rejects a retained terminal label contradicted by otherwise complete coherent candles", async () => {
+  const h = await legacyCandleSource("aligned_target");
+  const row = h.data.recommendation_outcomes.find(row =>
+    (row.payload_json as Record<string, unknown>).counterfactual_candles)!;
+  const payload = row.payload_json as Record<string, unknown>;
+  // The real producer/writer retained a target label. Remove only its observed
+  // target touch: all twelve original slots remain aligned and coherent.
+  expect(row.target_hit).toBe(true);
+  for (const bar of payload.counterfactual_candles as Record<string, unknown>[]) bar.high = 101;
+  const before = JSON.stringify(h.data);
+  const result = await h.service.train(prospectiveOwner, {});
+  expect({ status: result.status, blocker: result.blocker, hasReceipt: result.receipt !== null }).toEqual({
+    status: "unavailable", hasReceipt: false,
+    blocker: "trained_probability_retained_candle_outcome_conflicting",
+  });
+  expect(h.calls).not.toContain("materialize");
+  expect(h.calls).not.toContain("confirm");
+  expect(h.data.recommendation_outcomes).toHaveLength(48);
+  expect(JSON.stringify(h.data)).toBe(before);
+});
+
+test("retained opposite-event, no-entry and event-clock contradictions cannot enter a new fitted model", async () => {
+  for (const fault of ["opposite_event", "no_entry", "event_clock"] as const) {
+    const h = await legacyCandleSource("aligned_target");
+    const row = h.data.recommendation_outcomes.find(row =>
+      (row.payload_json as Record<string, unknown>).counterfactual_candles)!;
+    const bars = (row.payload_json as Record<string, unknown>).counterfactual_candles as Record<string, unknown>[];
+    if (fault === "opposite_event") { bars[1].high = 101; bars[1].low = 95; }
+    if (fault === "no_entry") for (const bar of bars) Object.assign(bar, { open: 98, high: 99, low: 97, close: 98 });
+    if (fault === "event_clock") (row.payload_json as Record<string, unknown>).target_hit_at = bars[2].timestamp;
+    const before = JSON.stringify(h.data), result = await h.service.train(prospectiveOwner, {});
+    expect({ status: result.status, blocker: result.blocker, hasReceipt: result.receipt !== null }).toEqual({
+      status: "unavailable", hasReceipt: false, blocker: "trained_probability_retained_candle_outcome_conflicting" });
+    expect(h.calls).not.toContain("materialize"); expect(h.calls).not.toContain("confirm");
+    expect(h.data.recommendation_outcomes).toHaveLength(48);
+    expect(JSON.stringify(h.data)).toBe(before);
+  }
+});
+
 test("contradictory retained shapes fail before fitting storage, not by discarding original members", async () => {
   const mutations: ((payload: Record<string, unknown>) => void)[] = [
     p => { p.counterfactual_candles = null; },

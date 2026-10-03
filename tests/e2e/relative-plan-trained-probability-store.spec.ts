@@ -105,6 +105,7 @@ test("actual database clock, separate committed confirmation and restarted SDK m
     new_training_rejects_persisted_future_and_contradictory_revision_times: true,
     rejected_revision_keeps_48_original_members_and_zero_models: true,
     raw_postgres_microsecond_recording_inversion_rejected_before_decoder: true,
+    complete_retained_candles_cannot_seal_contradictory_terminal_labels: true,
     actual_forward_product_consumer_verified: true, forward_original_members_per_partition: 12,
     missing_forward_label_remains_unknown: true, later_forward_losses_change_errors_not_model: true,
     owner_and_client_rpc_isolation: true, direct_mutation_denied: true, full_charter_decision: "evidence_incomplete",

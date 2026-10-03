@@ -162,6 +162,32 @@ try {
   assert.equal((await readers.persistRecommendationOutcome(originalRevision, { supabaseClient: client, server: true })).status, "saved");
   assert.deepEqual(await readSource(), originalRevisionSource);
   const request = { owner, freeze, source: await readSource(), now: new Date() };
+  // Keep the real persisted terminal label, but retain complete coherent bars
+  // that touch neither target nor stop. Coverage alone cannot seal this label.
+  const originalCoverage = originalRevision.payload_json.canonical_provider_coverage;
+  assert(originalCoverage);
+  const start = Date.parse(originalCoverage.evaluation_anchor_start_at);
+  const contradictoryCandles = Array.from({ length: 12 }, (_, index) => ({
+    timestamp: new Date(start + index * 300000).toISOString(),
+    open: 100, high: 101, low: 99, close: 100, volume: 1000,
+  }));
+  assert.equal((await readers.persistRecommendationOutcome({ ...originalRevision,
+    payload_json: { ...originalRevision.payload_json, counterfactual_candles: contradictoryCandles,
+      counterfactual_candle_source: "horizon_filtered_intraday_candles",
+      retained_candles_available: true, retained_candle_count: 12 } },
+    { supabaseClient: client, server: true })).status, "saved");
+  const contradictoryRaw = await readers.readRecommendationLearningBaselineSource(owner);
+  assert.equal(contradictoryRaw.status, "available");
+  const contradictoryBefore = JSON.stringify(contradictoryRaw.data);
+  const rejectedLabel = await readers.createRelativePlanTrainedProbabilityService().train(owner, {});
+  assert.equal(rejectedLabel.status, "unavailable");
+  assert.equal(rejectedLabel.blocker, "trained_probability_retained_candle_outcome_conflicting");
+  assert.equal(sql("select count(*) from public.relative_plan_trained_probability_models"), "0");
+  assert.equal(sql("select count(*) from public.relative_plan_trained_probability_confirmations"), "0");
+  assert.equal(contradictoryRaw.data.recommendation_outcomes.length, 48);
+  assert.equal(JSON.stringify((await readers.readRecommendationLearningBaselineSource(owner)).data), contradictoryBefore);
+  assert.equal((await readers.persistRecommendationOutcome(originalRevision, { supabaseClient: client, server: true })).status, "saved");
+  assert.deepEqual(await readSource(), originalRevisionSource);
   let model = readers.buildRelativePlanTrainedProbabilityModel(request).trained_model; assert(model);
   assert.equal(model.original_population_count, 48); assert.equal(model.model.sample_count, 48);
   assert.equal((await readers.relativePlanTrainedProbabilityStore().read(freeze, owner)).status, "not_found");
@@ -319,6 +345,7 @@ try {
     new_training_rejects_persisted_future_and_contradictory_revision_times: true,
     rejected_revision_keeps_48_original_members_and_zero_models: true,
     raw_postgres_microsecond_recording_inversion_rejected_before_decoder: true,
+    complete_retained_candles_cannot_seal_contradictory_terminal_labels: true,
     actual_database_rejects_backdated_and_premature_jobs: true,
     owner_and_client_rpc_isolation: true, direct_mutation_denied: true, actual_forward_product_consumer_verified: true,
     forward_original_members_per_partition: 12, missing_forward_label_remains_unknown: true,
