@@ -2,7 +2,7 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
-**Now / Next / Blocked — IF-2b first-closed-bar comparison rejected:**
+**Now / Next / Blocked — IF-2b rejected comparison retained, selected product restored:**
 The actual corrected packaged 26-slot run keeps all 95 original tickers, eight
 members/slot, 208 requests and zero setup/actual-provider/publication/broker work.
 It eliminates all three opening five-minute requests and acquires six completed
@@ -18,12 +18,33 @@ The native opening regression fails before correction with three premature
 requests; the isolated calendar/admission tests pass seven checks afterward,
 including exact first close, legacy budget/cache semantics, unknown/invalid
 clock, holiday/weekend and early close. Retain the experimental implementation
-only as an exact historical comparison arm, restore selected product `f9640dcb`,
-and verify that all original/rejected comparison arms remain attributable.
+only as exact historical arm `3007a456af1584d3e0ed7c09f5ae600fa46124ed`.
+The application, dependency and configuration source is restored exactly to
+selected product `f9640dcb`; its previously verified Linux/Node 22.23.1 build
+therefore applies to those unchanged bytes, not to the rejected prototype.
+The final serial suite passes all 31 benchmark/runtime/admission/budget checks,
+including six exact historical/current full-session arms. Log
+`/private/tmp/ture-opening-allocation-retained-final-oct3.log` (5.2 minutes).
+Six CI-registration/cancellation checks pass separately in 2.3 seconds using
+the actual registered `action-660j-parallel-provider-free-verification.spec.ts`;
+log `/private/tmp/ture-opening-allocation-final-registration-oct3.log`. The
+31-check command's unmatched `ci-shard-registration.spec.ts` selector supplied
+no registration coverage and is not counted as such. Owned proof containers
+are gone; unrelated existing local Supabase containers are left untouched.
+Standard lint passes with zero errors/eight existing warnings and strict
+nonincremental types pass. The current comparison is local synthetic evidence,
+not protected CI, main, production or recommendation-quality acceptance.
 No new push/PR or production effect is selected. Next investigate repeated
 never-complete original members' actual daily/intraday allocation, not the
 opening clock alone. This result changes the next action because opening
-efficiency does not recover their missing coverage. Release prerequisites and
+efficiency does not recover their missing coverage. Sanitized boundary readback
+on unchanged `f9640dcb` finds 80 stock daily and 126 intraday requests: fifteen
+of the nineteen never-complete tickers receive no request at all; HD, INTU,
+LULU and RIOT receive one daily request each, but no intraday request. These
+are budget-allocation omissions in a synthetic successful-provider fixture,
+not observed provider outages. Retain the full original population and freeze
+any next hypothesis before collecting its comparison; do not tune tie offsets
+or lower breadth/fresh-observation gates against this fixture. Release prerequisites and
 OPEN/full-charter quality gaps below remain unchanged.
 
 **Historical IF-2b opening-credit diagnosis and frozen comparison, 2026-10-03 06:05Z:**

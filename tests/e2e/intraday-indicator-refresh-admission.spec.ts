@@ -5,7 +5,6 @@ import { resolve } from "node:path";
 import {
   INTRADAY_INDICATOR_REFRESH_ALLOCATION_POLICY_VERSION,
   resolveIntradayIndicatorRefreshAdmission,
-  resolveCompletedInputIntradaySessionAdmission,
 } from "@/lib/intraday-indicator-refresh-admission";
 import { CANDIDATE_DECISION_SCANNER_VERSION } from "@/lib/candidate-decision-record";
 
@@ -15,24 +14,6 @@ const boundedRefreshBudget = {
   fresh_indicator_fetches_used: 0,
   max_fresh_indicator_fetches: 3,
 };
-
-test("completed input refresh waits only for a possible first closed bar, never a serving window", () => {
-  for (const instant of ["2026-10-01T13:30:00Z", "2026-10-01T13:34:59.999Z"]) {
-    expect(resolveCompletedInputIntradaySessionAdmission(new Date(instant))).toMatchObject({
-      allow_provider_refresh: false, reason_code: "first_closed_bar_pending" });
-  }
-  for (const instant of ["2026-10-01T13:35:00Z", "2026-10-01T15:30:00Z", "2026-10-01T19:59:59Z",
-    "2026-11-27T14:35:00Z", "2026-11-27T17:59:59Z"]) {
-    expect(resolveCompletedInputIntradaySessionAdmission(new Date(instant))).toMatchObject({
-      policy_version: "completed_input_first_closed_bar_allocation_v1",
-      allow_provider_refresh: true, reason_code: "closed_bar_possible" });
-  }
-  for (const instant of ["invalid", "2026-10-01T13:29:59Z", "2026-10-01T20:00:00Z",
-    "2026-11-27T18:00:00Z", "2026-11-26T15:00:00Z", "2026-10-03T15:00:00Z", "2030-10-01T15:00:00Z"]) {
-    expect(resolveCompletedInputIntradaySessionAdmission(new Date(instant))).toMatchObject({
-      allow_provider_refresh: false, reason_code: "regular_session_unavailable" });
-  }
-});
 
 test("reuses a fresh cache without reserving a provider credit", () => {
   expect(

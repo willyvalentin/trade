@@ -9,8 +9,6 @@ import {
 } from "@/lib/intraday-indicator-cache";
 import {
   INTRADAY_INDICATOR_REFRESH_ALLOCATION_POLICY_VERSION,
-  COMPLETED_INPUT_FIRST_CLOSED_BAR_ALLOCATION_POLICY_VERSION,
-  resolveCompletedInputIntradaySessionAdmission,
   resolveIntradayIndicatorRefreshAdmission,
 } from "@/lib/intraday-indicator-refresh-admission";
 import {
@@ -787,8 +785,7 @@ async function scanMarketCore(
   const freshProviderCallPacingMs = getFreshProviderCallPacingMs(options);
   options.activeScanTrace?.updateMarketDataFetch({
     provider_call_cap: maxFreshProviderCalls,
-    ...(completedContextMode ? { data_input_policy_version: COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION,
-      intraday_session_admission_policy_version: COMPLETED_INPUT_FIRST_CLOSED_BAR_ALLOCATION_POLICY_VERSION } : {}),
+    ...(completedContextMode ? { data_input_policy_version: COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION } : {}),
   });
   const cacheHits: string[] = [];
   const cacheMisses: string[] = [];
@@ -886,7 +883,6 @@ async function scanMarketCore(
       maxAgeMinutes: SCANNER_INDICATOR_MAX_AGE_MINUTES,
       signal: options.signal,
       requireResponseIdentity: completedContextMode,
-      ...(completedContextMode ? { interval: "5min" as const } : {}),
       ...(preloadedScannerCacheRow
         ? { preloadedScannerCacheRaw: preloadedScannerCacheRow.raw }
         : {}),
@@ -912,12 +908,9 @@ async function scanMarketCore(
       fresh_indicator_fetches_used: freshIndicatorFetchesUsed,
       max_fresh_indicator_fetches: completedContextMode ? maxFreshProviderCalls : MAX_FRESH_INDICATOR_FETCHES_PER_RUN,
     });
-    const sessionAdmission = completedContextMode
-      ? resolveCompletedInputIntradaySessionAdmission(new Date()) : null;
-    const sessionNotReady = sessionAdmission?.allow_provider_refresh === false;
-    const refreshPlanned = !sessionNotReady && (runtimePlanEnforced
+    const refreshPlanned = runtimePlanEnforced
       ? isPlannedAllocation(candidate.ticker, tickerIndex, "intraday")
-      : legacyAdmission.reserve_provider_credit);
+      : legacyAdmission.reserve_provider_credit;
     let result = cached;
 
     if (refreshPlanned) {
@@ -955,7 +948,7 @@ async function scanMarketCore(
         ...cached,
         warnings: [
           ...cached.warnings,
-          sessionNotReady ? `Current-session refresh withheld: ${sessionAdmission.reason_code}.` : cached.indicators
+          cached.indicators
             ? "Using stale intraday indicator cache; fresh fetch disabled."
             : "Fresh intraday indicator fetch disabled.",
         ],
@@ -967,18 +960,18 @@ async function scanMarketCore(
       options.activeScanTrace?.incrementMarketDataFetch({
         candle_success_count: 1,
       });
-    } else if (result.source === "unavailable" && !sessionNotReady) {
+    } else if (result.source === "unavailable") {
       options.activeScanTrace?.incrementMarketDataFetch({
         candle_error_count: 1,
         latest_provider_error_type: "intraday_indicators_unavailable",
       });
     }
 
-    if (result.stale && !sessionNotReady) {
+    if (result.stale) {
       options.activeScanTrace?.incrementMarketDataFetch({ stale_count: 1 });
     }
 
-    if (!result.indicators && !sessionNotReady) {
+    if (!result.indicators) {
       options.activeScanTrace?.incrementMarketDataFetch({
         empty_response_count: 1,
       });
@@ -1030,12 +1023,11 @@ async function scanMarketCore(
             : "fresh_cache"
           : "unavailable";
     const intradayReasonCodes: ScanProviderCandidateObservationReason[] = [
-      ...(sessionNotReady ? (["intraday_regular_session_not_ready"] as const) : []),
-      ...(result.source === "unavailable" && !sessionNotReady
+      ...(result.source === "unavailable"
         ? (["intraday_provider_unavailable"] as const)
         : []),
-      ...(result.stale && !sessionNotReady ? (["intraday_stale_cache"] as const) : []),
-      ...(!refreshPlanned && !sessionNotReady && result.stale
+      ...(result.stale ? (["intraday_stale_cache"] as const) : []),
+      ...(!refreshPlanned && result.stale
         ? (["intraday_refresh_credit_cap_reached"] as const)
         : []),
     ];

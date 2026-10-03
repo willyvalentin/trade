@@ -180,9 +180,9 @@ for (const mode of ["baseline", "minimum_requests_first", "regular_session_reuse
   });
 }
 
-test("opening analysis never spends an intraday credit before a five-minute bar can close", () => {
+test("retained rejected opening allocator spends no intraday credit before a five-minute bar can close", () => {
   test.setTimeout(90000);
-  const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--rotation-day", "--cold"],
+  const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--rotation-day", "--cold", "--first-closed-bar-baseline"],
     { cwd: process.cwd(), encoding: "utf8", timeout: 80000 });
   expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
   const evidence = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
@@ -200,7 +200,7 @@ test("full-session historical reuse improves breadth while retaining rejected al
   test.setTimeout(420000);
   const evidence = ["baseline", "minimum", "guard", "fair", "regular", "first_closed_bar"].map(mode => {
     const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--rotation-day", "--cold",
-      ...(mode === "baseline" ? ["--acquisition-baseline"] : mode === "minimum" ? ["--minimum-order-baseline"] : mode === "guard" ? ["--first-observation-baseline"] : mode === "fair" ? ["--fair-order-baseline"] : mode === "regular" ? ["--regular-session-baseline"] : [])], { cwd: process.cwd(), encoding: "utf8", timeout: 180000 });
+      ...(mode === "baseline" ? ["--acquisition-baseline"] : mode === "minimum" ? ["--minimum-order-baseline"] : mode === "guard" ? ["--first-observation-baseline"] : mode === "fair" ? ["--fair-order-baseline"] : mode === "regular" ? ["--regular-session-baseline"] : ["--first-closed-bar-baseline"])], { cwd: process.cwd(), encoding: "utf8", timeout: 180000 });
     expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
     return JSON.parse(result.stdout.trim().split("\n").at(-1)!);
   });

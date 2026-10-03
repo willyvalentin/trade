@@ -28,6 +28,9 @@ const acquisitionBaselineRevision = "43fa089e2c7410f10834e148179dda1564765e46";
 const regularSessionBaseline = process.argv.includes("--regular-session-baseline");
 const regularSessionBaselineRevision = "f9640dcb57b22cab1bfb305143382bafffe133cc";
 assert(!regularSessionBaseline || rotationDay && !acquisitionBaseline && !minimumOrderBaseline && !firstObservationBaseline && !fairOrderBaseline);
+const firstClosedBarBaseline = process.argv.includes("--first-closed-bar-baseline");
+const firstClosedBarBaselineRevision = "3007a456af1584d3e0ed7c09f5ae600fa46124ed";
+assert(!firstClosedBarBaseline || rotationDay && !regularSessionBaseline && !acquisitionBaseline && !minimumOrderBaseline && !firstObservationBaseline && !fairOrderBaseline);
 assert(!mixedHistory || benchmarkReuse && !cold);
 assert(!acquisitionBaseline || mixedHistory || rotationDay);
 assert(!minimumOrderBaseline || (mixedHistory || rotationDay) && !acquisitionBaseline);
@@ -126,10 +129,10 @@ try {
   // in memory; neither product checkout nor fixtures/cohort are rewritten.
   const baselinePlugin = { name: "frozen-original-benchmark-allocation", setup(builder) {
     builder.onLoad({ filter: /\/lib\/(scanner|recommendation-generator|market-regime|completed-benchmark-reuse|intraday-indicator-refresh-admission)\.ts$/ }, args => ({
-      contents: execFileSync("git", ["show", `${regularSessionBaseline ? regularSessionBaselineRevision : fairOrderBaseline ? fairOrderBaselineRevision : firstObservationBaseline ? firstObservationBaselineRevision : minimumOrderBaseline ? minimumOrderBaselineRevision : acquisitionBaseline ? acquisitionBaselineRevision : reuseBaselineRevision}:${args.path.slice(root.length + 1)}`], {cwd:root,encoding:"utf8"}),
+      contents: execFileSync("git", ["show", `${firstClosedBarBaseline ? firstClosedBarBaselineRevision : regularSessionBaseline ? regularSessionBaselineRevision : fairOrderBaseline ? fairOrderBaselineRevision : firstObservationBaseline ? firstObservationBaselineRevision : minimumOrderBaseline ? minimumOrderBaselineRevision : acquisitionBaseline ? acquisitionBaselineRevision : reuseBaselineRevision}:${args.path.slice(root.length + 1)}`], {cwd:root,encoding:"utf8"}),
       loader:"ts", resolveDir:join(root,"lib") }));
   } };
-  await build({ ...options, ...(baselineBenchmarkReuse || acquisitionBaseline || minimumOrderBaseline || firstObservationBaseline || fairOrderBaseline || regularSessionBaseline ? {plugins:[baselinePlugin]} : {}),
+  await build({ ...options, ...(baselineBenchmarkReuse || acquisitionBaseline || minimumOrderBaseline || firstObservationBaseline || fairOrderBaseline || regularSessionBaseline || firstClosedBarBaseline ? {plugins:[baselinePlugin]} : {}),
     entryPoints: [resolve(root, "app/api/automation/run-scan/route.ts")], outfile: join(generated, "scheduled-scan-runtime.cjs") });
   if (diagnoseOutcomes) buildSync({ ...options, entryPoints: [resolve(root, "app/api/recommendations/evaluate-outcomes/route.ts")], outfile: join(generated, "outcome-route.cjs") });
   buildSync({ ...options, entryPoints: [resolve(root, "netlify/functions/scheduled-scan.ts")], outfile: join(directory, "functions/scheduled.cjs") });
@@ -486,7 +489,7 @@ try {
     assert.equal(Number(sql("select count(*) from scheduled_scan_attempts;")),attemptFingerprints.size);
     const tickerCoverage=[...observations.values()].sort((a,b)=>a.ticker.localeCompare(b.ticker));
     originalLog(JSON.stringify({evidence_mode:"synthetic_closed_packaged_input_runtime_actual_source_schema",
-      scenario:"full_session_cold_rotation",acquisition_mode:acquisitionBaseline?"original_order":firstObservationBaseline?"first_observation_guard":minimumOrderBaseline?"minimum_requests_first":fairOrderBaseline?"fair_cost_ties":regularSessionBaseline?"original_order_regular_session_reuse":"original_order_first_closed_bar",
+      scenario:"full_session_cold_rotation",acquisition_mode:acquisitionBaseline?"original_order":firstObservationBaseline?"first_observation_guard":minimumOrderBaseline?"minimum_requests_first":fairOrderBaseline?"fair_cost_ties":firstClosedBarBaseline?"original_order_first_closed_bar":"original_order_regular_session_reuse",
       baseline_revision:acquisitionBaselineRevision,minimum_order_baseline_revision:minimumOrderBaselineRevision,
       original_slots:26,original_member_observations:26*8,eligible_tickers:eligible,slots,ticker_coverage:tickerCoverage,
       selected_unique_tickers:tickerCoverage.length,ever_complete_tickers:tickerCoverage.filter(ticker=>ticker.fresh>0).length,
