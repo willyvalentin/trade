@@ -464,6 +464,76 @@ test("full original preopen histories supply an early canonical population witho
   expect(preparation.full_charter_evidence.missing_dimensions).toContain("held_out_durably_frozen_training_probability_model_required");
 });
 
+test("durable history preparation preserves the full original session while resuming without another purchase", () => {
+  test.setTimeout(360000);
+  const run = (budgeted: boolean) => {
+    const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--cold",
+      "--rotation-day", "--prospective-enrollment", "--full-original-history-setup",
+      ...(budgeted ? ["--budgeted-history-setup"] : [])],
+    { cwd: process.cwd(), encoding: "utf8", timeout: 165000 });
+    expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
+    return JSON.parse(result.stdout.trim().split("\n").at(-1)!);
+  };
+  const feasibility = run(false), adopted = run(true);
+  for (const arm of [feasibility, adopted]) expect(arm).toMatchObject({ original_slots: 26,
+    original_member_observations: 208, selected_unique_tickers: 95, fresh_member_observations: 200,
+    reserved_credits: 208, scheduled_synthetic_requests: 208, setup_synthetic_requests: 95,
+    prospective_enrollment_evidence: { enrolled_decisions: 22, excluded_decisions: 4 },
+    actual_provider_requests: 0, production_actions: 0, publications: 0, broker_actions: 0, cleanup: "inert" });
+  const original = (arm: typeof adopted) => arm.slots.map((slot: { slot: string; members: { ticker: string }[] }) =>
+    ({ slot: slot.slot, tickers: slot.members.map(member => member.ticker) }));
+  expect(original(adopted)).toEqual(original(feasibility));
+  const preparation = adopted.full_original_history_evidence;
+  expect(preparation).toMatchObject({ setup_credit_reservations: 95, setup_requests: 95, setup_intraday_requests: 0,
+    setup_budget_scope: "actual_isolated_durable_owner_bound_reservation", restarted_batches: 12,
+    maximum_requests_in_modeled_minute: 8, minute_budget_blocked_without_provider: true,
+    corrupted_paid_history_retry_blocked: true, legacy_derived_price_unchanged: true,
+    unproven_cached_finalization_blocks_acquisition: true, daily_budget_drift_blocked_without_provider: true,
+    source_capacity: { complete_decisions: 22, first_eligible_original_decision: { fingerprint: "rec_scan_run_r1l45" } },
+    canonical_outcome_evidence: { canonical_outcome_count: 8, population_complete: true, precision_delta: 0 },
+    full_charter_evidence: { original_population_count: 176, canonical_outcome_count: 8, missing_outcome_count: 168,
+      disposition: "evidence_incomplete", trained_probability_model: null, terminal_quality_decision: null },
+    total_separate_synthetic_data_requests: 311, provider_entitlement_proven: false, quality_improvement_claimed: false });
+  expect(preparation.preparation_passes).toHaveLength(12);
+  expect(preparation.preparation_passes.every((pass: { original_members: unknown[]; publication_allowed: boolean; broker_allowed: boolean }) =>
+    pass.original_members.length === 95 && !pass.publication_allowed && !pass.broker_allowed)).toBe(true);
+  expect(preparation.preparation_passes.map((pass: { reserved_credits: number }) => pass.reserved_credits))
+    .toEqual([...Array(11).fill(8), 7]);
+  expect(new Set(preparation.preparation_passes.map((pass: { universe_fingerprint: string }) => pass.universe_fingerprint)).size).toBe(1);
+});
+
+for (const fault of ["rate_limit", "provider_identity", "cache_write", "reservation", "finalization", "daily_limit", "abort", "deadline"]) {
+  test(`history preparation retains charged failure and missing members after ${fault} without buying a retry`, () => {
+    test.setTimeout(90000);
+    const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--cold",
+      "--rotation-day", "--prospective-enrollment", "--full-original-history-setup", "--budgeted-history-setup",
+      `--history-preparation-fault=${fault}`], { cwd: process.cwd(), encoding: "utf8", timeout: 70000 });
+    expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
+    const receipt = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
+    expect(receipt).toMatchObject({ actual_provider_requests: 0, production_actions: 0, publications: 0,
+      broker_actions: 0, cleanup: "inert", preparation_failure_evidence: { fault, original_population_count: 95,
+        reserved_credits: fault === "reservation" ? 0 : 1, synthetic_provider_requests: fault === "reservation" ? 0 : 1,
+        repeated_provider_requests: 0, first: { status: "blocked" },
+        same_minute_restart: { status: "blocked" }, later_minute_restart: { status: "blocked" } } });
+    const evidence = receipt.preparation_failure_evidence;
+    for (const pass of [evidence.first, evidence.same_minute_restart, evidence.later_minute_restart]) {
+      expect(pass.original_members).toHaveLength(95);
+      expect(pass.original_members.map((row: { ticker: string }) => row.ticker))
+        .toEqual(evidence.first.original_members.map((row: { ticker: string }) => row.ticker));
+      expect(pass.publication_allowed).toBe(false);
+      expect(pass.broker_allowed).toBe(false);
+    }
+    const blockers: Record<string, string> = { rate_limit: "history_preparation_provider_rate_limited",
+      provider_identity: "history_preparation_attributable_context_unavailable",
+      cache_write: "history_preparation_cache_write_unavailable", reservation: "basic_free_credit_reservation_unavailable",
+      finalization: "history_preparation_finalization_unproven", daily_limit: "daily_credit_limit_reached", abort: "history_preparation_aborted",
+      deadline: "history_preparation_deadline_exhausted" };
+    expect(evidence.first.blocker).toBe(blockers[fault]);
+    if (fault === "finalization") expect(evidence.cached_finalization_repair).toMatchObject({
+      blocker: "daily_credit_limit_reached", requested_credits: 0 });
+  });
+}
+
 test("actual original complete input reaches full charter through canonical outcomes without granting quality authority", () => {
   test.setTimeout(120000);
   const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--benchmark-reuse", "--charter-composition"],

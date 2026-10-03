@@ -19,10 +19,11 @@ function first<T>(value: T[] | T | null) {
 
 function database(
   client: SupabaseClient,
+  signal?: AbortSignal,
 ): BasicFreeDiscoveryCreditReservationDatabase {
   return {
     async claim(input) {
-      const { data, error } = await client.rpc(
+      const query = client.rpc(
         basicFreeDiscoveryCreditReservationRpcName,
         {
           p_claim_id: input.claim_id,
@@ -39,10 +40,11 @@ function database(
             basicFreeDiscoveryCreditReservationContractVersion,
         },
       );
+      const { data, error } = await (signal ? query.abortSignal(signal) : query);
       return { data: first(data), error };
     },
     async beginAttempt(input) {
-      const { data, error } = await client.rpc(
+      const query = client.rpc(
         basicFreeDiscoveryCreditReservationBeginRpcName,
         {
           p_claim_id: input.claim_id,
@@ -51,10 +53,11 @@ function database(
             basicFreeDiscoveryCreditReservationContractVersion,
         },
       );
+      const { data, error } = await (signal ? query.abortSignal(signal) : query);
       return { data: first(data), error };
     },
     async finalize(input) {
-      const { data, error } = await client.rpc(
+      const query = client.rpc(
         basicFreeDiscoveryCreditReservationFinalizeRpcName,
         {
           p_claim_id: input.claim_id,
@@ -65,22 +68,24 @@ function database(
           p_finalized_at: input.finalized_at,
         },
       );
+      const { data, error } = await (signal ? query.abortSignal(signal) : query);
       return { data: first(data), error };
     },
   };
 }
 
-function store() {
+function store(signal?: AbortSignal) {
   const supabase = getServerSupabaseClient();
   return createBasicFreeDiscoveryCreditReservationStore(
-    supabase.client ? database(supabase.client) : null,
+    supabase.client ? database(supabase.client, signal) : null,
   );
 }
 
 export function prepareBasicFreeDiscoveryCreditReservation(
   input: BasicFreeDiscoveryCreditReservationInput,
+  options?: { signal?: AbortSignal },
 ) {
-  return store().prepare(input);
+  return store(options?.signal).prepare(input);
 }
 
 export function finalizeBasicFreeDiscoveryCreditReservation(input: {
@@ -88,6 +93,6 @@ export function finalizeBasicFreeDiscoveryCreditReservation(input: {
   execution_fingerprint: string;
   status: "completed" | "failed";
   finalized_at: string;
-}) {
-  return store().finalize(input);
+}, options?: { signal?: AbortSignal }) {
+  return store(options?.signal).finalize(input);
 }

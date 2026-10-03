@@ -19,6 +19,12 @@ const rotationDay = process.argv.includes("--rotation-day");
 const prospectiveEnrollment = process.argv.includes("--prospective-enrollment");
 const lateOriginalOutcomes = process.argv.includes("--late-original-outcomes");
 const fullOriginalHistorySetup = process.argv.includes("--full-original-history-setup");
+const budgetedHistorySetup = process.argv.includes("--budgeted-history-setup");
+const historyPreparationFault = process.argv.find(value=>value.startsWith("--history-preparation-fault="))?.split("=")[1];
+assert(!historyPreparationFault || budgetedHistorySetup && ["rate_limit","provider_identity","cache_write","reservation","finalization","daily_limit","abort","deadline"].includes(historyPreparationFault),
+  "Preparation fault uses only its isolated actual acquisition/budget boundary");
+assert(!budgetedHistorySetup || fullOriginalHistorySetup,
+  "Budgeted history is the actual same original-source composition, not another schedule or ranking arm");
 assert(!fullOriginalHistorySetup || cold && rotationDay && prospectiveEnrollment &&
   !existingPremarketSetup && !expandedPremarketSetup && !lateOriginalOutcomes &&
   !process.argv.includes("--legacy-retention-baseline") && !process.argv.some(value=>[
@@ -149,6 +155,7 @@ const identity = {
 };
 const OriginalDate = globalThis.Date;
 const originalFetch = globalThis.fetch;
+const originalSignalTimeout = AbortSignal.timeout;
 const originalLog = console.log;
 const originalEnvironment = { ...process.env };
 let externalRequests = 0;
@@ -160,6 +167,7 @@ let durationStartedAt = null;
 let pendingSyntheticTransports = 0;
 let futureOutcomePlans = [];
 let benchmarkReuseEvidence = null;
+let preparationFaultController = null;
 const fixtureNow = () => clock + (durationStartedAt === null ? 0 : Math.round(performance.now() - durationStartedAt));
 const logs = [];
 const docker = (...args) => execFileSync("docker", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
@@ -211,6 +219,7 @@ try {
       export { scannerUniverseTickers } from './lib/scanner-universe';
       export { scanMarket } from './lib/scanner';
       ${fullOriginalHistorySetup ? "export { readCompletedDailyContext } from './lib/scanner-completed-daily-context';" : ""}
+      ${budgetedHistorySetup ? "export { prepareCompletedSessionHistories } from './lib/server/completed-session-history-preparation';" : ""}
       ${fullOriginalHistorySetup ? "export { createRelativePlanProspectiveService } from './lib/server/relative-plan-prospective-service';" : ""}
       ${existingPremarketSetup ? "export { generateRecommendations } from './lib/recommendation-generator';" : ""}
       export { readOwnedCompletedBenchmarkReuse, isValidCompletedBenchmarkReuse } from './lib/completed-benchmark-reuse';
@@ -346,6 +355,9 @@ try {
       const benchmark = ["SPY", "QQQ"].includes(url.searchParams.get("symbol"));
       syntheticRequestEvidence.push({ ticker: url.searchParams.get("symbol"), interval,
         requested_at: new OriginalDate(clock).toISOString() });
+      if(historyPreparationFault==="rate_limit") return Response.json({status:"error",code:429,message:"Synthetic CLOSED credit limit"},{status:429});
+      if(historyPreparationFault==="abort") preparationFaultController.abort();
+      if(historyPreparationFault==="deadline") await syntheticDelay(2000,undefined,{signal:init?.signal});
       if (benchmark) assert.equal(url.searchParams.get("adjust"),
         existingPremarketSetup && clock===OriginalDate.parse("2026-10-01T13:00:00Z") ? null : "splits");
       const intraday = interval !== "1day";
@@ -389,7 +401,7 @@ try {
           values.push({datetime:"2026-10-01",open:"100",high:"1001",low:"99",close:"1000",volume:"1000"});
         }
       }
-      return Response.json({meta:{symbol:url.searchParams.get("symbol"),interval,exchange_timezone:"America/New_York"},values});
+      return Response.json({meta:{symbol:historyPreparationFault==="provider_identity"?"WRONG":url.searchParams.get("symbol"),interval,exchange_timezone:"America/New_York"},values});
     }
     if (url.origin !== environment.NEXT_PUBLIC_SUPABASE_URL) throw new Error(`Unexpected external boundary: ${url.hostname}`);
     if (url.pathname === `/auth/v1/admin/users/${owner}`) return Response.json({ user: { id: owner, aud: "authenticated", role: "authenticated" } });
@@ -487,7 +499,43 @@ try {
       returned_watchlist:prepared.pre_market_candidates,publication_count:0};
     originalLog(JSON.stringify({existing_premarket_evidence:existingPremarketEvidence}));
   }
-  if(fullOriginalHistorySetup) {
+  if(historyPreparationFault) {
+    clock=OriginalDate.parse("2026-10-01T12:45:00Z");
+    process.env.TURE_BASIC_FREE_CATALOG_DAILY_CREDIT_BUDGET="1";
+    if(historyPreparationFault==="reservation") sql("revoke execute on function public.claim_basic_free_discovery_credit_reservation(text,text,uuid,date,timestamptz,boolean,smallint,smallint,smallint,text) from service_role;");
+    if(historyPreparationFault==="finalization") sql("revoke execute on function public.finalize_basic_free_discovery_credit_reservation_attempt(text,text,text,text,timestamptz) from service_role;");
+    if(historyPreparationFault==="cache_write") sql("revoke insert,update on public.scanner_cache from service_role;");
+    preparationFaultController=new AbortController();
+    if(historyPreparationFault==="deadline") AbortSignal.timeout=(ms)=>originalSignalTimeout(ms===45000?1000:ms);
+    const first=await readers.prepareCompletedSessionHistories({signal:preparationFaultController.signal});
+    assert.equal(first.status,"blocked",JSON.stringify(first));
+    assert.equal(first.original_members.length,95);
+    assert.equal(externalRequests,historyPreparationFault==="reservation"?0:1);
+    const afterFirst=externalRequests;
+    delete require.cache[require.resolve(join(generated,"reader.cjs"))];
+    const restarted=require(join(generated,"reader.cjs"));
+    const same=await restarted.prepareCompletedSessionHistories();
+    clock+=60000;
+    const later=await restarted.prepareCompletedSessionHistories();
+    assert.equal(same.status,"blocked"); assert.equal(later.status,"blocked");
+    assert.equal(externalRequests,afterFirst,"Failure/restart in a later minute may not buy another history or disappear from cost");
+    let repair=null;
+    if(historyPreparationFault==="finalization") {
+      sql("grant execute on function public.finalize_basic_free_discovery_credit_reservation_attempt(text,text,text,text,timestamptz) to service_role;");
+      repair=await restarted.prepareCompletedSessionHistories();
+      assert.equal(repair.blocker,"daily_credit_limit_reached");
+      assert.equal(repair.original_members.filter(row=>row.status==="available").length,1);
+      assert.equal(externalRequests,afterFirst,"Repair finalizes the actual persisted source, not a repeated provider request");
+    }
+    const claims=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from basic_free_discovery_credit_reservations t;"));
+    assert.equal(claims.length,historyPreparationFault==="reservation"?0:1);
+    assert(claims.every(row=>row.requested_credits===1&&row.status===(historyPreparationFault==="daily_limit"||historyPreparationFault==="finalization"?"completed":"failed")));
+    fullOriginalHistoryEvidence={fault:historyPreparationFault,first,same_minute_restart:same,later_minute_restart:later,
+      ...(repair?{cached_finalization_repair:repair}:{}),reserved_credits:claims.reduce((sum,row)=>sum+row.requested_credits,0),
+      physical_claims:claims,synthetic_provider_requests:externalRequests,repeated_provider_requests:0,
+      persisted_histories:Number(sql("select count(*) from scanner_cache where raw ? 'completed_daily_context';")),
+      original_population_count:95,publications:0,broker_actions:0};
+  } else if(fullOriginalHistorySetup) {
     // Select from the frozen deterministic schedule BEFORE acquiring any data.
     // This is the full original day population, never a future winner/source subset.
     const originalSlots=Array.from({length:26},(_,index)=>{
@@ -510,7 +558,70 @@ try {
       freshProviderCallPacingMs:0,completedDailyContextPolicyVersion:"completed_daily_intraday_input_v1"}),
     /completed_context_current_session_unavailable/);
     assert.equal(externalRequests,0);
-    for(const [index,candidate] of originalUniverse.entries()) {
+    const preparationPasses=[];
+    if(budgetedHistorySetup) {
+      const origin=clock;
+      assert.equal((await readers.prepareCompletedSessionHistories({tickers:["WINNER"],owner_user_id:owner})).blocker,"history_preparation_request_invalid");
+      assert.equal(externalRequests,0,"Caller-selected populations or owner identities are never acquisition authority");
+      for(let index=0;index<12;index++) {
+        clock=origin+index*60000;
+        delete require.cache[require.resolve(join(generated,"reader.cjs"))];
+        const resumed=require(join(generated,"reader.cjs"));
+        const pass=await resumed.prepareCompletedSessionHistories();
+        assert.equal(pass.blocker,null,JSON.stringify(pass));
+        assert.equal(pass.original_members.length,95);
+        assert.deepEqual(pass.original_members.map(row=>row.ticker),originalUniverse.map(row=>row.ticker));
+        assert.equal(pass.reserved_credits,index===11?7:8);
+        assert.equal(pass.finalized_credits,pass.reserved_credits);
+        preparationPasses.push(pass);
+        if(index===0) {
+          const before=externalRequests;
+          sql("revoke execute on function public.finalize_basic_free_discovery_credit_reservation_attempt(text,text,text,text,timestamptz) from service_role;");
+          assert.equal((await resumed.prepareCompletedSessionHistories()).blocker,"history_preparation_finalization_unproven");
+          assert.equal(externalRequests,before,"Unproven cached finalization must block new acquisitions");
+          sql("grant execute on function public.finalize_basic_free_discovery_credit_reservation_attempt(text,text,text,text,timestamptz) to service_role;");
+          const limited=await resumed.prepareCompletedSessionHistories();
+          assert.equal(limited.status,"blocked");
+          assert.equal(limited.blocker,"per_minute_credit_limit_reached");
+          assert.equal(limited.original_members.filter(row=>row.status==="available").length,8);
+          assert.equal(externalRequests,before);
+          assert.equal(Number(sql("select sum(requested_credits) from basic_free_discovery_credit_reservations;")),8);
+          process.env.TURE_BASIC_FREE_CATALOG_DAILY_CREDIT_BUDGET="799";
+          assert.equal((await resumed.prepareCompletedSessionHistories()).blocker,"basic_free_credit_reservation_unavailable");
+          assert.equal(externalRequests,before,"Changing the declared daily budget may not sidestep its durable lock");
+          process.env.TURE_BASIC_FREE_CATALOG_DAILY_CREDIT_BUDGET="800";
+        }
+      }
+      const before=externalRequests;
+      const complete=await readers.prepareCompletedSessionHistories();
+      assert.equal(complete.status,"complete"); assert.equal(complete.requested_credits,0);
+      assert.equal(externalRequests,before);
+      const controller=new AbortController(); controller.abort();
+      assert.equal((await readers.prepareCompletedSessionHistories({signal:controller.signal})).blocker,"history_preparation_aborted");
+      const plan=process.env.TWELVE_DATA_PLAN_MODE;
+      process.env.TWELVE_DATA_PLAN_MODE="grow";
+      assert.equal((await readers.prepareCompletedSessionHistories()).blocker,"history_preparation_owner_plan_or_budget_unavailable");
+      process.env.TWELVE_DATA_PLAN_MODE=plan;
+      const first=JSON.parse(sql("select row_to_json(t) from scanner_cache t order by ticker limit 1;"));
+      sql(`update scanner_cache set raw=jsonb_set(raw,'{completed_daily_context,content_sha256}','"corrupted-paid-context"') where ticker='${first.ticker}';`);
+      const uncertain=await readers.prepareCompletedSessionHistories();
+      assert.equal(uncertain.status,"blocked"); assert.equal(uncertain.original_members.find(row=>row.ticker===first.ticker).status,"blocked");
+      assert.equal(externalRequests,before,"A corrupt/uncertain prior paid source may not buy a retry in another minute");
+      sql(`update scanner_cache set raw='${JSON.stringify(first.raw).replaceAll("'","''")}'::jsonb where ticker='${first.ticker}';`);
+      assert.equal((await readers.prepareCompletedSessionHistories()).status,"complete");
+      const savedClock=clock;
+      clock=OriginalDate.parse("2026-10-01T13:30:00Z");
+      assert.equal((await readers.prepareCompletedSessionHistories()).blocker,"history_preparation_session_unavailable");
+      clock=OriginalDate.parse("2026-10-03T12:45:00Z");
+      assert.equal((await readers.prepareCompletedSessionHistories()).blocker,"history_preparation_session_unavailable");
+      clock=savedClock;
+      assert.equal(externalRequests,before);
+      const paid=JSON.parse(sql("select jsonb_agg(t order by minute_bucket,execution_fingerprint) from basic_free_discovery_credit_reservations t;"));
+      assert.equal(paid.length,95); assert(paid.every(row=>row.requested_credits===1&&row.status==="completed"&&row.finalized_at));
+      assert.equal(Number(sql("select max(credits) from (select sum(requested_credits) credits from basic_free_discovery_credit_reservations group by minute_bucket) t;")),8);
+      assert.equal(Number(sql("select count(*) from scanner_cache where latest_close is not null or updated_at <> (raw->'completed_daily_context'->>'latest_completed_at')::timestamptz;")),0,
+        "History-only acquisition may not freshen a derived price or its legacy clock");
+    } else for(const [index,candidate] of originalUniverse.entries()) {
       clock=OriginalDate.parse("2026-10-01T12:45:00.000Z")+Math.floor(index/8)*60000;
       await readers.scanMarket([candidate],{source:"scheduled",maxFreshProviderCalls:1,freshProviderCallPacingMs:0});
     }
@@ -546,7 +657,12 @@ try {
       original_universe:originalUniverse.map(candidate=>candidate.ticker),
       original_slots:originalSlots.map(row=>({slot:row.slot,tickers:row.candidates.map(candidate=>candidate.ticker)})),
       setup_requests:95,setup_intraday_requests:0,maximum_requests_in_modeled_minute:Math.max(...perMinute.values()),
-      setup_credit_reservations:0,setup_budget_scope:"modeled_request_cap_not_production_durable_reservation",
+      setup_credit_reservations:budgetedHistorySetup?95:0,
+      setup_budget_scope:budgetedHistorySetup?"actual_isolated_durable_owner_bound_reservation":"modeled_request_cap_not_production_durable_reservation",
+      ...(budgetedHistorySetup?{preparation_passes:preparationPasses,restarted_batches:12,
+        minute_budget_blocked_without_provider:true,corrupted_paid_history_retry_blocked:true,
+        legacy_derived_price_unchanged:true,unproven_cached_finalization_blocks_acquisition:true,
+        daily_budget_drift_blocked_without_provider:true}:{}),
       requests:structuredClone(syntheticRequestEvidence),retained_daily_contexts:retained.map(context=>({
         symbol:context.symbol,captured_at:context.captured_at,latest_completed_market_date:context.latest_completed_market_date})),
       same_day_digest_identity_rejections:3,next_day_basis_rejected:true,validation_provider_requests:0,
@@ -556,7 +672,14 @@ try {
   externalBenchmarkRequests=0;
   const scheduledRequestEvidenceOffset=syntheticRequestEvidence.length;
   const scheduler = require(join(directory, "functions/scheduled.cjs")).default;
-  if(rotationDay) {
+  if(historyPreparationFault) {
+    assert.equal(Number(sql("select count(*) from recommendations;")),0);
+    assert.equal(Number(sql("select count(*) from recommendation_scan_runs;")),0);
+    assert.equal(Number(sql("select count(*) from positions;")),0);
+    originalLog(JSON.stringify({evidence_mode:"synthetic_closed_actual_history_acquisition_sql_sdk_failure",
+      preparation_failure_evidence:fullOriginalHistoryEvidence,actual_provider_requests:0,
+      production_actions:0,publications:0,broker_actions:0,cleanup:"inert"}));
+  } else if(rotationDay) {
     assert.equal(setupRequests,fullOriginalHistorySetup?95:existingPremarketSetup?(expandedPremarketSetup?8:4):0);
     const slots=[];
     const observations=new Map();
@@ -660,7 +783,10 @@ try {
       previousOriginalRun=run;
     }
     const scheduledRequests=externalRequests;
-    const totalClaims=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from basic_free_discovery_credit_reservations t;"));
+    const allPaidClaims=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from basic_free_discovery_credit_reservations t;"));
+    const preparationClaims=allPaidClaims.filter(claim=>claim.execution_fingerprint.startsWith("completed_session_history_preparation_v1|"));
+    assert.equal(preparationClaims.length,budgetedHistorySetup?95:0);
+    const totalClaims=allPaidClaims.filter(claim=>!preparationClaims.includes(claim));
     const cycles=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from observation_cycle_receipts t;"));
     const cycleReadback=readers.buildObservationCycleReadback(cycles);
     assert.equal(cycleReadback.invalid_row_count,0);
@@ -1892,6 +2018,7 @@ try {
   throw error;
 } finally {
   globalThis.Date = OriginalDate; globalThis.fetch = originalFetch; console.log = originalLog;
+  AbortSignal.timeout = originalSignalTimeout;
   Reflect.deleteProperty(globalThis, "Netlify");
   for (const name of Object.keys(process.env)) if (!(name in originalEnvironment)) delete process.env[name];
   Object.assign(process.env, originalEnvironment);
