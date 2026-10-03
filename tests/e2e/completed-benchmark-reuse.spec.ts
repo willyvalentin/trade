@@ -122,21 +122,27 @@ test("only revalidated owned original benchmark capsules can free the two reserv
   }
 });
 
+for (const historyStart of ["prewarmed", "cold"] as const) {
 for (const mode of ["baseline", "reuse", "invalid"] as const) {
-  test(`packaged ${mode} allocation preserves original populations and whole-scan credits after restart`, () => {
+  test(`packaged ${historyStart} ${mode} allocation preserves original populations and whole-scan credits after restart`, () => {
     test.setTimeout(90000);
     const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--benchmark-reuse",
+      ...(historyStart === "cold" ? ["--cold"] : []),
       ...(mode === "baseline" ? ["--benchmark-reuse-baseline"] : mode === "invalid" ? ["--benchmark-reuse-invalid"] : [])],
     { cwd: process.cwd(), encoding: "utf8", timeout: 80000 });
     expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
     const evidence = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
-    expect(evidence).toMatchObject({ scenario: "retained_benchmark_two_slot", setup_synthetic_requests: 32,
+    const firstFresh = historyStart === "cold" ? 3 : 6;
+    const secondFresh = historyStart === "cold" ? (mode === "reuse" ? 4 : 3) : (mode === "reuse" ? 8 : 6);
+    expect(evidence).toMatchObject({ scenario: "retained_benchmark_two_slot", setup_synthetic_requests: historyStart === "cold" ? 0 : 32,
       scheduled_synthetic_requests: 16, attempts: 2, cycles: 2, claims: 2,
-      fresh_inputs: mode === "reuse" ? 8 : 6, actual_provider_requests: 0,
+      fresh_inputs: secondFresh, actual_provider_requests: 0,
       production_actions: 0, publications: 0, broker_actions: 0, cleanup: "inert",
       benchmark_reuse_evidence: { mode: mode === "baseline" ? "original_committed_baseline" : mode === "invalid" ? "invalid_original_falls_back" : "validated_owner_reuse",
-        first_scan_requests: 8, second_scan_requests: 8, first_fresh_inputs: 6, second_fresh_inputs: mode === "reuse" ? 8 : 6,
+        history_start: historyStart, first_scan_requests: 8, second_scan_requests: 8,
+        first_fresh_inputs: firstFresh, second_fresh_inputs: secondFresh,
         original_members_per_decision: 8, attempts: 2, reservations: 2, reserved_credits: 16,
         benchmark_calls_second: mode === "reuse" ? 0 : 2, restarted_owner_read: true, wrong_owner_runs: 0 } });
   });
+}
 }

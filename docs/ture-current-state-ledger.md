@@ -2,6 +2,38 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
+**Cold acquisition investigation — 2026-10-03 05:07Z:** all seven actual
+packaged baseline/reuse/corruption checks pass, now including a genuinely cold
+start with zero setup requests. Across the two unchanged rotating populations,
+the predecessor observes three then three complete members; benchmark reuse
+observes three then four. Each scan retains all eight identities, its own
+terminal eight-credit reservation and restarted owner-bound readback. Warm
+coverage remains six then eight only after its separately accounted thirty-two
+setup requests. Log: `/private/tmp/ture-benchmark-reuse-cold-start-proof.log`.
+This is hypothesis evidence, not complete cold coverage or recommendation lift.
+
+The same primary IF-2b investigation now tests one narrower acquisition defect:
+original iteration order may spend two requests on each cold early member
+before reaching later members with already verified historical context. Freeze
+baseline product `43fa089e2c7410f10834e148179dda1564765e46`, same two original
+rotating eight-member populations, identical actual history setup and unchanged
+whole eight-credit cap. Compare strictly revalidated minimum-request-first
+acquisition against original order. Preserve original indices, all missing
+members, ranking tie order, source clocks and publication/quality rules; persist
+the allocation version and original-index cost/order in the existing scan trace.
+Investigate at most four active hours within the existing twelve-hour primary,
+with no competing delivery. Mixed-history coverage must improve without any
+extra request or smaller denominator; wholly cold/warm behavior, invalid history,
+owner restart, cancellation and existing budget limits must remain honest.
+No new schema, provider, scheduler control or live activation is selected.
+The simple one-call intraday aggregation alternative is not adopted: Twelve
+Data's official adjustment contract distinguishes unadjusted intraday bars from
+split-adjusted daily history, so it cannot replace the frozen daily basis.
+PR #732 remains Draft/blocked at `bf457f45`, with the same terminal registry
+failure; main is read-only verified unchanged at `55576078` on this turn.
+Integrate in the existing declared predecessor order only after protected
+security/release requirements pass. This comparison is data fitness, not alpha.
+
 **Primary IF-2b full-population acquisition — selected 2026-10-03 04:24Z:**
 Codex starts the bounded four-active-hour investigation / twelve-active-hour
 vertical in isolated `codex/retained-benchmark-allocation-oct3`, from verified

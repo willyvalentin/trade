@@ -57,9 +57,9 @@ assert(!zeroLatestVolume || cold && !wrongPolicy, "Zero-volume proof requires th
 const missingLatestVolume = process.argv.includes("--missing-latest-volume");
 assert(!missingLatestVolume || cold && !wrongPolicy && !zeroLatestVolume && !diagnoseOutcomes,
   "Missing-volume proof requires its own cold acquisition scenario");
-assert(!benchmarkReuse || !cold && !wrongPolicy && !opening && !closing && !diagnoseOutcomes &&
+assert(!benchmarkReuse || !wrongPolicy && !opening && !closing && !diagnoseOutcomes &&
   !publicationClock && !contextLatency && !staleBenchmark && !partialBenchmark && !zeroLatestVolume && !missingLatestVolume,
-  "Benchmark reuse is a separately frozen warm-history two-slot acquisition proof");
+  "Benchmark reuse is a separately frozen cold/warm two-slot acquisition proof");
 const directory = mkdtempSync(join(tmpdir(), "ture-input-runtime-proof-"));
 const database = `ture-input-runtime-db-${process.pid}`;
 const api = `ture-input-runtime-api-${process.pid}`;
@@ -914,7 +914,8 @@ try {
   }
   if(benchmarkReuse) {
     assert.equal(record.candidates.length,8); // The first complete original population is never replaced.
-    assert.equal(record.candidates.filter(candidate=>candidate.data.freshness==="fresh").length,6);
+    const firstFresh=record.candidates.filter(candidate=>candidate.data.freshness==="fresh").length;
+    assert.equal(firstFresh,cold?3:6);
     const originalRegime=scanRuns[0].payload_json.market_regime;
     if(invalidBenchmarkReuse) sql(`update recommendation_scan_runs set payload_json=jsonb_set(payload_json,
       '{market_regime,input_evidence,qqq,content_sha256}','"invalid-fixture-digest"') where id='${scanRuns[0].id}';`);
@@ -943,7 +944,7 @@ try {
     }
     const expectReuse=!invalidBenchmarkReuse && !baselineBenchmarkReuse;
     const fresh=secondDecision.candidates.filter(candidate=>candidate.data.freshness==="fresh").length;
-    assert.equal(fresh,expectReuse?8:6,JSON.stringify({
+    assert.equal(fresh,cold?(expectReuse?4:3):(expectReuse?8:6),JSON.stringify({
       selected:secondDecision.candidates.map(candidate=>({ticker:candidate.ticker,freshness:candidate.data.freshness,
         daily:candidate.data.input_snapshot?.historical_context?.captured_at,
         current:candidate.data.input_snapshot?.current_session?.latest_bar_started_at,gaps:candidate.data.gap_codes})),
@@ -992,8 +993,9 @@ try {
       {deploy:{id:identity.deploy_id,context:"production",published:true}});
     assert.equal(secondDuplicate.status,204); assert.equal(externalRequests,8);
     benchmarkReuseEvidence={mode:baselineBenchmarkReuse?"original_committed_baseline":invalidBenchmarkReuse?"invalid_original_falls_back":"validated_owner_reuse",
-      baseline_revision:reuseBaselineRevision,first_scan_requests:firstRequests,second_scan_requests:externalRequests,
-      first_fresh_inputs:6,second_fresh_inputs:fresh,original_members_per_decision:8,
+      baseline_revision:reuseBaselineRevision,history_start:cold?"cold":"prewarmed",
+      first_scan_requests:firstRequests,second_scan_requests:externalRequests,
+      first_fresh_inputs:firstFresh,second_fresh_inputs:fresh,original_members_per_decision:8,
       attempts:allAttempts.length,cycles:allCycles.length,reservations:allClaims.length,
       reserved_credits:allClaims.reduce((sum,claim)=>sum+claim.requested_credits,0),benchmark_calls_second:externalBenchmarkRequests,
       original_source_clocks_unchanged:expectReuse,restarted_owner_read:true,wrong_owner_runs:0};
