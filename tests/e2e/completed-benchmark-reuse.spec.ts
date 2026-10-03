@@ -180,6 +180,21 @@ for (const mode of ["baseline", "minimum_requests_first", "regular_session_reuse
   });
 }
 
+test("otherwise omitted first pair is acquired without dropping an original decision member", () => {
+  test.setTimeout(90000);
+  const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--rotation-day", "--cold"],
+    { cwd: process.cwd(), encoding: "utf8", timeout: 80000 });
+  expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
+  const evidence = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
+  const firstClosed = evidence.slots[1];
+  expect(firstClosed.members.map((member: { ticker: string }) => member.ticker))
+    .toEqual(["INTC", "DIS", "JPM", "CAT", "XOM", "UNH", "DKNG", "RKLB"]);
+  expect(firstClosed.members.find((member: { ticker: string }) => member.ticker === "XOM").freshness).toBe("fresh");
+  expect(firstClosed).toMatchObject({ requests: 8, attempts: 1, runs: 1, reservations: 1 });
+  expect(evidence).toMatchObject({ original_member_observations: 208, selected_unique_tickers: 95,
+    actual_provider_requests: 0, production_actions: 0, publications: 0, broker_actions: 0, cleanup: "inert" });
+});
+
 test("retained rejected opening allocator spends no intraday credit before a five-minute bar can close", () => {
   test.setTimeout(90000);
   const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--rotation-day", "--cold", "--first-closed-bar-baseline"],

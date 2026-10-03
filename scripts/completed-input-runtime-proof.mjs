@@ -422,7 +422,12 @@ try {
         assert(OriginalDate.parse(run.observed_at)<=OriginalDate.parse(decision.decision_timestamp));
         assert(OriginalDate.parse(decision.decision_timestamp)<=OriginalDate.parse(run.completed_at));
         const acquisition=run.payload_json.active_scan_trace.market_data_fetch.completed_input_acquisition;
-        if(acquisitionBaseline || !minimumOrderBaseline && !firstObservationBaseline && !fairOrderBaseline) assert.equal(acquisition,undefined);
+        if(!acquisitionBaseline && !minimumOrderBaseline && !firstObservationBaseline && !fairOrderBaseline && !regularSessionBaseline && !firstClosedBarBaseline) {
+          assert.equal(acquisition.policy_version,"completed_input_omitted_first_pair_guard_v1");
+          assert.deepEqual(acquisition.original_members.map(member=>member.ticker),selected.map(candidate=>candidate.ticker));
+          assert.deepEqual([...acquisition.acquisition_order].sort((a,b)=>a-b),[0,1,2,3,4,5,6,7]);
+        }
+        else if(acquisitionBaseline || !minimumOrderBaseline && !firstObservationBaseline && !fairOrderBaseline) assert.equal(acquisition,undefined);
         else {
           assert.equal(acquisition.policy_version,firstObservationBaseline?"completed_input_first_observation_guard_v1":minimumOrderBaseline?"completed_input_minimum_requests_first_v1":"completed_input_fair_cost_ties_v1");
           assert.deepEqual(acquisition.original_members.map(member=>member.ticker),selected.map(candidate=>candidate.ticker));
@@ -489,7 +494,7 @@ try {
     assert.equal(Number(sql("select count(*) from scheduled_scan_attempts;")),attemptFingerprints.size);
     const tickerCoverage=[...observations.values()].sort((a,b)=>a.ticker.localeCompare(b.ticker));
     originalLog(JSON.stringify({evidence_mode:"synthetic_closed_packaged_input_runtime_actual_source_schema",
-      scenario:"full_session_cold_rotation",acquisition_mode:acquisitionBaseline?"original_order":firstObservationBaseline?"first_observation_guard":minimumOrderBaseline?"minimum_requests_first":fairOrderBaseline?"fair_cost_ties":firstClosedBarBaseline?"original_order_first_closed_bar":"original_order_regular_session_reuse",
+      scenario:"full_session_cold_rotation",acquisition_mode:acquisitionBaseline?"original_order":firstObservationBaseline?"first_observation_guard":minimumOrderBaseline?"minimum_requests_first":fairOrderBaseline?"fair_cost_ties":firstClosedBarBaseline?"original_order_first_closed_bar":regularSessionBaseline?"original_order_regular_session_reuse":"otherwise_omitted_first_pair_guard",
       baseline_revision:acquisitionBaselineRevision,minimum_order_baseline_revision:minimumOrderBaselineRevision,
       original_slots:26,original_member_observations:26*8,eligible_tickers:eligible,slots,ticker_coverage:tickerCoverage,
       selected_unique_tickers:tickerCoverage.length,ever_complete_tickers:tickerCoverage.filter(ticker=>ticker.fresh>0).length,

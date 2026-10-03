@@ -2,7 +2,68 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
-**Now / Next / Blocked — IF-2b rejected comparison retained, selected product restored:**
+**Now / Next / Blocked — IF-2b first-pair guard rejected; stop allocation heuristics:**
+The frozen otherwise-omitted first-pair correction executes through the actual
+packaged scheduler, scanner, SQL/SDK and original decision readback. It retains
+95 tickers/208 members, 26 attributable attempts/runs/reservations and 208
+credits, with zero setup, actual-provider, production, publication or broker
+work. Result: 80 distinct complete tickers but 122 complete observations versus
+76/123 on exact `f9640dcb`. It gains ANET/COP/COST/CRM/CRWD/GE/HD/LULU/MA/RIOT/
+ROKU/TGT, but loses AMAT/AVGO/BA/DDOG/GOOGL/NFLX/RDDT/SBUX. Both the >=123
+fresh-observation and predecessor-identity-preservation gates fail. Disposition
+`reject`; increased breadth does not compensate for those frozen failures.
+Log `/private/tmp/ture-omitted-pair-full-oct3.log`.
+
+The exact-baseline native regression fails with XOM still a gap; the corrected
+native regression passes with XOM fresh, all eight original decision members,
+unchanged eight-credit cap and inert cleanup (37.1 seconds). The first attempted
+before-test failed on denied Docker socket access, not an engine defect; its
+log is preserved separately. Ten pure admission/planning tests, scoped lint
+and strict nonincremental types pass. This verifies the narrow intended
+intervention, not the frozen whole-session acceptance or recommendation quality.
+Retain the exact rejected arm, restore selected product `f9640dcb`, and verify
+the full retained comparison before selecting more work.
+
+Stop this allocation-heuristic series; do not tune guard count, tie offset,
+ticker membership or thresholds against the fixture. Resume the selected
+original-input/canonical-learning and frozen relative-plan comparison chain,
+with the locally accepted input predecessor and explicit pending OPEN fitness.
+Integration/security prerequisites remain held below. No new provider,
+production activation, budget or broker permission follows.
+
+**Historical IF-2b otherwise-omitted first-pair guard, frozen 2026-10-03 before results:**
+Codex continues the same isolated primary from verified local `7afc800c` and
+unchanged main `55576078`. Boundary diagnosis shows the four history-only
+members first acquire history on their final selected appearance; prioritizing
+a later continuation cannot recover them. Fifteen more selected members never
+receive a request. Do not revive the rejected cheapest-first or rotating-tie
+policies or mine ticker-specific offsets.
+
+Frozen `completed_input_omitted_first_pair_guard_v1`: validate each original
+member's history, current cache and archival same-session acquisition evidence
+before requests. Simulate original-order spending under the existing cap; move
+at most one otherwise-incomplete, never-completely-acquired member that fits the
+cap ahead of paid work, preserving free fresh members and all remaining order.
+This differs from the rejected guard, which selected the cheapest unseen member
+even when original order already admitted it. Old bars prove only past
+acquisition, never current freshness. Reuse the rejected opening experiment's
+verified first-closed-bar admission only as part of this separately frozen
+composite comparison; its old rejection remains unchanged. Restore original
+candidate return order before ranking. No schema, permission, provider budget,
+publication threshold, live flag, source population or broker change.
+
+Compare once against exact `f9640dcb` on the same 95 original tickers, 26 slots,
+208 original members, zero setup and maximum 208 whole-session/eight per-slot
+credits. Acceptance remains >76 distinct complete tickers, >=123 complete fresh
+observations and every predecessor-complete identity retained, with unchanged
+lineage, owner restart, invalid history, abort, stale inputs and no-publication
+safety. Preserve opening's zero complete current inputs. A failed gate rejects
+this composite; retain its exact revision, restore the selected product and
+stop this allocation-heuristic line rather than tuning parameters to the
+fixture. Investigation <=4 active hours within the primary's remaining
+engineering allowance. Release and OPEN/quality acceptance remain held below.
+
+**Historical IF-2b rejected comparison retained, selected product restored:**
 The actual corrected packaged 26-slot run keeps all 95 original tickers, eight
 members/slot, 208 requests and zero setup/actual-provider/publication/broker work.
 It eliminates all three opening five-minute requests and acquires six completed
