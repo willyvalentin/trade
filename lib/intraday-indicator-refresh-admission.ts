@@ -1,3 +1,30 @@
+import { getUsEquityMarketSession } from "@/lib/us-equity-market-calendar";
+
+export const COMPLETED_INPUT_FIRST_CLOSED_BAR_ALLOCATION_POLICY_VERSION =
+  "completed_input_first_closed_bar_allocation_v1" as const;
+
+/** A possible closed bar is not proof that the provider supplies fresh data. */
+export function resolveCompletedInputIntradaySessionAdmission(now: Date) {
+  const unavailable = {
+    policy_version: COMPLETED_INPUT_FIRST_CLOSED_BAR_ALLOCATION_POLICY_VERSION,
+    allow_provider_refresh: false,
+    reason_code: "regular_session_unavailable" as const,
+  };
+  if (!Number.isFinite(now.getTime())) return unavailable;
+  const session = getUsEquityMarketSession(now);
+  if (session.verification_status !== "verified" || session.freshness_status !== "current" ||
+    !session.session_open || !session.session_close ||
+    now.getTime() < Date.parse(session.session_open) || now.getTime() >= Date.parse(session.session_close)) return unavailable;
+  // The completed-input scanner requests 5min candles from this session's open.
+  // Before the first close there can be no admissible current price in that response.
+  const firstClosedBarPossible = now.getTime() >= Date.parse(session.session_open) + 5 * 60 * 1000;
+  return {
+    policy_version: COMPLETED_INPUT_FIRST_CLOSED_BAR_ALLOCATION_POLICY_VERSION,
+    allow_provider_refresh: firstClosedBarPossible,
+    reason_code: firstClosedBarPossible ? "closed_bar_possible" as const : "first_closed_bar_pending" as const,
+  };
+}
+
 export const INTRADAY_INDICATOR_REFRESH_ALLOCATION_POLICY_VERSION =
   "intraday_indicator_refresh_allocation_v1" as const;
 

@@ -236,6 +236,7 @@ export type ActiveScanTrace = {
     intraday_indicators_elapsed_ms: number;
     total_elapsed_ms: number | null;
     data_input_policy_version?: "completed_daily_intraday_input_v1";
+    intraday_session_admission_policy_version?: "completed_input_first_closed_bar_allocation_v1";
     candidate_observations: ScanProviderCandidateObservation[];
     candidate_observation_summary: ScanProviderCandidateObservationSummary;
     provider_credit_allocation_shadow: ScannerProviderCreditAllocationShadow | null;

@@ -8,6 +8,7 @@ export type ScanProviderCandidateObservationReason =
   | "daily_refresh_credit_cap_reached"
   | "daily_stale_cache_fallback"
   | "intraday_provider_unavailable"
+  | "intraday_regular_session_not_ready"
   | "intraday_refresh_credit_cap_reached"
   | "intraday_stale_cache";
 

@@ -25,6 +25,9 @@ const fairOrderBaseline = process.argv.includes("--fair-order-baseline");
 const fairOrderBaselineRevision = "bdb3da00";
 const minimumOrderBaselineRevision = "6726ba67a9aaa276bfa9cfde7b246354bebcf872";
 const acquisitionBaselineRevision = "43fa089e2c7410f10834e148179dda1564765e46";
+const regularSessionBaseline = process.argv.includes("--regular-session-baseline");
+const regularSessionBaselineRevision = "f9640dcb57b22cab1bfb305143382bafffe133cc";
+assert(!regularSessionBaseline || rotationDay && !acquisitionBaseline && !minimumOrderBaseline && !firstObservationBaseline && !fairOrderBaseline);
 assert(!mixedHistory || benchmarkReuse && !cold);
 assert(!acquisitionBaseline || mixedHistory || rotationDay);
 assert(!minimumOrderBaseline || (mixedHistory || rotationDay) && !acquisitionBaseline);
@@ -97,6 +100,7 @@ const originalLog = console.log;
 const originalEnvironment = { ...process.env };
 let externalRequests = 0;
 let externalBenchmarkRequests = 0;
+const syntheticRequestEvidence = [];
 let syntheticPublicationCount = 0;
 let clock = 0;
 let durationStartedAt = null;
@@ -121,11 +125,11 @@ try {
   // Before/after comparison uses the exact original committed product modules
   // in memory; neither product checkout nor fixtures/cohort are rewritten.
   const baselinePlugin = { name: "frozen-original-benchmark-allocation", setup(builder) {
-    builder.onLoad({ filter: /\/lib\/(scanner|recommendation-generator|market-regime|completed-benchmark-reuse)\.ts$/ }, args => ({
-      contents: execFileSync("git", ["show", `${fairOrderBaseline ? fairOrderBaselineRevision : firstObservationBaseline ? firstObservationBaselineRevision : minimumOrderBaseline ? minimumOrderBaselineRevision : acquisitionBaseline ? acquisitionBaselineRevision : reuseBaselineRevision}:${args.path.slice(root.length + 1)}`], {cwd:root,encoding:"utf8"}),
+    builder.onLoad({ filter: /\/lib\/(scanner|recommendation-generator|market-regime|completed-benchmark-reuse|intraday-indicator-refresh-admission)\.ts$/ }, args => ({
+      contents: execFileSync("git", ["show", `${regularSessionBaseline ? regularSessionBaselineRevision : fairOrderBaseline ? fairOrderBaselineRevision : firstObservationBaseline ? firstObservationBaselineRevision : minimumOrderBaseline ? minimumOrderBaselineRevision : acquisitionBaseline ? acquisitionBaselineRevision : reuseBaselineRevision}:${args.path.slice(root.length + 1)}`], {cwd:root,encoding:"utf8"}),
       loader:"ts", resolveDir:join(root,"lib") }));
   } };
-  await build({ ...options, ...(baselineBenchmarkReuse || acquisitionBaseline || minimumOrderBaseline || firstObservationBaseline || fairOrderBaseline ? {plugins:[baselinePlugin]} : {}),
+  await build({ ...options, ...(baselineBenchmarkReuse || acquisitionBaseline || minimumOrderBaseline || firstObservationBaseline || fairOrderBaseline || regularSessionBaseline ? {plugins:[baselinePlugin]} : {}),
     entryPoints: [resolve(root, "app/api/automation/run-scan/route.ts")], outfile: join(generated, "scheduled-scan-runtime.cjs") });
   if (diagnoseOutcomes) buildSync({ ...options, entryPoints: [resolve(root, "app/api/recommendations/evaluate-outcomes/route.ts")], outfile: join(generated, "outcome-route.cjs") });
   buildSync({ ...options, entryPoints: [resolve(root, "netlify/functions/scheduled-scan.ts")], outfile: join(directory, "functions/scheduled.cjs") });
@@ -262,6 +266,8 @@ try {
       }
       const interval = url.searchParams.get("interval");
       const benchmark = ["SPY", "QQQ"].includes(url.searchParams.get("symbol"));
+      syntheticRequestEvidence.push({ ticker: url.searchParams.get("symbol"), interval,
+        requested_at: new OriginalDate(clock).toISOString() });
       if (benchmark) assert.equal(url.searchParams.get("adjust"), "splits");
       const intraday = interval !== "1day";
       const values = [];
@@ -438,6 +444,9 @@ try {
         decision_disposition:decision?.final_decision.disposition??null,no_trade_reason:decision?.final_decision.no_trade_reason??null,
         requests:requestCount,benchmark_requests:benchmarkCalls,stock_requests:requestCount-benchmarkCalls,
         fresh_members:members.filter(member=>member.freshness==="fresh").length,members,
+        synthetic_request_evidence:syntheticRequestEvidence.slice(before,externalRequests),
+        intraday_session_admission_policy_version:run?.payload_json.active_scan_trace.market_data_fetch.intraday_session_admission_policy_version??null,
+        provider_observations:run?.payload_json.active_scan_trace.market_data_fetch.candidate_observations??[],
         acquisition:run?.payload_json.active_scan_trace.market_data_fetch.completed_input_acquisition??null,
         benchmark_reuse_preflight:reusePreflight,
         ...(attemptCount===0 || runCount===0 ? {bounded_result:resultBody} : {})});
@@ -477,7 +486,7 @@ try {
     assert.equal(Number(sql("select count(*) from scheduled_scan_attempts;")),attemptFingerprints.size);
     const tickerCoverage=[...observations.values()].sort((a,b)=>a.ticker.localeCompare(b.ticker));
     originalLog(JSON.stringify({evidence_mode:"synthetic_closed_packaged_input_runtime_actual_source_schema",
-      scenario:"full_session_cold_rotation",acquisition_mode:acquisitionBaseline?"original_order":firstObservationBaseline?"first_observation_guard":minimumOrderBaseline?"minimum_requests_first":fairOrderBaseline?"fair_cost_ties":"original_order_regular_session_reuse",
+      scenario:"full_session_cold_rotation",acquisition_mode:acquisitionBaseline?"original_order":firstObservationBaseline?"first_observation_guard":minimumOrderBaseline?"minimum_requests_first":fairOrderBaseline?"fair_cost_ties":regularSessionBaseline?"original_order_regular_session_reuse":"original_order_first_closed_bar",
       baseline_revision:acquisitionBaselineRevision,minimum_order_baseline_revision:minimumOrderBaselineRevision,
       original_slots:26,original_member_observations:26*8,eligible_tickers:eligible,slots,ticker_coverage:tickerCoverage,
       selected_unique_tickers:tickerCoverage.length,ever_complete_tickers:tickerCoverage.filter(ticker=>ticker.fresh>0).length,

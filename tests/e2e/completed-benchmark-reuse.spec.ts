@@ -180,11 +180,27 @@ for (const mode of ["baseline", "minimum_requests_first", "regular_session_reuse
   });
 }
 
+test("opening analysis never spends an intraday credit before a five-minute bar can close", () => {
+  test.setTimeout(90000);
+  const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--rotation-day", "--cold"],
+    { cwd: process.cwd(), encoding: "utf8", timeout: 80000 });
+  expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
+  const evidence = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
+  const opening = evidence.slots[0];
+  expect(opening.members).toHaveLength(8);
+  expect(opening.fresh_members).toBe(0);
+  expect(opening.synthetic_request_evidence.filter((request: { interval: string }) => request.interval === "5min")).toHaveLength(0);
+  expect(opening.synthetic_request_evidence.filter((request: { ticker: string; interval: string }) =>
+    request.interval === "1day" && !["SPY", "QQQ"].includes(request.ticker))).toHaveLength(6);
+  expect(evidence).toMatchObject({ actual_provider_requests: 0, production_actions: 0,
+    publications: 0, broker_actions: 0, cleanup: "inert" });
+});
+
 test("full-session historical reuse improves breadth while retaining rejected allocation baselines", () => {
   test.setTimeout(420000);
-  const evidence = ["baseline", "minimum", "guard", "fair", "regular"].map(mode => {
+  const evidence = ["baseline", "minimum", "guard", "fair", "regular", "first_closed_bar"].map(mode => {
     const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--rotation-day", "--cold",
-      ...(mode === "baseline" ? ["--acquisition-baseline"] : mode === "minimum" ? ["--minimum-order-baseline"] : mode === "guard" ? ["--first-observation-baseline"] : mode === "fair" ? ["--fair-order-baseline"] : [])], { cwd: process.cwd(), encoding: "utf8", timeout: 180000 });
+      ...(mode === "baseline" ? ["--acquisition-baseline"] : mode === "minimum" ? ["--minimum-order-baseline"] : mode === "guard" ? ["--first-observation-baseline"] : mode === "fair" ? ["--fair-order-baseline"] : mode === "regular" ? ["--regular-session-baseline"] : [])], { cwd: process.cwd(), encoding: "utf8", timeout: 180000 });
     expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
     return JSON.parse(result.stdout.trim().split("\n").at(-1)!);
   });
@@ -195,7 +211,7 @@ test("full-session historical reuse improves breadth while retaining rejected al
       selected_unique_tickers: 95,
       unselected_eligible_tickers: [], restarted_owner_read: true, wrong_owner_runs: 0,
       actual_provider_requests: 0, production_actions: 0, publications: 0, broker_actions: 0, cleanup: "inert" });
-    expect(arm.synthetic_benchmark_requests).toBe(arm.acquisition_mode === "original_order_regular_session_reuse" ? 2 : 20);
+    expect(arm.synthetic_benchmark_requests).toBe(["original_order_regular_session_reuse", "original_order_first_closed_bar"].includes(arm.acquisition_mode) ? 2 : 20);
     expect(arm.slots).toHaveLength(26);
     expect(arm.ticker_coverage).toHaveLength(95);
     for (const [index, slot] of arm.slots.entries()) {
@@ -207,7 +223,7 @@ test("full-session historical reuse improves breadth while retaining rejected al
     expect(arm.slots.slice(-2).map((slot: { no_trade_reason: string }) => slot.no_trade_reason))
       .toEqual(["power_hour_publication_withheld", "power_hour_publication_withheld"]);
   }
-  const [baseline, minimum, guard, fair, regular] = evidence;
+  const [baseline, minimum, guard, fair, regular, firstClosedBar] = evidence;
   for (const [index, slot] of baseline.slots.entries()) {
     expect(minimum.slots[index].members.map((member: { ticker: string }) => member.ticker))
       .toEqual(slot.members.map((member: { ticker: string }) => member.ticker));
@@ -216,6 +232,8 @@ test("full-session historical reuse improves breadth while retaining rejected al
     expect(fair.slots[index].members.map((member: { ticker: string }) => member.ticker))
       .toEqual(slot.members.map((member: { ticker: string }) => member.ticker));
     expect(regular.slots[index].members.map((member: { ticker: string }) => member.ticker))
+      .toEqual(slot.members.map((member: { ticker: string }) => member.ticker));
+    expect(firstClosedBar.slots[index].members.map((member: { ticker: string }) => member.ticker))
       .toEqual(slot.members.map((member: { ticker: string }) => member.ticker));
     const plan = fair.slots[index].acquisition;
     const offset = Math.floor(Date.parse(slot.slot) / 900000) % 8;
@@ -252,4 +270,19 @@ test("full-session historical reuse improves breadth while retaining rejected al
     synthetic_benchmark_requests: 2, revisit_missing_observations: 32 });
   expect(regular.slots.slice(1).every((slot: { benchmark_requests: number; benchmark_reuse_preflight: { owned_reuse_admitted: boolean } }) =>
     slot.benchmark_requests === 0 && slot.benchmark_reuse_preflight.owned_reuse_admitted)).toBe(true);
+  // Frozen breadth >76 fails. Retain the negative result, not a changed gate.
+  expect(firstClosedBar.ever_complete_tickers > regular.ever_complete_tickers).toBe(false);
+  expect(firstClosedBar).toMatchObject({ ever_complete_tickers: 76, fresh_member_observations: 126 });
+  expect(firstClosedBar.fresh_member_observations).toBeGreaterThanOrEqual(regular.fresh_member_observations);
+  const originalComplete = regular.ticker_coverage.filter((member: { fresh: number }) => member.fresh > 0)
+    .map((member: { ticker: string }) => member.ticker);
+  const correctedComplete = firstClosedBar.ticker_coverage.filter((member: { fresh: number }) => member.fresh > 0)
+    .map((member: { ticker: string }) => member.ticker);
+  expect(originalComplete.filter((ticker: string) => !correctedComplete.includes(ticker))).toEqual([]);
+  for (const slot of firstClosedBar.slots) {
+    expect(slot.intraday_session_admission_policy_version).toBe("completed_input_first_closed_bar_allocation_v1");
+    for (const request of slot.synthetic_request_evidence) {
+      if (request.interval === "5min") expect(Date.parse(request.requested_at)).toBeGreaterThanOrEqual(Date.parse("2026-10-01T13:35:00Z"));
+    }
+  }
 });

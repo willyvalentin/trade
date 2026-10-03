@@ -2,7 +2,64 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
-**Now / Next / Blocked — verified local IF-2b acquisition delivery, 2026-10-03:**
+**Now / Next / Blocked — IF-2b first-closed-bar comparison rejected:**
+The actual corrected packaged 26-slot run keeps all 95 original tickers, eight
+members/slot, 208 requests and zero setup/actual-provider/publication/broker work.
+It eliminates all three opening five-minute requests and acquires six completed
+stock histories instead of three. Opening current completeness remains zero;
+same-budget later fresh observations increase from 123 to 126, but unique
+complete tickers stay 76, with no gained/lost predecessor-complete identity.
+The unchanged nineteen never-complete members remain. The frozen >76 breadth
+criterion fails: disposition `reject` for integration as the selected broad
+discovery improvement, not alpha, a quality failure or permission to lower the
+gate. Log `/private/tmp/ture-first-closed-bar-full-oct3.log`.
+
+The native opening regression fails before correction with three premature
+requests; the isolated calendar/admission tests pass seven checks afterward,
+including exact first close, legacy budget/cache semantics, unknown/invalid
+clock, holiday/weekend and early close. Retain the experimental implementation
+only as an exact historical comparison arm, restore selected product `f9640dcb`,
+and verify that all original/rejected comparison arms remain attributable.
+No new push/PR or production effect is selected. Next investigate repeated
+never-complete original members' actual daily/intraday allocation, not the
+opening clock alone. This result changes the next action because opening
+efficiency does not recover their missing coverage. Release prerequisites and
+OPEN/full-charter quality gaps below remain unchanged.
+
+**Historical IF-2b opening-credit diagnosis and frozen comparison, 2026-10-03 06:05Z:**
+Codex refines the same isolated main-based acquisition delivery below; there is
+no second development slice or external activation. The actual packaged
+26-slot/SQL/SDK diagnostic on unchanged product `f9640dcb` reproduces 123 fresh
+observations/76 unique tickers and retains the existing provider boundary's
+sanitized ticker/interval/request clocks. At 13:30:20Z it spends three stock
+credits on five-minute reads before the first possible regular-session closed
+bar at 13:35Z, alongside three completed-history and two benchmark requests.
+Opening has zero fresh candidates, so these are not successful usable inputs.
+Log `/private/tmp/ture-opening-credit-boundary-diagnostic-oct3.log`.
+
+Frozen bounded hypothesis: `completed_input_first_closed_bar_allocation_v1`
+denies only refreshes that cannot yet yield a closed regular-session five-minute
+bar, before credit reservation. Continue original-order completed daily-history
+acquisition with those credits; retain all eight identities and honest missing
+current inputs, without a wait, added requests or changed publication gate.
+After the first bar may close, retain existing refresh/cache/budget admission.
+Legacy profiles stay unchanged. Version the admission and disclose a session-bar
+gap separately from provider outage, stale fallback or exhausted credit.
+
+Compare the exact `f9640dcb` predecessor with the correction on the same original
+95-ticker, 26-slot/208-member, zero-setup fixture and eight-credit whole-scan cap.
+Acceptance requires >76 unique complete tickers, at least 123 fresh observations
+and retention of every predecessor-complete identity. Opening must still have
+zero current complete inputs, exact decisions/lineage and no intraday request
+before first close. Normal/first-close/holiday/early-close/invalid-clock/abort,
+owner restart, canonical outcomes and no-publication/broker gates must retain
+their semantics. A failed coverage criterion rejects integration of this
+allocation hypothesis; do not reinterpret the population or change criteria.
+Investigate at most four active hours, complete within the primary's remaining
+six-hour engineering allowance. PR #732/security release prerequisites below
+remain unchanged; no production or recommendation-quality acceptance follows.
+
+**Historical verified local IF-2b acquisition delivery, 2026-10-03:**
 Codex completes `completed_benchmark_regular_session_reuse_v2` on isolated
 `codex/retained-benchmark-allocation-oct3`; product revision
 `f9640dcb57b22cab1bfb305143382bafffe133cc`, from unchanged remote main
