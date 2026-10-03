@@ -303,6 +303,49 @@ test("actual existing premarket history has bounded whole-session utility withou
     [row.enrolled_decision_count, row.missing_outcome_count])).toEqual([[0, 0], [1, 8], [0, 0]]);
 });
 
+test("late original complete inputs retain all eight partial outcomes without qualifying a shortened regular-session horizon", () => {
+  test.setTimeout(120000);
+  const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--cold",
+    "--rotation-day", "--prospective-enrollment", "--existing-premarket-setup", "--late-original-outcomes"],
+  { cwd: process.cwd(), encoding: "utf8", timeout: 110000 });
+  expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
+  const evidence = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
+  expect(evidence).toMatchObject({ original_slots: 26, original_member_observations: 208,
+    setup_synthetic_requests: 4, scheduled_synthetic_requests: 208, reserved_credits: 208,
+    attempts: 26, cycles: 26, scan_runs: 26, reservations: 26,
+    prospective_enrollment_evidence: { enrolled_decisions: 1, excluded_decisions: 25 },
+    actual_provider_requests: 0, production_actions: 0, publications: 0, broker_actions: 0, cleanup: "inert" });
+  const late = evidence.late_original_outcome_evidence;
+  expect(late).toMatchObject({ original_scan_run_fingerprint: "rec_scan_run_alrnoh",
+    decision_timestamp: "2026-10-01T19:30:20.000Z", session_close: "2026-10-01T20:00:00.000Z",
+    evaluation_anchor_start_at: "2026-10-01T19:35:00.000Z", required_horizon_end_at: "2026-10-01T20:35:00.000Z",
+    available_regular_minutes: 25, separate_synthetic_outcome_requests: 8,
+    original_source_decisions: 26, physical_database_outcome_rows: 8, owner_read_outcome_rows: 8,
+    canonical_outcome_count: 0, missing_outcome_count: 8, disposition: "evidence_incomplete",
+    population_complete: false, precision_delta: null, baseline_precision_at_3: null, shadow_precision_at_3: null,
+    baseline_expectancy_r: null, shadow_expectancy_r: null, original_membership_stable: true, quality_improvement_claimed: false });
+  expect(late.original_members.map((row: { ticker: string }) => row.ticker))
+    .toEqual(["TSLA", "COIN", "AMD", "AAPL", "ORCL", "DIS", "CAT", "JPM"]);
+  expect(late.outcome_passes).toMatchObject([
+    { requests: 4, eligible_snapshot_count: 8, persisted_outcome_count: 4, physical_database_rows: 4,
+      persistence_status: "success", outcomes_created_count: 4, outcomes_updated_count: 0 },
+    { requests: 4, eligible_snapshot_count: 4, persisted_outcome_count: 4, physical_database_rows: 8,
+      persistence_status: "success", outcomes_created_count: 4, outcomes_updated_count: 0 },
+  ]);
+  expect(late.outcome_passes[1].selected_batch_fingerprint).toBe(late.outcome_passes[0].selected_batch_fingerprint);
+  expect(late.outcome_passes.flatMap((pass: { requested_tickers: string[] }) => pass.requested_tickers).sort())
+    .toEqual(late.original_members.map((row: { ticker: string }) => row.ticker).sort());
+  expect(late.persisted_coverage).toHaveLength(8);
+  expect(late.persisted_coverage.filter((row: { status: string }) => row.status === "target_before_stop")).toHaveLength(4);
+  expect(late.persisted_coverage.filter((row: { status: string }) => row.status === "stop_before_target")).toHaveLength(4);
+  for (const row of late.persisted_coverage) {
+    expect(row).toMatchObject({ retained_candle_count: 5, coverage: {
+      expected_candle_count: 12, observed_candle_count: 5, freshness: "unknown", horizon_elapsed: true,
+      blockers: ["candle_coverage_incomplete"], required_horizon_end_at: late.required_horizon_end_at,
+    } });
+  }
+});
+
 test("actual original complete input reaches full charter through canonical outcomes without granting quality authority", () => {
   test.setTimeout(120000);
   const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--benchmark-reuse", "--charter-composition"],

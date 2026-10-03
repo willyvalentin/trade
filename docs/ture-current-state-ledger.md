@@ -203,7 +203,7 @@ Evidence logs: `/private/tmp/ture-existing-premarket-focused-docker-oct3.log`,
 `/private/tmp/ture-existing-premarket-lint-oct3.log`; the restricted Docker failure
 is retained separately in `ture-existing-premarket-focused-oct3.log`.
 
-**Next bounded CLOSED IF-4 selection:** Codex owns the sole next 4–16 active-hour
+**Completed bounded CLOSED IF-4 selection:** Codex owns the sole 4–16 active-hour
 slice, investigation at most four hours, on this same isolated integration
 branch. Test whether the actual late original complete population above can
 obtain the frozen canonical 60m outcome through existing source admission,
@@ -219,6 +219,79 @@ target or stop. If the existing path already withholds it correctly, retain that
 bounded result and return to earlier complete-input fitness; do not build a new
 outcome worker, calendar policy, preparation job or ranking hypothesis. No live
 provider, production, migration, publication or broker operation is selected.
+
+**Late original outcome disposition — 2026-10-03:** The actual owner-bound
+existing route selects batch `rec_batch_9t1wb` for original scan
+`rec_scan_run_alrnoh`, decision `2026-10-01T19:30:20Z`. All eight original
+identities and the other twenty-five decisions remain unchanged. The verified
+calendar closes at `20:00Z`; the immutable five-minute evaluation anchor is
+`19:35Z`, with a required 60m end at `20:35Z`. Only five regular-session bars
+(25 minutes), not twelve, can be supplied without inventing post-close data.
+Two separately disclosed synthetic four-request passes persist four then eight
+physical owner rows. Restarted SDK/decoder readback returns the same eight;
+the second pass processes the remaining four identities, not a selected winner
+subset. Four raw early-target and four raw early-stop receipts each preserve
+`expected_candle_count=12`, `observed_candle_count=5`, `freshness=unknown` and
+`candle_coverage_incomplete`. Those raw terminal events are not qualified full-
+horizon labels: canonical outcomes remain zero, missing labels eight, all
+baseline/shadow precision and expectancy values and their delta null. The
+original prospective consumer remains one incomplete held-out decision and
+twenty-five excluded partial decisions. Disposition is `evidence_incomplete`,
+not recommendation lift. Setup four, scheduled 208 and outcomes eight are
+separate costs. Wrong-owner reads remain empty and scheduler cleanup inert.
+
+The first diagnostic omitted the existing non-partial outcome unique-index
+migration from this new fixture branch. Upserts failed with `42P10`; the route's
+legacy `persisted_outcome_count` nevertheless reported four from persistence
+mode alone, while `persistence_status` correctly said failed. Neither that
+counter nor the first zero-row read is accepted as persistence evidence.
+Correcting the fixture to the repository's complete relevant schema, then correcting the
+second-pass expectation to four remaining eligible identities, yields the
+physical-row/SDK result above. Both failed diagnostics are retained separately;
+no production migration or product validation was weakened. Registered
+regression requires physical write/read equality and coverage/metric abstention,
+not the legacy counter alone. This closes the selected outcome question without
+an outcome-worker, calendar-policy or receipt-infrastructure expansion.
+
+The registered late-source check and all forty-one affected original-population,
+canonical-coverage and relative-plan outcome tests pass on macOS Node 26.5.0,
+including the actual isolated Postgres/PostgREST/SDK path. Nonincremental types and
+changed-file lint pass; fixture cleanup is verified with unrelated databases
+preserved. Product/app/dependency/configuration code is unchanged from verified
+`5474cbb0`; its existing exact Linux build evidence is retained, not relabelled
+as a new CI or production verification. Logs are
+`/private/tmp/ture-late-original-outcome-regression-oct3.log`,
+`/private/tmp/ture-late-original-outcome-types-oct3.log` and
+`/private/tmp/ture-late-original-outcome-lint-oct3.log`. The initial missing-schema
+diagnostic remains `ture-late-original-outcome-diagnostic-oct3.log`; the mistaken
+second-pass eligibility expectation remains
+`ture-late-original-outcome-complete-schema-oct3.log`. This is local
+`hypothesis_evidence`, not stronger recommendations, a release, OPEN acceptance
+or evidence that production obtained these synthetic outcomes. PR #732's audit
+and protected-CI release holds remain unchanged.
+
+**Next bounded CLOSED IF-2b selection:** Codex returns the sole primary slice
+to earlier complete-input fitness on this isolated branch, 4–16 active hours,
+initial investigation at most four. Freeze the original twenty-six slots and
+all 208 member observations from the actual existing premarket source above.
+Investigate the existing generator's bounded preparation capacity, not another
+acquisition-order heuristic or new scheduled job: can a separately disclosed
+eight-request whole preparation budget (two existing benchmark requests plus
+six scanner requests, versus four whole requests in the retained baseline)
+produce an original complete decision early enough for the unchanged canonical
+60m horizon to finish before the verified regular close? Keep the exact same
+provider/source identities, universe order, split-basis same-NY-day validation,
+fresh intraday requirements, ranking/publication policy and original decision
+denominators; disclose changed acquired inputs rather than claiming exact
+baseline-feature equality. Keep the zero-setup and four-call baselines intact.
+Require an earlier full original input set whose aligned horizon ends by close,
+not merely more watchlist members or more fresh members across partial sets.
+If it does not pass that criterion within eight preparation requests, retain
+the rejection and select the next attributable input defect; do not enlarge
+the experiment or waive the 60m horizon. No live provider request, production
+preparation schedule, external configuration, migration or publication is
+selected. This CLOSED investigation does not establish that production runs
+the existing premarket generator or authorize its activation.
 
 **Completed original scanner to existing full-charter composition:**
 Codex reuses existing draft PR #732's isolated

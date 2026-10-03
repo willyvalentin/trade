@@ -16,6 +16,10 @@ const cold = process.argv.includes("--cold");
 const existingPremarketSetup = process.argv.includes("--existing-premarket-setup");
 const rotationDay = process.argv.includes("--rotation-day");
 const prospectiveEnrollment = process.argv.includes("--prospective-enrollment");
+const lateOriginalOutcomes = process.argv.includes("--late-original-outcomes");
+assert(!lateOriginalOutcomes || rotationDay && prospectiveEnrollment && existingPremarketSetup &&
+  !process.argv.includes("--legacy-retention-baseline"),
+  "Late outcome coverage retains the actual original prepared population, not a manufactured source");
 assert(!prospectiveEnrollment || rotationDay && process.argv.includes("--cold"),
   "Original-population enrollment consumes the unchanged full-session CLOSED source");
 const benchmarkReuse = process.argv.includes("--benchmark-reuse");
@@ -168,7 +172,7 @@ try {
   } };
   await build({ ...options, ...(baselineBenchmarkReuse || acquisitionBaseline || minimumOrderBaseline || firstObservationBaseline || fairOrderBaseline || regularSessionBaseline || firstClosedBarBaseline || omittedPairBaseline ? {plugins:[baselinePlugin]} : {}),
     entryPoints: [resolve(root, "app/api/automation/run-scan/route.ts")], outfile: join(generated, "scheduled-scan-runtime.cjs") });
-  if (diagnoseOutcomes || charterComposition) buildSync({ ...options, entryPoints: [resolve(root, "app/api/recommendations/evaluate-outcomes/route.ts")], outfile: join(generated, "outcome-route.cjs") });
+  if (diagnoseOutcomes || charterComposition || lateOriginalOutcomes) buildSync({ ...options, entryPoints: [resolve(root, "app/api/recommendations/evaluate-outcomes/route.ts")], outfile: join(generated, "outcome-route.cjs") });
   buildSync({ ...options, entryPoints: [resolve(root, "netlify/functions/scheduled-scan.ts")], outfile: join(directory, "functions/scheduled.cjs") });
   await build({ ...options, ...(legacyRetentionBaseline ? {plugins:[{name:"legacy-retention-predecessor",setup(builder) {
     builder.onLoad({filter:/\/lib\/(scanner|market-data)\.ts$/},args=>({
@@ -258,7 +262,7 @@ try {
     "20260519000000_create_legacy_baseline_schema_draft.sql",
     "20260528000000_create_recommendation_snapshots.sql",
     "20260528001000_create_recommendation_outcomes.sql",
-    ...(diagnoseOutcomes || charterComposition ? ["20260605000000_add_recommendation_outcomes_snapshot_horizon_unique_index.sql"] : []),
+    ...(diagnoseOutcomes || charterComposition || lateOriginalOutcomes ? ["20260605000000_add_recommendation_outcomes_snapshot_horizon_unique_index.sql"] : []),
     "20260528002000_create_recommendation_scan_runs.sql",
     "20260528003000_create_recommendation_batches.sql",
     "20260614000000_create_execution_records.sql",
@@ -324,14 +328,15 @@ try {
       const values = [];
       if (intraday) {
         assert.equal(interval,"5min");
-        for (let time=OriginalDate.parse("2026-10-01T13:30:00Z"); time<clock; time+=300000) {
+        const providerEnd=lateOriginalOutcomes ? Math.min(clock,OriginalDate.parse("2026-10-01T20:00:00Z")) : clock;
+        for (let time=OriginalDate.parse("2026-10-01T13:30:00Z"); time<providerEnd; time+=300000) {
           const datetime=new Intl.DateTimeFormat("sv-SE",{timeZone:"America/New_York",
             year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(new OriginalDate(time));
           const latestClosed = time + 300000 <= clock && time + 600000 > clock;
           const volume = missingLatestVolume && latestClosed ? " " : zeroLatestVolume && latestClosed ? "0" : "1000";
           const index=(time-OriginalDate.parse("2026-10-01T13:30:00Z"))/300000;
           const close=100+index*0.06;
-          const futurePlan=relativePlan60m || charterComposition ? futureOutcomePlans.find(plan=>plan.ticker===url.searchParams.get("symbol")) : null;
+          const futurePlan=relativePlan60m || charterComposition || lateOriginalOutcomes ? futureOutcomePlans.find(plan=>plan.ticker===url.searchParams.get("symbol")) : null;
           const anchor=futurePlan ? Math.ceil(OriginalDate.parse(futurePlan.payload_json.decision_timestamp)/300000)*300000 : null;
           if(futurePlan && time>=anchor) {
             // Explicitly synthetic future bars, supplied only at the provider
@@ -553,6 +558,7 @@ try {
         ...(attemptCount===0 || runCount===0 ? {bounded_result:resultBody} : {})});
       previousOriginalRun=run;
     }
+    const scheduledRequests=externalRequests;
     const totalClaims=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from basic_free_discovery_credit_reservations t;"));
     const cycles=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from observation_cycle_receipts t;"));
     const cycleReadback=readers.buildObservationCycleReadback(cycles);
@@ -575,6 +581,7 @@ try {
     const wrongOwner=await restarted.readRecommendationLearningBaselineSource("00000000-0000-4000-8000-000000000002");
     assert.equal(wrongOwner.data.recommendation_scan_runs.length,0);
     let enrollmentEvidence=null;
+    let lateOutcomeEvidence=null;
     if(prospectiveEnrollment) {
       // Synthetic controlled chronology ONLY: this does not fabricate an
       // actual pre-forward database seal or retrospectively enroll market data.
@@ -617,6 +624,108 @@ try {
           original_membership_fingerprint:partition.original_membership_fingerprint})),
         diagnostics:enrollment.diagnostics,decisions:decisionEvidence,
         actual_provider_requests:0,quality_improvement_claimed:false};
+      if(lateOriginalOutcomes) {
+        assert.equal(enrolledDecisions.length,1);
+        const original=decisionEvidence.find(row=>row.status==="comparable");
+        assert.equal(original.decision_at,"2026-10-01T19:30:20.000Z");
+        futureOutcomePlans=source.snapshots.filter(snapshot=>snapshot.scan_run_id===original.fingerprint)
+          .map((snapshot,index)=>({...snapshot,synthetic_win:index%2===0}));
+        assert.equal(futureOutcomePlans.length,8);
+        assert.deepEqual(futureOutcomePlans.map(row=>row.ticker).sort(),original.members.map(row=>row.ticker).sort());
+        const batch=JSON.parse(sql(`select to_jsonb(t) from recommendation_batches t where scan_run_fingerprint='${original.fingerprint}';`));
+        assert.equal(batch.owner_user_id,owner);
+        clock=OriginalDate.parse("2026-10-01T20:45:00Z");
+        const passes=[];
+        for(let index=0;index<2;index++) {
+          const before=externalRequests;
+          delete require.cache[require.resolve(join(generated,"outcome-route.cjs"))];
+          const evaluated=await require(join(generated,"outcome-route.cjs")).POST(new Request("http://closed-fixture/api/recommendations/evaluate-outcomes",{
+            method:"POST",headers:{"x-automation-secret":environment.AUTOMATION_SECRET,"Content-Type":"application/json"},
+            body:JSON.stringify({mode:"official_live_today",batch_fingerprint:batch.batch_fingerprint,
+              horizons:["60m"],max_candle_requests:4,max_batches:1}),
+          }));
+          const body=await evaluated.json();
+          assert.equal(evaluated.status,200,JSON.stringify(body));
+          assert.equal(externalRequests-before,4);
+          assert.equal(body.eligible_snapshot_count,index===0?8:4);
+          assert.equal(body.batch_fingerprint,batch.batch_fingerprint);
+          assert.equal(body.persistence_status,"success",body.persistence_error);
+          const databaseRows=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_outcomes t;"));
+          assert(databaseRows.every(row=>row.owner_user_id===owner && row.horizon==="60m"));
+          passes.push({requests:externalRequests-before,selected_batch_fingerprint:body.batch_fingerprint,
+            eligible_snapshot_count:body.eligible_snapshot_count,persisted_outcome_count:body.persisted_outcome_count,
+            persistence_status:body.persistence_status,outcomes_created_count:body.outcomes_created_count,
+            outcomes_updated_count:body.outcomes_updated_count,physical_database_rows:databaseRows.length,
+            results:body.candidates.filter(candidate=>candidate.candle_request).map(candidate=>({
+              ticker:candidate.ticker,status:candidate.status,error:candidate.error,
+              candle_count:candidate.candle_count,candle_request:candidate.candle_request,
+              outcome_status:candidate.outcome_status,persistence_mode:candidate.persistence_mode,
+            })),
+            requested_tickers:syntheticRequestEvidence.slice(scheduledRequestEvidenceOffset+before,
+              scheduledRequestEvidenceOffset+externalRequests).map(request=>request.ticker)});
+        }
+        delete require.cache[require.resolve(join(generated,"reader.cjs"))];
+        const refreshed=require(join(generated,"reader.cjs"));
+        const updated=await refreshed.readRecommendationLearningBaselineSource(owner);
+        const updatedSource=refreshed.parseRecommendationLearningBaselineSource(updated.data);
+        assert(updatedSource && updatedSource.scanRuns.length===26);
+        const physicalRows=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_outcomes t;"));
+        assert.equal(physicalRows.length,8);
+        assert.equal(updatedSource.outcomes.length,physicalRows.length);
+        assert.deepEqual(physicalRows.map(row=>row.snapshot_fingerprint).sort(),futureOutcomePlans.map(row=>row.snapshot_fingerprint).sort());
+        const session=refreshed.getUsEquityMarketSession("2026-10-01");
+        assert.equal(session.verification_status,"verified");
+        assert.equal(session.session_type,"regular_session");
+        const coverages=physicalRows.map(row=>({ticker:row.ticker,status:row.status,
+          coverage:row.payload_json.canonical_provider_coverage,
+          retained_candle_count:row.payload_json.counterfactual_candles?.length??0}));
+        for(const row of coverages) {
+          assert(["target_before_stop","stop_before_target"].includes(row.status));
+          assert.equal(row.coverage.expected_candle_count,12);
+          assert.equal(row.coverage.observed_candle_count,5);
+          assert.equal(row.coverage.freshness,"unknown");
+          assert(row.coverage.blockers.includes("candle_coverage_incomplete"));
+          assert.equal(row.retained_candle_count,5);
+          assert.equal(row.coverage.decision_timestamp,original.decision_at);
+          assert.equal(row.coverage.evaluation_anchor_start_at,"2026-10-01T19:35:00.000Z");
+          assert.equal(row.coverage.required_horizon_end_at,"2026-10-01T20:35:00.000Z");
+        }
+        assert.deepEqual(updatedSource.scanRuns.map(run=>run.run_fingerprint).sort(),[...runFingerprints].sort());
+        const link=refreshed.buildRecommendationLearningBaselineReadiness(updatedSource).relative_plan_context_outcomes
+          .find(row=>row.scan_run_fingerprint===original.fingerprint);
+        assert.equal(link.original_population_count,8);
+        assert.equal(link.canonical_outcome_count,0,"Partial regular-session bars cannot supply a full canonical 60m horizon");
+        assert.equal(link.missing_outcome_count,8);
+        assert.equal(link.status,"evidence_incomplete");
+        assert.equal(link.population_complete,false);
+        assert.equal(link.baseline.precision_at_3.value,null);
+        assert.equal(link.baseline.expectancy_r.value,null);
+        assert.equal(link.challenger.precision_at_3.value,null);
+        assert.equal(link.challenger.expectancy_r.value,null);
+        assert.equal(link.precision_delta,null);
+        assert.equal((await refreshed.readRecommendationLearningBaselineSource("00000000-0000-4000-8000-000000000002")).data.recommendation_outcomes.length,0);
+        // Actual isolated DB write clocks must be inside the read boundary.
+        // This synthetic late read is not a real pre-forward database seal.
+        const updatedEnrollment=refreshed.buildRelativePlanProspectiveEnrollment({owner,freeze,source:updatedSource,
+          now:new OriginalDate(Math.max(OriginalDate.parse("2026-10-07T21:00:00Z"),OriginalDate.now()))});
+        const held=updatedEnrollment.partitions.find(row=>row.partition==="held_out");
+        assert.equal(held.enrolled_decision_count,1); assert.equal(held.missing_outcome_count,8);
+        assert.deepEqual(updatedEnrollment.diagnostics,enrollment.diagnostics);
+        lateOutcomeEvidence={scope:"actual_original_source_route_adapter_sql_sdk_regular_session_only_synthetic_not_live",
+          original_scan_run_fingerprint:original.fingerprint,decision_timestamp:original.decision_at,
+          session_close:session.session_close,evaluation_anchor_start_at:coverages[0].coverage.evaluation_anchor_start_at,
+          required_horizon_end_at:coverages[0].coverage.required_horizon_end_at,
+          available_regular_minutes:(OriginalDate.parse(session.session_close)-OriginalDate.parse(coverages[0].coverage.evaluation_anchor_start_at))/60000,
+          original_members:original.members,persisted_coverage:coverages,
+          outcome_passes:passes,separate_synthetic_outcome_requests:externalRequests-scheduledRequests,
+          original_source_decisions:updatedSource.scanRuns.length,physical_database_outcome_rows:physicalRows.length,
+          owner_read_outcome_rows:updatedSource.outcomes.length,
+          canonical_outcome_count:link.canonical_outcome_count,missing_outcome_count:link.missing_outcome_count,
+          disposition:link.status,population_complete:link.population_complete,precision_delta:link.precision_delta,
+          baseline_precision_at_3:link.baseline.precision_at_3.value,shadow_precision_at_3:link.challenger.precision_at_3.value,
+          baseline_expectancy_r:link.baseline.expectancy_r.value,shadow_expectancy_r:link.challenger.expectancy_r.value,
+          original_membership_stable:true,quality_improvement_claimed:false};
+      }
     }
     const beforeCleanup=externalRequests;
     clock=OriginalDate.parse(expiry)+20000;
@@ -641,10 +750,11 @@ try {
       revisit_missing_observations:tickerCoverage.reduce((sum,item)=>sum+item.revisit_missing,0),
       attempts:attemptFingerprints.size,cycles:cycles.length,scan_runs:runFingerprints.size,
       reservations:totalClaims.length,reserved_credits:totalClaims.reduce((sum,claim)=>sum+claim.requested_credits,0),
-      setup_synthetic_requests:setupRequests,scheduled_synthetic_requests:externalRequests,
+      setup_synthetic_requests:setupRequests,scheduled_synthetic_requests:scheduledRequests,
       synthetic_benchmark_requests:externalBenchmarkRequests,restarted_owner_read:true,wrong_owner_runs:0,
       ...(prospectiveEnrollment?{prospective_enrollment_evidence:enrollmentEvidence}:{}),
       ...(existingPremarketSetup?{existing_premarket_evidence:existingPremarketEvidence}:{}),
+      ...(lateOriginalOutcomes?{late_original_outcome_evidence:lateOutcomeEvidence}:{}),
       actual_provider_requests:0,production_actions:0,publications:0,broker_actions:0,cleanup:"inert"}));
   } else {
   clock = OriginalDate.parse(slot) + 20000;
