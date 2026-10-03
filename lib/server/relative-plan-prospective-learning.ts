@@ -6,6 +6,7 @@ import { buildRelativePlanContextOutcomeComparison } from "@/lib/scanner-relativ
 import type { RecommendationLearningBaselineSource } from "@/lib/recommendation-learning-baseline-source";
 import { buildRecommendationLearningBaselineReadiness } from "@/lib/recommendation-learning-baseline-readiness";
 import { verifiedRelativePlanProspectiveFreeze, relativePlanSemanticFingerprint } from "@/lib/server/relative-plan-prospective-comparison";
+import { buildRelativePlanProbabilityMeasurement } from "@/lib/server/relative-plan-probability-measurement";
 
 /** Membership is fixed from the frozen original input rule BEFORE looking at
  * outcomes. Missing/ambiguous labels can never remove an enrolled decision or
@@ -40,13 +41,14 @@ export function buildRelativePlanProspectiveLearning(input: {
       shadow.candidates.length < plan.enrollment.primary_k || shadow.candidates.some(row => row.baseline_rank === null || row.shadow_rank === null)) reason = "original_complete_assessed_population_unavailable";
     if (reason) { diagnostics.push({ fingerprint: run.run_fingerprint, original_population_count: shadow.original_population_count, reason }); continue; }
     const comparison = buildRelativePlanContextOutcomeComparison({ scanRun: run, scanRuns: input.source.scanRuns,
-      snapshots: input.source.snapshots, outcomes: input.source.outcomes.filter(row => Date.parse(row.evaluated_at) <= input.now.getTime()) });
+      snapshots: input.source.snapshots, outcomes: input.source.outcomes.filter(row =>
+        Date.parse(row.evaluated_at) <= input.now.getTime() && Date.parse(row.created_at) <= input.now.getTime()) });
     enrolled.push({ partition: partition!, fingerprint: run.run_fingerprint, decision_at: record!.decision_timestamp,
       original_population_count: shadow.original_population_count, comparison });
   }
   enrolled.sort((a, b) => a.decision_at.localeCompare(b.decision_at) || a.fingerprint.localeCompare(b.fingerprint));
   diagnostics.sort((a, b) => a.fingerprint.localeCompare(b.fingerprint) || a.reason.localeCompare(b.reason));
-  const partitions = (["training", "held_out", "walk_forward"] as const).map(name => {
+  const enrolledPartitions = (["training", "held_out", "walk_forward"] as const).map(name => {
     const all = enrolled.filter(row => row.partition === name);
     const limit = name === "training" ? all.length : name === "held_out" ? plan.enrollment.held_out_decisions : plan.enrollment.walk_forward_decisions;
     const rows = all.slice(0, limit), overflow = all.slice(limit);
@@ -77,11 +79,27 @@ export function buildRelativePlanProspectiveLearning(input: {
       decisions: rows, overflow_fingerprints: overflow.map(row => row.fingerprint),
     };
   });
-  const gaps = new Set(["full_charter_forward_scorecard_required", "training_only_probability_calibration_required",
+  // Population enrollment is already complete before either fitting or forward
+  // labels are inspected. Both forward partitions reuse the same training-only
+  // cutoff; a walk-forward outcome cannot refit the held-out model.
+  const training = enrolledPartitions[0].decisions.map(row => row.comparison);
+  const partitions = enrolledPartitions.map(partition => ({ ...partition,
+    probability_measurement: partition.partition === "training" ? null : buildRelativePlanProbabilityMeasurement({
+      trainingWindow: plan.windows.training, fittedAt: plan.windows.held_out.start_at,
+      forwardStartsAt: plan.windows.held_out.start_at, now: input.now, training,
+      forward: partition.decisions.map(row => row.comparison), outcomes: input.source.outcomes,
+    }),
+  }));
+  const gaps = new Set(["full_charter_forward_scorecard_required",
+    "durably_frozen_training_probability_model_required",
     "exact_runtime_cost_reliability_and_feasibility_required"]);
+  if (partitions.slice(1).some(partition => partition.probability_measurement?.status !== "measured")) {
+    gaps.add("training_only_probability_calibration_required");
+  }
   for (const partition of partitions) {
     if (partition.required_decisions !== null && partition.enrolled_decision_count < partition.required_decisions) gaps.add(`${partition.partition}_decision_population_incomplete`);
     if (partition.missing_outcome_count > 0) gaps.add(`${partition.partition}_canonical_60m_outcomes_missing_or_conflicting`);
+    for (const blocker of partition.probability_measurement?.blockers ?? []) gaps.add(`${partition.partition}_${blocker}`);
   }
   return { contract_version: "relative_plan_prospective_learning_v1" as const,
     status: "evidence_incomplete" as const, diagnostic_only: true as const, freeze, partitions, diagnostics,

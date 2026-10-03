@@ -1,8 +1,91 @@
 # Ture Current-State Ledger
 
-## Active Now / Next / Blocked — reconciled 2026-10-02, recommendation intelligence first
+## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
-**Current queue — 2026-10-02 22:02Z:** PR #728 normally merged at 21:59:45Z
+**Current queue — 2026-10-02 23:13Z (Oct 3 CEST):** PR #729 is normally
+merged after protected CI `37073054385` passes every shard, aggregate and
+merge provenance. Main `9e99ef7e6095525ab77a12a339933c5cbc788906` has exact
+tested tree `c4d388a2845fc4fd55e051964af7390a3ec14053`; post-main CI
+`37075568711` also passes. Automatic Git production deploy
+`6ac037e1f081bb000831920d` is published at 23:03:58.204Z and ready.
+Authenticated, provider-free readback at 23:06:24.646Z verifies the exact
+revision and missing-schema HTTP 503, with all competing workers/input selector
+off, global disable true and zero active/unresolved/unattributed work.
+
+The exact reviewed additive SQL
+`20261002213547_if4_relative_plan_prospective_comparison.sql` (SHA256
+`5aae6228232bfd8a6787fcdfeaaf836e1f1eb68b7459f006c72a4dc4ac47f43d`)
+is applied via the normal migration tool as production migration
+`20261002230642_if4_relative_plan_prospective_comparison`. Immediate preflight
+has no old transaction or waiting owner lock. Catalog readback at 23:06:50Z
+verifies an empty relation, RLS/no client policies, restrictive owner FK, two
+unique constraints, immutable update/delete trigger and service-only RPCs with
+empty search paths; ordinary direct table access is revoked including service.
+Authenticated readback at 23:07:05.794Z now returns HTTP 200 `not_found`, no
+receipt/learning/freeze. The new advisor INFO is the deliberate deny-all RLS
+policy shape, not missing client authorization. No data backfill, production
+comparison freeze, provider request, scan, configuration change or broker action.
+This closes inert production integration, not prospective population behavior,
+OPEN input fitness or forward quality. Recommendation graduation remains `not_met`.
+
+**Now:** the previously selected independent CLOSED IF-4 probability
+measurement becomes the sole primary, owner Codex, eight active hours,
+initial investigation at most four, isolated `codex/relative-plan-probability-oct3`,
+fast-forwarded to verified main above. It now wires the existing unchanged
+fixed-bucket model into the actual enrolled original-source/canonical learner,
+not a component-only helper PR. Only prior training labels may fit the model;
+held-out and walk-forward errors remain separate, every forward identity stays
+in the denominator, and insufficient buckets/errors are explicit unknowns.
+The raw persistence boundary rejects missing/malformed recording clocks before
+legacy decoding can manufacture them. Future-recorded labels cannot enter
+as-of coverage, precision or calibration. No schema, provider, ranking,
+publication, threshold, paper or broker change is part of this slice.
+
+Acceptance includes actual isolated SDK/persisted-source/immutable-plan and
+restarted product learning read, 48 training members and separate twelve-member
+forward partitions, missing labels, unfavorable labels, underfilled buckets,
+late training recording, future forward recording and wrong-owner isolation.
+The integrated affected suite passes 68 tests, including actual restarted
+Postgres/PostgREST/SDK/product-consumer behavior, persisted late-training and
+future-forward recording cases. Final product commit
+`f2047d62396115a843b895aaa2feb639ada36e0f` passes all nineteen registered
+foundation non-build commands: 1,035 containment, 437 intelligence, 12 auth,
+41 explanation, 42 proposal, 34 adapter, 32 capture and 32 binding tests,
+catalog/provenance checks, three actual database lifecycles, normal lint
+(zero errors/eight existing warnings), strict types and dependency audit (zero).
+The unchanged normal Next 16.3.8 Turbopack build passes in an isolated Linux
+snapshot on this exact product revision, Node 22.23.1, locked dependencies,
+no credentials and network disabled during build. Host Turbopack worker bind
+is denied; CI/framework settings are unchanged and protected CI still precedes
+integration. Documentation-only reconciliation follows these checks.
+Numerical measurement is diagnostic: its declared fitting
+clock is a data cutoff, not proof that a training job executed before forward
+decisions. Existing outcome rows are upsertable; their immutable history is not
+verified. The read model discloses recomputation and keeps
+`durably_frozen_training_probability_model_required` plus full-charter/runtime/
+feasibility gaps. It cannot produce a terminal quality decision or promotion.
+
+**Next:** after this vertical integrates, close the earliest remaining frozen
+comparison gap using the existing IF-4 materialization/scorecard path where
+possible: a durably bound training model and attributable full-charter forward
+measurement, not a competing ranker or another scheduler/readiness project.
+One independent CLOSED slice is selected while this numerical vertical finishes
+verification/CI: IF-4 trained-model materialization, owner Codex, twelve active
+hours, initial investigation at most four,
+`codex/relative-plan-model-materialization-oct3` from verified main above.
+Initially only new model/store/migration and isolated tests may change; the
+current primary owns its learner/service and numerical measurement. Stable
+predecessors are prospective freeze receipt v1, original decision enrollment
+and the existing fixed-bucket model. Retain the complete training membership
+and label evidence; the database must attest sealing after training maturity
+but before held-out begins, with immutable model/read/restart, idempotency,
+late/retroactive refusal and owner isolation. Do not reuse a legacy baseline
+that rejects this reproduction basis. This numerical vertical integrates first;
+only afterward wire the sealed model into its forward reader. No third slice,
+provider/collection/live-policy change or new OPEN experiment. The market is
+closed; preserve consumed Friday observations and verified inert cleanup.
+
+**Historical queue — 2026-10-02 22:02Z:** PR #728 normally merged at 21:59:45Z
 after all six protected shards, aggregate and provenance passed. Main
 `7ed840d2c6ef687d1497930185f8e8f33bd9ab86` retains exact tested tree
 `6712c4cb053b88b08ddb724550d2a4910e0d2bec`. Automatic Git production
