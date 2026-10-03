@@ -168,3 +168,43 @@ for (const mode of ["baseline", "minimum_requests_first", "invalid_history"] as 
         benchmark_calls_second: 0, restarted_owner_read: true, wrong_owner_runs: 0 } });
   });
 }
+
+test("a full cold session retains every rotating member and reveals the minimum-cost discovery tradeoff", () => {
+  test.setTimeout(420000);
+  const evidence = [true, false].map(baseline => {
+    const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--rotation-day", "--cold",
+      ...(baseline ? ["--acquisition-baseline"] : [])], { cwd: process.cwd(), encoding: "utf8", timeout: 180000 });
+    expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
+    return JSON.parse(result.stdout.trim().split("\n").at(-1)!);
+  });
+  for (const arm of evidence) {
+    expect(arm).toMatchObject({ scenario: "full_session_cold_rotation", original_slots: 26,
+      original_member_observations: 208, setup_synthetic_requests: 0, scheduled_synthetic_requests: 208,
+      attempts: 26, cycles: 26, scan_runs: 26, reservations: 26, reserved_credits: 208,
+      selected_unique_tickers: 95, synthetic_benchmark_requests: 20,
+      unselected_eligible_tickers: [], restarted_owner_read: true, wrong_owner_runs: 0,
+      actual_provider_requests: 0, production_actions: 0, publications: 0, broker_actions: 0, cleanup: "inert" });
+    expect(arm.slots).toHaveLength(26);
+    expect(arm.ticker_coverage).toHaveLength(95);
+    for (const [index, slot] of arm.slots.entries()) {
+      expect(slot.slot).toBe(new Date(Date.parse("2026-10-01T13:30:00Z") + index * 900000).toISOString());
+      expect(slot.members).toHaveLength(8);
+      expect(slot).toMatchObject({ http_status: 200, attempts: 1, runs: 1, reservations: 1, requests: 8 });
+    }
+    expect(arm.slots[0].fresh_members).toBe(0); // Opening absence must not disappear from the denominator.
+    expect(arm.slots.slice(-2).map((slot: { no_trade_reason: string }) => slot.no_trade_reason))
+      .toEqual(["power_hour_publication_withheld", "power_hour_publication_withheld"]);
+  }
+  const [baseline, minimum] = evidence;
+  for (const [index, slot] of baseline.slots.entries()) {
+    expect(minimum.slots[index].members.map((member: { ticker: string }) => member.ticker))
+      .toEqual(slot.members.map((member: { ticker: string }) => member.ticker));
+  }
+  // This retained negative evidence prevents the favorable two-slot fixture
+  // from becoming a false market-wide coverage claim. More observations do
+  // not compensate for five fewer distinct fully observed original tickers.
+  expect(baseline).toMatchObject({ fresh_member_observations: 110, ever_complete_tickers: 69, revisit_missing_observations: 40 });
+  expect(minimum).toMatchObject({ fresh_member_observations: 115, ever_complete_tickers: 64, revisit_missing_observations: 32 });
+  expect(baseline.never_complete_tickers).toHaveLength(26);
+  expect(minimum.never_complete_tickers).toHaveLength(31);
+});

@@ -2,7 +2,89 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
-**Now / Next / Blocked — minimum-request acquisition locally complete:** the
+**Now / Next / Blocked — full-session coverage regression reproduced:** the
+existing IF-2b primary remains with Codex on the isolated branch below. The
+frozen zero-setup, twenty-six-slot actual packaged/SQL/SDK comparison finishes
+both arms with all 208 original member observations, 95 selected eligible
+tickers, 26 attributable attempts/runs/finalized eight-credit reservations and
+208 synthetic requests per arm (20 benchmark, 188 stock). Original order
+`43fa089e` produces 110 fresh-complete observations across 69 distinct tickers;
+minimum-request-first `6726ba67` produces 115 across only 64. Neither arm fully
+observes any eight-member slot. All opening/closing members remain retained;
+opening has zero fresh inputs, and the last two slots withhold publication.
+
+This is `hypothesis_evidence`, not OPEN data or a full-charter quality decision.
+The minimum-cost change's favorable mixed-history result does not justify its
+integration as broad-discovery improvement: seven previously observed tickers
+lose complete coverage while only NFLX/PYPL gain it. Twenty-three of its thirty-one
+never-complete tickers are selected more than once; AMAT/CAT/KLAC/RKLB each three
+times. The current 95-member static universe is not the whole US market.
+Disposition: input-fitness evidence is incomplete and contains a breadth
+regression; retain both baselines unchanged, not an accepted live allocation.
+
+Next: within this same bounded acquisition slice, test a versioned first-complete
+observation guard before cheap revisits, using only revalidated same-session
+original cache evidence and unchanged selection/eight-credit cap. Freeze and
+report both breadth and total-complete-input effects, plus any tradeoff, before
+choosing a policy. No quality/ranking/publication or provider expansion follows.
+PR #732/security remain release-blocked; no new push, PR, merge or production
+operation is selected by this experiment. Integration order is unchanged.
+
+**Verification — 2026-10-03 05:23Z:** all eleven actual packaged/native and
+source-integrity checks in the existing registered benchmark-reuse suite pass,
+including the paired full-session regression (2.1 minutes total). All six
+CI-registration checks pass, standard lint passes with zero errors/eight existing
+warnings and strict nonincremental TypeScript passes. Logs:
+`/private/tmp/ture-full-session-cold-rotation-native-oct3.log`,
+`/private/tmp/ture-full-session-cold-rotation-registration-oct3.log`,
+`/private/tmp/ture-full-session-cold-rotation-lint-oct3.log`,
+`/private/tmp/ture-full-session-cold-rotation-types-oct3.log`.
+Both independent direct scenario runs also finish with full restarted owner
+readback, correct decision/lineage and inert expiry/cleanup; their baseline and
+minimum logs retain every original slot/member. Only the existing proof script,
+registered test and ledger change: runtime/app/schema/dependency source remains
+byte-for-byte unchanged from tested product `6726ba67`, whose recorded exact
+locked Linux build still applies to that product, not a new CI run. The npm
+static wrapper separately ran its own sixteen containment tests, not the named
+benchmark suite; those are not substituted for this seventeen-test evidence.
+No main/production/OPEN or recommendation-quality acceptance is claimed.
+
+**Frozen full-session cold rotation question, retained before-result contract:**
+Codex continues the existing primary IF-2b slice on
+`codex/retained-benchmark-allocation-oct3`, verified main `55576078`, locally
+verified product `6726ba67`. Initial investigation remains capped at four active
+hours. Question: under the actual unchanged scheduled rotating selection and
+eight-credit whole-scan limit, which original members ever receive complete
+fresh inputs across a full regular session, and which remain unobserved despite
+revisits? Compare committed original-order baseline `43fa089e` with `6726ba67`
+minimum-request-first acquisition, not a fixed favorable shortlist.
+
+Use the existing packaged scheduler/route/scanner and actual isolated
+PostgreSQL/PostgREST/SDK reader. The explicitly synthetic date is 2026-10-01;
+all twenty-six slots 13:30Z through 19:45Z are retained, twenty seconds after
+each slot, expiry 20:00Z. No warm-history setup: zero setup requests. Use the
+unchanged dynamic-discovery-off selection, existing flat provider-boundary
+fixtures, completed split-adjusted daily history and all original identities
+per slot. Learning acceleration retains hidden research sources only; outcome,
+paper, normal one-shot and allocation-experiment controls remain off, with
+global scheduler disable true. Existing series limits stay 26 attempts/208 reserved credits total,
+eight per scan, with the original stop/expiry/duplicate controls. These are
+isolated synthetic requests, not actual account capacity or live authorization.
+
+Measure attempted/admitted/terminal slots, original selected and fresh-complete
+member observations, unique eligible/selected/ever-complete/never-complete
+tickers, revisit missingness, separately attributable benchmark/stock requests
+and reservation totals. Keep opening absence, failed/skipped slots, publication
+withholding, original source clocks, decision/lineage, restarted owner read and
+wrong-owner exclusion explicit. Do not remove an inconvenient slot, prewarm a
+history, invent an input, relax a gate or call a real provider. A missing reader
+or contradictory lineage is an evidence failure, not a data-quality conclusion.
+This is `hypothesis_evidence`: no full-coverage or recommendation-quality pass
+is predeclared. The measured gap selects the next smallest real acquisition
+improvement, if justified; full-charter/outcome acceptance remains separate.
+No schema, live control, provider, ranking or publication change is selected.
+
+**Prior locally complete acquisition capability — not breadth-accepted:** the
 selected IF-2b capability is implemented and tested at product
 `6726ba67a9aaa276bfa9cfde7b246354bebcf872`, tree
 `a2b7b32a121c35b2070d608e2b2db67fc3bb7274`. The original-order mixed-history
