@@ -20,6 +20,9 @@ const prospectiveEnrollment = process.argv.includes("--prospective-enrollment");
 const lateOriginalOutcomes = process.argv.includes("--late-original-outcomes");
 const fullOriginalHistorySetup = process.argv.includes("--full-original-history-setup");
 const budgetedHistorySetup = process.argv.includes("--budgeted-history-setup");
+const originalOutcomeContinuation = process.argv.includes("--original-outcome-continuation");
+assert(!originalOutcomeContinuation || budgetedHistorySetup,
+  "Original outcome continuation follows the actual budgeted full original session, never seeded source rows");
 const historyPreparationFault = process.argv.find(value=>value.startsWith("--history-preparation-fault="))?.split("=")[1];
 assert(!historyPreparationFault || budgetedHistorySetup && ["rate_limit","provider_identity","cache_write","reservation","finalization","daily_limit","abort","deadline","concurrent"].includes(historyPreparationFault),
   "Preparation fault uses only its isolated actual acquisition/budget boundary");
@@ -1082,6 +1085,61 @@ try {
             trained_probability_model:null,terminal_quality_decision:null,quality_improvement_claimed:false};
           fullOriginalHistoryEvidence.remaining_quality_gate="full_forward_charter_and_sealed_probability_model_not_established";
           fullOriginalHistoryEvidence.total_separate_synthetic_data_requests=setupRequests+externalRequests;
+          if(originalOutcomeContinuation) {
+            // Diagnose the EXISTING no-fingerprint source selection. Do not
+            // hand-pick later batches, seed outcomes or change its provider cap.
+            clock=OriginalDate.parse("2026-10-01T20:45:00Z");
+            const continuationPasses=[];
+            const continuationStart=externalRequests;
+            for(let index=0;index<60;index++) {
+              const before=externalRequests;
+              delete require.cache[require.resolve(join(generated,"outcome-route.cjs"))];
+              const response=await require(join(generated,"outcome-route.cjs")).POST(new Request("http://closed-fixture/api/recommendations/evaluate-outcomes",{
+                method:"POST",headers:{"x-automation-secret":environment.AUTOMATION_SECRET,"Content-Type":"application/json"},
+                body:JSON.stringify({mode:"official_live_today",horizons:["60m"],max_candle_requests:4,max_batches:1}),
+              }));
+              const body=await response.json();
+              assert.equal(response.status,200,JSON.stringify(body));
+              assert(externalRequests-before<=4,"Continuation cannot increase its unchanged per-pass request cap");
+              continuationPasses.push({requests:externalRequests-before,status:body.status,
+                eligible_snapshot_count:body.eligible_snapshot_count,persisted_outcome_count:body.persisted_outcome_count,
+                source_selection:body.same_day_official_batch_revisit,persistence_status:body.persistence_status});
+              if(externalRequests===before) break;
+            }
+            assert(continuationPasses.length<60,"Bounded diagnostic must reach a truthful source-selection stop");
+            delete require.cache[require.resolve(join(generated,"reader.cjs"))];
+            const resumed=require(join(generated,"reader.cjs"));
+            const completeSource=resumed.parseRecommendationLearningBaselineSource((await resumed.readRecommendationLearningBaselineSource(owner)).data);
+            assert(completeSource && completeSource.scanRuns.length===26);
+            const nextRead=await resumed.createRelativePlanProspectiveService().read(owner,asOf);
+            assert.equal(nextRead.status,"available",nextRead.blocker);
+            const heldRead=nextRead.learning.partitions.find(partition=>partition.partition==="held_out");
+            assert.equal(heldRead.original_population_count,176);
+            assert.equal(heldRead.original_membership_fingerprint,held.original_membership_fingerprint);
+            assert.equal(nextRead.learning.terminal_quality_decision,null);
+            assert.equal(nextRead.learning.quality_improvement_claimed,false);
+            const originalBatches=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from (select owner_user_id,batch_fingerprint,scan_run_fingerprint from recommendation_batches) t;"))
+              .filter(row=>row.owner_user_id===owner&&runFingerprints.has(row.scan_run_fingerprint));
+            assert.equal(originalBatches.length,26);
+            const discovered=new Set(continuationPasses.at(-1).source_selection?.selected_batch_fingerprints??[]);
+            const unvisited=originalBatches.filter(row=>!discovered.has(row.batch_fingerprint)).map(row=>({
+              batch_fingerprint:row.batch_fingerprint,scan_run_fingerprint:row.scan_run_fingerprint,
+              complete_regular_horizon_eligible:eligible.some(decision=>decision.fingerprint===row.scan_run_fingerprint),
+            }));
+            fullOriginalHistoryEvidence.original_outcome_continuation={
+              scope:"synthetic_actual_unselected_outcome_route_sql_sdk_not_quality_or_live",
+              passes:continuationPasses,separate_synthetic_requests:externalRequests-continuationStart,
+              original_decisions:completeSource.scanRuns.length,original_population_count:heldRead.original_population_count,
+              canonical_outcome_count:heldRead.canonical_outcome_count,missing_outcome_count:heldRead.missing_outcome_count,
+              physical_outcomes:completeSource.outcomes.length,
+              original_batch_count:originalBatches.length,unvisited_original_batches:unvisited,
+              original_member_fingerprint:heldRead.original_membership_fingerprint,
+              original_decision_coverage:nextRead.learning.legacy_baseline_readiness.relative_plan_context_outcomes,
+              terminal_quality_decision:null,quality_improvement_claimed:false,
+            };
+            fullOriginalHistoryEvidence.total_separate_synthetic_data_requests=setupRequests+externalRequests;
+            process.stderr.write(JSON.stringify({original_outcome_continuation:fullOriginalHistoryEvidence.original_outcome_continuation})+"\n");
+          }
         }
       }
     }

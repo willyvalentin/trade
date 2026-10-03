@@ -566,6 +566,23 @@ test("concurrent history preparation has one provider winner and resumes differe
   }
 });
 
+test("whole-session outcome continuation discovers every original batch before claiming empty backlog", () => {
+  test.setTimeout(240000);
+  const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--cold",
+    "--rotation-day", "--prospective-enrollment", "--full-original-history-setup", "--budgeted-history-setup",
+    "--original-outcome-continuation"], { cwd: process.cwd(), encoding: "utf8", timeout: 230000 });
+  expect(result.status, `${result.stdout.slice(-2000)}\n${result.stderr.slice(-2000)}`).toBe(0);
+  const receipt = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
+  expect(receipt).toMatchObject({ actual_provider_requests: 0, production_actions: 0, publications: 0,
+    broker_actions: 0, cleanup: "inert" });
+  const continuation = receipt.full_original_history_evidence.original_outcome_continuation;
+  expect(continuation).toMatchObject({ original_decisions: 26, original_batch_count: 26,
+    original_population_count: 176, terminal_quality_decision: null, quality_improvement_claimed: false });
+  expect(continuation.passes.every((pass: { requests: number }) => pass.requests <= 4)).toBe(true);
+  expect(continuation.passes.at(-1).source_selection.same_day_official_batches_discovered).toBe(26);
+  expect(continuation.unvisited_original_batches).toEqual([]);
+});
+
 test("actual original complete input reaches full charter through canonical outcomes without granting quality authority", () => {
   test.setTimeout(120000);
   const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--benchmark-reuse", "--charter-composition"],

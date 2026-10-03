@@ -26,6 +26,41 @@ denominator reduction, shorter horizon, new ranking hypothesis, model seal,
 general worker or live activation. A passing continuation closes only the
 outcome-coverage link, not the full forward quality charter. Release and OPEN
 holds do not prevent this provider-free isolated investigation.
+
+**IF-4 continuation reproduction — 2026-10-03, source correction pending:**
+The actual original 26-slot preparation/scan/source path and restarted outcome
+route are extended without a caller-selected batch fingerprint. Forty bounded
+passes make four synthetic outcome requests each; the forty-first reports
+`blocked`, zero eligible sources and zero visible backlog. Actual source/learning
+readback still retains all 26 original decisions and 176 enrolled members, but
+the loader has seen only 20 original batches. Six actual original batch IDs are
+unvisited, including two with a complete regular-session horizon. The route's
+`officialLiveBatchDiscoveryLimit=20` is therefore a reproduced source-discovery
+limit, not evidence that the full original population has no remaining work.
+The new regression requires all 26 source batches before an empty-backlog claim;
+it fails as reproduced (`expected 26`, `received 20`) through the actual source
+and restarted learning chain, not a timeout or mocked loader. Log:
+`/private/tmp/ture-original-outcome-continuation-regression-oct3.log`.
+The minimum correction is not yet implemented or accepted.
+
+This diagnostic retains 168 physical outcome rows but only 18 qualified
+canonical labels/158 missing enrolled labels. Physical storage is not qualified
+learning coverage; no new model, alpha or complete forward charter is claimed.
+Its 160 additional synthetic requests are separate from 95 preparation, 208
+scheduled and eight initial outcome requests. Direct isolated route replay at
+a controlled after-market clock proves the source-selection/readback defect,
+not normal scheduler cadence, provider-account minute/daily capacity or durable
+outcome-credit accounting. No actual provider, production or broker call occurs.
+Logs: `/private/tmp/ture-original-outcome-continuation-oct3.log` and
+`/private/tmp/ture-original-outcome-continuation-identities-oct3.log`, both exit
+zero. An intermediate whole-row diagnostic query exceeds the child output
+buffer (`ENOBUFS`); selecting only the three needed identity fields preserves
+all original rows and resolves that test-reader failure. It is not an engine
+regression, a schema change or authority to raise output/cost limits. Next
+correct the actual bounded source selection, retain owner/date/fingerprint
+isolation and late missing horizons, then rerun the original full-population
+regression and affected runtime/learning checks before claiming completion.
+
 The already-paid legacy history retention is locally complete and behavior-
 verified on `5474cbb0c2af7204dd092cb3da0fb0c6328bc855`, tree
 `c9ceb742f5199222ddc5579d4a6bf9c904eeaf85`. The original-source composition
