@@ -52,15 +52,26 @@ not current-price cache freshness or a new confidence/ranking policy.
 The fixture acquires history for the union of the two rotating populations
 before either scan: **32 separate synthetic setup requests**, then 16 requests
 across the two eight-credit scans. This is not an eight-credit cold bootstrap
-or proof that the entire real market is observed. Cold stock history remains
-limited to three complete members; missing members are not removed. All four
-new component/native baseline/reuse/corruption checks pass locally. The existing
-48 component, transport, timeout/draining, history, budget and CI-registration
-checks passed before final source admission review; exact final combined
-verification and ordinary Linux build are still pending. That review caught
-and corrected a local schema mismatch: source is not a database column, so
-admission reads the existing `data_mode` and status. No migration, extra query,
-provider request, production change, quality lift, PR or merge is claimed.
+or proof that the entire real market is observed. The first cold scan still
+has only three complete members; missing members are not removed. All **52**
+affected component/native baseline/reuse/corruption, transport, timeout/draining,
+history, publication, budget and CI-registration tests pass on exact product
+`43fa089e2c7410f10834e148179dda1564765e46`, tree
+`a2cd0cf57b0597f0d1b1e19fadbebe1076e48fe8`. Final standard lint passes with zero
+errors and eight pre-existing warnings; non-incremental TypeScript passes.
+The same clean committed source passes the ordinary locked Linux Node 22.23.1 /
+Next 16.3.8 Turbopack build, with no build network or credentials. Logs:
+`/private/tmp/ture-benchmark-reuse-final-52-tests.log` and
+`/private/tmp/ture-benchmark-reuse-exact-linux-build.log`.
+The final review caught and corrected a local schema mismatch: source is not
+a database column, so admission reads the existing `data_mode` and status.
+No test contract or schema was loosened to conceal that failure. No migration,
+extra query, provider request, production change, quality lift, PR or merge is
+claimed. This is locally complete IF-2b acquisition behavior, not main/OPEN
+acceptance. PR #732's exact external registry CI failure and mandatory security
+release requirement remain unresolved; do not bypass either or create a
+competing release. Preserve the complete-charter and benchmark-input predecessors
+when preparing ordinary integration.
 
 **Primary IF-2b benchmark input fitness — 2026-10-03 04:13Z:** Codex's
 bounded investigation reproduces stale benchmark acceptance through the actual
@@ -111,15 +122,18 @@ before the native database proof. Lint, types and preceding checks pass;
 interrupted/later checks are not inferred as passed. No retry or bypass is
 selected. This CI availability gap is separate from input-fitness evidence.
 
-**Next intelligence evidence gap:** actual complete fresh original inputs for
-all eight selected members within the existing whole-scan budget, then original
-prospective forward outcomes/full-charter comparison. Validated daily context
-does not grant current-price freshness. Current cold acquisition still observes
-only three complete members and warmed daily history only six; missing members
-remain explicit. Investigate the smallest defensible same-day completed-
-benchmark reuse/allocation only from exact retained sources and real budget
-accounting; no additional requests, cache-clock substitution, population
-reduction or live activation is authorized by this local source fix.
+**Next intelligence evidence gap:** integrate the locally complete strict
+benchmark/reuse links in the declared predecessor order, then actual complete
+fresh original inputs and prospective forward outcomes/full-charter comparison.
+Validated daily context does not grant current-price freshness. The first cold
+acquisition still observes three complete members; the original warmed path
+observes six, while the locally verified reuse path observes eight only when
+the selected stock history already exists. Account for acquisition of that
+history rather than treating the 32-request warm setup as a solved cold start.
+The remaining CLOSED investigation is the actual cold/rotating-population
+acquisition and its bounded whole-scan cost; missing members stay explicit.
+No extra requests, cache-clock substitution, population reduction, provider
+purchase, policy promotion or live activation follows from the local warm proof.
 
 **Current queue — 2026-10-03 00:04Z:** PR #730 normally merges at
 00:02:34Z after all six protected shards, aggregate and merge provenance in
