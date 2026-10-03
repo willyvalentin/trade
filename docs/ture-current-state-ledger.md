@@ -47,12 +47,12 @@ the normal clean locked Linux Node 22 / Next 16.3.8 build, with read-only
 dependencies, no build network and no production keys. Its source stayed clean
 and frozen through both revision guards. Log:
 `/private/tmp/ture-off-grid-exact-linux-build-oct3.log`.
-Next: finish the already-running exact CI before the single focused update of
-the same draft, then stop this integrity interruption and return to
-release/forward acceptance. Do not cancel an almost-finished run for a ledger
-push or count the earlier head's eventual CI/preview as verification of this fix.
+Next: make the single focused update of the same draft after the reproduced
+CI duplication correction below, then stop this integrity interruption and
+return to release/forward acceptance. Do not count the earlier head's CI/preview
+as verification of this fix.
 No production/provider/broker action, new experiment or schema is selected.
-CI remains attributable to committed `183e70d6`, not these local review changes;
+The earlier CI remains attributable to `183e70d6`, not these local review changes;
 the mandatory high-severity dependency audit remains a separate release blocker.
 
 Review also reproduces an applicable CI coverage gap: the actual draft selector
@@ -68,6 +68,33 @@ hash-bound file is restored byte-for-byte and the new assertion uses the existin
 evolving plan test instead. No historical receipt or security gate is changed.
 Nonincremental types and focused changed-test lint pass after this registration
 correction; the application tree remains the exact tested `2212dafd` product.
+
+Run `37131771484` is now terminal, not a continuing wait: its draft job is
+cancelled after GitHub's authoritative 45m maximum-execution annotation. The
+targeted suites pass before the broad containment group repeats the heavy
+completed-benchmark source proof and would repeat completed daily-context work.
+Terminal log: `/private/tmp/ture-pr732-183-ci-terminal-oct3.log`. No run pass,
+protected release acceptance or product defect is inferred from that timeout.
+Preserve the whole fallback, but elide only a targeted one-file check already
+inside it with identical runner, server condition and exact worker/flag shape.
+Critical security smoke and differently conditioned checks remain mandatory;
+source-only changes still run the complete fallback. No time limit is raised.
+
+The whole-PR audit also finds the previously changed refresh-admission suite
+unregistered; add that existing ten-check file without removing any test.
+The current selector has 25 commands and no missing changed test file; each
+heavy original fixture runs once. Every prior full-Ready test retains its
+invocation and all six shards/audit/build/non-test commands remain unchanged.
+Coverage log: `/private/tmp/ture-off-grid-ci-complete-coverage-oct3.log`.
+All 26 CI/registration/security/budget regressions pass (3.0s), with types and
+normal full lint passing. Frozen CI receipt JSON/hashes are not rewritten:
+their original runner/oracle bytes are read from immutable main `55576078`,
+verified equal to the original attested hashes; actual current CI behavior is
+tested separately. This is historical evidence preservation, not release
+authority or an audit exception. Exact normal Linux build also passes on
+`accb474e`; subsequent changes are CI code/oracles and ledger only, not the
+application, lockfile or Netlify build/runtime configuration. New-head hosted
+CI completion inside the unchanged 45m bound is still unverified.
 
 **Completed local review fix / Next — complete original-history cache read:**
 Within existing draft PR #732, Codex reproduces one IF-2b blocker in the

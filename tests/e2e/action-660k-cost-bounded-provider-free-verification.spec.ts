@@ -19,6 +19,7 @@ const ledgerPath = "docs/ture-current-state-ledger.md";
 const roadmapPath = "docs/ture-master-roadmap.md";
 const historicalSourceCommit =
   "dbeed25f2074bff4dba8cee7f6d511cb17992efc";
+const retainedDraftRunnerCommit = "55576078e102e7019c271aeb5e67de4a353f2e8f";
 
 const sourcePaths = [
   workflowPath,
@@ -347,6 +348,12 @@ test("binds exact governance evidence and forbids release authority", async () =
       .update(historicalSource(snapshotPath))
       .digest("hex");
   }
+  // The frozen receipt attests the original runner, not a later CI repair.
+  // Current selection/revision/containment behavior is tested above separately.
+  sourceHashes[draftRunnerPath] = createHash("sha256").update(execFileSync(
+    "git", ["show", `${retainedDraftRunnerCommit}:${draftRunnerPath}`],
+    { cwd: repositoryRoot },
+  )).digest("hex");
 
   expect(evidence).toEqual({
     contract_version: "action_660k_cost_bounded_provider_free_ci_v3",

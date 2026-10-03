@@ -195,6 +195,23 @@ export function selectDraftCommands(changedPaths) {
       throw new Error("Missing broad Draft containment fallback");
     }
     select(broadContainment);
+    // Keep the complete fallback. Elide only an identical one-file invocation
+    // already covered by it, never security smoke or a different condition.
+    const broadFiles = new Set(broadContainment.args.filter(argument =>
+      argument.startsWith("tests/"),
+    ));
+    for (const [label, targeted] of selected) {
+      if (label.startsWith("Affected registered test: ") &&
+        targeted.runner === "playwright" && broadContainment.runner === "playwright" &&
+        targeted.node_options === broadContainment.node_options &&
+        targeted.args.length === 3 && targeted.args[0] === "test" &&
+        targeted.args[2] === "--workers=1" &&
+        broadContainment.args[0] === "test" && broadContainment.args.at(-1) === "--workers=1" &&
+        broadContainment.args.slice(1, -1).every(argument => argument.startsWith("tests/")) &&
+        broadFiles.has(targeted.args[1])) {
+        selected.delete(label);
+      }
+    }
   }
 
   return Object.freeze([...selected.values()]);

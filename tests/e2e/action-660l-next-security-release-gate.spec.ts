@@ -21,6 +21,7 @@ const historicalSourceCommit =
   "dbeed25f2074bff4dba8cee7f6d511cb17992efc";
 const successionSourceCommit =
   "ddce80b57c9ab21b5210d2aa484271c2da0f60e6";
+const retainedDraftVerificationCommit = "55576078e102e7019c271aeb5e67de4a353f2e8f";
 const originalOutcomeIncludedFiles =
   '  included_files = ["netlify/.generated/scheduled-outcome-evaluation-runtime.cjs"]';
 const outcomeIncludedFilesWithDeployIdentity =
@@ -131,6 +132,13 @@ async function sourceHashes() {
     historicalCurrentStateSources,
   )) {
     hashes[historicalPath] = sha256(historicalSource(snapshotPath));
+  }
+  // Preserve the exact original receipt bytes while current runtime tests
+  // independently require the full audit/build, authority and CI boundaries.
+  for (const snapshotPath of [draftRunnerPath, draftCostControlTestPath]) {
+    hashes[snapshotPath] = sha256(execFileSync("git", [
+      "show", `${retainedDraftVerificationCommit}:${snapshotPath}`,
+    ], { cwd: repositoryRoot }));
   }
   return hashes;
 }

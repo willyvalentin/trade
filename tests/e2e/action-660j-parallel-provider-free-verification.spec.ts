@@ -287,6 +287,7 @@ const intelligenceTests = [
   "tests/e2e/action-576-verified-us-market-calendar-integration.spec.ts",
   "tests/e2e/action-555-official-outcome-candle-acquisition-investigation.spec.ts",
   "tests/e2e/recommendation-outcome-canonical-coverage.spec.ts",
+  "tests/e2e/intraday-indicator-refresh-admission.spec.ts",
   "tests/e2e/relative-plan-charter-observations.spec.ts",
   "tests/e2e/relative-plan-charter-context.spec.ts",
   "tests/e2e/relative-plan-charter-quality.spec.ts",
@@ -600,6 +601,30 @@ test("changed original-outcome suites select their actual registered runtime che
       node_options: "--conditions=react-server",
     });
   }
+});
+
+test("Draft fallback retains complete coverage without repeating identical changed-file checks", async () => {
+  const { selectDraftCommands } = await import(pathToFileURL(
+    path.join(repositoryRoot, "scripts/action-660k-run-draft-ci.mjs"),
+  ).href) as { selectDraftCommands: (paths: string[]) => PlannedCommand[] };
+  const repeated = ["tests/e2e/completed-benchmark-reuse.spec.ts",
+    "tests/e2e/scanner-completed-daily-context.spec.ts"];
+  const serverOnly = "tests/e2e/recommendation-outcome-canonical-coverage.spec.ts";
+  const selected = selectDraftCommands(["lib/scanner.ts", ...repeated, serverOnly]);
+  for (const file of repeated) {
+    const commands = selected.filter(command => command.args.includes(file));
+    expect(commands).toHaveLength(1);
+    expect(commands[0]).toMatchObject({ label: "Browser and server containment",
+      runner: "playwright", node_options: null });
+    expect(commands[0].args[0]).toBe("test");
+    expect(commands[0].args.at(-1)).toBe("--workers=1");
+  }
+  expect(selected.find(command => command.args.includes(serverOnly))).toMatchObject({
+    label: `Affected registered test: ${serverOnly}`, node_options: "--conditions=react-server" });
+  expect(selected.some(command => command.label === "Draft critical security smoke")).toBe(true);
+  expect(selectDraftCommands(["lib/scanner.ts"]).find(command =>
+    command.label === "Browser and server containment")?.args)
+    .toEqual(["test", ...foundationTests, "--workers=1"]);
 });
 
 test("forwards cancellation to the active process group and exits before another command can start", async () => {
