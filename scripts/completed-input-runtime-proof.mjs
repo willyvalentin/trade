@@ -105,6 +105,8 @@ assert(!(invalidBenchmarkReuse && baselineBenchmarkReuse) &&
 const wrongPolicy = process.argv.includes("--wrong-policy");
 const diagnoseOutcomes = process.argv.includes("--diagnose-outcomes");
 const nextSessionOutcomes = process.argv.includes("--next-session-outcomes");
+const pagedOutcomeReads = process.argv.includes("--paged-outcome-reads");
+assert(!pagedOutcomeReads || nextSessionOutcomes, "Paged reads use the same original cross-date population");
 assert(!nextSessionOutcomes || diagnoseOutcomes && !cold && !rotationDay && !process.argv.includes("--publication-clock"),
   "Cross-date continuation retains the existing six original hidden sources and four-request first pass");
 const relativePlan60m = process.argv.includes("--relative-plan-60m");
@@ -2039,18 +2041,29 @@ try {
         // rows: the twelve already persisted labels exceed this API cap.
         sql("alter role authenticator set pgrst.db_max_rows='10'; notify pgrst,'reload config';");
         await waitForApiCap(10);
+        const corruptRow=outcomes[0];
+        if(!pagedOutcomeReads) sql(`update recommendation_outcomes set horizon='unknown' where id='${corruptRow.id}';`);
         const cappedResponse=await invokeNextSession(),cappedBody=await cappedResponse.json();
-        assert.equal(cappedResponse.status,200,JSON.stringify(cappedBody));
-        assert.equal(cappedBody.persistence_error,"original_outcome_read_incomplete");
-        assert.equal(cappedBody.status,"failed");
-        assert.equal(cappedBody.scheduled_outcome_evaluation_receipt.failures.first_blocker,"original_outcome_read_incomplete");
-        assert.equal(externalRequests-before,4);
-        assert.equal(Number(sql("select count(*) from basic_free_discovery_credit_reservations where trading_date='2026-10-05';")),0);
-        assert.equal(Number(sql("select count(*) from recommendation_outcomes;")),12);
-        sql("alter role authenticator set pgrst.db_max_rows='1000'; notify pgrst,'reload config';");
-        await waitForApiCap(12);
+        if(pagedOutcomeReads) {
+          assert.equal(cappedBody.status,"completed", "An API page boundary must not strand the exact pending original outcomes");
+          assert.equal(Number(sql("select count(*) from recommendation_outcomes;")),18);
+          assert.equal(externalRequests-before,6);
+          assert.equal(cappedBody.scheduled_outcome_evaluation_receipt.cost.candle_requests_executed,2);
+          outcomeChainEvidence.cross_date_source_controls.complete_capped_outcome_read=true;
+        } else {
+          assert.equal(cappedResponse.status,200,JSON.stringify(cappedBody));
+          assert.equal(cappedBody.persistence_error,"original_outcome_identity_invalid");
+          assert.equal(cappedBody.status,"failed");
+          assert.equal(cappedBody.scheduled_outcome_evaluation_receipt.failures.first_blocker,"original_outcome_identity_invalid");
+          assert.equal(externalRequests-before,4);
+          assert.equal(Number(sql("select count(*) from basic_free_discovery_credit_reservations where trading_date='2026-10-05';")),0);
+          assert.equal(Number(sql("select count(*) from recommendation_outcomes;")),12);
+          sql(`update recommendation_outcomes set horizon='${corruptRow.horizon}' where id='${corruptRow.id}';`);
+          sql("alter role authenticator set pgrst.db_max_rows='1000'; notify pgrst,'reload config';");
+          await waitForApiCap(12);
+          outcomeChainEvidence.cross_date_source_controls.invalid_original_outcome_rejected=true;
+        }
         clock=OriginalDate.parse("2026-10-05T17:45:20.000Z");
-        outcomeChainEvidence.cross_date_source_controls.incomplete_outcome_page_rejected=true;
       }
       const concurrentResponses=nextSessionOutcomes?await Promise.all([invokeNextSession(),invokeNextSession()]):null;
       if(concurrentResponses) assert.deepEqual(concurrentResponses.map(response=>response.status).sort(),[200,202]);
@@ -2068,6 +2081,7 @@ try {
       const repeatedRows=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_outcomes t;"));
       assert.deepEqual(repeatedRows.sort((a,b)=>a.id.localeCompare(b.id)),completedRows);
       const resumedRead=await restarted.readRecommendationLearningBaselineSource(owner);
+      assert.equal(resumedRead.status,"available",JSON.stringify(resumedRead));
       assert.equal(resumedRead.data.recommendation_outcomes.length,researchSnapshots.length*outcomeMultiplier);
       assert.equal((await restarted.readRecommendationLearningBaselineSource("00000000-0000-4000-8000-000000000002")).data.recommendation_outcomes.length,0);
       outcomeChainEvidence.resumption={persisted_outcomes:resumedRows.length,
@@ -2077,7 +2091,7 @@ try {
         const attempts=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from scheduled_outcome_evaluation_attempts t;"));
         const credits=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from basic_free_discovery_credit_reservations t where trading_date='2026-10-05';"));
         assert.equal(attempts.length,2);
-        const completedAttempt=attempts.find(attempt=>attempt.status==="completed");
+        const completedAttempt=attempts.find(attempt=>attempt.status==="completed" && attempt.receipt_json.cost.candle_requests_executed===2);
         assert(completedAttempt,JSON.stringify(attempts));
         assert.equal(completedAttempt.request_json.original_source_window.from_trading_date,"2026-09-29");
         assert.equal(completedAttempt.receipt_json.cost.candle_requests_executed,2);
@@ -2109,6 +2123,23 @@ try {
         assert.equal(Number(sql("select count(*) from scheduled_outcome_evaluation_attempts;")),3);
         assert.equal(Number(sql("select count(*) from basic_free_discovery_credit_reservations where trading_date='2026-10-05';")),1);
         assert.deepEqual(JSON.parse(sql("select coalesce(jsonb_agg(t order by id),'[]') from recommendation_outcomes t;")),completedRows);
+        if(pagedOutcomeReads) {
+          const cappedRead=await restarted.readRecommendationLearningBaselineSource(owner);
+          assert.equal(cappedRead.status,"available",JSON.stringify(cappedRead));
+          assert.equal(cappedRead.data.recommendation_outcomes.length,18,
+            "The restarted learning consumer must retain all outcomes while the cap is still ten");
+          outcomeChainEvidence.cross_date_source_controls.capped_learning_read_complete=true;
+          sql("alter role authenticator set pgrst.db_max_rows='1000'; notify pgrst,'reload config';");
+          // Restore isolated configuration only after the restarted downstream
+          // learning read has consumed all original labels under the cap.
+          for(let index=0;index<30;index++) {
+            const response=await originalFetch(`${apiOrigin}/recommendation_outcomes?select=id`,{
+              headers:{Authorization:`Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`}});
+            if(response.ok && (await response.json()).length===18) break;
+            assert(index<29,"isolated_api_cap_cleanup_missing");
+            await syntheticDelay(100);
+          }
+        }
         outcomeChainEvidence.resumption.next_session={policy_version:"trailing_seven_ny_dates_v1",
           original_date:"2026-10-01",evaluation_date:"2026-10-05",scheduled_attempts:3,
           reserved_credits:4,synthetic_requests:2,previous_outcomes_unchanged:true,

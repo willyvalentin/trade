@@ -384,10 +384,28 @@ test("ordinary scheduled outcomes recover only budget-deferred original sources 
     same_day_predecessor_missing_sources: 2, other_owner_excluded: true,
     expired_original_source_excluded: true, future_source_excluded: true, invalid_scope_requests: 0,
     rejected_scopes: ["unknown_scope", "direct_call", "frozen_one_shot", "frozen_series", "global_disabled"],
-    concurrent_delivery_claims: 1, incomplete_outcome_page_rejected: true,
+    concurrent_delivery_claims: 1, invalid_original_outcome_rejected: true,
     late_labels_excluded_from_original_cutoff: true,
   });
   expect(evidence).toMatchObject({ actual_provider_requests: 0, production_actions: 0, publications: 0, broker_actions: 0 });
+});
+
+test("capped database pages recover the complete original population without reacquiring completed labels", () => {
+  test.setTimeout(90000);
+  const proof = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--diagnose-outcomes", "--next-session-outcomes", "--paged-outcome-reads"],
+    { cwd: process.cwd(), encoding: "utf8", timeout: 80000 });
+  expect(proof.status, `${proof.stdout}\n${proof.stderr}`).toBe(0);
+  const evidence = JSON.parse(proof.stdout.trim().split("\n").at(-1)!);
+  expect(evidence.outcome_chain_evidence.resumption.next_session).toMatchObject({
+    scheduled_attempts: 3, reserved_credits: 4, synthetic_requests: 2,
+    previous_outcomes_unchanged: true, repeat_requests: 0, completed_next_slot_requests: 0,
+    original_horizon_retained: true, original_members: 8,
+  });
+  expect(evidence.outcome_chain_evidence.cross_date_source_controls).toMatchObject({
+    complete_capped_outcome_read: true, capped_learning_read_complete: true, concurrent_delivery_claims: 1,
+    other_owner_excluded: true, late_labels_excluded_from_original_cutoff: true,
+  });
+  expect(evidence).toMatchObject({actual_provider_requests:0,production_actions:0,publications:0,broker_actions:0});
 });
 
 for (const scenario of ["cold", "warm", "opening", "opening_zero"]) {

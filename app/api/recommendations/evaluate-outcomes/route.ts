@@ -8,6 +8,7 @@ import { summarizeEntryTypeTriggerDiagnostics } from "@/lib/recommendation-entry
 import { getIntradayCandlesWithDiagnostics } from "@/lib/market-data";
 import { getNewYorkDateString } from "@/lib/intraday-scan-window";
 import { ORIGINAL_OUTCOME_BACKLOG_SCOPE, originalOutcomeSourceWindow } from "@/lib/original-outcome-source-window";
+import { readCompleteOriginalOutcomes } from "@/lib/original-outcome-persistence-read";
 import {
   recommendationOutcomeFromPersistenceRow,
   readRecommendationOutcomesFromLocalStorage,
@@ -1147,10 +1148,12 @@ async function loadSupabaseOutcomes(snapshotFingerprints: string[], requireCompl
     };
   }
 
+  if (requireCompleteRead) return readCompleteOriginalOutcomes(serverSupabase.client, ownerUserId, snapshotFingerprints);
+
   try {
-    const { data, error, count } = await serverSupabase.client
+    const { data, error } = await serverSupabase.client
       .from("recommendation_outcomes")
-      .select("*", requireCompleteRead ? { count: "exact" } : {})
+      .select("*")
       .eq("owner_user_id", ownerUserId)
       .in("snapshot_fingerprint", snapshotFingerprints)
       .order("evaluated_at", { ascending: false });
@@ -1161,13 +1164,6 @@ async function loadSupabaseOutcomes(snapshotFingerprints: string[], requireCompl
         error: error?.message ?? "Unable to load recommendation outcomes.",
       };
     }
-    // API response caps must not turn already completed labels into apparent
-    // pending work and consume more credits. A larger source requires bounded
-    // pagination before this recovery can proceed; never trust a truncated read.
-    if (requireCompleteRead && (!Number.isSafeInteger(count) || count !== data.length)) {
-      return { outcomes: [], error: "original_outcome_read_incomplete" };
-    }
-
     return {
       outcomes: (data as Array<Record<string, unknown>>)
         .map(recommendationOutcomeFromPersistenceRow)

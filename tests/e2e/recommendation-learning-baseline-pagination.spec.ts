@@ -101,3 +101,25 @@ test("baseline source stability rejects same-size changes during a paginated fre
     ]),
   ).toBe(false);
 });
+
+test("original outcome source opt-in continues exact capped rows without skipping offsets", async () => {
+  const source=rows(25),calls: Array<readonly [number,number]>=[];
+  const result=await readCompleteRecommendationLearningBaselineSourcePages({
+    expectedRowCount:source.length,allowResponseCaps:true,
+    async readPage(from,to) {calls.push([from,to]);return {data:source.slice(from,Math.min(from+10,to+1)),error:null};},
+  });
+  expect(result).toEqual(source);
+  expect(calls).toEqual([[0,24],[10,24],[20,24]]);
+});
+
+test("capped outcome source opt-in still rejects missing, duplicate and over-limit populations", async () => {
+  for(const fault of ["empty_tail","duplicate","page_limit"]) {
+    const result=await readCompleteRecommendationLearningBaselineSourcePages({
+      expectedRowCount:fault==="page_limit"?201:11,allowResponseCaps:true,
+      async readPage(from) {
+        return {data:fault==="empty_tail" && from>0?[]:[{id:fault==="duplicate"?"same":`row-${from}`}],error:null};
+      },
+    });
+    expect(result).toBeNull();
+  }
+});

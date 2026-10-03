@@ -2,6 +2,29 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
+**Now / Next / Blocked — complete paged original outcome recovery:**
+Codex owns one CLOSED IF-4 vertical on `codex/original-outcome-pages-oct3`,
+following the completed local `a75e782f` and freshly verified GitHub main
+`55576078`. The same actual scheduler/SQL proof with twelve stored original
+horizon rows and a real PostgREST cap of ten reproduces `failed` instead of
+resuming the two pending original sources. Close this specific coverage gap
+with bounded owner/source-scoped keyset paging, exact remaining/final counts,
+identity/decoder validation and fail-closed limits. Do not reduce the original
+population or reinterpret an API page as missing labels. Keep frozen/direct
+call behavior, existing scheduler authority and four-credit ceiling unchanged.
+The real chained proof also reproduces the restarted baseline reader failing
+under that same cap after recovery. Its outcome-only source read will opt into
+bounded cap continuation while retaining repeated complete-row stability,
+owner scope and before/after exact counts. Other strict-page callers stay strict.
+Acceptance: the actual ordinary scheduler reads capped pages, creates only the
+six truly missing horizon rows through two synthetic requests, keeps previous
+rows intact and performs no acquisition/reservation on completed follow-up.
+Corrupt/changing/over-limit/timeout reads must stop before acquisition; owner,
+as-of, original plan and full eight-member learning denominator remain intact.
+No new schema, production request or ranking/publication change is selected.
+Then return to the full-original forward quality/release evidence; unchanged
+mandatory audit and PR #732 release blockers remain, not permission to bypass CI.
+
 **Completed local implementation / Next / Blocked — original outcome continuation across New York dates:**
 Owner Codex selects one CLOSED IF-4 4–16 active-hour vertical on isolated
 `codex/original-outcome-backlog-oct3`, from freshly verified main `55576078`
