@@ -73,5 +73,9 @@ test("actual database clock, immutable result and restarted SDK/product consumpt
   const proof = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
   expect(proof).toMatchObject({ status:"pass",durable_terminal_result_verified:true,
     actual_database_finalization_clock_verified:true,historical_model_clock_fixture:true,
+    result_prewrite_guards_verified:true,
     quality_improvement_verified:false,provider_requests:0,production_writes:0,broker_actions:0 });
+  expect(proof.complete_finalized_product_http_bytes).toBeGreaterThan(0);
+  expect(proof.complete_finalized_product_http_bytes).toBeLessThanOrEqual(5*1048576);
+  console.log(JSON.stringify({ local_charter_finalization_evidence:proof }));
 });

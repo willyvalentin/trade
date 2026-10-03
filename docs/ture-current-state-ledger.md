@@ -2,7 +2,7 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
-**Current queue — 2026-10-03 02:19Z:** The same primary CLOSED full-charter
+**Current queue — 2026-10-03 02:31Z:** The same primary CLOSED full-charter
 vertical now includes complete as-of result retention and restarted terminal
 consumption, closing the reproduced `durably_finalized_full_charter_result_required`
 link without opening a second ranking hypothesis or development stream. Codex
@@ -25,9 +25,34 @@ reproduced and corrected without weakening that binding. Complete source is
 losslessly compressed with an independent 8 MiB decoded bound, not sampled or
 truncated. The prior full original product HTTP response is 3,187,746 UTF-8
 bytes. Finalized transport, direct clock/model/owner rejection, optimized
-committed-read verification and the combined regression remain in progress.
+committed-read verification and the combined regression now pass: 37 affected
+tests plus ten result-store/unchanged-CI-registration tests. Product revision
+`9d231c0ef459a91210007e9db926864f6c3cfc51`, tree
+`395ebc7ed9c946fb1a2fa107c463286a14bbfea5`, passes the exact normal locked
+Linux Next 16.3.8 build on Node 22.23.1, without build network or production
+credentials; whole-repository lint (zero errors/eight existing warnings) and
+strict types pass. The unchanged full foundation stops at the mandatory audit,
+so later registered checks are diagnostic only, not release acceptance.
 Everything in this vertical remains local: no PR, merge, production migration,
 configuration, provider request, scan or broker action has occurred.
+
+One independent CLOSED IF-2b point-in-time context slice is selected next:
+Codex, twelve active hours from 02:31Z, initial reproduction at most four,
+isolated `codex/market-context-capture-oct3` from verified main `55576078`.
+The generator obtains observed regime before candidate decisions, but the
+existing persistence path rebuilds its `captured_at` with a later `new Date()`;
+the strict original-context reader correctly rejects a post-decision stamp.
+Reproduce that exact native-route/actual-persistence gap before changing code.
+Own only generator/context transport, the existing scan artifact callsites,
+the existing completed-input runtime proof and its already registered test.
+The primary retains result schema/modules/CI-registration ownership and must
+integrate first; no shared schema, different ranker or competing hypothesis.
+Acceptance: retain the actual original classification completion clock through
+run and candidate snapshots, matching original regime/classifier, before the
+original decision; preserve unknown fallbacks, budgets, timeouts and all
+publication guards. Do not backdate a later context or rewrite historical rows.
+This addresses original input fitness for the same frozen hypothesis; it does
+not authorize a scan, provider acquisition, policy change or quality claim.
 
 Release is currently blocked by unchanged mandatory `npm audit --audit-level=high`:
 GHSA-vfj7-8cjw-p6xm affects braces 3.0.3 via the dev-only Next ESLint chain.
