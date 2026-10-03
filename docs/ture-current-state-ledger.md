@@ -2,7 +2,7 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
-**Current correction — 2026-10-03 03:46Z:** The same primary IF-4 vertical
+**Current correction — 2026-10-03 03:52Z:** The same primary IF-4 vertical
 has one newly reproduced full-source retention gap, within its existing
 twelve-active-hour delivery budget. Twelve valid owned decisions before the
 frozen windows raise decoded source from 14,815,679 to 17,268,366 bytes, while
@@ -16,11 +16,38 @@ migration or query shortcut. Before accepting a scoped capsule, it recomputes
 the entire charter against the full source and requires exact semantic equality.
 Three focused checks, including unchanged golden fingerprints and the reproduced
 twelve-history case, pass; strict types and changed-file lint pass after a test
-fixture typing correction. Complete affected DB/SDK/HTTP regression and a new
-exact locked Linux build remain pending. Larger scoped evidence or excessive
+fixture typing correction. All 45 affected evaluation, result, store, runtime
+and native-service regressions pass. Product
+`cb5e33012d4a3863a89bcbc925349af9254af714`, tree
+`631bcadb379b5a7e7f1b5ace5328daab4f14e137`, passes the whole normal locked
+Linux build on Node 22.23.1 / Next 16.3.8, with no production credentials or
+build network. The actual eight-member DB proof now persists all twelve older
+decisions as well: 84 owned scan rows remain in the database and the capsule
+retains all 72 decisions belonging to its frozen windows. No source rows are
+deleted. All 240 original candidates per forward partition and eleven checks
+survive finalization/restart/outcome corrections. Full original HTTP with the
+older diagnostic history is 5,671,985 decoded bytes / 200,518 gzip wire bytes;
+the complete finalized capsule response is 4,880,555 bytes in plain JSON.
+These remain disclosed synthetic CLOSED proofs, not hosted behavior or alpha.
+Larger scoped evidence or excessive
 full-owner read size still fail closed; this is not unlimited corpus scalability.
-Do not push another partial PR update or promote this correction before those
-checks finish. No second ranking hypothesis or external action is selected.
+The coherent draft PR update may now include this correction; mandatory release
+checks/security still block promotion. No second ranking hypothesis or external
+action is selected.
+
+**Next bounded CLOSED IF-2b investigation:** After this coherent PR update,
+return the primary development slot to original input fitness, not more result
+infrastructure. A provider-free reproduction using the actual legacy daily
+parser and regime classifier accepts SPY/QQQ bars ending 2025-03-26 as a
+`risk_on` context stamped 2026-10-01. The classification-completion clock is
+not market-data freshness. This is a component reproduction, not a production
+incident or quality result. Codex owns a four-active-hour initial investigation
+of the smallest completed/as-of benchmark-input correction, isolated from
+verified main; preserve legacy/frozen cohorts and the current PR integration
+order. Before selecting implementation, prove the normal input path, source
+identity/session boundary and unchanged maximum credits/cancellation. No cache
+clock substitution, new provider budget, reduced original population or new
+ranking hypothesis is selected. Release/security remains a separate blocker.
 
 **Verified transport/context revision — 2026-10-03 03:38Z:** One CLOSED IF-4
 `quality_measurement` delivery is implemented on
