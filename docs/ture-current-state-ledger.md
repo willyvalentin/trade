@@ -2,7 +2,7 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
-**Now / Next / Blocked — original outcome continuation across New York dates:**
+**Completed local implementation / Next / Blocked — original outcome continuation across New York dates:**
 Owner Codex selects one CLOSED IF-4 4–16 active-hour vertical on isolated
 `codex/original-outcome-backlog-oct3`, from freshly verified main `55576078`
 through the completed local published-input continuity revision `8706c216`.
@@ -36,6 +36,42 @@ unchanged and performs no provider work on duplicate/completed sources. Other
 owners, future/expired batches, invalid scope and frozen controls fail closed;
 original missing inputs remain missing. This can improve coverage, not prove
 precision, alpha, a fitted forward model or accepted recommendation quality.
+
+Exact product revision `c72ab0852c36f1b027ecfe51d40e0e0feb041ddd` completes
+this local recovery exit. The locked, serial package passes all 90 checks
+(4.1m), including the actual scheduler/route/SQL/SDK/restarted learning chain,
+source-window boundaries, published sources, credit guards, receipts, governance
+and unchanged CI coverage. An earlier run loaded its test assertions before
+the final as-of control was added and failed on the newly emitted field; it
+is not recorded as passing. The exact locked revision's normal Linux Next
+production build passes with read-only lock-verified dependencies, no install
+or build network and no credentials. Nonincremental types pass; normal full
+lint passes with zero errors/eight existing warnings. No release gate is removed.
+
+The actual synthetic original eight-member population retains six input sources.
+The first separately disclosed four-request pass creates twelve horizon rows
+for four sources. Recovery after a weekend creates six remaining rows through
+two synthetic requests and one finalized four-credit reservation, without
+rewriting those twelve earlier rows. One real API-cap fault slot fails before
+reservation/provider work; the subsequent recovery and completed next slot
+emit attributable terminal receipts. Concurrent delivery claims only once;
+same-slot repeat and the later fully completed slot fetch or rewrite nothing,
+and the latter reserves no credits. Candles remain bounded to Oct 1's original
+horizons while late labels retain their Oct 5 evaluation/record clocks; an
+earlier as-of charter still sees four, not six, canonical outcomes. Current
+learning sees six canonical 60m outcomes/eight original members/two missing,
+null precision delta and `not_ready`, not an accepted quality improvement.
+Other owners, future/expired batches and unknown/direct/frozen/disabled scope
+requests remain excluded. No new schema, production/provider/broker action,
+push, merge or deploy occurred. GitHub main remains `55576078` by fresh
+remote read; production deployment was not reverified in this CLOSED slice. Logs:
+`/private/tmp/ture-next-session-outcome-reproduction-oct3.log` (intentional
+pre-correction failure),
+`/private/tmp/ture-next-session-outcome-locked-regression-oct3.log`,
+`/private/tmp/ture-next-session-outcome-asof-final-oct3.log`,
+`/private/tmp/ture-next-session-outcome-final-checked-types-oct3.log`,
+`/private/tmp/ture-next-session-outcome-final-lint-oct3.log` and
+`/private/tmp/ture-next-session-outcome-exact-linux-build-oct3.log`.
 
 Next remains retained full-original forward quality/release evidence, not a
 second ranking hypothesis. Fresh read-only PR #732 CI diagnosis finds an ECR
