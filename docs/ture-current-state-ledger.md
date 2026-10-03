@@ -2,7 +2,7 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
-**Now — reproduced original forward-order review correction, 2026-10-03:**
+**Now — original forward-order review correction locally complete, 2026-10-03:**
 Codex retains the same IF-4 full-charter primary in draft #732; budget four to
 eight active hours, initial investigation at most four. At exact head `9f024dc4`,
 the actual versioned decision/lineage reader accepts an equivalent explicit
@@ -59,8 +59,14 @@ normal full lint pass (zero errors/eight existing warnings); logs:
 `/private/tmp/ture-offset-final-types-oct3.log` and
 `/private/tmp/ture-offset-final-lint-oct3.log`. These are CLOSED synthetic/local
 results, with zero provider requests, production writes or broker actions.
-Next: exact clean locked Linux build and one coherent same-PR update; resume
-the frozen recommendation-quality comparison after protected release permits.
+Exact clean locked Linux Node 22 / Next 16.3.8 build passes on product revision
+`620ee7fcf7f1a46e00b188faea2899959230dee4`, with read-only lock-verified dependencies,
+no install/build network or production credentials and unchanged clean source.
+Log: `/private/tmp/ture-offset-original-chain-exact-linux-build-oct3.log`.
+The four active governance checks pass; only this factual delivery receipt
+follows the tested product locally. Next: one coherent same-PR update, then
+resume the frozen recommendation-quality comparison after protected release
+permits. Do not extend this minimum correction into a new control stream.
 This minimum `supporting_blocker_removal` does not establish quality lift,
 production completion or release acceptance. Main remains `55576078`; the
 successful hosted Draft job on `9f024dc4` does not test this correction or
