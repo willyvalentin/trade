@@ -2,7 +2,52 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
-**Now / Next — retained terminal-label contradiction correction locally complete, 2026-10-04:**
+**Now — exact-image acquisition correction for the original IF-4 vertical, 2026-10-04:**
+Codex retains existing draft #732 and its isolated
+`codex/original-outcome-pages-oct3` branch. Exact head `1dc449da` is terminal
+failed, not waiting: run `37158357803`, Draft job `111306384286`, fails after
+2m42s before its native charter assertion because public ECR rejects the cold
+PostgREST fetch with `toomanyrequests: Rate exceeded`. Log:
+`/private/tmp/ture-pr732-1dc-failed-job-oct4.log`. This is an image-acquisition
+failure, not a failed engine assertion, and does not invalidate or replace the
+preceding local 105-check result. No identical rerun is selected.
+
+New read-only evidence changes the available recovery: public ECR, official
+Docker Hub and official GHCR all return the exact same PostgREST v16.1
+multi-platform manifest digest
+`sha256:5922bde07147b82b1c9d8f749e48c1e5b99ebb233f3888bb7ab65f07cf4ac82d`,
+with identical AMD64 and ARM64 child digests. The official release's tagged
+publication workflow publishes the same build artifacts to Docker Hub and GHCR.
+Receipt: `/private/tmp/ture-postgrest-official-image-identity-oct4.receipt.json`;
+provenance: `https://github.com/PostgREST/postgrest/blob/v16.1/.github/workflows/release.yaml`.
+Select only a 4-hour `supporting_blocker_removal`: pin those five existing v16.1
+native-test launch sites to the official GHCR reference at that exact digest.
+No image-version/content substitution, arbitrary fallback, skipped test,
+changed assertion, workflow topology, timeout, dependency audit exception,
+application, schema, provider or broker change is selected. Verify the normal
+new-reference pull/startup and affected actual SDK/scanner/model/result paths,
+preserving complete original populations and historical goldens; run types,
+lint and exact build before one coherent same-PR update. The independent context
+slice stays locally complete. Hosted recovery remains unproved until exact-head
+terminal CI; the separate unpatched release audit still holds integration.
+After this minimum recovery, resume the frozen input/outcome quality comparison,
+not a registry/cache infrastructure stream. No recommendation-quality lift is
+claimed.
+
+Local acquisition qualification: the initial 128-test run is stopped after one
+pass and three native startup timeouts, with 124 not run. Read-only process
+evidence locates the wait in `docker-credential-desktop`, before the public image
+pull or a native assertion. A separate 45-second-bounded anonymous pull using
+an automatically deleted empty temporary Docker config succeeds on the normal
+Docker socket. Image readback verifies the exact selected digest and ARM64;
+no local retag, version fallback, assertion or user credential/config change is
+used. The three disposable synthetic databases/networks are cleaned up; the
+affected 128-test suite is now rerun with the actual pulled image. This cache
+qualification does not prove hosted cold-pull success; that requires exact-head
+CI. The trained-model launcher retains its existing `--pull=never` contract and
+depends on the preceding native image-acquisition path, as before.
+
+**Retained local evidence — terminal-label contradiction correction, 2026-10-04:**
 Codex retains the same bounded IF-4 primary in draft #732, isolated branch
 `codex/original-outcome-pages-oct3`; budget 4–8 active hours, initial investigation
 at most four. The independent terminal-context slice remains locally complete,

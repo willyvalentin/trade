@@ -734,7 +734,7 @@ function disposableCacheDatabase() {
     docker(["run", "-d", "--rm", "--network", network, "--name", rest,
       "-p", "127.0.0.1::3000", "-e", `PGRST_DB_URI=postgres://postgres:postgres@${database}:5432/postgres`,
       "-e", "PGRST_DB_SCHEMAS=public", "-e", "PGRST_DB_ANON_ROLE=anon", "-e", `PGRST_JWT_SECRET=${secret}`,
-      "public.ecr.aws/supabase/postgrest:v16.1"]);
+      "ghcr.io/postgrest/postgrest@sha256:5922bde07147b82b1c9d8f749e48c1e5b99ebb233f3888bb7ab65f07cf4ac82d"]);
     const port = docker(["port", rest, "3000/tcp"]).match(/^127\.0\.0\.1:(\d+)$/)?.[1];
     if (!port) throw new Error("isolated PostgREST loopback mapping unavailable");
     const head = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url");

@@ -78,7 +78,7 @@ try {
   docker("run", "--pull=missing", "--rm", "-d", "--name", api, "--network", network, "-p", "127.0.0.1::3000",
     "-e", `PGRST_DB_URI=postgresql://authenticator:closed-proof-only@${db}:5432/postgres`,
     "-e", "PGRST_DB_SCHEMAS=public", "-e", "PGRST_DB_ANON_ROLE=anon", "-e", `PGRST_JWT_SECRET=${key}`,
-    "public.ecr.aws/supabase/postgrest:v16.1"); apiCreated = true;
+    "ghcr.io/postgrest/postgrest@sha256:5922bde07147b82b1c9d8f749e48c1e5b99ebb233f3888bb7ab65f07cf4ac82d"); apiCreated = true;
   const endpoint = `http://${docker("port", api, "3000/tcp")}`;
   globalThis.fetch = async (input, options) => {
     const url = new URL(typeof input === "string" || input instanceof URL ? input : input.url);

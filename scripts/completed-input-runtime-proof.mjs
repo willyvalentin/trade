@@ -387,7 +387,8 @@ try {
   docker("run", "--pull=missing", "--rm", "-d", "--name", api, "--network", network, "-p", "127.0.0.1::3000",
     "-e", `PGRST_DB_URI=postgres://authenticator:closed-proof-only@${database}:5432/postgres`,
     ...(cappedHistoryPreparation ? ["-e", "PGRST_DB_MAX_ROWS=10"] : []),
-    "-e", "PGRST_DB_ANON_ROLE=anon", "-e", `PGRST_JWT_SECRET=${jwtSecret}`, "public.ecr.aws/supabase/postgrest:v16.1");
+    "-e", "PGRST_DB_ANON_ROLE=anon", "-e", `PGRST_JWT_SECRET=${jwtSecret}`,
+    "ghcr.io/postgrest/postgrest@sha256:5922bde07147b82b1c9d8f749e48c1e5b99ebb233f3888bb7ab65f07cf4ac82d");
   const port = docker("port", api, "3000/tcp").split(":").at(-1);
   const apiOrigin = `http://127.0.0.1:${port}`;
   for (let attempt = 0; ; attempt++) {
