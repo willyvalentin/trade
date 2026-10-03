@@ -507,6 +507,31 @@ test("durable history preparation preserves the full original session while resu
   expect(new Set(preparation.preparation_passes.map((pass: { universe_fingerprint: string }) => pass.universe_fingerprint)).size).toBe(1);
 });
 
+test("capped history pages preserve every original source and reject incomplete reads before purchasing", () => {
+  test.setTimeout(180000);
+  const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--cold",
+    "--rotation-day", "--prospective-enrollment", "--full-original-history-setup", "--budgeted-history-setup",
+    "--capped-history-preparation"], { cwd: process.cwd(), encoding: "utf8", timeout: 165000 });
+  expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
+  const receipt = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
+  expect(receipt).toMatchObject({ original_slots: 26, original_member_observations: 208,
+    selected_unique_tickers: 95, setup_synthetic_requests: 95, scheduled_synthetic_requests: 208,
+    full_original_history_evidence: { setup_credit_reservations: 95, restarted_batches: 12,
+      preparation_response_cap: 10, complete_cached_follow_up_members: 95, complete_cached_follow_up_requests: 0,
+      maximum_requests_in_modeled_minute: 8, minute_budget_blocked_without_provider: true,
+      corrupted_paid_history_retry_blocked: true, legacy_derived_price_unchanged: true,
+      full_charter_evidence: { original_population_count: 176, canonical_outcome_count: 8,
+        missing_outcome_count: 168, disposition: "evidence_incomplete" }, quality_improvement_claimed: false },
+    actual_provider_requests: 0, production_actions: 0, publications: 0, broker_actions: 0, cleanup: "inert" });
+  const preparation = receipt.full_original_history_evidence;
+  expect(preparation.preparation_passes.map((pass: { reserved_credits: number }) => pass.reserved_credits))
+    .toEqual([...Array(11).fill(8), 7]);
+  expect(preparation.preparation_source_read_controls).toHaveLength(10);
+  for (const control of preparation.preparation_source_read_controls) expect(control).toMatchObject({
+    provider_requests: 0, reserved_credits: 0, claims_unchanged: true,
+    blocker: control.fault === "abort" ? "history_preparation_aborted" : "history_preparation_cache_unavailable" });
+});
+
 test("installed owner history command resumes the full original inputs through real HTTP, proxy, session and SQL", () => {
   test.setTimeout(180000);
   const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--cold",

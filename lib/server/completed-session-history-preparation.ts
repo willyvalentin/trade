@@ -90,11 +90,42 @@ export async function prepareCompletedSessionHistories(options: { signal?: Abort
   if (!client) return result("history_preparation_cache_unavailable");
   try {
     throwIfAborted(signal);
-    const query = client.from("scanner_cache").select("ticker,raw,updated_at").in("ticker", [...tickers]);
-    const cached = await query.abortSignal(signal);
-    throwIfAborted(signal);
-    if (cached.error || !Array.isArray(cached.data)) return result("history_preparation_cache_unavailable");
-    const rows = new Map(cached.data.map(row => [row.ticker as string, row]));
+    // A capped API page is not an absent, unpaid history. Prove the complete
+    // fixed selection before finalizing claims or reserving another credit.
+    // ticker is unique; its database order and keyset predicate agree even
+    // when PostgREST returns fewer rows than the requested page size.
+    const readSignal = AbortSignal.any([signal, AbortSignal.timeout(5000)]);
+    const rows = new Map<string, { ticker: string; raw: unknown; updated_at: string | null }>();
+    let expectedCount: number | null = null;
+    let cursor: string | null = null;
+    for (let page = 0; page < 256; page++) {
+      throwIfAborted(readSignal);
+      let query = client.from("scanner_cache").select("ticker,raw,updated_at", { count: "exact" })
+        .in("ticker", [...tickers]).order("ticker", { ascending: true }).limit(64);
+      if (cursor !== null) query = query.gt("ticker", cursor);
+      const cached = await query.abortSignal(readSignal);
+      throwIfAborted(readSignal);
+      if (cached.error || !Array.isArray(cached.data) || !Number.isSafeInteger(cached.count) ||
+        cached.count === null || cached.count < 0 || cached.count > tickers.size)
+        return result("history_preparation_cache_unavailable");
+      if (expectedCount === null) expectedCount = cached.count;
+      if (cached.count !== expectedCount - rows.size || cached.data.length > 64 ||
+        cached.data.length > cached.count || (!cached.data.length && cached.count !== 0))
+        return result("history_preparation_cache_unavailable");
+      for (const row of cached.data) {
+        if (!row || typeof row.ticker !== "string" || !tickers.has(row.ticker) || rows.has(row.ticker))
+          return result("history_preparation_cache_unavailable");
+        rows.set(row.ticker, row);
+      }
+      if (rows.size === expectedCount) break;
+      cursor = cached.data.at(-1)?.ticker ?? null;
+      if (cursor === null) return result("history_preparation_cache_unavailable");
+    }
+    if (expectedCount === null || rows.size !== expectedCount) return result("history_preparation_cache_unavailable");
+    const finalCount = await client.from("scanner_cache").select("ticker", { count: "exact", head: true })
+      .in("ticker", [...tickers]).abortSignal(readSignal);
+    throwIfAborted(readSignal);
+    if (finalCount.error || finalCount.count !== expectedCount) return result("history_preparation_cache_unavailable");
     for (const member of members) {
       throwIfAborted(signal);
       const raw = record(rows.get(member.ticker)?.raw);

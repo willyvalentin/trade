@@ -23,6 +23,13 @@ const lateOriginalOutcomes = process.argv.includes("--late-original-outcomes");
 const fullOriginalHistorySetup = process.argv.includes("--full-original-history-setup");
 const budgetedHistorySetup = process.argv.includes("--budgeted-history-setup");
 const historyPreparationApp = process.argv.includes("--history-preparation-app");
+const cappedHistoryPreparation = process.argv.includes("--capped-history-preparation");
+let historyReadFault = null, historyReadFaultApplied = false, historyReadFirstRow = null;
+let historyReadAbortController = null;
+const historyReadControls = [];
+assert(!cappedHistoryPreparation || budgetedHistorySetup && !historyPreparationApp &&
+  !process.argv.some(value=>value.startsWith("--history-preparation-fault=")),
+  "Capped history reads retain the same actual budgeted original session and claims");
 assert(!historyPreparationApp || budgetedHistorySetup && !process.argv.some(value=>value.startsWith("--history-preparation-fault=")),
   "Installed app integration uses the same full-original budgeted preparation, not a new fixture population");
 const originalOutcomeContinuation = process.argv.includes("--original-outcome-continuation");
@@ -379,6 +386,7 @@ try {
   };
   docker("run", "--pull=missing", "--rm", "-d", "--name", api, "--network", network, "-p", "127.0.0.1::3000",
     "-e", `PGRST_DB_URI=postgres://authenticator:closed-proof-only@${database}:5432/postgres`,
+    ...(cappedHistoryPreparation ? ["-e", "PGRST_DB_MAX_ROWS=10"] : []),
     "-e", "PGRST_DB_ANON_ROLE=anon", "-e", `PGRST_JWT_SECRET=${jwtSecret}`, "public.ecr.aws/supabase/postgrest:v16.1");
   const port = docker("port", api, "3000/tcp").split(":").at(-1);
   const apiOrigin = `http://127.0.0.1:${port}`;
@@ -482,6 +490,37 @@ try {
       method:request.method,headers:request.headers,
       ...(requestBody!==null?{body:requestBody}:{})
     });
+    if(historyReadFault && url.pathname==="/rest/v1/scanner_cache" && ["GET","HEAD"].includes(request.method)) {
+      const laterPage=(url.searchParams.get("ticker")??"").startsWith("gt.") ||
+        url.searchParams.getAll("ticker").some(value=>value.startsWith("gt."));
+      if(historyReadFault==="second_page_error" && laterPage) {
+        historyReadFaultApplied=true;
+        return Response.json({message:"synthetic_history_page_failure"},{status:503});
+      }
+      if(historyReadFault==="final_count_drift" && request.method==="HEAD") {
+        historyReadFaultApplied=true;
+        const headers=new Headers(response.headers); headers.set("content-range","*/17");
+        return new Response(null,{status:response.status,headers});
+      }
+      if(request.method==="GET") {
+        const rows=await response.json(), headers=new Headers(response.headers);
+        if(!laterPage) historyReadFirstRow=rows[0];
+        const apply=laterPage ? ["remaining_count_drift","empty_tail","duplicate_identity"].includes(historyReadFault)
+          : ["missing_count","unselected_identity","initial_count_limit","deadline","abort"].includes(historyReadFault);
+        if(apply) {
+          historyReadFaultApplied=true;
+          if(historyReadFault==="missing_count") headers.delete("content-range");
+          if(historyReadFault==="unselected_identity") rows[0].ticker="UNSELECTED";
+          if(historyReadFault==="initial_count_limit") headers.set("content-range","0-9/257");
+          if(historyReadFault==="remaining_count_drift") headers.set("content-range","0-5/7");
+          if(historyReadFault==="empty_tail") rows.length=0;
+          if(historyReadFault==="duplicate_identity") rows[0]=historyReadFirstRow;
+          if(historyReadFault==="deadline") await syntheticDelay(6000,undefined,{signal:init?.signal});
+          if(historyReadFault==="abort") historyReadAbortController.abort();
+        }
+        return Response.json(rows,{status:response.status,headers});
+      }
+    }
     if(originalSourceReadFault && url.pathname==="/rest/v1/recommendation_batches" &&
         ["GET","HEAD"].includes(request.method)) {
       const laterPage=url.searchParams.has("id");
@@ -774,7 +813,36 @@ try {
         clock=origin+index*60000;
         delete require.cache[require.resolve(join(generated,"reader.cjs"))];
         const resumed=require(join(generated,"reader.cjs"));
+        if(cappedHistoryPreparation && index===2) {
+          assert.equal(Number(sql("select count(*) from scanner_cache;")),16);
+          const claimsBefore=sql("select jsonb_agg(t order by claim_id) from basic_free_discovery_credit_reservations t;");
+          const requestsBefore=externalRequests;
+          for(const fault of ["second_page_error","missing_count","remaining_count_drift","empty_tail",
+            "duplicate_identity","unselected_identity","initial_count_limit","final_count_drift","deadline","abort"]) {
+            historyReadFault=fault; historyReadFaultApplied=false;
+            historyReadAbortController=new AbortController();
+            const blocked=await resumed.prepareCompletedSessionHistories({signal:historyReadAbortController.signal});
+            assert(historyReadFaultApplied,fault);
+            assert.equal(blocked.blocker,fault==="abort"?"history_preparation_aborted":"history_preparation_cache_unavailable",JSON.stringify({fault,blocked}));
+            assert.equal(blocked.requested_credits,0); assert.equal(blocked.reserved_credits,0);
+            assert.equal(externalRequests,requestsBefore);
+            assert.equal(sql("select jsonb_agg(t order by claim_id) from basic_free_discovery_credit_reservations t;"),claimsBefore);
+            historyReadControls.push({fault,blocker:blocked.blocker,provider_requests:0,reserved_credits:0,claims_unchanged:true});
+            historyReadFault=null;
+          }
+        }
         const pass=await (historyAppRequest ? historyAppRequest() : resumed.prepareCompletedSessionHistories());
+        if(cappedHistoryPreparation) {
+          const stored=Number(sql("select count(*) from scanner_cache;"));
+          const bounded=await originalFetch(`${apiOrigin}/scanner_cache?select=ticker`,{
+            headers:{Authorization:`Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`}});
+          assert.equal(bounded.status,200);
+          assert.equal((await bounded.json()).length,Math.min(stored,10));
+          if(pass.blocker) console.error(JSON.stringify({ capped_history_preparation_reproduction: {
+            pass:index+1,actual_api_cap:10,stored_histories:stored,requested_credits:pass.requested_credits,
+            reserved_credits:pass.reserved_credits,blocker:pass.blocker,
+            original_population_count:pass.original_members.length,actual_provider_requests:0,production_actions:0 } }));
+        }
         assert.equal(pass.blocker,null,JSON.stringify(pass));
         assert.equal(pass.original_members.length,95);
         assert.deepEqual(pass.original_members.map(row=>row.ticker),originalUniverse.map(row=>row.ticker));
@@ -803,6 +871,18 @@ try {
       const complete=await prepare();
       assert.equal(complete.status,"complete"); assert.equal(complete.requested_credits,0);
       assert.equal(externalRequests,before);
+      if(cappedHistoryPreparation) {
+        assert.equal(complete.original_members.filter(row=>row.status==="available").length,95);
+        sql("alter role authenticator set pgrst.db_max_rows='1000'; notify pgrst,'reload config';");
+        let restored=false;
+        for(let index=0;index<30;index++) {
+          const response=await originalFetch(`${apiOrigin}/scanner_cache?select=ticker`,{
+            headers:{Authorization:`Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`}});
+          if(response.ok && (await response.json()).length===95) { restored=true; break; }
+          await syntheticDelay(100);
+        }
+        assert(restored,"Only the preparation phase uses a real cap; later original charter contracts remain unchanged");
+      }
       const controller=new AbortController(); controller.abort();
       assert.equal((await readers.prepareCompletedSessionHistories({signal:controller.signal})).blocker,"history_preparation_aborted");
       const plan=process.env.TWELVE_DATA_PLAN_MODE;
@@ -873,6 +953,8 @@ try {
         minute_budget_blocked_without_provider:true,corrupted_paid_history_retry_blocked:true,
         legacy_derived_price_unchanged:true,unproven_cached_finalization_blocks_acquisition:true,
         daily_budget_drift_blocked_without_provider:true}:{}),
+      ...(cappedHistoryPreparation?{preparation_response_cap:10,complete_cached_follow_up_members:95,
+        complete_cached_follow_up_requests:0,preparation_source_read_controls:historyReadControls}:{}),
       requests:structuredClone(syntheticRequestEvidence),retained_daily_contexts:retained.map(context=>({
         symbol:context.symbol,captured_at:context.captured_at,latest_completed_market_date:context.latest_completed_market_date})),
       same_day_digest_identity_rejections:3,next_day_basis_rejected:true,validation_provider_requests:0,
