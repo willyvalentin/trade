@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { createRelativePlanTrainedProbabilityService } from "@/lib/server/relative-plan-trained-probability-service";
 import { createRelativePlanTrainedProbabilityStore } from "@/lib/server/relative-plan-trained-probability-store";
 import { createRelativePlanProspectiveStore } from "@/lib/server/relative-plan-prospective-store";
-import { RELATIVE_PLAN_TRAINED_PROBABILITY_RECEIPT_VERSION, type RelativePlanTrainedProbabilityReceipt,
+import { buildRelativePlanTrainedProbabilityModel, RELATIVE_PLAN_TRAINED_PROBABILITY_RECEIPT_VERSION, type RelativePlanTrainedProbabilityReceipt,
   type RelativePlanTrainedProbabilityModel } from "@/lib/server/relative-plan-trained-probability-model";
 import { prospectiveOwner, prospectiveReceipt } from "../fixtures/relative-plan-prospective";
 import { prospectiveSource } from "../fixtures/relative-plan-prospective-source";
@@ -17,6 +17,10 @@ import { relativePlanCompleteHttpResponse, RELATIVE_PLAN_COMPLETE_RESPONSE_MAX_B
 import { RELATIVE_PLAN_COMPLETE_DECODED_MAX_BYTES, RELATIVE_PLAN_COMPLETE_GZIP_MAX_BYTES } from "@/lib/server/relative-plan-complete-http-response";
 import { gunzipSync } from "node:zlib";
 import { randomBytes } from "node:crypto";
+import { computeRecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
+import { recommendationOutcomeEvaluationAnchorFromSnapshot } from "@/lib/recommendation-outcome-evaluation-anchor";
+import { buildCanonicalOutcomeProviderCoverageReceipt } from "@/lib/recommendation-outcome-canonical-coverage";
+import { parseRecommendationLearningBaselineSource } from "@/lib/recommendation-learning-baseline-source";
 
 const now = new Date("2026-10-10T00:00:00.000Z");
 const pieces = Promise.all([5, 6, 7].flatMap(day => [0, 1, 2, 3].map(n =>
@@ -29,7 +33,11 @@ async function harness() {
   // Capture the ACTUAL writer serialization, not already-decoded domain
   // objects pretending to be database rows (counts/price aliases differ).
   const writer = { from(table: string) { return { async upsert(row: Record<string, unknown>) {
-    data[table as keyof typeof data].push(structuredClone(row)); return { error: null };
+    const rows = data[table as keyof typeof data];
+    const index = rows.findIndex(prior => prior.id === row.id);
+    if (index < 0) rows.push(structuredClone(row));
+    else rows[index] = structuredClone(row);
+    return { error: null };
   } }; } };
   const priorOwner = process.env.TURE_APPLICATION_OWNER_USER_ID;
   process.env.TURE_APPLICATION_OWNER_USER_ID = prospectiveOwner;
@@ -65,7 +73,16 @@ async function harness() {
     readSource: async owner => { expect(owner).toBe(prospectiveOwner); calls.push("source_read"); return { status: "available", data }; },
     clock: () => new Date(now),
   };
-  return { data, calls, dependencies, database, service: createRelativePlanTrainedProbabilityService(dependencies),
+  return { data, source, calls, dependencies, database, service: createRelativePlanTrainedProbabilityService(dependencies),
+    async replaceOutcome(outcome: Parameters<typeof persistRecommendationOutcome>[0]) {
+      const prior = process.env.TURE_APPLICATION_OWNER_USER_ID;
+      process.env.TURE_APPLICATION_OWNER_USER_ID = prospectiveOwner;
+      try { expect((await persistRecommendationOutcome(outcome, { supabaseClient: writer, server: true })).status).toBe("saved"); }
+      finally {
+        if (prior === undefined) delete process.env.TURE_APPLICATION_OWNER_USER_ID;
+        else process.env.TURE_APPLICATION_OWNER_USER_ID = prior;
+      }
+    },
     interruptConfirmation: () => { confirmed = false; } };
 }
 
@@ -154,6 +171,92 @@ test("new training accepts exactly observed revisions and unchanged sealed jobs 
     expect(await restart.train(prospectiveOwner, {})).toMatchObject({ status: "already_materialized", receipt: first.receipt });
     expect(h.calls.filter(call => call === "materialize")).toHaveLength(1);
   }
+});
+
+async function legacyCandleSource(fault: "target" | "stop" | "aligned_target") {
+  const h = await harness(), snapshot = h.source[0].snapshots[0];
+  const anchor = recommendationOutcomeEvaluationAnchorFromSnapshot(snapshot)!;
+  const start = Date.parse(anchor.evaluation_anchor_start_at);
+  const complete = Array.from({ length: 12 }, (_, index) => ({
+    timestamp: new Date(start + index * 300000).toISOString(),
+    open: 100, high: 101, low: 99, close: 100, volume: 1000,
+  }));
+  const event = { ...complete[1], ...(fault === "stop" ? { low: 95 } : { high: 109 }) };
+  const candles = fault === "aligned_target" ? complete.map((bar, index) => index === 1 ? event : bar)
+    : [...complete, { ...event, timestamp: new Date(start + 301000).toISOString() }];
+  const outcome = computeRecommendationOutcome({ snapshot, horizon: "60m", evaluated_at: new Date(start + 3900000),
+    candles, current_price: 100, provider: "twelve_data", source: "intraday_candles", data_completeness: "complete" }).outcome;
+  const coverage = buildCanonicalOutcomeProviderCoverageReceipt({ candles, request: {
+    interval: "5min", horizon: "60m", start_at: anchor.evaluation_anchor_start_at,
+    end_at: new Date(start + 3900000).toISOString(), ...anchor,
+  }, result: { status: "available", provider: "twelve_data" } });
+  // Disclosed synthetic retained v1 claim, reproduced against actual producer
+  // revision 183e70d6 in the standalone failure log. Do not relabel it as a
+  // current v2 acquisition or rewrite an already sealed model's capsule.
+  await h.replaceOutcome({ ...outcome, payload_json: { ...outcome.payload_json,
+    canonical_provider_coverage: { ...coverage, candle_validation_policy_version: "positive_coherent_original_horizon_ohlc_v1",
+      freshness: "fresh", observed_candle_count: 12, malformed_candle_count: 0, blockers: [] },
+    counterfactual_candles: candles, counterfactual_candle_source: "horizon_filtered_intraday_candles",
+    retained_candles_available: true, retained_candle_count: candles.length,
+  } });
+  return h;
+}
+
+test("a new training job cannot seal legacy target or stop labels contradicted by their retained candles", async () => {
+  for (const fault of ["target", "stop"] as const) {
+    const h = await legacyCandleSource(fault), before = JSON.stringify(h.data);
+    expect(await h.service.train(prospectiveOwner, {})).toMatchObject({ status: "unavailable", receipt: null,
+      blocker: "trained_probability_retained_candle_coverage_conflicting" });
+    expect(h.calls).not.toContain("materialize");
+    expect(h.calls).not.toContain("confirm");
+    expect(h.data.recommendation_outcomes).toHaveLength(48);
+    expect(JSON.stringify(h.data)).toBe(before);
+  }
+});
+
+test("valid retained legacy candles remain eligible without reducing the original training population", async () => {
+  const h = await legacyCandleSource("aligned_target"), before = JSON.stringify(h.data);
+  expect(await h.service.train(prospectiveOwner, {})).toMatchObject({ status: "materialized", receipt: { trained_model: {
+    original_population_count: 48, canonical_outcome_count: 48, missing_outcome_count: 0, model: { sample_count: 48 },
+  } } });
+  expect(JSON.stringify(h.data)).toBe(before);
+});
+
+test("contradictory retained shapes fail before fitting storage, not by discarding original members", async () => {
+  const mutations: ((payload: Record<string, unknown>) => void)[] = [
+    p => { p.counterfactual_candles = null; },
+    p => { (p.counterfactual_candles as unknown[])[0] = null; },
+    p => { (p.counterfactual_candles as unknown[])[0] = []; },
+    p => { (p.counterfactual_candles as Record<string, unknown>[])[0].low = 102; },
+    p => { (p.counterfactual_candles as unknown[]).push((p.counterfactual_candles as unknown[])[0]); p.retained_candle_count = 13; },
+    p => { p.retained_candle_count = 11; },
+    p => { p.retained_candles_available = false; },
+    p => { p.counterfactual_candle_source = "unbound_source"; },
+  ];
+  for (const mutate of mutations) {
+    const h = await legacyCandleSource("aligned_target");
+    const row = h.data.recommendation_outcomes.find(row => (row.payload_json as Record<string, unknown>).counterfactual_candles)!;
+    mutate(row.payload_json as Record<string, unknown>);
+    const before = JSON.stringify(h.data);
+    expect(await h.service.train(prospectiveOwner, {})).toMatchObject({ status: "unavailable", receipt: null,
+      blocker: "trained_probability_retained_candle_coverage_conflicting" });
+    expect(h.calls).not.toContain("materialize"); expect(JSON.stringify(h.data)).toBe(before);
+  }
+});
+
+test("a previously sealed legacy capsule remains byte-equivalent and is never refitted from mutable candles", async () => {
+  const h = await legacyCandleSource("target"), source = parseRecommendationLearningBaselineSource(h.data)!;
+  // Explicit historical fixture via the unchanged pure v1 builder, not a new
+  // admitted training job. It must remain decodable after admission changes.
+  const legacy = buildRelativePlanTrainedProbabilityModel({ owner: prospectiveOwner, freeze: prospectiveReceipt(), source, now }).trained_model!;
+  expect(legacy.original_population_count).toBe(48);
+  expect((await h.database.materialize(legacy)).status).toBe("pending_confirmation");
+  const historical = await h.database.confirm();
+  const restart = createRelativePlanTrainedProbabilityService({ ...h.dependencies,
+    readSource: async () => { throw new Error("historical_capsule_cannot_read_mutable_candles"); } });
+  expect(await restart.read(prospectiveOwner)).toMatchObject({ status: "available", receipt: historical.receipt });
+  expect(await restart.train(prospectiveOwner, {})).toMatchObject({ status: "already_materialized", receipt: historical.receipt });
+  expect(h.calls).not.toContain("source_read"); expect(h.calls.filter(call => call === "materialize")).toHaveLength(1);
 });
 
 test("the real proxy guards anonymous, cross-owner and cross-origin model commands", async () => {

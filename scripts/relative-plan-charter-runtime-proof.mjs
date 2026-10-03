@@ -24,6 +24,7 @@ const originalFetch = globalThis.fetch, originalEnvironment = { ...process.env }
 let dbCreated = false, apiCreated = false, networkCreated = false, blockedExternalRequests = 0;
 let finalizedHttpBytes = null, resultPrewriteGuardsVerified = false;
 let originalDecodedHttpBytes = null, actualHttpReadbackVerified = false, transportEncoding = null;
+let newTrainingRetainedCoverageVerified = false, sealedModelIgnoresMutableCandles = false;
 // Real local socket + client decompression, not Response.json() pretending to
 // decode compressed bytes. This is NOT a hosted Netlify behavior attestation.
 async function verifyHttp(readers, body) {
@@ -79,7 +80,10 @@ try {
       export { getServerSupabaseClient } from './lib/supabase-server';
       export { persistRecommendationScanRun } from './lib/server/recommendation-scan-run-persistence';
       export { persistRecommendationSnapshot } from './lib/server/recommendation-snapshot-persistence';
-      export { persistRecommendationOutcome } from './lib/server/recommendation-outcome-persistence';` }, outfile: join(directory, "reader.cjs") });
+      export { persistRecommendationOutcome } from './lib/server/recommendation-outcome-persistence';
+      export { computeRecommendationOutcome } from './lib/recommendation-outcome-tracker';
+      export { recommendationOutcomeEvaluationAnchorFromSnapshot } from './lib/recommendation-outcome-evaluation-anchor';
+      export { buildCanonicalOutcomeProviderCoverageReceipt } from './lib/recommendation-outcome-canonical-coverage';` }, outfile: join(directory, "reader.cjs") });
   const readers = createRequire(import.meta.url)(join(directory, "reader.cjs"));
   docker("network", "create", network); networkCreated = true;
   // Fresh Draft runners do not have the ordinary foundation shard's image
@@ -172,7 +176,55 @@ try {
   for (const day of days) for (let n = 0; n < 4; n++) {
     await persist(await readers.prospectiveSource({ now: new Date(Date.parse(session(day).session_open) + 3.5 * 3600000 + n * 300000), rankedCount }));
   }
-  let training;
+  let training, validRetainedTrainingOutcome = null, contradictoryRetainedTrainingOutcome = null;
+  if (!finalizedMode) {
+    const physical = await readers.readRecommendationLearningBaselineSource(owner);
+    assert.equal(physical.status, "available");
+    const original = readers.parseRecommendationLearningBaselineSource(physical.data); assert(original);
+    const outcome = original.outcomes[0], snapshot = original.snapshots.find(row => row.snapshot_fingerprint === outcome.snapshot_fingerprint);
+    assert(snapshot);
+    const anchor = readers.recommendationOutcomeEvaluationAnchorFromSnapshot(snapshot); assert(anchor);
+    const start = Date.parse(anchor.evaluation_anchor_start_at);
+    const complete = Array.from({ length: 12 }, (_, index) => ({ timestamp: new Date(start + index * 300000).toISOString(),
+      open: 100, high: 101, low: 99, close: 100, volume: 1000 }));
+    const legacy = fault => {
+      const event = { ...complete[1], ...(fault === "stop" ? { low: 95 } : { high: 109 }) };
+      const candles = fault === "aligned_target" ? complete.map((row, index) => index === 1 ? event : row)
+        : [...complete, { ...event, timestamp: new Date(start + 301000).toISOString() }];
+      const computed = readers.computeRecommendationOutcome({ snapshot, horizon: "60m", candles,
+        evaluated_at: new Date(start + 3900000), current_price: 100, provider: "twelve_data",
+        source: "intraday_candles", data_completeness: "complete" }).outcome;
+      assert.equal(computed.id, outcome.id);
+      const coverage = readers.buildCanonicalOutcomeProviderCoverageReceipt({ candles,
+        request: { interval: "5min", horizon: "60m", start_at: anchor.evaluation_anchor_start_at,
+          end_at: computed.evaluated_at, ...anchor }, result: { status: "available", provider: "twelve_data" } });
+      // Disclosed synthetic pre-fix retained claim, not new v2 acquisition.
+      return { ...computed, payload_json: { ...computed.payload_json,
+        canonical_provider_coverage: { ...coverage, candle_validation_policy_version: "positive_coherent_original_horizon_ohlc_v1",
+          freshness: "fresh", observed_candle_count: 12, malformed_candle_count: 0, blockers: [] },
+        counterfactual_candles: candles, counterfactual_candle_source: "horizon_filtered_intraday_candles",
+        retained_candles_available: true, retained_candle_count: candles.length } };
+    };
+    for (const fault of ["target", "stop"]) {
+      const bad = legacy(fault);
+      assert.equal((await readers.persistRecommendationOutcome(bad, { supabaseClient: client, server: true })).status, "saved");
+      const before = await readers.readRecommendationLearningBaselineSource(owner);
+      assert.equal(before.data.recommendation_outcomes.length, 12 * rankedCount);
+      const rejected = await readers.createRelativePlanTrainedProbabilityService().train(owner, {});
+      assert.equal(rejected.status, "unavailable", rejected.blocker);
+      assert.equal(rejected.blocker, "trained_probability_retained_candle_coverage_conflicting");
+      assert.equal(rejected.receipt, null);
+      assert.deepEqual((await readers.readRecommendationLearningBaselineSource(owner)).data, before.data);
+      assert.equal(sql("select count(*) from public.relative_plan_trained_probability_models"), "0");
+      assert.equal(sql("select count(*) from public.relative_plan_trained_probability_confirmations"), "0");
+      contradictoryRetainedTrainingOutcome = bad;
+    }
+    validRetainedTrainingOutcome = legacy("aligned_target");
+    assert.equal((await readers.persistRecommendationOutcome(validRetainedTrainingOutcome, { supabaseClient: client, server: true })).status, "saved");
+    const restored = readers.parseRecommendationLearningBaselineSource((await readers.readRecommendationLearningBaselineSource(owner)).data);
+    assert.deepEqual(restored.outcomes.filter(row => row.id !== outcome.id), original.outcomes.filter(row => row.id !== outcome.id));
+    newTrainingRetainedCoverageVerified = true;
+  }
   if (finalizedMode) {
     // Explicit HISTORICAL SYNTHETIC admin fixture only, not an actual
     // pre-forward model seal. The default proof above separately proves actual
@@ -193,6 +245,20 @@ try {
   assert.equal(training.status, "materialized", training.blocker); const sealed = training.receipt;
   assert.equal(sealed.trained_model.original_population_count, 12 * rankedCount);
   assert(Date.parse(sealed.committed_read_at) < Date.parse(windows.held_out.start_at));
+  if (newTrainingRetainedCoverageVerified) {
+    assert.equal(sealed.trained_model.canonical_outcome_count, 12 * rankedCount);
+    assert.equal(sealed.trained_model.missing_outcome_count, 0);
+    assert.equal(sealed.trained_model.model.sample_count, 12 * rankedCount);
+    assert.equal((await readers.persistRecommendationOutcome(contradictoryRetainedTrainingOutcome,
+      { supabaseClient: client, server: true })).status, "saved");
+    assert.deepEqual((await readers.createRelativePlanTrainedProbabilityService().read(owner)).receipt, sealed);
+    const repeated = await readers.createRelativePlanTrainedProbabilityService().train(owner, {});
+    assert.equal(repeated.status, "already_materialized"); assert.deepEqual(repeated.receipt, sealed);
+    assert.equal(sql("select count(*) from public.relative_plan_trained_probability_models"), "1");
+    assert.equal((await readers.persistRecommendationOutcome(validRetainedTrainingOutcome,
+      { supabaseClient: client, server: true })).status, "saved");
+    sealedModelIgnoresMutableCandles = true;
+  }
   const unrelatedPriorDecisions = finalizedMode && rankedCount === 8 ? 12 : 0;
   if (unrelatedPriorDecisions) {
     const priorDay = new Date(Date.parse(windows.training.start_at) - 4 * 86400000);
@@ -377,6 +443,9 @@ try {
   console.log(JSON.stringify({ status: "pass", environment: "isolated_postgres_postgrest_actual_sdk",
     evidence: finalizedMode ? "historical_synthetic_model_fixture_actual_database_finalization_not_market_alpha" : "synthetic_closed_not_market_alpha",
     immutable_actual_database_training_members: finalizedMode ? null : 12 * rankedCount,
+    new_training_rejects_contradictory_retained_candles_before_storage: newTrainingRetainedCoverageVerified,
+    valid_legacy_candles_keep_complete_training_population: newTrainingRetainedCoverageVerified,
+    sealed_model_ignores_later_mutable_candles: sealedModelIgnoresMutableCandles,
     original_held_out_decisions: 30, original_walk_forward_decisions: 30, original_candidates_per_forward_partition: partitionPopulation,
     held_out_admitted_attempts: 31, terminal_failures: 1, held_out_reserved_fixture_credits: 248,
     unknown_cost_retains_failure: !finalizedMode, missing_label_retains_original_denominator: true,

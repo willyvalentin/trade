@@ -2,6 +2,52 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
+**Now / Next / Blocked — new-training retained-candle integrity, 2026-10-03:**
+Codex owns one bounded CLOSED IF-4 correction (4–8 active hours) within existing
+draft #732. The actual pre-fix producer and the current server-owned training
+job admit a legacy target label despite thirteen retained bars contradicting
+the receipt's twelve aligned slots. Reproductions:
+`/private/tmp/ture-legacy-label-admission-reproduction-oct3.log` and
+`/private/tmp/ture-legacy-training-service-reproduction-oct3.log`.
+New-job admission now checks explicitly retained original-training candles
+against acquisition policy `positive_coherent_aligned_original_horizon_ohlc_v2`
+before materialization. Contradiction stops the whole job without deleting,
+relabeling or reducing original members. Valid legacy candles remain eligible;
+missing labels and evidence without retained candles keep their existing
+contract. The pure historical model/result decoder and sealed capsules are
+unchanged. This detects known retained-coverage contradictions, not complete
+historical reproof or recommendation-quality lift.
+
+Actual isolated SQL/PostgREST/SDK readback rejects both target and stop cases
+with zero model/confirmation rows and unchanged source. Valid legacy data then
+seals all 48 original members; restarted reads and a repeated command preserve
+that exact model after mutable candle corruption. The whole original forward
+charter still has 30 decisions/120 members per partition and all eleven checks.
+Log: `/private/tmp/ture-legacy-training-actual-sql-corrected-oct3.log`. The first
+invocation failed at Docker permissions before DB setup and is not evidence.
+All 94 affected serial checks pass locally in 8.0m, including training service,
+actual committed-model/result SQL/SDK/HTTP, unchanged historical golden capsules,
+prospective population and actual scanner cache references. Earlier focused
+17/5 counts overlap, not a new additive full-suite total. Regression log:
+`/private/tmp/ture-legacy-training-complete-regression-oct3.log`.
+Nonincremental types and full lint pass (zero errors/eight existing warnings);
+all four active acceleration-governance checks pass. The final new native-oracle
+assertions were added after the broad suite started; their separate actual
+SQL/SDK check passes in 41.8s, with final focused lint and types also passing.
+Log: `/private/tmp/ture-legacy-training-native-oracle-corrected-oct3.log`.
+The first anchored title filter selected no tests and proves nothing. These
+overlapping checks are not a new 95-check unique total. Exact clean build is
+pending. No new schema/provider/production operation.
+
+Hosted run `37135476293` on #732 head `e1eb5b40` is terminal failed, not waiting:
+1112 broad checks pass and one obsolete scanner normalization source assertion
+fails. Its focused oracle correction preserves actual cache/reference behavior;
+all five reference tests pass locally. No release gate or timeout is weakened.
+Next: finish this correction's regressions/build and update the same PR once,
+then return to original forward-quality acceptance. The unchanged mandatory
+high-severity dependency audit remains a separate release blocker; main remains
+`55576078`. Nothing here is main/production-verified or quality-accepted.
+
 **Completed local review fix / Next — reject extra off-grid canonical labels, 2026-10-03:**
 Codex implements one bounded CLOSED IF-4 review correction within existing draft
 PR #732 on its isolated branch (4–8 active hours, no parallel ranker). The
