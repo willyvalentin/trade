@@ -2,7 +2,18 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
-**Now — bounded fair-tie acquisition investigation, frozen before execution:**
+**Now — benchmark-input reuse diagnosis after rejected allocation variants:**
+The fair-tie runtime below also fails the original breadth criterion: 116 fresh
+observations but only 63 unique tickers, using all 208 credits/26 slots and the
+same original population. Log `/private/tmp/ture-fair-cost-ties-full-session-oct3.log`.
+Neither rejected ordering may be integrated as a discovery improvement. Next
+read the prior original scan status versus independently replayed completed
+SPY/QQQ capsules at each original slot, on the unchanged `6726ba67` baseline.
+This is bounded provider-free diagnosis: no status/freshness admission change
+has been authorized by the evidence yet. Existing full-session logs show twenty
+benchmark requests, not two; establish why before choosing the minimum fix.
+
+**Rejected predecessor — fair-tie investigation, frozen before execution:**
 The first-observation guard below is rejected: its actual packaged full-session
 result is unchanged at 115 fresh observations/64 unique tickers. Diagnostic
 readback validates 51 archival pairs and changes fifteen slot orders, but not a

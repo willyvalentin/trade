@@ -728,8 +728,9 @@ test(`real scanner acquires raw history then reuses it after restart with ${stor
     expect(fullyCached.map(candidate => candidate.ticker)).toEqual(base.map(candidate => candidate.ticker));
     expect(fullyCached.every(candidate => candidate.intraday_indicator_stale === false)).toBe(true);
     expect(cachedTrace.trace.market_data_fetch.completed_input_acquisition).toMatchObject({
-      policy_version: "completed_input_first_observation_guard_v1", provider_call_cap: 0,
-      acquisition_order: [0, 1, 2, 3, 4, 5, 6, 7],
+      policy_version: "completed_input_fair_cost_ties_v1", provider_call_cap: 0,
+      cost_tie_offset: Math.floor(clock / 900000) % 8,
+      acquisition_order: Array.from({ length: 8 }, (_, i) => (i + Math.floor(clock / 900000) % 8) % 8),
     });
     expect(cachedTrace.trace.market_data_fetch.completed_input_acquisition!.original_members.every(member =>
       member.estimated_requests === 0 && member.historical_context_sha256 && member.current_context_sha256)).toBe(true);
@@ -744,7 +745,9 @@ test(`real scanner acquires raw history then reuses it after restart with ${stor
     expect(trace.trace.market_data_fetch.candidate_observation_summary).toMatchObject({
       summary_version: "scan_provider_candidate_observation_summary_v2",
       expected_candidate_count: 8, fully_observed_candidate_count: 6, total_reserved_credits: 6 });
-    for (const candidate of candidates.slice(0, 6)) {
+    const expectedFreshIndices = trace.trace.market_data_fetch.completed_input_acquisition!.acquisition_order.slice(0, 6);
+    expect(expectedFreshIndices).toEqual(Array.from({ length: 6 }, (_, i) => (i + Math.floor(clock / 900000) % 8) % 8));
+    for (const candidate of candidates.filter((_, index) => expectedFreshIndices.includes(index))) {
       expect(candidate.latest_close).toBe(105);
       expect(candidate.daily_context_latest_close).toBe(101);
       expect(candidate.reference_price_timestamp).toBe("2026-10-01T16:45:00.000Z");
@@ -757,7 +760,7 @@ test(`real scanner acquires raw history then reuses it after restart with ${stor
       expect(candidate.recent_higher_highs_count).toBe(0);
       expect(candidate.recent_higher_lows_count).toBe(0);
     }
-    for (const candidate of candidates.slice(6)) {
+    for (const candidate of candidates.filter((_, index) => !expectedFreshIndices.includes(index))) {
       expect(candidate.latest_close).toBeUndefined();
       expect(candidate.intraday_indicators).toBeNull();
       expect(candidate.recent_volume_ratio).toBeUndefined();

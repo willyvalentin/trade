@@ -237,11 +237,12 @@ export type ActiveScanTrace = {
     total_elapsed_ms: number | null;
     data_input_policy_version?: "completed_daily_intraday_input_v1";
     completed_input_acquisition?: {
-      policy_version: "completed_input_minimum_requests_first_v1" | "completed_input_first_observation_guard_v1";
+      policy_version: "completed_input_minimum_requests_first_v1" | "completed_input_first_observation_guard_v1" | "completed_input_fair_cost_ties_v1";
       evaluated_at: string;
       provider_call_cap: number;
       acquisition_order: number[];
       first_observation_ticker_index?: number | null;
+      cost_tie_offset?: number;
       original_members: {
         ticker: string;
         ticker_index: number;
