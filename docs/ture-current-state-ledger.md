@@ -2,7 +2,32 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
-**Completed local / Next / Blocked — new-training retained-candle integrity, 2026-10-03:**
+**Now / Next / Blocked — bounded original-decision attribution review, 2026-10-03:**
+Codex retains the same IF-4 full-charter primary in draft #732. A newly
+reproduced review defect lets distinct completed cycle/attempt IDs qualify the
+same original scan decision twice. The actual operational consumer returns
+2/2 reliability for one original decision; the actual isolated SQL/PostgREST/SDK
+producer/readback accepts two such persisted rows and reports 31/32 rather than
+unknown. Reproduction logs:
+`/private/tmp/ture-duplicate-original-decision-reproduction-corrected-oct3.log`
+and `/private/tmp/ture-duplicate-original-decision-actual-sql-before-oct3.log`.
+The first unit invocation lacked the server condition and selected no tests;
+it is setup-only, not behavior evidence.
+
+The minimum six-line operational correction detects reused completed decision
+fingerprints while retaining every attempt, cost receipt and original candidate.
+Reliability/cost qualification becomes unavailable with the named conflict;
+there is no source rewrite, denominator trimming, new schema, ranking change or
+charter relaxation. Twelve focused runtime/operational checks pass. Full original
+charter, actual SQL/SDK finalization/restarted reads, types, lint and exact build
+are the remaining local acceptance checks before one coherent same-PR update.
+This is bounded `supporting_blocker_removal`; exit immediately after those checks
+and return to release/forward-quality acceptance. Main remains `55576078`; the
+old-head CI run `37139042287` is live on `505c68ae`, not this local correction.
+The separate unpatched mandatory audit still holds release; quality lift remains
+unproved. No production/provider/broker operation is selected.
+
+**Retained completed local review — new-training retained-candle integrity, 2026-10-03:**
 Codex owns one bounded CLOSED IF-4 correction (4–8 active hours) within existing
 draft #732. The actual pre-fix producer and the current server-owned training
 job admit a legacy target label despite thirteen retained bars contradicting

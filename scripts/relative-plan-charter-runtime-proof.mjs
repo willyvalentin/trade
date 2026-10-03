@@ -439,6 +439,42 @@ try {
   }
   assert.equal((await readers.createRelativePlanProspectiveService().read(other, now)).status, "not_found");
   const otherRuntime = await readers.readRelativePlanCharterRuntimeSource({ owner: other, freeze, now }); assert.equal(otherRuntime.status, "unavailable");
+  // Two independently persisted attempts may not reuse one completed original
+  // decision to improve reliability. The physical schema allows this shape;
+  // retain BOTH attempts and all original members, but reject qualification.
+  const sourceBeforeDuplicate = await readers.readRecommendationLearningBaselineSource(owner);
+  const duplicate = readers.charterRuntimeRows({
+    at: new Date(Date.parse(session(futureDays[0]).session_open) + 5.25 * 3600000).toISOString(),
+    fingerprint: parts[0].scanRuns[0].run_fingerprint,
+  });
+  assert.equal((await client.from("scheduled_scan_attempts").insert(duplicate.attempt)).error, null);
+  assert.equal((await client.from("observation_cycle_receipts").insert(duplicate.cycle)).error, null);
+  const duplicateRuntime = await readers.readRelativePlanCharterRuntimeSource({ owner, freeze, now });
+  assert.equal(duplicateRuntime.status, "available");
+  assert.equal(duplicateRuntime.partitions[0].evidence.length, 32);
+  const duplicateSource = await readers.readRecommendationLearningBaselineSource(owner);
+  assert.deepEqual(duplicateSource, sourceBeforeDuplicate);
+  const duplicateSummary = readers.summarizeRelativePlanCharterOperational({ owner, freeze, now,
+    partition: "held_out", runtime: duplicateRuntime,
+    source: readers.parseRecommendationLearningBaselineSource(duplicateSource.data),
+    enrolledFingerprints: parts.slice(0, 30).map(part => part.scanRuns[0].run_fingerprint),
+  });
+  assert.equal(duplicateSummary.reliability.admitted_attempt_count, 32);
+  assert.equal(duplicateSummary.reliability.completed_attempt_count, 31);
+  assert.equal(duplicateSummary.reliability.value, null);
+  assert.equal(duplicateSummary.cost.credits_per_decision, null);
+  assert(duplicateSummary.blockers.includes("relative_plan_operational_original_decision_duplicated"));
+  assert.equal(sql(`select count(*) from public.observation_cycle_receipts
+    where scan_run_fingerprint='${parts[0].scanRuns[0].run_fingerprint}'`), "2");
+  if (finalizedMode) {
+    assert.deepEqual((await readers.createRelativePlanCharterResultService().read(owner)).receipt, durable.receipt);
+  } else {
+    const unqualified = (await readers.createRelativePlanProspectiveService().read(owner, now)).learning.full_charter;
+    assert.equal(unqualified.computed_disposition, "evidence_incomplete");
+    assert(unqualified.missing_dimensions.includes("held_out_relative_plan_operational_original_decision_duplicated"));
+    assert.deepEqual(unqualified.partitions.map(row => row.original_membership_fingerprint),
+      charter.partitions.map(row => row.original_membership_fingerprint));
+  }
   assert.equal(blockedExternalRequests, 0);
   console.log(JSON.stringify({ status: "pass", environment: "isolated_postgres_postgrest_actual_sdk",
     evidence: finalizedMode ? "historical_synthetic_model_fixture_actual_database_finalization_not_market_alpha" : "synthetic_closed_not_market_alpha",
@@ -448,6 +484,7 @@ try {
     sealed_model_ignores_later_mutable_candles: sealedModelIgnoresMutableCandles,
     original_held_out_decisions: 30, original_walk_forward_decisions: 30, original_candidates_per_forward_partition: partitionPopulation,
     held_out_admitted_attempts: 31, terminal_failures: 1, held_out_reserved_fixture_credits: 248,
+    duplicate_completed_original_decision_preserves_population_but_cannot_qualify: true,
     unknown_cost_retains_failure: !finalizedMode, missing_label_retains_original_denominator: true,
     actual_restarted_full_charter_consumer_verified: true, eleven_charter_checks_per_partition: true,
     known_concentration_failure_separate_from_missing_evidence: true, forward_losses_never_refit_model: true,

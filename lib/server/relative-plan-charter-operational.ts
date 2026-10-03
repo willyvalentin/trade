@@ -63,6 +63,12 @@ export function summarizeRelativePlanCharterOperational(input: {
       Date.parse(record.decision_timestamp) >= Date.parse(window.start_at) && Date.parse(record.decision_timestamp) < Date.parse(window.end_at) &&
       Date.parse(run.completed_at ?? "") >= Date.parse(record.decision_timestamp) && Date.parse(run.completed_at ?? "") <= input.now.getTime();
   });
+  // Distinct attempt/cycle IDs do not establish distinct completed decisions.
+  // Keep every attempt and its cost visible, but never qualify reliability
+  // by reusing one original decision as multiple successful observations.
+  if (new Set(completed.map(row => row.receipt.scan_run_fingerprint)).size !== completed.length) {
+    blockers.add("relative_plan_operational_original_decision_duplicated");
+  }
   const active = admitted.filter(row => row.receipt.cycle_status === "active").length;
   const terminalFailures = admitted.filter(row => row.receipt.cycle_status === "failed" || row.receipt.cycle_status === "rejected").length;
   const unboundCompleted = admitted.filter(row => row.receipt.cycle_status === "completed" && !completed.includes(row)).length;

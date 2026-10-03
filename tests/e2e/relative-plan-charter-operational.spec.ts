@@ -64,6 +64,23 @@ test("failed admitted attempts and their credits remain in the original operatio
   expect(result.blockers).toEqual([]);
 });
 
+test("two distinct completed attempts cannot count one original decision twice", async () => {
+  const value = await input();
+  if (value.runtime.status !== "available") throw new Error("fixture source unavailable");
+  const fingerprint = value.enrolledFingerprints[0];
+  value.runtime.partitions[0].evidence = [
+    evidence("synthetic_completed_attempt_001", fingerprint),
+    evidence("synthetic_completed_attempt_002", fingerprint),
+  ];
+  const original = JSON.stringify(value);
+  const result = summarizeRelativePlanCharterOperational(value);
+  expect(result.reliability?.admitted_attempt_count).toBe(2);
+  expect(result.reliability?.value).toBeNull();
+  expect(result.cost?.credits_per_decision).toBeNull();
+  expect(result.blockers).toContain("relative_plan_operational_original_decision_duplicated");
+  expect(JSON.stringify(value)).toBe(original);
+});
+
 test("missing finalization or inconsistent reserved credits cannot become zero-cost evidence", async () => {
   for (const mode of ["missing", "conflicting"] as const) {
     const value = await input();
