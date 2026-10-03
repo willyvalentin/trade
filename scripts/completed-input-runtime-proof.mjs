@@ -18,6 +18,14 @@ const expandedPremarketSetup = process.argv.includes("--existing-premarket-budge
 const rotationDay = process.argv.includes("--rotation-day");
 const prospectiveEnrollment = process.argv.includes("--prospective-enrollment");
 const lateOriginalOutcomes = process.argv.includes("--late-original-outcomes");
+const fullOriginalHistorySetup = process.argv.includes("--full-original-history-setup");
+assert(!fullOriginalHistorySetup || cold && rotationDay && prospectiveEnrollment &&
+  !existingPremarketSetup && !expandedPremarketSetup && !lateOriginalOutcomes &&
+  !process.argv.includes("--legacy-retention-baseline") && !process.argv.some(value=>[
+    "--acquisition-baseline", "--minimum-order-baseline", "--first-observation-baseline", "--fair-order-baseline",
+    "--regular-session-baseline", "--first-closed-bar-baseline", "--omitted-pair-baseline",
+    "--point-in-time-context",
+  ].includes(value)), "Full original history is a separately costed original-source feasibility arm, not a live preparation policy");
 assert(!expandedPremarketSetup || existingPremarketSetup && rotationDay && prospectiveEnrollment &&
   !lateOriginalOutcomes && !process.argv.includes("--legacy-retention-baseline"),
   "Eight-call preparation is one isolated source-capacity arm, not an outcome or live policy");
@@ -176,7 +184,7 @@ try {
   } };
   await build({ ...options, ...(baselineBenchmarkReuse || acquisitionBaseline || minimumOrderBaseline || firstObservationBaseline || fairOrderBaseline || regularSessionBaseline || firstClosedBarBaseline || omittedPairBaseline ? {plugins:[baselinePlugin]} : {}),
     entryPoints: [resolve(root, "app/api/automation/run-scan/route.ts")], outfile: join(generated, "scheduled-scan-runtime.cjs") });
-  if (diagnoseOutcomes || charterComposition || lateOriginalOutcomes) buildSync({ ...options, entryPoints: [resolve(root, "app/api/recommendations/evaluate-outcomes/route.ts")], outfile: join(generated, "outcome-route.cjs") });
+  if (diagnoseOutcomes || charterComposition || lateOriginalOutcomes || fullOriginalHistorySetup) buildSync({ ...options, entryPoints: [resolve(root, "app/api/recommendations/evaluate-outcomes/route.ts")], outfile: join(generated, "outcome-route.cjs") });
   buildSync({ ...options, entryPoints: [resolve(root, "netlify/functions/scheduled-scan.ts")], outfile: join(directory, "functions/scheduled.cjs") });
   await build({ ...options, ...(legacyRetentionBaseline ? {plugins:[{name:"legacy-retention-predecessor",setup(builder) {
     builder.onLoad({filter:/\/lib\/(scanner|market-data)\.ts$/},args=>({
@@ -202,6 +210,8 @@ try {
       export { buildScannerProviderCreditAllocationExecutionPlan } from './lib/scanner-provider-credit-allocation-plan';
       export { scannerUniverseTickers } from './lib/scanner-universe';
       export { scanMarket } from './lib/scanner';
+      ${fullOriginalHistorySetup ? "export { readCompletedDailyContext } from './lib/scanner-completed-daily-context';" : ""}
+      ${fullOriginalHistorySetup ? "export { createRelativePlanProspectiveService } from './lib/server/relative-plan-prospective-service';" : ""}
       ${existingPremarketSetup ? "export { generateRecommendations } from './lib/recommendation-generator';" : ""}
       export { readOwnedCompletedBenchmarkReuse, isValidCompletedBenchmarkReuse } from './lib/completed-benchmark-reuse';
       export { readCompletedMarketRegime } from './lib/market-regime';
@@ -276,7 +286,7 @@ try {
     "20260519000000_create_legacy_baseline_schema_draft.sql",
     "20260528000000_create_recommendation_snapshots.sql",
     "20260528001000_create_recommendation_outcomes.sql",
-    ...(diagnoseOutcomes || charterComposition || lateOriginalOutcomes ? ["20260605000000_add_recommendation_outcomes_snapshot_horizon_unique_index.sql"] : []),
+    ...(diagnoseOutcomes || charterComposition || lateOriginalOutcomes || fullOriginalHistorySetup ? ["20260605000000_add_recommendation_outcomes_snapshot_horizon_unique_index.sql"] : []),
     "20260528002000_create_recommendation_scan_runs.sql",
     "20260528003000_create_recommendation_batches.sql",
     "20260614000000_create_execution_records.sql",
@@ -286,7 +296,7 @@ try {
     "20260926091134_sv_a2_observation_cycle_receipts.sql",
     "20260915222537_basic_free_discovery_credit_reservations.sql",
     "20260917135646_if2_basic_free_daily_observation_claim.sql",
-    ...(charterComposition ? ["20261002213547_if4_relative_plan_prospective_comparison.sql",
+    ...(charterComposition || fullOriginalHistorySetup ? ["20261002213547_if4_relative_plan_prospective_comparison.sql",
       "20261002233358_if4_relative_plan_trained_probability_model.sql",
       "20261003015239_if4_relative_plan_charter_result.sql"] : []),
   ];
@@ -342,7 +352,7 @@ try {
       const values = [];
       if (intraday) {
         assert.equal(interval,"5min");
-        const providerEnd=lateOriginalOutcomes ? Math.min(clock,OriginalDate.parse("2026-10-01T20:00:00Z")) : clock;
+        const providerEnd=lateOriginalOutcomes || fullOriginalHistorySetup ? Math.min(clock,OriginalDate.parse("2026-10-01T20:00:00Z")) : clock;
         for (let time=OriginalDate.parse("2026-10-01T13:30:00Z"); time<providerEnd; time+=300000) {
           const datetime=new Intl.DateTimeFormat("sv-SE",{timeZone:"America/New_York",
             year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(new OriginalDate(time));
@@ -350,7 +360,7 @@ try {
           const volume = missingLatestVolume && latestClosed ? " " : zeroLatestVolume && latestClosed ? "0" : "1000";
           const index=(time-OriginalDate.parse("2026-10-01T13:30:00Z"))/300000;
           const close=100+index*0.06;
-          const futurePlan=relativePlan60m || charterComposition || lateOriginalOutcomes ? futureOutcomePlans.find(plan=>plan.ticker===url.searchParams.get("symbol")) : null;
+          const futurePlan=relativePlan60m || charterComposition || lateOriginalOutcomes || fullOriginalHistorySetup ? futureOutcomePlans.find(plan=>plan.ticker===url.searchParams.get("symbol")) : null;
           const anchor=futurePlan ? Math.ceil(OriginalDate.parse(futurePlan.payload_json.decision_timestamp)/300000)*300000 : null;
           if(futurePlan && time>=anchor) {
             // Explicitly synthetic future bars, supplied only at the provider
@@ -414,6 +424,7 @@ try {
   let setupRequests=0;
   let setupIntradayRequests=0;
   let existingPremarketEvidence=null;
+  let fullOriginalHistoryEvidence=null;
   const legacySetupCandidates=[];
   let legacySetupFingerprint=null;
   if(!cold && !wrongPolicy) {
@@ -476,12 +487,77 @@ try {
       returned_watchlist:prepared.pre_market_candidates,publication_count:0};
     originalLog(JSON.stringify({existing_premarket_evidence:existingPremarketEvidence}));
   }
+  if(fullOriginalHistorySetup) {
+    // Select from the frozen deterministic schedule BEFORE acquiring any data.
+    // This is the full original day population, never a future winner/source subset.
+    const originalSlots=Array.from({length:26},(_,index)=>{
+      const now=new OriginalDate(OriginalDate.parse(slot)+index*900000);
+      const candidates=readers.buildRealScannerBaseCandidateSelection({
+        scanWindow:readers.getIntradayScanWindow(now),requestedScanBudget:8,
+        selectionMode:"scheduled_rotating",now}).candidates;
+      assert.equal(candidates.length,8);
+      return {slot:now.toISOString(),candidates};
+    });
+    const originalUniverse=[...new Map(originalSlots.flatMap(row=>row.candidates)
+      .map(candidate=>[candidate.ticker,candidate])).values()];
+    assert.equal(originalUniverse.length,95);
+    clock=OriginalDate.parse("2026-10-01T12:45:00.000Z");
+    // The completed-input scanner correctly rejects a pre-open current-session
+    // request, even at a one-credit cap. Do not relax that product guard. The
+    // existing legacy one-call acquisition now retains the same validated raw
+    // history from its already-paid response and needs no current-price claim.
+    await assert.rejects(readers.scanMarket([originalUniverse[0]],{source:"scheduled",maxFreshProviderCalls:1,
+      freshProviderCallPacingMs:0,completedDailyContextPolicyVersion:"completed_daily_intraday_input_v1"}),
+    /completed_context_current_session_unavailable/);
+    assert.equal(externalRequests,0);
+    for(const [index,candidate] of originalUniverse.entries()) {
+      clock=OriginalDate.parse("2026-10-01T12:45:00.000Z")+Math.floor(index/8)*60000;
+      await readers.scanMarket([candidate],{source:"scheduled",maxFreshProviderCalls:1,freshProviderCallPacingMs:0});
+    }
+    setupRequests=externalRequests;
+    setupIntradayRequests=syntheticRequestEvidence.filter(request=>request.interval!=="1day").length;
+    assert.equal(setupRequests,95); assert.equal(setupIntradayRequests,0);
+    const retained=JSON.parse(sql("select coalesce(jsonb_agg(raw->'completed_daily_context' order by ticker),'[]') from scanner_cache where raw ? 'completed_daily_context';"));
+    assert.equal(retained.length,95);
+    assert.deepEqual(retained.map(context=>context.symbol).sort(),originalUniverse.map(candidate=>candidate.ticker).sort());
+    const perMinute=new Map();
+    for(const request of syntheticRequestEvidence) {
+      assert.equal(request.interval,"1day");
+      assert(OriginalDate.parse(request.requested_at)<OriginalDate.parse(slot));
+      perMinute.set(request.requested_at,(perMinute.get(request.requested_at)??0)+1);
+    }
+    assert([...perMinute.values()].every(count=>count<=8));
+    for(const context of retained) {
+      assert.equal(context.latest_completed_market_date,"2026-09-30");
+      assert(await readers.readCompletedDailyContext(context,context.symbol,new OriginalDate(slot)));
+    }
+    const retainedExample=retained[0],requestsBeforeValidation=externalRequests;
+    assert.equal(await readers.readCompletedDailyContext(retainedExample,retainedExample.symbol,
+      new OriginalDate("2026-10-02T13:30:00Z")),null,"Yesterday's split basis cannot become today's current history");
+    for(const changed of [
+      {...retainedExample,content_sha256:"wrong-content-digest"},
+      {...retainedExample,symbol:"WRONG"},
+      {...retainedExample,response_identity:{...retainedExample.response_identity,payload_sha256:"wrong-response-digest"}},
+    ]) assert.equal(await readers.readCompletedDailyContext(changed,retainedExample.symbol,new OriginalDate(slot)),null);
+    assert.equal(externalRequests,requestsBeforeValidation,"Negative history validation cannot refresh a provider");
+    fullOriginalHistoryEvidence={scope:"actual_legacy_scanner_sql_sdk_full_original_history_synthetic_not_live",
+      preparation_policy:"existing_legacy_one_call_retained_history_not_current_input",
+      normalized_preopen_guard:"completed_context_current_session_unavailable",
+      original_universe:originalUniverse.map(candidate=>candidate.ticker),
+      original_slots:originalSlots.map(row=>({slot:row.slot,tickers:row.candidates.map(candidate=>candidate.ticker)})),
+      setup_requests:95,setup_intraday_requests:0,maximum_requests_in_modeled_minute:Math.max(...perMinute.values()),
+      setup_credit_reservations:0,setup_budget_scope:"modeled_request_cap_not_production_durable_reservation",
+      requests:structuredClone(syntheticRequestEvidence),retained_daily_contexts:retained.map(context=>({
+        symbol:context.symbol,captured_at:context.captured_at,latest_completed_market_date:context.latest_completed_market_date})),
+      same_day_digest_identity_rejections:3,next_day_basis_rejected:true,validation_provider_requests:0,
+      product_policy_changed:false,quality_improvement_claimed:false,provider_entitlement_proven:false};
+  }
   externalRequests=0;
   externalBenchmarkRequests=0;
   const scheduledRequestEvidenceOffset=syntheticRequestEvidence.length;
   const scheduler = require(join(directory, "functions/scheduled.cjs")).default;
   if(rotationDay) {
-    assert.equal(setupRequests,existingPremarketSetup?(expandedPremarketSetup?8:4):0);
+    assert.equal(setupRequests,fullOriginalHistorySetup?95:existingPremarketSetup?(expandedPremarketSetup?8:4):0);
     const slots=[];
     const observations=new Map();
     const eligible=readers.scannerUniverseTickers.filter(ticker=>ticker.enabled && ticker.tradable).map(ticker=>ticker.ticker).sort();
@@ -551,6 +627,13 @@ try {
         for(const candidate of decision.candidates.filter(candidate=>candidate.data.freshness==="fresh")) {
           assert(OriginalDate.parse(candidate.data.input_snapshot.current_session.captured_at)<=OriginalDate.parse(decision.decision_timestamp));
           assert(OriginalDate.parse(candidate.data.input_snapshot.historical_context.captured_at)<=OriginalDate.parse(decision.decision_timestamp));
+          if(fullOriginalHistorySetup) {
+            const prepared=fullOriginalHistoryEvidence.retained_daily_contexts.find(row=>row.symbol===candidate.ticker);
+            assert.equal(candidate.data.input_snapshot.historical_context.captured_at,prepared.captured_at,
+              "Regular use must retain the actual original pre-open capture clock");
+            assert(OriginalDate.parse(candidate.data.input_snapshot.current_session.captured_at)>=OriginalDate.parse(sourceSlot),
+              "Historical setup must never masquerade as the current regular-session price");
+          }
         }
       }
       const members=selected.map(candidate=>{
@@ -658,17 +741,31 @@ try {
           disposition:eligible.length?"source_feasibility_only_requires_actual_canonical_outcomes":"reject_no_earlier_full_regular_horizon",
           quality_improvement_claimed:false,product_policy_changed:false};
       }
-      if(lateOriginalOutcomes) {
-        assert.equal(enrolledDecisions.length,1);
-        const original=decisionEvidence.find(row=>row.status==="comparable");
-        assert.equal(original.decision_at,"2026-10-01T19:30:20.000Z");
+      if(lateOriginalOutcomes || fullOriginalHistorySetup) {
+        const session=readers.getUsEquityMarketSession("2026-10-01");
+        assert.equal(session.verification_status,"verified");
+        const eligible=decisionEvidence.filter(row=>row.status==="comparable" &&
+          Math.ceil(OriginalDate.parse(row.decision_at)/300000)*300000+3600000<=OriginalDate.parse(session.session_close));
+        if(lateOriginalOutcomes) assert.equal(enrolledDecisions.length,1);
+        // Fixed original chronological enrollment, never favorable outcomes or
+        // a caller-built cohort. All other 25 source decisions remain present.
+        const original=fullOriginalHistorySetup?eligible[0]:decisionEvidence.find(row=>row.status==="comparable");
+        if(fullOriginalHistorySetup) {
+          fullOriginalHistoryEvidence.source_capacity={complete_decisions:decisionEvidence.filter(row=>row.status==="comparable").length,
+            regular_horizon_eligible_decisions:eligible.map(row=>({fingerprint:row.fingerprint,decision_at:row.decision_at})),
+            first_eligible_original_decision:original??null};
+          process.stderr.write(JSON.stringify({full_original_history_capacity:fullOriginalHistoryEvidence.source_capacity})+"\n");
+          assert(original,"Full preparation must supply an earlier complete ORIGINAL population with a regular 60m horizon");
+        } else assert.equal(original.decision_at,"2026-10-01T19:30:20.000Z");
+        const anchorStart=new OriginalDate(Math.ceil(OriginalDate.parse(original.decision_at)/300000)*300000).toISOString();
+        const horizonEnd=new OriginalDate(OriginalDate.parse(anchorStart)+3600000).toISOString();
         futureOutcomePlans=source.snapshots.filter(snapshot=>snapshot.scan_run_id===original.fingerprint)
           .map((snapshot,index)=>({...snapshot,synthetic_win:index%2===0}));
         assert.equal(futureOutcomePlans.length,8);
         assert.deepEqual(futureOutcomePlans.map(row=>row.ticker).sort(),original.members.map(row=>row.ticker).sort());
         const batch=JSON.parse(sql(`select to_jsonb(t) from recommendation_batches t where scan_run_fingerprint='${original.fingerprint}';`));
         assert.equal(batch.owner_user_id,owner);
-        clock=OriginalDate.parse("2026-10-01T20:45:00Z");
+        clock=fullOriginalHistorySetup?OriginalDate.parse(horizonEnd):OriginalDate.parse("2026-10-01T20:45:00Z");
         const passes=[];
         for(let index=0;index<2;index++) {
           const before=externalRequests;
@@ -707,8 +804,6 @@ try {
         assert.equal(physicalRows.length,8);
         assert.equal(updatedSource.outcomes.length,physicalRows.length);
         assert.deepEqual(physicalRows.map(row=>row.snapshot_fingerprint).sort(),futureOutcomePlans.map(row=>row.snapshot_fingerprint).sort());
-        const session=refreshed.getUsEquityMarketSession("2026-10-01");
-        assert.equal(session.verification_status,"verified");
         assert.equal(session.session_type,"regular_session");
         const coverages=physicalRows.map(row=>({ticker:row.ticker,status:row.status,
           coverage:row.payload_json.canonical_provider_coverage,
@@ -716,34 +811,45 @@ try {
         for(const row of coverages) {
           assert(["target_before_stop","stop_before_target"].includes(row.status));
           assert.equal(row.coverage.expected_candle_count,12);
-          assert.equal(row.coverage.observed_candle_count,5);
-          assert.equal(row.coverage.freshness,"unknown");
-          assert(row.coverage.blockers.includes("candle_coverage_incomplete"));
-          assert.equal(row.retained_candle_count,5);
+          assert.equal(row.coverage.observed_candle_count,fullOriginalHistorySetup?12:5);
+          assert.equal(row.coverage.freshness,fullOriginalHistorySetup?"fresh":"unknown");
+          if(fullOriginalHistorySetup) assert.deepEqual(row.coverage.blockers,[]);
+          else assert(row.coverage.blockers.includes("candle_coverage_incomplete"));
+          assert.equal(row.retained_candle_count,fullOriginalHistorySetup?12:5);
           assert.equal(row.coverage.decision_timestamp,original.decision_at);
-          assert.equal(row.coverage.evaluation_anchor_start_at,"2026-10-01T19:35:00.000Z");
-          assert.equal(row.coverage.required_horizon_end_at,"2026-10-01T20:35:00.000Z");
+          assert.equal(row.coverage.evaluation_anchor_start_at,anchorStart);
+          assert.equal(row.coverage.required_horizon_end_at,horizonEnd);
+        }
+        if(fullOriginalHistorySetup) for(const outcome of physicalRows) {
+          assert(OriginalDate.parse(outcome.evaluated_at)>=OriginalDate.parse(horizonEnd));
+          assert(OriginalDate.parse(horizonEnd)<=OriginalDate.parse(session.session_close));
+          assert(outcome.payload_json.counterfactual_candles.every(candle=>
+            OriginalDate.parse(candle.timestamp)>=OriginalDate.parse(session.session_open) &&
+            OriginalDate.parse(candle.timestamp)+300000<=OriginalDate.parse(session.session_close)),
+          "Canonical horizon must contain only actual regular-session fixture bars");
         }
         assert.deepEqual(updatedSource.scanRuns.map(run=>run.run_fingerprint).sort(),[...runFingerprints].sort());
         const link=refreshed.buildRecommendationLearningBaselineReadiness(updatedSource).relative_plan_context_outcomes
           .find(row=>row.scan_run_fingerprint===original.fingerprint);
         assert.equal(link.original_population_count,8);
-        assert.equal(link.canonical_outcome_count,0,"Partial regular-session bars cannot supply a full canonical 60m horizon");
-        assert.equal(link.missing_outcome_count,8);
-        assert.equal(link.status,"evidence_incomplete");
-        assert.equal(link.population_complete,false);
-        assert.equal(link.baseline.precision_at_3.value,null);
-        assert.equal(link.baseline.expectancy_r.value,null);
-        assert.equal(link.challenger.precision_at_3.value,null);
-        assert.equal(link.challenger.expectancy_r.value,null);
-        assert.equal(link.precision_delta,null);
+        assert.equal(link.canonical_outcome_count,fullOriginalHistorySetup?8:0,
+          "Only a full canonical 60m regular-session horizon can supply usable labels");
+        assert.equal(link.missing_outcome_count,fullOriginalHistorySetup?0:8);
+        assert.equal(link.status,fullOriginalHistorySetup?"linked_complete":"evidence_incomplete");
+        assert.equal(link.population_complete,fullOriginalHistorySetup);
+        for(const value of [link.baseline.precision_at_3.value,link.baseline.expectancy_r.value,
+          link.challenger.precision_at_3.value,link.challenger.expectancy_r.value,link.precision_delta]) {
+          if(fullOriginalHistorySetup) assert(Number.isFinite(value));
+          else assert.equal(value,null);
+        }
         assert.equal((await refreshed.readRecommendationLearningBaselineSource("00000000-0000-4000-8000-000000000002")).data.recommendation_outcomes.length,0);
         // Actual isolated DB write clocks must be inside the read boundary.
         // This synthetic late read is not a real pre-forward database seal.
         const updatedEnrollment=refreshed.buildRelativePlanProspectiveEnrollment({owner,freeze,source:updatedSource,
           now:new OriginalDate(Math.max(OriginalDate.parse("2026-10-07T21:00:00Z"),OriginalDate.now()))});
         const held=updatedEnrollment.partitions.find(row=>row.partition==="held_out");
-        assert.equal(held.enrolled_decision_count,1); assert.equal(held.missing_outcome_count,8);
+        assert.equal(held.enrolled_decision_count,fullOriginalHistorySetup?enrolledDecisions.length:1);
+        assert.equal(held.missing_outcome_count,fullOriginalHistorySetup?(enrolledDecisions.length-1)*8:8);
         assert.deepEqual(updatedEnrollment.diagnostics,enrollment.diagnostics);
         lateOutcomeEvidence={scope:"actual_original_source_route_adapter_sql_sdk_regular_session_only_synthetic_not_live",
           original_scan_run_fingerprint:original.fingerprint,decision_timestamp:original.decision_at,
@@ -759,6 +865,65 @@ try {
           baseline_precision_at_3:link.baseline.precision_at_3.value,shadow_precision_at_3:link.challenger.precision_at_3.value,
           baseline_expectancy_r:link.baseline.expectancy_r.value,shadow_expectancy_r:link.challenger.expectancy_r.value,
           original_membership_stable:true,quality_improvement_claimed:false};
+        if(fullOriginalHistorySetup) {
+          fullOriginalHistoryEvidence.canonical_outcome_evidence=lateOutcomeEvidence;
+          fullOriginalHistoryEvidence.final_prospective_partitions=updatedEnrollment.partitions.map(partition=>({
+            partition:partition.partition,enrolled_decision_count:partition.enrolled_decision_count,
+            original_population_count:partition.original_population_count,missing_outcome_count:partition.missing_outcome_count,
+            status:partition.status}));
+          // Controlled historical fixture only, not a pre-forward DB seal or
+          // useful thirty-decision market cohort. Exercise the real full-charter
+          // consumer on EVERY original source, not a handmade eight-row source.
+          sql(`insert into relative_plan_prospective_comparisons(id,owner_user_id,model_version,plan_fingerprint,plan_json,frozen_at)
+            values('${freeze.freeze_id}','${owner}','${plan.model_version}','${plan.plan_fingerprint}',
+              '${JSON.stringify(plan).replaceAll("'","''")}'::jsonb,'${frozenAt}');`);
+          const asOf=new OriginalDate(Math.max(OriginalDate.parse("2026-10-07T21:00:00Z"),OriginalDate.now()));
+          const charterRead=await refreshed.createRelativePlanProspectiveService().read(owner,asOf);
+          assert.equal(charterRead.status,"available",charterRead.blocker);
+          const measured=charterRead.learning.full_charter.partitions.find(partition=>partition.partition==="held_out");
+          assert.equal(measured.quality.original_population_count,enrolledDecisions.length*8);
+          assert.equal(charterRead.learning.partitions.find(partition=>partition.partition==="held_out").canonical_outcome_count,8);
+          assert.equal(measured.operational.reliability.admitted_attempt_count,26);
+          assert.equal(measured.operational.cost.reserved_provider_credits,208);
+          assert.equal(charterRead.learning.full_charter.computed_disposition,"evidence_incomplete");
+          assert.equal(charterRead.learning.terminal_quality_decision,null);
+          assert.equal(charterRead.learning.trained_probability_model,null);
+          assert.equal(charterRead.learning.quality_improvement_claimed,false);
+          assert.equal((await refreshed.createRelativePlanProspectiveService().read("00000000-0000-4000-8000-000000000002",asOf)).learning,null);
+          const immutableSnapshot=updatedSource.snapshots.find(row=>row.scan_run_id===original.fingerprint);
+          const beforeNegativeRequests=externalRequests;
+          sql(`update recommendation_snapshots set payload_json=jsonb_set(payload_json,'{provider_source}',
+            '"wrong_provider"'::jsonb) where id='${immutableSnapshot.id}';`);
+          const tampered=await refreshed.createRelativePlanProspectiveService().read(owner,asOf);
+          assert.equal(tampered.status,"available",tampered.blocker);
+          const tamperedHeld=tampered.learning.partitions.find(partition=>partition.partition==="held_out");
+          assert.equal(tamperedHeld.original_population_count,enrolledDecisions.length*8);
+          assert.equal(tamperedHeld.original_membership_fingerprint,held.original_membership_fingerprint);
+          assert.equal(tamperedHeld.canonical_outcome_count,7);
+          assert.equal(tamperedHeld.missing_outcome_count,held.missing_outcome_count+1);
+          const invalidLink=tampered.learning.legacy_baseline_readiness.relative_plan_context_outcomes
+            .find(row=>row.scan_run_fingerprint===original.fingerprint);
+          assert.equal(invalidLink.population_complete,false); assert.equal(invalidLink.precision_delta,null);
+          assert.equal(invalidLink.baseline.precision_at_3.value,null);
+          assert.equal(tampered.learning.terminal_quality_decision,null);
+          sql(`update recommendation_snapshots set payload_json='${JSON.stringify(immutableSnapshot.payload_json).replaceAll("'","''")}'::jsonb
+            where id='${immutableSnapshot.id}';`);
+          const restored=await refreshed.createRelativePlanProspectiveService().read(owner,asOf);
+          assert.deepEqual(restored.learning,charterRead.learning);
+          assert.equal(externalRequests,beforeNegativeRequests);
+          assert.deepEqual(JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_outcomes t;")),physicalRows);
+          fullOriginalHistoryEvidence.full_charter_evidence={original_population_count:measured.quality.original_population_count,
+            canonical_outcome_count:8,missing_outcome_count:held.missing_outcome_count,
+            operational_attempts:measured.operational.reliability.admitted_attempt_count,
+            reserved_scheduled_provider_credits:measured.operational.cost.reserved_provider_credits,
+            disposition:charterRead.learning.full_charter.computed_disposition,
+            missing_dimensions:charterRead.learning.full_charter.missing_dimensions,
+            wrong_owner_learning:null,tampered_source_canonical_outcomes:7,tampered_source_missing_outcomes:tamperedHeld.missing_outcome_count,
+            original_membership_stable:true,restored_charter_unchanged:true,negative_readback_provider_requests:0,
+            trained_probability_model:null,terminal_quality_decision:null,quality_improvement_claimed:false};
+          fullOriginalHistoryEvidence.remaining_quality_gate="full_forward_charter_and_sealed_probability_model_not_established";
+          fullOriginalHistoryEvidence.total_separate_synthetic_data_requests=setupRequests+externalRequests;
+        }
       }
     }
     const beforeCleanup=externalRequests;
@@ -774,7 +939,7 @@ try {
     assert.equal(Number(sql("select count(*) from scheduled_scan_attempts;")),attemptFingerprints.size);
     const tickerCoverage=[...observations.values()].sort((a,b)=>a.ticker.localeCompare(b.ticker));
     originalLog(JSON.stringify({evidence_mode:"synthetic_closed_packaged_input_runtime_actual_source_schema",
-      scenario:existingPremarketSetup?"full_session_existing_premarket_preparation":"full_session_cold_rotation",acquisition_mode:omittedPairBaseline?"otherwise_omitted_first_pair_guard":acquisitionBaseline?"original_order":firstObservationBaseline?"first_observation_guard":minimumOrderBaseline?"minimum_requests_first":fairOrderBaseline?"fair_cost_ties":firstClosedBarBaseline?"original_order_first_closed_bar":"original_order_regular_session_reuse",
+      scenario:fullOriginalHistorySetup?"full_session_original_universe_history_preparation":existingPremarketSetup?"full_session_existing_premarket_preparation":"full_session_cold_rotation",acquisition_mode:omittedPairBaseline?"otherwise_omitted_first_pair_guard":acquisitionBaseline?"original_order":firstObservationBaseline?"first_observation_guard":minimumOrderBaseline?"minimum_requests_first":fairOrderBaseline?"fair_cost_ties":firstClosedBarBaseline?"original_order_first_closed_bar":"original_order_regular_session_reuse",
       baseline_revision:acquisitionBaselineRevision,minimum_order_baseline_revision:minimumOrderBaselineRevision,
       original_slots:26,original_member_observations:26*8,eligible_tickers:eligible,slots,ticker_coverage:tickerCoverage,
       selected_unique_tickers:tickerCoverage.length,ever_complete_tickers:tickerCoverage.filter(ticker=>ticker.fresh>0).length,
@@ -789,6 +954,7 @@ try {
       ...(prospectiveEnrollment?{prospective_enrollment_evidence:enrollmentEvidence}:{}),
       ...(existingPremarketSetup?{existing_premarket_evidence:existingPremarketEvidence}:{}),
       ...(lateOriginalOutcomes?{late_original_outcome_evidence:lateOutcomeEvidence}:{}),
+      ...(fullOriginalHistorySetup?{full_original_history_evidence:fullOriginalHistoryEvidence}:{}),
       actual_provider_requests:0,production_actions:0,publications:0,broker_actions:0,cleanup:"inert"}));
   } else {
   clock = OriginalDate.parse(slot) + 20000;

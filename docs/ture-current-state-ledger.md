@@ -3,6 +3,13 @@
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
 **Now / Next / Blocked — completed-history input fitness:**
+Full-original same-day history feasibility now passes the actual isolated
+scanner/cache/scheduled-route/canonical-outcome/full-charter composition below.
+The result selects bounded product adoption of existing history acquisition,
+not a larger narrow watchlist, another allocation heuristic or a ranking change.
+The next primary must enforce real durable preparation cost and resumption;
+the synthetic minute cap is not production budget enforcement. Keep release,
+data-entitlement and OPEN acceptance holds separate. No live preparation is armed.
 The already-paid legacy history retention is locally complete and behavior-
 verified on `5474cbb0c2af7204dd092cb3da0fb0c6328bc855`, tree
 `c9ceb742f5199222ddc5579d4a6bf9c904eeaf85`. The original-source composition
@@ -326,8 +333,8 @@ Application/build/dependency/configuration code remains exactly the verified
 `5474cbb0` product; no new product build, protected CI, main integration or
 production verification is claimed for this diagnostic arm.
 
-**Next bounded CLOSED IF-2b source-feasibility selection:** Codex owns the sole
-next 4–16 active-hour slice, initial investigation at most four hours. The
+**Completed bounded CLOSED IF-2b source-feasibility selection:** Codex owned the sole
+4–16 active-hour slice, initial investigation at most four hours. The
 verified capacity failure selects the broader missing-history defect, not a
 larger cap for the rejected three-symbol legacy watchlist. Test the existing
 validated one-credit history-only scanner capability on the complete original
@@ -349,6 +356,97 @@ history as a current price or claim that synthetic access proves Basic Free
 entitlements for all symbols. This selects no new live preparation schedule,
 general-purpose worker, migration, provider, configuration or broker action.
 The observation/release holds remain separate and unchanged.
+
+**Full-original history feasibility — 2026-10-03:** The actual normalized
+scanner rejects a pre-open current-session request before acquisition. Preserve
+that guard. The existing legacy one-credit acquisition, with the locally
+verified already-paid retention, acquires all ninety-five deterministically
+selected original symbols in twelve modeled minutes, 12:45–12:56Z on Oct 1,
+strictly before regular open. Exactly ninety-five daily requests, zero setup
+intraday, at most eight requests per modeled minute; no seeded cache, future
+winner selection, provider rights claim or live preparation job. Restarted
+regular decisions retain the original pre-open capture times and acquire
+separate same-session price evidence. Invalid symbol/digests and next-NY-day
+split-basis reuse are rejected without a provider refresh.
+
+The registered three-arm comparison retains all twenty-six original slots and
+208 member observations. Fresh observations are 123 with zero setup, 124 with
+the actual four-call narrow preparation and 200 with the full ninety-five-call
+history setup. All ninety-five original selected symbols are eventually fresh
+in the full arm, versus seventy-six in the retained baselines. At the open,
+history alone still produces zero fresh inputs. Four original decisions remain
+unassessed for the unchanged full-hour context rule; twenty-two become complete,
+eighteen with a full regular-session 60m horizon before close. Inputs have changed
+by design, not become identical to the rejected cheaper-setup experiment; live
+ranking, quality thresholds and publication rules remain unchanged.
+
+The first qualifying original decision is `rec_scan_run_r1l45`, 14:30:20Z,
+with original MARA/NVDA/ADBE/SOFI/TSM/SBUX/GS/GE membership. Its immutable aligned
+horizon is 14:35–15:35Z, wholly inside the verified regular session, versus
+19:35–20:35Z for the narrow arm's sole complete late decision. Two actual
+owner-bound outcome-route passes make four requests each and create eight
+physical SQL rows, all eight decoded by the restarted SDK reader, with twelve
+closed five-minute bars per canonical 60m receipt. Alternating favorable and
+unfavorable provider-boundary bars are explicitly synthetic and chosen only
+after the original plans are persisted. The original link is `linked_complete`;
+both arms' synthetic precision is equal, delta zero, not measured market lift.
+
+The actual full-charter reader retains all twenty-six source decisions,
+four original exclusions and 176 enrolled members, with eight canonical labels
+and 168 explicit missing labels. All twenty-six admitted attempts and 208
+finalized scheduled reserved credits remain. Corrupting one actual stored source
+leaves membership intact, canonical labels seven, missing labels 169 and the
+original comparison's precision unavailable; restoring it returns the identical
+charter without acquiring data or rewriting outcomes. Wrong-owner learning is
+null. The charter stays `evidence_incomplete`, with no sealed probability model,
+terminal quality decision, baseline/promotion authority or claimed improvement.
+
+Setup, scheduled scans and outcomes are separately ninety-five, 208 and eight
+synthetic requests, total 311. The existing runtime scorecard's 208 credits are
+scheduled cost only: preparation has zero durable reservations in this diagnostic,
+not free data or proven production budget controls. The narrow and zero-setup
+baselines, the late-horizon rejection and the prior exact-information rejection
+remain unchanged. Disposition: `continue_bounded_product_history_adoption` on
+local `hypothesis_evidence`, not market-wide access, production fitness or alpha.
+The completed scope changes the next action from another acquisition-order
+experiment to budgeted same-day history acquisition using existing components.
+
+The final combined affected regression passes all seventy-eight registered
+checks in 14.3 minutes, including the three-arm original-session comparison,
+retained late-horizon/capacity rejections, actual isolated PostgreSQL/PostgREST
+persistence and restarted owner-bound learning. Strict nonincremental types,
+changed-file lint and `git diff --check` pass. Evidence logs are
+`/private/tmp/ture-full-original-history-regression-oct3.log`,
+`/private/tmp/ture-full-original-history-final-types-oct3.log` and
+`/private/tmp/ture-full-original-history-final-lint-oct3.log`. Diagnostic harness
+failures remain retained: the first evaluation supplied one extra bar after
+the exact horizon, the retained timestamps were initially tested as numbers
+instead of ISO instants, and an unknown identity property was initially treated
+as content tampering. Fixes use the exact frozen horizon, decoded timestamps
+and actual payload digest; no product validation or quality gate is weakened.
+All owned temporary database fixtures are removed, with the two unrelated
+local databases and the root checkout's unrelated edits preserved. Application,
+dependency and deployment source remains exactly the verified `5474cbb0`
+product: its prior clean Linux build is reused only for that unchanged product,
+not claimed as a new build, protected CI, main merge or production verification.
+This delivery is local comparison evidence and regression coverage; no provider,
+production configuration, migration, publication or broker action occurred.
+
+**Next bounded CLOSED IF-2b adoption:** Codex owns one primary 4–16 active-hour
+slice, initial investigation at most four. Reuse the existing legacy acquisition,
+strict raw-cache validation and Basic Free transactional credit store to make
+same-day historical preparation usable on the complete server-selected original
+session universe, without claiming current price or relaxing the normalized
+regular-session guard. Require actual persisted minute/day reservations and
+finalization, at most eight credits per minute, explicit preparation/source
+identity, restart without repeating valid acquired history, preserved missing
+symbols and cancellation/provider/budget failures that cannot continue silently.
+Use the existing acquisition/evidence path; select no general-purpose worker,
+new schema, new live schedule, broker, ranking change or production activation.
+Before any OPEN preparation, verify actual entitlements and remaining shared-key
+capacity and freeze a separate bounded observation. This is product adoption
+after the positive composition, not authority to fetch ninety-five live symbols.
+Audit/CI release holds and the full forward recommendation-quality gate remain.
 
 **Completed original scanner to existing full-charter composition:**
 Codex reuses existing draft PR #732's isolated

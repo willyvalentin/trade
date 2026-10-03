@@ -382,6 +382,88 @@ test("doubling narrow existing preparation is rejected when original complete de
   }
 });
 
+test("full original preopen histories supply an early canonical population without hiding the rest of the session", () => {
+  test.setTimeout(450000);
+  const run = (mode: "zero_setup" | "narrow" | "full_original") => {
+    const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--cold",
+      "--rotation-day", "--prospective-enrollment",
+      ...(mode === "narrow" ? ["--existing-premarket-setup"] : []),
+      ...(mode === "full_original" ? ["--full-original-history-setup"] : [])],
+    { cwd: process.cwd(), encoding: "utf8", timeout: 140000 });
+    expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
+    return JSON.parse(result.stdout.trim().split("\n").at(-1)!);
+  };
+  const cold = run("zero_setup"), narrow = run("narrow"), full = run("full_original");
+  expect(cold).toMatchObject({ setup_synthetic_requests: 0, fresh_member_observations: 123,
+    prospective_enrollment_evidence: { enrolled_decisions: 0, excluded_decisions: 26 } });
+  expect(narrow).toMatchObject({ setup_synthetic_requests: 4, fresh_member_observations: 124,
+    prospective_enrollment_evidence: { enrolled_decisions: 1, excluded_decisions: 25 } });
+  expect(full).toMatchObject({ scenario: "full_session_original_universe_history_preparation",
+    setup_synthetic_requests: 95, fresh_member_observations: 200, ever_complete_tickers: 95,
+    prospective_enrollment_evidence: { enrolled_decisions: 22, excluded_decisions: 4 } });
+  const originalSlots = (arm: typeof full) => arm.slots.map((slot: { slot: string; members: { ticker: string }[] }) =>
+    ({ slot: slot.slot, tickers: slot.members.map(member => member.ticker) }));
+  for (const arm of [cold, narrow, full]) {
+    expect(arm).toMatchObject({ original_slots: 26, original_member_observations: 208, selected_unique_tickers: 95,
+      scheduled_synthetic_requests: 208, reserved_credits: 208, attempts: 26, cycles: 26, scan_runs: 26, reservations: 26,
+      restarted_owner_read: true, wrong_owner_runs: 0, actual_provider_requests: 0,
+      production_actions: 0, publications: 0, broker_actions: 0, cleanup: "inert" });
+    expect(originalSlots(arm)).toEqual(originalSlots(cold));
+    expect(arm.slots.every((slot: { requests: number }) => slot.requests <= 8)).toBe(true);
+  }
+  const preparation = full.full_original_history_evidence;
+  expect(preparation).toMatchObject({ setup_requests: 95, setup_intraday_requests: 0, maximum_requests_in_modeled_minute: 8,
+    setup_credit_reservations: 0, setup_budget_scope: "modeled_request_cap_not_production_durable_reservation",
+    total_separate_synthetic_data_requests: 311,
+    normalized_preopen_guard: "completed_context_current_session_unavailable", product_policy_changed: false,
+    same_day_digest_identity_rejections: 3, next_day_basis_rejected: true, validation_provider_requests: 0,
+    provider_entitlement_proven: false, quality_improvement_claimed: false,
+    source_capacity: { complete_decisions: 22, first_eligible_original_decision: {
+      fingerprint: "rec_scan_run_r1l45", decision_at: "2026-10-01T14:30:20.000Z", original_population_count: 8,
+      status: "comparable", assessed_count: 8, unassessed_count: 0 } },
+    full_charter_evidence: { original_population_count: 176, canonical_outcome_count: 8, missing_outcome_count: 168,
+      operational_attempts: 26, reserved_scheduled_provider_credits: 208, disposition: "evidence_incomplete",
+      wrong_owner_learning: null, tampered_source_canonical_outcomes: 7, tampered_source_missing_outcomes: 169,
+      original_membership_stable: true, restored_charter_unchanged: true, negative_readback_provider_requests: 0,
+      trained_probability_model: null, terminal_quality_decision: null, quality_improvement_claimed: false } });
+  expect(preparation.original_slots).toEqual(originalSlots(cold));
+  expect(new Set(preparation.original_universe)).toEqual(new Set(cold.eligible_tickers));
+  expect(preparation.requests).toHaveLength(95);
+  expect(preparation.retained_daily_contexts).toHaveLength(95);
+  for (const request of preparation.requests) {
+    expect(request.interval).toBe("1day");
+    expect(Date.parse(request.requested_at)).toBeLessThan(Date.parse("2026-10-01T13:30:00.000Z"));
+    expect(preparation.requests.filter((row: { requested_at: string }) => row.requested_at === request.requested_at).length)
+      .toBeLessThanOrEqual(8);
+  }
+  // Completed history is never a current price, and a short closed range is
+  // never rescaled into the frozen hour. Original exclusions remain explicit.
+  expect(full.slots[0].fresh_members).toBe(0);
+  expect(full.prospective_enrollment_evidence.decisions.slice(0, 4).every((row: { status: string }) => row.status !== "comparable")).toBe(true);
+  expect(preparation.source_capacity.regular_horizon_eligible_decisions).toHaveLength(18);
+  const outcome = preparation.canonical_outcome_evidence;
+  expect(outcome).toMatchObject({ original_scan_run_fingerprint: "rec_scan_run_r1l45",
+    decision_timestamp: "2026-10-01T14:30:20.000Z", evaluation_anchor_start_at: "2026-10-01T14:35:00.000Z",
+    required_horizon_end_at: "2026-10-01T15:35:00.000Z", session_close: "2026-10-01T20:00:00.000Z",
+    available_regular_minutes: 325, separate_synthetic_outcome_requests: 8,
+    original_source_decisions: 26, physical_database_outcome_rows: 8, owner_read_outcome_rows: 8,
+    canonical_outcome_count: 8, missing_outcome_count: 0, disposition: "linked_complete",
+    population_complete: true, precision_delta: 0, original_membership_stable: true, quality_improvement_claimed: false });
+  expect(outcome.original_members.map((row: { ticker: string }) => row.ticker))
+    .toEqual(["MARA", "NVDA", "ADBE", "SOFI", "TSM", "SBUX", "GS", "GE"]);
+  expect(outcome.outcome_passes).toMatchObject([
+    { requests: 4, eligible_snapshot_count: 8, persistence_status: "success", physical_database_rows: 4 },
+    { requests: 4, eligible_snapshot_count: 4, persistence_status: "success", physical_database_rows: 8 },
+  ]);
+  expect(outcome.outcome_passes.flatMap((pass: { requested_tickers: string[] }) => pass.requested_tickers).sort())
+    .toEqual(outcome.original_members.map((row: { ticker: string }) => row.ticker).sort());
+  for (const row of outcome.persisted_coverage) expect(row).toMatchObject({ retained_candle_count: 12,
+    coverage: { expected_candle_count: 12, observed_candle_count: 12, freshness: "fresh", blockers: [],
+      evaluation_anchor_start_at: outcome.evaluation_anchor_start_at, required_horizon_end_at: outcome.required_horizon_end_at } });
+  expect(preparation.full_charter_evidence.missing_dimensions).toContain("held_out_complete_original_canonical_60m_outcomes_required");
+  expect(preparation.full_charter_evidence.missing_dimensions).toContain("held_out_durably_frozen_training_probability_model_required");
+});
+
 test("actual original complete input reaches full charter through canonical outcomes without granting quality authority", () => {
   test.setTimeout(120000);
   const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--benchmark-reuse", "--charter-composition"],
