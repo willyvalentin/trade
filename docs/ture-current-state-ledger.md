@@ -2,7 +2,7 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
-**Now / Next / Blocked — complete paged original outcome recovery:**
+**Completed local implementation / Next / Blocked — complete paged original outcome recovery:**
 Codex owns one CLOSED IF-4 vertical on `codex/original-outcome-pages-oct3`,
 following the completed local `a75e782f` and freshly verified GitHub main
 `55576078`. The same actual scheduler/SQL proof with twelve stored original
@@ -24,6 +24,55 @@ as-of, original plan and full eight-member learning denominator remain intact.
 No new schema, production request or ranking/publication change is selected.
 Then return to the full-original forward quality/release evidence; unchanged
 mandatory audit and PR #732 release blockers remain, not permission to bypass CI.
+
+Exact product revision `6c01a5d550b79efec51d28c7faa492acd9ec847f`
+completes this local `quality_measurement` delivery. All 118 locked serial
+checks pass (5.0m), including the actual capped scheduler/route/SQL/restarted
+learning path, original publication/input chain, baseline freeze and full-row
+stability, owner isolation, receipts, credits, governance and CI coverage.
+Normal exact Linux Next production build and nonincremental types pass;
+normal full lint passes with zero errors/eight existing warnings. Locked Linux
+dependencies are read-only; no install/build network or production credentials
+are mounted. Initial proof failures and test-boundary corrections are not
+recorded as passing evidence.
+
+The real isolated PostgREST cap remains ten during all three normal recovery
+slots and the restarted owner learning read. Twelve earlier original horizon
+rows survive unchanged; only the two deferred sources acquire synthetic candles,
+creating six rows, eighteen total. The separate first four-request pass and
+scanner/setup costs remain disclosed. Recovery finalizes one four-credit
+reservation and executes two synthetic provider requests; duplicate/concurrent
+delivery claims once and later completed slots acquire/reserve/rewrite nothing.
+The full eight-member decision population retains six canonical 60m outcomes
+and two missing members. Original horizons, late evaluation/record clocks and
+the earlier as-of four-outcome comparison survive; readiness stays `not_ready`,
+precision delta null and quality improvement unproven. A separately tested
+actual corrupt horizon stops before provider reservation/acquisition. Boundary
+controls reject missing/changed counts, empty tails, duplicate/cross-owner/
+cross-source identities, invalid clocks/decoders, timeout and row/page limits.
+
+Recovery is bounded to 10,000 rows/200 pages/five seconds and the existing
+seven-New-York-date source window; exceeding a bound makes the entire read
+unavailable rather than reducing a cohort. The baseline outcome-only cap opt-in
+keeps the original 10,000-row storage bound, repeated complete-row comparison
+and exact before/after counts. Other baseline source types remain strict;
+this is not a claim that every endpoint handles arbitrary response caps or
+that the live recovery read is an immutable charter witness. No ranking,
+publication, threshold, source ingestion, schema or broker change occurred.
+No production/provider request, push, PR update, merge or deploy occurred;
+this revision is local, not the current PR #732 head or production. Fresh remote
+main remains `55576078`; production deployment was not reverified here.
+The unchanged full audit still has five high findings and registry `braces`
+latest is still 3.0.3, so release remains held. Next is existing full-original
+forward quality/release evidence, not more generic scheduler controls or a
+competing ranking hypothesis. Logs:
+`/private/tmp/ture-original-outcome-pages-reproduction-oct3.log` (intentional
+pre-correction failure), `/private/tmp/ture-original-outcome-pages-chain-oct3.log`,
+`/private/tmp/ture-original-outcome-pages-locked-regression-oct3.log`,
+`/private/tmp/ture-original-outcome-pages-exact-types-oct3.log`,
+`/private/tmp/ture-original-outcome-pages-exact-lint-oct3.log`,
+`/private/tmp/ture-original-outcome-pages-exact-linux-build-oct3.log` and
+`/private/tmp/ture-original-outcome-pages-release-audit-oct3.json`.
 
 **Completed local implementation / Next / Blocked — original outcome continuation across New York dates:**
 Owner Codex selects one CLOSED IF-4 4–16 active-hour vertical on isolated
