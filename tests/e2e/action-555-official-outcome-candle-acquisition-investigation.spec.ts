@@ -10,6 +10,7 @@ import type {
   RecommendationOutcomePersistenceResult,
 } from "../../lib/recommendation-outcome-tracker";
 import { buildRecommendationSnapshot } from "../../lib/recommendation-snapshot";
+import { canonicalOutcomeProviderCoverageQuality } from "../../lib/recommendation-outcome-canonical-coverage";
 
 const routePath = "app/api/recommendations/evaluate-outcomes/route.ts";
 const scheduledFunctionPath = "netlify/functions/scheduled-outcome-evaluation.ts";
@@ -135,6 +136,29 @@ test("a target touched only by the post-horizon candle cannot resolve the origin
   expect(run.outcomes[0].status).toBe("neither_hit");
   expect(run.outcomes[0].target_hit).toBe(false);
   expect(run.outcomes[0].payload_json.retained_candle_count).toBe(12);
+});
+
+test("an extra off-grid target bar cannot qualify the original canonical horizon", async () => {
+  const snapshot = action555Snapshot();
+  const start = Date.parse("2026-07-20T16:50:00Z");
+  const complete = Array.from({ length: 12 }, (_, i) => ({
+    timestamp: new Date(start + i * 300000).toISOString(), open: snapshot.entry!,
+    high: snapshot.entry! + 1, low: snapshot.entry! - 1, close: snapshot.entry!, volume: 1000,
+  }));
+  // Every expected bar is present. The extra coherent bar is fully inside the
+  // elapsed horizon but is NOT a possible five-minute provider interval.
+  const offGrid = { ...complete[1], timestamp: new Date(start + 301000).toISOString(),
+    high: snapshot.target! + 1 };
+  const run = await runRecommendationOutcomeEvaluation({ snapshots: [snapshot], existingOutcomes: [],
+    horizons: ["60m"], now: "2026-07-20T18:05:00Z", maxCandleRequests: 1,
+    fetchCandles: async request => ({ request, candles: [...complete, offGrid], status: "available",
+      provider: "twelve_data", error: null, warnings: [] }), persistOutcome: async outcome => savedResult(outcome) });
+  const outcome = run.outcomes[0];
+  expect(run.candle_requests_executed).toBe(1);
+  expect(outcome.payload_json.retained_candle_count).toBe(13);
+  expect(canonicalOutcomeProviderCoverageQuality(outcome.payload_json.canonical_provider_coverage)).toBeLessThan(3);
+  expect(outcome.current_price).toBeNull();
+  expect(outcome.current_r).toBeNull();
 });
 
 test("missing, duplicated, unclosed and incoherent horizon candles never manufacture measured R", async () => {

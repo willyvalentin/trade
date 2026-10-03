@@ -13,7 +13,7 @@ export const LEGACY_CANONICAL_OUTCOME_PROVIDER_COVERAGE_RECEIPT_VERSION =
 // Acquisition policy only: retained v1/v2 receipts and immutable evaluation
 // capsules are not retroactively reinterpreted or rewritten.
 export const CANONICAL_OUTCOME_CANDLE_VALIDATION_POLICY_VERSION =
-  "positive_coherent_original_horizon_ohlc_v1" as const;
+  "positive_coherent_aligned_original_horizon_ohlc_v2" as const;
 
 type CandleRequest = {
   interval: "5min" | "15min";
@@ -183,7 +183,17 @@ export function buildCanonicalOutcomeProviderCoverageReceipt({
       continue;
     }
 
-    if (!expectedSlots.has(timestamp)) continue;
+    if (!expectedSlots.has(timestamp)) {
+      // A fully observed set of expected bars cannot legitimize an additional
+      // in-horizon bar: the evaluator would also use its target/stop range.
+      // Outside-horizon response bars retain their existing ignored semantics.
+      if (alignedStart && validEvaluationAnchor && requiredEnd !== null &&
+        timestamp >= start && timestamp < requiredEnd) {
+        malformedCandleCount += 1;
+        blockers.add("unexpected_candle_interval_observed");
+      }
+      continue;
+    }
     // Terminal target/stop labels need the same coherent prices as the horizon
     // mark. A finite but impossible OHLC bar is not an observed usable slot.
     if (!hasValidOhlc(candle)) {

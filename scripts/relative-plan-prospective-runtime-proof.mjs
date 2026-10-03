@@ -168,10 +168,14 @@ try {
     ["losing_negative_close",{low:originalSnapshot.stop-1,close:-1}],
     ["losing_close_below_low",{low:originalSnapshot.stop-1,close:originalSnapshot.stop-5}],
     ["losing_inverted_range",{high:originalSnapshot.stop-2,low:originalSnapshot.stop-1,close:originalSnapshot.stop}],
+    ["off_grid_target",{high:originalSnapshot.target+1}],
+    ["off_grid_stop",{low:originalSnapshot.stop-1}],
   ]) {
+    const offGrid=fault.startsWith("off_grid_");
     const candles=Array.from({length:12},(_,index)=>({timestamp:new Date(start+index*300000).toISOString(),
       open:originalSnapshot.entry,high:originalSnapshot.entry+0.1,low:originalSnapshot.entry-0.1,
-      close:originalSnapshot.entry,volume:1000,...(index===1?patch:{})}));
+      close:originalSnapshot.entry,volume:1000,...(index===1&&!offGrid?patch:{})}));
+    if(offGrid) candles.push({...candles[1],...patch,timestamp:new Date(start+301000).toISOString()});
     const acquired=await readers.runRecommendationOutcomeEvaluation({
       snapshots:[{...originalSnapshot,is_visible:true}],horizons:["60m"],now:new Date(start+3900000),
       maxCandleRequests:1,fetchCandles:async request=>{integritySyntheticRequests++;return {
@@ -184,9 +188,16 @@ try {
     for(const prior of originalOtherOutcomes) assert.deepEqual(physical.find(row=>row.id===prior.id),prior);
     const persisted=physical.find(row=>row.snapshot_fingerprint===originalSnapshot.snapshot_fingerprint);
     assert.equal(persisted.payload_json.canonical_provider_coverage.candle_validation_policy_version,
-      "positive_coherent_original_horizon_ohlc_v1");
+      "positive_coherent_aligned_original_horizon_ohlc_v2");
     assert.equal(persisted.payload_json.canonical_provider_coverage.malformed_candle_count,1);
     assert(persisted.payload_json.canonical_provider_coverage.blockers.includes("malformed_candle_observed"));
+    if(offGrid) {
+      assert.equal(persisted.payload_json.canonical_provider_coverage.observed_candle_count,12);
+      assert(persisted.payload_json.canonical_provider_coverage.blockers.includes("unexpected_candle_interval_observed"));
+      assert.equal(persisted.payload_json.retained_candle_count,13);
+      assert.equal(persisted.payload_json.current_price,null);assert.equal(persisted.payload_json.current_r,null);
+      assert.equal(persisted.status,fault==="off_grid_target"?"target_before_stop":"stop_before_target");
+    }
     const reread=await readers.createRelativePlanProspectiveService().read(owner,readAt);
     assert.equal(reread.status,"available");
     const retained=reread.learning.partitions[1];
@@ -207,7 +218,7 @@ try {
     integrityCases.push({fault,physical_status:persisted.status,original_population_count:4,
       canonical_outcome_count:3,missing_outcome_count:1,quality_improvement_claimed:false});
   }
-  assert.equal(integritySyntheticRequests,5);
+  assert.equal(integritySyntheticRequests,7);
   assert.equal((await readers.persistRecommendationOutcome(source.outcomes[0], { supabaseClient: client, server: true })).status, "saved");
   const complete = await readers.createRelativePlanProspectiveService().read(owner, readAt);
   const held = complete.learning.partitions[1];
@@ -346,7 +357,10 @@ try {
     persisted_late_training_label_excluded: true, persisted_future_forward_recording_retained_as_missing: true,
     durable_freeze_count: 2, restarted_exact_readback: true, idempotent_repeats: 7, concurrent_single_owner_freeze: true, retroactive_rejected: true,
     actual_source_persistence_and_restarted_learner: true, retained_original_population: 4,
-    malformed_ohlc_synthetic_requests:integritySyntheticRequests,malformed_ohlc_cases:integrityCases,
+    malformed_ohlc_synthetic_requests:integrityCases.filter(row=>!row.fault.startsWith("off_grid_")).length,
+    malformed_ohlc_cases:integrityCases.filter(row=>!row.fault.startsWith("off_grid_")),
+    off_grid_synthetic_requests:integrityCases.filter(row=>row.fault.startsWith("off_grid_")).length,
+    off_grid_cases:integrityCases.filter(row=>row.fault.startsWith("off_grid_")),
     persisted_malformed_terminal_labels_retained_as_missing:true,original_other_outcomes_unchanged:true,
     missing_outcome_progression: [4, 1, 0], mixed_canonical_outcomes: 4, baseline_precision_at_3: held.baseline.precision_at_3,
     challenger_precision_at_3: held.challenger.precision_at_3, full_charter_decision: "evidence_incomplete",

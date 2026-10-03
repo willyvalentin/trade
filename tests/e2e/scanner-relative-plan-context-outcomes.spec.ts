@@ -133,6 +133,39 @@ test("incoherent outcome candles cannot become canonical winning or losing learn
   }
 });
 
+test("extra off-grid target and stop bars remain missing canonical labels in the original population", async () => {
+  const input = await source();
+  const originalBytes = JSON.stringify(input);
+  const snapshot = input.snapshots[0];
+  const anchor = recommendationOutcomeEvaluationAnchorFromSnapshot(snapshot)!;
+  const start = Date.parse(anchor.evaluation_anchor_start_at);
+  for (const event of ["target", "stop"] as const) {
+    const complete = Array.from({ length: 12 }, (_, index) => ({
+      timestamp: new Date(start + index * 300000).toISOString(), open: 100,
+      high: 101, low: 99, close: 100, volume: 1000,
+    }));
+    const extra = { ...complete[1], timestamp: new Date(start + 301000).toISOString(),
+      ...(event === "target" ? { high: 109 } : { low: 95 }) };
+    const run = await runRecommendationOutcomeEvaluation({ snapshots: [{ ...snapshot, is_visible: true }],
+      horizons: ["60m"], now: new Date(start + 3900000), maxCandleRequests: 1,
+      fetchCandles: async request => ({ request, candles: [...complete, extra],
+        status: "available", provider: "twelve_data", error: null, warnings: [] }),
+      persistOutcome: async outcome => ({ status: "saved", mode: "supabase", outcome, error: null }),
+    });
+    expect(run.outcomes[0].payload_json.retained_candle_count).toBe(13);
+    const result = buildRelativePlanContextOutcomeComparison({ ...input,
+      outcomes: [run.outcomes[0], ...input.outcomes.slice(1)] });
+    expect(result.canonical_outcome_count, `${event}: ${JSON.stringify({
+      status: run.outcomes[0].status, target_hit: run.outcomes[0].target_hit, stop_hit: run.outcomes[0].stop_hit,
+      coverage: run.outcomes[0].payload_json.canonical_provider_coverage,
+    })}`).toBe(3);
+    expect(result).toMatchObject({ original_population_count: 4, missing_outcome_count: 1,
+      population_complete: false, precision_delta: null });
+    expect(result.candidates[0]).toMatchObject({ outcome_status: "missing", r_result: null, positive_outcome: null });
+    expect(JSON.stringify(input)).toBe(originalBytes);
+  }
+});
+
 test("neither-hit uses measured horizon R, while ambiguous intrabar order remains unresolved", async () => {
   const input = await source(false, "neither");
   const result = buildRelativePlanContextOutcomeComparison(input);

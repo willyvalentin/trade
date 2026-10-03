@@ -2,6 +2,52 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
+**Completed local review fix / Next — reject extra off-grid canonical labels, 2026-10-03:**
+Codex implements one bounded CLOSED IF-4 review correction within existing draft
+PR #732 on its isolated branch (4–8 active hours, no parallel ranker). The
+actual outcome runner with all twelve expected 5m bars plus one coherent
+off-grid bar records a target-first outcome and a fresh/full coverage receipt;
+the actual relative-plan canonical consumer admits it as a fourth resolved
+member. Before-fix logs are
+`/private/tmp/ture-off-grid-outcome-reproduction-oct3.log` and
+`/private/tmp/ture-off-grid-learning-reproduction-oct3.log`.
+New acquisition policy `positive_coherent_aligned_original_horizon_ohlc_v2`
+rejects unexpected interval starts inside the original anchored horizon. It
+retains raw diagnostics and the original member as missing, not a win/loss or
+removed denominator. Existing retained receipts/models/results are untouched.
+All expected slots can be present, but an additional in-horizon interval now
+adds `unexpected_candle_interval_observed` and malformed coverage; the new
+horizon mark/R remain null. Outside-horizon bars keep their existing semantics.
+
+Both target and stop cases pass actual acquisition → isolated SQL/PostgREST/SDK
+persistence → restarted original-population learning: twelve expected bars plus
+one extra remain physically retained; canonical labels stay three and missing
+members one of the unchanged original four. The other three outcome rows remain
+byte-identical. Standalone proof:
+`/private/tmp/ture-off-grid-persisted-learning-corrected-oct3.log`. Its first run
+stopped on a diagnostic assertion reading top-level price fields instead of the
+existing persisted `payload_json`; only the corrected terminal run is accepted.
+
+All 75 affected serial regressions pass (6.4m), including valid boundaries,
+subsecond/numeric/offset timestamp variants, unchanged historical receipt
+decoding, actual immutable full-charter SQL/SDK/HTTP consumption, owner isolation,
+canonical outcomes, committed training and prospective learning. Log:
+`/private/tmp/ture-off-grid-full-learning-regression-oct3.log`. The 34 earlier
+boundary checks overlap this suite and are not additive unique coverage.
+Nonincremental types and normal full lint pass (zero errors/eight existing
+warnings). All five active governance checks pass. A broader historical Action
+331 invocation has four failures on pre-existing Action 307 diagnostic artifacts;
+its verifier, artifacts and proxy are byte-unchanged from main `55576078`.
+It is not a passing 17-check suite and those historical gates were not weakened.
+
+This is `supporting_blocker_removal`, not verified recommendation-quality lift.
+Owner, budgets, original horizon, ranking and all charter gates are unchanged.
+Next: exact clean locked Linux build and focused review/update of the same draft,
+then stop this integrity interruption and return to release/forward acceptance.
+No production/provider/broker action, new experiment or schema is selected.
+CI remains attributable to committed `183e70d6`, not these local review changes;
+the mandatory high-severity dependency audit remains a separate release blocker.
+
 **Completed local review fix / Next — complete original-history cache read:**
 Within existing draft PR #732, Codex reproduces one IF-2b blocker in the
 same original-input → canonical-outcome → full-charter delivery. With a real
@@ -58,6 +104,28 @@ implemented/tested, not main- or production-behavior verified or quality-accepte
 Next: update/review the same draft and satisfy release requirements without
 bypass, then resume the frozen original forward quality acceptance. Stop this
 cache support interruption here; do not select another generic helper stream.
+
+**Bounded release triage — rejected dependency substitution, 2026-10-03:**
+Current authoritative draft #732 head is `183e70d6`; run `37131771484`
+is live on that exact revision. The preceding `b9a0a4bf` run was cancelled
+by normal same-PR concurrency after the coherent correction push, not proved
+passing. Fresh official advisory/registry reads still report no patched braces
+release; both stable Next plugin 16.3.8 and canary 16.4.0-canary.58 retain
+fast-glob 3.3.1 → micromatch → vulnerable braces. The npm suggestion to downgrade
+Next lint configuration is not accepted. A bounded local alternative-consumer
+proof rejects a raw tinyglobby 0.2.16 alias: with both implementations first
+loaded at the modeled CLI cwd, `apps/web` returns one root in the installed
+consumer but that root and three descendants in the replacement, with different
+path formatting. Official migration guidance confirms its different default
+directory expansion. First-loading the replacement before changing fixture cwd
+was an initial diagnostic setup defect, not the accepted compatibility result.
+Corrected negative log:
+`/private/tmp/ture-next-glob-compatibility-cwd-corrected-oct3.log`.
+No dependency, linter rule, audit policy, protected gate or product code was
+changed. Do not repeat a raw alias, forced downgrade or suppressed audit to
+manufacture a release pass. This is release-blocker triage, not new engine or
+quality acceptance; finish the live exact CI/review and retain the frozen
+original forward-evidence gate.
 
 **Completed local integration / Next / Blocked — original-input to full-charter chain:**
 Codex consolidates the completed IF-2b → IF-4 input-fitness, canonical outcome
