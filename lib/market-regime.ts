@@ -6,7 +6,7 @@ import {
   MarketDataProviderResponseError,
   type DailyCandle,
 } from "@/lib/market-data";
-import { captureCompletedDailyContext, type CompletedDailyContext } from "@/lib/scanner-completed-daily-context";
+import { captureCompletedDailyContext, readCompletedDailyContext, type CompletedDailyContext } from "@/lib/scanner-completed-daily-context";
 import { throwIfAborted } from "@/lib/operation-abort";
 
 export const COMPLETED_DAILY_MARKET_REGIME_INPUT_POLICY_VERSION =
@@ -36,6 +36,17 @@ export type MarketRegime = {
     evaluated_at: string;
     spy: CompletedDailyContext;
     qqq: CompletedDailyContext;
+    reuse?: {
+      policy_version: "completed_benchmark_reuse_allocation_v1";
+      source_scan_run_id: string;
+      source_scan_run_fingerprint: string;
+      source_decision_timestamp: string;
+      original_classified_at: string;
+      revalidated_at: string;
+      benchmark_provider_calls: 0;
+      scanner_provider_call_cap: 8;
+      whole_scan_provider_call_cap: 8;
+    };
   };
 };
 
@@ -143,6 +154,39 @@ function buildSummary(
   }
 
   return `Broad market conditions are mixed. Average SPY/QQQ 5-day change is ${averageFiveDayChange}%.`;
+}
+
+/** Replay both exact original histories at the new as-of instant. A cached
+ * summary, classification clock or derived MA alone never grants reuse. */
+export async function readCompletedMarketRegime(value: unknown, now: Date): Promise<MarketRegime | null> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const raw = value as Record<string, unknown>;
+  const input = raw.input_evidence as MarketRegime["input_evidence"] | undefined;
+  if (!input || input.policy_version !== COMPLETED_DAILY_MARKET_REGIME_INPUT_POLICY_VERSION ||
+    input.role !== "completed_historical_daily_only" || typeof input.evaluated_at !== "string" ||
+    !Number.isFinite(Date.parse(input.evaluated_at)) || Date.parse(input.evaluated_at) > now.getTime()) return null;
+  const [spyContext, qqqContext] = await Promise.all([
+    readCompletedDailyContext(input.spy, "SPY", now), readCompletedDailyContext(input.qqq, "QQQ", now),
+  ]);
+  if (!spyContext || !qqqContext ||
+    [spyContext, qqqContext].some(context => Date.parse(context.captured_at) > Date.parse(input.evaluated_at))) return null;
+  const spy = analyzeSymbol(spyContext.candles), qqq = analyzeSymbol(qqqContext.candles);
+  const regime = classifyRegime(spy, qqq);
+  const summary = `Completed daily history only; not a current benchmark quote. ${buildSummary(regime, spy, qqq)}`;
+  if (raw.regime !== regime || raw.summary !== summary ||
+    !["spy", "qqq"].every(symbol => {
+      const retained = raw[symbol];
+      const rebuilt = symbol === "spy" ? spy : qqq;
+      return retained !== null && typeof retained === "object" && !Array.isArray(retained) &&
+        Object.entries(rebuilt).every(([key, field]) => (retained as Record<string, unknown>)[key] === field);
+    })) return null;
+  // No recursive reuse history: preserve the original two capsules and clock,
+  // while the caller adds only the direct source-run binding for this decision.
+  return { regime, summary, spy, qqq, input_evidence: {
+    policy_version: COMPLETED_DAILY_MARKET_REGIME_INPUT_POLICY_VERSION,
+    role: "completed_historical_daily_only", evaluated_at: input.evaluated_at,
+    spy: spyContext, qqq: qqqContext,
+  } };
 }
 
 export async function getMarketRegime(options: {

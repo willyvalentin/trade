@@ -8,11 +8,19 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "nod
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { buildSync } from "esbuild";
+import { build, buildSync } from "esbuild";
 import { setTimeout as syntheticDelay } from "node:timers/promises";
 
 const root = process.cwd();
 const cold = process.argv.includes("--cold");
+const benchmarkReuse = process.argv.includes("--benchmark-reuse");
+const invalidBenchmarkReuse = process.argv.includes("--benchmark-reuse-invalid");
+const baselineBenchmarkReuse = process.argv.includes("--benchmark-reuse-baseline");
+// Branch ancestor with the exact verified predecessor tree 640df041; unlike
+// the original local cherry-pick source, this commit travels with this branch.
+const reuseBaselineRevision = "92374a300f986a4241ba41a1a35a83b5335caf2e";
+assert(!(invalidBenchmarkReuse && baselineBenchmarkReuse) &&
+  (!(invalidBenchmarkReuse || baselineBenchmarkReuse) || benchmarkReuse));
 const wrongPolicy = process.argv.includes("--wrong-policy");
 const diagnoseOutcomes = process.argv.includes("--diagnose-outcomes");
 const relativePlan60m = process.argv.includes("--relative-plan-60m");
@@ -49,6 +57,9 @@ assert(!zeroLatestVolume || cold && !wrongPolicy, "Zero-volume proof requires th
 const missingLatestVolume = process.argv.includes("--missing-latest-volume");
 assert(!missingLatestVolume || cold && !wrongPolicy && !zeroLatestVolume && !diagnoseOutcomes,
   "Missing-volume proof requires its own cold acquisition scenario");
+assert(!benchmarkReuse || !cold && !wrongPolicy && !opening && !closing && !diagnoseOutcomes &&
+  !publicationClock && !contextLatency && !staleBenchmark && !partialBenchmark && !zeroLatestVolume && !missingLatestVolume,
+  "Benchmark reuse is a separately frozen warm-history two-slot acquisition proof");
 const directory = mkdtempSync(join(tmpdir(), "ture-input-runtime-proof-"));
 const database = `ture-input-runtime-db-${process.pid}`;
 const api = `ture-input-runtime-api-${process.pid}`;
@@ -64,11 +75,13 @@ const originalFetch = globalThis.fetch;
 const originalLog = console.log;
 const originalEnvironment = { ...process.env };
 let externalRequests = 0;
+let externalBenchmarkRequests = 0;
 let syntheticPublicationCount = 0;
 let clock = 0;
 let durationStartedAt = null;
 let pendingSyntheticTransports = 0;
 let futureOutcomePlans = [];
+let benchmarkReuseEvidence = null;
 const fixtureNow = () => clock + (durationStartedAt === null ? 0 : Math.round(performance.now() - durationStartedAt));
 const logs = [];
 const docker = (...args) => execFileSync("docker", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
@@ -84,7 +97,15 @@ try {
   mkdirSync(join(directory, "functions"));
   writeFileSync(join(generated, "scheduled-scan-deployment-identity.json"), JSON.stringify(identity));
   const options = { bundle: true, platform: "node", format: "cjs", conditions: ["react-server"], alias: { "@": root }, logLevel: "silent" };
-  buildSync({ ...options, entryPoints: [resolve(root, "app/api/automation/run-scan/route.ts")], outfile: join(generated, "scheduled-scan-runtime.cjs") });
+  // Before/after comparison uses the exact original committed product modules
+  // in memory; neither product checkout nor fixtures/cohort are rewritten.
+  const baselinePlugin = { name: "frozen-original-benchmark-allocation", setup(builder) {
+    builder.onLoad({ filter: /\/lib\/(scanner|recommendation-generator|market-regime)\.ts$/ }, args => ({
+      contents: execFileSync("git", ["show", `${reuseBaselineRevision}:${args.path.slice(root.length + 1)}`], {cwd:root,encoding:"utf8"}),
+      loader:"ts", resolveDir:join(root,"lib") }));
+  } };
+  await build({ ...options, ...(baselineBenchmarkReuse ? {plugins:[baselinePlugin]} : {}),
+    entryPoints: [resolve(root, "app/api/automation/run-scan/route.ts")], outfile: join(generated, "scheduled-scan-runtime.cjs") });
   if (diagnoseOutcomes) buildSync({ ...options, entryPoints: [resolve(root, "app/api/recommendations/evaluate-outcomes/route.ts")], outfile: join(generated, "outcome-route.cjs") });
   buildSync({ ...options, entryPoints: [resolve(root, "netlify/functions/scheduled-scan.ts")], outfile: join(directory, "functions/scheduled.cjs") });
   buildSync({ ...options, stdin: {
@@ -97,6 +118,7 @@ try {
       export { buildScannerProviderCreditAllocationExecutionPlan } from './lib/scanner-provider-credit-allocation-plan';
       export { scannerUniverseTickers } from './lib/scanner-universe';
       export { scanMarket } from './lib/scanner';
+      export { readOwnedCompletedBenchmarkReuse, isValidCompletedBenchmarkReuse } from './lib/completed-benchmark-reuse';
       export { buildRealScannerBaseCandidateSelection } from './lib/real-scanner-candidate-generation';
       export { getUsEquityMarketSession } from './lib/us-equity-market-calendar';
       export { getIntradayScanWindow } from './lib/intraday-scan-window';
@@ -123,9 +145,9 @@ try {
     TURE_DISABLE_SCHEDULED_FUNCTIONS: "true", TURE_OBSERVATION_SERIES_ENABLED: "true",
     TURE_OBSERVATION_SERIES_DATE: contract.trading_date,
     TURE_OBSERVATION_SERIES_START_SLOT_UTC: slot,
-    TURE_OBSERVATION_SERIES_EXPIRES_AT_UTC: expiry,
-    TURE_OBSERVATION_SERIES_MAX_ATTEMPTS: "1",
-    TURE_OBSERVATION_SERIES_MAX_PROVIDER_CREDITS: "8",
+    TURE_OBSERVATION_SERIES_EXPIRES_AT_UTC: benchmarkReuse ? nextSlot : expiry,
+    TURE_OBSERVATION_SERIES_MAX_ATTEMPTS: benchmarkReuse ? "2" : "1",
+    TURE_OBSERVATION_SERIES_MAX_PROVIDER_CREDITS: benchmarkReuse ? "16" : "8",
     TURE_PROVIDER_CREDIT_ALLOCATION_EXPERIMENT_ENABLED: "false",
     TURE_SCANNER_INPUT_POLICY_VERSION: wrongPolicy ? "unknown_input_policy" : "completed_daily_intraday_input_v1",
     TURE_BASIC_FREE_CATALOG_OBSERVATION_ONE_SHOT_ENABLED: "false",
@@ -204,6 +226,7 @@ try {
     const url = new URL(typeof input === "string" || input instanceof URL ? input : input.url);
     if (url.origin === "https://api.twelvedata.com" && url.pathname === "/time_series") {
       externalRequests++;
+      if (["SPY", "QQQ"].includes(url.searchParams.get("symbol"))) externalBenchmarkRequests++;
       if(contextLatency) {
         pendingSyntheticTransports++;
         try { await syntheticDelay(
@@ -286,19 +309,25 @@ try {
   console.log = (...items) => logs.push(items);
   globalThis.Netlify = { env: { get: (name) => process.env[name] } };
   // Warm history is acquired by the actual scanner/SDK, not seeded JSON.
-  // Its sixteen synthetic requests are separate setup, never hidden in scan cost.
+  // Its sixteen (two-slot proof: thirty-two) synthetic requests are separate
+  // setup, never hidden in scan cost or treated as free historical coverage.
   clock=OriginalDate.parse("2026-10-01T17:00:00Z");
   let setupRequests=0;
   if(!cold && !wrongPolicy) {
     const selected=readers.buildRealScannerBaseCandidateSelection({scanWindow:readers.getIntradayScanWindow(new Date("2026-10-01T17:30:00Z")),requestedScanBudget:8,
       selectionMode:"scheduled_rotating",now:new OriginalDate("2026-10-01T17:30:00Z")}).candidates;
     assert.equal(selected.length,8);
-    for(const candidate of selected) await readers.scanMarket([candidate],{source:"scheduled",maxFreshProviderCalls:2,
+    const secondSelected=benchmarkReuse ? readers.buildRealScannerBaseCandidateSelection({scanWindow:readers.getIntradayScanWindow(new OriginalDate(expiry)),requestedScanBudget:8,
+      selectionMode:"scheduled_rotating",now:new OriginalDate(expiry)}).candidates : [];
+    if(benchmarkReuse) assert.equal(secondSelected.length,8);
+    const setupPopulation=[...new Map([...selected,...secondSelected].map(candidate=>[candidate.ticker,candidate])).values()];
+    for(const candidate of setupPopulation) await readers.scanMarket([candidate],{source:"scheduled",maxFreshProviderCalls:2,
       freshProviderCallPacingMs:0,completedDailyContextPolicyVersion:"completed_daily_intraday_input_v1"});
     setupRequests=externalRequests;
-    assert.equal(setupRequests,16);
+    assert.equal(setupRequests,setupPopulation.length*2);
   }
   externalRequests=0;
+  externalBenchmarkRequests=0;
   const scheduler = require(join(directory, "functions/scheduled.cjs")).default;
   clock = OriginalDate.parse(slot) + 20000;
   if(contextLatency) durationStartedAt = performance.now();
@@ -883,6 +912,92 @@ try {
     assert.equal(duplicate.status,204);
     assert.equal(externalRequests,8);
   }
+  if(benchmarkReuse) {
+    assert.equal(record.candidates.length,8); // The first complete original population is never replaced.
+    assert.equal(record.candidates.filter(candidate=>candidate.data.freshness==="fresh").length,6);
+    const originalRegime=scanRuns[0].payload_json.market_regime;
+    if(invalidBenchmarkReuse) sql(`update recommendation_scan_runs set payload_json=jsonb_set(payload_json,
+      '{market_regime,input_evidence,qqq,content_sha256}','"invalid-fixture-digest"') where id='${scanRuns[0].id}';`);
+    const firstRequests=externalRequests;
+    assert.equal(externalBenchmarkRequests,2);
+    clock=OriginalDate.parse(expiry)+20000;
+    externalRequests=0;
+    externalBenchmarkRequests=0;
+    const second=await scheduler(new Request("http://closed-scheduler",{method:"POST",body:JSON.stringify({next_run:nextSlot})}),
+      {deploy:{id:identity.deploy_id,context:"production",published:true}});
+    assert.equal(second.status,200,JSON.stringify({body:await second.json(),logs:logs.slice(-15)}).slice(-12000));
+    const allRuns=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_scan_runs t;"));
+    assert.equal(allRuns.length,2);
+    const secondRun=allRuns.find(run=>run.id!==scanRuns[0].id);
+    const secondDecision=readers.candidateDecisionRecordFromScanRun(secondRun);
+    assert(secondDecision && readers.decisionLineageReceiptFromScanRun(secondRun,secondDecision));
+    assert.equal(secondDecision.candidates.length,8);
+    for (const [source,decision,sourceSlot] of [[scanRuns[0],record,slot],[secondRun,secondDecision,expiry]]) {
+      const originalSelection=readers.buildRealScannerBaseCandidateSelection({
+        scanWindow:readers.getIntradayScanWindow(new OriginalDate(sourceSlot)),requestedScanBudget:8,
+        selectionMode:"scheduled_rotating",now:new OriginalDate(sourceSlot)}).candidates;
+      assert.deepEqual(decision.candidates.map(candidate=>candidate.ticker).sort(),
+        originalSelection.map(candidate=>candidate.ticker).sort());
+      assert(OriginalDate.parse(source.observed_at)<=OriginalDate.parse(decision.decision_timestamp));
+      assert(OriginalDate.parse(decision.decision_timestamp)<=OriginalDate.parse(source.completed_at));
+    }
+    const expectReuse=!invalidBenchmarkReuse && !baselineBenchmarkReuse;
+    const fresh=secondDecision.candidates.filter(candidate=>candidate.data.freshness==="fresh").length;
+    assert.equal(fresh,expectReuse?8:6,JSON.stringify({
+      selected:secondDecision.candidates.map(candidate=>({ticker:candidate.ticker,freshness:candidate.data.freshness,
+        daily:candidate.data.input_snapshot?.historical_context?.captured_at,
+        current:candidate.data.input_snapshot?.current_session?.latest_bar_started_at,gaps:candidate.data.gap_codes})),
+      trace:logs.filter(items=>JSON.stringify(items).includes("fresh_call_admission")),
+    }).slice(-6000));
+    assert.equal(externalRequests,8);
+    assert.equal(externalBenchmarkRequests,expectReuse?0:2);
+    const retained=secondRun.payload_json.market_regime.input_evidence;
+    if(expectReuse) {
+      assert.equal(retained.reuse.source_scan_run_id,scanRuns[0].id);
+      assert.equal(retained.reuse.source_scan_run_fingerprint,scanRuns[0].run_fingerprint);
+      assert.equal(retained.reuse.original_classified_at,originalRegime.input_evidence.evaluated_at);
+      assert.equal(retained.reuse.scanner_provider_call_cap,8);
+      assert.equal(retained.reuse.benchmark_provider_calls,0);
+      assert.deepEqual(retained.spy,originalRegime.input_evidence.spy);
+      assert.deepEqual(retained.qqq,originalRegime.input_evidence.qqq);
+    } else assert.equal(retained.reuse,undefined);
+    const allClaims=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from basic_free_discovery_credit_reservations t;"));
+    assert.equal(allClaims.length,2);
+    assert(allClaims.every(claim=>claim.requested_credits===8 && claim.status==="completed" && claim.finalized_at));
+    const allAttempts=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from scheduled_scan_attempts t;"));
+    const allCycles=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from observation_cycle_receipts t;"));
+    assert.equal(allAttempts.length,2);
+    assert.equal(allCycles.length,2);
+    assert(allCycles.every(cycle=>cycle.cycle_status==="completed"));
+    const cycleReadback=readers.buildObservationCycleReadback(allCycles);
+    assert.equal(cycleReadback.status,"available"); assert.equal(cycleReadback.invalid_row_count,0);
+    delete require.cache[require.resolve(join(generated,"reader.cjs"))];
+    const restarted=require(join(generated,"reader.cjs"));
+    const owned=await restarted.readRecommendationLearningBaselineSource(owner);
+    const source=restarted.parseRecommendationLearningBaselineSource(owned.data);
+    assert(source && source.scanRuns.length===2);
+    assert.deepEqual(source.scanRuns.find(run=>run.id===secondRun.id).payload_json.market_regime.input_evidence,retained);
+    const latestOwned=owned.data.recommendation_scan_runs.find(run=>run.id===secondRun.id);
+    const restartedReuse=await restarted.readOwnedCompletedBenchmarkReuse({row:latestOwned,owner,now:new OriginalDate(clock)});
+    assert(restartedReuse && await restarted.isValidCompletedBenchmarkReuse(restartedReuse,new OriginalDate(clock)),
+      JSON.stringify({data_mode:latestOwned?.data_mode,status:latestOwned?.status,owner:latestOwned?.owner_user_id,
+        input_policy:secondDecision.versions.input_policy_version,observed_at:latestOwned?.observed_at,
+        completed_at:latestOwned?.completed_at,decision_timestamp:secondDecision.decision_timestamp}));
+    assert.equal(await restarted.isValidCompletedBenchmarkReuse(structuredClone(restartedReuse),new OriginalDate(clock)),false);
+    assert.deepEqual(restartedReuse.market_regime.input_evidence.spy,retained.spy);
+    assert.deepEqual(restartedReuse.market_regime.input_evidence.qqq,retained.qqq);
+    const other=await restarted.readRecommendationLearningBaselineSource("00000000-0000-4000-8000-000000000002");
+    assert.equal(other.data.recommendation_scan_runs.length,0);
+    const secondDuplicate=await scheduler(new Request("http://closed-scheduler",{method:"POST",body:JSON.stringify({next_run:nextSlot})}),
+      {deploy:{id:identity.deploy_id,context:"production",published:true}});
+    assert.equal(secondDuplicate.status,204); assert.equal(externalRequests,8);
+    benchmarkReuseEvidence={mode:baselineBenchmarkReuse?"original_committed_baseline":invalidBenchmarkReuse?"invalid_original_falls_back":"validated_owner_reuse",
+      baseline_revision:reuseBaselineRevision,first_scan_requests:firstRequests,second_scan_requests:externalRequests,
+      first_fresh_inputs:6,second_fresh_inputs:fresh,original_members_per_decision:8,
+      attempts:allAttempts.length,cycles:allCycles.length,reservations:allClaims.length,
+      reserved_credits:allClaims.reduce((sum,claim)=>sum+claim.requested_credits,0),benchmark_calls_second:externalBenchmarkRequests,
+      original_source_clocks_unchanged:expectReuse,restarted_owner_read:true,wrong_owner_runs:0};
+  }
   assert.equal(Number(sql("select count(*) from recommendations;")),syntheticPublicationCount);
   assert.equal(Number(sql("select count(*) from positions;")),0);
   // Disable/expiry are exercised by the real scheduled entrypoint, not a mock.
@@ -891,14 +1006,18 @@ try {
   const cleanup=await scheduler(new Request("http://closed-scheduler",{method:"POST",
     body:JSON.stringify({next_run:nextSlot})}),{deploy:{id:identity.deploy_id,context:"production",published:true}});
   assert.equal(cleanup.status,204);
-  assert.equal(Number(sql("select count(*) from scheduled_scan_attempts;")),1);
+  assert.equal(Number(sql("select count(*) from scheduled_scan_attempts;")),benchmarkReuse?2:1);
   assert.equal(Number(sql("select count(*) from recommendations;")),syntheticPublicationCount);
   originalLog(JSON.stringify({evidence_mode:"synthetic_closed_packaged_input_runtime_actual_source_schema",
-    scenario:closing?"closing_research_only":wrongPolicy?"invalid_policy":opening?"opening_cold_history":cold?"cold_history":"warm_history_restart",
+    scenario:benchmarkReuse?"retained_benchmark_two_slot":closing?"closing_research_only":wrongPolicy?"invalid_policy":opening?"opening_cold_history":cold?"cold_history":"warm_history_restart",
     ...(closing?{late_publication_withheld:true,original_research_sources:researchSnapshots.length}:{}),
-    setup_synthetic_requests:setupRequests,scheduled_synthetic_requests:externalRequests,
-    attempts:rows.length,cycles:receipts.length,claims:claims.length,decision_version:record?.record_version,
-    fresh_inputs:record?.candidates.filter(c=>c.data.freshness==="fresh").length,
+    setup_synthetic_requests:setupRequests,scheduled_synthetic_requests:benchmarkReuse?
+      benchmarkReuseEvidence.first_scan_requests+benchmarkReuseEvidence.second_scan_requests:externalRequests,
+    ...(benchmarkReuse ? {benchmark_reuse_evidence:benchmarkReuseEvidence} : {}),
+    attempts:benchmarkReuse?benchmarkReuseEvidence.attempts:rows.length,
+    cycles:benchmarkReuse?benchmarkReuseEvidence.cycles:receipts.length,
+    claims:benchmarkReuse?benchmarkReuseEvidence.reservations:claims.length,decision_version:record?.record_version,
+    fresh_inputs:benchmarkReuse?benchmarkReuseEvidence.second_fresh_inputs:record?.candidates.filter(c=>c.data.freshness==="fresh").length,
     ...(diagnoseOutcomes ? {outcome_chain_evidence:outcomeChainEvidence,outcome_chain_diagnostic:{learning_acceleration_enabled:true,
       candidate_population:record?.candidates.length,
       research_snapshot_count:researchSnapshots.length,

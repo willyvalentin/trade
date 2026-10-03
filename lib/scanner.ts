@@ -45,6 +45,7 @@ import { buildScannerProviderCreditAllocationShadow } from "@/lib/scanner-provid
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 import type { TwelveDataResponseIdentity } from "@/lib/twelve-data-response-identity";
 import { COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION } from "@/lib/scanner-decision-input-snapshot";
+import { isValidCompletedBenchmarkReuse, type CompletedBenchmarkReuse } from "@/lib/completed-benchmark-reuse";
 export { COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION } from "@/lib/scanner-decision-input-snapshot";
 
 export type ScannerCandidate = {
@@ -173,6 +174,7 @@ export type ScanMarketOptions = {
   // Explicit caller selection only. No environment flag or deployed caller
   // activates this challenger; legacy/frozen policies remain the default.
   completedDailyContextPolicyVersion?: typeof COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION;
+  completedBenchmarkReuse?: CompletedBenchmarkReuse;
 };
 
 const CACHE_TTL_MS = 45 * 60 * 1000;
@@ -701,6 +703,10 @@ async function scanMarketCore(
     (!Number.isSafeInteger(options.maxFreshProviderCalls) || options.maxFreshProviderCalls < 0)) {
     throw new Error("completed_context_credit_cap_invalid");
   }
+  if (options.completedBenchmarkReuse && (!completedContextMode || options.source !== "scheduled" ||
+    !(await isValidCompletedBenchmarkReuse(options.completedBenchmarkReuse, new Date())))) {
+    throw new Error("completed_benchmark_reuse_allocation_invalid");
+  }
   if (completedContextMode) {
     const session = getUsEquityMarketSession(new Date());
     if (session.verification_status !== "verified" || session.freshness_status !== "current" ||
@@ -774,7 +780,7 @@ async function scanMarketCore(
     return [];
   }
   const maxFreshProviderCalls = completedContextMode
-    ? Math.min(options.source === "scheduled" ? SCHEDULED_MAX_FRESH_PROVIDER_CALLS : MANUAL_MAX_FRESH_PROVIDER_CALLS, getMaxFreshProviderCalls(options))
+    ? Math.min(options.completedBenchmarkReuse ? 8 : options.source === "scheduled" ? SCHEDULED_MAX_FRESH_PROVIDER_CALLS : MANUAL_MAX_FRESH_PROVIDER_CALLS, getMaxFreshProviderCalls(options))
     : getMaxFreshProviderCalls(options);
   const freshProviderCallPacingMs = getFreshProviderCallPacingMs(options);
   options.activeScanTrace?.updateMarketDataFetch({

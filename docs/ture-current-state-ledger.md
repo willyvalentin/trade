@@ -2,6 +2,66 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-03, recommendation intelligence first
 
+**Primary IF-2b full-population acquisition — selected 2026-10-03 04:24Z:**
+Codex starts the bounded four-active-hour investigation / twelve-active-hour
+vertical in isolated `codex/retained-benchmark-allocation-oct3`, from verified
+main `55576078` plus the locally verified benchmark-input predecessor. Existing
+code has both a fixed six-plus-two split and a separate scanner six-call cap;
+warm completed daily stock history therefore yields only six fresh members.
+The selected correction revalidates both same-New-York-day, owner-bound original
+SPY/QQQ capsules from the existing last-run read before acquisition. Only an
+exact decision/lineage binding and recomputed original classification can free
+the two benchmark calls for the scanner, still within the whole eight-credit
+reservation. No global cache, new query stream, schema or provider is selected.
+Keep all eight population identities and every missing input visible. Cold or
+unavailable/tampered/prior-day evidence retains the six-plus-two allocation;
+unavailable current data is not an evaluated no_trade. No publication/ranking
+threshold, original plan, live flag or observation is changed.
+
+Acceptance: actual packaged scheduler/route/provider-boundary/isolated SQL/SDK
+and restarted owner read retain two distinct original decisions, source reuse
+identity, unchanged original source clocks and all-eight fresh input coverage
+with at most eight requests per reserved scan. Account for all prior warm/setup
+requests separately, not as free data. Negative source/owner/day/digest/clock,
+timeout/abort and forged-allocation checks must fail closed or retain the
+bounded original allocation without exceeding the whole budget. This is data
+fitness, not alpha. Integrate after PR #732 and its verified benchmark-input
+predecessor; the security/CI-release blocker is separate. Only this primary
+development slice is selected, and production remains inert.
+
+**Local acquisition behavior — 2026-10-03 04:40Z:** the actual packaged
+scheduler, route, real provider adapters, Supabase SDK, isolated PostgreSQL /
+PostgREST and restarted owner reader now compare two original rotating slots
+against the exact committed predecessor. Baseline ancestor
+`92374a300f986a4241ba41a1a35a83b5335caf2e` has the same complete tree
+`640df041b8780b73868204c9c9450b3df2cf7f93` as verified predecessor `3f7cdc6f`;
+it travels with this branch. When integrating after that predecessor, retain a
+reachable immutable baseline revision rather than losing it in a squash.
+Both baseline slots produce six fresh original members; valid same-day
+benchmark reuse produces six then eight. Each scan still issues exactly eight
+synthetic requests and finalizes its own eight-credit reservation. The two
+actual cycle receipts complete, original eight identities per rotating slot,
+decision/lineage and source clocks survive persistence, and restarted readback
+revalidates the original capsules. Wrong-owner read exposes zero runs. A
+tampered original digest issues two benchmark calls and six stock calls again;
+forged serialized admission, wrong source mode, failed/stale source, missing
+normalized-input version, bad owner/clock/day/classification and cancellation
+cannot grant the extra two scanner calls. This is historical-context reuse,
+not current-price cache freshness or a new confidence/ranking policy.
+
+The fixture acquires history for the union of the two rotating populations
+before either scan: **32 separate synthetic setup requests**, then 16 requests
+across the two eight-credit scans. This is not an eight-credit cold bootstrap
+or proof that the entire real market is observed. Cold stock history remains
+limited to three complete members; missing members are not removed. All four
+new component/native baseline/reuse/corruption checks pass locally. The existing
+48 component, transport, timeout/draining, history, budget and CI-registration
+checks passed before final source admission review; exact final combined
+verification and ordinary Linux build are still pending. That review caught
+and corrected a local schema mismatch: source is not a database column, so
+admission reads the existing `data_mode` and status. No migration, extra query,
+provider request, production change, quality lift, PR or merge is claimed.
+
 **Primary IF-2b benchmark input fitness — 2026-10-03 04:13Z:** Codex's
 bounded investigation reproduces stale benchmark acceptance through the actual
 daily parser/classifier, then implements the selected correction on isolated

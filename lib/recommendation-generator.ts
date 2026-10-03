@@ -134,6 +134,7 @@ import {
   type ReferenceRefreshDiagnostics,
 } from "@/lib/reference-refresh-diagnostics";
 import { normalizeApplicationOwnerUserId } from "@/lib/application-session-core";
+import { readOwnedCompletedBenchmarkReuse } from "@/lib/completed-benchmark-reuse";
 import {
   resolveScheduledScannerProviderCallCap,
   SCHEDULED_REFERENCE_REFRESH_DEFAULT_MAX_ATTEMPTS,
@@ -3359,7 +3360,7 @@ export async function generateRecommendations({
         db.from("positions").select("ticker,status").eq("owner_user_id", owner),
         db
           .from("recommendation_scan_runs")
-          .select("observed_at,payload_json")
+          .select("id,owner_user_id,run_fingerprint,trading_date,window,status,data_mode,observed_at,completed_at,payload_json")
           .eq("owner_user_id", owner)
           .order("observed_at", { ascending: false })
           .limit(1)
@@ -3631,7 +3632,13 @@ export async function generateRecommendations({
           : null,
     });
 
-    const scannerFreshProviderCallCap = diagnosticMode
+    // Existing owner-bound last-run read, never a new global cache or a provider
+    // request. Freed credits are available only before any acquisition starts.
+    const completedBenchmarkReuse = inputAttributed && !latestMarketWideDiscoveryResult.error
+      ? await readOwnedCompletedBenchmarkReuse({ row: latestMarketWideDiscoveryResult.data,
+          owner, now: new Date(), signal }) : null;
+    throwIfAborted(signal);
+    const scannerFreshProviderCallCap = completedBenchmarkReuse ? 8 : diagnosticMode
       ? Math.min(1, scannerBaseCandidates.length)
       : source === "scheduled"
         ? resolveScheduledScannerProviderCallCap({
@@ -3653,6 +3660,7 @@ export async function generateRecommendations({
     const loadMarketRegime = async () => {
       try {
         throwIfAborted(signal);
+        if (completedBenchmarkReuse) return completedBenchmarkReuse.market_regime;
         return await getMarketRegime({ signal: contextSignal,
           ...(inputAttributed ? { inputPolicyVersion: COMPLETED_DAILY_MARKET_REGIME_INPUT_POLICY_VERSION } : {}) });
       } catch (error) {
@@ -3679,6 +3687,7 @@ export async function generateRecommendations({
             : undefined,
         providerCreditAllocationRuntimeAdmission,
         completedDailyContextPolicyVersion: scannerInputPolicyVersion,
+        ...(completedBenchmarkReuse ? { completedBenchmarkReuse } : {}),
         signal,
       },
     ).then(candidates => {
