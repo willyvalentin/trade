@@ -21,8 +21,19 @@ before-test failed on denied Docker socket access, not an engine defect; its
 log is preserved separately. Ten pure admission/planning tests, scoped lint
 and strict nonincremental types pass. This verifies the narrow intended
 intervention, not the frozen whole-session acceptance or recommendation quality.
-Retain the exact rejected arm, restore selected product `f9640dcb`, and verify
-the full retained comparison before selecting more work.
+Exact rejected arm `4b41d066953b7b23cf582b43f0c50a9222355e64` is retained locally.
+Selected application/dependency/configuration bytes are restored exactly to
+`f9640dcb`. Archived guard tests now load its committed implementation rather
+than importing it into the product. The serial 42-check final suite, including
+all seven full-session arms and actual CI-registration tests, passes all 42
+checks in 6.5 minutes; log `/private/tmp/ture-omitted-pair-retained-final-oct3.log`.
+Final standard lint passes with zero errors/eight existing warnings and strict
+nonincremental types pass. Owned proof containers are gone; unrelated local
+Supabase containers remain untouched. The verified unchanged-product Linux build
+remains reusable, not a
+build or release approval of the rejected guard. No push/merge/deploy/migration
+or other external write occurred. Read-only GitHub verification at 06:28Z keeps
+main `55576078` and draft PR #732 at unchanged blocked head `bf457f45`.
 
 Stop this allocation-heuristic series; do not tune guard count, tie offset,
 ticker membership or thresholds against the fixture. Resume the selected

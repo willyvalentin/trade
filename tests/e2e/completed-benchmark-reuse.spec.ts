@@ -180,9 +180,9 @@ for (const mode of ["baseline", "minimum_requests_first", "regular_session_reuse
   });
 }
 
-test("otherwise omitted first pair is acquired without dropping an original decision member", () => {
+test("retained rejected first-pair guard changes acquisition without dropping a decision member", () => {
   test.setTimeout(90000);
-  const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--rotation-day", "--cold"],
+  const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--rotation-day", "--cold", "--omitted-pair-baseline"],
     { cwd: process.cwd(), encoding: "utf8", timeout: 80000 });
   expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
   const evidence = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
@@ -213,9 +213,9 @@ test("retained rejected opening allocator spends no intraday credit before a fiv
 
 test("full-session historical reuse improves breadth while retaining rejected allocation baselines", () => {
   test.setTimeout(420000);
-  const evidence = ["baseline", "minimum", "guard", "fair", "regular", "first_closed_bar"].map(mode => {
+  const evidence = ["baseline", "minimum", "guard", "fair", "regular", "first_closed_bar", "omitted_pair"].map(mode => {
     const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--rotation-day", "--cold",
-      ...(mode === "baseline" ? ["--acquisition-baseline"] : mode === "minimum" ? ["--minimum-order-baseline"] : mode === "guard" ? ["--first-observation-baseline"] : mode === "fair" ? ["--fair-order-baseline"] : mode === "regular" ? ["--regular-session-baseline"] : ["--first-closed-bar-baseline"])], { cwd: process.cwd(), encoding: "utf8", timeout: 180000 });
+      ...(mode === "baseline" ? ["--acquisition-baseline"] : mode === "minimum" ? ["--minimum-order-baseline"] : mode === "guard" ? ["--first-observation-baseline"] : mode === "fair" ? ["--fair-order-baseline"] : mode === "regular" ? ["--regular-session-baseline"] : mode === "omitted_pair" ? ["--omitted-pair-baseline"] : ["--first-closed-bar-baseline"])], { cwd: process.cwd(), encoding: "utf8", timeout: 180000 });
     expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
     return JSON.parse(result.stdout.trim().split("\n").at(-1)!);
   });
@@ -226,7 +226,7 @@ test("full-session historical reuse improves breadth while retaining rejected al
       selected_unique_tickers: 95,
       unselected_eligible_tickers: [], restarted_owner_read: true, wrong_owner_runs: 0,
       actual_provider_requests: 0, production_actions: 0, publications: 0, broker_actions: 0, cleanup: "inert" });
-    expect(arm.synthetic_benchmark_requests).toBe(["original_order_regular_session_reuse", "original_order_first_closed_bar"].includes(arm.acquisition_mode) ? 2 : 20);
+    expect(arm.synthetic_benchmark_requests).toBe(["original_order_regular_session_reuse", "original_order_first_closed_bar", "otherwise_omitted_first_pair_guard"].includes(arm.acquisition_mode) ? 2 : 20);
     expect(arm.slots).toHaveLength(26);
     expect(arm.ticker_coverage).toHaveLength(95);
     for (const [index, slot] of arm.slots.entries()) {
@@ -238,7 +238,7 @@ test("full-session historical reuse improves breadth while retaining rejected al
     expect(arm.slots.slice(-2).map((slot: { no_trade_reason: string }) => slot.no_trade_reason))
       .toEqual(["power_hour_publication_withheld", "power_hour_publication_withheld"]);
   }
-  const [baseline, minimum, guard, fair, regular, firstClosedBar] = evidence;
+  const [baseline, minimum, guard, fair, regular, firstClosedBar, omittedPair] = evidence;
   for (const [index, slot] of baseline.slots.entries()) {
     expect(minimum.slots[index].members.map((member: { ticker: string }) => member.ticker))
       .toEqual(slot.members.map((member: { ticker: string }) => member.ticker));
@@ -249,6 +249,8 @@ test("full-session historical reuse improves breadth while retaining rejected al
     expect(regular.slots[index].members.map((member: { ticker: string }) => member.ticker))
       .toEqual(slot.members.map((member: { ticker: string }) => member.ticker));
     expect(firstClosedBar.slots[index].members.map((member: { ticker: string }) => member.ticker))
+      .toEqual(slot.members.map((member: { ticker: string }) => member.ticker));
+    expect(omittedPair.slots[index].members.map((member: { ticker: string }) => member.ticker))
       .toEqual(slot.members.map((member: { ticker: string }) => member.ticker));
     const plan = fair.slots[index].acquisition;
     const offset = Math.floor(Date.parse(slot.slot) / 900000) % 8;
@@ -300,4 +302,12 @@ test("full-session historical reuse improves breadth while retaining rejected al
       if (request.interval === "5min") expect(Date.parse(request.requested_at)).toBeGreaterThanOrEqual(Date.parse("2026-10-01T13:35:00Z"));
     }
   }
+  // More distinct inputs still fail the frozen non-regression contract.
+  expect(omittedPair).toMatchObject({ ever_complete_tickers: 80, fresh_member_observations: 122 });
+  expect(omittedPair.ever_complete_tickers).toBeGreaterThan(regular.ever_complete_tickers);
+  expect(omittedPair.fresh_member_observations >= regular.fresh_member_observations).toBe(false);
+  const guardedComplete = omittedPair.ticker_coverage.filter((member: { fresh: number }) => member.fresh > 0)
+    .map((member: { ticker: string }) => member.ticker);
+  expect(originalComplete.filter((ticker: string) => !guardedComplete.includes(ticker)))
+    .toEqual(["AMAT", "AVGO", "BA", "DDOG", "GOOGL", "NFLX", "RDDT", "SBUX"]);
 });

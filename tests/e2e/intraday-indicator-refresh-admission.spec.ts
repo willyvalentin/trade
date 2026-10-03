@@ -7,7 +7,22 @@ import {
   resolveIntradayIndicatorRefreshAdmission,
 } from "@/lib/intraday-indicator-refresh-admission";
 import { CANDIDATE_DECISION_SCANNER_VERSION } from "@/lib/candidate-decision-record";
-import { planOtherwiseOmittedFirstPair } from "@/lib/intraday-indicator-refresh-admission";
+import { execFileSync } from "node:child_process";
+import { buildSync } from "esbuild";
+import { createRequire } from "node:module";
+
+// Rejected acquisition code is retained by exact revision, not product import.
+const archived = buildSync({ stdin: { contents: execFileSync("git", ["show",
+  "4b41d066953b7b23cf582b43f0c50a9222355e64:lib/intraday-indicator-refresh-admission.ts"],
+  { cwd: process.cwd(), encoding: "utf8" }), loader: "ts", resolveDir: resolve(process.cwd(), "lib") },
+  bundle: true, write: false, platform: "node", format: "cjs" });
+const loaded = { exports: {} };
+new Function("require", "module", "exports", archived.outputFiles[0].text)(
+  createRequire(resolve(process.cwd(), "package.json")), loaded, loaded.exports);
+const { planOtherwiseOmittedFirstPair } = loaded.exports as {
+  planOtherwiseOmittedFirstPair: (members: readonly { ticker_index: number; estimated_requests: number;
+    previously_acquired: boolean }[], cap: number, currentBarPossible: boolean) => unknown;
+};
 
 test("first-pair guard protects one genuinely omitted member instead of an already admitted unseen member", () => {
   const members = Array.from({ length: 8 }, (_, ticker_index) => ({ ticker_index,

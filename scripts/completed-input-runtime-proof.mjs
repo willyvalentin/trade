@@ -31,6 +31,9 @@ assert(!regularSessionBaseline || rotationDay && !acquisitionBaseline && !minimu
 const firstClosedBarBaseline = process.argv.includes("--first-closed-bar-baseline");
 const firstClosedBarBaselineRevision = "3007a456af1584d3e0ed7c09f5ae600fa46124ed";
 assert(!firstClosedBarBaseline || rotationDay && !regularSessionBaseline && !acquisitionBaseline && !minimumOrderBaseline && !firstObservationBaseline && !fairOrderBaseline);
+const omittedPairBaseline = process.argv.includes("--omitted-pair-baseline");
+const omittedPairBaselineRevision = "4b41d066953b7b23cf582b43f0c50a9222355e64";
+assert(!omittedPairBaseline || rotationDay && !firstClosedBarBaseline && !regularSessionBaseline && !acquisitionBaseline && !minimumOrderBaseline && !firstObservationBaseline && !fairOrderBaseline);
 assert(!mixedHistory || benchmarkReuse && !cold);
 assert(!acquisitionBaseline || mixedHistory || rotationDay);
 assert(!minimumOrderBaseline || (mixedHistory || rotationDay) && !acquisitionBaseline);
@@ -129,10 +132,10 @@ try {
   // in memory; neither product checkout nor fixtures/cohort are rewritten.
   const baselinePlugin = { name: "frozen-original-benchmark-allocation", setup(builder) {
     builder.onLoad({ filter: /\/lib\/(scanner|recommendation-generator|market-regime|completed-benchmark-reuse|intraday-indicator-refresh-admission)\.ts$/ }, args => ({
-      contents: execFileSync("git", ["show", `${firstClosedBarBaseline ? firstClosedBarBaselineRevision : regularSessionBaseline ? regularSessionBaselineRevision : fairOrderBaseline ? fairOrderBaselineRevision : firstObservationBaseline ? firstObservationBaselineRevision : minimumOrderBaseline ? minimumOrderBaselineRevision : acquisitionBaseline ? acquisitionBaselineRevision : reuseBaselineRevision}:${args.path.slice(root.length + 1)}`], {cwd:root,encoding:"utf8"}),
+      contents: execFileSync("git", ["show", `${omittedPairBaseline ? omittedPairBaselineRevision : firstClosedBarBaseline ? firstClosedBarBaselineRevision : regularSessionBaseline ? regularSessionBaselineRevision : fairOrderBaseline ? fairOrderBaselineRevision : firstObservationBaseline ? firstObservationBaselineRevision : minimumOrderBaseline ? minimumOrderBaselineRevision : acquisitionBaseline ? acquisitionBaselineRevision : reuseBaselineRevision}:${args.path.slice(root.length + 1)}`], {cwd:root,encoding:"utf8"}),
       loader:"ts", resolveDir:join(root,"lib") }));
   } };
-  await build({ ...options, ...(baselineBenchmarkReuse || acquisitionBaseline || minimumOrderBaseline || firstObservationBaseline || fairOrderBaseline || regularSessionBaseline || firstClosedBarBaseline ? {plugins:[baselinePlugin]} : {}),
+  await build({ ...options, ...(baselineBenchmarkReuse || acquisitionBaseline || minimumOrderBaseline || firstObservationBaseline || fairOrderBaseline || regularSessionBaseline || firstClosedBarBaseline || omittedPairBaseline ? {plugins:[baselinePlugin]} : {}),
     entryPoints: [resolve(root, "app/api/automation/run-scan/route.ts")], outfile: join(generated, "scheduled-scan-runtime.cjs") });
   if (diagnoseOutcomes) buildSync({ ...options, entryPoints: [resolve(root, "app/api/recommendations/evaluate-outcomes/route.ts")], outfile: join(generated, "outcome-route.cjs") });
   buildSync({ ...options, entryPoints: [resolve(root, "netlify/functions/scheduled-scan.ts")], outfile: join(directory, "functions/scheduled.cjs") });
@@ -422,7 +425,7 @@ try {
         assert(OriginalDate.parse(run.observed_at)<=OriginalDate.parse(decision.decision_timestamp));
         assert(OriginalDate.parse(decision.decision_timestamp)<=OriginalDate.parse(run.completed_at));
         const acquisition=run.payload_json.active_scan_trace.market_data_fetch.completed_input_acquisition;
-        if(!acquisitionBaseline && !minimumOrderBaseline && !firstObservationBaseline && !fairOrderBaseline && !regularSessionBaseline && !firstClosedBarBaseline) {
+        if(omittedPairBaseline) {
           assert.equal(acquisition.policy_version,"completed_input_omitted_first_pair_guard_v1");
           assert.deepEqual(acquisition.original_members.map(member=>member.ticker),selected.map(candidate=>candidate.ticker));
           assert.deepEqual([...acquisition.acquisition_order].sort((a,b)=>a-b),[0,1,2,3,4,5,6,7]);
@@ -494,7 +497,7 @@ try {
     assert.equal(Number(sql("select count(*) from scheduled_scan_attempts;")),attemptFingerprints.size);
     const tickerCoverage=[...observations.values()].sort((a,b)=>a.ticker.localeCompare(b.ticker));
     originalLog(JSON.stringify({evidence_mode:"synthetic_closed_packaged_input_runtime_actual_source_schema",
-      scenario:"full_session_cold_rotation",acquisition_mode:acquisitionBaseline?"original_order":firstObservationBaseline?"first_observation_guard":minimumOrderBaseline?"minimum_requests_first":fairOrderBaseline?"fair_cost_ties":firstClosedBarBaseline?"original_order_first_closed_bar":regularSessionBaseline?"original_order_regular_session_reuse":"otherwise_omitted_first_pair_guard",
+      scenario:"full_session_cold_rotation",acquisition_mode:omittedPairBaseline?"otherwise_omitted_first_pair_guard":acquisitionBaseline?"original_order":firstObservationBaseline?"first_observation_guard":minimumOrderBaseline?"minimum_requests_first":fairOrderBaseline?"fair_cost_ties":firstClosedBarBaseline?"original_order_first_closed_bar":"original_order_regular_session_reuse",
       baseline_revision:acquisitionBaselineRevision,minimum_order_baseline_revision:minimumOrderBaselineRevision,
       original_slots:26,original_member_observations:26*8,eligible_tickers:eligible,slots,ticker_coverage:tickerCoverage,
       selected_unique_tickers:tickerCoverage.length,ever_complete_tickers:tickerCoverage.filter(ticker=>ticker.fresh>0).length,

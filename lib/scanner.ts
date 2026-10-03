@@ -9,10 +9,7 @@ import {
 } from "@/lib/intraday-indicator-cache";
 import {
   INTRADAY_INDICATOR_REFRESH_ALLOCATION_POLICY_VERSION,
-  COMPLETED_INPUT_FIRST_CLOSED_BAR_ALLOCATION_POLICY_VERSION,
-  resolveCompletedInputIntradaySessionAdmission,
   resolveIntradayIndicatorRefreshAdmission,
-  planOtherwiseOmittedFirstPair,
 } from "@/lib/intraday-indicator-refresh-admission";
 import {
   intradayIndicatorsFromUnknown,
@@ -22,7 +19,7 @@ import {
 import { getDailyCandles, getDailyCandlesWithIdentity, type DailyCandle } from "@/lib/market-data";
 import { captureCompletedDailyContext, readCompletedDailyContext,
   type CompletedDailyContext } from "@/lib/scanner-completed-daily-context";
-import { currentSessionFeatures, readCurrentSessionContext, type CurrentSessionContext } from "@/lib/scanner-current-session-context";
+import { currentSessionFeatures, type CurrentSessionContext } from "@/lib/scanner-current-session-context";
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { throwIfAborted, waitForAbortableDelay } from "@/lib/operation-abort";
 import {
@@ -47,7 +44,6 @@ import type { ScannerProviderCreditAllocationRuntimeAdmission } from "@/lib/scan
 import { buildScannerProviderCreditAllocationShadow } from "@/lib/scanner-provider-credit-allocation-shadow";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 import type { TwelveDataResponseIdentity } from "@/lib/twelve-data-response-identity";
-import { twelveDataResponseIdentityFromUnknown } from "@/lib/twelve-data-response-identity";
 import { COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION } from "@/lib/scanner-decision-input-snapshot";
 import { isValidCompletedBenchmarkReuse, type CompletedBenchmarkReuse } from "@/lib/completed-benchmark-reuse";
 export { COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION } from "@/lib/scanner-decision-input-snapshot";
@@ -664,31 +660,6 @@ async function upsertCachedValues(
   }
 }
 
-// Archival acquisition evidence can change request order, never admit an old
-// price as fresh. Retain the existing same-day, calendar and raw-byte checks.
-async function readPreviouslyAcquiredSessionContext(
-  raw: unknown, ticker: string, history: CompletedDailyContext | null, now: number,
-): Promise<CurrentSessionContext | null> {
-  if (!history || !raw || typeof raw !== "object" || Array.isArray(raw)) return null;
-  const cache = (raw as Record<string, unknown>).intraday_indicator_cache;
-  if (!cache || typeof cache !== "object" || Array.isArray(cache)) return null;
-  const stored = cache as Record<string, unknown>;
-  const value = stored.session_context;
-  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
-  const captured = Date.parse(String((value as Record<string, unknown>).captured_at ?? ""));
-  const cached = Date.parse(String(stored.cached_at ?? ""));
-  const response = twelveDataResponseIdentityFromUnknown(stored.response_identity);
-  if (!Number.isFinite(captured) || !Number.isFinite(cached) || captured > now ||
-    cached < captured || cached > now || Date.parse(history.captured_at) > captured ||
-    stored.response_symbol !== ticker || !response) return null;
-  const context = await readCurrentSessionContext(value, ticker, new Date(captured));
-  if (!context || context.market_date !== getUsEquityMarketSession(new Date(now)).market_date ||
-    context.calendar_fingerprint !== history.calendar_fingerprint || stored.interval !== context.interval ||
-    response.payload_sha256 !== context.response_identity.payload_sha256 ||
-    response.payload_byte_length !== context.response_identity.payload_byte_length) return null;
-  return context;
-}
-
 export async function scanMarket(
   baseCandidates: ScannerCandidate[],
   options: ScanMarketOptions,
@@ -814,8 +785,7 @@ async function scanMarketCore(
   const freshProviderCallPacingMs = getFreshProviderCallPacingMs(options);
   options.activeScanTrace?.updateMarketDataFetch({
     provider_call_cap: maxFreshProviderCalls,
-    ...(completedContextMode ? { data_input_policy_version: COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION,
-      intraday_session_admission_policy_version: COMPLETED_INPUT_FIRST_CLOSED_BAR_ALLOCATION_POLICY_VERSION } : {}),
+    ...(completedContextMode ? { data_input_policy_version: COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION } : {}),
   });
   const cacheHits: string[] = [];
   const cacheMisses: string[] = [];
@@ -847,41 +817,6 @@ async function scanMarketCore(
     intradayCacheSnapshotByTicker.set(baseCandidate.ticker, cacheSnapshot);
   }
   throwIfAborted(options.signal);
-
-  const acquisitionEntries = [];
-  const guardEnabled = completedContextMode && options.source === "scheduled";
-  const barPossible = guardEnabled && resolveCompletedInputIntradaySessionAdmission(new Date(now)).allow_provider_refresh;
-  for (const [tickerIndex, candidate] of baseCandidates.entries()) {
-    throwIfAborted(options.signal);
-    const raw = cachedRowsByTicker.get(candidate.ticker)?.raw;
-    const history = guardEnabled ? await readCompletedDailyContext(
-      raw && typeof raw === "object" ? (raw as Record<string, unknown>).completed_daily_context : null,
-      candidate.ticker, new Date(now)) : null;
-    const current = intradayCacheSnapshotByTicker.get(candidate.ticker);
-    const currentReusable = current?.source === "cache" && !current.stale && !!current.session_context;
-    const acquired = guardEnabled ? await readPreviouslyAcquiredSessionContext(raw, candidate.ticker, history, now) : null;
-    acquisitionEntries.push({ candidate, tickerIndex,
-      estimated_requests: Number(!history) + Number(barPossible && !currentReusable),
-      previously_acquired: acquired !== null,
-      historical_context_sha256: history?.content_sha256 ?? null,
-      archival_context_sha256: acquired?.content_sha256 ?? null });
-  }
-  throwIfAborted(options.signal);
-  if (guardEnabled) {
-    const members = acquisitionEntries.map(entry => ({ ticker_index: entry.tickerIndex,
-      estimated_requests: entry.estimated_requests, previously_acquired: entry.previously_acquired }));
-    const plan = planOtherwiseOmittedFirstPair(members, maxFreshProviderCalls, barPossible);
-    const order = new Map(plan.acquisition_order.map((index, position) => [index, position]));
-    acquisitionEntries.sort((a, b) => order.get(a.tickerIndex)! - order.get(b.tickerIndex)!);
-    options.activeScanTrace?.updateMarketDataFetch({ completed_input_acquisition: {
-      ...plan, evaluated_at: new Date(now).toISOString(), provider_call_cap: maxFreshProviderCalls,
-      original_members: [...acquisitionEntries].sort((a, b) => a.tickerIndex - b.tickerIndex)
-        .map(entry => ({ ticker: entry.candidate.ticker, ticker_index: entry.tickerIndex,
-          estimated_requests: entry.estimated_requests, previously_acquired: entry.previously_acquired,
-          historical_context_sha256: entry.historical_context_sha256,
-          archival_context_sha256: entry.archival_context_sha256 })),
-    } });
-  }
 
   const runtimeAdmission = options.providerCreditAllocationRuntimeAdmission;
   const runtimePlanEnforced =
@@ -948,7 +883,6 @@ async function scanMarketCore(
       maxAgeMinutes: SCANNER_INDICATOR_MAX_AGE_MINUTES,
       signal: options.signal,
       requireResponseIdentity: completedContextMode,
-      ...(completedContextMode ? { interval: "5min" as const } : {}),
       ...(preloadedScannerCacheRow
         ? { preloadedScannerCacheRaw: preloadedScannerCacheRow.raw }
         : {}),
@@ -974,12 +908,9 @@ async function scanMarketCore(
       fresh_indicator_fetches_used: freshIndicatorFetchesUsed,
       max_fresh_indicator_fetches: completedContextMode ? maxFreshProviderCalls : MAX_FRESH_INDICATOR_FETCHES_PER_RUN,
     });
-    const sessionAdmission = completedContextMode
-      ? resolveCompletedInputIntradaySessionAdmission(new Date()) : null;
-    const sessionNotReady = sessionAdmission?.allow_provider_refresh === false;
-    const refreshPlanned = !sessionNotReady && (runtimePlanEnforced
+    const refreshPlanned = runtimePlanEnforced
       ? isPlannedAllocation(candidate.ticker, tickerIndex, "intraday")
-      : legacyAdmission.reserve_provider_credit);
+      : legacyAdmission.reserve_provider_credit;
     let result = cached;
 
     if (refreshPlanned) {
@@ -1017,7 +948,7 @@ async function scanMarketCore(
         ...cached,
         warnings: [
           ...cached.warnings,
-          sessionNotReady ? `Current-session refresh withheld: ${sessionAdmission.reason_code}.` : cached.indicators
+          cached.indicators
             ? "Using stale intraday indicator cache; fresh fetch disabled."
             : "Fresh intraday indicator fetch disabled.",
         ],
@@ -1029,18 +960,18 @@ async function scanMarketCore(
       options.activeScanTrace?.incrementMarketDataFetch({
         candle_success_count: 1,
       });
-    } else if (result.source === "unavailable" && !sessionNotReady) {
+    } else if (result.source === "unavailable") {
       options.activeScanTrace?.incrementMarketDataFetch({
         candle_error_count: 1,
         latest_provider_error_type: "intraday_indicators_unavailable",
       });
     }
 
-    if (result.stale && !sessionNotReady) {
+    if (result.stale) {
       options.activeScanTrace?.incrementMarketDataFetch({ stale_count: 1 });
     }
 
-    if (!result.indicators && !sessionNotReady) {
+    if (!result.indicators) {
       options.activeScanTrace?.incrementMarketDataFetch({
         empty_response_count: 1,
       });
@@ -1092,12 +1023,11 @@ async function scanMarketCore(
             : "fresh_cache"
           : "unavailable";
     const intradayReasonCodes: ScanProviderCandidateObservationReason[] = [
-      ...(sessionNotReady ? (["intraday_regular_session_not_ready"] as const) : []),
-      ...(result.source === "unavailable" && !sessionNotReady
+      ...(result.source === "unavailable"
         ? (["intraday_provider_unavailable"] as const)
         : []),
-      ...(result.stale && !sessionNotReady ? (["intraday_stale_cache"] as const) : []),
-      ...(!refreshPlanned && !sessionNotReady && result.stale
+      ...(result.stale ? (["intraday_stale_cache"] as const) : []),
+      ...(!refreshPlanned && result.stale
         ? (["intraday_refresh_credit_cap_reached"] as const)
         : []),
     ];
@@ -1150,7 +1080,7 @@ async function scanMarketCore(
     };
   }
 
-  for (const { tickerIndex, candidate: baseCandidate } of acquisitionEntries) {
+  for (const [tickerIndex, baseCandidate] of baseCandidates.entries()) {
     throwIfAborted(options.signal);
     const cachedRow = cachedRowsByTicker.get(baseCandidate.ticker);
     const cachedValues = !completedContextMode && cachedRow ? scannerValuesFromCache(cachedRow) : null;
@@ -1421,10 +1351,6 @@ async function scanMarketCore(
   logScanner("tickers_skipped_due_to_fresh_call_limit", skippedDueToFreshCallLimit);
   logScanner("candidates_returned", candidates.length);
 
-  if (guardEnabled) {
-    const originalOrder = new Map(baseCandidates.map((candidate, index) => [candidate.ticker, index]));
-    candidates.sort((a, b) => originalOrder.get(a.ticker)! - originalOrder.get(b.ticker)!);
-  }
   return candidates;
 }
 
