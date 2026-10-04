@@ -10,6 +10,7 @@ import { persistRecommendationScanRun } from "@/lib/server/recommendation-scan-r
 import { persistRecommendationSnapshot } from "@/lib/server/recommendation-snapshot-persistence";
 import { persistRecommendationOutcome } from "@/lib/server/recommendation-outcome-persistence";
 import { appendSyntheticOriginalArchives } from "../fixtures/original-input-archive-evidence";
+import { buildRelativePlanTrainedProbabilityModel } from "@/lib/server/relative-plan-trained-probability-model";
 
 type Dependencies = NonNullable<Parameters<typeof createRelativePlanCharterResultService>[0]>;
 function harness(overrides: Partial<Dependencies> = {}) {
@@ -155,4 +156,43 @@ test("new terminal results cannot call contradictory original forward inputs com
   expect(JSON.stringify(data)).toBe(original);
   expect(input.source.scanRuns).toHaveLength(72);
   expect(input.source.snapshots).toHaveLength(576);
+});
+
+test("a new result also rejects an original contradiction retained only in the sealed training capsule", async () => {
+  const input = await charterEvaluationInput(8), archived = structuredClone(input.source);
+  await appendSyntheticOriginalArchives(archived.scanRuns[0]);
+  // The pure historical v1 capsule builder keeps its original semantics. A
+  // newly admitted terminal command must not hide this evidence merely because
+  // the current owned source no longer has the archive.
+  const trained = buildRelativePlanTrainedProbabilityModel({ owner: input.owner, freeze: input.freeze,
+    source: archived, now: new Date("2026-10-10T00:00:00.000Z") }).trained_model!;
+  expect(trained.original_population_count).toBe(96);
+  const data: Record<string, Record<string, unknown>[]> = {
+    recommendation_scan_runs: [], recommendation_snapshots: [], recommendation_outcomes: [],
+  };
+  const writer = { from(table: string) { return { async upsert(row: Record<string, unknown>) {
+    data[table].push(structuredClone(row)); return { error: null };
+  } }; } };
+  const originalOwner = process.env.TURE_APPLICATION_OWNER_USER_ID;
+  process.env.TURE_APPLICATION_OWNER_USER_ID = prospectiveOwner;
+  try {
+    for (const run of input.source.scanRuns) await persistRecommendationScanRun(run, { supabaseClient: writer, server: true });
+    for (const snapshot of input.source.snapshots) await persistRecommendationSnapshot(snapshot, { supabaseClient: writer, server: true });
+    for (const outcome of input.source.outcomes) await persistRecommendationOutcome(outcome, { supabaseClient: writer, server: true });
+  } finally {
+    if (originalOwner === undefined) delete process.env.TURE_APPLICATION_OWNER_USER_ID;
+    else process.env.TURE_APPLICATION_OWNER_USER_ID = originalOwner;
+  }
+  const h = harness({ clock: () => new Date(input.now),
+    modelStore: () => createRelativePlanTrainedProbabilityStore({ async read() {
+      return { status: "available", receipt: { ...input.trainedModelReceipt, trained_model: trained } };
+    }, async materialize() { throw new Error("must_not_refit"); }, async confirm() { throw new Error("must_not_confirm"); } }),
+    readSource: async () => ({ status: "available", data }), readRuntime: async () => input.runtime,
+  });
+  const original = JSON.stringify(data), capsule = JSON.stringify(trained);
+  expect(await h.service.finalize(prospectiveOwner, {})).toMatchObject({ status: "unavailable", receipt: null,
+    blocker: "relative_plan_result_original_input_arithmetic_conflicting", terminal_quality_decision: null });
+  expect(h.calls.writes).toBe(0);
+  expect(JSON.stringify(data)).toBe(original);
+  expect(JSON.stringify(trained)).toBe(capsule);
 });
