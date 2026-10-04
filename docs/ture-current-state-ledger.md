@@ -2,6 +2,76 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Local combined acceptance complete — original intelligence chain, 2026-10-04:**
+Isolated `codex/closed-intelligence-integration-oct4` locally composes the
+completed original-input/canonical-outcome/full-charter chain through
+`a090a39b` with empty selection `e4edaff5`, the COMPLETE dynamic-admission chain
+`4979045a` → `88a8f472` → `5798efe4`, and missing numeric-cache `fa5956ec`.
+Clean product/test revision: `d4614fb6e548c9e46dad083ff13c516436d97dc1`.
+No ranker, model, frozen charter, publication threshold, original denominator,
+provider budget, CI contract or deadline changed. The completed corrections
+now coexist in one actual local engine tree, not three competing alternatives.
+This closes their combined acceptance gap; it is local capability/quality-
+measurement integration, NOT recommendation-quality lift or release acceptance.
+
+136 distinct checks pass across the declared runs: 43 actual input/scanner/
+provider-boundary/SQL/SDK/source/outcome checks; 15 discovery, budget and plan
+binding checks; 71 result/model/service/store/transport checks; five active
+governance checks; one actual input-to-canonical-outcome-to-full-charter
+composition; and one full-original native SQL/SDK/HTTP proof. The first 58-check
+run retained 57 passes and one genuine integration-test failure: an old source
+assertion predated the retained original indicator/volume clocks. Minimum repair
+keeps stale-safe ordering and explicitly checks BOTH original clocks. All fifteen
+affected admission/binding checks then pass. They overlap fourteen earlier
+passes; do not double-count them. No behavior assertion or protected check was
+removed. The final repair changes only that existing test; `lib`, `app`, `scripts`
+and the 43-check original scanner suite are byte-identical to tested composition
+`2937a83cb0ffabea53dac4f1cf3ffaadaead8ca8`.
+
+The final native proof passes in 6.0m on `d4614fb6`: all 240 original members /
+30 decisions in EACH forward partition, the original 96-member training-source
+fixture, eleven charter checks per partition, 72 original runs and twelve
+unrelated prior DB runs are retained. Actual NEW result rejection, valid original
+retention, restart, owner-bound SDK and real negotiated loopback HTTP all pass.
+Source capsule: 21,008,925 decoded bytes; terminal result: 6,520,791 decoded /
+834,322 gzip-wire bytes. This uses the disclosed historical synthetic model-clock
+fixture, NOT an actual pre-forward SQL training job, market outcomes or alpha.
+The actual acquisition/canonical composition separately retains its full original
+membership and truthful `evidence_incomplete`; it grants no quality authority.
+
+Final nonincremental types and changed-file lint pass. Full lint passes with zero
+errors and eight existing warnings; its only later source difference is the
+separately linted test repair. Exact clean committed `d4614fb6` passes ordinary
+Linux Node 22.23.1 / Next 16.3.8 build, with read-only locked dependencies, no
+network or production credentials. Lock SHA256:
+`859ed09eed4d3de2e7ade5c74bea78e73770bea57f92d6cb3656224bfcace6f7`.
+Logs: `/private/tmp/ture-combined-discovery-oct4.log` (retain initial failure),
+`/private/tmp/ture-combined-admission-final-oct4.log`,
+`/private/tmp/ture-combined-charter-regression-oct4.log`,
+`/private/tmp/ture-combined-governance-oct4.log`,
+`/private/tmp/ture-combined-canonical-composition-oct4.log`,
+`/private/tmp/ture-combined-full-original-sql-oct4.log`,
+`/private/tmp/ture-combined-lint-oct4.log`,
+`/private/tmp/ture-combined-final-types-oct4.log`,
+`/private/tmp/ture-combined-final-changed-lint-corrected-oct4.log` and
+`/private/tmp/ture-combined-exact-build-oct4.log`. The first changed-file lint
+command used a nonexistent CLI path and executed no lint; the corrected normal
+ESLint command above passes. Temporary native/build resources are removed and
+the unrelated user root changes remain untouched.
+
+This sole CLOSED composition is complete/parked within one active hour. Resume
+the original frozen prospective full-charter primary; do not extend admission
+guards or invent another ranking hypothesis. Fresh GitHub reads around 09:58Z
+confirm unchanged main `55576078`, open Draft #732 at `2741f946` and completed
+failed CI `37174103003`, not a pending job. Required protected release/security
+acceptance is still unfulfilled; today's unchanged audit has five high affected
+packages on Next ESLint → fast-glob → micromatch → braces. No bypass is selected.
+Integrate normally against then-current main only after the protected primary
+release legitimately clears. Zero production comparison freezes, trained model
+capsules and committed-model confirmations remain the verified prospective gap.
+No push, competing PR, merge, deploy, migration, production configuration/write,
+provider request, prospective freeze, publication or broker action occurred.
+
 **Retained completed CLOSED IF-2b contract — missing numeric scanner-cache evidence, 2026-10-04:**
 Codex owns `codex/scanner-cache-missing-values-oct4`, isolated directly from
 freshly verified main `55576078`. Four active hours, investigation at most four.
@@ -30,7 +100,7 @@ provider activation is selected. Integrate after #732 against then-current
 main; this branch does not inherit or supersede the parked successor chain.
 Stop after the minimum correction and return to the frozen quality comparison.
 
-**Selected CLOSED IF-2b → IF-4 combined acceptance, 2026-10-04:**
+**Completed CLOSED IF-2b → IF-4 combined acceptance contract, 2026-10-04:**
 Codex owns isolated `codex/closed-intelligence-integration-oct4`, created from
 freshly verified main `55576078` and locally advanced through completed
 `a090a39b`. Four active hours, investigation at most four. Original #732 remains
