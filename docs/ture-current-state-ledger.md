@@ -2,6 +2,28 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Selected CLOSED IF-4 original-scan availability — 2026-10-05:** Owner Codex,
+`codex/original-scan-run-asof-oct5`, freshly verified main `55576078` plus
+completed local composition `a25527eb`; primary #732 remains release-held.
+Four-active-hour correction of an actual persistence-serializer → unfinalized
+reader reproduction: one original decision/four canonical outcomes remain
+available when that run's raw created/updated clocks are a millisecond AFTER
+server as-of. Snapshots remain valid, so their completed guard cannot cover it.
+Select existing microsecond/offset recording admission for original run keys
+before NEW model/result storage and mutable learning reads. Keep every original
+key collision, forward/overflow/non-top-three run and stable second source read.
+Never reinterpret sealed training/result capsules or replace them with current
+training rows; do not alter cohort selection, ranking, model/charter or producer
+semantics. Write scope: existing shared raw-time admission and its three server
+consumers, registered regression/native proofs and this receipt. No schema,
+provider, production or broker work. Acceptance: red actual-writer/service cases;
+strict/future/microsecond/offset/missing/collision controls; source non-mutation;
+sealed/pending/restarted read controls; isolated actual SDK fault/readback;
+affected suites/types/lint/exact build. This closes source availability in the
+same frozen IF-4 comparison, not historical-clock attestation or alpha. Integrate
+after #732 and the completed composition against then-current main, then resume
+that indivisible original-input → outcome → full-charter primary.
+
 **CLOSED IF-4 unfinalized source-as-of read locally built — 2026-10-04:** Codex owns
 `codex/prospective-snapshot-asof-oct4`, isolated from freshly verified main
 `55576078` plus the tested admission implementation `54cea6f2`. Four-active-hour

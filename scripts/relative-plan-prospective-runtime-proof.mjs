@@ -233,6 +233,33 @@ try {
   assert.equal(complete.learning.legacy_baseline_readiness.status, "not_ready");
   assert(complete.learning.legacy_baseline_readiness.blockers.includes("completed_input_research_requires_prospective_baseline_contract"));
   assert.deepEqual(await readers.createRelativePlanProspectiveService().read(owner, readAt), complete);
+  const runRows = async () => {
+    const result = await client.from("recommendation_scan_runs").select("*").eq("owner_user_id", owner).order("id");
+    assert.equal(result.error, null); return result.data;
+  };
+  const originalRunRows = await runRows();
+  const clockRun = originalRunRows.find(row => row.id === source.scanRuns[0].id);
+  assert(clockRun);
+  const replaceRunClock = async patch => {
+    const result = await client.from("recommendation_scan_runs").update(patch)
+      .eq("owner_user_id", owner).eq("id", clockRun.id).select("id");
+    assert.equal(result.error, null); assert.equal(result.data.length, 1);
+  };
+  const futureRunAt = new Date(readAt.getTime() + 1).toISOString();
+  await replaceRunClock({ created_at: futureRunAt, updated_at: futureRunAt });
+  const futureRunRows = await runRows();
+  assert.deepEqual(await readers.createRelativePlanProspectiveService().read(owner, readAt), {
+    status: "unavailable", receipt: null, learning: null, blocker: "prospective_scan_run_recording_times_invalid" });
+  assert.deepEqual(await runRows(), futureRunRows);
+  assert.equal(futureRunRows.length, 1);
+  assert.equal(sql("select count(*) from recommendation_outcomes"), "4");
+  assert.equal(sql("select count(*) from relative_plan_trained_probability_models"), "0");
+  assert.equal(sql("select count(*) from relative_plan_charter_results"), "0");
+  assert.equal((await readers.createRelativePlanProspectiveService().read(concurrentOwner, readAt))
+    .learning.partitions[1].original_population_count, 0);
+  await replaceRunClock({ created_at: clockRun.created_at, updated_at: clockRun.updated_at });
+  assert.deepEqual(await runRows(), originalRunRows);
+  assert.deepEqual(await readers.createRelativePlanProspectiveService().read(owner, readAt), complete);
   // Synthetic fault injection only, into one exact original owner/id. The
   // production snapshot producer remains ignore-duplicates/immutable. An
   // unfinalized read must not claim a source it has not yet observed.
@@ -395,6 +422,8 @@ try {
     persisted_late_training_label_excluded: true, persisted_future_forward_recording_retained_as_missing: true,
     persisted_future_snapshot_read_unavailable: true, snapshot_clock_read_preserves_original_rows: true,
     restored_snapshot_read_reproduces_original_measurement: true,
+    persisted_future_scan_read_unavailable: true, scan_clock_read_preserves_original_rows: true,
+    restored_scan_read_reproduces_original_measurement: true,
     durable_freeze_count: 2, restarted_exact_readback: true, idempotent_repeats: 7, concurrent_single_owner_freeze: true, retroactive_rejected: true,
     actual_source_persistence_and_restarted_learner: true, retained_original_population: 4,
     malformed_ohlc_synthetic_requests:integrityCases.filter(row=>!row.fault.startsWith("off_grid_")).length,

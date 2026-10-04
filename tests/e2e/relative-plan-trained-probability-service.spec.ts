@@ -163,6 +163,57 @@ test("raw recording-time gaps and late/premature jobs never become fitted eviden
   expect(complete.calls).not.toContain("materialize");
 });
 
+test("new training cannot seal an original scan recorded after its source-as-of clock", async () => {
+  const h = await harness();
+  h.data.recommendation_scan_runs[0].created_at = "2026-10-10T00:00:00.001Z";
+  h.data.recommendation_scan_runs[0].updated_at = "2026-10-10T00:00:00.001Z";
+  const before = JSON.stringify(h.data);
+  const result = await h.service.train(prospectiveOwner, {});
+  expect(h.calls).not.toContain("materialize");
+  expect(result).toMatchObject({ status: "unavailable", receipt: null,
+    blocker: "trained_probability_scan_run_recording_times_invalid" });
+  expect(h.data.recommendation_scan_runs).toHaveLength(12);
+  expect(h.data.recommendation_snapshots).toHaveLength(48);
+  expect(JSON.stringify(h.data)).toBe(before);
+});
+
+test("new training requires explicit original scan clocks without changing the retained training population", async () => {
+  for (const clocks of [
+    { created_at: undefined }, { updated_at: undefined }, { created_at: null },
+    { created_at: "2026-10-05" }, { created_at: "2026-02-30T17:00:00.000Z" },
+    { created_at: "2026-10-05T17:00:00.000002Z", updated_at: "2026-10-05T17:00:00.000001Z" },
+    { updated_at: "2026-10-10T00:00:00.000001Z" },
+  ]) {
+    const h = await harness(); Object.assign(h.data.recommendation_scan_runs[3], clocks);
+    const before = JSON.stringify(h.data);
+    expect(await h.service.train(prospectiveOwner, {})).toMatchObject({ status: "unavailable", receipt: null,
+      blocker: "trained_probability_scan_run_recording_times_invalid" });
+    expect(h.calls).not.toContain("materialize"); expect(h.calls).not.toContain("confirm");
+    expect(h.data.recommendation_scan_runs).toHaveLength(12);
+    expect(h.data.recommendation_outcomes).toHaveLength(48);
+    expect(JSON.stringify(h.data)).toBe(before);
+  }
+});
+
+test("exact scan clocks seal all original members and a restarted model never samples later mutable clocks", async () => {
+  for (const at of [now.toISOString(), "2026-10-10T02:00:00.000000+02:00"]) {
+    const h = await harness();
+    Object.assign(h.data.recommendation_scan_runs[3], { created_at: at, updated_at: at });
+    const first = await h.service.train(prospectiveOwner, {});
+    expect(first.status).toBe("materialized");
+    expect(first.receipt?.trained_model.original_population_count).toBe(48);
+    expect(first.receipt?.trained_model.model.sample_count).toBe(48);
+    h.data.recommendation_scan_runs[3].updated_at = "later_mutable_clock_unavailable";
+    const restart = createRelativePlanTrainedProbabilityService({ ...h.dependencies,
+      clock: () => new Date("2026-11-07T00:00:00.000Z"),
+      readSource: async () => { throw new Error("sealed_model_cannot_sample_current_scan_clocks"); } });
+    expect(await restart.train(prospectiveOwner, {})).toEqual({ ...first, status: "already_materialized" });
+    h.interruptConfirmation();
+    expect((await restart.train(prospectiveOwner, {})).receipt).toEqual(first.receipt);
+    expect(h.calls.filter(call => call === "materialize")).toHaveLength(1);
+  }
+});
+
 test("new training cannot seal a snapshot recorded after its source-as-of clock", async () => {
   const h = await harness();
   h.data.recommendation_snapshots[0].created_at = "2026-10-10T00:00:00.001Z";

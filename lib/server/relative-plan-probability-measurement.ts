@@ -7,6 +7,7 @@ import { RELATIVE_PLAN_CONTEXT_SHADOW_VERSION } from "@/lib/scanner-relative-pla
 import type { RelativePlanContextOutcomeComparison } from "@/lib/scanner-relative-plan-context-outcomes";
 import type { RecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
+import type { RecommendationScanRun } from "@/lib/recommendation-scan-run";
 import { verifiedRelativePlanTrainedProbabilityReceipt, relativePlanTrainedPopulationMatches } from "@/lib/server/relative-plan-trained-probability-model";
 
 type Window = { start_at: string; end_at: string };
@@ -81,15 +82,31 @@ export function hasAdmissibleRelativePlanCurrentOutcomeRevisionTimes(rows: unkno
  */
 export function hasAdmissibleRelativePlanSnapshotRecordingTimes(rows: unknown,
   snapshots: Pick<RecommendationSnapshot, "snapshot_fingerprint">[], now: Date): boolean {
+  if (snapshots.length > 100000) return false;
+  return hasAdmissibleOriginalRecordingTimes(rows, snapshots.map(row => row.snapshot_fingerprint), "snapshot_fingerprint", now);
+}
+
+/** Same raw-time admission for original decisions. Decoded observed_at or the
+ * embedded decision timestamp cannot attest to the row's recording/revision.
+ * Only NEW mutable consumers use this; immutable capsules retain their source.
+ */
+export function hasAdmissibleRelativePlanScanRunRecordingTimes(rows: unknown,
+  scanRuns: Pick<RecommendationScanRun, "run_fingerprint">[], now: Date): boolean {
+  if (scanRuns.length > 100000) return false;
+  return hasAdmissibleOriginalRecordingTimes(rows, scanRuns.map(row => row.run_fingerprint), "run_fingerprint", now);
+}
+
+function hasAdmissibleOriginalRecordingTimes(rows: unknown, fingerprints: string[],
+  field: "snapshot_fingerprint" | "run_fingerprint", now: Date): boolean {
   const asOf = now.getTime(), scale = BigInt(1000);
-  if (!Number.isFinite(asOf) || !Array.isArray(rows) || rows.length > 100000 || snapshots.length > 100000) return false;
-  const keys = new Set(snapshots.map(row => row.snapshot_fingerprint)), seen = new Set<string>();
+  if (!Number.isFinite(asOf) || !Array.isArray(rows) || rows.length > 100000 || fingerprints.length > 100000) return false;
+  const keys = new Set(fingerprints), seen = new Set<string>();
   const micros = (value: string) => BigInt(Date.parse(value)) * scale +
     BigInt((value.match(/\.(\d{1,6})(?:Z|[+-]\d{2}:\d{2})$/)?.[1] ?? "").padEnd(6, "0").slice(3));
   for (const row of rows) {
     if (!row || typeof row !== "object" || Array.isArray(row)) return false;
     // Same key normalization as the source decoder; keep ALL collisions.
-    const key = String(row.snapshot_fingerprint ?? row.id ?? "").trim();
+    const key = String(row[field] ?? row.id ?? "").trim();
     if (!keys.has(key)) continue;
     seen.add(key);
     if (!explicitOutcomeRecordingInstant(row.created_at) || !explicitOutcomeRecordingInstant(row.updated_at) ||

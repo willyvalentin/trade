@@ -8,8 +8,10 @@ import { readRelativePlanCharterRuntimeSource } from "@/lib/server/relative-plan
 import { buildRelativePlanCharterResult, relativePlanTerminalQualityDecision,
   scopeRelativePlanCharterResultSource } from "@/lib/server/relative-plan-charter-result";
 import { relativePlanSemanticFingerprint } from "@/lib/server/relative-plan-prospective-comparison";
+import { candidateDecisionRecordFromScanRun } from "@/lib/candidate-decision-readback";
 import { hasExplicitRelativePlanOutcomeRecordingTimes, hasAdmissibleRelativePlanCurrentOutcomeRevisionTimes,
-  hasAdmissibleRelativePlanSnapshotRecordingTimes } from "@/lib/server/relative-plan-probability-measurement";
+  hasAdmissibleRelativePlanSnapshotRecordingTimes,
+  hasAdmissibleRelativePlanScanRunRecordingTimes } from "@/lib/server/relative-plan-probability-measurement";
 import { relativePlanCompleteResponseFitsTransport } from "@/lib/server/relative-plan-complete-http-response";
 import { relativePlanOriginalInputConflict } from "@/lib/server/relative-plan-original-input-admission";
 import { relativePlanRetainedOutcomeCandleConflict, relativePlanRetainedTrainingCandleConflict } from "@/lib/server/relative-plan-retained-outcome-admission";
@@ -65,14 +67,25 @@ export function createRelativePlanCharterResultService(d: Dependencies = depende
       const source = parseRecommendationLearningBaselineSource(result.data);
       if (source) {
         const training = originalFreeze.plan.windows.training;
+        const scoped = scopeRelativePlanCharterResultSource(source, originalFreeze);
         // Current training rows do not replace the sealed fitted capsule.
         // Forward scope keeps every original member and identity collision.
-        const forward = scopeRelativePlanCharterResultSource(source, originalFreeze).snapshots.filter(row => {
+        const forward = scoped.snapshots.filter(row => {
           const at = row.recommended_at === null ? NaN : Date.parse(row.recommended_at);
           return !Number.isFinite(at) || at < Date.parse(training.start_at) || at >= Date.parse(training.end_at);
         });
         if (!hasAdmissibleRelativePlanSnapshotRecordingTimes(result.data.recommendation_snapshots, forward, observedAt)) {
           return { source: null, blocker: "relative_plan_result_snapshot_recording_times_invalid" };
+        }
+        // Frozen training originals belong to the committed model, not this
+        // mutable read. Include every other scoped run, undecidable decision
+        // and colliding forward key; never narrow by outcomes or enrollment.
+        const forwardRuns = scoped.scanRuns.filter(row => {
+          const at = Date.parse(candidateDecisionRecordFromScanRun(row)?.decision_timestamp ?? "");
+          return !Number.isFinite(at) || at < Date.parse(training.start_at) || at >= Date.parse(training.end_at);
+        });
+        if (!hasAdmissibleRelativePlanScanRunRecordingTimes(result.data.recommendation_scan_runs, forwardRuns, observedAt)) {
+          return { source: null, blocker: "relative_plan_result_scan_run_recording_times_invalid" };
         }
       }
       return { source,

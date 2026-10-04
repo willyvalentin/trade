@@ -17,6 +17,9 @@ import { computeRecommendationOutcome } from "@/lib/recommendation-outcome-track
 import { candidateDecisionRecordFromScanRun } from "@/lib/candidate-decision-readback";
 import { buildCanonicalOutcomeProviderCoverageReceipt } from "@/lib/recommendation-outcome-canonical-coverage";
 import { relativePlanRetainedOutcomeCandleConflict } from "@/lib/server/relative-plan-retained-outcome-admission";
+import { prospectiveSource } from "../fixtures/relative-plan-prospective-source";
+import { buildRelativePlanProspectiveEnrollment } from "@/lib/server/relative-plan-prospective-enrollment";
+import { parseRecommendationLearningBaselineSource } from "@/lib/recommendation-learning-baseline-source";
 
 async function retainedForwardHarness(index = 103) {
   const input = await charterEvaluationInput(8), outcome = input.source.outcomes[index];
@@ -157,6 +160,10 @@ test("valid retained original candles finalize once and sealed retries never con
     counterfactual_candles: [], retained_candles_available: true, retained_candle_count: 0,
     counterfactual_candle_source: "horizon_filtered_intraday_candles",
   });
+  const trainingRun = data.recommendation_scan_runs.find(row =>
+    Date.parse(String(row.observed_at)) < Date.parse(input.freeze.plan.windows.training.end_at))!;
+  trainingRun.created_at = "2026-11-07T00:00:00.000001Z";
+  trainingRun.updated_at = trainingRun.created_at;
   const before = JSON.stringify(data);
   let stored: RelativePlanCharterResultReceipt | null = null, writes = 0;
   const resultStore = () => createRelativePlanCharterResultStore({ async read() {
@@ -414,6 +421,96 @@ test("new terminal results reject unobserved raw revisions on the initial read a
     expect(data.recommendation_outcomes).toHaveLength(input.source.outcomes.length);
     expect(JSON.stringify(data)).toBe(originalBytes);
   }
+});
+
+test("new terminal result cannot seal an original forward scan recorded after source-as-of", async () => {
+  test.setTimeout(120000);
+  const base = await retainedForwardHarness(103);
+  const snapshot = base.input.source.snapshots[103];
+  const run = base.data.recommendation_scan_runs.find(row => row.run_fingerprint === snapshot.scan_run_id)!;
+  const after = new Date(base.input.now.getTime() + 1).toISOString();
+  run.created_at = after; run.updated_at = after;
+  const before = JSON.stringify(base.data);
+  const h = harness({ clock: () => new Date(base.input.now),
+    modelStore: () => createRelativePlanTrainedProbabilityStore({ async read() {
+      return { status: "available", receipt: base.input.trainedModelReceipt };
+    }, async materialize() { throw new Error("must_not_refit"); }, async confirm() { throw new Error("must_not_confirm"); } }),
+    readSource: async () => ({ status: "available", data: base.data }), readRuntime: async () => base.input.runtime,
+  });
+  const result = await h.service.finalize(prospectiveOwner, {});
+  expect(h.calls.writes).toBe(0);
+  expect(result).toMatchObject({ status: "unavailable", receipt: null,
+    blocker: "relative_plan_result_scan_run_recording_times_invalid" });
+  expect(JSON.stringify(base.data)).toBe(before);
+});
+
+test("new terminal result checks raw scan clocks on both complete source reads", async () => {
+  test.setTimeout(120000);
+  const base = await retainedForwardHarness(343);
+  const snapshot = base.input.source.snapshots[343];
+  const index = base.data.recommendation_scan_runs.findIndex(row => row.run_fingerprint === snapshot.scan_run_id);
+  expect(index).toBeGreaterThanOrEqual(0);
+  const original = JSON.stringify(base.data);
+  for (const clocks of [
+    { created_at: undefined }, { updated_at: undefined },
+    { updated_at: "2026-11-07T00:00:00.000001Z" },
+    { created_at: "2026-11-02T17:00:00.000002Z", updated_at: "2026-11-02T17:00:00.000001Z" },
+  ]) for (const faultRead of [1, 2]) {
+    let reads = 0, runtimeReads = 0;
+    const h = harness({ clock: () => new Date(base.input.now),
+      modelStore: () => createRelativePlanTrainedProbabilityStore({ async read() {
+        return { status: "available", receipt: base.input.trainedModelReceipt };
+      }, async materialize() { throw new Error("must_not_refit"); }, async confirm() { throw new Error("must_not_confirm"); } }),
+      readSource: async () => {
+        reads++; const copy = structuredClone(base.data);
+        if (reads === faultRead) Object.assign(copy.recommendation_scan_runs[index], clocks);
+        return { status: "available", data: copy };
+      }, readRuntime: async () => { runtimeReads++; return base.input.runtime; },
+    });
+    expect(await h.service.finalize(prospectiveOwner, {})).toMatchObject({ status: "unavailable", receipt: null,
+      blocker: "relative_plan_result_scan_run_recording_times_invalid" });
+    expect(h.calls.writes).toBe(0); expect(reads).toBe(faultRead); expect(runtimeReads).toBe(faultRead - 1);
+    expect(JSON.stringify(base.data)).toBe(original); expect(base.data.recommendation_snapshots).toHaveLength(576);
+  }
+});
+
+test("a late-recorded original overflow decision cannot escape new result admission through the first-thirty limit", async () => {
+  test.setTimeout(120000);
+  const base = await retainedForwardHarness(343);
+  const extra = await prospectiveSource({ now: new Date("2026-10-29T16:00:00.000Z"), rankedCount: 8 });
+  const writer = { from(table: string) { return { async upsert(row: Record<string, unknown>) {
+    base.data[table].push(structuredClone(row)); return { error: null };
+  } }; } };
+  const priorOwner = process.env.TURE_APPLICATION_OWNER_USER_ID;
+  process.env.TURE_APPLICATION_OWNER_USER_ID = prospectiveOwner;
+  try {
+    for (const run of extra.scanRuns) expect((await persistRecommendationScanRun(run, { supabaseClient: writer, server: true })).status).toBe("saved");
+    for (const row of extra.snapshots) expect((await persistRecommendationSnapshot(row, { supabaseClient: writer, server: true })).status).toBe("saved");
+    for (const row of extra.outcomes) expect((await persistRecommendationOutcome(row, { supabaseClient: writer, server: true })).status).toBe("saved");
+  } finally {
+    if (priorOwner === undefined) delete process.env.TURE_APPLICATION_OWNER_USER_ID;
+    else process.env.TURE_APPLICATION_OWNER_USER_ID = priorOwner;
+  }
+  const source = parseRecommendationLearningBaselineSource(base.data)!;
+  const walk = buildRelativePlanProspectiveEnrollment({ owner: prospectiveOwner, freeze: base.input.freeze,
+    source, now: base.input.now })!.partitions[2];
+  expect(walk.enrolled_decision_count).toBe(30); expect(walk.overflow_decision_count).toBe(1);
+  expect(walk.overflow_fingerprints).toEqual([extra.scanRuns[0].run_fingerprint]);
+  const original = base.data.recommendation_scan_runs.find(row => row.run_fingerprint === extra.scanRuns[0].run_fingerprint)!;
+  original.created_at = "2026-11-07T00:00:00.000001Z"; original.updated_at = original.created_at;
+  const before = JSON.stringify(base.data);
+  const h = harness({ clock: () => new Date(base.input.now),
+    modelStore: () => createRelativePlanTrainedProbabilityStore({ async read() {
+      return { status: "available", receipt: base.input.trainedModelReceipt };
+    }, async materialize() { throw new Error("must_not_refit"); }, async confirm() { throw new Error("must_not_confirm"); } }),
+    readSource: async () => ({ status: "available", data: base.data }), readRuntime: async () => base.input.runtime,
+  });
+  expect(await h.service.finalize(prospectiveOwner, {})).toMatchObject({ status: "unavailable", receipt: null,
+    blocker: "relative_plan_result_scan_run_recording_times_invalid" });
+  expect(h.calls.writes).toBe(0); expect(h.calls.runtime).toBe(0);
+  expect(base.data.recommendation_scan_runs).toHaveLength(73);
+  expect(base.data.recommendation_snapshots).toHaveLength(584);
+  expect(JSON.stringify(base.data)).toBe(before);
 });
 
 test("new terminal result cannot seal a forward snapshot recorded after source-as-of", async () => {

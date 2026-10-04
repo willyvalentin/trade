@@ -7,7 +7,8 @@ import { buildRelativePlanProspectiveLearning } from "@/lib/server/relative-plan
 import { relativePlanProspectiveStore, type RelativePlanProspectiveStoreResult } from "@/lib/server/relative-plan-prospective-store";
 import { relativePlanCanonicalBuildIdentity, type RelativePlanProspectivePlanInput } from "@/lib/server/relative-plan-prospective-comparison";
 import { hasExplicitRelativePlanOutcomeRecordingTimes, hasAdmissibleRelativePlanCurrentOutcomeRevisionTimes,
-  hasAdmissibleRelativePlanSnapshotRecordingTimes } from "@/lib/server/relative-plan-probability-measurement";
+  hasAdmissibleRelativePlanSnapshotRecordingTimes,
+  hasAdmissibleRelativePlanScanRunRecordingTimes } from "@/lib/server/relative-plan-probability-measurement";
 import { relativePlanTrainedProbabilityStore } from "@/lib/server/relative-plan-trained-probability-store";
 import { readRelativePlanCharterRuntimeSource } from "@/lib/server/relative-plan-charter-runtime-source";
 import { relativePlanCharterResultStore } from "@/lib/server/relative-plan-charter-result-store";
@@ -93,6 +94,10 @@ export function createRelativePlanProspectiveService(d: Dependencies = dependenc
         sourceResult.data.recommendation_snapshots, source.snapshots, now)) {
         return { status: "unavailable" as const, receipt: null, learning: null,
           blocker: "prospective_snapshot_recording_times_invalid" };
+      }
+      if (!hasAdmissibleRelativePlanScanRunRecordingTimes(sourceResult.data.recommendation_scan_runs, source.scanRuns, now)) {
+        return { status: "unavailable" as const, receipt: null, learning: null,
+          blocker: "prospective_scan_run_recording_times_invalid" };
       }
       let runtime;
       try { runtime = await d.readRuntime({ owner, freeze: freeze.receipt, now }); }

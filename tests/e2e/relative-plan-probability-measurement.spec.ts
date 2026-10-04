@@ -1,7 +1,8 @@
 import { expect, test } from "@playwright/test";
 import { buildRelativePlanProbabilityMeasurement, hasAdmissibleRelativePlanOutcomeRevisionTimes,
   hasExplicitRelativePlanOutcomeRecordingTimes, hasAdmissibleRelativePlanCurrentOutcomeRevisionTimes,
-  hasAdmissibleRelativePlanSnapshotRecordingTimes } from "@/lib/server/relative-plan-probability-measurement";
+  hasAdmissibleRelativePlanSnapshotRecordingTimes,
+  hasAdmissibleRelativePlanScanRunRecordingTimes } from "@/lib/server/relative-plan-probability-measurement";
 import { recommendationOutcomeFromPersistenceRow } from "@/lib/recommendation-outcome-tracker";
 import type { RelativePlanContextOutcomeComparison } from "@/lib/scanner-relative-plan-context-outcomes";
 
@@ -10,6 +11,44 @@ import type { RelativePlanContextOutcomeComparison } from "@/lib/scanner-relativ
 // boundary separately before these inputs can constitute product evidence.
 const trainingWindow = { start_at: "2026-10-05T13:30:00.000Z", end_at: "2026-10-09T20:00:00.000Z" };
 const fittedAt = "2026-10-12T13:30:00.000Z", now = new Date("2026-11-07T00:00:00.000Z");
+
+test("original scan admission retains raw microseconds, exact instants and explicit recording order", () => {
+  const scope = [{ run_fingerprint: "original" }];
+  const row = { id: "original", run_fingerprint: "original", observed_at: "2026-10-12T17:00:00.000Z",
+    created_at: "2026-11-06T23:59:59.000001Z", updated_at: now.toISOString() };
+  for (const updated_at of [now.toISOString(), "2026-11-07T02:00:00.000000+02:00",
+    "2026-11-06T19:59:59.999999-04:00"]) {
+    expect(hasAdmissibleRelativePlanScanRunRecordingTimes([{ ...row, updated_at }], scope, now)).toBe(true);
+  }
+  for (const clocks of [
+    { created_at: undefined }, { updated_at: undefined }, { created_at: null }, { updated_at: null },
+    { created_at: "2026-11-06" }, { created_at: "2026-02-30T00:00:00Z" },
+    { updated_at: "2026-11-07T02:00:00.000001+02:00" },
+    { created_at: "2026-11-06T23:59:59.000002Z", updated_at: "2026-11-06T23:59:59.000001Z" },
+  ]) expect(hasAdmissibleRelativePlanScanRunRecordingTimes([{ ...row, ...clocks }], scope, now)).toBe(false);
+  expect(hasAdmissibleRelativePlanScanRunRecordingTimes([row], scope, new Date(NaN))).toBe(false);
+  expect(hasAdmissibleRelativePlanScanRunRecordingTimes(null, scope, now)).toBe(false);
+  expect(hasAdmissibleRelativePlanScanRunRecordingTimes([null], scope, now)).toBe(false);
+  expect(hasAdmissibleRelativePlanScanRunRecordingTimes(Array(100001).fill(row), scope, now)).toBe(false);
+  expect(hasAdmissibleRelativePlanScanRunRecordingTimes([row], Array(100001).fill(scope[0]), now)).toBe(false);
+});
+
+test("original run-key admission keeps every collision and missing member without touching source or snapshot semantics", () => {
+  const row = { id: "original", run_fingerprint: "original",
+    created_at: "2026-11-06T23:59:59.000001Z", updated_at: now.toISOString() };
+  const scope = [{ run_fingerprint: "original" }], unrelated = { id: "unrelated", updated_at: "invalid" };
+  const rows = [row, unrelated], before = JSON.stringify(rows);
+  expect(hasAdmissibleRelativePlanScanRunRecordingTimes(rows, scope, now)).toBe(true);
+  expect(hasAdmissibleRelativePlanScanRunRecordingTimes(rows, [...scope, { run_fingerprint: "missing" }], now)).toBe(false);
+  expect(hasAdmissibleRelativePlanScanRunRecordingTimes([...rows, { ...row, id: "collision", updated_at: null }], scope, now)).toBe(false);
+  expect(hasAdmissibleRelativePlanScanRunRecordingTimes([{ ...row, run_fingerprint: undefined }], scope, now)).toBe(true);
+  expect(hasAdmissibleRelativePlanScanRunRecordingTimes([{ ...row, run_fingerprint: " original " }], scope, now)).toBe(true);
+  expect(hasAdmissibleRelativePlanScanRunRecordingTimes([], [], now)).toBe(true);
+  expect(JSON.stringify(rows)).toBe(before);
+  // Shared raw-time logic must not cross-bind the two fingerprint namespaces.
+  expect(hasAdmissibleRelativePlanSnapshotRecordingTimes([{ ...row, id: "different" }],
+    [{ snapshot_fingerprint: "original" }], now)).toBe(false);
+});
 
 test("snapshot admission uses explicit raw microseconds, not legacy recording-time fallbacks", () => {
   const scope = [{ snapshot_fingerprint: "original" }];

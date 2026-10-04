@@ -175,6 +175,62 @@ async function serializedOriginalSource() {
   return data;
 }
 
+test("unfinalized read cannot count an original scan recorded after its source-as-of", async () => {
+  const data = await serializedOriginalSource();
+  let runtimeReads = 0;
+  const h = harness({ readSource: async () => ({ status: "available", data }), readRuntime: async () => {
+    runtimeReads++; return { status: "unavailable", partitions: null, blocker: "synthetic_runtime_not_provided" };
+  } });
+  await h.service.freeze(prospectiveOwner, { windows: prospectiveInput.windows }, new Date(prospectiveFrozenAt));
+  const now = new Date("2026-11-07T00:00:00.000Z");
+  expect((await h.service.read(prospectiveOwner, now)).learning?.partitions[1]).toMatchObject({
+    enrolled_decision_count: 1, original_population_count: 4, canonical_outcome_count: 4,
+  });
+  const run = data.recommendation_scan_runs[0];
+  run.created_at = "2026-11-07T00:00:00.001Z"; run.updated_at = run.created_at;
+  const before = JSON.stringify(data);
+  expect(await createRelativePlanProspectiveService(h.dependencies).read(prospectiveOwner, now)).toMatchObject({
+    status: "unavailable", receipt: null, learning: null, blocker: "prospective_scan_run_recording_times_invalid",
+  });
+  expect(JSON.stringify(data)).toBe(before);
+  expect(data.recommendation_scan_runs).toHaveLength(1);
+  expect(data.recommendation_outcomes).toHaveLength(4);
+  expect(runtimeReads).toBe(1); expect(h.writes()).toBe(1);
+});
+
+test("mutable original scan admission preserves exact clocks and rejects missing, reversed and colliding revisions", async () => {
+  const data = await serializedOriginalSource();
+  const h = harness({ readSource: async () => ({ status: "available", data }) });
+  await h.service.freeze(prospectiveOwner, { windows: prospectiveInput.windows }, new Date(prospectiveFrozenAt));
+  const now = new Date("2026-11-07T00:00:00.000Z"), original = structuredClone(data.recommendation_scan_runs[0]);
+  for (const clocks of [
+    { created_at: undefined }, { updated_at: undefined }, { created_at: null },
+    { created_at: "2026-10-12" }, { created_at: "2026-02-30T17:00:00.000Z" },
+    { created_at: "2026-11-07T00:00:00.000001Z", updated_at: "2026-11-07T00:00:00.000001Z" },
+    { created_at: "2026-10-12T17:00:00.000002Z", updated_at: "2026-10-12T17:00:00.000001Z" },
+    { updated_at: "2026-11-07T00:00:00.000001Z" },
+  ]) {
+    data.recommendation_scan_runs[0] = { ...original, ...clocks };
+    const before = JSON.stringify(data);
+    expect(await h.service.read(prospectiveOwner, now)).toMatchObject({ status: "unavailable", receipt: null, learning: null,
+      blocker: "prospective_scan_run_recording_times_invalid" });
+    expect(JSON.stringify(data)).toBe(before); expect(data.recommendation_outcomes).toHaveLength(4);
+  }
+  for (const clock of [now.toISOString(), "2026-11-06T19:00:00.000000-05:00"]) {
+    data.recommendation_scan_runs[0] = { ...original, created_at: clock, updated_at: clock };
+    const before = JSON.stringify(data);
+    expect((await h.service.read(prospectiveOwner, now)).learning?.partitions[1]).toMatchObject({
+      enrolled_decision_count: 1, original_population_count: 4, canonical_outcome_count: 4 });
+    expect(JSON.stringify(data)).toBe(before);
+  }
+  data.recommendation_scan_runs[0] = original;
+  data.recommendation_scan_runs.push({ ...original, updated_at: "2026-11-07T00:00:00.000001Z" });
+  const collision = JSON.stringify(data);
+  expect((await h.service.read(prospectiveOwner, now)).blocker).toBe("prospective_scan_run_recording_times_invalid");
+  expect(JSON.stringify(data)).toBe(collision);
+  expect(h.writes()).toBe(1);
+});
+
 test("unfinalized read cannot count an original snapshot recorded after its source-as-of", async () => {
   const data = await serializedOriginalSource();
   let runtimeReads = 0;
@@ -312,6 +368,8 @@ test("original source writers, immutable freeze and restarted canonical learner 
     persisted_late_training_label_excluded: true, persisted_future_forward_recording_retained_as_missing: true,
     persisted_future_snapshot_read_unavailable: true, snapshot_clock_read_preserves_original_rows: true,
     restored_snapshot_read_reproduces_original_measurement: true,
+    persisted_future_scan_read_unavailable: true, scan_clock_read_preserves_original_rows: true,
+    restored_scan_read_reproduces_original_measurement: true,
     retained_original_population: 4, missing_outcome_progression: [4, 1, 0], concurrent_single_owner_freeze: true,
     malformed_ohlc_synthetic_requests: 5, persisted_malformed_terminal_labels_retained_as_missing: true,
     off_grid_synthetic_requests: 2,
