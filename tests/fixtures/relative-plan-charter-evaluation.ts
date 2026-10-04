@@ -8,12 +8,16 @@ import type { RelativePlanCharterRuntimeSource } from "@/lib/server/relative-pla
 /** Complete synthetic unit source only, NOT an actual DB attestation or alpha.
  * Four tickers in one sector deliberately violate the unchanged charter. */
 export async function charterEvaluationInput(rankedCount: 4 | 8 = 4,
-  options: { outcomePolicy?: "current" | "retained_pre_ohlc_validation_v2"; originalInputs?: boolean; forwardPositiveTickers?: string[] } = {}) {
+  options: { outcomePolicy?: "current" | "retained_pre_ohlc_validation_v2"; originalInputs?: boolean; forwardPositiveTickers?: string[];
+    rankingExplanationPolicy?: "current" | "retained_field_presence_wording_v1" } = {}) {
   const owner = prospectiveOwner, freeze = prospectiveReceipt();
+  const historicalFieldPresenceWording = options.rankingExplanationPolicy === "retained_field_presence_wording_v1" ? true as const : undefined;
+  if (historicalFieldPresenceWording && options.originalInputs) throw new Error("historical_golden_uses_retained_pre_archive_fixture");
   const trainingParts = await Promise.all([5, 6, 7].flatMap(day => [0, 1, 2, 3].map(n =>
-    prospectiveSource({ now: new Date(Date.UTC(2026, 9, day, 17, n * 5)), rankedCount, originalInputs: options.originalInputs }))));
+    prospectiveSource({ now: new Date(Date.UTC(2026, 9, day, 17, n * 5)), rankedCount, originalInputs: options.originalInputs, historicalFieldPresenceWording }))));
   const forwardParts = await Promise.all([12, 13, 14, 26, 27, 28].flatMap(day => Array.from({ length: 10 }, (_, n) =>
     prospectiveSource({ now: new Date(Date.UTC(2026, 9, day, 16, n * 15)), rankedCount, originalInputs: options.originalInputs,
+      historicalFieldPresenceWording,
       positiveTickers: options.forwardPositiveTickers }))));
   if (options.outcomePolicy === "retained_pre_ohlc_validation_v2") {
     // Pin the existing historical golden capsule's exact receipt shape. A

@@ -14,7 +14,8 @@ import { relativePlanOriginalInputConflict } from "@/lib/server/relative-plan-or
 import { relativePlanCompleteHttpResponse, relativePlanCompleteResponseFitsTransport } from "@/lib/server/relative-plan-complete-http-response";
 import { gunzipSync } from "node:zlib";
 
-const fixture = charterEvaluationInput(4, { outcomePolicy: "retained_pre_ohlc_validation_v2" });
+const fixture = charterEvaluationInput(4, { outcomePolicy: "retained_pre_ohlc_validation_v2",
+  rankingExplanationPolicy: "retained_field_presence_wording_v1" });
 test.beforeEach(() => test.setTimeout(180000));
 const candidate = fixture.then(input => ({ input,result: buildRelativePlanCharterResult(input).result! }));
 async function value() {
@@ -26,6 +27,9 @@ async function value() {
 test("complete retained evidence reproduces every original charter dimension without live authority",async () => {
   const { input,receipt } = await value();
   expect(receipt.result, "full original capsule must exist without shortening the cohort").not.toBeNull();
+  expect(input.source.scanRuns.every(run => run.payload_json.candidate_decision_record.candidates.every(candidate =>
+    candidate.ranking?.components.find(component => component.component === "data_completeness")?.reason ===
+      "data completeness is strong."))).toBe(true);
   expect(input.source.outcomes.every(outcome =>
     !("candle_validation_policy_version" in (outcome.payload_json.canonical_provider_coverage as Record<string, unknown>)))).toBe(true);
   // Frozen synthetic baseline before formatter reuse: every clock, retained
@@ -192,6 +196,8 @@ test("actual database clock, immutable result and restarted SDK/product consumpt
   expect(result.status,`${result.stdout}\n${result.stderr}`).toBe(0);
   const proof = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
   expect(proof).toMatchObject({ status:"pass",durable_terminal_result_verified:true,
+    new_result_rejects_unobserved_snapshot_clocks_before_storage:true,
+    sealed_result_ignores_later_mutable_snapshot_clocks:true,
     actual_database_finalization_clock_verified:true,historical_model_clock_fixture:true,
     result_prewrite_guards_verified:true,terminal_context_readback_verified:true,
     new_result_rejects_contradictory_retained_forward_candles_before_storage:true,
@@ -212,6 +218,8 @@ test("full eight-member population survives actual SQL finalization and negotiat
   expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
   const proof = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
   expect(proof).toMatchObject({ status: "pass", original_candidates_per_forward_partition: 240,
+    new_result_rejects_unobserved_snapshot_clocks_before_storage:true,
+    sealed_result_ignores_later_mutable_snapshot_clocks:true,
     new_result_rejects_contradictory_retained_forward_candles_before_storage:true,
     valid_retained_forward_candles_keep_complete_result_population:true,
     sealed_result_ignores_later_mutable_forward_candles:true,
@@ -236,6 +244,8 @@ test("complete original archives survive actual SQL capacity migration and resta
   expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
   const proof = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
   expect(proof).toMatchObject({ status: "pass", complete_original_archives: true,
+    new_result_rejects_unobserved_snapshot_clocks_before_storage:true,
+    sealed_result_ignores_later_mutable_snapshot_clocks:true,
     new_result_rejects_contradictory_retained_fallback_horizon_r_before_storage:true,
     new_result_rejects_contradictory_retained_horizon_r_before_storage:true,
     new_result_rejects_contradictory_retained_forward_candles_before_storage:true,

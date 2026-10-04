@@ -8,7 +8,8 @@ import { readRelativePlanCharterRuntimeSource } from "@/lib/server/relative-plan
 import { buildRelativePlanCharterResult, relativePlanTerminalQualityDecision,
   scopeRelativePlanCharterResultSource } from "@/lib/server/relative-plan-charter-result";
 import { relativePlanSemanticFingerprint } from "@/lib/server/relative-plan-prospective-comparison";
-import { hasExplicitRelativePlanOutcomeRecordingTimes, hasAdmissibleRelativePlanCurrentOutcomeRevisionTimes } from "@/lib/server/relative-plan-probability-measurement";
+import { hasExplicitRelativePlanOutcomeRecordingTimes, hasAdmissibleRelativePlanCurrentOutcomeRevisionTimes,
+  hasAdmissibleRelativePlanSnapshotRecordingTimes } from "@/lib/server/relative-plan-probability-measurement";
 import { relativePlanCompleteResponseFitsTransport } from "@/lib/server/relative-plan-complete-http-response";
 import { relativePlanOriginalInputConflict } from "@/lib/server/relative-plan-original-input-admission";
 import { relativePlanRetainedOutcomeCandleConflict, relativePlanRetainedTrainingCandleConflict } from "@/lib/server/relative-plan-retained-outcome-admission";
@@ -51,15 +52,30 @@ export function createRelativePlanCharterResultService(d: Dependencies = depende
       status: "not_ready", receipt: null, blocker: "relative_plan_original_forward_windows_and_maturity_required" };
     const model = await d.modelStore().read(freeze.receipt,owner);
     if (!model.receipt) return { status: "not_ready",receipt: null,blocker: model.blocker ?? "relative_plan_original_committed_training_model_required" };
+    const originalFreeze = freeze.receipt;
     const sourceRead = async (asOf?: Date) => {
       const result = await d.readSource(owner);
       if (result.status !== "available" || !hasExplicitRelativePlanOutcomeRecordingTimes(result.data.recommendation_outcomes)) {
         return { source: null, blocker: "relative_plan_result_complete_owned_source_unavailable" };
       }
-      if (!hasAdmissibleRelativePlanCurrentOutcomeRevisionTimes(result.data.recommendation_outcomes, asOf ?? d.clock())) {
+      const observedAt = asOf ?? d.clock();
+      if (!hasAdmissibleRelativePlanCurrentOutcomeRevisionTimes(result.data.recommendation_outcomes, observedAt)) {
         return { source: null, blocker: "relative_plan_result_outcome_revision_times_invalid" };
       }
-      return { source: parseRecommendationLearningBaselineSource(result.data),
+      const source = parseRecommendationLearningBaselineSource(result.data);
+      if (source) {
+        const training = originalFreeze.plan.windows.training;
+        // Current training rows do not replace the sealed fitted capsule.
+        // Forward scope keeps every original member and identity collision.
+        const forward = scopeRelativePlanCharterResultSource(source, originalFreeze).snapshots.filter(row => {
+          const at = row.recommended_at === null ? NaN : Date.parse(row.recommended_at);
+          return !Number.isFinite(at) || at < Date.parse(training.start_at) || at >= Date.parse(training.end_at);
+        });
+        if (!hasAdmissibleRelativePlanSnapshotRecordingTimes(result.data.recommendation_snapshots, forward, observedAt)) {
+          return { source: null, blocker: "relative_plan_result_snapshot_recording_times_invalid" };
+        }
+      }
+      return { source,
         blocker: "relative_plan_result_complete_owned_source_unavailable" };
     };
     try {

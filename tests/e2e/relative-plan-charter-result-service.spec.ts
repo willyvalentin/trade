@@ -416,6 +416,57 @@ test("new terminal results reject unobserved raw revisions on the initial read a
   }
 });
 
+test("new terminal result cannot seal a forward snapshot recorded after source-as-of", async () => {
+  test.setTimeout(120000);
+  const base = await retainedForwardHarness(103);
+  const row = base.data.recommendation_snapshots[103];
+  const after = new Date(base.input.now.getTime() + 1).toISOString();
+  row.created_at = after; row.updated_at = after;
+  const before = JSON.stringify(base.data);
+  const h = harness({ clock: () => new Date(base.input.now),
+    modelStore: () => createRelativePlanTrainedProbabilityStore({ async read() {
+      return { status: "available", receipt: base.input.trainedModelReceipt };
+    }, async materialize() { throw new Error("must_not_refit"); }, async confirm() { throw new Error("must_not_confirm"); } }),
+    readSource: async () => ({ status: "available", data: base.data }), readRuntime: async () => base.input.runtime,
+  });
+  const result = await h.service.finalize(prospectiveOwner, {});
+  expect(h.calls.writes).toBe(0);
+  expect(result.blocker).toBe("relative_plan_result_snapshot_recording_times_invalid");
+  expect(result.receipt).toBeNull();
+  expect(JSON.stringify(base.data)).toBe(before);
+});
+
+test("new terminal result checks raw forward snapshot clocks on both complete source reads", async () => {
+  test.setTimeout(120000);
+  const base = await retainedForwardHarness(343); // Walk-forward, outside top three.
+  const original = JSON.stringify(base.data);
+  for (const clocks of [
+    { created_at: undefined }, { updated_at: undefined },
+    { updated_at: "2026-11-07T00:00:00.000001Z" },
+    { created_at: "2026-11-02T17:00:00.000002Z", updated_at: "2026-11-02T17:00:00.000001Z" },
+  ]) for (const faultRead of [1, 2]) {
+    let reads = 0, runtimeReads = 0;
+    const h = harness({ clock: () => new Date(base.input.now),
+      modelStore: () => createRelativePlanTrainedProbabilityStore({ async read() {
+        return { status: "available", receipt: base.input.trainedModelReceipt };
+      }, async materialize() { throw new Error("must_not_refit"); }, async confirm() { throw new Error("must_not_confirm"); } }),
+      readSource: async () => {
+        reads++; const copy = structuredClone(base.data);
+        if (reads === faultRead) Object.assign(copy.recommendation_snapshots[343], clocks);
+        return { status: "available", data: copy };
+      }, readRuntime: async () => { runtimeReads++; return base.input.runtime; },
+    });
+    const result = await h.service.finalize(prospectiveOwner, {});
+    expect(h.calls.writes).toBe(0);
+    expect(result.status).toBe("unavailable");
+    expect(result.blocker).toBe("relative_plan_result_snapshot_recording_times_invalid");
+    expect(result.receipt).toBeNull();
+    expect(reads).toBe(faultRead); expect(runtimeReads).toBe(faultRead - 1);
+    expect(base.data.recommendation_snapshots).toHaveLength(576);
+    expect(JSON.stringify(base.data)).toBe(original);
+  }
+});
+
 test("new terminal results cannot call contradictory original forward inputs complete evidence", async () => {
   const input = await charterEvaluationInput(8);
   await appendSyntheticOriginalArchives(input.source.scanRuns[12]);

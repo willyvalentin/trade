@@ -3,6 +3,7 @@ import { parseRecommendationLearningBaselineSource } from "@/lib/recommendation-
 import { readRecommendationLearningBaselineSource } from "@/lib/server/application-data-access";
 import { relativePlanProspectiveStore } from "@/lib/server/relative-plan-prospective-store";
 import { hasAdmissibleRelativePlanOutcomeRevisionTimes,
+  hasAdmissibleRelativePlanSnapshotRecordingTimes,
   hasExplicitRelativePlanOutcomeRecordingTimes } from "@/lib/server/relative-plan-probability-measurement";
 import { buildRelativePlanTrainedProbabilityModel } from "@/lib/server/relative-plan-trained-probability-model";
 import { relativePlanRetainedTrainingCandleConflict } from "@/lib/server/relative-plan-retained-outcome-admission";
@@ -64,6 +65,10 @@ export function createRelativePlanTrainedProbabilityService(d: Dependencies = de
       if (!source) return unavailable("trained_probability_complete_owned_source_unavailable");
       const candidate = buildRelativePlanTrainedProbabilityModel({ owner, freeze: freeze.receipt, source, now });
       if (!candidate.trained_model) return { status: "not_ready", receipt: null, blocker: candidate.blocker };
+      if (!hasAdmissibleRelativePlanSnapshotRecordingTimes(result.data.recommendation_snapshots,
+        candidate.trained_model.retained_training_source.snapshots, now)) {
+        return unavailable("trained_probability_snapshot_recording_times_invalid");
+      }
       const inputConflict = await relativePlanOriginalInputConflict(candidate.trained_model.retained_training_source.scanRuns);
       if (inputConflict) return unavailable(`trained_probability_${inputConflict}`);
       const candleConflict = relativePlanRetainedTrainingCandleConflict(candidate.trained_model);

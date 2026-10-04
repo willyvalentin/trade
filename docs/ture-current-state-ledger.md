@@ -2,6 +2,24 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Selected CLOSED IF-4 original-snapshot source availability — 2026-10-04:**
+Codex owns `codex/original-snapshot-asof-admission-oct4`, isolated from fresh
+main `55576078` plus completed local composition `875bab95`. Four-active-hour
+bounded correction; primary #732 remains release-held. The actual persistence
+serializer → NEW training service regression reproduces materialization of all
+48 original members even with a contributing snapshot recorded after the
+server's source-as-of clock. This is a synthetic CLOSED defect reproduction,
+not evidence of a production incident or improved recommendation accuracy.
+Select raw recording/revision-clock admission for contributing snapshots before
+NEW training/result writes; never let legacy decoder fallbacks invent clocks.
+Preserve the complete original population, frozen model/charter and already
+sealed reads/retries. No cohort filtering, ranking/confidence changes, schema,
+provider, production configuration or broker work. Acceptance: initial red,
+explicit/missing/reversed/future/microsecond/offset-clock controls, full forward
+including non-top-three members and stable reread, immutable retry controls,
+actual isolated persistence proof, affected tests/types/lint/exact build.
+Stop this source-admission slice when complete and resume the frozen primary.
+
 **CLOSED IF-3 target-specific plan explanation locally built — 2026-10-04:**
 Owner Codex, isolated `codex/target-specific-risk-reward-oct4`, freshly verified
 main `55576078` plus completed local composition `b657b6a0`. Four-active-hour

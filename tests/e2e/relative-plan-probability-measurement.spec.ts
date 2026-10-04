@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { buildRelativePlanProbabilityMeasurement, hasAdmissibleRelativePlanOutcomeRevisionTimes,
-  hasExplicitRelativePlanOutcomeRecordingTimes, hasAdmissibleRelativePlanCurrentOutcomeRevisionTimes } from "@/lib/server/relative-plan-probability-measurement";
+  hasExplicitRelativePlanOutcomeRecordingTimes, hasAdmissibleRelativePlanCurrentOutcomeRevisionTimes,
+  hasAdmissibleRelativePlanSnapshotRecordingTimes } from "@/lib/server/relative-plan-probability-measurement";
 import { recommendationOutcomeFromPersistenceRow } from "@/lib/recommendation-outcome-tracker";
 import type { RelativePlanContextOutcomeComparison } from "@/lib/scanner-relative-plan-context-outcomes";
 
@@ -9,6 +10,38 @@ import type { RelativePlanContextOutcomeComparison } from "@/lib/scanner-relativ
 // boundary separately before these inputs can constitute product evidence.
 const trainingWindow = { start_at: "2026-10-05T13:30:00.000Z", end_at: "2026-10-09T20:00:00.000Z" };
 const fittedAt = "2026-10-12T13:30:00.000Z", now = new Date("2026-11-07T00:00:00.000Z");
+
+test("snapshot admission uses explicit raw microseconds, not legacy recording-time fallbacks", () => {
+  const scope = [{ snapshot_fingerprint: "original" }];
+  const row = { id: "original", snapshot_fingerprint: "original",
+    created_at: "2026-11-06T23:59:59.000001Z", updated_at: now.toISOString() };
+  for (const updated_at of [now.toISOString(), "2026-11-07T02:00:00.000000+02:00",
+    "2026-11-06T19:59:59.999999-04:00"]) {
+    expect(hasAdmissibleRelativePlanSnapshotRecordingTimes([{ ...row, updated_at }], scope, now)).toBe(true);
+  }
+  for (const clocks of [
+    { created_at: undefined }, { updated_at: undefined }, { created_at: null },
+    { created_at: "2026-11-06" }, { created_at: "2026-02-30T00:00:00Z" },
+    { updated_at: "2026-11-07T02:00:00.000001+02:00" },
+    { created_at: "2026-11-06T23:59:59.000002Z", updated_at: "2026-11-06T23:59:59.000001Z" },
+  ]) expect(hasAdmissibleRelativePlanSnapshotRecordingTimes([{ ...row, ...clocks }], scope, now)).toBe(false);
+  expect(hasAdmissibleRelativePlanSnapshotRecordingTimes([row], scope, new Date(NaN))).toBe(false);
+  expect(hasAdmissibleRelativePlanSnapshotRecordingTimes(null, scope, now)).toBe(false);
+  expect(hasAdmissibleRelativePlanSnapshotRecordingTimes([null], scope, now)).toBe(false);
+  expect(hasAdmissibleRelativePlanSnapshotRecordingTimes(Array(100001).fill(row), scope, now)).toBe(false);
+});
+
+test("snapshot admission scopes by all retained original keys without discarding a collision", () => {
+  const row = { id: "original", snapshot_fingerprint: "original",
+    created_at: "2026-11-06T23:59:59.000001Z", updated_at: now.toISOString() };
+  const scope = [{ snapshot_fingerprint: "original" }], unrelated = { id: "unrelated", updated_at: "invalid" };
+  const rows = [row, unrelated], before = JSON.stringify(rows);
+  expect(hasAdmissibleRelativePlanSnapshotRecordingTimes(rows, scope, now)).toBe(true);
+  expect(hasAdmissibleRelativePlanSnapshotRecordingTimes(rows, [...scope, { snapshot_fingerprint: "missing" }], now)).toBe(false);
+  expect(hasAdmissibleRelativePlanSnapshotRecordingTimes([...rows, { ...row, id: "collision", updated_at: null }], scope, now)).toBe(false);
+  expect(hasAdmissibleRelativePlanSnapshotRecordingTimes([{ ...row, snapshot_fingerprint: undefined }], scope, now)).toBe(true);
+  expect(JSON.stringify(rows)).toBe(before);
+});
 
 test("current as-of read admits exact revisions but does not manufacture availability for future-recorded labels", () => {
   const current = { evaluated_at: "2026-11-06T23:59:59.000001Z", created_at: "2026-11-06T23:59:59.000002Z",

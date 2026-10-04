@@ -37,6 +37,8 @@ let finalizedDecodedHttpBytes = null, finalizedTransportEncoding = null;
 let newResultRetainedCandlesVerified = false, sealedResultIgnoresMutableCandles = false;
 let newResultRetainedHorizonRVerified = false;
 let newResultRetainedFallbackHorizonRVerified = false;
+let newTrainingSnapshotClocksVerified = false, newResultSnapshotClocksVerified = false;
+let sealedModelIgnoresMutableSnapshotClocks = false, sealedResultIgnoresMutableSnapshotClocks = false;
 // Real local socket + client decompression, not Response.json() pretending to
 // decode compressed bytes. This is NOT a hosted Netlify behavior attestation.
 async function verifyHttp(readers, body) {
@@ -221,6 +223,14 @@ try {
       .eq("owner_user_id", owner).eq("id", run.id).select("id").single();
     assert.equal(response.error, null); assert.equal(response.data.id, run.id);
   };
+  // Exact owner/id-bound synthetic fault injection in this disposable database
+  // only. The real snapshot producer ignores duplicate inserts; do not weaken
+  // that behavior to test NEW consumer admission of a contradictory raw row.
+  const replaceIsolatedSnapshotClocks = async (snapshot, clocks) => {
+    const response = await client.from("recommendation_snapshots").update(clocks)
+      .eq("owner_user_id", owner).eq("id", snapshot.id).select("id").single();
+    assert.equal(response.error, null); assert.equal(response.data.id, snapshot.id);
+  };
   const injectOriginalConflict = async run => {
     if (!originalInputs) return readers.appendSyntheticOriginalArchives(run);
     const record = run.payload_json.candidate_decision_record;
@@ -235,6 +245,21 @@ try {
     const physical = await readers.readRecommendationLearningBaselineSource(owner);
     assert.equal(physical.status, "available");
     const original = readers.parseRecommendationLearningBaselineSource(physical.data); assert(original);
+    const originalSnapshot = original.snapshots[rankedCount - 1];
+    const future = new Date(Date.now() + 86400000).toISOString();
+    await replaceIsolatedSnapshotClocks(originalSnapshot, { created_at: future, updated_at: future });
+    const snapshotBefore = await readers.readRecommendationLearningBaselineSource(owner);
+    const snapshotRejected = await readers.createRelativePlanTrainedProbabilityService().train(owner, {});
+    assert.equal(snapshotRejected.status, "unavailable");
+    assert.equal(snapshotRejected.blocker, "trained_probability_snapshot_recording_times_invalid");
+    assert.equal(snapshotRejected.receipt, null);
+    assert.deepEqual((await readers.readRecommendationLearningBaselineSource(owner)).data, snapshotBefore.data);
+    assert.equal(snapshotBefore.data.recommendation_snapshots.length, 12 * rankedCount);
+    assert.equal(sql("select count(*) from public.relative_plan_trained_probability_models"), "0");
+    assert.equal(sql("select count(*) from public.relative_plan_trained_probability_confirmations"), "0");
+    await replaceIsolatedSnapshotClocks(originalSnapshot, {
+      created_at: originalSnapshot.created_at, updated_at: originalSnapshot.updated_at });
+    newTrainingSnapshotClocksVerified = true;
     const originalRun = original.scanRuns[0], conflictingRun = structuredClone(originalRun);
     await injectOriginalConflict(conflictingRun);
     await replaceIsolatedRunPayload(conflictingRun);
@@ -355,6 +380,18 @@ try {
     await replaceIsolatedRunPayload(originalRun);
     sealedModelIgnoresMutableInputs = true;
   }
+  if (newTrainingSnapshotClocksVerified) {
+    const source = readers.parseRecommendationLearningBaselineSource((await readers.readRecommendationLearningBaselineSource(owner)).data);
+    const originalSnapshot = source.snapshots[rankedCount - 1];
+    const future = new Date(Date.now() + 86400000).toISOString();
+    await replaceIsolatedSnapshotClocks(originalSnapshot, { created_at: future, updated_at: future });
+    const repeated = await readers.createRelativePlanTrainedProbabilityService().train(owner, {});
+    assert.equal(repeated.status, "already_materialized"); assert.deepEqual(repeated.receipt, sealed);
+    assert.equal(sql("select count(*) from public.relative_plan_trained_probability_models"), "1");
+    await replaceIsolatedSnapshotClocks(originalSnapshot, {
+      created_at: originalSnapshot.created_at, updated_at: originalSnapshot.updated_at });
+    sealedModelIgnoresMutableSnapshotClocks = true;
+  }
   if (newTrainingRetainedCoverageVerified) {
     assert.equal(sealed.trained_model.canonical_outcome_count, 12 * rankedCount);
     assert.equal(sealed.trained_model.missing_outcome_count, 0);
@@ -473,6 +510,22 @@ try {
     const source = readers.parseRecommendationLearningBaselineSource(physical.data);
     const originalRun = source.scanRuns.find(run => Date.parse(run.observed_at) >= Date.parse(windows.held_out.start_at));
     assert(originalRun);
+    const nonTopSnapshot = source.snapshots.find(row => row.scan_run_id === originalRun.run_fingerprint &&
+      originalRun.payload_json.candidate_decision_record.candidates.some(candidate =>
+        candidate.candidate_id === row.payload_json.candidate_id && candidate.ranking?.rank > 3));
+    assert(nonTopSnapshot);
+    const future = new Date(Date.now() + 86400000).toISOString();
+    await replaceIsolatedSnapshotClocks(nonTopSnapshot, { created_at: future, updated_at: future });
+    const snapshotBefore = await readers.readRecommendationLearningBaselineSource(owner);
+    const snapshotRejected = await readers.createRelativePlanCharterResultService().finalize(owner, {});
+    assert.equal(snapshotRejected.status, "unavailable");
+    assert.equal(snapshotRejected.blocker, "relative_plan_result_snapshot_recording_times_invalid");
+    assert.equal(snapshotRejected.receipt, null);
+    assert.deepEqual((await readers.readRecommendationLearningBaselineSource(owner)).data, snapshotBefore.data);
+    assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "0");
+    await replaceIsolatedSnapshotClocks(nonTopSnapshot, {
+      created_at: nonTopSnapshot.created_at, updated_at: nonTopSnapshot.updated_at });
+    newResultSnapshotClocksVerified = true;
     const conflictingRun = structuredClone(originalRun);
     await injectOriginalConflict(conflictingRun);
     await replaceIsolatedRunPayload(conflictingRun);
@@ -609,6 +662,14 @@ try {
     assert.deepEqual(restartedTerminal.receipt,durable.receipt);
     assert.deepEqual(restartedTerminal.terminal_quality_decision.context_diagnostic,contextDiagnostic);
     assert.equal((await readers.createRelativePlanCharterResultService().finalize(owner,{})).status,"already_finalized");
+    await replaceIsolatedSnapshotClocks(nonTopSnapshot, { created_at: future, updated_at: future });
+    const snapshotRepeated = await readers.createRelativePlanCharterResultService().finalize(owner, {});
+    assert.equal(snapshotRepeated.status, "already_finalized"); assert.deepEqual(snapshotRepeated.receipt, durable.receipt);
+    assert.deepEqual((await readers.createRelativePlanCharterResultService().read(owner)).receipt, durable.receipt);
+    assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "1");
+    await replaceIsolatedSnapshotClocks(nonTopSnapshot, {
+      created_at: nonTopSnapshot.created_at, updated_at: nonTopSnapshot.updated_at });
+    sealedResultIgnoresMutableSnapshotClocks = true;
     assert.equal((await readers.persistRecommendationOutcome(conflictingRetained, { supabaseClient: client, server: true })).status, "saved");
     assert.deepEqual((await readers.createRelativePlanCharterResultService().read(owner)).receipt, durable.receipt);
     const repeatCandles = await readers.createRelativePlanCharterResultService().finalize(owner, {});
@@ -736,6 +797,10 @@ try {
   assert.equal(blockedExternalRequests, 0);
   console.log(JSON.stringify({ status: "pass", environment: "isolated_postgres_postgrest_actual_sdk",
     evidence: finalizedMode ? "historical_synthetic_model_fixture_actual_database_finalization_not_market_alpha" : "synthetic_closed_not_market_alpha",
+    new_training_rejects_unobserved_snapshot_clocks_before_storage: newTrainingSnapshotClocksVerified,
+    new_result_rejects_unobserved_snapshot_clocks_before_storage: newResultSnapshotClocksVerified,
+    sealed_model_ignores_later_mutable_snapshot_clocks: sealedModelIgnoresMutableSnapshotClocks,
+    sealed_result_ignores_later_mutable_snapshot_clocks: sealedResultIgnoresMutableSnapshotClocks,
     immutable_actual_database_training_members: finalizedMode ? null : 12 * rankedCount,
     actual_database_training_clock_verified: actualTrainingClockVerified,
     separate_transaction_committed_model_witness_verified: separateCommittedWitnessVerified,
