@@ -724,6 +724,12 @@ function buildCoverageSummary({
       ? 0
       : [...riskPopulation].filter((ticker) => allowedTickers.has(ticker)).length;
   const categoryBreakdown = buildCategoryBreakdown(selectedTickers);
+  const dynamicMoverSourceBreakdown = { ...dynamicMovers.summary.source_breakdown };
+  for (const source of Object.keys(dynamicMoverSourceBreakdown) as DynamicMarketMoversSource[]) {
+    dynamicMoverSourceBreakdown[source] = selectedTickers.filter(
+      (item) => item.selection_source === source,
+    ).length;
+  }
   const warnings = buildWarnings({
     scanWindow,
     selectedTickers,
@@ -762,7 +768,7 @@ function buildCoverageSummary({
     dynamic_mover_selected_count: selectedTickers.filter(
       (item) => item.selection_source !== "base_universe",
     ).length,
-    dynamic_mover_source_breakdown: dynamicMovers.summary.source_breakdown,
+    dynamic_mover_source_breakdown: dynamicMoverSourceBreakdown,
     warnings,
     notes: [
       dynamicMovers.summary.status === "provider_unavailable"

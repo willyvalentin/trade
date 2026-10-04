@@ -971,6 +971,24 @@ test(`real scanner acquires raw history then reuses it after restart with ${stor
   try {
     const options = { source: "scheduled" as const, maxFreshProviderCalls: 2,
       freshProviderCallPacingMs: 0, completedDailyContextPolicyVersion: "completed_daily_intraday_input_v1" as const };
+    if (database) {
+      // A zero candidate budget is an empty original population, not authority
+      // to acquire fixed demo tickers. Benchmark acquisition remains separately
+      // reserved: two synthetic daily requests, no ticker/intraday acquisition.
+      const empty = await load().generateRecommendations({ ownerUserId: owner,
+        sessionType: "midday", scanWindow: "midday", source: "scheduled", scheduledMaxTickers: 0,
+        scheduledProviderCreditBudget: load().resolveScheduledScanProviderCreditBudget({ planMode: "free" }),
+        scheduledProviderCallPacingMs: 0, scannerInputPolicyVersion: "completed_daily_intraday_input_v1", skipOpenAi: true });
+      expect([daily, intraday]).toEqual([2, 0]);
+      expect(empty.recommendations).toEqual([]);
+      const emptyLog = empty.scan_log as import("@/lib/recommendation-generator").RecommendationScanLogDetails;
+      expect(emptyLog.no_publish_reason).toBe("no_raw_candidates");
+      expect(emptyLog.candidate_decision_capture?.observed_candidates).toEqual([]);
+      expect(emptyLog.real_scanner_candidate_generation?.universe.tickers).toEqual([]);
+      expect(emptyLog.real_scanner_candidate_generation?.universe.coverage?.selected_tickers).toBe(0);
+      // Remove only local request counters; no source/candidate row is erased.
+      daily = 0; intraday = 0;
+    }
     // Acquire each history through real scanner/provider/Supabase SDK, within
     // each run's two-credit fixture cap. No raw history is seeded by the test.
     for (const candidate of base) {

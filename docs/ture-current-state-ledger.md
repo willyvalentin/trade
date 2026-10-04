@@ -120,6 +120,30 @@ affected tests, types, lint and exact normal build. Classification:
 minimum delivery and resume the frozen original full-charter comparison;
 integrate the completed prerequisite chain against then-current main only after
 the protected primary release is legitimately unblocked.
+**Retained completed CLOSED IF-2b correction — preserve empty discovery selection, 2026-10-04:**
+Codex owns `codex/discovery-empty-selection-oct4`, isolated from freshly verified
+main `55576078` through the completed local prerequisite `d5dab7f6`. Primary
+#732 remains release-held; other independent slices are complete/parked. Four
+active hours, investigation at most four. The actual base-candidate selection
+reproduces a valid zero-budget universe being replaced by twenty fixed starter
+symbols; closed/unknown windows have the same path. Red regression:
+`/private/tmp/ture-discovery-empty-red-oct4.log`. Generator call sites also
+substitute demo symbols for an empty scanner universe. This is a reproduced
+selection/denominator integrity gap, not a historical production diagnosis.
+
+Select only preservation of a successfully computed empty selection through
+the real scanner handoff. Positive static rotation and a valid dynamic symbol
+outside the static list must remain unchanged. No discovery-feed admission,
+new provider, budget increase, quality-threshold or ranking policy change,
+model/charter/cohort rewrite, scheduler activation, migration or broker action.
+Acceptance: zero budget/closed/unknown remain empty with truthful coverage;
+packaged real generation passes no substitute symbols to scanner acquisition;
+provider-boundary request counts and unchanged positive controls, affected
+regressions, types/lint and exact clean build. Classification:
+`supporting_blocker_removal`, protecting IF-2b original membership and the frozen
+IF-4 comparison. Integration follows the completed original vertical against
+then-current main. Stop this support slice after the minimum fix; market-wide
+coverage and recommendation quality still need their own evidence.
 
 **Local acceptance complete — retained original-horizon R admission, 2026-10-04:**
 Product `46551901fad6022dbe887b17afc2ff38fb488fdf` on isolated branch

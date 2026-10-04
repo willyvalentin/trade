@@ -185,15 +185,15 @@ export function buildRealScannerBaseCandidateSelection({
     });
     const candidates = scannerUniverseSelectionToBaseCandidates(selection);
 
-    if (candidates.length > 0) {
-      return {
-        candidates,
-        selection,
-        coverage: selection.coverage_summary,
-        selectionMode,
-        rotationBatch,
-      };
-    }
+    // Empty is a valid selection (zero budget or an inactive window), not a
+    // failure that permits substituting another candidate population.
+    return {
+      candidates,
+      selection,
+      coverage: selection.coverage_summary,
+      selectionMode,
+      rotationBatch,
+    };
   } catch (error) {
     console.error("[real_scanner_candidate_generation] universe_selection_error", {
       error: error instanceof Error ? error.message : "Unknown scanner universe error.",
