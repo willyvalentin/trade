@@ -2,7 +2,7 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
-**Selected CLOSED IF-4 unfinalized source-as-of read — 2026-10-04:** Codex owns
+**CLOSED IF-4 unfinalized source-as-of read locally built — 2026-10-04:** Codex owns
 `codex/prospective-snapshot-asof-oct4`, isolated from freshly verified main
 `55576078` plus the tested admission implementation `54cea6f2`. Four-active-hour
 correction, not a new ranking hypothesis or infrastructure stream. The actual
@@ -19,6 +19,48 @@ regression; missing/future/reversed/microsecond/offset clocks; duplicate keys;
 no source mutation or read-side writes; isolated real SDK/restarted readback;
 affected tests/types/lint/exact build. Integration follows release-held #732
 and the completed local composition against then-current main.
+
+Product/test revision `4f5ef3ea606df2844720b71ea580877dcefb8240` now applies the
+existing raw snapshot-clock admission to the complete mutable prospective read
+before exposing measurements or reading runtime evidence. Future, missing,
+impossible, reversed and microsecond-late recording/revision clocks make the
+read unavailable. Exact as-of and explicit offset instants remain admissible.
+Every original row and denominator stays intact; finalized reads still replay
+only the original immutable source, runtime and model capsules.
+
+The actual-writer red regression reproduces four canonical outcomes counted
+despite a future-recorded contributing snapshot. The correction passes 42
+DISTINCT committed checks, including the ordinary native PostgreSQL/PostgREST/
+SDK restarted learner, owner isolation, unchanged sealed result readbacks and
+quality/model governance. The native proof injects a clock fault through an
+exact synthetic owner/id, verifies unavailable read without changing original
+rows, four outcomes and zero model/result writes, then restores only those
+clocks and reproduces the original complete measurement. No production writer
+or schema is changed. This is source availability/quality-measurement integrity,
+NOT independently attested historical clocks or better recommendation accuracy.
+
+The first native run also finds an existing fixture bug: its rolling future
+training-window start excludes that day's first 17:00 synthetic decision. The
+same failure reproduces on unchanged parent `54cea6f2`. Pin only the synthetic
+window to its future UTC calendar-day boundary and assert all original training
+decisions lie inside it; retain the 36/48 sample controls, 12/12 forward
+partitions, frozen model/charter and every quality gate. Final native proof and
+all 42 committed checks pass with no timeout, population or acceptance relaxation.
+
+Final nonincremental types and changed-file lint pass; full lint has zero errors
+and eight existing warnings. The first exact Linux build is terminated at its
+ordinary 300s limit after TypeScript and is NOT a pass. The same normal build
+passes on the exact committed revision when run alone: Node 22.23.1 / Next
+16.3.8, locked read-only dependencies, no network or production credentials;
+lock SHA-256 `859ed09eed4d3de2e7ade5c74bea78e73770bea57f92d6cb3656224bfcace6f7`.
+Logs `/private/tmp/ture-prospective-snapshot-asof-{red,focused,sealed,regression,regression-fixed,committed-regression,types-final,lint,changed-lint-final,exact-build,exact-build-serial}-oct4.log`
+and `/private/tmp/ture-prospective-clock-baseline-native-oct4.log`.
+Local implementation/test/build only: no push, PR, merge, deploy, provider,
+production database or broker action; no main/environment/alpha acceptance.
+The slice stops here. Primary #732 remains release-held. A separate actual-writer
+reproduction still counts the original scan decision after its own raw recording
+clock is shifted beyond as-of; select that bounded correction separately rather
+than extending the completed snapshot surface. Root user changes stay intact.
 
 **CLOSED IF-4 original-snapshot source availability locally built — 2026-10-04:**
 Codex owns `codex/original-snapshot-asof-admission-oct4`, isolated from fresh
