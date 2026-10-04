@@ -2,7 +2,51 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
-**Now — exact-image acquisition correction for the original IF-4 vertical, 2026-10-04:**
+**Now — exact IF-4 Draft verification passed; protected release remains held, 2026-10-04:**
+Existing Draft #732's exact remote head
+`2e626dd064e582564cb5a97b92e526d67e6cee8d` is terminally verified, not waiting.
+Run `37161115646`, Draft job `111314567186`, passes at
+`2026-10-03T23:57:13Z` in 42m51s within the unchanged 45-minute limit.
+Actual Ubuntu 24.04 / Node 24.19.0 lint/types, 17 critical-security smoke
+checks, 16 CI-contract checks, all selected affected suites and 1,113 broad
+containment checks pass; both tracked-source guards pass. Counts overlap and
+must not be added as a unique total. Log:
+`/private/tmp/ture-pr732-2e-draft-job-oct4.log`.
+The new retained-terminal-label admission and normal hosted native image
+acquisition/startup paths are now verified on this exact head. Original
+training/model/result populations, historical goldens and actual isolated
+SQL/SDK/restarted HTTP checks pass; this is synthetic/provider-free hosted
+verification, not actual market or production behavior. Four existing active
+governance checks also pass after this factual local receipt (482ms); they
+overlap the hosted checks, not additional unique engine tests. Log:
+`/private/tmp/ture-pr732-2e-hosted-receipt-governance-oct4.log`.
+
+The minimum `supporting_blocker_removal` is complete: stop the image/admission
+support stream and resume the frozen original input/outcome/full-charter
+comparison when release permits. The selected independent terminal-context
+slice is also locally complete: latest prerequisite integration `61121c5b`,
+receipt `f4e5c82b`, 143 serial checks, types/lint and exact locked Linux build.
+It remains local, without a second PR/push or another ranking/context rule.
+
+**Next:** an official compatible dependency correction, then protected Ready
+verification/review and release provenance; integrate the original IF-4
+vertical before the independent context slice against then-current main.
+Actual prospective input-qualified original populations and the indivisible
+baseline-relative quality charter remain the intelligence acceptance, not CI.
+
+**Blocked:** the workflow aggregate remains `failure` because its protected
+Ready matrix is skipped for a Draft, not because this Draft job failed.
+Protected six-shard audit/build and merge-candidate provenance are unverified.
+The mandatory full audit still has the unpatched Next ESLint/braces advisory;
+fresh official advisory/npm reads retain latest braces 3.0.3 and no patched
+release. Upstream proposals #72/#75 are unmerged and unpublished, not approved
+Ture dependencies. No fork/alias, audit exclusion, timeout increase, Ready
+conversion or bypass is selected. Main remains `55576078`; no main merge,
+production deploy/migration/configuration, provider request, broker action or
+recommendation-quality lift is claimed. Only this factual local receipt follows
+the tested head; no documentation-only push is selected.
+
+**Retained correction and local acceptance — exact-image acquisition, 2026-10-04:**
 Codex retains existing draft #732 and its isolated
 `codex/original-outcome-pages-oct3` branch. Exact head `1dc449da` is terminal
 failed, not waiting: run `37158357803`, Draft job `111306384286`, fails after
