@@ -2,7 +2,69 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
-**Selected independent CLOSED IF-4 contract — consumed fallback horizon R, 2026-10-04:**
+**Local acceptance complete — consumed fallback horizon R, 2026-10-04:**
+Product `e93f0d160537649a9328d90f34cb8583943c5887` on isolated
+`codex/horizon-fallback-r-admission-oct4` closes a reproduced NEW result/training
+admission bypass: missing `current_r` allowed contradictory consumed `eod_r`
+despite a coherent retained original horizon. The guard now follows exactly the
+unchanged consumer's `current_r ?? eod_r` selection and its corresponding price.
+Positive, negative and zero returns pass when honest; unused contradictory EOD
+values cannot override current R, including zero. Missing measurements remain
+gaps. Original sources, membership, model, ranker, charter, numerical v1 decoders
+and sealed reads/retries are unchanged. Classification: `quality_measurement`,
+not recommendation-quality lift.
+
+77 distinct checks pass: 71 affected service/store/model/full-charter/transport
+checks in the corrected clean run (5.1m), five active-governance checks (494ms),
+and one registered complete-original native SQL proof (7.7m). The focused three
+result/measurement and one training check overlap, not extra unique tests. The
+actual isolated Postgres/PostgREST/SDK NEW result command rejects conflicting
+fallback R with zero result rows and unchanged source; honest missing-current
+EOD fallback round-trips on the original ID. The full original fixture then
+retains one immutable result, all 240 members / 30 original decisions in EACH
+forward partition, 96 training members, eleven checks, 72 original runs and
+twelve unrelated prior DB runs. Restarted owner-bound SDK and loopback HTTP
+preserve the full result after later mutable source/candle edits. NEW training
+rejection is verified through its actual command/producer serialization in the
+local service harness; this run does not prove an actual pre-forward SQL fit.
+
+Native evidence uses the disclosed historical synthetic model-clock fixture,
+not actual market outcomes or alpha: original source 21,008,925 decoded bytes;
+complete result 6,520,791 decoded / 834,397 gzip-wire bytes. Exact clean committed
+`e93f0d16` normal Linux Node 22.23.1 / Next 16.3.8 build passes with network off,
+read-only locked dependencies and no production credentials. Lock SHA256:
+`859ed09eed4d3de2e7ade5c74bea78e73770bea57f92d6cb3656224bfcace6f7`.
+Final nonincremental types and changed-file lint pass; full lint has zero errors
+and eight existing warnings. Logs:
+`/private/tmp/ture-horizon-fallback-r-red-oct4.log`,
+`/private/tmp/ture-horizon-fallback-r-focused-oct4.log`,
+`/private/tmp/ture-horizon-fallback-r-training-oct4.log`,
+`/private/tmp/ture-horizon-fallback-r-regression-corrected-oct4.log`,
+`/private/tmp/ture-horizon-fallback-r-sql-oct4.log`,
+`/private/tmp/ture-horizon-fallback-r-governance-oct4.log`,
+`/private/tmp/ture-horizon-fallback-r-final-types-oct4.log`,
+`/private/tmp/ture-horizon-fallback-r-changed-lint-oct4.log`,
+`/private/tmp/ture-horizon-fallback-r-lint-oct4.log`, and
+`/private/tmp/ture-horizon-fallback-r-exact-build-oct4.log`.
+Keep the initial broad regression log: 69 checks passed, two native cases were
+mistakenly included without Docker permission and failed before native execution
+(with secondary concurrent Playwright artifact interference). The corrected
+non-native selector and separate artifact directory pass all 71 selected checks;
+the authorized native run above passes separately. No assertion, deadline,
+fixture population, CI requirement or publication/provider-budget rule changed.
+
+This sole independent slice is complete/parked within one active hour. Native
+proof/build resources are cleaned up; unrelated user root changes are preserved.
+No push, PR, merge, deploy, production migration/configuration, provider request
+or broker action occurred. Fresh GitHub readback around `2026-10-04T09:28Z`
+confirms main `55576078`, open Draft #732 at `2741f946`, and completed failed CI
+`37174103003` (not a pending job). Integration stays behind the protected primary
+release and the completed prerequisite chain; do not create a competing PR or
+bypass the known release gate. Stop extending this guard and resume the frozen
+original full-charter comparison. Actual prospective source coverage, the frozen
+forward-quality decision and main/production behavior remain evidence gaps.
+
+**Completed independent CLOSED IF-4 contract — consumed fallback horizon R, 2026-10-04:**
 Codex owns isolated `codex/horizon-fallback-r-admission-oct4`, from freshly
 verified main `55576078` through completed necessary prerequisite `d5dab7f6`.
 Primary #732 stays Draft/release-held; other completed slices stay parked. Four
