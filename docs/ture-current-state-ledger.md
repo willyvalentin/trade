@@ -2,24 +2,59 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
-**Selected CLOSED preview-verification reconciliation — 2026-10-04:**
-Owner: Codex; independent four-active-hour supporting_blocker_removal slice,
-isolated `codex/preview-verification-reconciliation-oct4`, based on freshly
-verified main `55576078` plus the completed local composition `1cc69bc5`.
-The reproduced Action 461 suite fails four of seven tests on that composition;
-its historical verifier rejects later observation-mode defaults and UI integration.
-Action 460 has exactly one failed condition, its historical default-disabled
-requirement. The current flag was changed in `0896246e`, not in this fix.
-Minimum exit: reconcile the executable suite with current read-only observation
-behavior, retain historical failed reports as historical (not release passes),
-and prove original confidence, fail-closed mapping, bounded rendering and absence
-of trading authority. Preserve frozen hashes and all other historical checks.
-No product behavior, flag, ranking, charter, dependency or CI threshold changes.
-Integration order: existing primary #732, completed intelligence/UI/context
-composition, then this verification correction against then-current main.
-This supplies verification integrity, not recommendation-quality evidence.
-After minimum acceptance return to the frozen IF-4 original-population primary;
-the unpatched dependency audit and protected release/forward evidence remain.
+**CLOSED preview-verification reconciliation complete locally — 2026-10-04:**
+Owner: Codex; the independent four-active-hour supporting_blocker_removal slice
+is complete and parked. Tested/built revision
+`8001d1d6dc0d0c5c527b217f23714ef6b182fdac`, isolated
+`codex/preview-verification-reconciliation-oct4`, starts from freshly verified
+main `55576078` plus completed local composition `1cc69bc5`.
+The earlier diagnostic reproduced four failures / three passes in Action 461.
+The correction reconciles that executable suite with current read-only
+observation behavior, NOT by making its historical verifier green. Historical
+Action 460 still exits 1 with its default-disabled condition false; Action 461
+still exits 1 with the four explicitly retained historical/dependent failures.
+Any additional historical failure fails the reconciliation. The enabled-default
+flag dates to `0896246e`; original approval, frozen hashes and verifiers are
+unchanged. This introduces no product behavior, flag, ranking, charter,
+dependency, CI-registration, threshold or release-authority change.
+
+All seven current Action 461 tests pass. Actual server-rendered React HTML
+retains the synthetic advisory 50/+2/52 compatibility path, hides disabled data,
+exposes unavailable results without numbers, and suppresses the legacy static
+82→87 uplift in favor of truthful unavailable-calibration disclosure. Rendering
+cannot mutate its source. All eight unsafe authority flags reject with null
+projected confidence; numeric, lineage, thrown-input and deterministic
+non-mutation controls remain. This is local synthetic component behavior, NOT
+authenticated browser or deployed UI verification and NOT actual calibration.
+
+The affected broader run passes 64 DISTINCT tests (including those seven),
+and an additional diagnostic passes 57 DISTINCT canonical identity/adapter/
+quality-metric tests. Repeats are not additional tests. This diagnostic found
+no new reproduced defect in those canonical contracts; do not open another
+support stream from speculative concerns. Nonincremental types and full lint
+pass (zero errors, eight pre-existing warnings); changed-file lint has none.
+The exact clean normal Linux build passes on `8001d1d6`, Node 22.23.1 / Next
+16.3.8, locked read-only dependencies, no build network or production credentials.
+Lock SHA-256 remains `859ed09eed4d3de2e7ade5c74bea78e73770bea57f92d6cb3656224bfcace6f7`.
+An initial incorrectly RSC-conditioned SSR run failed at import and selected no
+tests; the normal React-runtime command then passed. Preserve this initial
+failure, rather than counting it as green or changing the product runtime.
+
+Logs: `/private/tmp/ture-preview-reconciliation-{focused,focused-final,exact-focused,regression,canonical-diagnostic,types,lint,changed-lint,exact-build}-oct4.log`;
+red predecessor diagnostics `/private/tmp/ture-action461-{current-diagnostic,verifier-current-diagnostic}-oct4.{log,json}`;
+direct historical Action 460 report `/private/tmp/ture-action460-historical-reconciliation-oct4.json`.
+App/components/lib/scripts/configuration/CI are byte-identical to the preceding
+composition. Only the test and two documents changed. No push, new PR, merge,
+deploy, production read/write/configuration/migration, provider or broker action.
+
+Integration order remains #732 first, completed intelligence/UI/context
+composition, then this correction against then-current main. #732 is still Draft
+at `2741f946`; its failed required aggregate reflects skipped Ready shards, not
+a running CI wait. The mandatory unpatched dependency advisory remains separate.
+Current acceptance supplies verification integrity, not recommendation-quality
+evidence or a protected release pass. Stop this supporting slice and resume the
+frozen IF-4 original-population primary's normal release and prospective evidence;
+no independent support stream is left active after this receipt.
 
 **CLOSED IF-4 terminal-context composition complete locally — 2026-10-04:**
 Owner: Codex; the bounded four-active-hour quality_measurement slice is complete
