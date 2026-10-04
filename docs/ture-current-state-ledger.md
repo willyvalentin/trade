@@ -2,6 +2,34 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Retained completed CLOSED IF-2b contract — missing numeric scanner-cache evidence, 2026-10-04:**
+Codex owns `codex/scanner-cache-missing-values-oct4`, isolated directly from
+freshly verified main `55576078`. Four active hours, investigation at most four.
+Original full-charter PR #732 remains the release-held primary; the prior local
+verticals and completed dynamic-discovery admission slice stay parked. The
+actual scanner/Supabase SDK cache read reproduces SQL-shaped `latest_close:null`
+becoming a rankable candidate with price zero instead of unavailable evidence.
+Red: `/private/tmp/ture-scanner-cache-missing-red-oct4.log`. This is a synthetic
+CLOSED reproduction, not a production incident or measured recommendation lift.
+
+Repair only numeric decoding in the existing scanner cache path. Required null
+or nonnumeric fields must not become invented numeric evidence; valid numeric
+strings and genuine zero metrics remain valid. The existing optional-field
+fallbacks, source/freshness policy, provider budget and refresh behavior remain
+in place. Acceptance requires actual restarted scanner/SDK and native SQL NULL
+readback, all thirteen required numeric fields, zero-refresh/no-provider checks,
+valid-zero controls, unchanged completed-raw-input behavior and sealed decision
+readback, affected regression, types/lint and exact locked build. Reuse the
+existing mandatory suites without changing CI contracts or deadlines.
+
+Classification: `supporting_blocker_removal`, protecting IF-2b evidence before
+the frozen original-input IF-4 full-charter comparison. Completed-context mode
+does not consume the legacy derived-row values; do not imply it did. No model,
+ranking, thresholds, charter/population, new source, scheduler, schema or
+provider activation is selected. Integrate after #732 against then-current
+main; this branch does not inherit or supersede the parked successor chain.
+Stop after the minimum correction and return to the frozen quality comparison.
+
 **Selected CLOSED IF-2b → IF-4 combined acceptance, 2026-10-04:**
 Codex owns isolated `codex/closed-intelligence-integration-oct4`, created from
 freshly verified main `55576078` and locally advanced through completed

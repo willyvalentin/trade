@@ -211,6 +211,10 @@ function roundInt(value: number) {
 }
 
 function parseNumber(value: unknown) {
+  // Database NULL and blank/non-numeric JSON values are absent evidence, not
+  // numeric zero. Preserve actual zero and PostgREST numeric strings.
+  if ((typeof value !== "number" && typeof value !== "string") ||
+      (typeof value === "string" && value.trim() === "")) return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
 }

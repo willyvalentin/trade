@@ -1239,6 +1239,54 @@ test(`real scanner acquires raw history then reuses it after restart with ${stor
     clock += 3600000;
     await load().scanMarket(base, { source: "scheduled", maxFreshProviderCalls: 6, freshProviderCallPacingMs: 0 });
     expect([daily, intraday]).toEqual([3, 3]);
+    // A real nullable numeric column is missing evidence, not numeric zero.
+    // Restart the actual scanner/SDK for each read, including genuine SQL NULL
+    // round trips in the native fixture. Never spend an unallocated refresh.
+    const cacheRow = structuredClone(rows.get(base[0].ticker)!);
+    const numericFields = ["latest_close", "ma20", "ma50", "high_20d", "volume_ratio",
+      "distance_to_20d_high", "change_5d_percent", "proposed_entry_low", "proposed_entry_high",
+      "proposed_stop_loss", "proposed_target_1", "proposed_target_2", "proposed_risk_reward"];
+    const patchCacheNumbers = async (patch: Record<string, unknown>) => {
+      if (database) {
+        const response = await originalFetch(database.origin + `/scanner_cache?ticker=eq.${base[0].ticker}`, {
+          method: "PATCH", headers: { Authorization: `Bearer ${database.token}`, "Content-Type": "application/json" },
+          body: JSON.stringify(patch),
+        });
+        expect(response.ok, await response.text()).toBe(true);
+      } else Object.assign(rows.get(base[0].ticker)!, patch);
+    };
+    const noRefresh = { source: "scheduled" as const, maxFreshProviderCalls: 0, freshProviderCallPacingMs: 0 };
+    daily = 0; intraday = 0;
+    for (const field of numericFields) {
+      await patchCacheNumbers({ [field]: null });
+      const scanner = load();
+      const missingTrace = scanner.createActiveScanTrace({ routeReceivedAt: new FixtureDate().toISOString() });
+      const missingCandidates = await scanner.scanMarket([base[0]], { ...noRefresh, activeScanTrace: missingTrace });
+      expect(missingCandidates, `${storage}: missing ${field}`).toHaveLength(0);
+      expect(missingTrace.trace.market_data_fetch.candidate_observation_summary).toMatchObject({
+        expected_candidate_count: 1, rankable_candidate_count: 0,
+        not_rankable_candidate_count: 1, total_reserved_credits: 0 });
+      const missingAt = new FixtureDate().toISOString();
+      const missingRun = buildRecommendationScanRun({ trading_date: "2026-10-01", observed_at: missingAt,
+        completed_at: missingAt, window: "midday", source: "supabase",
+        scheduled_scan_run_id: `synthetic_missing_cache_${field}`, scanned_ticker_count: 1, raw_candidate_count: 0 });
+      const missingDecision = buildCandidateDecisionRecord({ scanRun: missingRun,
+        capture: buildCandidateDecisionCapture({ captureTimestamp: missingAt,
+          universe: [base[0]], observedCandidates: missingCandidates }),
+        scoringVersion: "unchanged-local-scoring", buildVersion: "local-synthetic-input-proof" })!;
+      expect(missingDecision.coverage).toMatchObject({ expected_candidate_count: 1, observed_candidate_count: 0 });
+      expect(missingDecision.candidates).toHaveLength(1);
+      expect(missingDecision.candidates[0]).toMatchObject({ ticker: base[0].ticker, disposition: "not_evaluated" });
+      expect(rows.get(base[0].ticker)![field]).toBeNull();
+      expect([daily, intraday]).toEqual([0, 0]);
+      await patchCacheNumbers({ [field]: cacheRow[field] });
+    }
+    await patchCacheNumbers({ volume_ratio: 0, distance_to_20d_high: "0", change_5d_percent: 0 });
+    expect((await load().scanMarket([base[0]], noRefresh))[0]).toMatchObject({
+      volume_ratio: 0, distance_to_20d_high: 0, change_5d_percent: 0 });
+    expect([daily, intraday]).toEqual([0, 0]);
+    await patchCacheNumbers(Object.fromEntries(numericFields.map(field => [field, cacheRow[field]])));
+    if (database) await readDurableDecision(); // Mutable missingness cannot rewrite the sealed original decision.
     clock += 3600000;
     daily = 0; intraday = 0; wrongIntradayIdentity = true;
     const rejected = await load().scanMarket([base[0]], options);
