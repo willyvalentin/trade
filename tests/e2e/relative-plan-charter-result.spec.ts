@@ -193,7 +193,7 @@ test("actual database clock, immutable result and restarted SDK/product consumpt
   const proof = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
   expect(proof).toMatchObject({ status:"pass",durable_terminal_result_verified:true,
     actual_database_finalization_clock_verified:true,historical_model_clock_fixture:true,
-    result_prewrite_guards_verified:true,
+    result_prewrite_guards_verified:true,terminal_context_readback_verified:true,
     new_result_rejects_contradictory_retained_forward_candles_before_storage:true,
     valid_retained_forward_candles_keep_complete_result_population:true,
     sealed_result_ignores_later_mutable_forward_candles:true,
@@ -216,7 +216,7 @@ test("full eight-member population survives actual SQL finalization and negotiat
     valid_retained_forward_candles_keep_complete_result_population:true,
     sealed_result_ignores_later_mutable_forward_candles:true,
     durable_terminal_result_verified: true, actual_database_finalization_clock_verified: true,
-    historical_model_clock_fixture: true, actual_loopback_http_readback_verified: true,
+    historical_model_clock_fixture: true, actual_loopback_http_readback_verified: true, terminal_context_readback_verified: true,
     unrelated_pre_window_decisions_persisted_and_preserved: 12,
     unobserved_current_revision_rejected_without_population_reduction: true,current_revision_cannot_finalize: true,
     finalized_capsule_ignores_later_mutable_revision: true,
@@ -245,7 +245,7 @@ test("complete original archives survive actual SQL capacity migration and resta
     supported_transport_required_before_result_insert: true, durable_terminal_result_verified: true,
     result_prewrite_guards_verified: true, actual_database_finalization_clock_verified: true,
     historical_model_clock_fixture: true, actual_loopback_http_readback_verified: true,
-    sealed_result_ignores_later_mutable_original_inputs: true,
+    sealed_result_ignores_later_mutable_original_inputs: true, terminal_context_readback_verified: true,
     unrelated_pre_window_decisions_persisted_and_preserved: 12,
     finalized_product_transport_encoding: "gzip", quality_improvement_verified: false,
     provider_requests: 0, production_writes: 0, broker_actions: 0 });

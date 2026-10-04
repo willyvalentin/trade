@@ -13,6 +13,8 @@ import { createServer } from "node:http";
 
 const root = process.cwd(), directory = mkdtempSync(join(tmpdir(), "ture-relative-plan-charter-proof-"));
 const finalizedMode = process.argv.includes("--finalized-result");
+const contextRegressionMode = process.argv.includes("--terminal-context-regression");
+assert(!contextRegressionMode || finalizedMode, "terminal_context_requires_finalized_native_mode");
 const rankedCount = process.argv.includes("--full-eight-member-population") ? 8 : 4;
 const originalInputs = process.argv.includes("--complete-original-archives");
 assert(!originalInputs || rankedCount === 8, "original_capacity_proof_requires_unchanged_eight_member_population");
@@ -382,7 +384,8 @@ try {
   const parts = [], runtimeRows = [];
   for (const day of futureDays) for (let n = 0; n < 10; n++) {
     const at = new Date(Date.parse(session(day).session_open) + 2.5 * 3600000 + n * 900000);
-    const part = await readers.prospectiveSource({ now: at, rankedCount, originalInputs });
+    const part = await readers.prospectiveSource({ now: at, rankedCount, originalInputs,
+      positiveTickers: contextRegressionMode ? ["AAA"] : undefined });
     const context = { contract_version: "market_regime_decision_context_v1", classifier_version: "market_regime_v1",
       captured_at: at.toISOString(), regime: "risk_on" };
     Object.assign(part.scanRuns[0].payload_json, { market_regime: "risk_on", market_regime_context: context });
@@ -582,6 +585,19 @@ try {
     assert.equal(durable.status,"finalized",durable.blocker);
     assert.equal(durable.terminal_quality_decision.disposition,"reject");
     assert(durable.receipt.result.measurement.evidence_complete);
+    const contextDiagnostic = durable.terminal_quality_decision.context_diagnostic;
+    assert(contextDiagnostic);
+    assert.equal(contextDiagnostic.source.result_id, durable.receipt.result_id);
+    assert.equal(contextDiagnostic.source.result_fingerprint, durable.receipt.result.result_fingerprint);
+    assert.equal(contextDiagnostic.status, contextRegressionMode ? "conservative_regression_detected" : "no_conservative_regression");
+    if (contextRegressionMode) {
+      assert.equal(contextDiagnostic.priority_context.dimension, "setup");
+      assert.equal(contextDiagnostic.priority_context.key, "BREAKOUT_CONTINUATION");
+      assert.equal(contextDiagnostic.priority_context.baseline.resolved_outcome_count, 180);
+      assert.equal(contextDiagnostic.priority_context.challenger.resolved_outcome_count, 180);
+      assert(contextDiagnostic.priority_context.baseline.precision.lower > contextDiagnostic.priority_context.challenger.precision.upper);
+    }
+    assert(Object.values(contextDiagnostic.authority).every(value => value === false));
     if (unrelatedPriorDecisions) {
       const retained = readers.decodeRelativePlanRetainedSource(durable.receipt.result.retained_source); assert(retained);
       assert.equal(retained.scanRuns.length, 72);
@@ -589,7 +605,9 @@ try {
     }
     assert(Date.parse(durable.receipt.finalized_at) >= beforeFinalization);
     assert(Date.parse(durable.receipt.finalized_at) <= Date.now());
-    assert.deepEqual((await readers.createRelativePlanCharterResultService().read(owner)).receipt,durable.receipt);
+    const restartedTerminal = await readers.createRelativePlanCharterResultService().read(owner);
+    assert.deepEqual(restartedTerminal.receipt,durable.receipt);
+    assert.deepEqual(restartedTerminal.terminal_quality_decision.context_diagnostic,contextDiagnostic);
     assert.equal((await readers.createRelativePlanCharterResultService().finalize(owner,{})).status,"already_finalized");
     assert.equal((await readers.persistRecommendationOutcome(conflictingRetained, { supabaseClient: client, server: true })).status, "saved");
     assert.deepEqual((await readers.createRelativePlanCharterResultService().read(owner)).receipt, durable.receipt);
@@ -617,6 +635,7 @@ try {
     const sealedRepeat = await readers.createRelativePlanCharterResultService().finalize(owner, {});
     assert.equal(sealedRepeat.status, "already_finalized");
     assert.deepEqual(sealedRepeat.receipt, durable.receipt);
+    assert.deepEqual(sealedRepeat.terminal_quality_decision.context_diagnostic, contextDiagnostic);
     assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "1");
     assert.equal((await readers.persistRecommendationOutcome(originalRevision,
       { supabaseClient: client, server: true })).status, "saved");
@@ -743,6 +762,8 @@ try {
     unobserved_current_revision_rejected_without_population_reduction: true,
     current_revision_cannot_finalize: finalizedMode,
     finalized_capsule_ignores_later_mutable_revision: finalizedMode,
+    terminal_context_readback_verified: finalizedMode,
+    terminal_context_regression_fixture: contextRegressionMode,
     durable_terminal_result_verified: finalizedMode, actual_database_finalization_clock_verified: finalizedMode,
     historical_model_clock_fixture: finalizedMode, quality_improvement_verified: false,
     unrelated_pre_window_decisions_persisted_and_preserved: unrelatedPriorDecisions,

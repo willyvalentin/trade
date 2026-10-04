@@ -255,6 +255,7 @@
   "tests/e2e/relative-plan-charter-thresholds.spec.ts",
   "tests/e2e/relative-plan-charter-evaluation.spec.ts",
   "tests/e2e/relative-plan-charter-result.spec.ts",
+  "tests/e2e/relative-plan-terminal-context.spec.ts",
   "tests/e2e/relative-plan-charter-result-service.spec.ts",
   "tests/e2e/relative-plan-charter-result-store.spec.ts",
   "tests/e2e/relative-plan-prospective-comparison.spec.ts",

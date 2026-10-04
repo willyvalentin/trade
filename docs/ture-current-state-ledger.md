@@ -2,6 +2,29 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Selected CLOSED IF-4 terminal-context composition — 2026-10-04:**
+Owner: Codex; four active hours, investigation at most four. Reuse the completed
+terminal-context delivery `02276fa4` / prerequisite acceptance `61121c5b`; its
+read model is absent from the latest jointly verified original-intelligence tree
+`e82c9a4c`. Compose that existing behavior AFTER the completed primary local
+chain on isolated `codex/terminal-context-composed-oct4`. Release order remains
+primary #732 first, then this context delivery against then-current main.
+The previous UI integration is complete; this is the sole independent CLOSED
+slice. Classification: quality_measurement, not a competing ranking hypothesis.
+
+Keep the existing result/charter/model fingerprints, full original populations,
+ten resolved outcomes per arm, both forward partitions, strict Wilson separation
+and deterministic priority unchanged. Diagnosis consumes only the independently
+verified immutable owner-bound terminal result; no mutable source, refitting,
+automatic hypothesis selection, ranking/publication/promotion or provider/broker
+authority. Acceptance: the existing context controls, actual isolated SQL/SDK/
+loopback HTTP including COMPLETE original archives/eight-member forward cohorts,
+retained result after mutable updates, unchanged full-charter contracts, types,
+lint and exact normal build. Preserve all newer admission/transport corrections;
+never overwrite them with the older prerequisite tree. No production/provider
+operation, push or release bypass. Stop after joint acceptance, park the slice
+and return to the frozen primary/prospective evidence and normal release gates.
+
 **CLOSED UI / original-intelligence integration complete locally — 2026-10-04:**
 Owner: Codex; the bounded four-active-hour integration is complete and parked.
 Clean product/test revision: `732a30ded6a037e30dd4f31a4d60cc78f0014d89` on

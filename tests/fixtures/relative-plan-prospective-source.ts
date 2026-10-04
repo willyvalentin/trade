@@ -12,7 +12,7 @@ import { BUILD_MARKER, RECOMMENDATION_PUBLISH_POLICY_VERSION } from "@/lib/publi
 import { CANDIDATE_DECISION_PROVIDER_CONTRACT_VERSION } from "@/lib/candidate-decision-record";
 
 // Synthetic CLOSED point-in-time source. Future fixture dates are never market evidence.
-export async function prospectiveSource(options: { now?: Date; missingInputs?: boolean; missingOutcome?: boolean; allLosses?: boolean; rankedCount?: 4 | 8; originalInputs?: boolean } = {}) {
+export async function prospectiveSource(options: { now?: Date; missingInputs?: boolean; missingOutcome?: boolean; allLosses?: boolean; positiveTickers?: string[]; rankedCount?: 4 | 8; originalInputs?: boolean } = {}) {
   const now = options.now ?? new Date("2026-10-12T17:00:00.000Z"), revision = prospectiveInput.source_revision;
   const { run, record, observed } = await (options.originalInputs ? reproducibleOriginalEvidence : relativePlanEvidence)({ rankedCount: options.rankedCount ?? 4, now,
     missing: options.missingInputs ?? false, buildVersion: revision.build_identity,
@@ -50,7 +50,8 @@ export async function prospectiveSource(options: { now?: Date; missingInputs?: b
   });
   const outcomes = snapshots.map((snapshot, i) => {
     const anchor = recommendationOutcomeEvaluationAnchorFromSnapshot(snapshot)!;
-    const start = Date.parse(anchor.evaluation_anchor_start_at), wins = !options.allLosses && i !== 0;
+    const start = Date.parse(anchor.evaluation_anchor_start_at), wins = options.positiveTickers
+      ? typeof snapshot.ticker === "string" && options.positiveTickers.includes(snapshot.ticker) : !options.allLosses && i !== 0;
     const candles = Array.from({ length: 12 }, (_, bar) => ({ timestamp: new Date(start + bar * 300000).toISOString(),
       open: 100, high: wins ? 109 : 101, low: wins ? 99 : 95, close: wins ? 108 : 96, volume: 1000 }));
     const outcome = computeRecommendationOutcome({ snapshot, horizon: "60m", evaluated_at: new Date(start + 3600000), candles,
