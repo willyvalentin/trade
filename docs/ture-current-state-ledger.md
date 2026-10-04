@@ -2,7 +2,7 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
-**Selected CLOSED IF-4 original-scan availability — 2026-10-05:** Owner Codex,
+**CLOSED IF-4 original-scan availability locally built — 2026-10-05:** Owner Codex,
 `codex/original-scan-run-asof-oct5`, freshly verified main `55576078` plus
 completed local composition `a25527eb`; primary #732 remains release-held.
 Four-active-hour correction of an actual persistence-serializer → unfinalized
@@ -23,6 +23,49 @@ affected suites/types/lint/exact build. This closes source availability in the
 same frozen IF-4 comparison, not historical-clock attestation or alpha. Integrate
 after #732 and the completed composition against then-current main, then resume
 that indivisible original-input → outcome → full-charter primary.
+
+Product/test revision `82ba80b052bd602fed40a2e4ba16944ece15315f` now checks
+raw original-run recording/revision clocks before NEW training/result storage
+and unfinalized learning reads. Missing, impossible, reversed and future clocks
+fail closed, including a one-microsecond future. Explicit offsets and exact
+as-of instants remain admissible. All colliding keys, non-top-three originals,
+the thirty-first forward overflow and stable second source read stay in scope.
+Already sealed models/results and pending confirmations keep their original
+capsules; contemporary training rows cannot replace the fitted source.
+
+The three actual persistence-serializer/service red cases fail before the fix.
+All 145 DISTINCT committed affected checks pass in 22.6 minutes, including the
+ordinary three PostgreSQL/PostgREST/SDK/HTTP full-charter modes and the restarted
+prospective reader. Native clock fault injection preserves original source rows
+and makes new consumers unavailable, then restoring only the injected clocks
+reproduces the original measurement. Sealed retries ignore later mutable faults.
+Separate actual native training retains all 96 training members, with model
+materialization `2026-10-04T22:08:56.388Z` and separate committed witness
+`2026-10-04T22:08:56.517Z`, before the first synthetic forward window. Complete
+archive finalization keeps 240 members per forward partition, all 72 retained
+runs and 12 unrelated pre-window runs in storage. Decoded source is 21,106,845
+bytes; actual negotiated result wire size is 844,908 bytes and decoded size
+6,543,560 bytes. The unchanged complete charter still rejects its known
+concentration violation; these synthetic results establish no market alpha.
+
+The first direct prospective native proof failed because a new assertion used
+a function absent from that proof's exports. The corrected assertion reads the
+existing isolated SDK source directly; no production contract, timeout, sample
+or quality gate was relaxed. Final nonincremental types and changed-file lint
+pass; full lint has zero errors/eight existing warnings. The ordinary exact
+Linux build passes on `82ba80b0`, Node 22.23.1 / Next 16.3.8, locked read-only
+dependencies, network disabled and no production credentials. Lock SHA-256
+remains `859ed09eed4d3de2e7ade5c74bea78e73770bea57f92d6cb3656224bfcace6f7`.
+Logs `/private/tmp/ture-scan-run-asof-{red,focused,controls,overflow,native-training,native-read,native-read-fixed,committed-regression,types-final,lint,changed-lint,learning-governance,policy-governance,exact-build}-oct5.log`.
+This completes the bounded local `quality_measurement` correction, not main,
+production, independently attested historical clocks or recommendation-quality
+acceptance. No push, PR, merge, deploy, provider, production database or broker
+operation. Root user changes remain intact. Stop extending this scan-clock
+surface and resume the frozen primary. Read-only actual-receipt-producer
+reproduction identifies a separate current-runtime escape: raw cycle/attempt
+recording clocks after as-of still count a completed attempt/eight credits.
+Its next selection must stay inside the same frozen cost/reliability dimension,
+not become another receipt, scheduler or competing ranking project.
 
 **CLOSED IF-4 unfinalized source-as-of read locally built — 2026-10-04:** Codex owns
 `codex/prospective-snapshot-asof-oct4`, isolated from freshly verified main
