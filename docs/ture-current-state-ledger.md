@@ -2,6 +2,25 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Selected CLOSED preview-verification reconciliation — 2026-10-04:**
+Owner: Codex; independent four-active-hour supporting_blocker_removal slice,
+isolated `codex/preview-verification-reconciliation-oct4`, based on freshly
+verified main `55576078` plus the completed local composition `1cc69bc5`.
+The reproduced Action 461 suite fails four of seven tests on that composition;
+its historical verifier rejects later observation-mode defaults and UI integration.
+Action 460 has exactly one failed condition, its historical default-disabled
+requirement. The current flag was changed in `0896246e`, not in this fix.
+Minimum exit: reconcile the executable suite with current read-only observation
+behavior, retain historical failed reports as historical (not release passes),
+and prove original confidence, fail-closed mapping, bounded rendering and absence
+of trading authority. Preserve frozen hashes and all other historical checks.
+No product behavior, flag, ranking, charter, dependency or CI threshold changes.
+Integration order: existing primary #732, completed intelligence/UI/context
+composition, then this verification correction against then-current main.
+This supplies verification integrity, not recommendation-quality evidence.
+After minimum acceptance return to the frozen IF-4 original-population primary;
+the unpatched dependency audit and protected release/forward evidence remain.
+
 **CLOSED IF-4 terminal-context composition complete locally — 2026-10-04:**
 Owner: Codex; the bounded four-active-hour quality_measurement slice is complete
 and parked. Product/test revision `ce913275f10509fcfb6b8f56ed7b77514f097a24`,

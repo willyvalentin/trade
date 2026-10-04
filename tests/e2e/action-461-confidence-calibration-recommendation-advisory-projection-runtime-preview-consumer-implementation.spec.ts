@@ -1,6 +1,10 @@
-import { execFileSync } from "child_process";
+import { spawnSync } from "child_process";
 import { createHash } from "crypto";
 import { existsSync, readFileSync } from "fs";
+import { createRequire } from "node:module";
+import { join, resolve } from "path";
+import { runInNewContext } from "node:vm";
+import { buildSync } from "esbuild";
 
 import { expect, test } from "@playwright/test";
 
@@ -16,6 +20,7 @@ import {
   mapConfidenceCalibrationProjectionPreviewResult,
 } from "../../lib/confidence-calibration-recommendation-advisory-projection-preview";
 import { isConfidenceCalibrationProjectionPreviewEnabled } from "../../lib/confidence-calibration-recommendation-advisory-projection-preview-flag";
+import { buildConfidenceProjectionObservationPreview } from "../../lib/confidence-calibration-recommendation-advisory-projection-observation";
 import {
   buildConfidenceCalibrationRecommendationProjection,
   type FrozenRecommendationProjectionConfiguration,
@@ -34,6 +39,54 @@ const verifierPath =
   "scripts/action-461-confidence-calibration-recommendation-advisory-projection-runtime-preview-consumer-implementation-verify.mjs";
 
 test.setTimeout(300000);
+
+// These are retained HISTORICAL approval gates, not today's runtime contract.
+// Keep their nonzero exit and every failure visible. An unexpected additional
+// failure must fail this reconciliation, never be ignored as "legacy".
+function historicalReport(path = verifierPath) {
+  const outcome = spawnSync("node", [path], {
+    encoding: "utf8", maxBuffer: 80 * 1024 * 1024,
+  });
+  expect(outcome.error).toBeUndefined();
+  expect(outcome.signal).toBeNull();
+  expect(outcome.status).toBe(1);
+  const report = JSON.parse(outcome.stdout);
+  expect(report.verification_status).toBe("failed");
+  expect(report.failed_conditions.slice().sort()).toEqual(path === verifierPath ? [
+    "action460_contract_healthy", "flag_defaults_disabled",
+    "no_global_dashboard_scanner_execution_integration", "runtime_preview_waiting",
+  ] : ["feature_flag_remains_disabled_by_default"]);
+  for (const [condition, passed] of Object.entries(report.checks)) {
+    expect(passed, condition).toBe(!report.failed_conditions.includes(condition));
+  }
+  return report;
+}
+
+// Compile the actual pure component: Playwright's JSX transform otherwise
+// returns component descriptors rather than rendered React HTML.
+const root = resolve(__dirname, "../..");
+const compiled = buildSync({
+  absWorkingDir: root, bundle: true, platform: "node", format: "cjs",
+  packages: "external", jsx: "automatic", write: false,
+  stdin: {
+    resolveDir: root, loader: "tsx",
+    contents: `
+      import { renderToStaticMarkup } from "react-dom/server";
+      import { ConfidenceCalibrationProjectionPreview } from "./components/recommendations/ConfidenceCalibrationProjectionPreview";
+      export function render(preview) {
+        return renderToStaticMarkup(<ConfidenceCalibrationProjectionPreview preview={preview} />);
+      }
+    `,
+  },
+}).outputFiles[0].text;
+const compiledModule = { exports: {} as {
+  render: (preview: ReturnType<typeof buildConfidenceCalibrationProjectionPreview> | null | undefined) => string;
+} };
+runInNewContext(compiled, {
+  module: compiledModule, exports: compiledModule.exports,
+  require: createRequire(join(root, "package.json")),
+});
+const renderPreview = compiledModule.exports.render;
 
 const h = (char: string) => char.repeat(64);
 
@@ -414,29 +467,27 @@ function mutate<T>(value: T, patch: (draft: Mutable<T>) => void): T {
 }
 
 test.describe("Action 461 projection runtime preview consumer implementation", () => {
-  test("documents and verifies the implementation contract", () => {
+  test("retains historical failed approval reports separately from current behavior acceptance", () => {
     expect(existsSync(docPath)).toBe(true);
     expect(existsSync(verifierPath)).toBe(true);
     const doc = readFileSync(docPath, "utf8");
     expect(doc).toContain("Action 460 Contract");
     expect(doc).toContain("CONFIDENCE_CALIBRATION_PROJECTION_PREVIEW_ENABLED");
     expect(doc).toContain("runtime_preview_waiting_for_operator_inputs");
-    const report = JSON.parse(execFileSync("node", [verifierPath], { encoding: "utf8", maxBuffer: 80 * 1024 * 1024 }));
-    expect(report.verification_status).toBe("passed");
-    expect(report.runtime_preview_status).toBe("runtime_preview_waiting_for_operator_inputs");
+    expect(doc).toContain("Current observation-mode reconciliation — 2026-10-04");
+    historicalReport();
+    historicalReport("scripts/action-460-confidence-calibration-recommendation-advisory-projection-runtime-preview-integration-contract-approval-gate-verify.mjs");
   });
 
-  test("flag defaults disabled and rejects user-controlled or malformed activation", () => {
-    expect(isConfidenceCalibrationProjectionPreviewEnabled({}, "test")).toBe(false);
-    expect(isConfidenceCalibrationProjectionPreviewEnabled({ CONFIDENCE_CALIBRATION_PROJECTION_PREVIEW_ENABLED: "" }, "test")).toBe(false);
-    expect(isConfidenceCalibrationProjectionPreviewEnabled({ CONFIDENCE_CALIBRATION_PROJECTION_PREVIEW_ENABLED: "false" }, "test")).toBe(false);
-    expect(isConfidenceCalibrationProjectionPreviewEnabled({ CONFIDENCE_CALIBRATION_PROJECTION_PREVIEW_ENABLED: "0" }, "test")).toBe(false);
-    expect(isConfidenceCalibrationProjectionPreviewEnabled({ CONFIDENCE_CALIBRATION_PROJECTION_PREVIEW_ENABLED: "1" }, "test")).toBe(false);
-    expect(isConfidenceCalibrationProjectionPreviewEnabled({ CONFIDENCE_CALIBRATION_PROJECTION_PREVIEW_ENABLED: "TRUE" }, "test")).toBe(false);
-    expect(isConfidenceCalibrationProjectionPreviewEnabled({ CONFIDENCE_CALIBRATION_PROJECTION_PREVIEW_ENABLED: " true " }, "test")).toBe(false);
-    expect(isConfidenceCalibrationProjectionPreviewEnabled({ CONFIDENCE_CALIBRATION_PROJECTION_PREVIEW_ENABLED: "true" }, "test")).toBe(true);
-    expect(isConfidenceCalibrationProjectionPreviewEnabled({ CONFIDENCE_CALIBRATION_PROJECTION_PREVIEW_ENABLED: "true" }, "production")).toBe(false);
-
+  test("current observation default preserves explicit opt-out and rejects malformed or user-controlled activation", () => {
+    for (const runtime of ["test", "development", "production"]) {
+      for (const value of [undefined, "", "true"]) {
+        expect(isConfidenceCalibrationProjectionPreviewEnabled({ CONFIDENCE_CALIBRATION_PROJECTION_PREVIEW_ENABLED: value }, runtime)).toBe(true);
+      }
+      for (const value of ["false", "0", "1", "TRUE", " true ", "garbage"]) {
+        expect(isConfidenceCalibrationProjectionPreviewEnabled({ CONFIDENCE_CALIBRATION_PROJECTION_PREVIEW_ENABLED: value }, runtime)).toBe(false);
+      }
+    }
     const source = readFileSync("lib/confidence-calibration-recommendation-advisory-projection-preview-flag.ts", "utf8");
     expect(source).not.toContain("localStorage");
     expect(source).not.toContain("sessionStorage");
@@ -559,21 +610,20 @@ test.describe("Action 461 projection runtime preview consumer implementation", (
       advisory,
       configuration: projectionConfig,
     });
-    expect(mapConfidenceCalibrationProjectionPreviewResult(
-      mutate(projection, (draft) => {
-        (draft as Record<string, unknown>).ranking_affected = true;
-      }) as typeof projection,
-    ).status).toBe("preview_unavailable");
-    expect(mapConfidenceCalibrationProjectionPreviewResult(
-      mutate(projection, (draft) => {
-        (draft as Record<string, unknown>).application_eligible = true;
-      }) as typeof projection,
-    ).status).toBe("preview_unavailable");
-    expect(mapConfidenceCalibrationProjectionPreviewResult(
-      mutate(projection, (draft) => {
-        (draft as Record<string, unknown>).applied = true;
-      }) as typeof projection,
-    ).status).toBe("preview_unavailable");
+    for (const [flag, unsafe] of Object.entries({
+      recommendation_confidence_unchanged: false, non_authoritative: false,
+      ranking_affected: true, scanner_affected: true, publication_affected: true,
+      execution_affected: true, application_eligible: true, applied: true,
+    })) {
+      const rejected = mapConfidenceCalibrationProjectionPreviewResult(
+        mutate(projection, (draft) => {
+          (draft as Record<string, unknown>)[flag] = unsafe;
+        }) as typeof projection,
+      );
+      expect(rejected.status, flag).toBe("preview_unavailable");
+      expect(rejected.proposed_preview_confidence_basis_points, flag).toBeNull();
+      expect(renderPreview(rejected), flag).not.toContain("PROJECTED CONFIDENCE");
+    }
 
     expect(buildConfidenceCalibrationProjectionPreview({
       preview_enabled: true,
@@ -610,32 +660,51 @@ test.describe("Action 461 projection runtime preview consumer implementation", (
       advisory,
       configuration: projectionConfig,
     });
-    const componentSource = readFileSync(
-      "components/recommendations/ConfidenceCalibrationProjectionPreview.tsx",
-      "utf8",
-    );
     const adapterSource = readFileSync(
       "lib/confidence-calibration-recommendation-advisory-projection-preview.ts",
       "utf8",
     );
 
     expect(ConfidenceCalibrationProjectionPreview).toBeTruthy();
-    expect(componentSource).toContain("preview.status === \"preview_disabled\"");
-    expect(componentSource).toContain("return null");
-    expect(componentSource).toContain("CALIBRATION PREVIEW");
-    expect(componentSource).toContain("Preview only");
-    expect(componentSource).toContain("not applied");
-    expect(componentSource).toContain("Original Recommendation confidence remains active");
-    expect(componentSource).toContain("ORIGINAL CONFIDENCE");
-    expect(componentSource).toContain("SUGGESTED PREVIEW ADJUSTMENT");
-    expect(componentSource).toContain("SUGGESTED PREVIEW CONFIDENCE");
-    expect(componentSource).toContain("Calibration preview unavailable");
-    expect(componentSource).toContain("No adjustment suggested");
-    expect(componentSource).not.toContain("Apply");
-    expect(componentSource).not.toContain("Accept");
-    expect(componentSource).not.toContain("Use");
-    expect(componentSource).not.toContain("projection_hash");
-    expect(componentSource).not.toContain("lineage_hashes");
+    const before = JSON.stringify(ready);
+    const html = renderPreview(ready);
+    expect(html).toContain("Observation only — not applied");
+    expect(html).toContain("Original confidence remains authoritative");
+    expect(html).toContain("CONFIDENCE DELTA");
+    expect(html).toContain("PROJECTED CONFIDENCE");
+    expect(html).toContain(">50<");
+    expect(html).toContain(">+2<");
+    expect(html).toContain(">52<");
+    expect(JSON.stringify(ready)).toBe(before);
+    for (const input of [null, undefined, { ...ready, status: "preview_disabled" as const }]) {
+      expect(renderPreview(input)).toBe("");
+    }
+    const unavailable = buildConfidenceCalibrationProjectionPreview({
+      preview_enabled: true, recommendation: null, advisory, configuration: projectionConfig,
+    });
+    expect(renderPreview(unavailable)).toContain("AI projection unavailable");
+    expect(renderPreview(unavailable)).not.toContain("PROJECTED CONFIDENCE");
+    expect(renderPreview({ ...ready, status: "preview_no_adjustment" })).toContain("No adjustment suggested");
+    const warning = renderPreview({ ...ready, status: "preview_ready_with_warnings",
+      warnings: [{ code: "metric_value_unavailable", label: "Some metrics were unavailable" }],
+    });
+    expect(warning).toContain("Some metrics were unavailable");
+    const observation = buildConfidenceProjectionObservationPreview({
+      previewEnabled: true, confidenceScore: 82, direction: "long",
+      setupType: "PULLBACK_CONTINUATION", ticker: "AAPL",
+    });
+    const observationBefore = JSON.stringify(observation);
+    const staticHtml = renderPreview(observation);
+    expect(staticHtml).toContain("Calibration unavailable");
+    expect(staticHtml).toContain("not a win probability");
+    expect(staticHtml).not.toContain("PROJECTED CONFIDENCE");
+    expect(staticHtml).not.toContain(">87<");
+    expect(JSON.stringify(observation)).toBe(observationBefore);
+    for (const rendered of [html, warning, staticHtml, renderPreview(unavailable)]) {
+      expect(rendered).not.toMatch(/<(button|input|form)\b/);
+      expect(rendered).not.toContain("projection_hash");
+      expect(rendered).not.toContain("lineage_hashes");
+    }
     expect(ready).not.toHaveProperty("projection_hash");
     expect(ready).not.toHaveProperty("issues");
     expect(adapterSource).toContain("Calibration warning");
@@ -644,7 +713,7 @@ test.describe("Action 461 projection runtime preview consumer implementation", (
   });
 
   test("source isolation keeps one projection call site and no routes, persistence, replay, provider, or deployment artifacts", () => {
-    const report = JSON.parse(execFileSync("node", [verifierPath], { encoding: "utf8", maxBuffer: 80 * 1024 * 1024 }));
+    const report = historicalReport();
     expect(report.projection_call_site_count).toBe(1);
     expect(report.route_result.new_route_created).toBe(false);
     expect(report.persistence_result.persisted).toBe(false);
