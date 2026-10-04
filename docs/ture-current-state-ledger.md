@@ -2,28 +2,64 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
-**Selected CLOSED IF-4 terminal-context composition — 2026-10-04:**
-Owner: Codex; four active hours, investigation at most four. Reuse the completed
-terminal-context delivery `02276fa4` / prerequisite acceptance `61121c5b`; its
-read model is absent from the latest jointly verified original-intelligence tree
-`e82c9a4c`. Compose that existing behavior AFTER the completed primary local
-chain on isolated `codex/terminal-context-composed-oct4`. Release order remains
-primary #732 first, then this context delivery against then-current main.
-The previous UI integration is complete; this is the sole independent CLOSED
-slice. Classification: quality_measurement, not a competing ranking hypothesis.
+**CLOSED IF-4 terminal-context composition complete locally — 2026-10-04:**
+Owner: Codex; the bounded four-active-hour quality_measurement slice is complete
+and parked. Product/test revision `ce913275f10509fcfb6b8f56ed7b77514f097a24`,
+isolated branch `codex/terminal-context-composed-oct4`, follows the completed
+original-intelligence/UI composition `e82c9a4c`. The existing context module is
+byte-identical to `02276fa4` (prior prerequisite acceptance `61121c5b`), not a
+new ranking hypothesis. Only its import and derived terminal readback are added
+to the result module. No stored v1 result schema, model, historical golden,
+charter, population, admission or lossless-transport correction is replaced.
 
-Keep the existing result/charter/model fingerprints, full original populations,
-ten resolved outcomes per arm, both forward partitions, strict Wilson separation
-and deterministic priority unchanged. Diagnosis consumes only the independently
-verified immutable owner-bound terminal result; no mutable source, refitting,
-automatic hypothesis selection, ranking/publication/promotion or provider/broker
-authority. Acceptance: the existing context controls, actual isolated SQL/SDK/
-loopback HTTP including COMPLETE original archives/eight-member forward cohorts,
-retained result after mutable updates, unchanged full-charter contracts, types,
-lint and exact normal build. Preserve all newer admission/transport corrections;
-never overwrite them with the older prerequisite tree. No production/provider
-operation, push or release bypass. Stop after joint acceptance, park the slice
-and return to the frozen primary/prospective evidence and normal release gates.
+The verified owner-bound immutable terminal result now exposes contextual
+regression diagnostics through the existing result service and actual HTTP
+readback. The frozen rule still requires both forward partitions, ten resolved
+outcomes per arm, strict Wilson interval separation and deterministic priority.
+The synthetic regression identifies BREAKOUT_CONTINUATION with 180 resolved
+outcomes per arm; the unchanged default fixture reports no_conservative_regression.
+Incomplete or forged evidence cannot acquire this readback. Later mutable
+original inputs, candles and outcome corrections cannot replace its source or
+diagnostic fingerprint. Every ranking/publication/promotion, automatic-hypothesis,
+provider and broker authority remains false; this cannot select the next model.
+
+134 DISTINCT checks pass on this exact composed product tree: five context
+controls; 51 presentation/CI-registration/governance checks (38 presentation,
+eight CI-contract and five governance); 74 model/charter/result/runtime/outcome
+regressions; three actual isolated PostgreSQL/PostgREST/SDK finalization and
+loopback-HTTP checks; and one actual pre-forward training-clock regression.
+The finalization proofs explicitly use a historical synthetic model-clock
+fixture, NOT real prospective fitting. The separate training proof retains
+96 original members and verifies actual DB training/committed-read ordering
+before the synthetic forward windows. Both full-original terminal proofs retain
+30 decisions and 240 original members in EACH forward partition. Default versus
+regression source sizes are 21,008,925 / 21,004,976 bytes; decoded terminal HTTP
+6,527,240 / 6,525,048 bytes and lossless gzip wire 835,374 / 835,995 bytes, inside
+the unchanged capacities. No population/deadline/security threshold was reduced.
+
+Nonincremental types, changed-file lint and full lint pass (zero errors, eight
+existing warnings). Exact clean-revision normal build passes with locked,
+read-only Linux dependencies, Node 22.23.1 / Next 16.3.8, no build network or
+production credentials. Lock SHA-256 remains
+`859ed09eed4d3de2e7ade5c74bea78e73770bea57f92d6cb3656224bfcace6f7`.
+Logs: `/private/tmp/ture-context-composed-{unit,ui-ci,regression,native,training,types,lint,changed-lint,exact-build}-oct4.log`.
+The five governance checks pass again after this receipt (overlap, not five
+additional unique tests); log `/private/tmp/ture-context-composed-receipt-governance-final-oct4.log`.
+An initial mistyped test filename selected no tests; the correct registered
+governance files were then run. The tested/built product tree is unchanged.
+UI bytes are unchanged from the preceding composition; no new deployed/UI
+behavior or actual recommendation-quality improvement is claimed.
+
+GitHub main is freshly read-only verified unchanged at `55576078e102e7019c271aeb5e67de4a353f2e8f`
+at 18:24 UTC. Draft #732 remains the primary delivery; release order is primary
+first, then the parked context slice against then-current main. The mandatory
+full audit still reports five high affected packages rooted in the unpatched
+braces advisory; official latest/canary dependency paths supply no compatible
+published fix. Protected Ready shards/review/provenance and real prospective
+full-charter quality remain unverified. No second PR, push, merge, production
+deploy/configuration/migration, provider request, broker action or bypass occurs.
+Stop this independent slice after its acceptance and return to the frozen
+primary hypothesis and ordinary release gates; do not open a competing model.
 
 **CLOSED UI / original-intelligence integration complete locally — 2026-10-04:**
 Owner: Codex; the bounded four-active-hour integration is complete and parked.
