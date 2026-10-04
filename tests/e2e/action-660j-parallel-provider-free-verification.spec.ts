@@ -104,6 +104,7 @@ const foundationTests = [
   "tests/e2e/canonical-outcome-resumption.spec.ts",
   "tests/e2e/completed-input-published-source.spec.ts",
   "tests/e2e/completed-benchmark-reuse.spec.ts",
+  "tests/e2e/mvp-02-stale-recommendation-presentation.spec.ts",
   "tests/e2e/action-652f-server-client-containment.spec.ts",
   "tests/e2e/action-660f-dashboard-owner-relation-disambiguation.spec.ts",
   "tests/e2e/action-660g-ma15-verified-production-reclosure.spec.ts",

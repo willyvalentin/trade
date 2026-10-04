@@ -2,6 +2,61 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Selected CLOSED IF-3 target-specific plan explanation — 2026-10-04:**
+Owner Codex, isolated `codex/target-specific-risk-reward-oct4`, freshly verified
+main `55576078` plus completed local composition `b657b6a0`. Four-active-hour
+bounded correction; primary #732 remains release-held and unchanged. Read-only
+inspection of the retained Oct 2 original plans and linked snapshots reproduces
+a user-facing mismatch: the card shows Target 1 beside a bare stored R/R that
+can describe Target 2 instead. Select truthful per-target geometry explanation,
+not another ranking hypothesis. Preserve stored planned R/R, immutable original
+features, snapshot/cohort admission, model/charter, confidence and action gates.
+Write ownership: one pure display helper, existing card mapper/details modal,
+their presentation regression suite and this receipt. Inspection found that
+the existing presentation suite was not registered in protected CI; add it to
+the existing normal-React containment group with its matching inventory/oracle,
+without removing or relaxing any existing check. Unknown side,
+missing, ambiguous or invalid geometry must display unavailable; never fall back
+to an unbound stored ratio. Show worst entry in the displayed zone and exclude
+fees/slippage explicitly. Acceptance: red mismatch regression, long/short and
+malformed controls, real component rendering/non-mutation, unchanged action
+gates, local browser card/details checks, types/lint and exact clean build.
+Integrate only after #732 and the completed composition against then-current
+main. This improves recommendation understanding, NOT predicted outcome quality.
+
+The red regression reproduces the incorrect first-target/stored-second-target
+pairing (one failed, six passed). The correction derives Target 1 R/R on the
+card and each target's own R/R in details from the displayed long/short prices,
+using the worst entry and the existing deterministic geometry calculator.
+Display-only rounding is marked approximate; the basis excludes fees/slippage
+and is not a realized return or success probability. Unknown side, invalid stop,
+reversed/missing/ambiguous entry and target values expose unavailable geometry.
+The sanitized retained Oct 2 AAPL prices produce approximately 1.50 / 2.25 for
+Target 1 / Target 2 respectively; the original failed observation stays failed.
+No stored R/R, ranking, confidence, snapshot, admission, charter or action gate
+changes. Incomplete source rows that already format as one price are still only
+display geometry, not validation of complete original inputs.
+
+Forty-eight DISTINCT local checks pass including actual card/details React HTML,
+source non-mutation, long/short/malformed controls, existing stale/expired/
+low-confidence/manual gates, immutable published-source binding, selective
+publication and eight CI registration/oracle controls. The ordinary React
+containment group and Draft affected-test selection now include the presentation
+suite, with no existing check removed or relaxed. A preliminary HTML test expected
+mixed-case labels but the actual component uppercases them (14 passed, one
+failed); the corrected assertion tests the actual uppercase output. An initial
+type check found an excess fixture-only property; naming that fixture separately
+corrected the test without expanding the production helper's input contract.
+Final nonincremental types pass. Full lint has zero errors/eight existing warnings;
+changed-file lint has none. Clean exact committed-revision build remains pending.
+
+Browser setup/selection and documented discovery each timed out (30 / 60 seconds)
+before any browser operation or navigation. No alternate browser surface was used.
+Actual interactive/layout browser behavior is UNVERIFIED; React HTML is local
+component evidence only, not browser, authenticated app or deployed acceptance.
+No push, PR, merge, deploy, environment change, database write, provider or broker
+action. Logs `/private/tmp/ture-target-risk-reward-{red,focused,regression,exact-regression,types-final,lint,changed-lint,draft-routing}-oct4.log`.
+
 **Selected CLOSED IF-3 explanation integrity — 2026-10-04:** Codex owns
 `codex/ranking-input-explanation-oct4`, isolated from freshly verified main
 `55576078` and completed local composition `b39b80f1`. Four-active-hour budget;

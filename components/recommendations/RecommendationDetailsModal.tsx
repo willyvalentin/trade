@@ -24,6 +24,10 @@ import {
   type RecommendationDetailsTone,
 } from "@/components/recommendations/recommendation-details-display-helpers";
 import type { RecommendationCardTiming } from "@/components/recommendations/recommendation-card-display-mapper";
+import {
+  buildPlanRiskRewardDisplay,
+  PLAN_RISK_REWARD_DISPLAY_NOTE,
+} from "@/components/recommendations/recommendation-plan-risk-reward-display";
 
 export type RecommendationDetailsModalRecommendation = {
   companyName: string;
@@ -378,6 +382,7 @@ export function RecommendationDetailsModal({
     recommendation.thesis ||
     "Review the trade plan, then record it only after the manual broker fill is confirmed.";
   const indicators = recommendation.intradayIndicators;
+  const planRiskReward = buildPlanRiskRewardDisplay(recommendation);
   const confidenceScoreLabel =
     recommendation.confidenceScore === null
       ? "—"
@@ -528,7 +533,8 @@ export function RecommendationDetailsModal({
                   { label: "Stop", value: recommendation.stopLoss },
                   { label: "Target 1", value: recommendation.target1 },
                   { label: "Target 2", value: recommendation.target2 },
-                  { label: "Reward : Risk", value: recommendation.riskReward },
+                  { label: "Target 1 R/R", value: planRiskReward.target1 },
+                  { label: "Target 2 R/R", value: planRiskReward.target2 },
                   {
                     label: "Shares",
                     value: recommendationDetailsShares(
@@ -553,6 +559,7 @@ export function RecommendationDetailsModal({
                   },
                 ]}
               />
+              <p>{PLAN_RISK_REWARD_DISPLAY_NOTE}</p>
               <div
                 className="trade-recommendation-details-trade-plan__divider"
                 aria-hidden="true"
