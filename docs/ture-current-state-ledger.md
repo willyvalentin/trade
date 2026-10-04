@@ -17,7 +17,9 @@ ranking error without selecting another challenger or changing acceptance.
 
 Write ownership is limited to an additive daily-context candidate/capture field,
 an independently versioned scan-run payload sidecar and bounded owner-only
-reproduction reader. Preserve normalized snapshot v1, decision/lineage identity,
+reproduction reader plus fixed-purpose authenticated GET diagnosis. The GET
+accepts only one original run identity, no owner/source/clock; expose feature
+status, not raw bars. Preserve normalized snapshot v1, decision/lineage identity,
 all original members, ranking, cohorts, charter, price freshness and budgets.
 No schema, order, portfolio, scheduler, provider, publication or broker change.
 Legacy originals without bars remain unavailable; no live-cache backfill.

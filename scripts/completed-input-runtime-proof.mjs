@@ -238,6 +238,17 @@ try {
       export { createApplicationSession } from './lib/application-session-core';` },
     outfile: join(generated, "history-app.cjs") });
   }
+  if (historicalFeatureReplay) {
+    const rootRequire = createRequire(resolve(root, "package.json"));
+    await build({ ...options, plugins: [{ name: "same-installed-next-replay-runtime", setup(builder) {
+      builder.onResolve({ filter: /^next\// }, args=>({ path: rootRequire.resolve(args.path === "next/navigation"
+        ? "next/dist/client/components/navigation.react-server" : args.path), external: true }));
+    } }], stdin: { resolveDir: root, contents: `
+      export { GET } from './app/api/app/scanner-historical-input-replay/route';
+      export { proxy } from './proxy';
+      export { createApplicationSession } from './lib/application-session-core';` },
+    outfile: join(generated, "historical-replay-app.cjs") });
+  }
   // Before/after comparison uses the exact original committed product modules
   // in memory; neither product checkout nor fixtures/cohort are rewritten.
   const baselinePlugin = { name: "frozen-original-benchmark-allocation", setup(builder) {
@@ -332,7 +343,7 @@ try {
     TWELVE_DATA_API_KEY: "synthetic-boundary-only",
     OPENAI_API_KEY: "synthetic-boundary-only-no-ai-calls-permitted",
     ...(publicationClock ? { TURE_SCHEDULED_SCAN_SKIP_OPENAI: "true" } : {}),
-    ...(historyPreparationApp ? { NODE_ENV: "production", TRADE_APP_PASSWORD: "isolated-history-app-only",
+    ...(historyPreparationApp || historicalFeatureReplay ? { NODE_ENV: "production", TRADE_APP_PASSWORD: "isolated-history-app-only",
       TURE_APPLICATION_ORIGIN: "https://trade.valentinlabs.com", URL: "https://trade.valentinlabs.com" } : {}),
   };
   // No credentials from the invoking environment may leak into this runtime.
@@ -1830,9 +1841,57 @@ try {
       assert.equal(externalRequests,requestsBefore);
       assert.deepEqual(restarted.candidateDecisionRecordFromScanRun(scanRuns[0]),record);
       assert.deepEqual(restarted.decisionLineageReceiptFromScanRun(scanRuns[0],record),lineage);
+      globalThis.AsyncLocalStorage = AsyncLocalStorage;
+      const rootRequire=createRequire(resolve(root,"package.json"));
+      const { NextRequest }=rootRequire("next/server");
+      const { createRequestStoreForAPI }=rootRequire("next/dist/server/async-storage/request-store");
+      const { createWorkStore }=rootRequire("next/dist/server/async-storage/work-store");
+      const { workAsyncStorage }=rootRequire("next/dist/server/app-render/work-async-storage.external");
+      const { workUnitAsyncStorage }=rootRequire("next/dist/server/app-render/work-unit-async-storage.external");
+      const appRuntime=()=>{
+        delete require.cache[require.resolve(join(generated,"historical-replay-app.cjs"))];
+        return require(join(generated,"historical-replay-app.cjs"));
+      };
+      const dispatch=async request=>{
+        const app=appRuntime(), boundary=await app.proxy(request);
+        if(boundary.headers.get("x-middleware-next")!=="1") return boundary;
+        const store=createRequestStoreForAPI(request,{pathname:request.nextUrl.pathname,search:request.nextUrl.search},
+          {tags:[],expirationsByCacheKind:new Map()},undefined,undefined,undefined);
+        const work=createWorkStore({page:"/api/app/scanner-historical-input-replay/route",buildId:"isolated-closed",
+          deploymentId:"isolated-closed",previouslyRevalidatedTags:[],renderOpts:{supportsDynamicResponse:true,
+            cacheLifeProfiles:{},cacheComponents:false,experimental:{},staticPageGenerationTimeout:60}});
+        return workAsyncStorage.run(work,()=>workUnitAsyncStorage.run(store,()=>app.GET(request)));
+      };
+      historyAppServer=createServer(async(incoming,outgoing)=>{
+        try {
+          const response=await dispatch(new NextRequest(`${environment.TURE_APPLICATION_ORIGIN}${incoming.url}`,
+            {method:incoming.method,headers:incoming.headers}));
+          outgoing.writeHead(response.status,Object.fromEntries(response.headers));
+          outgoing.end(Buffer.from(await response.arrayBuffer()));
+        } catch(error) {outgoing.writeHead(500);outgoing.end(String(error));}
+      });
+      await new Promise(done=>historyAppServer.listen(0,"127.0.0.1",done));
+      const endpoint=`http://127.0.0.1:${historyAppServer.address().port}/api/app/scanner-historical-input-replay`;
+      const token=await appRuntime().createApplicationSession(); assert(token);
+      const send=async(query,headers={cookie:`trade_auth=${token}`})=>{
+        const response=await originalFetch(endpoint+query,{headers});
+        return {response,result:await response.json()};
+      };
+      const query=`?scan_run_id=${encodeURIComponent(scanRuns[0].id)}`;
+      assert.equal((await send(query,{})).response.status,401);
+      assert.equal((await send(query,{cookie:"trade_auth=invalid"})).response.status,401);
+      for(const invalid of ["", "?scan_run_id=invalid",`${query}&owner_user_id=someone`,`${query}&scan_run_id=${scanRuns[0].id}`]) {
+        assert.equal((await send(invalid)).response.status,400);
+      }
+      assert.equal((await send("?scan_run_id=rec_scan_run_missing")).response.status,404);
+      const delivered=await send(query);
+      assert.equal(delivered.response.status,200); assert.equal(delivered.response.headers.get("cache-control"),"no-store");
+      assert.deepEqual(delivered.result,before); assert(!JSON.stringify(delivered.result).includes("candles"));
+      assert.equal(externalRequests,requestsBefore);
       originalLog(JSON.stringify({historical_feature_replay:"passed",original_population_count:8,matched:3,
         missing:5,features_per_matched_member:6,archive_bytes:archiveBytes,fail_closed_controls:controls,
         valid_replacement_source_rejected:true,partial_archive_original_population_retained:true,
+        authenticated_http_readback:true,framework_request_cookie_stores:"installed_next_runtime",
         cache_deleted_restart_exact:true,original_decision_unchanged:true,extra_requests:0,
         actual_provider_requests:0,production_actions:0,current_session_features_checked:false,
         original_provider_json_reproduced:false,quality_improvement_claimed:false}));

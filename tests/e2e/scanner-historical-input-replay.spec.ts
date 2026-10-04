@@ -14,6 +14,7 @@ test("actual original daily features reproduce from durable parsed bars after ca
   expect(replay).toMatchObject({ historical_feature_replay: "passed", original_population_count: 8,
     matched: 3, missing: 5, features_per_matched_member: 6, cache_deleted_restart_exact: true,
     valid_replacement_source_rejected: true, partial_archive_original_population_retained: true,
+    authenticated_http_readback: true, framework_request_cookie_stores: "installed_next_runtime",
     original_decision_unchanged: true, extra_requests: 0, actual_provider_requests: 0, production_actions: 0,
     current_session_features_checked: false, original_provider_json_reproduced: false, quality_improvement_claimed: false });
   expect(replay.archive_bytes).toBeGreaterThan(0);
