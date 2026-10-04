@@ -6,7 +6,8 @@ import { readRecommendationLearningBaselineSource } from "@/lib/server/applicati
 import { buildRelativePlanProspectiveLearning } from "@/lib/server/relative-plan-prospective-learning";
 import { relativePlanProspectiveStore, type RelativePlanProspectiveStoreResult } from "@/lib/server/relative-plan-prospective-store";
 import { relativePlanCanonicalBuildIdentity, type RelativePlanProspectivePlanInput } from "@/lib/server/relative-plan-prospective-comparison";
-import { hasExplicitRelativePlanOutcomeRecordingTimes, hasAdmissibleRelativePlanCurrentOutcomeRevisionTimes } from "@/lib/server/relative-plan-probability-measurement";
+import { hasExplicitRelativePlanOutcomeRecordingTimes, hasAdmissibleRelativePlanCurrentOutcomeRevisionTimes,
+  hasAdmissibleRelativePlanSnapshotRecordingTimes } from "@/lib/server/relative-plan-probability-measurement";
 import { relativePlanTrainedProbabilityStore } from "@/lib/server/relative-plan-trained-probability-store";
 import { readRelativePlanCharterRuntimeSource } from "@/lib/server/relative-plan-charter-runtime-source";
 import { relativePlanCharterResultStore } from "@/lib/server/relative-plan-charter-result-store";
@@ -84,6 +85,15 @@ export function createRelativePlanProspectiveService(d: Dependencies = dependenc
       const source = sourceResult.status === "available" ? parseRecommendationLearningBaselineSource(sourceResult.data) : null;
       if (!source) return { status: "unavailable" as const, receipt: null, learning: null,
         blocker: "prospective_complete_owned_learning_source_unavailable" };
+      // This mutable read claims an as-of for the complete source. Validate raw
+      // clocks before a legacy fallback can invent recording availability;
+      // never filter an invalid original into a smaller successful population.
+      // Finalized reads above continue to use only their immutable capsule.
+      if (sourceResult.status !== "available" || !hasAdmissibleRelativePlanSnapshotRecordingTimes(
+        sourceResult.data.recommendation_snapshots, source.snapshots, now)) {
+        return { status: "unavailable" as const, receipt: null, learning: null,
+          blocker: "prospective_snapshot_recording_times_invalid" };
+      }
       let runtime;
       try { runtime = await d.readRuntime({ owner, freeze: freeze.receipt, now }); }
       catch { runtime = { status: "unavailable" as const, partitions: null, blocker: "relative_plan_runtime_source_read_failed" }; }

@@ -13,6 +13,8 @@ import { prospectiveSource } from "../fixtures/relative-plan-prospective-source"
 import { persistRecommendationScanRun } from "@/lib/server/recommendation-scan-run-persistence";
 import { persistRecommendationSnapshot } from "@/lib/server/recommendation-snapshot-persistence";
 import { persistRecommendationOutcome } from "@/lib/server/recommendation-outcome-persistence";
+import { charterEvaluationInput } from "../fixtures/relative-plan-charter-evaluation";
+import { buildRelativePlanCharterResult, RELATIVE_PLAN_CHARTER_RESULT_RECEIPT_VERSION } from "@/lib/server/relative-plan-charter-result";
 
 type Dependencies = NonNullable<Parameters<typeof createRelativePlanProspectiveService>[0]>;
 function harness(overrides: Partial<Dependencies> = {}) {
@@ -152,6 +154,132 @@ test("unfinalized prospective read cannot measure a revision that was not observ
   expect(h.writes()).toBe(1);
 });
 
+async function serializedOriginalSource() {
+  const source = await prospectiveSource();
+  const data: Record<string, Record<string, unknown>[]> = {
+    recommendation_scan_runs: [], recommendation_snapshots: [], recommendation_outcomes: [],
+  };
+  const writer = { from(table: string) { return { async upsert(row: Record<string, unknown>) {
+    data[table].push(structuredClone(row)); return { error: null };
+  } }; } };
+  const previous = process.env.TURE_APPLICATION_OWNER_USER_ID;
+  process.env.TURE_APPLICATION_OWNER_USER_ID = prospectiveOwner;
+  try {
+    for (const run of source.scanRuns) expect((await persistRecommendationScanRun(run, { supabaseClient: writer, server: true })).status).toBe("saved");
+    for (const snapshot of source.snapshots) expect((await persistRecommendationSnapshot(snapshot, { supabaseClient: writer, server: true })).status).toBe("saved");
+    for (const outcome of source.outcomes) expect((await persistRecommendationOutcome(outcome, { supabaseClient: writer, server: true })).status).toBe("saved");
+  } finally {
+    if (previous === undefined) delete process.env.TURE_APPLICATION_OWNER_USER_ID;
+    else process.env.TURE_APPLICATION_OWNER_USER_ID = previous;
+  }
+  return data;
+}
+
+test("unfinalized read cannot count an original snapshot recorded after its source-as-of", async () => {
+  const data = await serializedOriginalSource();
+  let runtimeReads = 0;
+  const h = harness({ readSource: async () => ({ status: "available", data }), readRuntime: async () => {
+    runtimeReads++; return { status: "unavailable", partitions: null, blocker: "synthetic_runtime_not_provided" };
+  } });
+  await h.service.freeze(prospectiveOwner, { windows: prospectiveInput.windows }, new Date(prospectiveFrozenAt));
+  const now = new Date("2026-11-07T00:00:00.000Z");
+  expect((await h.service.read(prospectiveOwner, now)).learning?.partitions[1]).toMatchObject({
+    original_population_count: 4, canonical_outcome_count: 4,
+  });
+  const row = data.recommendation_snapshots[0];
+  row.created_at = "2026-11-07T00:00:00.001Z"; row.updated_at = row.created_at;
+  const before = JSON.stringify(data);
+  expect(await createRelativePlanProspectiveService(h.dependencies).read(prospectiveOwner, now)).toMatchObject({
+    status: "unavailable", receipt: null, learning: null, blocker: "prospective_snapshot_recording_times_invalid",
+  });
+  expect(JSON.stringify(data)).toBe(before);
+  expect(data.recommendation_snapshots).toHaveLength(4);
+  expect(runtimeReads).toBe(1);
+  expect(h.writes()).toBe(1);
+});
+
+test("complete current source rejects raw snapshot-clock gaps, submillisecond futures and collisions without losing originals", async () => {
+  const data = await serializedOriginalSource();
+  const h = harness({ readSource: async () => ({ status: "available", data }) });
+  await h.service.freeze(prospectiveOwner, { windows: prospectiveInput.windows }, new Date(prospectiveFrozenAt));
+  const now = new Date("2026-11-07T00:00:00.000Z");
+  const expected = await h.service.read(prospectiveOwner, now);
+  const original = structuredClone(data.recommendation_snapshots[3]);
+  const changes = [
+    { created_at: undefined }, { updated_at: undefined }, { created_at: null },
+    { created_at: "2026-10-12" }, { created_at: "2026-02-30T17:00:00.000Z" },
+    { created_at: "2026-11-07T00:00:00.000001Z", updated_at: "2026-11-07T00:00:00.000001Z" },
+    { created_at: "2026-10-12T17:00:00.000002Z", updated_at: "2026-10-12T17:00:00.000001Z" },
+    { updated_at: "2026-11-07T00:00:00.000001Z" },
+  ];
+  for (const changed of changes) {
+    data.recommendation_snapshots[3] = { ...original, ...changed };
+    const before = JSON.stringify(data);
+    expect(await createRelativePlanProspectiveService(h.dependencies).read(prospectiveOwner, now)).toMatchObject({
+      status: "unavailable", receipt: null, learning: null, blocker: "prospective_snapshot_recording_times_invalid",
+    });
+    expect(JSON.stringify(data)).toBe(before);
+    expect(data.recommendation_snapshots).toHaveLength(4);
+  }
+  data.recommendation_snapshots[3] = original;
+  data.recommendation_snapshots.push({ ...original, created_at: "2026-11-07T00:00:00.001Z",
+    updated_at: "2026-11-07T00:00:00.001Z" });
+  const collision = JSON.stringify(data);
+  expect((await h.service.read(prospectiveOwner, now)).blocker).toBe("prospective_snapshot_recording_times_invalid");
+  expect(JSON.stringify(data)).toBe(collision);
+  data.recommendation_snapshots.pop();
+  expect(await h.service.read(prospectiveOwner, now)).toEqual(expected);
+  expect(h.writes()).toBe(1);
+});
+
+test("current source accepts equal as-of and explicit offset clocks without caching later mutations", async () => {
+  const data = await serializedOriginalSource();
+  const h = harness({ readSource: async () => ({ status: "available", data }) });
+  await h.service.freeze(prospectiveOwner, { windows: prospectiveInput.windows }, new Date(prospectiveFrozenAt));
+  const now = new Date("2026-11-07T00:00:00.000Z");
+  for (const clock of [now.toISOString(), "2026-11-06T19:00:00.000000-05:00"]) {
+    data.recommendation_snapshots[0].created_at = clock;
+    data.recommendation_snapshots[0].updated_at = clock;
+    const before = JSON.stringify(data);
+    expect((await h.service.read(prospectiveOwner, now)).learning?.partitions[1]).toMatchObject({
+      original_population_count: 4, canonical_outcome_count: 4,
+    });
+    expect(JSON.stringify(data)).toBe(before);
+  }
+  data.recommendation_snapshots[0].updated_at = "2026-11-07T00:00:00.000001Z";
+  expect((await h.service.read(prospectiveOwner, now)).blocker).toBe("prospective_snapshot_recording_times_invalid");
+  expect(h.writes()).toBe(1);
+});
+
+test("a finalized prospective read still replays its original capsule without sampling mutable snapshot clocks", async () => {
+  test.setTimeout(120000);
+  const input = await charterEvaluationInput();
+  const result = buildRelativePlanCharterResult(input).result;
+  expect(result).not.toBeNull();
+  const receipt = { contract_version: RELATIVE_PLAN_CHARTER_RESULT_RECEIPT_VERSION,
+    result_id: "55555555-5555-4555-8555-555555555555", owner_user_id: input.owner,
+    finalized_at: input.now.toISOString(), result };
+  const original = JSON.stringify(receipt);
+  let mutableReads = 0;
+  const h = harness({
+    resultStore: () => createRelativePlanCharterResultStore({ async read() { return { status: "available", receipt }; },
+      async finalize() { throw new Error("read_must_not_finalize"); } }),
+    readSource: async () => { mutableReads++; throw new Error("mutable_originals_are_not_the_terminal_source"); },
+    readRuntime: async () => { mutableReads++; throw new Error("retained_runtime_required"); },
+    modelStore: () => { mutableReads++; throw new Error("sealed_model_required"); },
+  });
+  await h.service.freeze(prospectiveOwner, { windows: prospectiveInput.windows }, new Date(prospectiveFrozenAt));
+  const first = await h.service.read(prospectiveOwner, new Date("2026-11-08T00:00:00.000Z"));
+  expect(first).toMatchObject({ status: "available", learning: { status: "evaluated",
+    terminal_quality_decision: { disposition: "reject", quality_improvement_claimed: false },
+  } });
+  expect(await createRelativePlanProspectiveService(h.dependencies).read(prospectiveOwner,
+    new Date("2026-11-09T00:00:00.000Z"))).toEqual(first);
+  expect(JSON.stringify(receipt)).toBe(original);
+  expect(mutableReads).toBe(0);
+  expect(h.writes()).toBe(1);
+});
+
 test("runtime reads occur only after a trusted owner freeze and complete source and cannot train or expose private errors", async () => {
   const requests: Parameters<Dependencies["readRuntime"]>[0][] = [];
   const h = harness({ readRuntime: async request => { requests.push(request); throw new Error("private_transport_details"); } });
@@ -182,6 +310,8 @@ test("original source writers, immutable freeze and restarted canonical learner 
     prior_36_sample_incomplete_with_three_unknown_probabilities: true,
     missing_label_retained_in_12_original_population: true, later_forward_labels_never_fit_model: true,
     persisted_late_training_label_excluded: true, persisted_future_forward_recording_retained_as_missing: true,
+    persisted_future_snapshot_read_unavailable: true, snapshot_clock_read_preserves_original_rows: true,
+    restored_snapshot_read_reproduces_original_measurement: true,
     retained_original_population: 4, missing_outcome_progression: [4, 1, 0], concurrent_single_owner_freeze: true,
     malformed_ohlc_synthetic_requests: 5, persisted_malformed_terminal_labels_retained_as_missing: true,
     off_grid_synthetic_requests: 2,

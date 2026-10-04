@@ -2,7 +2,25 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
-**Selected CLOSED IF-4 original-snapshot source availability — 2026-10-04:**
+**Selected CLOSED IF-4 unfinalized source-as-of read — 2026-10-04:** Codex owns
+`codex/prospective-snapshot-asof-oct4`, isolated from freshly verified main
+`55576078` plus the tested admission implementation `54cea6f2`. Four-active-hour
+correction, not a new ranking hypothesis or infrastructure stream. The actual
+persistence serializers → unfinalized prospective reader reproduces four
+canonical outcomes before AND after one contributing original snapshot is
+recorded a millisecond after the supplied server-as-of clock. The NEW-write
+guard does not protect this read path. Select reuse of the same raw snapshot
+recording/revision admission before exposing mutable learning measurements.
+Preserve every source row, original denominator, existing model/result contracts
+and finalized immutable read/retry branch. A malformed current source is
+unavailable, not a smaller successful cohort. No schema, provider, production,
+ranking/confidence, publication or broker changes. Acceptance: red actual-writer
+regression; missing/future/reversed/microsecond/offset clocks; duplicate keys;
+no source mutation or read-side writes; isolated real SDK/restarted readback;
+affected tests/types/lint/exact build. Integration follows release-held #732
+and the completed local composition against then-current main.
+
+**CLOSED IF-4 original-snapshot source availability locally built — 2026-10-04:**
 Codex owns `codex/original-snapshot-asof-admission-oct4`, isolated from fresh
 main `55576078` plus completed local composition `875bab95`. Four-active-hour
 bounded correction; primary #732 remains release-held. The actual persistence
@@ -19,6 +37,56 @@ explicit/missing/reversed/future/microsecond/offset-clock controls, full forward
 including non-top-three members and stable reread, immutable retry controls,
 actual isolated persistence proof, affected tests/types/lint/exact build.
 Stop this source-admission slice when complete and resume the frozen primary.
+
+Product/test revision `54cea6f235f6344b674dbfa1dbe7fb5dbf91ff43` now rejects
+missing, malformed, reversed or future raw snapshot recording/revision clocks
+before NEW training materialization or result finalization. Admission preserves
+microsecond order and explicit offset instants, checks every contributing key
+collision and keeps the complete original population, including non-top-three
+forward members and the stable second source read. It neither invents legacy
+clocks nor filters invalid originals. Already sealed model/result reads and
+pending/idempotent retries stay bound to their original capsules. This proves
+availability at the sampled as-of, NOT recording at the original decision or
+an independently attested production historical clock.
+
+The two actual-writer/service red regressions fail before the correction. All
+92 DISTINCT affected checks pass on the committed product tree, including the
+ordinary three isolated PostgreSQL/PostgREST/SDK/HTTP full-charter modes. Separate
+native training proof materializes all 96 original training members, with actual
+database model clock `2026-10-04T21:19:39.839Z` and separate committed witness
+`2026-10-04T21:19:40.025Z`, before its first synthetic forward window. The full
+original-archive proof preserves 240 members per forward partition, 96 training
+members, all 72 retained runs, and the 12 unrelated pre-window runs in storage.
+Its complete decoded source is 21,106,845 bytes; actual negotiated HTTP result
+wire size is 845,004 bytes and decoded result 6,543,560 bytes. Future snapshot
+faults cannot reach new storage; later mutable-clock faults cannot replace a
+sealed model/result. The unchanged complete synthetic charter still rejects
+the known concentration failure; no alpha or prospective quality is established.
+
+The initial five-suite run reports 88 passed/four failed: three native launches
+could not access the sandboxed Docker socket, and an older golden source was
+regenerated with the previous explanation correction's new text. The golden
+failure also reproduces on unchanged parent `875bab95`. Pin only that historical
+test fixture's former field-presence wording BEFORE capture; do not change
+production explanations, numerical policy or either frozen expected hash.
+Measurement `cdcf680f51165fc75532c7fc6955d72b8c8c3cd88b2c35af88bd70e0a689d82b`
+and original identity `c8e0fc1b2e0d0d5365d792dc6d0cdabd66f9fc948c8ed8eb64939bc878a6123d`
+remain unchanged. The ordinary authorized Docker rerun passes all 92 checks in
+21.6 minutes; no test is skipped, shortened or given a relaxed timeout.
+
+Final nonincremental types and changed-file lint pass; full lint has zero errors
+and eight existing warnings. The initial exact Linux build reaches its 300s
+limit during TypeScript, so it is NOT a pass. The same normal build passes on
+the exact committed revision after reducing concurrent load: Node 22.23.1 /
+Next 16.3.8, locked read-only dependencies, no network or production credentials,
+unchanged lock SHA-256 `859ed09eed4d3de2e7ade5c74bea78e73770bea57f92d6cb3656224bfcace6f7`.
+Logs `/private/tmp/ture-snapshot-asof-{red,result-red,controls,golden-baseline,golden-pinned,native-training,native-result,committed-regression,types-final,lint,committed-changed-lint,exact-build,exact-build-reduced-load}-oct4.log`.
+This minimum local slice is parked, not main/environment/quality accepted.
+No push, PR, merge, deploy, provider, production database or broker action.
+The independently reproduced unfinalized-reader escape above is the next
+selected source-as-of correction; formatter construction was measured but not
+selected as a speculative performance delivery. Primary #732 remains release-held
+and the user's unrelated root changes remain intact.
 
 **CLOSED IF-3 target-specific plan explanation locally built — 2026-10-04:**
 Owner Codex, isolated `codex/target-specific-risk-reward-oct4`, freshly verified
