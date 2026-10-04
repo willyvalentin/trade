@@ -106,8 +106,12 @@ assert(!minimumOrderBaseline || (mixedHistory || rotationDay) && !acquisitionBas
 assert(!firstObservationBaseline || rotationDay && !acquisitionBaseline && !minimumOrderBaseline);
 assert(!fairOrderBaseline || rotationDay && !acquisitionBaseline && !minimumOrderBaseline && !firstObservationBaseline);
 assert(!invalidMixedHistory || mixedHistory && !acquisitionBaseline);
-const invalidBenchmarkReuse = process.argv.includes("--benchmark-reuse-invalid");
+const invalidBenchmarkClockReuse = process.argv.includes("--benchmark-reuse-invalid-clock");
+const invalidBenchmarkReuse = process.argv.includes("--benchmark-reuse-invalid") || invalidBenchmarkClockReuse;
 const baselineBenchmarkReuse = process.argv.includes("--benchmark-reuse-baseline");
+assert(!invalidBenchmarkClockReuse || benchmarkReuse && !process.argv.includes("--benchmark-reuse-invalid") &&
+  process.argv.slice(2).every(value=>["--benchmark-reuse", "--benchmark-reuse-invalid-clock", "--cold"].includes(value)),
+  "Classification-clock fault retains only the existing two-slot original population and eight-call budget");
 // Branch ancestor with the exact verified predecessor tree 640df041; unlike
 // the original local cherry-pick source, this commit travels with this branch.
 const reuseBaselineRevision = "92374a300f986a4241ba41a1a35a83b5335caf2e";
@@ -2839,7 +2843,18 @@ try {
     const firstFresh=record.candidates.filter(candidate=>candidate.data.freshness==="fresh").length;
     assert.equal(firstFresh,mixedHistory?(minimumOrderBaseline&&!invalidMixedHistory?5:3):cold?3:6);
     const originalRegime=scanRuns[0].payload_json.market_regime;
-    if(invalidBenchmarkReuse) sql(`update recommendation_scan_runs set payload_json=jsonb_set(payload_json,
+    if(invalidBenchmarkClockReuse) {
+      assert.equal(originalRegime.input_evidence.evaluated_at,record.decision_timestamp);
+      assert.match(record.decision_timestamp,/\.\d{3}Z$/);
+      const unobservedClassification=record.decision_timestamp.slice(0,-1)+"001Z";
+      sql(`update recommendation_scan_runs set payload_json=jsonb_set(payload_json,
+        '{market_regime,input_evidence,evaluated_at}','"${unobservedClassification}"') where id='${scanRuns[0].id}';`);
+      const changedSource=JSON.parse(sql(`select row_to_json(t) from recommendation_scan_runs t where id='${scanRuns[0].id}';`));
+      assert.deepEqual(changedSource.payload_json.candidate_decision_record,record);
+      assert.deepEqual(changedSource.payload_json.market_regime.input_evidence.spy,originalRegime.input_evidence.spy);
+      assert.deepEqual(changedSource.payload_json.market_regime.input_evidence.qqq,originalRegime.input_evidence.qqq);
+      assert.equal(changedSource.payload_json.market_regime.input_evidence.evaluated_at,unobservedClassification);
+    } else if(invalidBenchmarkReuse) sql(`update recommendation_scan_runs set payload_json=jsonb_set(payload_json,
       '{market_regime,input_evidence,qqq,content_sha256}','"invalid-fixture-digest"') where id='${scanRuns[0].id}';`);
     const firstRequests=externalRequests;
     assert.equal(externalBenchmarkRequests,2);
@@ -2937,12 +2952,26 @@ try {
     assert.equal(await restarted.isValidCompletedBenchmarkReuse(structuredClone(restartedReuse),new OriginalDate(clock)),false);
     assert.deepEqual(restartedReuse.market_regime.input_evidence.spy,retained.spy);
     assert.deepEqual(restartedReuse.market_regime.input_evidence.qqq,retained.qqq);
+    if(!baselineBenchmarkReuse) {
+      const immutableHandle=JSON.stringify(restartedReuse);
+      assert.equal(Reflect.set(restartedReuse.market_regime.input_evidence,"evaluated_at",
+        new OriginalDate(clock+1000).toISOString()),false);
+      assert.equal(Reflect.set(restartedReuse.market_regime.input_evidence.reuse,"source_decision_timestamp",
+        new OriginalDate(clock+1000).toISOString()),false);
+      assert.equal(Reflect.set(restartedReuse.market_regime.input_evidence.spy.candles[0],"close",999),false);
+      assert(Object.isFrozen(restartedReuse.market_regime.input_evidence.qqq.response_identity));
+      assert(Object.isFrozen(restartedReuse.market_regime.input_evidence.spy.candles));
+      assert(!Object.isFrozen(latestOwned.payload_json.market_regime.input_evidence.spy.candles));
+      assert.equal(JSON.stringify(restartedReuse),immutableHandle);
+      assert(await restarted.isValidCompletedBenchmarkReuse(restartedReuse,new OriginalDate(clock)));
+    }
     const other=await restarted.readRecommendationLearningBaselineSource("00000000-0000-4000-8000-000000000002");
     assert.equal(other.data.recommendation_scan_runs.length,0);
     const secondDuplicate=await scheduler(new Request("http://closed-scheduler",{method:"POST",body:JSON.stringify({next_run:nextSlot})}),
       {deploy:{id:identity.deploy_id,context:"production",published:true}});
     assert.equal(secondDuplicate.status,204); assert.equal(externalRequests,8);
     benchmarkReuseEvidence={mode:baselineBenchmarkReuse?"original_committed_baseline":invalidBenchmarkReuse?"invalid_original_falls_back":"validated_owner_reuse",
+      ...(invalidBenchmarkClockReuse?{original_classification_clock_fault:"after_decision_by_one_microsecond"}:{}),
       baseline_revision:mixedHistory?acquisitionBaselineRevision:reuseBaselineRevision,
       history_start:existingPremarketSetup?"existing_premarket_paid_setup":mixedHistory?"mixed":cold?"cold":"prewarmed",
       ...(mixedHistory ? {acquisition_mode:minimumOrderBaseline?"minimum_requests_first":"original_order"} : {}),
@@ -2951,7 +2980,8 @@ try {
       first_fresh_inputs:firstFresh,second_fresh_inputs:fresh,original_members_per_decision:8,
       attempts:allAttempts.length,cycles:allCycles.length,reservations:allClaims.length,
       reserved_credits:allClaims.reduce((sum,claim)=>sum+claim.requested_credits,0),benchmark_calls_second:externalBenchmarkRequests,
-      original_source_clocks_unchanged:expectReuse,restarted_owner_read:true,wrong_owner_runs:0};
+      original_source_clocks_unchanged:expectReuse,restarted_owner_read:true,wrong_owner_runs:0,
+      ...(baselineBenchmarkReuse?{}:{validated_capsule_immutable_after_restart:true,caller_source_not_frozen:true})};
     if(charterComposition) {
       assert.equal(setupRequests,historyOnlySetup||legacyHistorySetup?16:32); assert.equal(firstFresh,6); assert.equal(fresh,8);
       assert.equal(source.snapshots.length,14,"Actual generator retains the six partial and eight complete original sources");

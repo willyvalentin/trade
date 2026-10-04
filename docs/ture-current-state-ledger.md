@@ -2,6 +2,43 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Selected CLOSED IF-2b original benchmark information-set admission — 2026-10-05:**
+Codex owns `codex/original-benchmark-information-set-oct5`, isolated from freshly
+verified main `55576078` plus locally completed composition `783adf70`.
+Primary #732 stays Draft/release-held at `2741f946`; its required aggregate is
+failed, not running. Four-active-hour correction of an actual original producer
+→ completed-regime reader → owner-bound reuse reproduction. An impossible
+calendar, non-ISO clock or classification one microsecond after the original
+decision is accepted. The validated handle also permits nested classification
+to change to 17:44 after its 17:30 source decision and remains valid at 17:45.
+These synthetic CLOSED counterexamples can misrepresent the exact information
+set and authorize the two freed benchmark credits; they are not a production
+incident or alpha finding. Close this earliest input-fitness link in the same
+frozen original-input → canonical-outcome → full-charter primary.
+
+Smallest selected change: admit only the completed producer's exact canonical
+classification clock, and keep its validated owned reuse capsule detached and
+immutable through scanner consumption. Preserve valid completed histories,
+source clocks, original classification/rank, all eight selected identities and
+the ordinary invalid-source fallback inside the unchanged eight-credit cap.
+Baseline is unchanged parent `783adf70`; challenger changes input admission only.
+Decision-changing metric is zero inadmissible/post-validation-altered capsules
+accepted, with identical valid-source content and full-population fallback.
+This is recommendation data fitness, not a competing ranking hypothesis. Write
+ownership: existing market-regime/reuse readers, registered actual-producer and
+packaged SQL/SDK proofs, and this receipt. No schema, provider, production,
+publication, broker or score/threshold/policy-version change. Acceptance: red
+actual producer/owned-reader and mutation controls; unchanged valid/legacy
+contexts and caller data; packaged normal two-slot invalid-clock fallback;
+restart/owner/source readbacks and whole-scan credit/population checks; affected
+tests, nonincremental types, lint and exact clean build. Stop at that verified
+exit, return to the original-source full-charter comparison, and integrate only
+after #732 and the completed composition against then-current main. Synthetic
+local proofs cannot close the actual prospective recommendation-quality gap.
+Reproduction logs `/private/tmp/ture-regime-owned-clock-reproduction-oct5.log`
+and `/private/tmp/ture-regime-owned-immutable-reproduction-oct5.log`; two
+substituted transport responses, zero real provider/production/broker actions.
+
 **CLOSED IF-4 current-runtime as-of admission locally built — 2026-10-05:** Codex
 owns `codex/runtime-recording-asof-oct5`, freshly verified main `55576078` plus
 completed local composition `d016d2cf`; primary #732 remains release-held.

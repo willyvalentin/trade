@@ -166,7 +166,14 @@ export async function readCompletedMarketRegime(value: unknown, now: Date): Prom
   const input = raw.input_evidence as MarketRegime["input_evidence"] | undefined;
   if (!input || input.policy_version !== COMPLETED_DAILY_MARKET_REGIME_INPUT_POLICY_VERSION ||
     input.role !== "completed_historical_daily_only" || typeof input.evaluated_at !== "string" ||
-    !Number.isFinite(Date.parse(input.evaluated_at)) || Date.parse(input.evaluated_at) > now.getTime()) return null;
+    !Number.isFinite(now.getTime())) return null;
+  // This JSON clock is produced by Date.toISOString(), not a SQL timestamp.
+  // Accept its exact canonical form only: normalizing impossible dates or
+  // truncating sub-millisecond futures changes the original information set.
+  const classifiedAt = new Date(input.evaluated_at);
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(input.evaluated_at) ||
+    !Number.isFinite(classifiedAt.getTime()) || classifiedAt.toISOString() !== input.evaluated_at ||
+    classifiedAt.getTime() > now.getTime()) return null;
   const [spyContext, qqqContext] = await Promise.all([
     readCompletedDailyContext(input.spy, "SPY", now), readCompletedDailyContext(input.qqq, "QQQ", now),
   ]);

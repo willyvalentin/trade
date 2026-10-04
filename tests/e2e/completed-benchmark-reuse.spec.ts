@@ -65,11 +65,45 @@ test("only revalidated owned original benchmark capsules can free the two reserv
     expect(await runtime.readCompletedMarketRegime(regime, next)).not.toBeNull();
     const read = (source: unknown = row, currentOwner = owner, now = next) =>
       runtime.readOwnedCompletedBenchmarkReuse({ row: source, owner: currentOwner, now });
+    // Exact original producer clocks must not be parsed into a different
+    // information set. Date.parse normalizes impossible dates and truncates
+    // sub-millisecond futures to the original decision's millisecond.
+    for (const clock of [
+      "2026-10-01T17:30:00.000001Z", "2026-09-31T17:30:00.000Z",
+      "2026-10-01 17:30:00.000Z", "2026-10-01T17:30:00Z",
+      "2026-10-01T17:30:00.000Z trailing", "invalid", "",
+    ]) {
+      const changed = structuredClone(row);
+      changed.payload_json.market_regime.input_evidence!.evaluated_at = clock;
+      expect(await runtime.readCompletedMarketRegime(changed.payload_json.market_regime, captured), clock).toBeNull();
+      expect(await read(changed), clock).toBeNull();
+    }
+    expect(await runtime.readCompletedMarketRegime(regime, new OriginalDate("invalid"))).toBeNull();
     const reused = await read();
     expect(reused).not.toBeNull();
     // The legacy serving-window label is not a historical input-fitness gate.
     expect(await read({ ...row, window: "outside_window" })).not.toBeNull();
     expect(await runtime.isValidCompletedBenchmarkReuse(reused!, next)).toBe(true);
+    // A validated WeakSet brand grants budget authority. Mutating its original
+    // decision information after minting must not retain that authority.
+    const mutableSource = structuredClone(row);
+    const immutableReuse = await read(mutableSource);
+    expect(immutableReuse).not.toBeNull();
+    const originalHandle = JSON.stringify(immutableReuse);
+    for (const [target, key, replacement] of [
+      [immutableReuse!.market_regime, "input_evidence", structuredClone(regime.input_evidence)],
+      [immutableReuse!.market_regime.input_evidence!, "evaluated_at", "2026-10-01T17:44:00.000Z"],
+      [immutableReuse!.market_regime.input_evidence!.reuse!, "source_decision_timestamp", next.toISOString()],
+      [immutableReuse!.market_regime.input_evidence!.spy.candles[0], "close", 999],
+      [immutableReuse!.market_regime.input_evidence!.qqq, "content_sha256", "changed-after-validation"],
+    ] as const) expect(Reflect.set(target, key, replacement), key).toBe(false);
+    expect(Object.isFrozen(immutableReuse!.market_regime.input_evidence!.spy.candles)).toBe(true);
+    expect(Object.isFrozen(mutableSource.payload_json.market_regime.input_evidence!.spy.candles)).toBe(false);
+    expect(JSON.stringify(immutableReuse)).toBe(originalHandle);
+    mutableSource.payload_json.market_regime.input_evidence!.evaluated_at = "2026-10-01T17:44:00.000Z";
+    mutableSource.payload_json.market_regime.input_evidence!.spy.candles[0].close = 999;
+    expect(JSON.stringify(immutableReuse)).toBe(originalHandle);
+    expect(await runtime.isValidCompletedBenchmarkReuse(immutableReuse!, next)).toBe(true);
     expect(await runtime.isValidCompletedBenchmarkReuse(structuredClone(reused!), next)).toBe(false);
     expect(await runtime.isValidCompletedBenchmarkReuse(reused!, new OriginalDate("2026-10-01T20:00:00Z"))).toBe(false);
     expect(await runtime.isValidCompletedBenchmarkReuse(reused!, new OriginalDate("invalid"))).toBe(false);
@@ -134,12 +168,13 @@ test("only revalidated owned original benchmark capsules can free the two reserv
 });
 
 for (const historyStart of ["prewarmed", "cold"] as const) {
-for (const mode of ["baseline", "reuse", "invalid"] as const) {
+for (const mode of ["baseline", "reuse", "invalid", "invalid_clock"] as const) {
   test(`packaged ${historyStart} ${mode} allocation preserves original populations and whole-scan credits after restart`, () => {
     test.setTimeout(90000);
     const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--benchmark-reuse",
       ...(historyStart === "cold" ? ["--cold"] : []),
-      ...(mode === "baseline" ? ["--benchmark-reuse-baseline"] : mode === "invalid" ? ["--benchmark-reuse-invalid"] : [])],
+      ...(mode === "baseline" ? ["--benchmark-reuse-baseline"] : mode === "invalid" ? ["--benchmark-reuse-invalid"] :
+        mode === "invalid_clock" ? ["--benchmark-reuse-invalid-clock"] : [])],
     { cwd: process.cwd(), encoding: "utf8", timeout: 80000 });
     expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
     const evidence = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
@@ -149,11 +184,16 @@ for (const mode of ["baseline", "reuse", "invalid"] as const) {
       scheduled_synthetic_requests: 16, attempts: 2, cycles: 2, claims: 2,
       fresh_inputs: secondFresh, actual_provider_requests: 0,
       production_actions: 0, publications: 0, broker_actions: 0, cleanup: "inert",
-      benchmark_reuse_evidence: { mode: mode === "baseline" ? "original_committed_baseline" : mode === "invalid" ? "invalid_original_falls_back" : "validated_owner_reuse",
+      benchmark_reuse_evidence: { mode: mode === "baseline" ? "original_committed_baseline" : mode !== "reuse" ? "invalid_original_falls_back" : "validated_owner_reuse",
         history_start: historyStart, first_scan_requests: 8, second_scan_requests: 8,
         first_fresh_inputs: firstFresh, second_fresh_inputs: secondFresh,
         original_members_per_decision: 8, attempts: 2, reservations: 2, reserved_credits: 16,
         benchmark_calls_second: mode === "reuse" ? 0 : 2, restarted_owner_read: true, wrong_owner_runs: 0 } });
+    if(mode!=="baseline") expect(evidence.benchmark_reuse_evidence).toMatchObject({
+      validated_capsule_immutable_after_restart:true,caller_source_not_frozen:true,
+    });
+    if(mode==="invalid_clock") expect(evidence.benchmark_reuse_evidence.original_classification_clock_fault)
+      .toBe("after_decision_by_one_microsecond");
   });
 }
 }
