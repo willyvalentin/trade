@@ -31,9 +31,24 @@ Nonincremental types and lint pass (zero errors/eight existing warnings):
 The earlier 29 focused compatibility checks overlap these suites and are not
 added to the latest unique count.
 
-Acceptance is NOT yet complete. The 128-check original-input/outcome/volume
-suite and 33 server-condition charter/result/model checks are still running
-serially in their own artifact directories; do not claim their terminal pass.
+Acceptance is NOT yet complete. All 33 server-condition charter/result/model
+checks now pass in 10.4m. The 128-check original-input/outcome/volume suite is
+still running in its own artifact directory and is already non-green: the
+retained rejected first-closed-bar baseline proof reached its unchanged
+80-second child-process deadline (`status=null`) without a terminal result.
+No arithmetic/budget assertion failure was returned. A bounded read of only
+that isolated fixture database found 16 original attempts/runs/reservations,
+not the expected full 26-slot result; this is incomplete verification, not a
+passing baseline or a diagnosed production defect. After authoritative process
+absence, its exact auto-removing API/database containers and network were
+cleaned. The same read-only attribution to a saved historical failure log
+identified and cleaned an older orphan pair. These were disposable synthetic
+data only; both failure logs are preserved and no production data changed.
+Continue the currently live suite; do not restart it because one observation
+expired. After it terminates, run the failed frozen proof once under reduced
+load with the same 80-second bound before deciding whether a product correction
+is needed. Do not change the fixture population, acquisition policy, expected
+outcomes or deadline. Do not claim the broader suite's terminal pass.
 Logs: `/private/tmp/ture-original-input-replay-chain-oct4.log` and
 `/private/tmp/ture-original-input-replay-server-oct4.log`.
 The exact clean locked Linux build compiled in 71s but was terminated at its
