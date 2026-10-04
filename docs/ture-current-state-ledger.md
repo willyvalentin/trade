@@ -2,7 +2,7 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
-**Selected CLOSED IF-3 target-specific plan explanation — 2026-10-04:**
+**CLOSED IF-3 target-specific plan explanation locally built — 2026-10-04:**
 Owner Codex, isolated `codex/target-specific-risk-reward-oct4`, freshly verified
 main `55576078` plus completed local composition `b657b6a0`. Four-active-hour
 bounded correction; primary #732 remains release-held and unchanged. Read-only
@@ -48,7 +48,13 @@ failed); the corrected assertion tests the actual uppercase output. An initial
 type check found an excess fixture-only property; naming that fixture separately
 corrected the test without expanding the production helper's input contract.
 Final nonincremental types pass. Full lint has zero errors/eight existing warnings;
-changed-file lint has none. Clean exact committed-revision build remains pending.
+changed-file lint has none. The clean exact committed-revision normal Linux
+build passes on `eeec76d015fdd4d18976c3caa9f1684225fd4988`, Node 22.23.1 /
+Next 16.3.8, locked read-only dependencies, no network or production credentials.
+Lock SHA-256 remains `859ed09eed4d3de2e7ade5c74bea78e73770bea57f92d6cb3656224bfcace6f7`.
+All 48 affected checks pass again on that committed product tree (overlap, not
+48 additional tests); full final lint remains zero errors/eight existing
+warnings and final changed-file lint has none.
 
 Browser setup/selection and documented discovery each timed out (30 / 60 seconds)
 before any browser operation or navigation. No alternate browser surface was used.
@@ -56,6 +62,18 @@ Actual interactive/layout browser behavior is UNVERIFIED; React HTML is local
 component evidence only, not browser, authenticated app or deployed acceptance.
 No push, PR, merge, deploy, environment change, database write, provider or broker
 action. Logs `/private/tmp/ture-target-risk-reward-{red,focused,regression,exact-regression,types-final,lint,changed-lint,draft-routing}-oct4.log`.
+Final logs: `/private/tmp/ture-target-risk-reward-{committed-regression,lint-final,changed-lint-final,exact-build}-oct4.log`.
+The bounded local implementation is parked with interactive browser acceptance
+still outstanding, NOT promoted to environment or quality acceptance. Stop
+extending this display surface. Resume the frozen original-input → canonical
+outcome → indivisible quality-charter primary; a new independent slice needs an
+attributable recommendation/data-fitness defect, not speculative support work.
+The unchanged outcome tracker uses actual entry/stop/target price geometry for
+R measurements, not the stored second-target R/R string; this read-only inspection
+found no additional outcome defect and does not create another delivery.
+The user's unrelated root worktree changes remain intact. Main remains
+`55576078`; protected release #732, real prospective quality and authenticated
+environment acceptance remain separate gaps. No competing ranking policy selected.
 
 **Selected CLOSED IF-3 explanation integrity — 2026-10-04:** Codex owns
 `codex/ranking-input-explanation-oct4`, isolated from freshly verified main
