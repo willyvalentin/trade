@@ -2,6 +2,46 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Selected CLOSED IF-4 link — original-input learning admission, 2026-10-04:**
+Codex owns `codex/original-input-learning-admission-oct4`, isolated from verified
+main `55576078` and fast-forwarded through the completed original-input replay
+`284bdf5f`. One independent slice alongside release-held primary #732; the
+previous input audit and terminal-context slice are complete/parked, not active
+development. Budget eight active hours; investigation capped at four. The
+unchanged prospective relative-plan hypothesis, eight-member population,
+charter, model semantics and live policy remain frozen. Classification:
+`quality_measurement`.
+
+Actual CLOSED full-charter characterization at product `8799be3a` reproduces
+eight contradictory original members after appending their independently
+validated original bars. The pure legacy builder still reports complete
+evidence. This is synthetic evidence, not a production defect or quality lift.
+The decision-changing behavior is to reject a NEW fitting/finalization job when
+its retained original inputs contradict their used features, before immutable
+storage; never remove/relabel a member. Reuse the actual original-bar replay,
+check all relevant original members and the sealed training source, preserve
+already sealed models/results and their v1 fingerprints. Absent legacy bars
+remain unavailable, not newly proven. Scope: two owner-only command services,
+a shared admission check and affected behavior proofs. No schema, endpoint,
+provider, scheduler, publication, broker, ranking or threshold change.
+
+Acceptance: reproduced pre-fix command failures; reject original arithmetic,
+source/version/clock contradictions and malformed present archives; preserve
+missing originals, complete populations, labels and old immutable read/retry
+semantics; actual persistence-row parsing and isolated SQL/SDK behavior;
+affected regressions, types/lint and exact build. Integration remains #732,
+parked terminal context, completed original-input audit, then this admission
+slice against then-current main. Stop this slice when its admission behavior
+passes and resume the full original-population charter comparison.
+
+Separate bounded capacity evidence: appending original archives to all 72 runs
+retains 20,825,795 decoded bytes versus today's 16 MiB bound; the builder
+truthfully rejects `relative_plan_complete_source_exceeds_decoded_bound`.
+Log: `/private/tmp/ture-charter-full-original-source-capacity-oct4.log`.
+This capacity gap is not selected for this slice. Do not trim cohorts/archives,
+increase transport bounds without verification or claim a complete new result
+while that limit remains. No production/provider action occurred.
+
 **Local acceptance complete — original input replay, 2026-10-04:**
 Product `8799be3a1f5b2189caeb3c2b6f090858ac1a0c2e` implements the
 selected continuation below, on the same isolated branch. The normalized

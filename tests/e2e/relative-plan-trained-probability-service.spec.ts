@@ -21,6 +21,7 @@ import { computeRecommendationOutcome } from "@/lib/recommendation-outcome-track
 import { recommendationOutcomeEvaluationAnchorFromSnapshot } from "@/lib/recommendation-outcome-evaluation-anchor";
 import { buildCanonicalOutcomeProviderCoverageReceipt } from "@/lib/recommendation-outcome-canonical-coverage";
 import { parseRecommendationLearningBaselineSource } from "@/lib/recommendation-learning-baseline-source";
+import { appendSyntheticOriginalArchives } from "../fixtures/original-input-archive-evidence";
 
 const now = new Date("2026-10-10T00:00:00.000Z");
 const pieces = Promise.all([5, 6, 7].flatMap(day => [0, 1, 2, 3].map(n =>
@@ -91,6 +92,23 @@ test("only an empty fixed-purpose request can start server-owned training", asyn
   for (const body of [null, [], { owner_user_id: prospectiveOwner }, { model: {} }, { now: now.toISOString() },
     { source: h.data }, { probability: 0.99 }]) expect((await h.service.train(prospectiveOwner, body)).status).toBe("invalid_request");
   expect(h.calls).toEqual([]);
+});
+
+test("new training cannot fit contradictory original inputs even on a non-top-three member", async () => {
+  const h = await harness(), run = h.source[0].scanRuns[0];
+  const archives = await appendSyntheticOriginalArchives(run);
+  // Last original member, not selected top-three: do not silently shrink the
+  // fit population to only its published or favorable observations.
+  archives.dailyArchive.entries = archives.dailyArchive.entries.slice(-1);
+  archives.currentArchive.entries = archives.currentArchive.entries.slice(-1);
+  const row = h.data.recommendation_scan_runs.find(row => row.id === run.id)!;
+  Object.assign(row.payload_json as object, run.payload_json);
+  const original = JSON.stringify(h.data);
+  expect(await h.service.train(prospectiveOwner, {})).toMatchObject({ status: "unavailable", receipt: null,
+    blocker: "trained_probability_original_input_arithmetic_conflicting" });
+  expect(h.calls).not.toContain("materialize");
+  expect(h.calls).not.toContain("confirm");
+  expect(JSON.stringify(h.data)).toBe(original);
 });
 
 test("actual source parsing, fixed model, committed read and restarted command share one immutable receipt", async () => {

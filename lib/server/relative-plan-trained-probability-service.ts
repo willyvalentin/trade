@@ -9,6 +9,7 @@ import { buildCanonicalOutcomeProviderCoverageReceipt, canonicalOutcomeProviderC
 import { recommendationOutcomeEvaluationAnchorFromSnapshot } from "@/lib/recommendation-outcome-evaluation-anchor";
 import { computeRecommendationOutcome, type RecommendationOutcomeCandle } from "@/lib/recommendation-outcome-tracker";
 import { relativePlanTrainedProbabilityStore, type RelativePlanTrainedProbabilityStoreResult } from "@/lib/server/relative-plan-trained-probability-store";
+import { relativePlanOriginalInputConflict } from "@/lib/server/relative-plan-original-input-admission";
 
 type Dependencies = {
   prospectiveStore: typeof relativePlanProspectiveStore;
@@ -118,6 +119,8 @@ export function createRelativePlanTrainedProbabilityService(d: Dependencies = de
       if (!source) return unavailable("trained_probability_complete_owned_source_unavailable");
       const candidate = buildRelativePlanTrainedProbabilityModel({ owner, freeze: freeze.receipt, source, now });
       if (!candidate.trained_model) return { status: "not_ready", receipt: null, blocker: candidate.blocker };
+      const inputConflict = await relativePlanOriginalInputConflict(candidate.trained_model.retained_training_source.scanRuns);
+      if (inputConflict) return unavailable(`trained_probability_${inputConflict}`);
       const candleConflict = retainedTrainingCandleConflict(candidate.trained_model);
       if (candleConflict) {
         // Keep the whole original population in storage. Never drop or relabel

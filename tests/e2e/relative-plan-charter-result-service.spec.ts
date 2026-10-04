@@ -9,6 +9,7 @@ import { charterEvaluationInput } from "../fixtures/relative-plan-charter-evalua
 import { persistRecommendationScanRun } from "@/lib/server/recommendation-scan-run-persistence";
 import { persistRecommendationSnapshot } from "@/lib/server/recommendation-snapshot-persistence";
 import { persistRecommendationOutcome } from "@/lib/server/recommendation-outcome-persistence";
+import { appendSyntheticOriginalArchives } from "../fixtures/original-input-archive-evidence";
 
 type Dependencies = NonNullable<Parameters<typeof createRelativePlanCharterResultService>[0]>;
 function harness(overrides: Partial<Dependencies> = {}) {
@@ -120,4 +121,38 @@ test("new terminal results reject unobserved raw revisions on the initial read a
     expect(data.recommendation_outcomes).toHaveLength(input.source.outcomes.length);
     expect(JSON.stringify(data)).toBe(originalBytes);
   }
+});
+
+test("new terminal results cannot call contradictory original forward inputs complete evidence", async () => {
+  const input = await charterEvaluationInput(8);
+  await appendSyntheticOriginalArchives(input.source.scanRuns[12]);
+  const data: Record<string, Record<string, unknown>[]> = {
+    recommendation_scan_runs: [], recommendation_snapshots: [], recommendation_outcomes: [],
+  };
+  const writer = { from(table: string) { return { async upsert(row: Record<string, unknown>) {
+    data[table].push(structuredClone(row)); return { error: null };
+  } }; } };
+  const originalOwner = process.env.TURE_APPLICATION_OWNER_USER_ID;
+  process.env.TURE_APPLICATION_OWNER_USER_ID = prospectiveOwner;
+  try {
+    for (const run of input.source.scanRuns) await persistRecommendationScanRun(run, { supabaseClient: writer, server: true });
+    for (const snapshot of input.source.snapshots) await persistRecommendationSnapshot(snapshot, { supabaseClient: writer, server: true });
+    for (const outcome of input.source.outcomes) await persistRecommendationOutcome(outcome, { supabaseClient: writer, server: true });
+  } finally {
+    if (originalOwner === undefined) delete process.env.TURE_APPLICATION_OWNER_USER_ID;
+    else process.env.TURE_APPLICATION_OWNER_USER_ID = originalOwner;
+  }
+  const original = JSON.stringify(data);
+  const h = harness({ clock: () => new Date(input.now),
+    modelStore: () => createRelativePlanTrainedProbabilityStore({ async read() {
+      return { status: "available", receipt: input.trainedModelReceipt };
+    }, async materialize() { throw new Error("must_not_refit"); }, async confirm() { throw new Error("must_not_confirm"); } }),
+    readSource: async () => ({ status: "available", data }), readRuntime: async () => input.runtime,
+  });
+  expect(await h.service.finalize(prospectiveOwner, {})).toMatchObject({ status: "unavailable", receipt: null,
+    blocker: "relative_plan_result_original_input_arithmetic_conflicting", terminal_quality_decision: null });
+  expect(h.calls.writes).toBe(0);
+  expect(JSON.stringify(data)).toBe(original);
+  expect(input.source.scanRuns).toHaveLength(72);
+  expect(input.source.snapshots).toHaveLength(576);
 });

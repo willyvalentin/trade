@@ -25,6 +25,8 @@ let dbCreated = false, apiCreated = false, networkCreated = false, blockedExtern
 let finalizedHttpBytes = null, resultPrewriteGuardsVerified = false;
 let originalDecodedHttpBytes = null, actualHttpReadbackVerified = false, transportEncoding = null;
 let newTrainingRetainedCoverageVerified = false, sealedModelIgnoresMutableCandles = false;
+let newTrainingOriginalInputVerified = false, newResultOriginalInputVerified = false;
+let sealedModelIgnoresMutableInputs = false, sealedResultIgnoresMutableInputs = false;
 // Real local socket + client decompression, not Response.json() pretending to
 // decode compressed bytes. This is NOT a hosted Netlify behavior attestation.
 async function verifyHttp(readers, body) {
@@ -61,6 +63,7 @@ try {
     stdin: { resolveDir: root, contents: `
       export { prospectiveInput, prospectiveOwner } from './tests/fixtures/relative-plan-prospective';
       export { prospectiveSource } from './tests/fixtures/relative-plan-prospective-source';
+      export { appendSyntheticOriginalArchives } from './tests/fixtures/original-input-archive-evidence';
       export { charterRuntimeRows } from './tests/fixtures/relative-plan-charter-runtime';
       export { buildRelativePlanProspectivePlan } from './lib/server/relative-plan-prospective-comparison';
       export { relativePlanProspectiveStore } from './lib/server/relative-plan-prospective-store';
@@ -176,6 +179,15 @@ try {
     for (const snapshot of part.snapshots) assert.equal((await readers.persistRecommendationSnapshot(snapshot, { supabaseClient: client, server: true })).status, "saved");
     for (const outcome of part.outcomes.filter(row => row.id !== omittedId)) assert.equal((await readers.persistRecommendationOutcome(outcome, { supabaseClient: client, server: true })).status, "saved");
   };
+  // Isolated synthetic fault setup only. The ordinary producer deliberately
+  // ignores duplicate scan inserts; do not alter that immutable behavior just
+  // to inject a test contradiction. Change this fixture through the real SDK
+  // with exact owner/id predicates, then exercise the actual command/readback.
+  const replaceIsolatedRunPayload = async run => {
+    const response = await client.from("recommendation_scan_runs").update({ payload_json: run.payload_json })
+      .eq("owner_user_id", owner).eq("id", run.id).select("id").single();
+    assert.equal(response.error, null); assert.equal(response.data.id, run.id);
+  };
   for (const day of days) for (let n = 0; n < 4; n++) {
     await persist(await readers.prospectiveSource({ now: new Date(Date.parse(session(day).session_open) + 3.5 * 3600000 + n * 300000), rankedCount }));
   }
@@ -184,6 +196,20 @@ try {
     const physical = await readers.readRecommendationLearningBaselineSource(owner);
     assert.equal(physical.status, "available");
     const original = readers.parseRecommendationLearningBaselineSource(physical.data); assert(original);
+    const originalRun = original.scanRuns[0], conflictingRun = structuredClone(originalRun);
+    await readers.appendSyntheticOriginalArchives(conflictingRun);
+    await replaceIsolatedRunPayload(conflictingRun);
+    const inputBefore = await readers.readRecommendationLearningBaselineSource(owner);
+    const inputRejected = await readers.createRelativePlanTrainedProbabilityService().train(owner, {});
+    assert.equal(inputRejected.status, "unavailable");
+    assert.equal(inputRejected.blocker, "trained_probability_original_input_arithmetic_conflicting");
+    assert.deepEqual((await readers.readRecommendationLearningBaselineSource(owner)).data, inputBefore.data);
+    assert.equal(sql("select count(*) from public.relative_plan_trained_probability_models"), "0");
+    assert.equal(sql("select count(*) from public.relative_plan_trained_probability_confirmations"), "0");
+    assert.equal(inputBefore.data.recommendation_scan_runs.length, 12);
+    assert.equal(inputBefore.data.recommendation_snapshots.length, 12 * rankedCount);
+    await replaceIsolatedRunPayload(originalRun);
+    newTrainingOriginalInputVerified = true;
     const outcome = original.outcomes[0], snapshot = original.snapshots.find(row => row.snapshot_fingerprint === outcome.snapshot_fingerprint);
     assert(snapshot);
     const anchor = readers.recommendationOutcomeEvaluationAnchorFromSnapshot(snapshot); assert(anchor);
@@ -248,6 +274,19 @@ try {
   assert.equal(training.status, "materialized", training.blocker); const sealed = training.receipt;
   assert.equal(sealed.trained_model.original_population_count, 12 * rankedCount);
   assert(Date.parse(sealed.committed_read_at) < Date.parse(windows.held_out.start_at));
+  if (newTrainingOriginalInputVerified) {
+    const physical = await readers.readRecommendationLearningBaselineSource(owner);
+    const source = readers.parseRecommendationLearningBaselineSource(physical.data);
+    const originalRun = source.scanRuns[0], conflictingRun = structuredClone(originalRun);
+    await readers.appendSyntheticOriginalArchives(conflictingRun);
+    await replaceIsolatedRunPayload(conflictingRun);
+    assert.deepEqual((await readers.createRelativePlanTrainedProbabilityService().read(owner)).receipt, sealed);
+    const repeated = await readers.createRelativePlanTrainedProbabilityService().train(owner, {});
+    assert.equal(repeated.status, "already_materialized"); assert.deepEqual(repeated.receipt, sealed);
+    assert.equal(sql("select count(*) from public.relative_plan_trained_probability_models"), "1");
+    await replaceIsolatedRunPayload(originalRun);
+    sealedModelIgnoresMutableInputs = true;
+  }
   if (newTrainingRetainedCoverageVerified) {
     assert.equal(sealed.trained_model.canonical_outcome_count, 12 * rankedCount);
     assert.equal(sealed.trained_model.missing_outcome_count, 0);
@@ -361,6 +400,22 @@ try {
   assert.deepEqual(await read(), full);
   let durable = null;
   if (finalizedMode) {
+    const physical = await readers.readRecommendationLearningBaselineSource(owner);
+    const source = readers.parseRecommendationLearningBaselineSource(physical.data);
+    const originalRun = source.scanRuns.find(run => Date.parse(run.observed_at) >= Date.parse(windows.held_out.start_at));
+    assert(originalRun);
+    const conflictingRun = structuredClone(originalRun);
+    await readers.appendSyntheticOriginalArchives(conflictingRun);
+    await replaceIsolatedRunPayload(conflictingRun);
+    const before = await readers.readRecommendationLearningBaselineSource(owner);
+    const rejected = await readers.createRelativePlanCharterResultService().finalize(owner, {});
+    assert.equal(rejected.status, "unavailable");
+    assert.equal(rejected.blocker, "relative_plan_result_original_input_arithmetic_conflicting");
+    assert.equal(rejected.terminal_quality_decision, null);
+    assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "0");
+    assert.deepEqual((await readers.readRecommendationLearningBaselineSource(owner)).data, before.data);
+    await replaceIsolatedRunPayload(originalRun);
+    newResultOriginalInputVerified = true;
     const beforeFinalization = Date.now();
     durable = await readers.createRelativePlanCharterResultService().finalize(owner,{});
     assert.equal(durable.status,"finalized",durable.blocker);
@@ -375,6 +430,13 @@ try {
     assert(Date.parse(durable.receipt.finalized_at) <= Date.now());
     assert.deepEqual((await readers.createRelativePlanCharterResultService().read(owner)).receipt,durable.receipt);
     assert.equal((await readers.createRelativePlanCharterResultService().finalize(owner,{})).status,"already_finalized");
+    await replaceIsolatedRunPayload(conflictingRun);
+    assert.deepEqual((await readers.createRelativePlanCharterResultService().read(owner)).receipt, durable.receipt);
+    const repeatedInput = await readers.createRelativePlanCharterResultService().finalize(owner, {});
+    assert.equal(repeatedInput.status, "already_finalized"); assert.deepEqual(repeatedInput.receipt, durable.receipt);
+    assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "1");
+    await replaceIsolatedRunPayload(originalRun);
+    sealedResultIgnoresMutableInputs = true;
     const persisted = await readers.createRelativePlanProspectiveService().read(owner,now);
     assert.equal(persisted.learning.status,"evaluated");
     assert.equal(persisted.learning.terminal_quality_decision.result_fingerprint,durable.receipt.result.result_fingerprint);
@@ -486,6 +548,10 @@ try {
   console.log(JSON.stringify({ status: "pass", environment: "isolated_postgres_postgrest_actual_sdk",
     evidence: finalizedMode ? "historical_synthetic_model_fixture_actual_database_finalization_not_market_alpha" : "synthetic_closed_not_market_alpha",
     immutable_actual_database_training_members: finalizedMode ? null : 12 * rankedCount,
+    new_training_rejects_original_input_conflict_before_storage: newTrainingOriginalInputVerified,
+    new_result_rejects_original_input_conflict_before_storage: newResultOriginalInputVerified,
+    sealed_model_ignores_later_mutable_original_inputs: sealedModelIgnoresMutableInputs,
+    sealed_result_ignores_later_mutable_original_inputs: sealedResultIgnoresMutableInputs,
     new_training_rejects_contradictory_retained_candles_before_storage: newTrainingRetainedCoverageVerified,
     valid_legacy_candles_keep_complete_training_population: newTrainingRetainedCoverageVerified,
     sealed_model_ignores_later_mutable_candles: sealedModelIgnoresMutableCandles,

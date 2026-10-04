@@ -5,10 +5,12 @@ import { relativePlanProspectiveStore } from "@/lib/server/relative-plan-prospec
 import { relativePlanTrainedProbabilityStore } from "@/lib/server/relative-plan-trained-probability-store";
 import { relativePlanCharterResultStore, type RelativePlanCharterResultStoreResult } from "@/lib/server/relative-plan-charter-result-store";
 import { readRelativePlanCharterRuntimeSource } from "@/lib/server/relative-plan-charter-runtime-source";
-import { buildRelativePlanCharterResult, relativePlanTerminalQualityDecision } from "@/lib/server/relative-plan-charter-result";
+import { buildRelativePlanCharterResult, relativePlanTerminalQualityDecision,
+  scopeRelativePlanCharterResultSource } from "@/lib/server/relative-plan-charter-result";
 import { relativePlanSemanticFingerprint } from "@/lib/server/relative-plan-prospective-comparison";
 import { hasExplicitRelativePlanOutcomeRecordingTimes, hasAdmissibleRelativePlanCurrentOutcomeRevisionTimes } from "@/lib/server/relative-plan-probability-measurement";
 import { RELATIVE_PLAN_COMPLETE_RESPONSE_MAX_BYTES } from "@/lib/server/relative-plan-complete-http-response";
+import { relativePlanOriginalInputConflict } from "@/lib/server/relative-plan-original-input-admission";
 
 type Dependencies = { prospectiveStore: typeof relativePlanProspectiveStore;
   modelStore: typeof relativePlanTrainedProbabilityStore; resultStore: typeof relativePlanCharterResultStore;
@@ -68,6 +70,14 @@ export function createRelativePlanCharterResultService(d: Dependencies = depende
       if (relativePlanSemanticFingerprint(after.source) !== relativePlanSemanticFingerprint(source)) {
         return unavailable("relative_plan_result_original_source_changed_during_read");
       }
+      // Check the retained fitted source too: mutable scan rows must not erase
+      // a contradiction already retained in the original sealed model. Keep
+      // every relevant forward/overflow member, not only resolved/top-k ones.
+      const inputConflict = await relativePlanOriginalInputConflict([
+        ...model.receipt.trained_model.retained_training_source.scanRuns,
+        ...scopeRelativePlanCharterResultSource(source, freeze.receipt).scanRuns,
+      ]);
+      if (inputConflict) return unavailable(`relative_plan_result_${inputConflict}`);
       const candidate = buildRelativePlanCharterResult({ owner,freeze: freeze.receipt,now,source,runtime,trainedModelReceipt: model.receipt });
       if (!candidate.result) return { status: "not_ready",receipt: null,blocker: candidate.blocker };
       const envelope = { contract_version: "relative_plan_charter_result_receipt_v1" as const,

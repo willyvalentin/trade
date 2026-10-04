@@ -1,4 +1,7 @@
 import { expect, test } from "@playwright/test";
+import { relativePlanOriginalInputConflict } from "@/lib/server/relative-plan-original-input-admission";
+import { reproducibleOriginalRun } from "../fixtures/original-input-archive-evidence";
+import { replayScannerOriginalInputs } from "@/lib/server/scanner-original-input-replay";
 import { spawnSync } from "node:child_process";
 import { build } from "esbuild";
 import { createRequire } from "node:module";
@@ -7,6 +10,51 @@ import { calculateIntradayIndicators, withAdmissibleRecentIntradayVolume,
   PROVIDER_CLOSED_BAR_PRICE_BASIS } from "@/lib/intraday-indicators";
 import { captureCurrentSessionContext } from "@/lib/scanner-current-session-context";
 import { twelveDataResponseIdentityFromPayloadBytes } from "@/lib/twelve-data-response-identity";
+
+test("new learning admits exact producer arithmetic and keeps every missing original explicit", async () => {
+  const run = await reproducibleOriginalRun(), original = JSON.stringify(run);
+  expect(await replayScannerOriginalInputs(run)).toMatchObject({ original_candidate_count: 8, matched_count: 8 });
+  expect(await relativePlanOriginalInputConflict([run])).toBeNull();
+  expect(JSON.stringify(run)).toBe(original);
+  const partial = structuredClone(run);
+  partial.payload_json.scanner_historical_input_archive!.entries.splice(0, 7);
+  partial.payload_json.scanner_current_input_archive!.entries.splice(0, 7);
+  expect(await relativePlanOriginalInputConflict([partial])).toBeNull();
+  expect(await replayScannerOriginalInputs(partial)).toMatchObject({ original_candidate_count: 8, matched_count: 1 });
+  const legacy = structuredClone(run);
+  Reflect.deleteProperty(legacy.payload_json, "scanner_historical_input_archive");
+  Reflect.deleteProperty(legacy.payload_json, "scanner_current_input_archive");
+  expect(await relativePlanOriginalInputConflict([legacy])).toBeNull();
+  expect(await replayScannerOriginalInputs(legacy)).toMatchObject({ original_candidate_count: 8, matched_count: 0 });
+});
+
+test("new learning rejects source, clock, version and envelope faults without changing inputs", async () => {
+  const original = await reproducibleOriginalRun();
+  const faults = [
+    (run: typeof original) => { Object.assign(run.payload_json.scanner_historical_input_archive!, { archive_version: "wrong" }); },
+    (run: typeof original) => { Object.assign(run.payload_json.scanner_current_input_archive!, { calculator_version: "wrong" }); },
+    (run: typeof original) => { run.payload_json.scanner_current_input_archive!.entries.push(run.payload_json.scanner_current_input_archive!.entries[0]); },
+    (run: typeof original) => { run.payload_json.scanner_current_input_archive!.entries[7].current_context.candles[0].close += 0.1; },
+    (run: typeof original) => { run.payload_json.scanner_current_input_archive!.entries[7].calculation_clock.volume_observed_at = "2026-10-02T17:00:00.001Z"; },
+    (run: typeof original) => { Object.assign(run.payload_json, { scanner_historical_input_archive: false }); },
+  ];
+  for (const mutate of faults) {
+    const run = structuredClone(original); mutate(run); const bytes = JSON.stringify(run);
+    expect(await relativePlanOriginalInputConflict([run])).toBe("original_input_evidence_invalid");
+    expect(JSON.stringify(run)).toBe(bytes);
+  }
+  const missingDependency = structuredClone(original);
+  Reflect.deleteProperty(missingDependency.payload_json, "scanner_historical_input_archive");
+  expect(await relativePlanOriginalInputConflict([missingDependency])).toBe("original_input_reproduction_unavailable");
+});
+
+test("new learning rejects current arithmetic and indicator contradictions on an unselected member", async () => {
+  for (const fault of ["current_feature", "indicator"] as const) {
+    const run = await reproducibleOriginalRun(fault), before = JSON.stringify(run);
+    expect(await relativePlanOriginalInputConflict([run])).toBe("original_input_arithmetic_conflicting");
+    expect(JSON.stringify(run)).toBe(before);
+  }
+});
 
 test("the actual original-input audit reproduces current features as well as historical features", () => {
   test.setTimeout(90000);
