@@ -3,6 +3,7 @@ import { normalizeApplicationOwnerUserId } from "@/lib/application-session-core"
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 import { relativePlanSemanticFingerprint, verifiedRelativePlanProspectiveFreeze } from "@/lib/server/relative-plan-prospective-comparison";
 import { replayRelativePlanCharterRuntimePartition, RELATIVE_PLAN_OPERATIONAL_ROWS_LIMIT } from "@/lib/server/relative-plan-charter-runtime-replay";
+import { hasObservedRelativePlanRecordingTime } from "@/lib/server/relative-plan-probability-measurement";
 
 type Client = NonNullable<ReturnType<typeof getServerSupabaseClient>["client"]>;
 type Rows = Record<string, unknown>[];
@@ -58,6 +59,15 @@ export async function readRelativePlanCharterRuntimeSource(input: {
       const replay = replayRelativePlanCharterRuntimePartition({ owner, freeze, now: input.now,
         rows: { partition: name, observation_cycles: second.cycles, scheduled_attempts: second.attempts } });
       if (!replay.partition) return unavailable(replay.blocker);
+      // Event/generated time is not persistence availability. Check the WHOLE
+      // stable read, including global unknown and failed attempts, without
+      // filtering a favorable denominator. Cycle updated_at is generation
+      // time and may legitimately precede its database created_at.
+      if (![second.cycles, second.attempts].every(rows => rows.every(row =>
+        hasObservedRelativePlanRecordingTime(row.created_at, input.now) &&
+        hasObservedRelativePlanRecordingTime(row.updated_at, input.now)))) {
+        return unavailable("relative_plan_runtime_source_recording_times_invalid");
+      }
       partitions.push(replay.partition);
     }
     return { status: "available" as const, partitions, blocker: null };

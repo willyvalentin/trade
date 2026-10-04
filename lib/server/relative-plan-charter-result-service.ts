@@ -96,6 +96,12 @@ export function createRelativePlanCharterResultService(d: Dependencies = depende
       if (!source) return unavailable(initial.blocker);
       const now = d.clock();
       const runtime = await d.readRuntime({ owner,freeze: freeze.receipt,now });
+      // A NEW command cannot seal invalid current recording clocks as its
+      // original as-of source. Generic missing runtime keeps its existing
+      // truthful incomplete-result semantics; sealed retries returned above.
+      if (runtime.status === "unavailable" && runtime.blocker === "relative_plan_runtime_source_recording_times_invalid") {
+        return unavailable(runtime.blocker);
+      }
       const after = await sourceRead(now);
       if (!after.source) return unavailable(after.blocker);
       if (relativePlanSemanticFingerprint(after.source) !== relativePlanSemanticFingerprint(source)) {

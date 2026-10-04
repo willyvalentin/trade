@@ -2,7 +2,8 @@ import { expect, test } from "@playwright/test";
 import { buildRelativePlanProbabilityMeasurement, hasAdmissibleRelativePlanOutcomeRevisionTimes,
   hasExplicitRelativePlanOutcomeRecordingTimes, hasAdmissibleRelativePlanCurrentOutcomeRevisionTimes,
   hasAdmissibleRelativePlanSnapshotRecordingTimes,
-  hasAdmissibleRelativePlanScanRunRecordingTimes } from "@/lib/server/relative-plan-probability-measurement";
+  hasAdmissibleRelativePlanScanRunRecordingTimes,
+  hasObservedRelativePlanRecordingTime } from "@/lib/server/relative-plan-probability-measurement";
 import { recommendationOutcomeFromPersistenceRow } from "@/lib/recommendation-outcome-tracker";
 import type { RelativePlanContextOutcomeComparison } from "@/lib/scanner-relative-plan-context-outcomes";
 
@@ -11,6 +12,17 @@ import type { RelativePlanContextOutcomeComparison } from "@/lib/scanner-relativ
 // boundary separately before these inputs can constitute product evidence.
 const trainingWindow = { start_at: "2026-10-05T13:30:00.000Z", end_at: "2026-10-09T20:00:00.000Z" };
 const fittedAt = "2026-10-12T13:30:00.000Z", now = new Date("2026-11-07T00:00:00.000Z");
+
+test("individual raw clock availability preserves strict instants and microseconds without imposing row order", () => {
+  for (const clock of [now.toISOString(), "2026-11-07T02:00:00.000000+02:00", "2026-11-06T19:59:59.999999-04:00"]) {
+    expect(hasObservedRelativePlanRecordingTime(clock, now)).toBe(true);
+  }
+  for (const clock of [undefined, null, 0, "2026-11-06", "2026-11-06T23:00:00", "2026-02-30T00:00:00Z",
+    "2026-11-07T00:00:00.000001Z", "2026-11-07T02:00:00.000001+02:00", "2026-11-06T20:00:00.000001-04:00"]) {
+    expect(hasObservedRelativePlanRecordingTime(clock, now)).toBe(false);
+  }
+  expect(hasObservedRelativePlanRecordingTime(now.toISOString(), new Date(NaN))).toBe(false);
+});
 
 test("original scan admission retains raw microseconds, exact instants and explicit recording order", () => {
   const scope = [{ run_fingerprint: "original" }];

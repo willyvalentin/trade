@@ -55,6 +55,52 @@ async function retainedForwardHarness(index = 103) {
   return { input, data, payload };
 }
 
+test("NEW terminal command cannot seal an invalid raw runtime recording source", async () => {
+  const base = await retainedForwardHarness();
+  let writes = 0;
+  const h = harness({ clock: () => new Date(base.input.now),
+    resultStore: () => createRelativePlanCharterResultStore({ async read() { return { status: "not_found", receipt: null }; },
+      async finalize() { writes++; throw new Error("future_runtime_must_not_be_sealed"); } }),
+    modelStore: () => createRelativePlanTrainedProbabilityStore({ async read() {
+      return { status: "available", receipt: base.input.trainedModelReceipt };
+    }, async materialize() { throw new Error("must_not_refit"); }, async confirm() { throw new Error("must_not_confirm"); } }),
+    readSource: async () => ({ status: "available", data: base.data }),
+    readRuntime: async () => ({ status: "unavailable", partitions: null,
+      blocker: "relative_plan_runtime_source_recording_times_invalid" }),
+  });
+  const before = JSON.stringify(base.data);
+  const result = await h.service.finalize(prospectiveOwner, {});
+  expect(writes).toBe(0);
+  expect(result).toMatchObject({ status: "unavailable", receipt: null,
+    blocker: "relative_plan_runtime_source_recording_times_invalid", terminal_quality_decision: null });
+  expect(JSON.stringify(base.data)).toBe(before);
+});
+
+test("generic missing runtime retains truthful incomplete-result semantics without changing the original cohort", async () => {
+  const base = await retainedForwardHarness();
+  let writes = 0;
+  let stored: RelativePlanCharterResultReceipt | null = null;
+  const h = harness({ clock: () => new Date(base.input.now),
+    resultStore: () => createRelativePlanCharterResultStore({ async read() {
+      return { status: stored ? "available" : "not_found", receipt: stored }; },
+      async finalize(result) { writes++; stored = {
+        contract_version: RELATIVE_PLAN_CHARTER_RESULT_RECEIPT_VERSION,
+        result_id: "55555555-5555-4555-8555-555555555555", owner_user_id: prospectiveOwner,
+        finalized_at: base.input.now.toISOString(), result }; return { status: "finalized", receipt: stored }; } }),
+    modelStore: () => createRelativePlanTrainedProbabilityStore({ async read() {
+      return { status: "available", receipt: base.input.trainedModelReceipt };
+    }, async materialize() { throw new Error("must_not_refit"); }, async confirm() { throw new Error("must_not_confirm"); } }),
+    readSource: async () => ({ status: "available", data: base.data }),
+    readRuntime: async () => ({ status: "unavailable", partitions: null, blocker: "relative_plan_runtime_source_read_failed" }),
+  });
+  const before = JSON.stringify(base.data);
+  const result = await h.service.finalize(prospectiveOwner, {});
+  expect(result).toMatchObject({ status: "finalized", quality_improvement_claimed: false,
+    receipt: { result: { measurement: { evidence_complete: false, computed_disposition: "evidence_incomplete",
+      partitions: [{ original_population_count: 240 }, { original_population_count: 240 }] } } } });
+  expect(writes).toBe(1); expect(JSON.stringify(base.data)).toBe(before);
+});
+
 for (const measurement of ["current", "eod_fallback"] as const) {
 test(`NEW terminal admission rejects ${measurement} neither-hit R that contradicts the retained original horizon close`, async () => {
   test.setTimeout(120000);

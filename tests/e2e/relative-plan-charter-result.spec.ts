@@ -196,6 +196,10 @@ test("actual database clock, immutable result and restarted SDK/product consumpt
   expect(result.status,`${result.stdout}\n${result.stderr}`).toBe(0);
   const proof = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
   expect(proof).toMatchObject({ status:"pass",durable_terminal_result_verified:true,
+    current_runtime_rejects_unobserved_recording_times:true,
+    runtime_clock_admission_preserves_complete_original_source:true,
+    new_result_rejects_unobserved_runtime_clocks_before_storage:true,
+    sealed_result_ignores_later_mutable_runtime_clocks:true,
     new_result_rejects_unobserved_snapshot_clocks_before_storage:true,
     sealed_result_ignores_later_mutable_snapshot_clocks:true,
     new_result_rejects_unobserved_scan_clocks_before_storage:true,
@@ -220,6 +224,10 @@ test("full eight-member population survives actual SQL finalization and negotiat
   expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
   const proof = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
   expect(proof).toMatchObject({ status: "pass", original_candidates_per_forward_partition: 240,
+    current_runtime_rejects_unobserved_recording_times:true,
+    runtime_clock_admission_preserves_complete_original_source:true,
+    new_result_rejects_unobserved_runtime_clocks_before_storage:true,
+    sealed_result_ignores_later_mutable_runtime_clocks:true,
     new_result_rejects_unobserved_snapshot_clocks_before_storage:true,
     sealed_result_ignores_later_mutable_snapshot_clocks:true,
     new_result_rejects_unobserved_scan_clocks_before_storage:true,
@@ -248,6 +256,10 @@ test("complete original archives survive actual SQL capacity migration and resta
   expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
   const proof = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
   expect(proof).toMatchObject({ status: "pass", complete_original_archives: true,
+    current_runtime_rejects_unobserved_recording_times:true,
+    runtime_clock_admission_preserves_complete_original_source:true,
+    new_result_rejects_unobserved_runtime_clocks_before_storage:true,
+    sealed_result_ignores_later_mutable_runtime_clocks:true,
     new_result_rejects_unobserved_snapshot_clocks_before_storage:true,
     sealed_result_ignores_later_mutable_snapshot_clocks:true,
     new_result_rejects_unobserved_scan_clocks_before_storage:true,

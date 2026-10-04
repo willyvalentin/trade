@@ -41,6 +41,8 @@ let newTrainingSnapshotClocksVerified = false, newResultSnapshotClocksVerified =
 let sealedModelIgnoresMutableSnapshotClocks = false, sealedResultIgnoresMutableSnapshotClocks = false;
 let newTrainingRunClocksVerified = false, newResultRunClocksVerified = false;
 let sealedModelIgnoresMutableRunClocks = false, sealedResultIgnoresMutableRunClocks = false;
+let currentRuntimeClocksVerified = false, runtimeClockSourcePreserved = false;
+let newResultRuntimeClocksVerified = false, sealedResultIgnoresMutableRuntimeClocks = false;
 // Real local socket + client decompression, not Response.json() pretending to
 // decode compressed bytes. This is NOT a hosted Netlify behavior attestation.
 async function verifyHttp(readers, body) {
@@ -495,6 +497,68 @@ try {
   const httpBytes = fullTransport.wireBytes;
   originalDecodedHttpBytes = fullTransport.decodedBytes; transportEncoding = fullTransport.encoding;
   assert.deepEqual(await read(), full); // restarted service and actual fresh SDK reads, not cached source
+  // Only NEW isolated rows are faulted. Terminal cycle receipts are immutable;
+  // never weaken that writer/trigger just to alter an existing test receipt.
+  const originalRuntime = await readers.readRelativePlanCharterRuntimeSource({ owner, freeze, now });
+  assert.equal(originalRuntime.status, "available");
+  const sourceBeforeRuntimeFault = await readers.readRecommendationLearningBaselineSource(owner);
+  assert.equal(sourceBeforeRuntimeFault.status, "available");
+  let runtimeFaultSequence = 0;
+  const insertRuntimeClockFault = async (kind, field) => {
+    const at = new Date(Date.parse(session(futureDays[0]).session_open) + 6 * 3600000 + runtimeFaultSequence++ * 60000);
+    const fixture = structuredClone(readers.charterRuntimeRows({ at: at.toISOString(), fingerprint: null, failed: true }));
+    fixture[kind][field] = new Date(now.getTime() + 86400000).toISOString();
+    const inserted = [];
+    const restore = () => {
+      for (const [table, id] of inserted.reverse()) {
+        assert(/^[0-9a-f-]{36}$/.test(id));
+        sql(`delete from public.${table} where id='${id}'`);
+      }
+    };
+    try {
+      for (const [table, row] of [["scheduled_scan_attempts", fixture.attempt], ["observation_cycle_receipts", fixture.cycle]]) {
+        const response = await client.from(table).insert(row).select("id").single();
+        assert.equal(response.error, null); inserted.push([table, response.data.id]);
+      }
+      // The historic event fixture's actual producer generates a fresh receipt
+      // clock. Sample AFTER insertion, so the new raw-clock guard, not the
+      // existing event/generated-time guard, is the dimension under test.
+      return { restore, asOf: finalizedMode ? new Date() : now };
+    } catch (error) { restore(); throw error; }
+  };
+  for (const kind of ["cycle", "attempt"]) for (const field of ["created_at", "updated_at"]) {
+    const fault = await insertRuntimeClockFault(kind, field);
+    try {
+      const invalid = await readers.readRelativePlanCharterRuntimeSource({ owner, freeze, now: fault.asOf });
+      assert.equal(invalid.status, "unavailable");
+      assert.equal(invalid.blocker, "relative_plan_runtime_source_recording_times_invalid");
+      if (kind === "attempt" && field === "updated_at") {
+        const incomplete = await readers.createRelativePlanProspectiveService().read(owner, fault.asOf);
+        assert.equal(incomplete.status, "available", incomplete.blocker);
+        assert.equal(incomplete.learning.full_charter.computed_disposition, "evidence_incomplete");
+        assert.equal(incomplete.learning.full_charter.evidence_complete, false);
+        assert(incomplete.learning.full_charter.missing_dimensions.some(value =>
+          value.includes("relative_plan_runtime_source_recording_times_invalid")));
+        assert.deepEqual(incomplete.learning.full_charter.partitions.map(row => row.original_membership_fingerprint),
+          charter.partitions.map(row => row.original_membership_fingerprint));
+        assert.deepEqual(incomplete.learning.full_charter.partitions.map(row => row.original_population_count),
+          [partitionPopulation, partitionPopulation]);
+        if (finalizedMode) {
+          const refused = await readers.createRelativePlanCharterResultService().finalize(owner, {},
+            { acceptEncoding: originalInputs ? "gzip" : null });
+          assert.equal(refused.status, "unavailable");
+          assert.equal(refused.blocker, "relative_plan_runtime_source_recording_times_invalid");
+          assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "0");
+          newResultRuntimeClocksVerified = true;
+        }
+      }
+    } finally { fault.restore(); }
+    assert.deepEqual(await readers.readRelativePlanCharterRuntimeSource({ owner, freeze, now }), originalRuntime);
+  }
+  currentRuntimeClocksVerified = true;
+  assert.deepEqual(await readers.readRecommendationLearningBaselineSource(owner), sourceBeforeRuntimeFault);
+  assert.deepEqual(await read(), full);
+  runtimeClockSourcePreserved = true;
   // The mutable current label can have old evaluation/creation clocks but a
   // revision not yet observed at this read's as-of boundary. Verify through
   // the actual writer, SDK, SQL and restarted consumers, not a fake hash.
@@ -699,10 +763,16 @@ try {
     await replaceIsolatedSnapshotClocks(nonTopSnapshot, { created_at: future, updated_at: future });
     assert(newResultRunClocksVerified);
     await replaceIsolatedRunClocks(originalRun, { created_at: future, updated_at: future });
-    const snapshotRepeated = await readers.createRelativePlanCharterResultService().finalize(owner, {});
-    assert.equal(snapshotRepeated.status, "already_finalized"); assert.deepEqual(snapshotRepeated.receipt, durable.receipt);
-    assert.deepEqual((await readers.createRelativePlanCharterResultService().read(owner)).receipt, durable.receipt);
-    assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "1");
+    const runtimeFault = await insertRuntimeClockFault("attempt", "updated_at");
+    try {
+      const invalidRuntime = await readers.readRelativePlanCharterRuntimeSource({ owner, freeze, now: runtimeFault.asOf });
+      assert.equal(invalidRuntime.blocker, "relative_plan_runtime_source_recording_times_invalid");
+      const snapshotRepeated = await readers.createRelativePlanCharterResultService().finalize(owner, {});
+      assert.equal(snapshotRepeated.status, "already_finalized"); assert.deepEqual(snapshotRepeated.receipt, durable.receipt);
+      assert.deepEqual((await readers.createRelativePlanCharterResultService().read(owner)).receipt, durable.receipt);
+      assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "1");
+      sealedResultIgnoresMutableRuntimeClocks = true;
+    } finally { runtimeFault.restore(); }
     await replaceIsolatedSnapshotClocks(nonTopSnapshot, {
       created_at: nonTopSnapshot.created_at, updated_at: nonTopSnapshot.updated_at });
     sealedResultIgnoresMutableSnapshotClocks = true;
@@ -835,6 +905,10 @@ try {
   assert.equal(blockedExternalRequests, 0);
   console.log(JSON.stringify({ status: "pass", environment: "isolated_postgres_postgrest_actual_sdk",
     evidence: finalizedMode ? "historical_synthetic_model_fixture_actual_database_finalization_not_market_alpha" : "synthetic_closed_not_market_alpha",
+    current_runtime_rejects_unobserved_recording_times: currentRuntimeClocksVerified,
+    runtime_clock_admission_preserves_complete_original_source: runtimeClockSourcePreserved,
+    new_result_rejects_unobserved_runtime_clocks_before_storage: newResultRuntimeClocksVerified,
+    sealed_result_ignores_later_mutable_runtime_clocks: sealedResultIgnoresMutableRuntimeClocks,
     new_training_rejects_unobserved_snapshot_clocks_before_storage: newTrainingSnapshotClocksVerified,
     new_result_rejects_unobserved_snapshot_clocks_before_storage: newResultSnapshotClocksVerified,
     sealed_model_ignores_later_mutable_snapshot_clocks: sealedModelIgnoresMutableSnapshotClocks,

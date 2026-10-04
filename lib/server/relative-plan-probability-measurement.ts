@@ -31,6 +31,18 @@ function explicitOutcomeRecordingInstant(value: unknown): value is string {
     (Number(suffix.slice(1, 3)) * 60 + Number(suffix.slice(4)));
   return new Date(Date.parse(value) + offset * 60000).toISOString().slice(0, 19) === value.slice(0, 19);
 }
+
+/** Explicit raw-clock availability, preserving PostgreSQL microseconds. This
+ * does not impose relation-specific ordering or attest historical storage.
+ * Use only at NEW mutable consumers, never to reinterpret sealed capsules.
+ */
+export function hasObservedRelativePlanRecordingTime(value: unknown, now: Date): boolean {
+  const asOf = now.getTime(), scale = BigInt(1000);
+  if (!Number.isFinite(asOf) || !explicitOutcomeRecordingInstant(value)) return false;
+  const micros = BigInt(Date.parse(value)) * scale +
+    BigInt((value.match(/\.(\d{1,6})(?:Z|[+-]\d{2}:\d{2})$/)?.[1] ?? "").padEnd(6, "0").slice(3));
+  return micros <= BigInt(asOf) * scale;
+}
 export function hasExplicitRelativePlanOutcomeRecordingTimes(rows: unknown): boolean {
   return Array.isArray(rows) && rows.length <= 100000 && rows.every(row => row && typeof row === "object" && !Array.isArray(row) &&
     explicitOutcomeRecordingInstant(row.evaluated_at) && explicitOutcomeRecordingInstant(row.created_at));

@@ -2,6 +2,43 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Selected CLOSED IF-4 current-runtime as-of admission — 2026-10-05:** Codex
+owns `codex/runtime-recording-asof-oct5`, freshly verified main `55576078` plus
+completed local composition `d016d2cf`; primary #732 remains release-held.
+Four-active-hour correction inside the same frozen original-population charter.
+Actual receipt-producer/complete SDK-boundary reproduction still counts one
+completed original/eight credits when either cycle or attempt raw creation or
+revision is one microsecond after server as-of. Its event/generated clocks are
+valid. This can corrupt the charter's cost/reliability dimension, not select a
+new ranking hypothesis. Add only explicit raw-clock availability at the complete
+current reader and prevent NEW result writes from that named invalid source.
+Check every global unknown/failure row too; never trim a favorable denominator.
+Do NOT require creation-before-revision for these relations: the cycle producer
+uses generation time as updated_at, before the database's insertion clock.
+Existing semantic ordering remains separate. Preserve immutable capsule replay,
+original source/metrics, owner redaction and all frozen charter/model versions.
+Write ownership: existing raw-time helper, current runtime reader, NEW result
+command, registered regression/native proofs and this receipt. No schema,
+provider, production, scheduler, publication or broker changes. Acceptance:
+red producer/read and command cases; explicit/missing/microsecond/offset clocks;
+complete stable reads and unchanged unknown/failure denominator; isolated actual
+SQL/SDK fault/restore and restarted/sealed readbacks; affected tests/types/lint
+and exact clean build. Stop this correction at that minimum verified exit and
+resume the indivisible original-input → canonical-outcome → full-charter
+primary. Integration follows #732 and the tested composition against current
+main; synthetic/local measurement integrity is not market-quality acceptance.
+
+The producer/read and NEW-command regressions reproduce the escape before the
+correction. Explicit raw creation/revision availability now gates the complete
+stable runtime read, and only its named invalid-clock source blocks NEW result
+storage. Generic missing runtime retains its existing truthful incomplete-result
+semantics. The first ordinary isolated PostgreSQL/PostgREST/SDK finalization
+proof passes: four new-row clock faults are rejected, original candidate/source
+populations remain unchanged, exact fault-row cleanup restores measurement, and
+already sealed read/retry results ignore later mutable runtime faults. This is
+local synthetic evidence only. Full committed regression and exact build remain
+required before this selected slice's local completion; no release acceptance.
+
 **CLOSED IF-4 original-scan availability locally built — 2026-10-05:** Owner Codex,
 `codex/original-scan-run-asof-oct5`, freshly verified main `55576078` plus
 completed local composition `a25527eb`; primary #732 remains release-held.
