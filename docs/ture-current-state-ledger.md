@@ -2,6 +2,49 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Local partial evidence — historical feature reproduction, 2026-10-04:**
+Product revision `3276d6c1674ff022adcf5b03ab2ccbdd9c0ecccb` implements
+the selected independent slice below. Three focused checks pass in 18.9s:
+actual original cold producer/SQL/SDK, cache deletion and restarted six-feature
+replay, installed Next request/cookie stores and proxy/owner verification,
+read-only HTTP diagnosis, explicit original missing members, corruption,
+independently valid but wrong source, six arithmetic mismatches and legacy gaps;
+the unchanged historical prewarmed baseline also passes. Log:
+`/private/tmp/ture-historical-replay-remediation-oct4.log`.
+35 decision/governance/exact-CI-oracle checks, 33 server-condition charter/model
+checks and 21 security/owner/server-client checks pass separately. Logs:
+`/private/tmp/ture-historical-replay-quality-default-oct4.log`,
+`/private/tmp/ture-historical-replay-quality-server-oct4.log`,
+`/private/tmp/ture-historical-replay-security-oct4.log`.
+Nonincremental types and lint pass on the fixed product (zero errors/eight
+existing warnings). These are synthetic CLOSED proofs, not market alpha.
+
+The initial broad run exposed a real coupling to newer scanner exports while
+compiling retained historical baselines. Separate sidecar capture from replay;
+do not modify baseline modules or expectations. Parallel runners also shared
+their artifact directory; the replacement run uses its own directory. The
+corrected 100-check original-input/outcome suite is still running, not passed.
+One locked Linux build compiled but exceeded its unchanged five-minute limit
+during types under overlapping local verification; it is not a build pass.
+An exact retry on fixed `3276d6c1`, after host types/lint and the owned dev server
+finish, passes with the same limit: locked Node 22.23.1 / Next 16.3.8,
+lock SHA-256 `859ed09eed4d3de2e7ade5c74bea78e73770bea57f92d6cb3656224bfcace6f7`,
+no build network or credentials, zero provider/production actions.
+Logs: `/private/tmp/ture-historical-replay-final-chain-regression-oct4.log` and
+`/private/tmp/ture-historical-replay-final-exact-linux-build-oct4.log`.
+Finish these acceptance checks before selecting another slice. No push, merge,
+deploy, migration, real provider request or broker action is selected for this
+local delivery. Existing primary #732 remains Draft on `2741f946`; its new
+exact-head hosted Draft job `111352999524` completed successfully at
+2026-10-04T03:56:07Z with 1,117 tests passing in 19.5m. Workflow
+`37174103003` itself is `failure`: protected Ready shards are intentionally
+skipped for Draft and the required aggregate fails closed; no whole-workflow
+green claim. Metadata-only Netlify readback verifies preview
+`6ac1c77f28fc2d0008f36e67` ready on exact `2741f946`, not production and
+not environment behavior. The mandatory dependency-audit release hold remains.
+This Draft job is not protected Ready CI or a main/environment/quality
+acceptance claim.
+
 **Selected independent CLOSED slice — original historical-feature reproduction, 2026-10-04:**
 Codex owns `codex/original-input-replay-oct4`, isolated from verified main
 `55576078` and locally fast-forwarded onto exact #732 dependency `2741f946`.
