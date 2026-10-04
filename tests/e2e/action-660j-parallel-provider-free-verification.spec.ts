@@ -98,6 +98,7 @@ const foundationTests = [
   "tests/e2e/reference-refresh-diagnostics.spec.ts",
   "tests/e2e/scanner-plan-reference-binding.spec.ts",
   "tests/e2e/scanner-completed-daily-context.spec.ts",
+  "tests/e2e/scanner-historical-input-replay.spec.ts",
   "tests/e2e/original-outcome-source-window.spec.ts",
   "tests/e2e/completed-input-published-source.spec.ts",
   "tests/e2e/completed-benchmark-reuse.spec.ts",
@@ -608,7 +609,7 @@ test("Draft fallback retains complete coverage without repeating identical chang
     path.join(repositoryRoot, "scripts/action-660k-run-draft-ci.mjs"),
   ).href) as { selectDraftCommands: (paths: string[]) => PlannedCommand[] };
   const repeated = ["tests/e2e/completed-benchmark-reuse.spec.ts",
-    "tests/e2e/scanner-completed-daily-context.spec.ts"];
+    "tests/e2e/scanner-completed-daily-context.spec.ts", "tests/e2e/scanner-historical-input-replay.spec.ts"];
   const serverOnly = "tests/e2e/recommendation-outcome-canonical-coverage.spec.ts";
   const selected = selectDraftCommands(["lib/scanner.ts", ...repeated, serverOnly]);
   for (const file of repeated) {
