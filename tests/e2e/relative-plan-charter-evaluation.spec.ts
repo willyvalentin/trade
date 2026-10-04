@@ -83,3 +83,36 @@ test("actual persisted original sources, DB-attested model and runtime feed a re
     durable_terminal_result_verified: false, quality_improvement_verified: false,
     provider_requests: 0, production_writes: 0, broker_actions: 0 });
 });
+
+test("complete original archives train with real DB time before synthetic forward comparison", () => {
+  // A separate full-original regression; keep the legacy four-member test and
+  // its deadline unchanged. Never substitute historical admin model insertion.
+  test.setTimeout(480000);
+  const result = spawnSync(process.execPath, ["scripts/relative-plan-charter-runtime-proof.mjs",
+    "--full-eight-member-population", "--complete-original-archives"], {
+    encoding: "utf8", timeout: 470000, env: { ...process.env } });
+  expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
+  const receipt = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
+  expect(receipt).toMatchObject({ status: "pass", environment: "isolated_postgres_postgrest_actual_sdk",
+    evidence: "synthetic_closed_not_market_alpha", complete_original_archives: true,
+    immutable_actual_database_training_members: 96, actual_database_training_clock_verified: true,
+    separate_transaction_committed_model_witness_verified: true, historical_model_clock_fixture: false,
+    original_held_out_decisions: 30, original_walk_forward_decisions: 30,
+    original_candidates_per_forward_partition: 240, held_out_admitted_attempts: 31, terminal_failures: 1,
+    held_out_reserved_fixture_credits: 248, actual_restarted_full_charter_consumer_verified: true,
+    eleven_charter_checks_per_partition: true, unknown_cost_retains_failure: true,
+    missing_label_retains_original_denominator: true,
+    duplicate_completed_original_decision_preserves_population_but_cannot_qualify: true,
+    known_concentration_failure_separate_from_missing_evidence: true, forward_losses_never_refit_model: true,
+    new_training_rejects_original_input_conflict_before_storage: true,
+    sealed_model_ignores_later_mutable_original_inputs: true,
+    new_training_rejects_contradictory_retained_candles_before_storage: true,
+    valid_legacy_candles_keep_complete_training_population: true, sealed_model_ignores_later_mutable_candles: true,
+    actual_loopback_http_readback_verified: true, full_population_transport_encoding: "gzip",
+    durable_terminal_result_verified: false, actual_database_finalization_clock_verified: false,
+    quality_improvement_verified: false, provider_requests: 0, production_writes: 0, broker_actions: 0 });
+  expect(Date.parse(receipt.model_materialized_at)).toBeLessThanOrEqual(Date.parse(receipt.model_committed_read_at));
+  expect(Date.parse(receipt.model_committed_read_at)).toBeLessThan(Date.parse(receipt.first_synthetic_forward_window_start_at));
+  expect(receipt.complete_original_product_decoded_http_bytes).toBeGreaterThan(5 * 1048576);
+  expect(receipt.complete_original_product_http_bytes).toBeLessThanOrEqual(4 * 1048576);
+});

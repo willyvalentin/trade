@@ -29,6 +29,7 @@ let originalDecodedHttpBytes = null, actualHttpReadbackVerified = false, transpo
 let newTrainingRetainedCoverageVerified = false, sealedModelIgnoresMutableCandles = false;
 let newTrainingOriginalInputVerified = false, newResultOriginalInputVerified = false;
 let sealedModelIgnoresMutableInputs = false, sealedResultIgnoresMutableInputs = false;
+let actualTrainingClockVerified = false, separateCommittedWitnessVerified = false;
 let sourceCapacitySqlVerified = false, negotiatedPrewriteVerified = false;
 let finalizedDecodedHttpBytes = null, finalizedTransportEncoding = null;
 // Real local socket + client decompression, not Response.json() pretending to
@@ -287,6 +288,7 @@ try {
     assert.deepEqual(restored.outcomes.filter(row => row.id !== outcome.id), original.outcomes.filter(row => row.id !== outcome.id));
     newTrainingRetainedCoverageVerified = true;
   }
+  const beforeTraining = Date.now();
   if (finalizedMode) {
     // Explicit HISTORICAL SYNTHETIC admin fixture only, not an actual
     // pre-forward model seal. The default proof above separately proves actual
@@ -307,6 +309,34 @@ try {
   assert.equal(training.status, "materialized", training.blocker); const sealed = training.receipt;
   assert.equal(sealed.trained_model.original_population_count, 12 * rankedCount);
   assert(Date.parse(sealed.committed_read_at) < Date.parse(windows.held_out.start_at));
+  if (!finalizedMode) {
+    const afterTraining = Date.now();
+    // Observe the existing real SQL job, not an injected/backdated model. Both
+    // database instants must lie inside the actual request interval, and the
+    // committed witness must have been inserted in another transaction.
+    const stored = JSON.parse(sql(`select jsonb_build_object(
+      'materialized_at', model.materialized_at, 'committed_read_at', witness.committed_read_at,
+      'materialization_txid', model.materialization_txid::text,
+      'model_insert_txid', model.xmin::text, 'witness_insert_txid', witness.xmin::text)
+      from public.relative_plan_trained_probability_models model
+      join public.relative_plan_trained_probability_confirmations witness on witness.materialization_id=model.id
+      where model.owner_user_id='${owner}' and model.prospective_freeze_id='${freeze.freeze_id}'`));
+    for (const instant of [sealed.materialized_at, sealed.committed_read_at]) {
+      assert(Date.parse(instant) >= beforeTraining);
+      assert(Date.parse(instant) <= afterTraining);
+    }
+    assert.equal(Date.parse(stored.materialized_at), Date.parse(sealed.materialized_at));
+    assert.equal(Date.parse(stored.committed_read_at), Date.parse(sealed.committed_read_at));
+    assert(Date.parse(sealed.committed_read_at) >= Date.parse(sealed.materialized_at));
+    // PL/pgSQL EXCEPTION creates a subtransaction: model.xmin can be a
+    // child XID, not txid_current() stored by the parent. The confirmation
+    // function has no such handler; compare its insertion with BOTH IDs.
+    assert.notEqual(stored.witness_insert_txid, stored.materialization_txid);
+    assert.notEqual(stored.witness_insert_txid, stored.model_insert_txid);
+    assert.equal(sql("select count(*) from public.relative_plan_trained_probability_models"), "1");
+    assert.equal(sql("select count(*) from public.relative_plan_trained_probability_confirmations"), "1");
+    actualTrainingClockVerified = true; separateCommittedWitnessVerified = true;
+  }
   if (newTrainingOriginalInputVerified) {
     const physical = await readers.readRecommendationLearningBaselineSource(owner);
     const source = readers.parseRecommendationLearningBaselineSource(physical.data);
@@ -590,6 +620,10 @@ try {
   console.log(JSON.stringify({ status: "pass", environment: "isolated_postgres_postgrest_actual_sdk",
     evidence: finalizedMode ? "historical_synthetic_model_fixture_actual_database_finalization_not_market_alpha" : "synthetic_closed_not_market_alpha",
     immutable_actual_database_training_members: finalizedMode ? null : 12 * rankedCount,
+    actual_database_training_clock_verified: actualTrainingClockVerified,
+    separate_transaction_committed_model_witness_verified: separateCommittedWitnessVerified,
+    model_materialized_at: sealed.materialized_at, model_committed_read_at: sealed.committed_read_at,
+    first_synthetic_forward_window_start_at: windows.held_out.start_at,
     new_training_rejects_original_input_conflict_before_storage: newTrainingOriginalInputVerified,
     new_result_rejects_original_input_conflict_before_storage: newResultOriginalInputVerified,
     sealed_model_ignores_later_mutable_original_inputs: sealedModelIgnoresMutableInputs,
