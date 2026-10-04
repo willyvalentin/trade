@@ -2,27 +2,74 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
-**Selected independent CLOSED slice — forward outcome candle admission, 2026-10-04:**
-Owner: this goal run, branch `codex/forward-outcome-admission-oct4`, isolated
-from freshly verified main `55576078` through completed prerequisite `8060572a`.
-Primary #732 remains Draft/release-held; no competing PR or release bypass.
-Classification `quality_measurement`, IF-4 full-charter learning comparison.
-Reproduced through real producer/writer decoders: a coherent, complete retained
-forward candle series contradicts its canonical target label, yet the NEW
-terminal command reaches the result writer. All 72 decisions / 576 original
-members remain intact; the contradiction is outside top three. Evidence:
-`/private/tmp/ture-forward-candle-red-oct4.log`. This is a synthetic CLOSED
-defect reproduction, not an observed market label or recommendation lift.
+**Local acceptance complete — retained forward candle admission, 2026-10-04:**
+Product/test revision `5ae812e2fcd7b449e96144e39e8d787f7a427db1`,
+branch `codex/forward-outcome-admission-oct4`, closes the reproduced IF-4
+`quality_measurement` defect. Isolated from verified main `55576078` through
+completed prerequisite `8060572a`. The original NEW result command attempted
+one write when explicitly retained, coherent candles contradicted a canonical
+target label outside top three. It now rejects such coverage, event and event-clock
+contradictions before a NEW immutable result. Reuse the unchanged training
+replay; inspect the original sealed training capsule and every relevant forward
+member, including non-top-three members. Mutable training rows cannot replace
+the fitted capsule. Numerical v1 builders/decoders, historical goldens, ranking,
+charter, publication and live policy remain unchanged.
 
-Bounded acceptance (4–16 active hours, investigation capped at four): reject
-contradictory explicitly retained forward coverage/terminal events before NEW
-immutable writes; positive actual-producer candles keep the full population;
-old sealed GET/retry and v1 goldens remain unchanged. Reuse training admission
-semantics, validate isolated SQL/SDK behavior, types/lint/exact build, then park.
-No threshold, numerical model, charter, provider, migration or live-policy
-change. Integration order: existing #732 -> terminal context -> input audit ->
-input admission -> capacity -> training comparison -> this slice. Stop this
-guard work after minimum verified fix; return to the frozen intelligence chain.
+Crucial negative control: the initial NEW guard was too broad and rejected
+truthfully missing candles. Final admission checks full claimed canonical
+coverage only. Actual-producer missing-candle evidence finalizes as
+`evidence_incomplete` with 240 original members per forward partition; it
+neither becomes a loss nor reduces the denominator. Legacy evidence without
+retained bars retains its disclosed receipt semantics, not historical candle
+fitness. An already sealed GET/retry never replays mutable candles or refits.
+
+Seventy-three distinct checks have passing local evidence across declared runs:
+66 affected regression/golden/store/service checks, six final admission checks
+(five overlapping plus the new missing-candle control), four active-governance
+checks and two registered actual SQL/SDK proofs. This is not one all-repository
+green run or protected CI. Exact `5ae812e2` final proofs pass in 1.4m (existing
+real DB training/restarted reader) and 6.3m (full-original terminal result).
+The latter preserves 96 retained training members, 30 decisions / 240 members
+in EACH forward partition, all eleven charter checks, 72 original source runs
+and 12 unrelated prior DB runs. Contradiction yields zero result rows; valid
+bars yield one immutable result; later mutable candle edits cannot change it.
+Retained source: 21,008,925 decoded bytes. Restarted owned SDK and actual loopback
+HTTP preserve the complete result (6,520,791 decoded / 834,386 gzip-wire bytes).
+Its disclosed historical synthetic model-clock fixture is not a real pre-forward
+seal or market quality; the separate existing training proof uses actual DB time.
+
+Nonincremental types and changed-file lint pass on the committed revision.
+Full lint has zero errors/eight existing warnings. Exact normal Linux Next
+16.3.8 build passes on Node 22.23.1 with read-only lock-verified dependencies,
+digest `859ed09eed4d3de2e7ade5c74bea78e73770bea57f92d6cb3656224bfcace6f7`,
+network disabled and no production credentials. No deadline, CI registration,
+dependency, config or schema change. Retain initial failures separately:
+Docker sandbox denial before any DB operation; NEW fixture's narrow payload
+type; and missing-candle observer's fake store lacking committed readback.
+Correct those observer/environment issues, not existing acceptance tests.
+The over-broad NEW admission was actually corrected and its missing-data
+regression now passes.
+
+Logs: `/private/tmp/ture-forward-candle-write-red-oct4.log`,
+`/private/tmp/ture-forward-candle-regression-oct4.log`,
+`/private/tmp/ture-forward-candle-missing-corrected-red-oct4.log`,
+`/private/tmp/ture-forward-candle-admission-corrected-final-oct4.log`,
+`/private/tmp/ture-forward-candle-governance-oct4.log`,
+`/private/tmp/ture-forward-candle-sql-final-revision-oct4.log`,
+`/private/tmp/ture-forward-candle-committed-types-oct4.log`,
+`/private/tmp/ture-forward-candle-full-lint-oct4.log`,
+`/private/tmp/ture-forward-candle-committed-lint-oct4.log` and
+`/private/tmp/ture-forward-candle-exact-build-oct4.log`.
+Temporary proof environments clean up their own resources; user worktrees
+remain untouched. No provider requests, production writes/migrations, broker
+actions, push, PR, merge or deploy. GitHub readback `2026-10-04T06:39Z` confirms
+main `55576078`, #732 open Draft/release-held at `2741f946`. No quality lift,
+hosted behavior, forward cohort or promotion acceptance is claimed. This sole
+independent slice is complete/parked after under one active hour. Stop extending
+this guard. Return to the frozen intelligence/release chain; another CLOSED
+slice requires a concrete missing link or reproduced quality/evidence defect.
+Integration order: #732 -> terminal context -> input audit -> input admission ->
+capacity -> training comparison -> this slice, against then-current main.
 
 **Local acceptance complete — full-original training to forward comparison, 2026-10-04:**
 Test revision `9e1ceb23480be7aef96d1051a654f1d2d7dbb1a4`, isolated
