@@ -811,6 +811,13 @@ function componentReason(
   componentName: ScannerCandidateRankingComponent,
   score: number,
 ) {
+  if (componentName === "data_completeness") {
+    // This retained numeric component counts nine identity/price/plan fields.
+    // It does NOT validate source coverage, freshness or provider provenance.
+    // Clarify its explanation without changing the frozen ranking arithmetic.
+    const presence = score >= 80 ? "strong" : score >= 65 ? "usable" : score >= 45 ? "mixed" : "weak or incomplete";
+    return `Identity, price and plan field presence is ${presence}; this does not establish market-data completeness or freshness.`;
+  }
   const label = componentName.replaceAll("_", " ");
 
   if (score >= 80) return `${label} is strong.`;

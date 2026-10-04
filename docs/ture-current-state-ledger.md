@@ -2,6 +2,48 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Selected CLOSED IF-3 explanation integrity — 2026-10-04:** Codex owns
+`codex/ranking-input-explanation-oct4`, isolated from freshly verified main
+`55576078` and completed local composition `b39b80f1`. Four-active-hour budget;
+primary #732 stays release-held and its frozen original-population comparison
+is unchanged. Read-only production inspection rechecked all four exact Oct 1
+runs, retaining all 32 candidates and their common owner without exposing owner
+identity. Baseline remains 11/16 rankable and 6/16 fresh gap-free; challenger
+14/16 and 0/16. Nineteen ranked members with explicit source gaps nevertheless
+have a 100 field-presence component and the explanation "data completeness is
+strong". None of these historical v3 members retains a v4 original-input
+snapshot. This is not a complete experiment, provider replay or quality claim.
+
+Current ranker reproduces the explanation defect: its nine-field presence
+check does not assess market-data completeness or freshness. Select only a
+truthful scoped explanation; preserve component numeric score/weight, tiers,
+ordering, both frozen shadow policies, thresholds, schemas and all authority.
+Write ownership: ranker explanatory text, its existing selective-publication
+suite and this receipt only. Integration follows #732 and the completed local
+composition against then-current main. Acceptance: failing explanation
+regression becomes green, exact pre-fix numeric/selection baselines for live
+and both shadows remain unchanged, incomplete and stale controls remain,
+affected decision/shadow/readback tests, types/lint and clean exact build.
+Classify as recommendation explanation integrity, NOT measured alpha. Stop
+this correction after its minimum acceptance, then analyze the retained Oct 2
+v4 original features without refitting or altering the active comparison.
+
+The local red regression reproduces both misleading explanations (2 failed,
+10 passed); `/private/tmp/ture-ranking-explanation-red-oct4.log` retains the
+failure and the pre-fix numeric baseline. The minimal correction changes only
+the component's explanatory text to identity/price/plan **field presence**, with
+an explicit disclaimer that this establishes neither complete nor fresh market
+data. All numeric policies and their v1.2 semantics are unchanged; existing
+historical records are not rewritten. The frozen complete numeric/selection
+projection hashes to `a7989944aa12ff2417bae59fa852bd840ed2472d26ea282201cf63d184c01edf`
+before and after. Synthetic fresh/stale scores remain live 89/69,
+clock-neutral 78/65 and verified-liquidity 77/58 with identical selections,
+warnings, gaps and source non-mutation. Sixty-one affected checks pass including
+the actual decision capture/readback and both existing shadow paths. Types and
+changed-file lint pass; full lint has zero errors/eight existing warnings.
+These are local engine/readback checks, not deployed or authenticated UI proof.
+Clean exact-revision build remains required before this slice is complete.
+
 **CLOSED preview-verification reconciliation complete locally — 2026-10-04:**
 Owner: Codex; the independent four-active-hour supporting_blocker_removal slice
 is complete and parked. Tested/built revision
