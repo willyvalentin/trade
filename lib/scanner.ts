@@ -49,9 +49,7 @@ import type { TwelveDataResponseIdentity } from "@/lib/twelve-data-response-iden
 import { COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION } from "@/lib/scanner-decision-input-snapshot";
 import { isValidCompletedBenchmarkReuse, type CompletedBenchmarkReuse } from "@/lib/completed-benchmark-reuse";
 export { COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION } from "@/lib/scanner-decision-input-snapshot";
-// Bump if any of the six retained historical feature formulas change. Replay
-// must not silently evaluate an old archive with a different calculator.
-export const SCANNER_HISTORICAL_FEATURE_CALCULATOR_VERSION = "scanner_historical_feature_calculator_v1" as const;
+export { SCANNER_HISTORICAL_FEATURE_CALCULATOR_VERSION } from "@/lib/server/scanner-historical-input-archive";
 
 export type ScannerCandidate = {
   ticker: string;
