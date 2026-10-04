@@ -2,6 +2,29 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Selected independent CLOSED IF-4 slice — retained original-horizon R admission, 2026-10-04:**
+Codex owns isolated `codex/horizon-return-admission-oct4`, from freshly verified
+main `55576078` through completed prerequisite `86c903dc`. Primary #732 remains
+Draft/release-held; the other independent slices are complete/parked. Four active
+hours, investigation at most four. The actual NEW result service reaches its
+writer for a non-top-three original `neither_hit` outcome whose retained coherent
+twelve bars imply a small horizon return but whose persisted `current_r` claims
+9R. Red: `/private/tmp/ture-horizon-return-red-corrected-oct4.log` (one attempted
+write, expected zero). This is synthetic measurement-integrity evidence, not a
+historical production diagnosis or an alpha result.
+
+Select only a prewrite check that an explicitly measured neither-hit current
+price/R agrees with the retained final fully closed original-horizon bar and
+original geometry. Missing R remains an incomplete measurement; no label is
+rewritten or member removed. Legacy evidence without retained bars and sealed
+GET/retry semantics stay unchanged. No model, ranker, charter, threshold, schema,
+scheduler, provider activation or broker change. Acceptance: actual NEW command
+rejects contradictions before storage; honest positive/negative/missing R and
+complete population survive; isolated SQL/SDK readback, affected regressions,
+types/lint and exact build. Integration follows the completed local chain
+against then-current main. Stop after this minimum check and return to the frozen
+original quality comparison.
+
 **Local acceptance complete — original-horizon acquisition resumption, 2026-10-04:**
 Product `76611eff30c3102c146d7befe115f85df82c07d0` on isolated branch
 `codex/canonical-outcome-resumption-oct4` closes the reproduced producer skip.

@@ -33,6 +33,7 @@ let actualTrainingClockVerified = false, separateCommittedWitnessVerified = fals
 let sourceCapacitySqlVerified = false, negotiatedPrewriteVerified = false;
 let finalizedDecodedHttpBytes = null, finalizedTransportEncoding = null;
 let newResultRetainedCandlesVerified = false, sealedResultIgnoresMutableCandles = false;
+let newResultRetainedHorizonRVerified = false;
 // Real local socket + client decompression, not Response.json() pretending to
 // decode compressed bytes. This is NOT a hosted Netlify behavior attestation.
 async function verifyHttp(readers, body) {
@@ -518,6 +519,32 @@ try {
     assert.equal(rejectedCandles.terminal_quality_decision, null);
     assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "0");
     assert.deepEqual((await readers.readRecommendationLearningBaselineSource(owner)).data, beforeCandles.data);
+    // The original neither-hit horizon return must not be replaced by a
+    // contradictory scalar before NEW immutable quality finalization.
+    const neitherBars = bars.map(bar => ({ ...bar, high: midpoint + 0.1,
+      low: midpoint - 0.1, close: midpoint + 0.05 }));
+    const neither = readers.computeRecommendationOutcome({ snapshot: forwardSnapshot, horizon: "60m",
+      evaluated_at: originalOutcome.evaluated_at, candles: neitherBars, current_price: midpoint + 0.05,
+      provider: "twelve_data", source: "intraday_candles", data_completeness: "complete" }).outcome;
+    assert.equal(neither.status, "neither_hit");
+    const honestNeither = { ...validRetained, ...neither, id: originalOutcome.id,
+      created_at: originalOutcome.created_at, updated_at: originalOutcome.updated_at,
+      payload_json: { ...validRetained.payload_json, ...neither.payload_json, counterfactual_candles: neitherBars } };
+    assert.equal((await readers.persistRecommendationOutcome({ ...honestNeither, current_r: 9 },
+      { supabaseClient: client, server: true })).status, "saved");
+    const beforeR = await readers.readRecommendationLearningBaselineSource(owner);
+    const rejectedR = await readers.createRelativePlanCharterResultService().finalize(owner, {});
+    assert.equal(rejectedR.blocker, "relative_plan_result_retained_candle_realized_r_conflicting");
+    assert.equal(rejectedR.terminal_quality_decision, null);
+    assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "0");
+    assert.deepEqual((await readers.readRecommendationLearningBaselineSource(owner)).data, beforeR.data);
+    assert.equal((await readers.persistRecommendationOutcome(honestNeither, { supabaseClient: client, server: true })).status, "saved");
+    const honestR = readers.parseRecommendationLearningBaselineSource(
+      (await readers.readRecommendationLearningBaselineSource(owner)).data).outcomes.find(row => row.id === originalOutcome.id);
+    assert.equal(honestR.current_r, neither.current_r);
+    assert.equal(honestR.current_price, midpoint + 0.05);
+    assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "0");
+    newResultRetainedHorizonRVerified = true;
     assert.equal((await readers.persistRecommendationOutcome(validRetained, { supabaseClient: client, server: true })).status, "saved");
     newResultRetainedCandlesVerified = true;
     if (originalInputs) {
@@ -677,6 +704,7 @@ try {
     sealed_model_ignores_later_mutable_original_inputs: sealedModelIgnoresMutableInputs,
     sealed_result_ignores_later_mutable_original_inputs: sealedResultIgnoresMutableInputs,
     new_result_rejects_contradictory_retained_forward_candles_before_storage: newResultRetainedCandlesVerified,
+    new_result_rejects_contradictory_retained_horizon_r_before_storage: newResultRetainedHorizonRVerified,
     valid_retained_forward_candles_keep_complete_result_population: newResultRetainedCandlesVerified,
     sealed_result_ignores_later_mutable_forward_candles: sealedResultIgnoresMutableCandles,
     new_training_rejects_contradictory_retained_candles_before_storage: newTrainingRetainedCoverageVerified,

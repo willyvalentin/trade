@@ -61,5 +61,26 @@ export function relativePlanRetainedOutcomeCandleConflict(
       const actual = replay[key as "entry_triggered_at"], retained = outcome[key as "entry_triggered_at"];
       return actual === null || retained === null ? actual !== retained : Date.parse(actual) !== Date.parse(retained);
     })) return "retained_candle_outcome_conflicting";
+  // A neither-hit label uses measured horizon R in the full charter. Replaying
+  // only terminal flags would allow a contradictory persisted price/R to be
+  // sealed. Check NEW admission against the same fully closed original bar;
+  // missing measurements remain explicit gaps, never inferred labels.
+  if (outcome.status === "neither_hit" && outcome.current_r !== null) {
+    const lastAt = Date.parse(rebuilt.required_horizon_end_at!) -
+      (coverage.candle_interval === "15min" ? 900000 : 300000);
+    const last = (candles as RecommendationOutcomeCandle[]).find(row => {
+      const at = row.timestamp instanceof Date ? row.timestamp.getTime() : typeof row.timestamp === "number"
+        ? (row.timestamp < 100000000000 ? row.timestamp * 1000 : row.timestamp) : Date.parse(row.timestamp);
+      return at === lastAt;
+    });
+    const measured = computeRecommendationOutcome({ snapshot, side: outcome.side,
+      horizon: outcome.horizon, entry: outcome.entry, stop: outcome.stop, target: outcome.target,
+      recommended_at: outcome.recommended_at, evaluated_at: outcome.evaluated_at, current_price: last?.close }).outcome;
+    if (outcome.current_price !== last?.close || measured.current_r === null ||
+      !Number.isFinite(outcome.current_r) ||
+      Math.abs(outcome.current_r - measured.current_r) > 1e-12 * Math.max(1, Math.abs(measured.current_r))) {
+      return "retained_candle_realized_r_conflicting";
+    }
+  }
   return null;
 }

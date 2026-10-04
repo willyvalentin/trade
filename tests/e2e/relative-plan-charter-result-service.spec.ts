@@ -16,6 +16,7 @@ import { recommendationOutcomeEvaluationAnchorFromSnapshot } from "@/lib/recomme
 import { computeRecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
 import { candidateDecisionRecordFromScanRun } from "@/lib/candidate-decision-readback";
 import { buildCanonicalOutcomeProviderCoverageReceipt } from "@/lib/recommendation-outcome-canonical-coverage";
+import { relativePlanRetainedOutcomeCandleConflict } from "@/lib/server/relative-plan-retained-outcome-admission";
 
 async function retainedForwardHarness(index = 103) {
   const input = await charterEvaluationInput(8), outcome = input.source.outcomes[index];
@@ -50,6 +51,64 @@ async function retainedForwardHarness(index = 103) {
   const payload = data.recommendation_outcomes[index].payload_json as Record<string, unknown>;
   return { input, data, payload };
 }
+
+test("NEW terminal admission rejects neither-hit R that contradicts the retained original horizon close", async () => {
+  test.setTimeout(120000);
+  const base = await retainedForwardHarness(103);
+  const original = base.input.source.outcomes[103];
+  const snapshot = base.input.source.snapshots.find(row => row.snapshot_fingerprint === original.snapshot_fingerprint)!;
+  const bars = (base.payload.counterfactual_candles as Record<string, unknown>[]).map(row => ({ ...row,
+    timestamp: String(row.timestamp), open: 100, high: 101, low: 99, close: 100.5 }));
+  const neither = computeRecommendationOutcome({ snapshot, horizon: "60m", evaluated_at: original.evaluated_at,
+    candles: bars, current_price: 100.5, provider: "twelve_data", source: "intraday_candles",
+    data_completeness: "complete" }).outcome;
+  expect(neither.status).toBe("neither_hit");
+  const row = base.data.recommendation_outcomes[103];
+  Object.assign(row, { status: neither.status, entry_triggered: true, target_hit: false, stop_hit: false,
+    first_terminal_event: "neither" });
+  Object.assign(base.payload, { entry_triggered_at: neither.entry_triggered_at, target_hit_at: null, stop_hit_at: null,
+    current_price: 100.5, current_r: 9, counterfactual_candles: bars });
+  const before = JSON.stringify(base.data);
+  let writes = 0;
+  const h = harness({ clock: () => new Date(base.input.now),
+    resultStore: () => createRelativePlanCharterResultStore({ async read() { return { status: "not_found", receipt: null }; },
+      async finalize() { writes++; throw new Error("contradictory_R_must_not_be_sealed"); } }),
+    modelStore: () => createRelativePlanTrainedProbabilityStore({ async read() {
+      return { status: "available", receipt: base.input.trainedModelReceipt };
+    }, async materialize() { throw new Error("must_not_refit"); }, async confirm() { throw new Error("must_not_confirm"); } }),
+    readSource: async () => ({ status: "available", data: base.data }), readRuntime: async () => base.input.runtime,
+  });
+  const result = await h.service.finalize(prospectiveOwner, {});
+  expect(writes).toBe(0);
+  expect(result).toMatchObject({ status: "unavailable", receipt: null,
+    blocker: "relative_plan_result_retained_candle_realized_r_conflicting" });
+  expect(JSON.stringify(base.data)).toBe(before);
+  expect(base.data.recommendation_snapshots).toHaveLength(576);
+});
+
+test("retained horizon R admission preserves honest positive, negative and missing measurements without relabelling", async () => {
+  const base = await retainedForwardHarness(103), original = base.input.source.outcomes[103];
+  const snapshot = base.input.source.snapshots.find(row => row.snapshot_fingerprint === original.snapshot_fingerprint)!;
+  for (const close of [100.5, 99.25]) {
+    const candles = (base.payload.counterfactual_candles as Record<string, unknown>[]).map(row => ({ ...row,
+      timestamp: String(row.timestamp), open: 100, high: 101, low: 99, close }));
+    const result = computeRecommendationOutcome({ snapshot, horizon: "60m", evaluated_at: original.evaluated_at,
+      candles, current_price: close, provider: "twelve_data", source: "intraday_candles",
+      data_completeness: "complete" }).outcome;
+    const retained = { ...result, payload_json: { ...base.payload, counterfactual_candles: candles } };
+    const before = JSON.stringify(retained);
+    expect(retained.status).toBe("neither_hit");
+    expect(relativePlanRetainedOutcomeCandleConflict(snapshot, retained)).toBeNull();
+    expect(relativePlanRetainedOutcomeCandleConflict(snapshot, { ...retained, current_r: null })).toBeNull();
+    expect(relativePlanRetainedOutcomeCandleConflict(snapshot, { ...retained,
+      current_price: close + 0.1 })).toBe("retained_candle_realized_r_conflicting");
+    expect(relativePlanRetainedOutcomeCandleConflict(snapshot, { ...retained,
+      current_r: -retained.current_r! })).toBe("retained_candle_realized_r_conflicting");
+    const legacy = { ...retained, payload_json: {} };
+    expect(relativePlanRetainedOutcomeCandleConflict(snapshot, legacy)).toBeNull();
+    expect(JSON.stringify(retained)).toBe(before);
+  }
+});
 
 test("all original forward members reject retained coverage, opposite-event and event-clock contradictions", async () => {
   test.setTimeout(120000);

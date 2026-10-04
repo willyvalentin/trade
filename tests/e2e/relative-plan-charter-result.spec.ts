@@ -236,6 +236,7 @@ test("complete original archives survive actual SQL capacity migration and resta
   expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
   const proof = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
   expect(proof).toMatchObject({ status: "pass", complete_original_archives: true,
+    new_result_rejects_contradictory_retained_horizon_r_before_storage:true,
     new_result_rejects_contradictory_retained_forward_candles_before_storage:true,
     valid_retained_forward_candles_keep_complete_result_population:true,
     sealed_result_ignores_later_mutable_forward_candles:true,
