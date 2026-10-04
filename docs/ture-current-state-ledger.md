@@ -2,6 +2,63 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Local acceptance complete — full-original training to forward comparison, 2026-10-04:**
+Test revision `9e1ceb23480be7aef96d1051a654f1d2d7dbb1a4`, isolated
+from protected main `55576078` through prerequisite `b97db5d8`, closes
+the named full-original training evidence gap. Classification:
+`quality_measurement`, not quality lift. The existing server-owned job seals
+all 96 original training members with complete validated daily/session archives.
+Actual isolated DB readback: materialized `2026-10-04T06:14:29.118Z`,
+separate committed witness `2026-10-04T06:14:29.222Z`, before the explicit
+synthetic forward window `2026-10-05T13:30:00.000Z`. These instants fall within
+the real job request; no historical admin model insertion is used in this mode.
+The model's parent/row/witness XIDs are 1155/1156/1157. The registered test checks
+the witness differs from BOTH materialization IDs, respecting PostgreSQL's
+[EXCEPTION subtransactions](https://www.postgresql.org/docs/16/subxacts.html).
+
+The restarted real SDK/full-charter consumer and loopback HTTP preserve
+240 original members/30 decisions in EACH forward partition and all eleven
+charter checks. Mutable inputs/candles/outcomes do not refit the sealed model;
+new contradictory training inputs reject before writes. Missing labels/costs
+and duplicated attempts remain unqualified without reducing the population.
+Known synthetic concentration failures remain separate from missing evidence;
+no durable terminal quality result or quality lift is claimed. The >5 MiB decoded
+full-population HTTP envelope uses the existing lossless gzip transport.
+
+Sixteen distinct checks have passing evidence: nine unchanged pure charter
+checks, corrected legacy SQL/SDK proof (54.1s), full-original registered proof
+(2.1m) and five active-governance checks. This is not one green broad suite or
+protected CI. Retain both initially failed runs: a NEW observer assertion
+incorrectly equated parent txid with row xmin. The product was unchanged; fix
+only that assertion, then verify both real DB modes. Nonincremental types,
+full lint (zero errors/eight existing warnings) and final changed-file lint pass.
+Only test script/spec and this ledger differ from `b97db5d8`; app/lib/functions,
+schema, dependencies and build configuration are byte-unchanged. Prior exact
+product build `501b96de` remains applicable; no fresh build/main acceptance is
+claimed for this test-only revision. The spec already belongs to the registered
+provider-free intelligence CI group; no workflow, existing-test deadline or
+bypass change.
+
+Logs: `/private/tmp/ture-full-original-training-characterization-oct4.log`,
+`/private/tmp/ture-original-training-registered-oct4.log`,
+`/private/tmp/ture-original-training-charter-regression-oct4.log`,
+`/private/tmp/ture-original-training-registered-corrected-oct4.log`,
+`/private/tmp/ture-original-training-legacy-corrected-oct4.log`,
+`/private/tmp/ture-original-training-governance-oct4.log`,
+`/private/tmp/ture-original-training-types-oct4.log`,
+`/private/tmp/ture-original-training-lint-oct4.log` and
+`/private/tmp/ture-original-training-final-files-lint-oct4.log`.
+Both temporary proof environments cleaned up. No push, PR, merge, deploy,
+production migration, provider request or broker action. GitHub readback
+`2026-10-04T06:17Z` verifies protected main `55576078` and open Draft/release-held
+#732 head `2741f946`. Future fixtures are not observed market decisions/outcomes,
+input fitness, hosted behavior or recommendation quality. This sole independent
+slice is complete/parked after under four active hours; primary #732 remains
+held. Integration order: #732, terminal context, original-input audit, admission,
+capacity, then this regression against then-current main. Stop this evidence
+stream and return to the frozen comparison/release chain; investigate another
+CLOSED intelligence slice only for a concrete missing link or reproduced defect.
+
 **Local acceptance complete — complete original-archive capacity, 2026-10-04:**
 Product/test revision `501b96de6ccb5d74564ff9d84fe9310dd1358d27` closes
 the reproduced physical blocker without trimming any source or cohort. The
