@@ -2,7 +2,52 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
-**Now — user-selected weekend IF-2b original-input continuity, 2026-10-04:**
+**Now — consolidate the verified IF-2b input corrections into the original learning vertical, 2026-10-04:**
+Codex retains the same isolated existing #732 branch and verified main
+`55576078e102e7019c271aeb5e67de4a353f2e8f`. The terminal-history resumption
+exit below is locally complete. Select only deliberate integration of the
+already verified scheduled intraday quota correction `6bed57e4` into this
+original-input/canonical-outcome/full-charter vertical; no second competing PR
+or hypothesis. Budget four active hours, initial investigation at most four.
+Preserve its actual SDK/packaged route/SQL rejection proof and this branch's
+expanded original-source cases. A scheduled intraday account-quota error must
+stop subsequent acquisitions, drain benchmark transports and remain
+`rejected_data`, never a timeout, evaluated `no_trade` or qualified outcome.
+Manual consumers, ordinary symbol errors and fresh-cache reuse remain unchanged.
+Acceptance is the combined affected acquisition/original-learning regression,
+types, lint and an exact clean build; no provider, production or broker action.
+Return to the frozen intelligence comparison after integration, not another
+support stream. Protected release remains held by the existing security gate.
+
+**Local acceptance — bounded original-history resumption, 2026-10-04:**
+Exact product revision `d70141eb658b18ed35bdb6206c78a47d2c0a6d78` passes all
+38 existing affected benchmark/history/original-outcome checks serially in
+21.3m. Log: `/private/tmp/ture-history-resumption-full-regression-oct4.log`.
+Actual isolated Postgres/PostgREST/SDK resumption retains all 95 original
+identities: sixteen distinct charged source attempts produce fifteen validated
+histories and one explicit failed/missing member. Module restart, the original
+immutable claim minute, at most eight new requests per modeled minute and the
+sixteen-credit fixture day remain enforced. No duplicate purchase or refund;
+exhausted-budget readback and seven uncertain/invalid prior-claim controls make
+zero requests/new claims. Existing concurrency, corruption, partial-source,
+canonical-outcome and full-charter regressions also pass. Earlier focused runs
+overlap these checks and are not additional unique evidence.
+
+All 22 security/governance checks pass (log:
+`/private/tmp/ture-history-resumption-security-oct4.log`), nonincremental types
+pass, and full lint has zero errors/eight existing warnings. Exact clean locked
+Linux Node 22.23.1 / Next 16.3.8 normal build passes on that same revision with
+no build network or production credentials (log:
+`/private/tmp/ture-history-resumption-exact-linux-build-oct4.log`). Lock SHA256:
+`859ed09eed4d3de2e7ade5c74bea78e73770bea57f92d6cb3656224bfcace6f7`.
+Classification: `supporting_blocker_removal`, enabling the original IF-2b input
+coverage and IF-4 canonical-learning comparison. This is synthetic CLOSED
+capability evidence, not live entitlement, OPEN input fitness or improved
+recommendation quality. The minimum resumption support stream stops here.
+No push, main merge, production deployment/migration/configuration, real provider
+request, publication or broker action occurred. Protected release remains held.
+
+**Retained selection — weekend IF-2b original-input continuity, 2026-10-04:**
 Codex reuses the isolated existing #732 branch from verified current main
 `55576078e102e7019c271aeb5e67de4a353f2e8f`; no competing PR or learner is
 selected. Four active hours, investigation at most four. Actual local
