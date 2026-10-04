@@ -39,6 +39,44 @@ Reproduction logs `/private/tmp/ture-regime-owned-clock-reproduction-oct5.log`
 and `/private/tmp/ture-regime-owned-immutable-reproduction-oct5.log`; two
 substituted transport responses, zero real provider/production/broker actions.
 
+Product/test revision `00544439ab62c7fbb2f99a4032ddf62c2e3619bd` rejects
+noncanonical completed classification clocks before owner-bound reuse. The
+validated capsule is detached and deeply immutable; caller data stays mutable
+and unmodified. Both actual-producer counterexamples fail before correction.
+The focused control and two added ordinary warm/cold SQL/SDK two-slot
+invalid-clock fallbacks pass. All eight original identities remain present,
+with the unchanged eight-credit per-scan cap and exact source binding after
+restart. No rank, publication threshold, input-policy version or schema changed.
+
+The committed affected suite has **86 passed / 2 failed** in 28.5 minutes, not
+a green integration acceptance. The joint original-input → canonical-outcome →
+full-charter proof and valid/legacy/restarted input controls pass. Both failures
+are reproduced unchanged on parent `783adf70`: late partial outcome acquisition
+and whole-session outcome continuation. Exact synthetic transport tracing shows
+the first two four-request passes both buy COIN/DIS/TSLA/AMD; only four physical
+outcome rows exist, leaving four original members unvisited. Canonical-pending
+semantics correctly retain the partial rows, but fixed input order starves
+missing rows. The separate whole-session proof reaches its existing bounded
+stop without a truthful terminal backlog. Do not remove partial rows, shorten
+the regular horizon, increase the request cap or relax either proof to hide it.
+
+Nonincremental types, changed-file lint and full lint pass (zero errors, eight
+existing warnings). The first ordinary exact Linux build passes on `00544439`,
+Node 22.23.1 / Next 16.3.8, locked read-only dependencies, no network or
+production credentials; lock SHA-256 remains
+`859ed09eed4d3de2e7ade5c74bea78e73770bea57f92d6cb3656224bfcace6f7`.
+Logs `/private/tmp/ture-original-benchmark-information-set-{red,capsule-red,focused,native-clock,committed-regression,types,changed-lint,lint,exact-build}-oct5.log`;
+parent reproductions `/private/tmp/ture-benchmark-{late-outcomes,continuation}-parent-reproduction-oct5.log`;
+exact actual-request trace `/private/tmp/ture-late-partial-acquisition-exact-requests-oct5.log`.
+This bounded input-fitness correction is locally built and targeted-behavior
+verified; integration remains `evidence_incomplete`, not main/production or
+recommendation-quality accepted. Stop extending benchmark admission. Next
+select the reproduced original-outcome acquisition starvation in the same
+frozen primary, preserving every source identity and canonical missingness.
+No push, PR, merge, deploy, real provider, production database or broker action;
+root user changes remain intact. Fresh main is still `55576078`, and the official
+braces package remains 3.0.3; #732's existing release gate is not bypassed.
+
 **CLOSED IF-4 current-runtime as-of admission locally built — 2026-10-05:** Codex
 owns `codex/runtime-recording-asof-oct5`, freshly verified main `55576078` plus
 completed local composition `d016d2cf`; primary #732 remains release-held.
