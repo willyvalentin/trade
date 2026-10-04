@@ -2,7 +2,66 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
-**Selected independent CLOSED IF-4 slice — retained original-horizon R admission, 2026-10-04:**
+**Local acceptance complete — retained original-horizon R admission, 2026-10-04:**
+Product `46551901fad6022dbe887b17afc2ff38fb488fdf` on isolated branch
+`codex/horizon-return-admission-oct4` closes the reproduced NEW result admission
+defect: an original non-top-three `neither_hit` with twelve coherent retained
+bars could reach the writer with contradictory 9R. NEW admission now checks an
+explicit measured current price/R against the final fully closed original bar
+and original geometry. Honest positive/negative measurements pass; missing R
+stays a gap. Sources are not relabelled or removed; legacy sources without bars,
+sealed reads/retries, model, ranker, charter and numerical v1 decoders are unchanged.
+Classification: `quality_measurement`, not recommendation-quality lift.
+
+76 distinct checks pass across declared runs: 69 affected full-charter/model/
+service/store/transport checks (4.5m), five active-governance checks (976ms),
+and two registered full-original archive/result checks (7.8m). Focused sixteen
+service checks and the final exact-revision SQL retry overlap, not extra unique
+tests. The latter passes in 5.5m on clean committed `46551901`: actual isolated
+Postgres/PostgREST/SDK NEW-command rejection leaves zero result rows and the
+source unchanged; an honest neither-hit price/R round-trips on the original ID.
+The unchanged valid terminal fixture then retains one immutable result and all
+240 members / 30 original decisions in EACH forward partition, 96 retained
+training members, all eleven charter checks, 72 original runs and twelve
+unrelated prior DB runs. Restarted owned SDK and actual loopback HTTP preserve
+the complete result after later mutable candle/outcome edits.
+
+This uses the explicitly historical synthetic training-clock fixture, not an
+actual pre-forward fit or market-quality decision. Source capsule: 21,008,925
+decoded bytes. Complete result: 6,520,791 decoded / 834,307 gzip-wire bytes in the
+final proof. It is local isolated SQL/SDK/HTTP, not hosted or production behavior.
+Exact clean locked Linux Node 22.23.1 / Next 16.3.8 normal build passes with no
+network or production credentials; lock SHA256
+`859ed09eed4d3de2e7ade5c74bea78e73770bea57f92d6cb3656224bfcace6f7`.
+Nonincremental types and changed-file lint pass; full lint has zero errors/eight
+existing warnings. Logs: `/private/tmp/ture-horizon-return-red-corrected-oct4.log`,
+`/private/tmp/ture-horizon-return-server-regression-oct4.log`,
+`/private/tmp/ture-horizon-return-governance-oct4.log`,
+`/private/tmp/ture-horizon-return-sql-oct4.log`,
+`/private/tmp/ture-horizon-return-exact-sql-corrected-oct4.log`,
+`/private/tmp/ture-horizon-return-types-final-oct4.log`,
+`/private/tmp/ture-horizon-return-full-lint-oct4.log` and
+`/private/tmp/ture-horizon-return-exact-build-oct4.log`.
+Retain initial failures separately: wrong optional test-server environment caused
+a sandbox socket denial before collection; new fixture timestamp/Date types
+needed correction; one anchored final selector matched no tests. The corrected
+unchanged-deadline runs above pass. No assertion, timeout, CI gate, provider
+budget or publication rule was relaxed. Temporary proof resources are gone;
+unrelated user worktree changes are preserved. No push, PR, merge, deploy,
+production migration/configuration, provider request or broker action occurred.
+
+This sole independent slice is complete/parked within one elapsed hour. Stop
+extending this admission guard and resume the frozen original-quality comparison.
+Fresh GitHub readback at `2026-10-04T07:21Z` confirms main `55576078` and
+open Draft #732 at `2741f946`, still blocked. Final factual-ledger governance
+checks pass (five, overlapping earlier evidence). Primary #732 remains
+release-held; integration follows the completed local chain
+against then-current main. Actual prospective source coverage, the frozen
+forward-quality decision, protected release and production behavior remain gaps.
+Another CLOSED slice requires a concrete missing link or newly reproduced
+recommendation defect, not another generic control or competing ranking policy.
+
+**Completed independent CLOSED IF-4 contract — retained original-horizon R admission, 2026-10-04:**
 Codex owns isolated `codex/horizon-return-admission-oct4`, from freshly verified
 main `55576078` through completed prerequisite `86c903dc`. Primary #732 remains
 Draft/release-held; the other independent slices are complete/parked. Four active
