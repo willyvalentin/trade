@@ -2,8 +2,68 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
-**Selected independent CLOSED IF-4 slice — complete original-archive capacity, 2026-10-04:**
-Codex owns `codex/full-original-charter-capacity-oct4`, isolated from verified
+**Local acceptance complete — complete original-archive capacity, 2026-10-04:**
+Product/test revision `501b96de6ccb5d74564ff9d84fe9310dd1358d27` closes
+the reproduced physical blocker without trimming any source or cohort. The
+independent decoded source cap is 32 MiB; the stored capsule remains 8 MiB.
+The owner-only command checks the same lossless encoder used by HTTP before a
+NEW immutable write, using the actual request's Accept-Encoding. Unsupported
+transport cannot create a new result; caller body fields cannot select evidence,
+owner, model, clock or transport. Plain/gzip-wire/decoded HTTP bounds stay
+5/4/16 MiB. Numerical v1 models, old goldens, ranking, charter and live policy
+remain unchanged. Classification: `quality_measurement`, not quality lift.
+
+57 affected regression checks, four original-input/producer-clock controls,
+six active-governance checks, eight exact-CI-oracle checks and the new registered
+actual SQL/SDK proof pass: 76 distinct checks, not protected CI or the whole
+repository. The registered proof passes in 5.1m, retains 96 training members
+and 240 original members/30 decisions in EACH forward partition, then preserves
+one immutable result through restarted owned SDK and actual loopback HTTP
+readback. Its 72-run original source is 21,007,514 decoded bytes; the largest
+terminal envelope is 6,520,791 decoded bytes / 835,809 gzip-wire bytes. Twelve
+unrelated prior runs remain in the DB but outside the frozen source. Actual
+SQL verifies old-bound rejection, exact single-literal migration, idempotence,
+strict 32 MiB rejection, unchanged function attributes/grants, owner/model/clock
+guards and row immutability. Complete synthetic evidence truthfully rejects
+the hypothesis; the disclosed historical model-clock fixture is not a real
+pre-forward seal or market alpha. This is loopback, not hosted Netlify behavior.
+
+Nonincremental types, full lint (zero errors/eight existing warnings) and exact
+clean committed-source Linux Node 22.23.1 / Next 16.3.8 build pass, using
+read-only lock-verified dependencies and no network/production credentials.
+Local post-migration security advisors report five unchanged legacy-cache
+warnings and no new charter findings. Retain the registered test's first
+sandbox/Docker-access failure separately from its authorized local passing run.
+The broad historical suite initially has ten failures; on clean committed
+source it has nine failures/26 passes, including all eight CI-oracle checks.
+The same nine historical failures recur on clean prerequisite `468f1553`
+(nine failures/18 passes); do not alter historical guards or claim CI green.
+Logs: `/private/tmp/ture-full-archive-regression-oct4.log`,
+`/private/tmp/ture-full-archive-registered-sql-authorized-oct4.log`,
+`/private/tmp/ture-full-archive-input-replay-oct4.log`,
+`/private/tmp/ture-full-archive-input-clocks-oct4.log`,
+`/private/tmp/ture-full-archive-active-governance-oct4.log`,
+`/private/tmp/ture-full-archive-clean-governance-oct4.log`,
+`/private/tmp/ture-full-archive-historical-baseline-oct4.log`,
+`/private/tmp/ture-full-archive-final-local-advisors-oct4.log`,
+`/private/tmp/ture-full-archive-final-types-oct4.log`,
+`/private/tmp/ture-full-archive-final-lint-oct4.log` and
+`/private/tmp/ture-full-archive-exact-build-oct4.log`.
+
+No push, PR, merge, deploy, provider request, production migration or broker
+action occurred. GitHub readback at 2026-10-04T06:00Z verifies protected main
+`55576078` and open Draft/release-blocked #732 head `2741f946`. The new
+`20261004054424_if4_complete_original_archive_source_capacity.sql` is tested
+only in a disposable DB, not applied to production. Recovery must preserve
+32 MiB decoding after any larger immutable result exists; stop new writes or
+restore writer admission separately, never rewrite/delete stored evidence.
+This capacity slice is locally complete/parked. Stop the support stream and
+return to the frozen full original-population charter comparison. Integrate
+only after the held predecessor chain and ordinary release gates; no useful
+actual forward cohort, hosted behavior or better recommendations is proven.
+
+**Completed independent CLOSED IF-4 contract — complete original-archive capacity, 2026-10-04:**
+Codex completed `codex/full-original-charter-capacity-oct4`, isolated from verified
 protected main `55576078` then fast-forwarded through completed admission
 `468f1553`. Primary #732 remains Draft/release-held; previous independent slices
 are complete/parked, not parallel development. Budget eight active hours;

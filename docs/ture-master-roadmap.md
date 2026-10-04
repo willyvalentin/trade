@@ -156,12 +156,21 @@ original-clock feature replay, keep every relevant original member and check
 the immutable fitted source as well as the complete forward source. Previously
 sealed v1 models/results keep their own semantics; absent legacy bars stay a
 reproduction gap, not fitness evidence. This is measurement integrity, not a
-new ranking hypothesis or proven alpha. A full synthetic eight-member source
-with all 72 original archives exceeds the existing 16 MiB decoded bound; retain
-that separate physical-capacity blocker without trimming data or claiming a
-complete result. The ledger holds the bounded admission slice and integration
-order. This admission slice is complete; resume complete original-population
-charter evaluation and investigate its reproduced complete-archive capacity gap.
+new ranking hypothesis or proven alpha. The reproduced complete-archive capacity
+gap is now locally closed at `501b96de`: all 72 original runs survive bounded,
+lossless retention and restarted actual isolated SQL/SDK/loopback HTTP readback,
+with 96 training and 240 original members in each forward partition. The
+decoded source cap is independently 32 MiB; stored capsule and buffered HTTP
+bounds are unchanged. NEW finalization checks the actual negotiated transport
+before storing, not after an immutable result is created. Owner/model/clock,
+decompression and old golden contracts remain strict. Types/lint, affected
+tests and exact locked Linux build pass. This is synthetic measurement-capacity
+evidence, not production integration or accepted recommendation quality. The
+ledger holds the exact revision, migration, recovery boundaries, retained
+historical test failures and integration order. Stop this capacity slice and
+resume the frozen complete original-population charter comparison; do not
+extend support scope, rewrite cohorts or select a competing ranking hypothesis
+before the existing hypothesis has its full attributable disposition.
 
 **Learning-to-improvement loop — 2026-10-02.** The immediate priorities above
 supersede the dated work selections retained below. Close the fresh-input and
