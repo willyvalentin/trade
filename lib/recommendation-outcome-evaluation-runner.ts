@@ -31,6 +31,7 @@ import {
 } from "@/lib/plan-reference-metadata-trace";
 import { buildCanonicalOutcomeProviderCoverageReceipt, canonicalOutcomeProviderCoverageQuality } from "@/lib/recommendation-outcome-canonical-coverage";
 import { recommendationOutcomeEvaluationAnchorFromSnapshot } from "@/lib/recommendation-outcome-evaluation-anchor";
+import { hasIncompleteCanonicalOutcomeCoverage } from "@/lib/canonical-outcome-acquisition-readiness";
 
 export type RecommendationOutcomeEvaluationRunStatus =
   | "idle"
@@ -245,7 +246,8 @@ function isOutcomePending(outcome: RecommendationOutcome | undefined) {
     outcome.status === "pending" ||
     outcome.status === "incomplete" ||
     outcome.status === "unknown" ||
-    outcome.status === "invalid"
+    outcome.status === "invalid" ||
+    hasIncompleteCanonicalOutcomeCoverage(outcome)
   );
 }
 

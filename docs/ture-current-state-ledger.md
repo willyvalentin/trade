@@ -2,6 +2,31 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Selected independent CLOSED IF-4 slice — original-horizon acquisition resumption, 2026-10-04:**
+Codex owns `codex/canonical-outcome-resumption-oct4`, isolated from freshly
+verified main `55576078` and fast-forwarded through completed prerequisite
+`d49b6c56`. Primary #732 remains release-held; all other independent slices
+are complete/parked. Budget four active hours, investigation at most four.
+Actual runner reproduction persists a three-bar 60m `neither_hit` with physical
+`complete` data but incomplete canonical coverage and no horizon R. A later
+full-horizon invocation makes zero requests and permanently skips the original
+identity. Red log: `/private/tmp/ture-outcome-resumption-red-oct4.log`.
+This is a producer acquisition/coverage defect for the frozen original-input
+comparison, not an alpha result or another retained-candle admission extension.
+
+Select only shared `canonical_outcome_acquisition_readiness_v1` for the existing
+runner and official route selection: explicit incomplete canonical receipts
+remain pending within the unchanged request/credit limits. Preserve legacy
+sources without canonical receipts, full-coverage skip, original identity,
+source clocks, quality thresholds and every sealed model/result. No schema
+ownership, migration, provider activation, new endpoint or broker change.
+Acceptance: early/partial/invalid canonical horizons recover the same original
+identity after complete data arrives; zero budget makes zero requests; completed
+canonical and legacy sources still skip; affected runner/route behavior,
+persisted readback, types/lint and exact build. Integration follows #732 and
+the completed local input/charter chain against then-current main. Stop after
+this minimum recovery correction; resume the frozen intelligence comparison.
+
 **Local acceptance complete — retained forward candle admission, 2026-10-04:**
 Product/test revision `5ae812e2fcd7b449e96144e39e8d787f7a427db1`,
 branch `codex/forward-outcome-admission-oct4`, closes the reproduced IF-4

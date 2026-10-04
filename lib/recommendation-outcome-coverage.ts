@@ -1,5 +1,6 @@
 import type { RecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
 import { canonicalOutcomeProviderCoverageQuality } from "@/lib/recommendation-outcome-canonical-coverage";
+import { hasIncompleteCanonicalOutcomeCoverage } from "@/lib/canonical-outcome-acquisition-readiness";
 
 function finiteNumber(value: unknown) {
   if (typeof value === "number" && Number.isFinite(value)) {
@@ -83,6 +84,25 @@ export function hasBetterOutcomeCoverage(
   existingOutcome: RecommendationOutcome | undefined,
 ) {
   if (!existingOutcome) return true;
+  // A duplicate/off-grid response can contain MORE bars than a complete
+  // original horizon. For this same canonical identity, completeness must
+  // win over raw response size; conversely never replace it with a gap.
+  const sameCanonicalSource = nextOutcome.id === existingOutcome.id &&
+    nextOutcome.snapshot_fingerprint === existingOutcome.snapshot_fingerprint &&
+    nextOutcome.horizon === existingOutcome.horizon && nextOutcome.ticker === existingOutcome.ticker &&
+    nextOutcome.recommended_at === existingOutcome.recommended_at && nextOutcome.side === existingOutcome.side &&
+    nextOutcome.entry === existingOutcome.entry && nextOutcome.stop === existingOutcome.stop &&
+    nextOutcome.target === existingOutcome.target &&
+    nextOutcome.provider === "twelve_data" && existingOutcome.provider === "twelve_data" &&
+    nextOutcome.source === "intraday_candles" && existingOutcome.source === "intraday_candles" &&
+    Object.hasOwn(nextOutcome.payload_json, "canonical_provider_coverage") &&
+    Object.hasOwn(existingOutcome.payload_json, "canonical_provider_coverage");
+  if (sameCanonicalSource) {
+    const nextComplete = canonicalOutcomeProviderCoverageQuality(nextOutcome.payload_json.canonical_provider_coverage) === 3;
+    const existingComplete = canonicalOutcomeProviderCoverageQuality(existingOutcome.payload_json.canonical_provider_coverage) === 3;
+    if (nextComplete && hasIncompleteCanonicalOutcomeCoverage(existingOutcome)) return true;
+    if (existingComplete && hasIncompleteCanonicalOutcomeCoverage(nextOutcome)) return false;
+  }
   if (hasOfficialTriggerSemanticsUpgrade(nextOutcome, existingOutcome)) {
     return true;
   }

@@ -476,6 +476,25 @@ test("capped database pages recover the complete original population without rea
   expect(evidence).toMatchObject({actual_provider_requests:0,production_actions:0,publications:0,broker_actions:0});
 });
 
+test("actual official route and restarted SQL/SDK resume early original canonical outcomes", () => {
+  test.setTimeout(90000);
+  const proof = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--diagnose-outcomes",
+    "--relative-plan-60m", "--partial-horizon-resumption"],
+    { cwd: process.cwd(), encoding: "utf8", timeout: 80000 });
+  expect(proof.status, `${proof.stdout}\n${proof.stderr}`).toBe(0);
+  const evidence = JSON.parse(proof.stdout.trim().split("\n").at(-1)!);
+  expect(evidence.outcome_chain_evidence.partial_horizon_resumption).toMatchObject({
+    early_synthetic_requests: 4, early_canonical_outcomes_qualified: 0, early_horizon_r_available: false,
+    mature_synthetic_requests: 4, original_ids_preserved: true, mature_canonical_outcomes: 4,
+  });
+  expect(evidence.outcome_chain_evidence.partial_horizon_resumption.early_persisted_original_ids).toHaveLength(4);
+  expect(evidence.outcome_chain_evidence.resumption).toMatchObject({persisted_outcomes:6,
+    additional_synthetic_outcome_requests:2,completed_repeat_requests:0,prior_outcomes_unchanged:true});
+  expect(evidence.outcome_chain_evidence.learning_admission.relative_plan_context_outcomes).toMatchObject({
+    original_population_count:8,selected_60m_receipt_count:6,resolved_60m_outcomes:6,missing_outcomes:2});
+  expect(evidence).toMatchObject({actual_provider_requests:0,production_actions:0,publications:0,broker_actions:0});
+});
+
 for (const scenario of ["cold", "warm", "opening", "opening_zero"]) {
   test(`packaged ${scenario} inputs retain hidden research plans and real isolated outcome persistence`, () => {
     test.setTimeout(90000);

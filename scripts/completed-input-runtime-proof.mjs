@@ -121,6 +121,9 @@ assert(!pagedOutcomeReads || nextSessionOutcomes, "Paged reads use the same orig
 assert(!nextSessionOutcomes || diagnoseOutcomes && !cold && !rotationDay && !process.argv.includes("--publication-clock"),
   "Cross-date continuation retains the existing six original hidden sources and four-request first pass");
 const relativePlan60m = process.argv.includes("--relative-plan-60m");
+const partialHorizonResumption = process.argv.includes("--partial-horizon-resumption");
+assert(!partialHorizonResumption || relativePlan60m && diagnoseOutcomes && !cold && !nextSessionOutcomes,
+  "Partial-horizon resumption retains the existing original warm 60m population");
 assert(!relativePlan60m || diagnoseOutcomes && !process.argv.includes("--opening") && !wrongPolicy,
   "Mature relative-plan outcomes require their own unchanged original-input CLOSED scenario");
 const opening = process.argv.includes("--opening");
@@ -2353,7 +2356,9 @@ try {
       // Exercise the real authenticated route, eligibility, runner, provider
       // adapter, persistence and owner readback; never flip stored visibility.
       clock=OriginalDate.parse(futureBoundary);
-      const before=externalRequests;
+      let before=externalRequests;
+      const scanRequestsBeforeOutcome=before;
+      let partialHorizonEvidence=null;
       const outcomeMultiplier=nextSessionOutcomes?3:1;
       const evaluate=()=>require(join(generated,"outcome-route.cjs")).POST(new Request("http://closed-fixture/api/recommendations/evaluate-outcomes",{
         method:"POST",headers:{"x-automation-secret":environment.AUTOMATION_SECRET,"Content-Type":"application/json"},
@@ -2396,6 +2401,22 @@ try {
         assert.equal(Number(sql("select count(*) from recommendation_outcomes;")),0);
       }
       sql(`update recommendation_scan_runs set payload_json='${JSON.stringify(originalRunPayload).replaceAll("'","''")}'::jsonb where id='${scanRuns[0].id}';`);
+      if(partialHorizonResumption) {
+        clock=OriginalDate.parse(slot)+900000;
+        const early=await evaluate(),earlyBody=await early.json();
+        assert.equal(early.status,200,JSON.stringify(earlyBody));
+        const rows=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_outcomes t;"));
+        assert.equal(rows.length,4);
+        assert.equal(externalRequests-before,4);
+        assert(rows.every(row=>row.payload_json.canonical_provider_coverage.horizon_elapsed===false &&
+          row.payload_json.canonical_provider_coverage.freshness!=="fresh" && row.payload_json.current_r===null));
+        assert(rows.every(row=>row.status==="target_before_stop" || row.status==="stop_before_target"));
+        partialHorizonEvidence={early_synthetic_requests:4,early_persisted_original_ids:rows.map(row=>row.id).sort(),
+          early_canonical_outcomes_qualified:0,early_horizon_r_available:false};
+        before=externalRequests;
+        clock=OriginalDate.parse(futureBoundary);
+        delete require.cache[require.resolve(join(generated,"outcome-route.cjs"))];
+      }
       const outcomeResponse=await evaluate();
       const outcomeBody=await outcomeResponse.json();
       assert.equal(outcomeResponse.status,200,JSON.stringify({outcomeBody,logs:logs.slice(-5)}));
@@ -2405,12 +2426,19 @@ try {
         batches:JSON.parse(sql("select coalesce(jsonb_agg(jsonb_build_object('id',id,'batch_type',batch_type,'status',status,'capture_version',payload_json->>'completed_input_research_capture_version')),'[]') from recommendation_batches;"))}));
       assert.equal(externalRequests-before,Math.min(4,researchSnapshots.length));
       assert(outcomes.every(row=>researchSnapshots.some(snapshot=>snapshot.snapshot_fingerprint===row.snapshot_fingerprint)));
+      if(partialHorizonEvidence) {
+        assert.deepEqual(outcomes.map(row=>row.id).sort(),partialHorizonEvidence.early_persisted_original_ids);
+        assert(outcomes.every(row=>row.payload_json.canonical_provider_coverage.horizon_elapsed===true &&
+          row.payload_json.canonical_provider_coverage.freshness==="fresh" && Number.isFinite(row.payload_json.current_r)));
+      }
       const futureRead=await restarted.readRecommendationLearningBaselineSource(owner);
       assert.equal(futureRead.data.recommendation_outcomes.length,outcomes.length);
       const otherFuture=await restarted.readRecommendationLearningBaselineSource("00000000-0000-4000-8000-000000000002");
       assert.equal(otherFuture.data.recommendation_outcomes.length,0);
       assert.equal(Number(sql("select count(*) from recommendation_snapshots where status <> 'hidden';")),0);
       outcomeChainEvidence={synthetic_future_boundary:futureBoundary,
+        ...(partialHorizonEvidence?{partial_horizon_resumption:{...partialHorizonEvidence,
+          mature_synthetic_requests:externalRequests-before,original_ids_preserved:true,mature_canonical_outcomes:4}}:{}),
         research_sources:researchSnapshots.length,persisted_outcomes:outcomes.length,
         separate_synthetic_outcome_requests:externalRequests-before,
         unobservable_population_members:8-researchSnapshots.length,
@@ -2798,7 +2826,7 @@ try {
         legacy_source_gate_unchanged:true,
         tampered_source_and_lineage_admitted:0,
       };
-      externalRequests=before;
+      externalRequests=scanRequestsBeforeOutcome;
       clock=OriginalDate.parse(slot)+20000;
     }
     const duplicate=await scheduler(new Request("http://closed-scheduler",{method:"POST",

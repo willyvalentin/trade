@@ -53,6 +53,7 @@ import {
   type BatchCandidateAuditSummary,
 } from "@/lib/batch-candidate-audit";
 import { hasBetterOutcomeCoverage } from "@/lib/recommendation-outcome-coverage";
+import { hasIncompleteCanonicalOutcomeCoverage } from "@/lib/canonical-outcome-acquisition-readiness";
 import { canonicalizeOutcomeSnapshotsForBatch } from "@/lib/recommendation-outcome-snapshot-canonicalization";
 import {
   buildScheduledOutcomeEvaluationReceipt,
@@ -1192,7 +1193,7 @@ function isOfficialOutcomePending(outcome: RecommendationOutcome | undefined) {
     return true;
   }
 
-  return outcome.data_completeness !== "complete";
+  return outcome.data_completeness !== "complete" || hasIncompleteCanonicalOutcomeCoverage(outcome);
 }
 
 function officialOutcomeBySnapshotAndHorizon(
