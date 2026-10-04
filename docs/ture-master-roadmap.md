@@ -147,8 +147,11 @@ as valid quality-measurement evidence. A contradictory or missing assessment
 is an explicit measurement gap; it must not erase otherwise valid canonical
 outcomes, rewrite historical evidence or grant baseline/promotion authority.
 
-The selected next CLOSED IF-4 link now rejects contradictory retained original
-inputs before a NEW model fit or terminal result is stored. Reuse the actual
+The CLOSED IF-4 admission link is locally accepted at `d40f4b8b`: it rejects
+contradictory retained original inputs before a NEW training capsule or terminal
+result is stored. Actual isolated SQL/SDK, affected regression/golden checks,
+types/lint and exact Linux build pass; main/production integration is still
+release-held. Reuse the actual
 original-clock feature replay, keep every relevant original member and check
 the immutable fitted source as well as the complete forward source. Previously
 sealed v1 models/results keep their own semantics; absent legacy bars stay a
@@ -157,7 +160,8 @@ new ranking hypothesis or proven alpha. A full synthetic eight-member source
 with all 72 original archives exceeds the existing 16 MiB decoded bound; retain
 that separate physical-capacity blocker without trimming data or claiming a
 complete result. The ledger holds the bounded admission slice and integration
-order. Resume complete original-population charter evaluation at its exit.
+order. This admission slice is complete; resume complete original-population
+charter evaluation and investigate its reproduced complete-archive capacity gap.
 
 **Learning-to-improvement loop — 2026-10-02.** The immediate priorities above
 supersede the dated work selections retained below. Close the fresh-input and

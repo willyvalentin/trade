@@ -2,10 +2,70 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
-**Selected CLOSED IF-4 link — original-input learning admission, 2026-10-04:**
-Codex owns `codex/original-input-learning-admission-oct4`, isolated from verified
+**Local acceptance complete — original-input learning admission, 2026-10-04:**
+Frozen product/test revision `d40f4b8ba7bc25f39ad0ea09026da8d1570bf8f6`
+implements the bounded IF-4 slice below. New training/finalization commands
+reuse original-bar replay before immutable storage and reject arithmetic
+contradictions, invalid present archives or uncheckable retained current input.
+The training check covers the complete retained fitted population; terminal
+admission also checks the original sealed training source and every relevant
+forward/overflow run. Absent legacy bars and missing archive members remain
+explicit reproduction gaps, never newly observed inputs. The numerical v1
+builders/decoders, existing immutable reads/retries, charter, ranking and live
+policy are unchanged. This prevents false acceptance of contradictory evidence;
+it does not establish input fitness or recommendation-quality improvement.
+
+The two pre-fix command regressions failed as expected (training materialized
+the contradictory source; terminal reached its storage call). Both pass after
+the correction. Separate positive producer-arithmetic controls retain eight
+matches, then one match/seven unavailable members with partial capture; malformed
+archives, source substitution, wrong clocks/versions and used-feature/indicator
+contradictions reject without mutating the source. A retained-only training
+contradiction also blocks a new terminal result when mutable history has no
+archive. 59 affected service/model/full-charter/golden checks pass in 2.3m at
+`099bbd30`; the only later change at `d40f4b8b` adds that extra test, not product
+behavior. Four final focused checks pass in 7.9s, seven security/governance
+checks in 525ms and eight exact-CI-oracle checks in 3.0s: 78 distinct passing
+checks, not protected CI or a whole-repository test pass. Logs:
+`/private/tmp/ture-input-admission-regression-oct4.log`,
+`/private/tmp/ture-input-admission-final-focused-oct4.log`,
+`/private/tmp/ture-input-admission-security-oct4.log` and
+`/private/tmp/ture-input-admission-ci-oracle-oct4.log`.
+
+Actual isolated PostgreSQL/PostgREST/SDK behavior verifies rejection BEFORE
+model/result inserts, unchanged owned source and original denominators, then
+successful legacy storage and restarted immutable reads that ignore later
+mutable contradictions. Training seals 96 original members; held-out and
+walk-forward each retain 240 original members/30 decisions. Terminal evidence
+also retains 12 unrelated prior runs in the database without including them in
+the frozen 72-run source. The terminal proof uses a disclosed historical
+synthetic model-clock fixture, not a production/pre-forward model seal or market
+alpha. Logs: `/private/tmp/ture-input-admission-sql-training-fixed-oct4.log` and
+`/private/tmp/ture-input-admission-sql-finalized-oct4.log`. The first DB test's
+fault setup failed because ordinary scan inserts intentionally ignore duplicates;
+correct only the isolated fixture via exact owner/id SDK update, not producer
+immutability. Retain that failed log: `/private/tmp/ture-input-admission-sql-training-oct4.log`.
+
+Nonincremental types and full lint pass on `d40f4b8b` (zero errors/eight existing
+warnings): `/private/tmp/ture-input-admission-final-types-oct4.log` and
+`/private/tmp/ture-input-admission-final-lint-oct4.log`. Exact committed-source
+Linux Node 22.23.1 / Next 16.3.8 build passes including types; read-only locked
+dependencies, lock SHA-256
+`859ed09eed4d3de2e7ade5c74bea78e73770bea57f92d6cb3656224bfcace6f7`,
+no network/production credentials. Log: `/private/tmp/ture-input-admission-exact-build-oct4.log`.
+No push, new PR, merge, deploy, migration, provider request or broker action.
+GitHub readback at 2026-10-04T05:32Z verifies protected main `55576078` and
+Draft release-held #732 head `2741f946`. This slice is locally complete/parked,
+not main- or production-integrated. Integration order below remains unchanged.
+Stop this admission slice and return to full original-population charter
+evaluation. The separately reproduced complete-archive capacity gap below is
+the next bounded investigation, not a selected implementation or reason to trim
+cohorts, rewrite goldens or relax the quality charter.
+
+**Completed CLOSED IF-4 contract — original-input learning admission, 2026-10-04:**
+Codex completed `codex/original-input-learning-admission-oct4`, isolated from verified
 main `55576078` and fast-forwarded through the completed original-input replay
-`284bdf5f`. One independent slice alongside release-held primary #732; the
+`284bdf5f`. It was the one independent slice alongside release-held primary #732; the
 previous input audit and terminal-context slice are complete/parked, not active
 development. Budget eight active hours; investigation capped at four. The
 unchanged prospective relative-plan hypothesis, eight-member population,
