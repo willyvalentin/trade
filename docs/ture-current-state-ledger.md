@@ -4138,6 +4138,30 @@ acquisition and its bounded whole-scan cost; missing members stay explicit.
 No extra requests, cache-clock substitution, population reduction, provider
 purchase, policy promotion or live activation follows from the local warm proof.
 
+**Retained completed CLOSED IF-2b contract — dynamic discovery admission, 2026-10-04:**
+Codex owns isolated `codex/dynamic-discovery-admission-oct4`, directly from
+freshly verified main `55576078`. Four active hours, investigation at most four;
+the original full-charter #732 remains the release-held primary and the other
+local slices stay complete/parked. Two actual selection functions reproduce
+new discovery defects: zero allocated dynamic budget selects one ticker, and
+a supplied selected mover bypasses the current universe allow/block lists.
+Red: `/private/tmp/ture-dynamic-admission-red-oct4.log` (two failures).
+These are synthetic CLOSED reproductions, not historical production findings.
+
+Only repair admission before handing symbols to the scanner: whole nonnegative
+dynamic slots, no selection at zero, and the same current allow/block constraints
+for supplied dynamic and static symbols. Retain fetched/upstream receipts and
+truthful final coverage; positive outside-static discovery and existing rotation
+must survive. No new feed, entitlement, model, charter, frozen population,
+quality threshold, scheduler, schema or provider activation is selected.
+Classification: `supporting_blocker_removal`, protecting original IF-2b
+membership before the same frozen IF-4 comparison, not quality lift. Acceptance
+requires failing-to-passing actual selection/base-candidate behavior, existing
+discovery/risk/budget regressions, types/lint and exact locked build. Integrate
+after the original primary against then-current main without a competing PR;
+this main-based correction does not inherit or supersede parked local work.
+Stop after the minimum verified fix and resume the frozen quality comparison.
+
 **Historical queue — 2026-10-03 00:04Z:** PR #730 normally merges at
 00:02:34Z after all six protected shards, aggregate and merge provenance in
 CI `37078162782` pass on head `25fd0b726956bb109790af684de57e4fee47d18b`.
