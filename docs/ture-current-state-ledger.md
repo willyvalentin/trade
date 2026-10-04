@@ -2,7 +2,66 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
-**Now — consolidate the verified IF-2b input corrections into the original learning vertical, 2026-10-04:**
+**Now — exact-head Draft verification of the integrated original learning vertical, 2026-10-04:**
+The bounded IF-2b corrections below have passed their combined local acceptance.
+Select one coherent fast-forward update of existing Draft #732, not a competing
+PR or hypothesis. Preserve Draft status, the mandatory audit and every protected
+release gate; no main merge or production effect is selected. The old exact-head
+hosted pass below does not attest this new application revision. Read the new
+exact-head CI/review and metadata-only preview evidence before any release claim.
+Stop the minimum resumption/quota support stream and return to the frozen
+original-input/canonical-outcome/full-charter intelligence comparison. The
+independent terminal-context slice remains locally complete and parked until
+the original vertical integrates, then verify it against then-current main.
+
+**Local combined acceptance — original input corrections, 2026-10-04:**
+Exact product revision `37903e4fe9272e82d8e5f857be27417bd15dd24f` passes
+98 affected acquisition/original-outcome checks serially in 26.5m, ten
+server-condition immutable model/result-store checks in 1.3m and 22 critical
+security/governance checks: 130 unique checks, not adding overlapping focused
+or earlier history runs. Logs: `/private/tmp/ture-integrated-input-chain-regression-oct4.log`,
+`/private/tmp/ture-integrated-input-server-regression-oct4.log`,
+`/private/tmp/ture-integrated-input-security-oct4.log` and
+`/private/tmp/ture-integrated-input-graduation-oct4.log`.
+An initial mixed-condition invocation failed collection on the unchanged
+`server-only` marker; use the normal default versus `react-server` suites,
+not an import/assertion change or a claimed engine failure.
+
+Actual packaged route/isolated Postgres 16.14, PostgREST 16.1 and SDK 2.105.4
+retain all 95 original history identities through restart with fifteen validated
+histories, one failed charged source and sixteen distinct attempts. No original
+member is removed or duplicate source bought. Scheduled intraday quota rejection
+now stops subsequent acquisition, drains owned benchmark transports, retains one
+failed charged eight-credit claim and an attributable `rejected_data` cycle;
+four synthetic requests, zero scan runs, research sources or publications.
+Fresh-cache reuse, manual consumers, ordinary symbol errors and abort precedence
+remain unchanged. Original publication clocks, missing volumes, paged/cross-date
+outcomes, canonical learning, immutable model/result and historical goldens pass.
+
+Nonincremental types pass; full lint has zero errors/eight existing warnings.
+The exact clean locked Linux Node 22.23.1 / Next 16.3.8 normal build passes,
+without build network or mounted credentials. Log:
+`/private/tmp/ture-integrated-input-exact-linux-build-oct4.log`; lock SHA256
+`859ed09eed4d3de2e7ade5c74bea78e73770bea57f92d6cb3656224bfcace6f7`.
+Tests run on host Node 26.5.0 with isolated native services, not production
+Postgres or a claim that every test ran on Linux. Classification remains
+`supporting_blocker_removal`, enabling IF-2b → IF-4. Synthetic CLOSED evidence
+proves neither live provider entitlement, OPEN input fitness, nor quality lift.
+
+Read-only release checks still find main and ready production on
+`55576078e102e7019c271aeb5e67de4a353f2e8f`, production deploy
+`6ac059102df2c60008151e2a`. #732 remains Draft with no review comments; its
+pre-update head is `2e626dd064e582564cb5a97b92e526d67e6cee8d`.
+Official GHSA-vfj7-8cjw-p6xm still has no patched release; latest braces remains
+3.0.3. No audit exclusion, fork/alias, Ready conversion or bypass is selected.
+Netlify readback identifies main as production branch and automatic top-up off;
+remaining credits were not returned and are not inferred. The official
+[credit rules](https://docs.netlify.com/manage/accounts-and-billing/billing/billing-for-credit-based-plans/how-credits-work/)
+charge zero deployment credits for Draft previews, not zero runtime/traffic cost.
+The selected Draft update includes no deliberate preview HTTP/provider traffic,
+production deploy/migration/configuration, live publication or broker action.
+
+**Retained selection — integrate the verified IF-2b input corrections into the original learning vertical, 2026-10-04:**
 Codex retains the same isolated existing #732 branch and verified main
 `55576078e102e7019c271aeb5e67de4a353f2e8f`. The terminal-history resumption
 exit below is locally complete. Select only deliberate integration of the
