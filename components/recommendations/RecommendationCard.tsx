@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { ConfidenceCalibrationProjectionPreviewResult } from "@/lib/confidence-calibration-recommendation-advisory-projection-preview";
+import { isStaticSetupConfidenceProjection } from "@/lib/confidence-calibration-recommendation-advisory-projection-observation";
 
 export type RecommendationCardMetric = {
   label: string;
@@ -88,6 +89,7 @@ function isVisibleProjectionPreview(
   return (
     preview !== null &&
     preview !== undefined &&
+    !isStaticSetupConfidenceProjection(preview) &&
     preview.status !== "preview_disabled" &&
     preview.status !== "preview_unavailable" &&
     preview.proposed_preview_confidence_basis_points !== null
@@ -175,6 +177,10 @@ export function RecommendationCard({
       </div>
 
       <RecommendationCardMetricGrid metrics={metrics} />
+
+      <p className="trade-recommendation-card__action-description">
+        Confidence is a ranking score, not a win probability.
+      </p>
 
       {timing ? (
         <dl className="trade-recommendation-card__timing" aria-label="Data timing">

@@ -2,6 +2,18 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Bounded CLOSED integration selected — 2026-10-04 17:42Z:**
+Owner: Codex; maximum four active hours. Compose the completed honest static-
+projection disclosure (`3c954900`) with the already completed original-input /
+canonical-outcome / full-charter tree, then verify their joint local acceptance.
+Classification: capability integration and quality measurement, NOT quality lift.
+Keep primary #732 and its frozen model, population, charter and prospective
+comparison unchanged. No new hypothesis, schema, provider, production operation
+or release bypass. Acceptance includes actual snapshot/learning compatibility,
+existing native original-source/canonical/training/result proofs, local browser,
+types, lint and ordinary exact-revision build. Stop and park after this evidence;
+the unchanged dependency security gate still prevents release acceptance.
+
 **Combined actual training acceptance — 2026-10-04 10:10Z:**
 Completion audit on clean isolated `748c44367499d66eb55020ea0986887904eb3ba4`
 closes the remaining combined pre-forward fitting dimension after the admission

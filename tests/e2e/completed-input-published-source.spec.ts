@@ -10,7 +10,7 @@ import { buildCanonicalOutcomeProviderCoverageReceipt } from "@/lib/recommendati
 import { buildRelativePlanContextOutcomeComparison } from "@/lib/scanner-relative-plan-context-outcomes";
 import { buildRecommendationLearningBaselineReadiness } from "@/lib/recommendation-learning-baseline-readiness";
 
-async function originalPublication() {
+async function originalPublication(options: { confidence?: number; setup?: string } = {}) {
   const evidence = await relativePlanEvidence({ now: new Date("2026-10-02T17:00:20.000Z"), publishedTickers: ["AAA"] });
   const candidate = evidence.record.candidates.find(row => row.ticker === "AAA")!;
   const input = candidate.data.input_snapshot!;
@@ -18,7 +18,7 @@ async function originalPublication() {
     scan_run_id: evidence.record.scan_run_fingerprint, recommended_at: "2026-10-02T17:00:20.050Z",
     app_timestamp: "2026-10-02T17:00:20.050Z", source_mode: "supabase", data_mode: "supabase_record",
     is_visible: true, is_real: true, side: "long", entry_low: 99, entry_high: 100, entry: 99.5,
-    stop: 96, target: 108, planned_risk_reward: 2.5, type: "original_setup", confidence: "strong",
+    stop: 96, target: 108, planned_risk_reward: 2.5, type: options.setup ?? "original_setup", confidence: options.confidence ?? "strong",
     payload: { data_timestamp: evidence.record.decision_timestamp, provider_source: "twelve_data", provider_version: null,
       candidate_id: candidate.candidate_id, candidate_decision_id: candidate.candidate_id,
       candidate_decision_disposition: "published", candidate_decision_linkage_status: "verified",
@@ -26,7 +26,7 @@ async function originalPublication() {
       recommendation_publish_policy_version: evidence.record.learning_attribution.recommendation_publish_policy_version,
       intraday_indicator_response_identity: input.current_session!.response_identity,
       decision_feature_vector: recommendationDecisionFeatureVectorFromScannerCandidate(evidence.observed[0], Date.parse(evidence.record.decision_timestamp) / 1000),
-      recommendation: { id: "original-publication", ticker: "AAA", created_at: "2026-10-02T17:00:20.050Z", setup_type: "original_setup" },
+      recommendation: { id: "original-publication", ticker: "AAA", created_at: "2026-10-02T17:00:20.050Z", setup_type: options.setup ?? "original_setup" },
     } });
   return { ...evidence, snapshot, captured: attachCompletedInputPublishedEvidence(snapshot, evidence.record) };
 }
@@ -50,6 +50,51 @@ test("new published capture preserves original input and geometry through the ac
     original_decision_timestamp: record.decision_timestamp, decision_timestamp: snapshot.recommended_at,
     upstream_provider_version_status: "unavailable" });
   expect(JSON.stringify(snapshot)).toBe(originalBytes);
+});
+
+test("uncalibrated static projection survives original publication learning without becoming probability evidence", async () => {
+  // Explicit synthetic CLOSED source, not a new confidence model or market recommendation.
+  const { captured, record, run } = await originalPublication({ confidence: 82, setup: "PULLBACK_CONTINUATION" });
+  const recordBytes = JSON.stringify(record);
+  const decoded = recommendationSnapshotFromPersistenceRow({ id: captured.id,
+    snapshot_fingerprint: captured.snapshot_fingerprint, recommendation_id: captured.recommendation_id,
+    scan_run_id: captured.scan_run_id, ticker: captured.ticker, recommended_at: captured.recommended_at,
+    status: "visible", source_mode: "supabase", data_mode: "supabase_record", entry: captured.entry,
+    stop: captured.stop, target: captured.target, risk_reward: captured.planned_risk_reward,
+    payload_json: JSON.parse(JSON.stringify(captured.payload_json)) })!;
+  // The existing persistence decoder represents legacy confidence as text;
+  // the retained observation contract preserves its original numeric score.
+  expect(decoded.confidence).toBe("82");
+  expect(decoded.snapshot_fingerprint).toBe(captured.snapshot_fingerprint);
+  expect(decoded.payload_json.confidence_projection_observation_contract).toMatchObject({
+    snapshot_time_confidence: { original_confidence: 82, projected_confidence: 87,
+      projection_delta: 5, historical_basis: null,
+      calibration_status: "uncalibrated_static_setup_rule_observation_only" },
+    no_effects: { ranking_affected: false },
+  });
+  expect(completedInputPublishedSnapshotMatchesDecision(decoded, record)).toBe(true);
+  expect(recommendationResearchLearningSourceProvenance(decoded, [run]).status).toBe("admissible");
+  const anchor = recommendationOutcomeEvaluationAnchorFromSnapshot(decoded)!;
+  const start = Date.parse(anchor.evaluation_anchor_start_at);
+  const candles = Array.from({ length: 12 }, (_, bar) => ({ timestamp: new Date(start + bar * 300000).toISOString(),
+    open: 100, high: 109, low: 99, close: 108, volume: 1000 }));
+  const outcome = computeRecommendationOutcome({ snapshot: decoded, horizon: "60m", evaluated_at: new Date(start + 3600000),
+    candles, current_price: 108, provider: "twelve_data", source: "intraday_candles", data_completeness: "complete" }).outcome;
+  const coverage = buildCanonicalOutcomeProviderCoverageReceipt({ candles,
+    request: { interval: "5min", horizon: "60m", start_at: anchor.evaluation_anchor_start_at,
+      end_at: new Date(start + 3600000).toISOString(), decision_timestamp: anchor.decision_timestamp,
+      evaluation_anchor_start_at: anchor.evaluation_anchor_start_at, decision_to_anchor_seconds: anchor.decision_to_anchor_seconds,
+      decision_timestamp_interval_aligned: anchor.decision_timestamp_interval_aligned },
+    result: { status: "available", provider: "twelve_data" } });
+  const source = { scanRun: run, scanRuns: [run], snapshots: [decoded],
+    outcomes: [{ ...outcome, payload_json: { ...outcome.payload_json, canonical_provider_coverage: coverage } }] };
+  expect(buildRelativePlanContextOutcomeComparison(source)).toMatchObject({ original_population_count: 8,
+    canonical_outcome_count: 1, missing_outcome_count: 7, population_complete: false,
+    precision_delta: null, quality_improvement_claimed: false });
+  const readiness = buildRecommendationLearningBaselineReadiness(source);
+  expect(readiness.confidence_calibration.numeric_probability_sample_count).toBe(0);
+  expect(readiness.status).toBe("not_ready");
+  expect(JSON.stringify(record)).toBe(recordBytes);
 });
 
 test("old publication is not retroactively admitted on the new normalized basis", async () => {
