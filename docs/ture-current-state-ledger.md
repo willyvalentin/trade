@@ -2,7 +2,7 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
-**Selected CLOSED IF-4 current-runtime as-of admission — 2026-10-05:** Codex
+**CLOSED IF-4 current-runtime as-of admission locally built — 2026-10-05:** Codex
 owns `codex/runtime-recording-asof-oct5`, freshly verified main `55576078` plus
 completed local composition `d016d2cf`; primary #732 remains release-held.
 Four-active-hour correction inside the same frozen original-population charter.
@@ -28,16 +28,49 @@ resume the indivisible original-input → canonical-outcome → full-charter
 primary. Integration follows #732 and the tested composition against current
 main; synthetic/local measurement integrity is not market-quality acceptance.
 
-The producer/read and NEW-command regressions reproduce the escape before the
-correction. Explicit raw creation/revision availability now gates the complete
-stable runtime read, and only its named invalid-clock source blocks NEW result
-storage. Generic missing runtime retains its existing truthful incomplete-result
-semantics. The first ordinary isolated PostgreSQL/PostgREST/SDK finalization
-proof passes: four new-row clock faults are rejected, original candidate/source
-populations remain unchanged, exact fault-row cleanup restores measurement, and
-already sealed read/retry results ignore later mutable runtime faults. This is
-local synthetic evidence only. Full committed regression and exact build remain
-required before this selected slice's local completion; no release acceptance.
+Product/test revision `5e636a72b99b62b895ea9e92dad40a1656f0291f` gates the
+complete stable runtime read on explicit raw creation/revision availability.
+Only its named invalid-clock source blocks NEW result storage. Generic missing
+runtime retains truthful incomplete-result semantics. Actual producer/read and
+NEW-command red regressions reproduce the escape before the correction.
+
+All 185 DISTINCT committed affected checks pass in 25.0 minutes; two additional
+joint original-input → canonical-outcome → full-charter checks pass separately.
+Ordinary PostgreSQL/PostgREST/SDK proofs cover four-member, eight-member and
+complete-original-archive finalization. Four new-row clock faults are rejected;
+original populations remain unchanged, exact disposable fault-row cleanup
+restores measurement, and sealed read/retry results ignore later mutable runtime
+faults. The complete archive retains 240 members per forward partition and the
+unchanged full charter/known concentration rejection. Decoded source is
+21,106,845 bytes; negotiated finalized result is 844,895 wire bytes and
+6,543,560 decoded bytes. The retained model clock in these finalization modes is
+an explicitly historical synthetic fixture, not actual pre-forward fitting or
+market-quality evidence. No recommendation improvement or historical-clock
+attestation is established.
+
+Final nonincremental types and changed-file lint pass; full lint has zero errors
+and eight existing warnings. The first ordinary exact Linux build passes on
+`5e636a72`, Node 22.23.1 / Next 16.3.8, locked read-only dependencies, no
+network or production credentials. Lock SHA-256 remains
+`859ed09eed4d3de2e7ade5c74bea78e73770bea57f92d6cb3656224bfcace6f7`.
+Logs `/private/tmp/ture-runtime-recording-asof-{red,command-red,focused,controls,native-authorized,generic-missing-fixed,committed-regression,joint-engine,types-final,lint,changed-lint-final,exact-build}-oct5.log`.
+The first native launch lacked Docker permission and stopped before database
+startup; the ordinary isolated authorized run passes. The generic-missing
+control first lacked committed mock readback; correcting only that test state
+preserves the actual store's acknowledgement-is-insufficient guard. No timeout,
+sample, source population or acceptance gate was relaxed.
+
+This bounded `quality_measurement` slice is locally built/tested, not main,
+production or recommendation-quality accepted. No push, PR, merge, deploy,
+provider, production database or broker action. Root user changes stay intact.
+Stop extending runtime recording admission and resume the frozen original-input
+→ canonical-outcome → full-charter primary. Read-only actual-producer/owned-reader
+reproduction identifies one earlier original benchmark input-fitness defect:
+impossible/non-ISO or one-microsecond-late classification clocks are admitted,
+and a validated reuse handle permits its classification to change after the
+original decision while remaining valid. Its separately selected correction
+must preserve the same original inputs, fallback and eight-credit limit; it may
+not become another scheduling, receipt or ranking hypothesis.
 
 **CLOSED IF-4 original-scan availability locally built — 2026-10-05:** Owner Codex,
 `codex/original-scan-run-asof-oct5`, freshly verified main `55576078` plus
