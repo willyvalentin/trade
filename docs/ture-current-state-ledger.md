@@ -2,7 +2,59 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
-**Selected independent CLOSED IF-4 slice — original-horizon acquisition resumption, 2026-10-04:**
+**Local acceptance complete — original-horizon acquisition resumption, 2026-10-04:**
+Product `76611eff30c3102c146d7befe115f85df82c07d0` on isolated branch
+`codex/canonical-outcome-resumption-oct4` closes the reproduced producer skip.
+The official route and runner now keep explicit incomplete canonical 15/30/60m
+receipts pending within unchanged budgets. A complete same-original-identity
+horizon can replace a larger invalid duplicate-bar response; it cannot be
+downgraded to incomplete coverage. Full canonical and receipt-free legacy
+sources still skip. No retained-candle guard extension, immutable decoder,
+training model, ranking, publication threshold, schema or migration changed.
+Classification: `supporting_blocker_removal`, enabling IF-4 original outcome
+coverage for the same frozen relative-plan comparison, not quality lift.
+
+79 distinct checks have passing evidence: 51 affected acquisition/coverage,
+original-population, CI-registration and governance checks (26.7s), 27 budget/
+security/legacy-completion checks (2.6s), and one exact-revision actual packaged
+official route/Postgres/PostgREST/Supabase-SDK/restarted owned-reader proof
+(40.1s). Earlier focused repeats overlap, not extra checks. The latter acquires
+four separately disclosed early synthetic responses, then updates those same
+four IDs using four complete-horizon responses; two deferred original sources
+resume in a subsequent bounded pass. Final readback retains all eight original
+members, six canonical outcomes and two explicit missing members. A completed
+repeat makes zero requests or writes; wrong-owner read remains empty, original
+sources stay hidden, and quality/charter gates remain incomplete.
+
+Nonincremental types and changed-file lint pass; full lint has zero errors/eight
+existing warnings. Exact clean committed-source Linux Node 22.23.1 / Next 16.3.8
+normal build passes, without network or production credentials. Read-only locked
+dependency SHA256: `859ed09eed4d3de2e7ade5c74bea78e73770bea57f92d6cb3656224bfcace6f7`.
+Logs: `/private/tmp/ture-outcome-resumption-final-regression-oct4.log`,
+`/private/tmp/ture-outcome-resumption-budget-security-oct4.log`,
+`/private/tmp/ture-outcome-resumption-exact-sql-oct4.log`,
+`/private/tmp/ture-outcome-resumption-types-oct4.log`,
+`/private/tmp/ture-outcome-resumption-full-lint-oct4.log` and
+`/private/tmp/ture-outcome-resumption-exact-build-oct4.log`.
+
+Retain initial red logs: zero resumed requests; duplicate response winning by
+raw count; first SQL observer incorrectly folding four explicitly separate
+early requests into the unchanged eight-request scan count; two missing new
+suite entries in the exact CI registration oracle and a sandbox Docker denial.
+The producer/coverage corrections, separate cost accounting and exhaustive
+registration were corrected; no timeout, assertion threshold or protected CI
+requirement was relaxed. These are synthetic CLOSED results, not hosted/main/
+production behavior, actual provider entitlement, OPEN fitness or alpha.
+
+This sole independent slice is complete/parked after under one active hour.
+Main remains freshly read `55576078`; original #732 remains Draft/release-held.
+No push, new PR, merge, deploy, production migration/configuration, provider
+request or broker action occurred. Integration follows #732 and the completed
+input/charter chain against then-current main. Stop this recovery stream and
+return to the frozen intelligence comparison; select another CLOSED slice
+only for a concrete missing link or newly reproduced recommendation defect.
+
+**Completed independent CLOSED IF-4 contract — original-horizon acquisition resumption, 2026-10-04:**
 Codex owns `codex/canonical-outcome-resumption-oct4`, isolated from freshly
 verified main `55576078` and fast-forwarded through completed prerequisite
 `d49b6c56`. Primary #732 remains release-held; all other independent slices
