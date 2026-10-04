@@ -32,6 +32,7 @@ let sealedModelIgnoresMutableInputs = false, sealedResultIgnoresMutableInputs = 
 let actualTrainingClockVerified = false, separateCommittedWitnessVerified = false;
 let sourceCapacitySqlVerified = false, negotiatedPrewriteVerified = false;
 let finalizedDecodedHttpBytes = null, finalizedTransportEncoding = null;
+let newResultRetainedCandlesVerified = false, sealedResultIgnoresMutableCandles = false;
 // Real local socket + client decompression, not Response.json() pretending to
 // decode compressed bytes. This is NOT a hosted Netlify behavior attestation.
 async function verifyHttp(readers, body) {
@@ -479,6 +480,46 @@ try {
     assert.deepEqual((await readers.readRecommendationLearningBaselineSource(owner)).data, before.data);
     await replaceIsolatedRunPayload(originalRun);
     newResultOriginalInputVerified = true;
+    // Keep a complete, original non-top-three forward member. The real
+    // producer + writer retain a coherent target outcome and its twelve bars;
+    // remove only the target touches to reproduce a NEW-result admission fault.
+    const nonTop = originalRun.payload_json.candidate_decision_record.candidates.find(row => row.ranking?.rank > 3);
+    assert(nonTop);
+    const forwardSnapshot = source.snapshots.find(row => row.scan_run_id === originalRun.run_fingerprint &&
+      row.payload_json.candidate_id === nonTop.candidate_id);
+    assert(forwardSnapshot);
+    const originalOutcome = source.outcomes.find(row => row.snapshot_fingerprint === forwardSnapshot.snapshot_fingerprint && row.horizon === "60m");
+    assert(originalOutcome);
+    const anchor = readers.recommendationOutcomeEvaluationAnchorFromSnapshot(forwardSnapshot);
+    assert(anchor);
+    const start = Date.parse(anchor.evaluation_anchor_start_at), midpoint = forwardSnapshot.entry;
+    const bars = Array.from({ length: 12 }, (_, index) => ({ timestamp: new Date(start + index * 300000).toISOString(),
+      open: midpoint, high: forwardSnapshot.target + 1, low: midpoint, close: forwardSnapshot.target, volume: 1000 }));
+    const replay = readers.computeRecommendationOutcome({ snapshot: forwardSnapshot, horizon: "60m",
+      evaluated_at: originalOutcome.evaluated_at, candles: bars, current_price: forwardSnapshot.target,
+      provider: "twelve_data", source: "intraday_candles", data_completeness: "complete" }).outcome;
+    assert.equal(replay.target_hit, true);
+    const coverage = readers.buildCanonicalOutcomeProviderCoverageReceipt({ candles: bars, request: {
+      interval: "5min", horizon: "60m", ...anchor, start_at: anchor.evaluation_anchor_start_at,
+      end_at: new Date(start + 3600000).toISOString(),
+    }, result: { status: "available", provider: "twelve_data" } });
+    const validRetained = { ...originalOutcome, ...replay, id: originalOutcome.id,
+      created_at: originalOutcome.created_at, updated_at: originalOutcome.updated_at,
+      payload_json: { ...originalOutcome.payload_json, ...replay.payload_json, canonical_provider_coverage: coverage,
+        counterfactual_candles: bars, counterfactual_candle_source: "horizon_filtered_intraday_candles",
+        retained_candles_available: true, retained_candle_count: bars.length } };
+    const conflictingRetained = structuredClone(validRetained);
+    for (const bar of conflictingRetained.payload_json.counterfactual_candles) Object.assign(bar, { high: midpoint + 0.01, close: midpoint });
+    assert.equal((await readers.persistRecommendationOutcome(conflictingRetained, { supabaseClient: client, server: true })).status, "saved");
+    const beforeCandles = await readers.readRecommendationLearningBaselineSource(owner);
+    const rejectedCandles = await readers.createRelativePlanCharterResultService().finalize(owner, {});
+    assert.equal(rejectedCandles.status, "unavailable");
+    assert.equal(rejectedCandles.blocker, "relative_plan_result_retained_candle_outcome_conflicting");
+    assert.equal(rejectedCandles.terminal_quality_decision, null);
+    assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "0");
+    assert.deepEqual((await readers.readRecommendationLearningBaselineSource(owner)).data, beforeCandles.data);
+    assert.equal((await readers.persistRecommendationOutcome(validRetained, { supabaseClient: client, server: true })).status, "saved");
+    newResultRetainedCandlesVerified = true;
     if (originalInputs) {
       const unsupported = await readers.createRelativePlanCharterResultService().finalize(owner, {});
       assert.equal(unsupported.status, "not_ready");
@@ -500,6 +541,13 @@ try {
     assert(Date.parse(durable.receipt.finalized_at) <= Date.now());
     assert.deepEqual((await readers.createRelativePlanCharterResultService().read(owner)).receipt,durable.receipt);
     assert.equal((await readers.createRelativePlanCharterResultService().finalize(owner,{})).status,"already_finalized");
+    assert.equal((await readers.persistRecommendationOutcome(conflictingRetained, { supabaseClient: client, server: true })).status, "saved");
+    assert.deepEqual((await readers.createRelativePlanCharterResultService().read(owner)).receipt, durable.receipt);
+    const repeatCandles = await readers.createRelativePlanCharterResultService().finalize(owner, {});
+    assert.equal(repeatCandles.status, "already_finalized"); assert.deepEqual(repeatCandles.receipt, durable.receipt);
+    assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "1");
+    assert.equal((await readers.persistRecommendationOutcome(originalOutcome, { supabaseClient: client, server: true })).status, "saved");
+    sealedResultIgnoresMutableCandles = true;
     await replaceIsolatedRunPayload(conflictingRun);
     assert.deepEqual((await readers.createRelativePlanCharterResultService().read(owner)).receipt, durable.receipt);
     const repeatedInput = await readers.createRelativePlanCharterResultService().finalize(owner, {});
@@ -628,6 +676,9 @@ try {
     new_result_rejects_original_input_conflict_before_storage: newResultOriginalInputVerified,
     sealed_model_ignores_later_mutable_original_inputs: sealedModelIgnoresMutableInputs,
     sealed_result_ignores_later_mutable_original_inputs: sealedResultIgnoresMutableInputs,
+    new_result_rejects_contradictory_retained_forward_candles_before_storage: newResultRetainedCandlesVerified,
+    valid_retained_forward_candles_keep_complete_result_population: newResultRetainedCandlesVerified,
+    sealed_result_ignores_later_mutable_forward_candles: sealedResultIgnoresMutableCandles,
     new_training_rejects_contradictory_retained_candles_before_storage: newTrainingRetainedCoverageVerified,
     valid_legacy_candles_keep_complete_training_population: newTrainingRetainedCoverageVerified,
     sealed_model_ignores_later_mutable_candles: sealedModelIgnoresMutableCandles,

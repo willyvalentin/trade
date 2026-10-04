@@ -194,6 +194,9 @@ test("actual database clock, immutable result and restarted SDK/product consumpt
   expect(proof).toMatchObject({ status:"pass",durable_terminal_result_verified:true,
     actual_database_finalization_clock_verified:true,historical_model_clock_fixture:true,
     result_prewrite_guards_verified:true,
+    new_result_rejects_contradictory_retained_forward_candles_before_storage:true,
+    valid_retained_forward_candles_keep_complete_result_population:true,
+    sealed_result_ignores_later_mutable_forward_candles:true,
     unobserved_current_revision_rejected_without_population_reduction:true,current_revision_cannot_finalize:true,
     finalized_capsule_ignores_later_mutable_revision:true,
     quality_improvement_verified:false,provider_requests:0,production_writes:0,broker_actions:0 });
@@ -209,6 +212,9 @@ test("full eight-member population survives actual SQL finalization and negotiat
   expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
   const proof = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
   expect(proof).toMatchObject({ status: "pass", original_candidates_per_forward_partition: 240,
+    new_result_rejects_contradictory_retained_forward_candles_before_storage:true,
+    valid_retained_forward_candles_keep_complete_result_population:true,
+    sealed_result_ignores_later_mutable_forward_candles:true,
     durable_terminal_result_verified: true, actual_database_finalization_clock_verified: true,
     historical_model_clock_fixture: true, actual_loopback_http_readback_verified: true,
     unrelated_pre_window_decisions_persisted_and_preserved: 12,
@@ -230,6 +236,9 @@ test("complete original archives survive actual SQL capacity migration and resta
   expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
   const proof = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
   expect(proof).toMatchObject({ status: "pass", complete_original_archives: true,
+    new_result_rejects_contradictory_retained_forward_candles_before_storage:true,
+    valid_retained_forward_candles_keep_complete_result_population:true,
+    sealed_result_ignores_later_mutable_forward_candles:true,
     original_candidates_per_forward_partition: 240, full_original_source_sql_capacity_verified: true,
     supported_transport_required_before_result_insert: true, durable_terminal_result_verified: true,
     result_prewrite_guards_verified: true, actual_database_finalization_clock_verified: true,

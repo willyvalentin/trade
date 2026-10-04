@@ -11,6 +11,8 @@ import { relativePlanSemanticFingerprint } from "@/lib/server/relative-plan-pros
 import { hasExplicitRelativePlanOutcomeRecordingTimes, hasAdmissibleRelativePlanCurrentOutcomeRevisionTimes } from "@/lib/server/relative-plan-probability-measurement";
 import { relativePlanCompleteResponseFitsTransport } from "@/lib/server/relative-plan-complete-http-response";
 import { relativePlanOriginalInputConflict } from "@/lib/server/relative-plan-original-input-admission";
+import { relativePlanRetainedOutcomeCandleConflict, relativePlanRetainedTrainingCandleConflict } from "@/lib/server/relative-plan-retained-outcome-admission";
+import { canonicalOutcomeProviderCoverageQuality } from "@/lib/recommendation-outcome-canonical-coverage";
 
 type Dependencies = { prospectiveStore: typeof relativePlanProspectiveStore;
   modelStore: typeof relativePlanTrainedProbabilityStore; resultStore: typeof relativePlanCharterResultStore;
@@ -78,6 +80,29 @@ export function createRelativePlanCharterResultService(d: Dependencies = depende
         ...scopeRelativePlanCharterResultSource(source, freeze.receipt).scanRuns,
       ]);
       if (inputConflict) return unavailable(`relative_plan_result_${inputConflict}`);
+      // Recheck the original sealed training capsule, not its mutable current
+      // rows. Forward admission includes every scoped member, never only top-k
+      // or resolved labels. Old sealed reads/retries returned above do not replay.
+      const trainingConflict = relativePlanRetainedTrainingCandleConflict(model.receipt.trained_model);
+      if (trainingConflict) return unavailable(`relative_plan_result_${trainingConflict}`);
+      const scoped = scopeRelativePlanCharterResultSource(source, freeze.receipt);
+      const trainingWindow = freeze.receipt.plan.windows.training;
+      const forwardSnapshots = scoped.snapshots.filter(row => {
+        const at = row.recommended_at === null ? NaN : Date.parse(row.recommended_at);
+        return !Number.isFinite(at) || at < Date.parse(trainingWindow.start_at) || at >= Date.parse(trainingWindow.end_at);
+      });
+      for (const outcome of scoped.outcomes) {
+        // Missing/partial acquisition is already an explicit measurement gap,
+        // not an assertion that original candles prove a complete label.
+        if (outcome.horizon !== "60m" || outcome.provider !== "twelve_data" || outcome.source !== "intraday_candles" ||
+          canonicalOutcomeProviderCoverageQuality(outcome.payload_json.canonical_provider_coverage) !== 3) continue;
+        const matches = forwardSnapshots.filter(row => row.snapshot_fingerprint === outcome.snapshot_fingerprint);
+        // Current training rows cannot replace the sealed fitted source. A
+        // colliding forward key still stays in admission; unknown keys do too.
+        if (matches.length === 0 && scoped.snapshots.some(row => row.snapshot_fingerprint === outcome.snapshot_fingerprint)) continue;
+        const conflict = relativePlanRetainedOutcomeCandleConflict(matches.length === 1 ? matches[0] : undefined, outcome);
+        if (conflict) return unavailable(`relative_plan_result_${conflict}`);
+      }
       const candidate = buildRelativePlanCharterResult({ owner,freeze: freeze.receipt,now,source,runtime,trainedModelReceipt: model.receipt });
       if (!candidate.result) return { status: "not_ready",receipt: null,blocker: candidate.blocker };
       const envelope = { contract_version: "relative_plan_charter_result_receipt_v1" as const,

@@ -2,6 +2,28 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Selected independent CLOSED slice — forward outcome candle admission, 2026-10-04:**
+Owner: this goal run, branch `codex/forward-outcome-admission-oct4`, isolated
+from freshly verified main `55576078` through completed prerequisite `8060572a`.
+Primary #732 remains Draft/release-held; no competing PR or release bypass.
+Classification `quality_measurement`, IF-4 full-charter learning comparison.
+Reproduced through real producer/writer decoders: a coherent, complete retained
+forward candle series contradicts its canonical target label, yet the NEW
+terminal command reaches the result writer. All 72 decisions / 576 original
+members remain intact; the contradiction is outside top three. Evidence:
+`/private/tmp/ture-forward-candle-red-oct4.log`. This is a synthetic CLOSED
+defect reproduction, not an observed market label or recommendation lift.
+
+Bounded acceptance (4–16 active hours, investigation capped at four): reject
+contradictory explicitly retained forward coverage/terminal events before NEW
+immutable writes; positive actual-producer candles keep the full population;
+old sealed GET/retry and v1 goldens remain unchanged. Reuse training admission
+semantics, validate isolated SQL/SDK behavior, types/lint/exact build, then park.
+No threshold, numerical model, charter, provider, migration or live-policy
+change. Integration order: existing #732 -> terminal context -> input audit ->
+input admission -> capacity -> training comparison -> this slice. Stop this
+guard work after minimum verified fix; return to the frozen intelligence chain.
+
 **Local acceptance complete — full-original training to forward comparison, 2026-10-04:**
 Test revision `9e1ceb23480be7aef96d1051a654f1d2d7dbb1a4`, isolated
 from protected main `55576078` through prerequisite `b97db5d8`, closes
