@@ -2,17 +2,89 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
-**Bounded CLOSED integration selected — 2026-10-04 17:42Z:**
-Owner: Codex; maximum four active hours. Compose the completed honest static-
-projection disclosure (`3c954900`) with the already completed original-input /
-canonical-outcome / full-charter tree, then verify their joint local acceptance.
-Classification: capability integration and quality measurement, NOT quality lift.
-Keep primary #732 and its frozen model, population, charter and prospective
-comparison unchanged. No new hypothesis, schema, provider, production operation
-or release bypass. Acceptance includes actual snapshot/learning compatibility,
-existing native original-source/canonical/training/result proofs, local browser,
-types, lint and ordinary exact-revision build. Stop and park after this evidence;
-the unchanged dependency security gate still prevents release acceptance.
+**CLOSED UI / original-intelligence integration complete locally — 2026-10-04:**
+Owner: Codex; the bounded four-active-hour integration is complete and parked.
+Clean product/test revision: `732a30ded6a037e30dd4f31a4d60cc78f0014d89` on
+`codex/closed-intelligence-integration-oct4`. Main is independently read-only
+verified unchanged at `55576078e102e7019c271aeb5e67de4a353f2e8f`; the primary
+#732 head is unchanged at `2741f946b668848ac1bb6b26982a2d00dbf29320`.
+This composes honest static-projection disclosure (`3c954900`) with the completed
+original-input / canonical-outcome / full-charter chain, including its admission
+and numeric-cache corrections. The five imported files are byte-identical to
+that source delivery; one minimum joint snapshot/learning test is added.
+Roadmap attribution: joint LOCAL capability acceptance for the existing
+IF2b → IF3 → IF4 chain, NOT a new quality hypothesis or phase graduation.
+
+The actual recommendation card no longer serves the legacy fixed setup uplift
+as calibrated AI confidence. Details truthfully say calibration is unavailable.
+Legacy v1 numerical observation/recompute remains compatible. The new joint
+test sends synthetic original confidence 82 through the actual snapshot builder,
+published-input capture, persistence decoder, canonical outcome and learning
+readiness: original confidence/fingerprint/source remain retained; the observation
+is explicitly uncalibrated with no historical basis. One canonical label does
+NOT shrink the original eight-member population: seven labels remain missing,
+precision delta remains null, numeric probability samples remain zero and quality
+readiness remains not_ready. Original decision bytes are unchanged.
+
+121 DISTINCT checks pass on this composed tree: 38 projection/snapshot/published-
+source/stale/timing presentation checks; 74 charter/model/result/runtime/outcome
+regressions; five active-governance checks; two native original acquisition /
+canonical / full-charter composition checks; and two full-original native
+training/result checks. The first new snapshot assertion incorrectly expected
+numeric rather than the existing decoder's text confidence; its test was repaired
+to preserve that established contract while independently checking retained
+numeric confidence. The first broad regression retained 73 passes and one
+Docker-sandbox rejection before DB execution. That exact unchanged test passes
+with ordinary local Docker permission in 29.3s. Do not count retries twice or
+describe the initially failing runs as green.
+
+Actual pre-forward server-owned training passes with real isolated Postgres /
+PostgREST / SDK, 96 original members and a separate-transaction committed-model
+witness. Historical model insertion is false in THIS mode; the passing spec
+does not emit individual per-run training instants. Both explicit synthetic
+forward partitions retain thirty decisions / 240 original members and all eleven
+charter checks. The SEPARATE full terminal-result mode passes in 5.8m and uses
+the disclosed historical synthetic model-clock fixture, not actual pre-forward
+training: full source 21,008,925 decoded bytes; result 6,520,791 decoded /
+834,318 gzip-wire bytes. Real SQL finalization, restart and owner-bound negotiated
+loopback HTTP work without losing original members or granting quality authority.
+Both native cases pass together in 8.3m with their unchanged deadlines.
+
+Nonincremental types, full lint (zero errors / eight existing warnings) and
+changed-file lint pass. The ordinary EXACT clean `732a30de` Linux Node 22.23.1 /
+Next 16.3.8 build passes with read-only locked dependencies, no network or mounted
+production credentials. Lock SHA256 remains
+`859ed09eed4d3de2e7ade5c74bea78e73770bea57f92d6cb3656224bfcace6f7`.
+Actual browser interaction uses the composed tree's real React components in an
+explicit synthetic loopback fixture: card opens details, original score stays
+82, unsupported AI uplift is absent, calibration is unavailable and no horizontal
+overflow occurs at 1280px. This is NOT authenticated app, mobile or deployed UI
+acceptance. Screenshot: `/private/tmp/ture-joint-projection-browser-oct4.png`.
+The owned tab/server and temporary proof/build containers are cleaned up.
+
+Logs: `/private/tmp/ture-joint-projection-tests-oct4.log` (initial assertion),
+`/private/tmp/ture-joint-projection-final-oct4.log`,
+`/private/tmp/ture-joint-native-composition-oct4.log`,
+`/private/tmp/ture-joint-charter-regression-oct4.log` (initial sandbox rejection),
+`/private/tmp/ture-joint-mixed-outcomes-final-oct4.log`,
+`/private/tmp/ture-joint-full-original-oct4.log`,
+`/private/tmp/ture-joint-governance-oct4.log`,
+`/private/tmp/ture-joint-types-oct4.log`, `/private/tmp/ture-joint-lint-oct4.log`,
+`/private/tmp/ture-joint-changed-lint-oct4.log`,
+`/private/tmp/ture-joint-exact-build-oct4.log`.
+
+Classification: locally implemented, locally tested and locally behavior-verified
+within the declared fixture; NOT merged, main/deployment behavior-verified,
+protected release-accepted or evidence of improved recommendations. No production
+query/write/configuration, provider request, broker action, push, PR mutation,
+merge or deploy occurs in this delivery. Frozen primary model, charter, population,
+ranking/publication thresholds, schemas, budget, CI and lock are unchanged.
+The pre-existing dependency advisory and normal protected-release acceptance
+remain unresolved; no new complete audit/CI pass is claimed. Earlier source-
+delivery Action 461 failures are documented baseline failures, not current joint
+acceptance passes. Prospective production quality remains unproven. Return to
+the frozen primary #732 release gates and original prospective evidence; no new
+independent stream is active after this bounded integration.
 
 **Combined actual training acceptance — 2026-10-04 10:10Z:**
 Completion audit on clean isolated `748c44367499d66eb55020ea0986887904eb3ba4`
