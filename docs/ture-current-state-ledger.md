@@ -2,7 +2,32 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
-**Local partial evidence — historical feature reproduction, 2026-10-04:**
+**Selected continuation — complete original session-feature reproduction, 2026-10-04:**
+Codex continues the same isolated original-input audit vertical on
+`codex/original-input-replay-oct4`; primary #732 remains release-held. Total
+budget is sixteen active hours including the historical milestone below;
+initial investigation of this continuation is capped at four. Classification
+is `quality_measurement`: normalized snapshot v1 retains nineteen current
+session features and indicators, but not their parsed source bars. Historical
+replay explicitly returns `current_session_features_checked=false`. This is
+the remaining disclosed arithmetic-reproduction gap, not a diagnosed ranking
+failure or a new quality hypothesis. Close it with the SAME producer arithmetic,
+original validated daily/session bars and original clock, retaining all eight
+members and unavailable originals. Preserve the historical v1 archive/reader,
+snapshot, decision/lineage, frozen model/charter/cohorts and live policies.
+Write ownership is limited to optional original current context capture, an
+independently bounded/versioned sidecar, reused pure producer calculation and
+fixed-purpose owner-only complete-input GET. No schema/order/portfolio or
+provider/scheduler/publication/broker change. Acceptance is actual producer ->
+durable SQL -> cache deletion/restarted owned SDK/HTTP -> all 25 used features
+and retained indicators, with corruption/source/clock/owner/legacy rejection,
+unchanged originals and zero extra requests; then affected tests/types/lint and
+exact build. No upstream JSON reproduction or recommendation-quality lift is
+claimed. This is the one independent slice, not a third active stream or new
+PR. Integration remains #732, parked terminal context, then the complete
+original-input audit against then-current main.
+
+**Local acceptance — historical feature reproduction, 2026-10-04:**
 Product revision `3276d6c1674ff022adcf5b03ab2ccbdd9c0ecccb` implements
 the selected independent slice below. Three focused checks pass in 18.9s:
 actual original cold producer/SQL/SDK, cache deletion and restarted six-feature
@@ -23,7 +48,10 @@ The initial broad run exposed a real coupling to newer scanner exports while
 compiling retained historical baselines. Separate sidecar capture from replay;
 do not modify baseline modules or expectations. Parallel runners also shared
 their artifact directory; the replacement run uses its own directory. The
-corrected 100-check original-input/outcome suite is still running, not passed.
+corrected 100-check original-input/outcome suite passes serially in 28.9m.
+Together with the separate 35 decision/governance, 33 charter/model and 21
+security checks, 189 unique checks pass; the focused three and five post-receipt
+governance checks overlap, not extra unique tests.
 One locked Linux build compiled but exceeded its unchanged five-minute limit
 during types under overlapping local verification; it is not a build pass.
 An exact retry on fixed `3276d6c1`, after host types/lint and the owned dev server
@@ -32,9 +60,10 @@ lock SHA-256 `859ed09eed4d3de2e7ade5c74bea78e73770bea57f92d6cb3656224bfcace6f7`,
 no build network or credentials, zero provider/production actions.
 Logs: `/private/tmp/ture-historical-replay-final-chain-regression-oct4.log` and
 `/private/tmp/ture-historical-replay-final-exact-linux-build-oct4.log`.
-Finish these acceptance checks before selecting another slice. No push, merge,
-deploy, migration, real provider request or broker action is selected for this
-local delivery. Existing primary #732 remains Draft on `2741f946`; its new
+The historical milestone is locally complete; its session-feature counterpart
+is selected above. No push, merge, deploy, migration, real provider request or
+broker action occurred for this local milestone. Existing primary #732 remains
+Draft on `2741f946`; its new
 exact-head hosted Draft job `111352999524` completed successfully at
 2026-10-04T03:56:07Z with 1,117 tests passing in 19.5m. Workflow
 `37174103003` itself is `failure`: protected Ready shards are intentionally
@@ -45,7 +74,7 @@ not environment behavior. The mandatory dependency-audit release hold remains.
 This Draft job is not protected Ready CI or a main/environment/quality
 acceptance claim.
 
-**Selected independent CLOSED slice — original historical-feature reproduction, 2026-10-04:**
+**Completed local milestone contract — original historical-feature reproduction, 2026-10-04:**
 Codex owns `codex/original-input-replay-oct4`, isolated from verified main
 `55576078` and locally fast-forwarded onto exact #732 dependency `2741f946`.
 Eight active hours, investigation capped at four. Classification is
@@ -76,13 +105,16 @@ then the complete parked terminal-context slice, then this slice against
 then-current main. Keep this local while the primary release gate remains held;
 no competing PR or planning-only push is selected.
 
-**Now — exact-head Draft verification of the integrated original learning vertical, 2026-10-04:**
+**Primary — exact-head Draft verified; protected release remains held, 2026-10-04:**
 The bounded IF-2b corrections below have passed their combined local acceptance.
-Select one coherent fast-forward update of existing Draft #732, not a competing
-PR or hypothesis. Preserve Draft status, the mandatory audit and every protected
-release gate; no main merge or production effect is selected. The old exact-head
-hosted pass below does not attest this new application revision. Read the new
-exact-head CI/review and metadata-only preview evidence before any release claim.
+The coherent update of existing Draft #732 is complete and its exact-head
+Draft job passes as recorded above. Preserve Draft status, the mandatory audit
+and every protected release gate; no main merge or production effect is selected.
+Read-only official npm metadata on 2026-10-04 still reports Next ESLint/config
+16.3.8 -> pinned fast-glob 3.3.1 -> micromatch 4.0.8 -> braces 3.0.3; latest
+fast-glob 3.3.3 still depends on micromatch 4.0.8. No compatible official
+dependency removal is available through that path. No exclusion/alias/fork or
+speculative upgrade is selected. Fresh PR review/comment reads are empty.
 Stop the minimum resumption/quota support stream and return to the frozen
 original-input/canonical-outcome/full-charter intelligence comparison. The
 independent terminal-context slice remains locally complete and parked until
