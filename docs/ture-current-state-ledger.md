@@ -2,6 +2,47 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Combined actual training acceptance — 2026-10-04 10:10Z:**
+Completion audit on clean isolated `748c44367499d66eb55020ea0986887904eb3ba4`
+closes the remaining combined pre-forward fitting dimension after the admission
+changes: the existing registered `complete original archives train with real DB
+time before synthetic forward comparison` passes in 2.5m. Unlike the historical
+model fixture below, this exercises the ACTUAL server-owned training job, real
+Postgres/PostgREST/SDK, 96 original training members and a separate-transaction
+committed-model witness before the explicit synthetic forward window. The
+script checks database materialization/confirmation instants inside the actual
+job interval and different witness/parent/row XIDs. The passing spec does not
+emit those individual per-run instants; do not copy them from the earlier proof.
+Restarted SDK and real loopback HTTP retain all 240 original members / thirty
+decisions in EACH forward partition and all eleven charter checks. Original
+input/candle contradictions reject before NEW training writes; later mutable
+source edits cannot refit the seal. Missing labels/costs and duplicated attempts
+retain their original denominators and disqualifying gaps. Historical admin
+model insertion is false in THIS mode. Forward observations are explicitly
+synthetic future fixtures, not observed market outcomes or a terminal result.
+
+Classification: `quality_measurement`, not quality lift. This adds one distinct
+actual training/forward check to the preceding 136, not another model, guard,
+schema, ranking hypothesis or product stream. Log:
+`/private/tmp/ture-combined-real-training-oct4.log`. App/lib/scripts/tests,
+dependencies, configuration and CI are byte-identical to exact-built `d4614fb6`;
+no extra build or behavior change is claimed. Temporary proof containers/network
+are removed. No production write/configuration, provider request, broker action,
+push, PR mutation, merge or deploy occurred.
+The frozen prospective primary remains next; no new independent slice is active.
+
+Authoritative CI diagnosis for #732 run `37174103003`: the Draft verification
+job passes, Ready matrix/provenance jobs are skipped, and the required aggregate
+fails its unchanged `SHARD_RESULT=success` check because this is a Draft. This is
+not an implementation failure to bypass or a live waiting job. Normal Ready/
+protected release acceptance is still missing; the independently verified five-
+high dependency advisory remains a separate unresolved release gate. Main is
+read-only verified unchanged at `55576078`. Fresh read-only production counts
+at `2026-10-04T10:11:38Z` confirm zero prospective comparisons, zero materialized
+models and zero committed-model confirmations. Actual production fitting and
+forward-quality evidence remain absent; keep the gate closed. This SELECT changed
+no data, flags, reservations, providers, publication or execution.
+
 **Local combined acceptance complete — original intelligence chain, 2026-10-04:**
 Isolated `codex/closed-intelligence-integration-oct4` locally composes the
 completed original-input/canonical-outcome/full-charter chain through
