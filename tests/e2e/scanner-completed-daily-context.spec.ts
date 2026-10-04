@@ -25,6 +25,62 @@ import {
 
 // Synthetic CLOSED fixtures. No market data, credentials or production writes.
 const at = new Date("2026-10-01T15:50:00.000Z");
+for (const staleCache of [false, true]) {
+  test(`scheduled intraday quota rejection propagates with ${staleCache ? "stale" : "missing"} cache`, async () => {
+    const bundle = await build({ entryPoints: [resolve(process.cwd(), "lib/intraday-indicator-cache.ts")],
+      bundle: true, write: false, platform: "node", format: "cjs", conditions: ["react-server"] });
+    const loaded = { exports: {} };
+    new Function("require", "module", "exports", bundle.outputFiles[0].text)(
+      createRequire(resolve(process.cwd(), "package.json")), loaded, loaded.exports);
+    const { getOrRefreshIntradayIndicators } = loaded.exports as typeof import("@/lib/intraday-indicator-cache");
+    const originalFetch = globalThis.fetch, originalKey = process.env.TWELVE_DATA_API_KEY;
+    process.env.TWELVE_DATA_API_KEY = "synthetic-closed-quota-test";
+    const calls: string[] = [];
+    let message = "You have run out of API credits for the current minute.";
+    let status = 429;
+    globalThis.fetch = async input => {
+      const url = new URL(typeof input === "string" || input instanceof URL ? input : input.url);
+      // Any DB, other provider or unexpected route fails the CLOSED test.
+      expect(url.origin).toBe("https://api.twelvedata.com");
+      expect(url.pathname).toBe("/time_series");
+      calls.push(url.searchParams.get("symbol")!);
+      return Response.json({ status: "error", code: status, message }, { status });
+    };
+    const preloadedScannerCacheRaw = staleCache ? { intraday_indicator_cache: {
+      interval: "5min", cached_at: "2026-01-01T14:00:00.000Z",
+      indicators: { latestPrice: 100, latestCandleTimestamp: "2026-01-01T13:55:00.000Z" },
+    } } : null;
+    try {
+      const fresh = await getOrRefreshIntradayIndicators("SYNTH_FRESH", { source: "scheduled",
+        preloadedScannerCacheRaw: { intraday_indicator_cache: { interval: "5min",
+          cached_at: new Date().toISOString(), indicators: { latestPrice: 100,
+            latestCandleTimestamp: new Date(Date.now() - 120000).toISOString() } } } });
+      expect(fresh.source).toBe("cache"); expect(fresh.stale).toBe(false);
+      expect(calls).toEqual([]);
+      await expect(getOrRefreshIntradayIndicators("SYNTH", { source: "scheduled", preloadedScannerCacheRaw }))
+        .rejects.toThrow(message);
+      expect(calls).toEqual(["SYNTH"]);
+      // Non-scheduled consumers retain their explicit stale/unavailable result.
+      const manual = await getOrRefreshIntradayIndicators("SYNTH", { source: "manual", preloadedScannerCacheRaw });
+      expect(manual.stale).toBe(true);
+      expect(manual.source).toBe(staleCache ? "cache" : "unavailable");
+      message = "Invalid candle payload.";
+      status = 400;
+      const ordinary = await getOrRefreshIntradayIndicators("SYNTH", { source: "scheduled", preloadedScannerCacheRaw });
+      expect(ordinary.stale).toBe(true);
+      expect(ordinary.warnings.at(-1)).toContain(message);
+      const controller = new AbortController(); controller.abort();
+      await expect(getOrRefreshIntradayIndicators("SYNTH", {
+        source: "scheduled", signal: controller.signal, preloadedScannerCacheRaw,
+      })).rejects.toThrow("time budget");
+      expect(calls).toEqual(["SYNTH", "SYNTH", "SYNTH"]);
+    } finally {
+      globalThis.fetch = originalFetch;
+      if (originalKey === undefined) delete process.env.TWELVE_DATA_API_KEY;
+      else process.env.TWELVE_DATA_API_KEY = originalKey;
+    }
+  });
+}
 test("packaged original scanner retains valid fractional provider prices without losing its input population", () => {
   test.setTimeout(90000);
   const proof = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--cold", "--fractional-price"],
@@ -242,6 +298,18 @@ test("early scanner rate limit cancels context without becoming a timeout", () =
   const evidence=JSON.parse(proof.stdout.trim().split("\n").at(-1)!);
   expect(evidence).toMatchObject({context_latency_proof:"preserved_scanner_rate_limit",scheduled_synthetic_requests:3,
     publications:0,pending_synthetic_transports:0,actual_provider_requests:0,production_actions:0,cleanup:"inert"});
+  expect(evidence.bounded_duration_ms).toBeLessThan(10000);
+});
+
+test("intraday quota rejection stops subsequent acquisitions and drains benchmarks", () => {
+  test.setTimeout(90000);
+  const proof=spawnSync(process.execPath,["scripts/completed-input-runtime-proof.mjs","--cold","--publication-clock",
+    "--context-latency","--intraday-rate-limit"],{cwd:process.cwd(),encoding:"utf8",timeout:80000});
+  expect(proof.status,`${proof.stdout}\n${proof.stderr}`).toBe(0);
+  const evidence=JSON.parse(proof.stdout.trim().split("\n").at(-1)!);
+  expect(evidence).toMatchObject({context_latency_proof:"preserved_intraday_rate_limit",scheduled_synthetic_requests:4,
+    attempts:1,claims:1,publications:0,pending_synthetic_transports:0,actual_provider_requests:0,
+    production_actions:0,broker_actions:0,cleanup:"inert"});
   expect(evidence.bounded_duration_ms).toBeLessThan(10000);
 });
 

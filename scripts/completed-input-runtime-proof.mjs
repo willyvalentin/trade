@@ -138,12 +138,15 @@ assert(!(staleBenchmark && partialBenchmark) && (!(staleBenchmark || partialBenc
   cold && !wrongPolicy && !opening && !closing && !diagnoseOutcomes && !contextLatency),
   "Benchmark fitness is one isolated cold original-input scenario");
 const scannerRateLimit = process.argv.includes("--scanner-rate-limit");
+const intradayRateLimit = process.argv.includes("--intraday-rate-limit");
+const acquisitionRateLimit = scannerRateLimit || intradayRateLimit;
 const expectContextTimeout = process.argv.includes("--expect-context-timeout") || contextBudgetTimeout;
 assert(!contextLatency || publicationClock && cold,
   "Context latency exercises the isolated normal cold publication path");
 assert(!expectContextTimeout || contextLatency);
-assert(!scannerRateLimit || contextLatency && !expectContextTimeout);
-const benchmarkDelayMs = contextBudgetTimeout || scannerRateLimit ? 30000 : 9000;
+assert(!acquisitionRateLimit || contextLatency && !expectContextTimeout);
+assert(!(scannerRateLimit && intradayRateLimit), "Inject one acquisition failure boundary only");
+const benchmarkDelayMs = contextBudgetTimeout || acquisitionRateLimit ? 30000 : 9000;
 assert(!publicationClock || cold && !opening && !wrongPolicy && !diagnoseOutcomes,
   "Publication clock proof is one isolated cold normal scanner path");
 assert(!opening || cold, "Opening proof has no pre-session warm-history acquisition");
@@ -409,7 +412,8 @@ try {
           undefined, {signal:init?.signal});
         } finally { pendingSyntheticTransports--; }
       }
-      if(scannerRateLimit && !["SPY","QQQ"].includes(url.searchParams.get("symbol"))) {
+      if((scannerRateLimit || intradayRateLimit && url.searchParams.get("interval") === "5min") &&
+        !["SPY","QQQ"].includes(url.searchParams.get("symbol"))) {
         return Response.json({status:"error",code:429,message:"Synthetic API credits rate limit"},{status:429});
       }
       const interval = url.searchParams.get("interval");
@@ -1678,14 +1682,16 @@ try {
     assert.equal(externalRequests,8);
     assert.equal(Number(sql("select count(*) from recommendations;")),0);
     assert(logs.some(items=>JSON.stringify(items).includes("market_regime_completed_daily_input_unavailable")));
-  } else if(scannerRateLimit) {
+  } else if(acquisitionRateLimit) {
     assert.equal(response.status,500);
     assert.equal(rows.length,1); assert.equal(receipts.length,1);
     assert.equal(rows[0].skip_reason,"provider_rate_limited");
+    assert.equal(receipts[0].cycle_status,"rejected");
+    assert.equal(receipts[0].receipt_json.disposition,"rejected_data");
     assert.equal(scanRuns.length,0); assert.equal(researchSnapshots.length,0);
     assert.equal(claims.length,1); assert.equal(claims[0].requested_credits,8);
     assert.equal(claims[0].status,"failed"); assert(claims[0].finalized_at);
-    assert.equal(externalRequests,3);
+    assert.equal(externalRequests,intradayRateLimit ? 4 : 3);
     assert(boundedDurationMs < 10000,"Early scanner failure must not wait for the route deadline");
     assert.equal(Number(sql("select count(*) from recommendations;")),0);
   } else if(expectContextTimeout) {
@@ -2847,7 +2853,7 @@ try {
     ...((staleBenchmark || partialBenchmark) ? {benchmark_input_fitness:staleBenchmark?"stale_rejected_not_no_trade":"partial_current_bar_discarded",
       retained_market_regime_input_policy:scanRuns[0]?.payload_json.market_regime?.input_evidence?.policy_version??null,
       terminal_reservation_status:claims[0]?.status,decision_count:scanRuns.length} : {}),
-    ...(contextLatency ? {context_latency_proof:scannerRateLimit?"preserved_scanner_rate_limit":expectContextTimeout?"reproduced_timeout":"completed",
+    ...(contextLatency ? {context_latency_proof:intradayRateLimit?"preserved_intraday_rate_limit":scannerRateLimit?"preserved_scanner_rate_limit":expectContextTimeout?"reproduced_timeout":"completed",
       bounded_duration_ms:boundedDurationMs,route_budget_ms:23000,cleanup_reserve_ms:3000,
       synthetic_scanner_delay_ms:1800,synthetic_benchmark_delay_ms:benchmarkDelayMs,
       pending_synthetic_transports:pendingSyntheticTransports} : {}),
