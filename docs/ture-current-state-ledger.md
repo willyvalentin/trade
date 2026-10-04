@@ -2,6 +2,37 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Selected independent CLOSED IF-4 slice — complete original-archive capacity, 2026-10-04:**
+Codex owns `codex/full-original-charter-capacity-oct4`, isolated from verified
+protected main `55576078` then fast-forwarded through completed admission
+`468f1553`. Primary #732 remains Draft/release-held; previous independent slices
+are complete/parked, not parallel development. Budget eight active hours;
+investigation capped at four. Classification: `quality_measurement`. The same
+relative-plan hypothesis, eight-member population, frozen windows, charter,
+model/ranking semantics and live policy remain unchanged.
+
+Positive producer-arithmetic characterization retains 72 original runs and
+576 exact raw-input replay matches with no admission conflict. Its complete
+source is 20,805,958 decoded bytes; pre-fix storage rejects the 16 MiB decoded
+bound. The fitted original 96-member model is 3,490,846 bytes; full canonical
+source gzip is 714,299 bytes. Log:
+`/private/tmp/ture-full-original-charter-capacity-investigation-fixed-oct4.log`.
+The first fixture mistakenly retained legacy daily volume that the actual
+completed-input producer omits; fix the fixture, not the product guard. This
+is synthetic CLOSED evidence, not actual input fitness or recommendation alpha.
+
+Scope: lossless complete source retention with a separately verified decoded
+cap, unchanged 8 MiB stored capsule, owner/clock/model binding and bounded
+HTTP encoding. Never trim cohorts/archives, remove unresolved members or loosen
+5 MiB plain / 4 MiB gzip-wire / 16 MiB decoded HTTP limits. Preserve old v1
+goldens and strict malformed/zip-bomb rejection. Acceptance requires complete
+positive originals through actual isolated SQL/SDK storage and restarted
+owned HTTP readback, truthful unsupported transport before writes, affected
+regressions, types/lint and exact build. Integration follows #732, parked
+terminal context, completed original-input audit/admission, then this slice
+against then-current main. Stop at that acceptance and return to full charter
+evidence; no provider, publication, broker or production action in this slice.
+
 **Local acceptance complete — original-input learning admission, 2026-10-04:**
 Frozen product/test revision `d40f4b8ba7bc25f39ad0ea09026da8d1570bf8f6`
 implements the bounded IF-4 slice below. New training/finalization commands

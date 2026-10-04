@@ -11,6 +11,7 @@ import { persistRecommendationSnapshot } from "@/lib/server/recommendation-snaps
 import { persistRecommendationOutcome } from "@/lib/server/recommendation-outcome-persistence";
 import { appendSyntheticOriginalArchives } from "../fixtures/original-input-archive-evidence";
 import { buildRelativePlanTrainedProbabilityModel } from "@/lib/server/relative-plan-trained-probability-model";
+import { RELATIVE_PLAN_CHARTER_RESULT_RECEIPT_VERSION, type RelativePlanCharterResultReceipt } from "@/lib/server/relative-plan-charter-result";
 
 type Dependencies = NonNullable<Parameters<typeof createRelativePlanCharterResultService>[0]>;
 function harness(overrides: Partial<Dependencies> = {}) {
@@ -195,4 +196,59 @@ test("a new result also rejects an original contradiction retained only in the s
   expect(h.calls.writes).toBe(0);
   expect(JSON.stringify(data)).toBe(original);
   expect(JSON.stringify(trained)).toBe(capsule);
+});
+
+test("new full-original terminal commands require supported lossless transport before immutable writes", async () => {
+  test.setTimeout(180000);
+  const input = await charterEvaluationInput(8, { originalInputs: true });
+  const data: Record<string, Record<string, unknown>[]> = {
+    recommendation_scan_runs: [], recommendation_snapshots: [], recommendation_outcomes: [],
+  };
+  const writer = { from(table: string) { return { async upsert(row: Record<string, unknown>) {
+    data[table].push(structuredClone(row)); return { error: null };
+  } }; } };
+  const originalOwner = process.env.TURE_APPLICATION_OWNER_USER_ID;
+  process.env.TURE_APPLICATION_OWNER_USER_ID = prospectiveOwner;
+  try {
+    for (const run of input.source.scanRuns) await persistRecommendationScanRun(run, { supabaseClient: writer, server: true });
+    for (const snapshot of input.source.snapshots) await persistRecommendationSnapshot(snapshot, { supabaseClient: writer, server: true });
+    for (const outcome of input.source.outcomes) await persistRecommendationOutcome(outcome, { supabaseClient: writer, server: true });
+  } finally {
+    if (originalOwner === undefined) delete process.env.TURE_APPLICATION_OWNER_USER_ID;
+    else process.env.TURE_APPLICATION_OWNER_USER_ID = originalOwner;
+  }
+  const original = JSON.stringify(data);
+  let stored: RelativePlanCharterResultReceipt | null = null, writes = 0;
+  const resultStore = () => createRelativePlanCharterResultStore({ async read() {
+    return { status: stored ? "available" : "not_found", receipt: stored };
+  }, async finalize(result) {
+    writes++;
+    stored = { contract_version: RELATIVE_PLAN_CHARTER_RESULT_RECEIPT_VERSION,
+      result_id: "55555555-5555-4555-8555-555555555555", owner_user_id: input.owner,
+      finalized_at: input.now.toISOString(), result };
+    return { status: "finalized", receipt: stored };
+  } });
+  const h = harness({ clock: () => new Date(input.now), resultStore,
+    modelStore: () => createRelativePlanTrainedProbabilityStore({ async read() {
+      return { status: "available", receipt: input.trainedModelReceipt };
+    }, async materialize() { throw new Error("must_not_refit"); }, async confirm() { throw new Error("must_not_confirm"); } }),
+    readSource: async () => ({ status: "available", data }), readRuntime: async () => input.runtime,
+  });
+  expect(await h.service.finalize(prospectiveOwner, {})).toMatchObject({ status: "not_ready", receipt: null,
+    blocker: "relative_plan_complete_result_response_too_large" });
+  expect(writes).toBe(0); expect(stored).toBeNull();
+  // A body field cannot select transport or bypass the fixed-purpose command.
+  expect((await h.service.finalize(prospectiveOwner, { acceptEncoding: "gzip" })).status).toBe("invalid_request");
+  expect(writes).toBe(0);
+  const accepted = await h.service.finalize(prospectiveOwner, {}, { acceptEncoding: "gzip" });
+  expect(accepted.status, accepted.blocker ?? "").toBe("finalized");
+  expect(writes).toBe(1);
+  expect(accepted.receipt?.result.measurement.partitions.map(p => p.original_population_count)).toEqual([240, 240]);
+  expect(accepted.receipt?.result.trained_model_receipt.trained_model.original_population_count).toBe(96);
+  expect(JSON.stringify(data)).toBe(original);
+  const restart = harness({ resultStore,
+    readSource: async () => { throw new Error("sealed_result_cannot_read_current_source"); } });
+  expect((await restart.service.finalize(prospectiveOwner, {})).receipt).toEqual(accepted.receipt);
+  expect((await restart.service.read(prospectiveOwner)).receipt).toEqual(accepted.receipt);
+  expect(writes).toBe(1);
 });

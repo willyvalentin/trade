@@ -13,7 +13,7 @@ import { createApplicationSession, TRADE_AUTH_COOKIE } from "@/lib/application-s
 import { persistRecommendationScanRun } from "@/lib/server/recommendation-scan-run-persistence";
 import { persistRecommendationSnapshot } from "@/lib/server/recommendation-snapshot-persistence";
 import { persistRecommendationOutcome } from "@/lib/server/recommendation-outcome-persistence";
-import { relativePlanCompleteHttpResponse, RELATIVE_PLAN_COMPLETE_RESPONSE_MAX_BYTES } from "@/lib/server/relative-plan-complete-http-response";
+import { relativePlanCompleteHttpResponse, relativePlanCompleteResponseFitsTransport, RELATIVE_PLAN_COMPLETE_RESPONSE_MAX_BYTES } from "@/lib/server/relative-plan-complete-http-response";
 import { RELATIVE_PLAN_COMPLETE_DECODED_MAX_BYTES, RELATIVE_PLAN_COMPLETE_GZIP_MAX_BYTES } from "@/lib/server/relative-plan-complete-http-response";
 import { gunzipSync } from "node:zlib";
 import { randomBytes } from "node:crypto";
@@ -418,6 +418,7 @@ test("gzip never bypasses independent decoded and compressed bounds", async () =
   const decodedOverflow = { evidence: "x".repeat(RELATIVE_PLAN_COMPLETE_DECODED_MAX_BYTES) };
   const incompressible = { evidence: randomBytes(RELATIVE_PLAN_COMPLETE_GZIP_MAX_BYTES + 1048576).toString("base64") };
   for (const result of [decodedOverflow, incompressible]) {
+    expect(relativePlanCompleteResponseFitsTransport(result, "gzip")).toBe(false);
     const response = relativePlanCompleteHttpResponse(result, { status: 200, headers: {}, acceptEncoding: "gzip" });
     expect(response.status).toBe(503);
     expect(response.headers.get("content-encoding")).toBeNull();

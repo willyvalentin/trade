@@ -1,4 +1,5 @@
 import { relativePlanEvidence } from "./relative-plan-context-evidence";
+import { reproducibleOriginalEvidence } from "./original-input-archive-evidence";
 import { prospectiveInput } from "./relative-plan-prospective";
 import { buildRecommendationSnapshot } from "@/lib/recommendation-snapshot";
 import { recommendationDecisionFeatureVectorFromScannerCandidate } from "@/lib/recommendation-decision-feature-vector";
@@ -11,9 +12,9 @@ import { BUILD_MARKER, RECOMMENDATION_PUBLISH_POLICY_VERSION } from "@/lib/publi
 import { CANDIDATE_DECISION_PROVIDER_CONTRACT_VERSION } from "@/lib/candidate-decision-record";
 
 // Synthetic CLOSED point-in-time source. Future fixture dates are never market evidence.
-export async function prospectiveSource(options: { now?: Date; missingInputs?: boolean; missingOutcome?: boolean; allLosses?: boolean; rankedCount?: 4 | 8 } = {}) {
+export async function prospectiveSource(options: { now?: Date; missingInputs?: boolean; missingOutcome?: boolean; allLosses?: boolean; rankedCount?: 4 | 8; originalInputs?: boolean } = {}) {
   const now = options.now ?? new Date("2026-10-12T17:00:00.000Z"), revision = prospectiveInput.source_revision;
-  const { run, record, observed } = await relativePlanEvidence({ rankedCount: options.rankedCount ?? 4, now,
+  const { run, record, observed } = await (options.originalInputs ? reproducibleOriginalEvidence : relativePlanEvidence)({ rankedCount: options.rankedCount ?? 4, now,
     missing: options.missingInputs ?? false, buildVersion: revision.build_identity,
     learningAttribution: buildCandidateDecisionLearningAttribution({
       recommendationPublishPolicyVersion: RECOMMENDATION_PUBLISH_POLICY_VERSION,
@@ -24,14 +25,16 @@ export async function prospectiveSource(options: { now?: Date; missingInputs?: b
     }) });
   const snapshots = observed.map(candidate => {
     const original = record.candidates.find(row => row.ticker === candidate.ticker)!, input = original.data.input_snapshot!;
+    const plan = options.originalInputs ? { entry_low: candidate.proposed_entry_low!, entry_high: candidate.proposed_entry_high!,
+      stop: candidate.proposed_stop_loss!, target: candidate.proposed_target_1!, planned_risk_reward: candidate.proposed_risk_reward! }
+      : { entry_low: 99, entry_high: 100, stop: 96, target: 108, planned_risk_reward: 2.5 };
     return buildRecommendationSnapshot({ ticker: candidate.ticker, scan_run_id: run.run_fingerprint,
       recommended_at: record.decision_timestamp, app_timestamp: record.decision_timestamp,
       source_mode: "research_only", data_mode: "research_only", is_visible: false, is_real: true,
-      side: "long", entry_low: 99, entry_high: 100, entry: 99.5, stop: 96, target: 108,
-      planned_risk_reward: 2.5, freshness: "fresh", payload: {
+      side: "long", ...plan, entry: (plan.entry_low + plan.entry_high) / 2, freshness: "fresh", payload: {
         // Match the real hidden-source producer's persisted plan metadata;
         // these values must survive the actual persistence-row decoder.
-        side: "long", entry_low: 99, entry_high: 100, is_real: true,
+        side: "long", entry_low: plan.entry_low, entry_high: plan.entry_high, is_real: true,
         research_capture_version: "completed_input_research_capture_v1", research_purpose: "learning_acceleration",
         scanner_input_policy_version: "completed_daily_intraday_input_v1", scanner_decision_input_snapshot: input,
         decision_timestamp: record.decision_timestamp, data_timestamp: input.current_session!.latest_bar_started_at,

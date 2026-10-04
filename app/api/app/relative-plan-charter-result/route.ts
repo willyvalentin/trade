@@ -16,7 +16,8 @@ export async function POST(request: Request) {
   if (!session) return applicationSessionUnauthorizedResponse();
   const origin = applicationMutationForbiddenResponse(request);
   if (origin) return origin;
-  const result = await createRelativePlanCharterResultService().finalize(session.owner_user_id,await request.json().catch(() => null));
+  const result = await createRelativePlanCharterResultService().finalize(session.owner_user_id,await request.json().catch(() => null),
+    { acceptEncoding: request.headers.get("accept-encoding") });
   return relativePlanCompleteHttpResponse(result,{ status: result.status === "finalized" ? 201 : result.status === "already_finalized" ? 200
     : result.status === "invalid_request" ? 400 : result.status === "conflicting" ? 409
       : result.status === "not_ready" || result.status === "not_found" ? 422 : 503,headers, acceptEncoding: request.headers.get("accept-encoding") });

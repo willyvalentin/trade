@@ -9,7 +9,7 @@ import { buildRelativePlanCharterResult, relativePlanTerminalQualityDecision,
   scopeRelativePlanCharterResultSource } from "@/lib/server/relative-plan-charter-result";
 import { relativePlanSemanticFingerprint } from "@/lib/server/relative-plan-prospective-comparison";
 import { hasExplicitRelativePlanOutcomeRecordingTimes, hasAdmissibleRelativePlanCurrentOutcomeRevisionTimes } from "@/lib/server/relative-plan-probability-measurement";
-import { RELATIVE_PLAN_COMPLETE_RESPONSE_MAX_BYTES } from "@/lib/server/relative-plan-complete-http-response";
+import { relativePlanCompleteResponseFitsTransport } from "@/lib/server/relative-plan-complete-http-response";
 import { relativePlanOriginalInputConflict } from "@/lib/server/relative-plan-original-input-admission";
 
 type Dependencies = { prospectiveStore: typeof relativePlanProspectiveStore;
@@ -31,7 +31,7 @@ export function createRelativePlanCharterResultService(d: Dependencies = depende
       receipt: null, blocker: freeze.blocker ?? "prospective_comparison_freeze_required" };
     return d.resultStore().read(freeze.receipt,owner);
   };
-  const command = async (owner: string,request: unknown): Promise<RelativePlanCharterResultStoreResult | {
+  const command = async (owner: string,request: unknown, acceptEncoding?: string | null): Promise<RelativePlanCharterResultStoreResult | {
     status: "invalid_request"; receipt: null; blocker: string;
   }> => {
     if (!request || typeof request !== "object" || Array.isArray(request) ||
@@ -83,9 +83,9 @@ export function createRelativePlanCharterResultService(d: Dependencies = depende
       const envelope = { contract_version: "relative_plan_charter_result_receipt_v1" as const,
         result_id: "11111111-1111-4111-8111-111111111111",owner_user_id: owner,
         finalized_at: now.toISOString(),result: candidate.result };
-      if (Buffer.byteLength(JSON.stringify({ status: "already_finalized",receipt: envelope,blocker: null,
-        terminal_quality_decision: relativePlanTerminalQualityDecision(envelope),quality_improvement_claimed: false }),"utf8") >
-        RELATIVE_PLAN_COMPLETE_RESPONSE_MAX_BYTES) return { status: "not_ready",receipt: null,
+      if (!relativePlanCompleteResponseFitsTransport({ status: "already_finalized",receipt: envelope,blocker: null,
+        terminal_quality_decision: relativePlanTerminalQualityDecision(envelope),quality_improvement_claimed: false },
+      acceptEncoding)) return { status: "not_ready",receipt: null,
           blocker: "relative_plan_complete_result_response_too_large" };
       const written = await store.finalize(candidate.result,freeze.receipt,owner);
       if (written.status !== "conflicting") return written;
@@ -99,5 +99,7 @@ export function createRelativePlanCharterResultService(d: Dependencies = depende
     terminal_quality_decision: result.receipt ? relativePlanTerminalQualityDecision(result.receipt) : null,
     quality_improvement_claimed: false });
   return { async read(owner: string) { return present(await read(owner)); },
-    async finalize(owner: string,request: unknown) { return present(await command(owner,request)); } };
+    async finalize(owner: string,request: unknown, transport: { acceptEncoding?: string | null } = {}) {
+      return present(await command(owner,request,transport.acceptEncoding));
+    } };
 }

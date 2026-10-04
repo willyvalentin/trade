@@ -58,7 +58,14 @@ export async function appendSyntheticOriginalArchives(run: RecommendationScanRun
 /** Separate producer-arithmetic fixture, never substituting or rewriting the
  * manually chosen scores/plans in retained charter or model goldens. */
 export async function reproducibleOriginalRun(fault?: "current_feature" | "indicator") {
-  const evidence = await relativePlanEvidence({ rankedCount: 8, missing: false });
+  return (await reproducibleOriginalEvidence({}, fault)).run;
+}
+
+/** Optional positive full-charter source. Default legacy fixtures/goldens
+ * remain unchanged; this explicitly retains actual original-bar arithmetic. */
+export async function reproducibleOriginalEvidence(options: Parameters<typeof relativePlanEvidence>[0] = {},
+  fault?: "current_feature" | "indicator") {
+  const evidence = await relativePlanEvidence({ rankedCount: 8, missing: false, ...options });
   const archives = await appendSyntheticOriginalArchives(evidence.run);
   const now = new Date(evidence.record.decision_timestamp);
   for (const candidate of evidence.observed) {
@@ -71,6 +78,9 @@ export async function reproducibleOriginalRun(fault?: "current_feature" | "indic
     Object.assign(candidate, historical, calculateCompletedCurrentInputFeatures(historical, indicators,
       indicators.latestPrice ?? undefined, current, false), { previous_close: history.candles.at(-1)!.close,
       intraday_indicators: indicators, historical_input_context: history, current_input_context: current,
+      // The completed-input producer explicitly omits legacy daily volume
+      // after its historical/current feature calculations (scanner.ts).
+      volume_ratio: undefined,
       reference_price_timestamp: current.latest_bar_started_at, reference_price_provider: "twelve_data",
       current_input_calculation_clock: { indicator_observed_at: now.toISOString(), volume_observed_at: now.toISOString() } });
     if (candidate.ticker === "GGG" && fault === "current_feature") candidate.session_high! += 1;
@@ -82,9 +92,10 @@ export async function reproducibleOriginalRun(fault?: "current_feature" | "indic
     eligibleCandidateTickers: evidence.observed.map(row => row.ticker) });
   const record = buildCandidateDecisionRecord({ scanRun: evidence.run, capture, scoringVersion: "synthetic_original_score",
     learningAttribution: evidence.record.learning_attribution,
-    buildVersion: "synthetic_closed_shadow_test:synthetic_closed_shadow_test" })!;
-  return { ...evidence.run, payload_json: { ...evidence.run.payload_json, candidate_decision_record: record,
+    buildVersion: options.buildVersion ?? "synthetic_closed_shadow_test:synthetic_closed_shadow_test" })!;
+  const run = { ...evidence.run, payload_json: { ...evidence.run.payload_json, candidate_decision_record: record,
     decision_lineage_receipt: buildDecisionLineageReceipt(record),
     scanner_historical_input_archive: buildScannerHistoricalInputArchive(capture, record),
     scanner_current_input_archive: buildScannerCurrentInputArchive(capture, record) } };
+  return { ...evidence, record, run };
 }

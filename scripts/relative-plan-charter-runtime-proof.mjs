@@ -14,6 +14,8 @@ import { createServer } from "node:http";
 const root = process.cwd(), directory = mkdtempSync(join(tmpdir(), "ture-relative-plan-charter-proof-"));
 const finalizedMode = process.argv.includes("--finalized-result");
 const rankedCount = process.argv.includes("--full-eight-member-population") ? 8 : 4;
+const originalInputs = process.argv.includes("--complete-original-archives");
+assert(!originalInputs || rankedCount === 8, "original_capacity_proof_requires_unchanged_eight_member_population");
 const partitionPopulation = 30 * rankedCount;
 const db = `ture-relative-plan-charter-db-${process.pid}`, api = `ture-relative-plan-charter-api-${process.pid}`;
 const network = `ture-relative-plan-charter-net-${process.pid}`;
@@ -27,6 +29,8 @@ let originalDecodedHttpBytes = null, actualHttpReadbackVerified = false, transpo
 let newTrainingRetainedCoverageVerified = false, sealedModelIgnoresMutableCandles = false;
 let newTrainingOriginalInputVerified = false, newResultOriginalInputVerified = false;
 let sealedModelIgnoresMutableInputs = false, sealedResultIgnoresMutableInputs = false;
+let sourceCapacitySqlVerified = false, negotiatedPrewriteVerified = false;
+let finalizedDecodedHttpBytes = null, finalizedTransportEncoding = null;
 // Real local socket + client decompression, not Response.json() pretending to
 // decode compressed bytes. This is NOT a hosted Netlify behavior attestation.
 async function verifyHttp(readers, body) {
@@ -64,6 +68,7 @@ try {
       export { prospectiveInput, prospectiveOwner } from './tests/fixtures/relative-plan-prospective';
       export { prospectiveSource } from './tests/fixtures/relative-plan-prospective-source';
       export { appendSyntheticOriginalArchives } from './tests/fixtures/original-input-archive-evidence';
+      export { buildDecisionLineageReceipt } from './lib/decision-lineage-receipt';
       export { charterRuntimeRows } from './tests/fixtures/relative-plan-charter-runtime';
       export { buildRelativePlanProspectivePlan } from './lib/server/relative-plan-prospective-comparison';
       export { relativePlanProspectiveStore } from './lib/server/relative-plan-prospective-store';
@@ -91,7 +96,7 @@ try {
   docker("network", "create", network); networkCreated = true;
   // Fresh Draft runners do not have the ordinary foundation shard's image
   // cache. Fetch only these named test images if absent, never a market API.
-  docker("run", "--pull=missing", "--rm", "-d", "--name", db, "--network", network,
+  docker("run", "--pull=missing", "--rm", "-d", "--name", db, "--network", network, "-p", "127.0.0.1::5432",
     "-e", "POSTGRES_PASSWORD=closed-proof-only", "postgres:16-alpine"); dbCreated = true;
   for (let i = 0; i < 40; i++) {
     try { sql("select 1"); break; } catch { if (i === 39) throw new Error("isolated_database_not_ready"); await delay(250); }
@@ -134,6 +139,28 @@ try {
       const rpc = (who, result) => JSON.parse(sql(`select public.finalize_relative_plan_charter_result_v1(
         '${who}','${candidate.prospective_freeze_id}','${JSON.stringify(result).replaceAll("'","''")}'::jsonb,
         'relative_plan_charter_result_receipt_v1')`));
+      if (originalInputs) {
+        assert(candidate.retained_source.decoded_byte_length > 16 * 1048576);
+        assert.equal(rpc(owner, candidate).status, "unavailable", "original 16 MiB SQL must reject the complete source");
+        assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "0");
+        const definition = sql("select pg_get_functiondef('public.finalize_relative_plan_charter_result_v1(uuid,uuid,jsonb,text)'::regprocedure)");
+        const attributes = sql("select proowner::text,proacl::text,prosecdef,proconfig::text from pg_proc where oid='public.finalize_relative_plan_charter_result_v1(uuid,uuid,jsonb,text)'::regprocedure");
+        const capacityMigration = readFileSync(resolve(root, "supabase/migrations/20261004054424_if4_complete_original_archive_source_capacity.sql"), "utf8");
+        // Direct SQL iteration on this disposable DB only; no migration history.
+        sql(capacityMigration);
+        const expected = definition.replace("not between 1 and 16777216", "not between 1 and 33554432");
+        assert.notEqual(expected, definition);
+        assert.equal(sql("select pg_get_functiondef('public.finalize_relative_plan_charter_result_v1(uuid,uuid,jsonb,text)'::regprocedure)"), expected);
+        assert.equal(sql("select proowner::text,proacl::text,prosecdef,proconfig::text from pg_proc where oid='public.finalize_relative_plan_charter_result_v1(uuid,uuid,jsonb,text)'::regprocedure"), attributes);
+        sql(capacityMigration); // safe idempotent readback, not a data rewrite
+        for (const length of [0, 32 * 1048576 + 1]) {
+          const oversized = structuredClone(candidate);
+          oversized.retained_source.decoded_byte_length = length;
+          assert.equal(rpc(owner, oversized).status, "unavailable", "decoded source bounds must remain strict");
+        }
+        assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "0");
+        sourceCapacitySqlVerified = true;
+      }
       const future = structuredClone(candidate);
       future.source_as_of = new Date(Date.now()+86400000).toISOString();
       future.measurement.read_as_of = future.source_as_of;
@@ -188,8 +215,14 @@ try {
       .eq("owner_user_id", owner).eq("id", run.id).select("id").single();
     assert.equal(response.error, null); assert.equal(response.data.id, run.id);
   };
+  const injectOriginalConflict = async run => {
+    if (!originalInputs) return readers.appendSyntheticOriginalArchives(run);
+    const record = run.payload_json.candidate_decision_record;
+    record.candidates[0].data.input_snapshot.features.session_high += 1;
+    run.payload_json.decision_lineage_receipt = readers.buildDecisionLineageReceipt(record);
+  };
   for (const day of days) for (let n = 0; n < 4; n++) {
-    await persist(await readers.prospectiveSource({ now: new Date(Date.parse(session(day).session_open) + 3.5 * 3600000 + n * 300000), rankedCount }));
+    await persist(await readers.prospectiveSource({ now: new Date(Date.parse(session(day).session_open) + 3.5 * 3600000 + n * 300000), rankedCount, originalInputs }));
   }
   let training, validRetainedTrainingOutcome = null, contradictoryRetainedTrainingOutcome = null;
   if (!finalizedMode) {
@@ -197,7 +230,7 @@ try {
     assert.equal(physical.status, "available");
     const original = readers.parseRecommendationLearningBaselineSource(physical.data); assert(original);
     const originalRun = original.scanRuns[0], conflictingRun = structuredClone(originalRun);
-    await readers.appendSyntheticOriginalArchives(conflictingRun);
+    await injectOriginalConflict(conflictingRun);
     await replaceIsolatedRunPayload(conflictingRun);
     const inputBefore = await readers.readRecommendationLearningBaselineSource(owner);
     const inputRejected = await readers.createRelativePlanTrainedProbabilityService().train(owner, {});
@@ -278,7 +311,7 @@ try {
     const physical = await readers.readRecommendationLearningBaselineSource(owner);
     const source = readers.parseRecommendationLearningBaselineSource(physical.data);
     const originalRun = source.scanRuns[0], conflictingRun = structuredClone(originalRun);
-    await readers.appendSyntheticOriginalArchives(conflictingRun);
+    await injectOriginalConflict(conflictingRun);
     await replaceIsolatedRunPayload(conflictingRun);
     assert.deepEqual((await readers.createRelativePlanTrainedProbabilityService().read(owner)).receipt, sealed);
     const repeated = await readers.createRelativePlanTrainedProbabilityService().train(owner, {});
@@ -311,12 +344,12 @@ try {
     // Actual persisted prior history, not a shortened input fixture or mocked
     // readSource. It remains in the owned database after result finalization.
     for (let n = 0; n < unrelatedPriorDecisions; n++) await persist(await readers.prospectiveSource({
-      now: new Date(Date.parse(session(priorDay).session_open) + 2.5 * 3600000 + n * 300000), rankedCount }));
+      now: new Date(Date.parse(session(priorDay).session_open) + 2.5 * 3600000 + n * 300000), rankedCount, originalInputs }));
   }
   const parts = [], runtimeRows = [];
   for (const day of futureDays) for (let n = 0; n < 10; n++) {
     const at = new Date(Date.parse(session(day).session_open) + 2.5 * 3600000 + n * 900000);
-    const part = await readers.prospectiveSource({ now: at, rankedCount });
+    const part = await readers.prospectiveSource({ now: at, rankedCount, originalInputs });
     const context = { contract_version: "market_regime_decision_context_v1", classifier_version: "market_regime_v1",
       captured_at: at.toISOString(), regime: "risk_on" };
     Object.assign(part.scanRuns[0].payload_json, { market_regime: "risk_on", market_regime_context: context });
@@ -405,7 +438,7 @@ try {
     const originalRun = source.scanRuns.find(run => Date.parse(run.observed_at) >= Date.parse(windows.held_out.start_at));
     assert(originalRun);
     const conflictingRun = structuredClone(originalRun);
-    await readers.appendSyntheticOriginalArchives(conflictingRun);
+    await injectOriginalConflict(conflictingRun);
     await replaceIsolatedRunPayload(conflictingRun);
     const before = await readers.readRecommendationLearningBaselineSource(owner);
     const rejected = await readers.createRelativePlanCharterResultService().finalize(owner, {});
@@ -416,8 +449,15 @@ try {
     assert.deepEqual((await readers.readRecommendationLearningBaselineSource(owner)).data, before.data);
     await replaceIsolatedRunPayload(originalRun);
     newResultOriginalInputVerified = true;
+    if (originalInputs) {
+      const unsupported = await readers.createRelativePlanCharterResultService().finalize(owner, {});
+      assert.equal(unsupported.status, "not_ready");
+      assert.equal(unsupported.blocker, "relative_plan_complete_result_response_too_large");
+      assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "0");
+      negotiatedPrewriteVerified = true;
+    }
     const beforeFinalization = Date.now();
-    durable = await readers.createRelativePlanCharterResultService().finalize(owner,{});
+    durable = await readers.createRelativePlanCharterResultService().finalize(owner,{}, { acceptEncoding: originalInputs ? "gzip" : null });
     assert.equal(durable.status,"finalized",durable.blocker);
     assert.equal(durable.terminal_quality_decision.disposition,"reject");
     assert(durable.receipt.result.measurement.evidence_complete);
@@ -455,6 +495,8 @@ try {
     for (const body of [durable,persisted]) {
       const transported = await verifyHttp(readers, body);
       finalizedHttpBytes = Math.max(finalizedHttpBytes ?? 0, transported.wireBytes);
+      finalizedDecodedHttpBytes = Math.max(finalizedDecodedHttpBytes ?? 0, transported.decodedBytes);
+      finalizedTransportEncoding = transported.encoding;
     }
     for (const role of ["anon","authenticated","service_role"]) for (const privilege of ["select","insert","update","delete","truncate","references","trigger"]) {
       assert.equal(sql(`select has_table_privilege('${role}','public.relative_plan_charter_results','${privilege}')`),"f");
@@ -491,7 +533,7 @@ try {
   // Corrected unfavorable forward labels change errors, never the immutable
   // fitting job, original first thirty or thresholds.
   for (const part of [parts[0], parts[30]]) {
-    const losses = await readers.prospectiveSource({ now: new Date(part.snapshots[0].recommended_at), allLosses: true, rankedCount });
+    const losses = await readers.prospectiveSource({ now: new Date(part.snapshots[0].recommended_at), allLosses: true, rankedCount, originalInputs });
     for (const outcome of losses.outcomes) assert.equal((await readers.persistRecommendationOutcome(outcome, { supabaseClient: client, server: true })).status, "saved");
   }
   const corrected = (await readers.createRelativePlanProspectiveService().read(owner,now)).learning.full_charter;
@@ -572,6 +614,11 @@ try {
     actual_loopback_http_readback_verified: actualHttpReadbackVerified,
     full_population_transport_encoding: transportEncoding,
     complete_finalized_product_http_bytes: finalizedHttpBytes, result_prewrite_guards_verified: resultPrewriteGuardsVerified,
+    complete_original_archives: originalInputs, full_original_source_decoded_bytes: durable?.receipt.result.retained_source.decoded_byte_length ?? null,
+    full_original_source_sql_capacity_verified: sourceCapacitySqlVerified,
+    supported_transport_required_before_result_insert: negotiatedPrewriteVerified,
+    complete_finalized_product_decoded_http_bytes: finalizedDecodedHttpBytes,
+    finalized_product_transport_encoding: finalizedTransportEncoding,
     provider_requests: 0, production_writes: 0, broker_actions: 0 }));
 } finally {
   globalThis.fetch = originalFetch;
