@@ -2,7 +2,34 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
-**Now — exact IF-4 Draft verification passed; protected release remains held, 2026-10-04:**
+**Now — user-selected weekend IF-2b original-input continuity, 2026-10-04:**
+Codex reuses the isolated existing #732 branch from verified current main
+`55576078e102e7019c271aeb5e67de4a353f2e8f`; no competing PR or learner is
+selected. Four active hours, investigation at most four. Actual local
+Postgres/PostgREST/SDK history preparation reproduces one finalized invalid
+source stranding all 94 other original members across restart even with unused
+credits. The new regression fails at one synthetic request versus sixteen
+budgeted distinct sources. This is a reproduced input-coverage gap, not a claim
+about the cause of any historical production failure.
+
+Select only bounded resumption past an exact idempotent, confirmed terminal
+failed claim. Keep its original member missing/blocked, its original credit
+charged and its identity namespace unchanged; never buy that source again.
+In-progress, uncertain and completed-but-missing claims still stop. New
+reservations stay within the existing invocation/minute/day budgets. The
+first provider failure still stops its invocation; no automatic retry loop,
+scheduler, ranking, publication, model, schema or broker change is selected.
+Acceptance is the actual source producer and durable credit ledger retaining
+all 95 identities, acquiring fifteen other histories through bounded restart,
+one failed charged source, no duplicate purchase, eight-credit minute and
+sixteen-credit day limits, original uncertainty/concurrency controls, types,
+lint and exact build. These are synthetic CLOSED input-capability checks, not
+OPEN fitness, provider entitlement or recommendation-quality lift. Return to
+the frozen input-to-canonical-outcome/full-charter chain after this slice.
+The independent context slice remains complete and parked. Protected release
+still requires the unresolved security correction; no push is selected yet.
+
+**Retained release receipt — exact IF-4 Draft verification passed; protected release remains held, 2026-10-04:**
 Existing Draft #732's exact remote head
 `2e626dd064e582564cb5a97b92e526d67e6cee8d` is terminally verified, not waiting.
 Run `37161115646`, Draft job `111314567186`, passes at

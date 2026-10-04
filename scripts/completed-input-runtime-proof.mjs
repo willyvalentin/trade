@@ -39,7 +39,7 @@ assert(!originalSourceReadControls || budgetedHistorySetup,
 assert(!originalOutcomeContinuation || budgetedHistorySetup,
   "Original outcome continuation follows the actual budgeted full original session, never seeded source rows");
 const historyPreparationFault = process.argv.find(value=>value.startsWith("--history-preparation-fault="))?.split("=")[1];
-assert(!historyPreparationFault || budgetedHistorySetup && ["rate_limit","provider_identity","cache_write","reservation","finalization","daily_limit","abort","deadline","concurrent"].includes(historyPreparationFault),
+assert(!historyPreparationFault || budgetedHistorySetup && ["rate_limit","provider_identity","cache_write","reservation","finalization","daily_limit","abort","deadline","concurrent","terminal_resume"].includes(historyPreparationFault),
   "Preparation fault uses only its isolated actual acquisition/budget boundary");
 assert(!budgetedHistorySetup || fullOriginalHistorySetup,
   "Budgeted history is the actual same original-source composition, not another schedule or ranking arm");
@@ -466,7 +466,8 @@ try {
           values.push({datetime:"2026-10-01",open:"100",high:"1001",low:"99",close:"1000",volume:"1000"});
         }
       }
-      return Response.json({meta:{symbol:historyPreparationFault==="provider_identity"?"WRONG":url.searchParams.get("symbol"),interval,exchange_timezone:"America/New_York"},values});
+      return Response.json({meta:{symbol:historyPreparationFault==="provider_identity" ||
+        historyPreparationFault==="terminal_resume" && externalRequests===1 ? "WRONG":url.searchParams.get("symbol"),interval,exchange_timezone:"America/New_York"},values});
     }
     if (url.origin !== environment.NEXT_PUBLIC_SUPABASE_URL) throw new Error(`Unexpected external boundary: ${url.hostname}`);
     if (url.pathname === `/auth/v1/admin/users/${owner}`) return Response.json({ user: {
@@ -745,6 +746,77 @@ try {
     fullOriginalHistoryEvidence={original_population_count:95,overlapping,same_minute_restart:same,later_minute_restart:later,
       synthetic_provider_requests:externalRequests,unique_requested_tickers:16,repeated_provider_requests:0,
       reserved_credits:16,finalized_credits:16,maximum_minute_credits:8,physical_claims:claims};
+  } else if(historyPreparationFault==="terminal_resume") {
+    clock=OriginalDate.parse("2026-10-01T12:45:00Z");
+    process.env.TURE_BASIC_FREE_CATALOG_DAILY_CREDIT_BUDGET="16";
+    const first=await readers.prepareCompletedSessionHistories();
+    assert.equal(first.blocker,"history_preparation_attributable_context_unavailable");
+    assert.equal(externalRequests,1);
+    delete require.cache[require.resolve(join(generated,"reader.cjs"))];
+    const restarted=require(join(generated,"reader.cjs"));
+    const resumeControls=[];
+    const checkResumeBlocked=async(fault)=>{
+      const before=externalRequests;
+      const claimsBefore=sql("select count(*) from basic_free_discovery_credit_reservations;");
+      const pass=await restarted.prepareCompletedSessionHistories();
+      assert.equal(pass.status,"blocked",JSON.stringify(pass));
+      assert.equal(pass.requested_credits,0);
+      assert.equal(externalRequests,before);
+      assert.equal(sql("select count(*) from basic_free_discovery_credit_reservations;"),claimsBefore);
+      assert.deepEqual(pass.original_members.map(row=>row.ticker),first.original_members.map(row=>row.ticker));
+      resumeControls.push({fault,blocker:pass.blocker,provider_requests:0,new_claims:0,original_population_count:95});
+    };
+    sql("update public.basic_free_discovery_credit_reservations set finalized_at='2026-10-01T12:50:00Z' where status='failed';");
+    await checkResumeBlocked("future_finalization_same_minute");
+    sql("update public.basic_free_discovery_credit_reservations set finalized_at='2026-10-01T12:45:00Z' where status='failed';");
+    const same=await restarted.prepareCompletedSessionHistories();
+    clock+=60000;
+    sql("revoke select on public.basic_free_discovery_credit_reservations from service_role;");
+    await checkResumeBlocked("unavailable_owner_ledger");
+    sql("grant select on public.basic_free_discovery_credit_reservations to service_role;");
+    sql("update public.basic_free_discovery_credit_reservations set finalized_at='2026-10-01T12:50:00Z' where status='failed';");
+    await checkResumeBlocked("future_finalization");
+    sql("update public.basic_free_discovery_credit_reservations set finalized_at='2026-10-01T12:45:00Z' where status='failed';");
+    sql("update public.basic_free_discovery_credit_reservations set finalized_at='2026-10-01T12:44:00Z' where status='failed';");
+    await checkResumeBlocked("pre_claim_finalization");
+    sql("update public.basic_free_discovery_credit_reservations set finalized_at='2026-10-01T12:45:00Z' where status='failed';");
+    process.env.TURE_BASIC_FREE_CATALOG_DAILY_CREDIT_BUDGET="15";
+    await checkResumeBlocked("budget_drift");
+    process.env.TURE_BASIC_FREE_CATALOG_DAILY_CREDIT_BUDGET="16";
+    sql("update public.basic_free_discovery_credit_reservations set status='attempted',finalized_at=null where status='failed';");
+    await checkResumeBlocked("prior_attempt_in_progress");
+    sql("update public.basic_free_discovery_credit_reservations set status='completed',finalized_at='2026-10-01T12:45:00Z' where status='attempted';");
+    await checkResumeBlocked("completed_missing_source");
+    sql("update public.basic_free_discovery_credit_reservations set status='failed' where status='completed' and execution_fingerprint like '%|' || '"+first.original_members[0].ticker+"';");
+    const later=await restarted.prepareCompletedSessionHistories();
+    assert.equal(externalRequests,16,"A finalized failed source must not strand the other original histories");
+    assert.equal(same.blocker,"per_minute_credit_limit_reached");
+    assert.equal(same.requested_credits,7);
+    assert.equal(later.status,"partial");
+    assert.equal(later.requested_credits,8);
+    assert.equal(later.original_members.filter(row=>row.status==="available").length,7);
+    assert.equal(later.original_members.filter(row=>row.status==="acquired").length,8);
+    const failedTicker=first.original_members[0].ticker;
+    for(const pass of [same,later]) {
+      assert.equal(pass.original_members[0].status,"blocked");
+      assert.equal(pass.original_members[0].claim_id,first.original_members[0].claim_id);
+      assert.deepEqual(pass.original_members.map(row=>row.ticker),first.original_members.map(row=>row.ticker));
+    }
+    assert.equal(syntheticRequestEvidence.filter(row=>row.ticker===failedTicker).length,1);
+    const exhausted=await restarted.prepareCompletedSessionHistories();
+    assert.equal(exhausted.blocker,"daily_credit_limit_reached");
+    assert.equal(exhausted.requested_credits,0);
+    assert.equal(externalRequests,16);
+    const claims=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from basic_free_discovery_credit_reservations t;"));
+    assert.equal(claims.length,16);
+    assert.equal(claims.filter(row=>row.status==="failed"&&row.finalized_at).length,1);
+    assert.equal(claims.filter(row=>row.status==="completed"&&row.finalized_at).length,15);
+    assert.equal(Number(sql("select max(credits) from (select sum(requested_credits) credits from basic_free_discovery_credit_reservations group by minute_bucket) t;")),8);
+    fullOriginalHistoryEvidence={fault:historyPreparationFault,first,same_minute_restart:same,later_minute_restart:later,
+      exhausted,original_population_count:95,synthetic_provider_requests:16,unique_requested_tickers:16,
+      repeated_provider_requests:0,reserved_credits:16,failed_credits:1,finalized_credits:16,
+      maximum_minute_credits:8,persisted_histories:15,missing_failed_source_preserved:true,
+      physical_claims:claims,resume_controls:resumeControls,publications:0,broker_actions:0};
   } else if(historyPreparationFault) {
     clock=OriginalDate.parse("2026-10-01T12:45:00Z");
     process.env.TURE_BASIC_FREE_CATALOG_DAILY_CREDIT_BUDGET="1";

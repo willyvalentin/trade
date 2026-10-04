@@ -14,12 +14,14 @@ import { getUsEquityMarketSession, usEquityMarketCalendarDataset } from "@/lib/u
 import { prepareBasicFreeDiscoveryCreditReservation, finalizeBasicFreeDiscoveryCreditReservation } from "@/lib/server/basic-free-discovery-credit-reservation-persistence";
 
 export const COMPLETED_SESSION_HISTORY_PREPARATION_VERSION = "completed_session_history_preparation_v1" as const;
+export const COMPLETED_SESSION_HISTORY_RESUMPTION_VERSION = "completed_history_terminal_failure_resumption_v1" as const;
 type Member = {
   ticker: string;
   status: "pending" | "available" | "acquired" | "blocked";
   claim_id: string | null;
   captured_at: string | null;
   content_sha256: string | null;
+  blocker: string | null;
 };
 function record(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
@@ -54,6 +56,7 @@ export async function prepareCompletedSessionHistories(options: { signal?: Abort
   let accountingComplete = true;
   const result = (blocker: string | null) => ({
     policy_version: COMPLETED_SESSION_HISTORY_PREPARATION_VERSION,
+    resumption_policy_version: COMPLETED_SESSION_HISTORY_RESUMPTION_VERSION,
     started_at: started.toISOString(), completed_at: new Date().toISOString(),
     trading_date: session.market_date, universe_fingerprint: fingerprint,
     scope: "server_selected_original_regular_session_universe" as const,
@@ -83,7 +86,7 @@ export async function prepareCompletedSessionHistories(options: { signal?: Abort
   }
   if (!tickers.size || tickers.size > 256) return result("history_preparation_original_selection_unavailable");
   members.push(...[...tickers].map(ticker => ({ ticker, status: "pending" as const,
-    claim_id: null, captured_at: null, content_sha256: null })));
+    claim_id: null, captured_at: null, content_sha256: null, blocker: null })));
   fingerprint = `sha256:${createHash("sha256").update(JSON.stringify({ policy: COMPLETED_SESSION_HISTORY_PREPARATION_VERSION,
     date: session.market_date, calendar: usEquityMarketCalendarDataset.dataset_fingerprint, tickers: [...tickers] })).digest("hex")}`;
   const { client } = getServerSupabaseClient();
@@ -154,7 +157,10 @@ export async function prepareCompletedSessionHistories(options: { signal?: Abort
           content_sha256: context.content_sha256 });
       }
     }
-    for (const member of members.filter(row => row.status === "pending").slice(0, minuteBudget)) {
+    for (const member of members.filter(row => row.status === "pending")) {
+      // A retained failure consumes no new invocation credit, but never refunds
+      // its original claim. Limit NEW reservations rather than visited members.
+      if (reserved >= minuteBudget) break;
       throwIfAborted(signal);
       const now = new Date();
       if (getUsEquityMarketSession(now).market_date !== session.market_date ||
@@ -165,15 +171,68 @@ export async function prepareCompletedSessionHistories(options: { signal?: Abort
       const execution = `${COMPLETED_SESSION_HISTORY_PREPARATION_VERSION}|${owner}|${session.market_date}|${member.ticker}`;
       const claimId = buildBasicFreeDiscoveryCreditReservationClaimId({ trading_date: session.market_date,
         execution_fingerprint: execution });
-      const claim = await prepareBasicFreeDiscoveryCreditReservation({ claim_id: claimId,
+      const claimInput = { claim_id: claimId,
         execution_fingerprint: execution, owner_user_id: owner, trading_date: session.market_date,
         minute_bucket: bucket, catalog_observation: false, requested_credits: 1,
-        declared_daily_credit_budget: dailyBudget, declared_per_minute_credit_budget: minuteBudget }, { signal });
+        declared_daily_credit_budget: dailyBudget, declared_per_minute_credit_budget: minuteBudget };
+      let claim = await prepareBasicFreeDiscoveryCreditReservation(claimInput, { signal });
+      if (claim.status === "reservation_unavailable" || claim.status === "already_failed") {
+        // The immutable claim includes its ORIGINAL minute. A later invocation
+        // may only recover that exact identity from the owner-bound ledger,
+        // never relax the RPC's immutable-minute/conflict checks.
+        const prior = await client.from("basic_free_discovery_credit_reservations")
+          .select("claim_id,status,minute_bucket,finalized_at")
+          .eq("owner_user_id", owner).eq("trading_date", session.market_date)
+          .eq("execution_fingerprint", execution).abortSignal(signal).maybeSingle();
+        throwIfAborted(signal);
+        const saved = prior.data;
+        if (!prior.error && saved?.claim_id === claimId && saved.status === "failed" &&
+          typeof saved.minute_bucket === "string" &&
+          Number.isFinite(Date.parse(saved.minute_bucket)) && Date.parse(saved.minute_bucket) <= now.getTime() &&
+          typeof saved.finalized_at === "string" && Number.isFinite(Date.parse(saved.finalized_at)) &&
+          Date.parse(saved.finalized_at) >= Date.parse(saved.minute_bucket) &&
+          Date.parse(saved.finalized_at) <= now.getTime()) {
+          claim = await prepareBasicFreeDiscoveryCreditReservation({ ...claimInput,
+            minute_bucket: new Date(saved.minute_bucket).toISOString() }, { signal });
+          if (claim.provider_execution_allowed || claim.status !== "already_failed" ||
+            claim.claim_id !== claimId || claim.idempotent !== true) {
+            accountingComplete = false;
+            member.status = "blocked";
+            member.claim_id = claimId;
+            member.blocker = "history_preparation_prior_failure_unproven";
+            return result(member.blocker);
+          }
+        } else if (claim.status === "already_failed") {
+          accountingComplete = false;
+          member.status = "blocked";
+          member.claim_id = claimId;
+          member.blocker = "history_preparation_prior_failure_unproven";
+          return result(member.blocker);
+        }
+      }
       if (!claim.provider_execution_allowed || claim.claim_id !== claimId) {
         if (claim.status === "reservation_unavailable") accountingComplete = false;
         member.status = "blocked";
         member.claim_id = claim.claim_id;
-        return result(claim.safe_blocker ?? "history_preparation_reservation_unavailable");
+        member.blocker = claim.safe_blocker ?? "history_preparation_reservation_unavailable";
+        // Only the exact owner's already-finalized failed claim may yield to
+        // another original member. Preserve the claim namespace: a new resume
+        // policy must not mint another paid identity for this failed source.
+        // In-progress, ambiguous or completed-but-missing sources still stop.
+        if (!claim.provider_execution_allowed && claim.claim_id === claimId &&
+          claim.status === "already_failed" && claim.idempotent === true) {
+          const terminal = await finalizeBasicFreeDiscoveryCreditReservation({ claim_id: claimId,
+            execution_fingerprint: execution, status: "failed", finalized_at: new Date().toISOString() },
+          { signal: AbortSignal.any([signal, AbortSignal.timeout(5000)]) });
+          throwIfAborted(signal);
+          if (!terminal.finalization_proven || terminal.status !== "already_failed") {
+            accountingComplete = false;
+            member.blocker = "history_preparation_prior_failure_unproven";
+            return result(member.blocker);
+          }
+          continue;
+        }
+        return result(member.blocker);
       }
       reserved += 1;
       member.claim_id = claimId;
@@ -209,6 +268,7 @@ export async function prepareCompletedSessionHistories(options: { signal?: Abort
         failure = signal.aborted ? abortedReason()
           : error instanceof Error && safeInternalReasons.includes(error.message) ? error.message
           : isProviderRateLimitLikeError(error) ? "history_preparation_provider_rate_limited" : "history_preparation_acquisition_failed";
+        member.blocker = failure;
       }
       // Even an abort finalizes outside its cancelled transport. Failed and
       // uncertain reservations remain charged; never repair them by re-fetching.

@@ -567,6 +567,39 @@ test("installed owner history command resumes the full original inputs through r
   }
 });
 
+test("a finalized missing history does not strand unrelated original inputs or buy the failed source again", () => {
+  test.setTimeout(90000);
+  const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--cold",
+    "--rotation-day", "--prospective-enrollment", "--full-original-history-setup", "--budgeted-history-setup",
+    "--history-preparation-fault=terminal_resume"], { cwd: process.cwd(), encoding: "utf8", timeout: 70000 });
+  expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
+  const receipt = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
+  expect(receipt).toMatchObject({ actual_provider_requests: 0, production_actions: 0, publications: 0,
+    broker_actions: 0, cleanup: "inert", preparation_failure_evidence: {
+      original_population_count: 95, synthetic_provider_requests: 16, unique_requested_tickers: 16,
+      repeated_provider_requests: 0, reserved_credits: 16, failed_credits: 1, finalized_credits: 16,
+      maximum_minute_credits: 8, persisted_histories: 15, missing_failed_source_preserved: true,
+      first: { status: "blocked", requested_credits: 1 },
+      same_minute_restart: { status: "blocked", requested_credits: 7, blocker: "per_minute_credit_limit_reached" },
+      later_minute_restart: { status: "partial", requested_credits: 8 },
+      exhausted: { status: "blocked", requested_credits: 0, blocker: "daily_credit_limit_reached" },
+    } });
+  const evidence = receipt.preparation_failure_evidence;
+  expect(evidence.resume_controls.map((row: { fault: string }) => row.fault)).toEqual([
+    "future_finalization_same_minute", "unavailable_owner_ledger", "future_finalization", "pre_claim_finalization", "budget_drift",
+    "prior_attempt_in_progress", "completed_missing_source",
+  ]);
+  for (const control of evidence.resume_controls) expect(control).toMatchObject({
+    provider_requests: 0, new_claims: 0, original_population_count: 95,
+  });
+  for (const pass of [evidence.same_minute_restart, evidence.later_minute_restart, evidence.exhausted]) {
+    expect(pass).toMatchObject({ resumption_policy_version: "completed_history_terminal_failure_resumption_v1",
+      reservation_accounting_complete: true, current_price_allowed: false, publication_allowed: false, broker_allowed: false });
+    expect(pass.original_members[0]).toMatchObject({ status: "blocked", blocker: "already_failed",
+      captured_at: null, content_sha256: null });
+  }
+});
+
 for (const fault of ["rate_limit", "provider_identity", "cache_write", "reservation", "finalization", "daily_limit", "abort", "deadline"]) {
   test(`history preparation retains charged failure and missing members after ${fault} without buying a retry`, () => {
     test.setTimeout(90000);
