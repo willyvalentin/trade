@@ -2,6 +2,31 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Selected independent CLOSED IF-4 contract — consumed fallback horizon R, 2026-10-04:**
+Codex owns isolated `codex/horizon-fallback-r-admission-oct4`, from freshly
+verified main `55576078` through completed necessary prerequisite `d5dab7f6`.
+Primary #732 stays Draft/release-held; other completed slices stay parked. Four
+active hours, investigation at most four. The actual NEW result command tries
+to seal an original non-top-three neither-hit member with missing `current_r`
+and contradictory fallback `eod_r=9` despite twelve coherent retained horizon
+bars. Red: `/private/tmp/ture-horizon-fallback-r-red-oct4.log` (one attempted
+write, expected zero). This is reproduced synthetic measurement-integrity
+evidence, not a production incident or market-quality claim.
+
+Only check the measurement selected by the existing `current_r ?? eod_r`
+consumer against the fully closed original horizon bar and original geometry
+before NEW training/result admission. Preserve zero/current precedence, honest
+positive/negative fallback, missing measurements, missing legacy bars and sealed
+reads/retries. No source relabelling, denominator reduction, model/charter/ranking
+change, new migration, provider request or production change. Acceptance needs
+actual NEW-command rejection before write, local native SQL/SDK/HTTP proof with
+unchanged complete original population and historical model-clock disclosure,
+affected tests, types, lint and exact normal build. Classification:
+`quality_measurement`, not proven recommendation-quality lift. Park after this
+minimum delivery and resume the frozen original full-charter comparison;
+integrate the completed prerequisite chain against then-current main only after
+the protected primary release is legitimately unblocked.
+
 **Local acceptance complete — retained original-horizon R admission, 2026-10-04:**
 Product `46551901fad6022dbe887b17afc2ff38fb488fdf` on isolated branch
 `codex/horizon-return-admission-oct4` closes the reproduced NEW result admission

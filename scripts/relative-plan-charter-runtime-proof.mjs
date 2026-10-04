@@ -34,6 +34,7 @@ let sourceCapacitySqlVerified = false, negotiatedPrewriteVerified = false;
 let finalizedDecodedHttpBytes = null, finalizedTransportEncoding = null;
 let newResultRetainedCandlesVerified = false, sealedResultIgnoresMutableCandles = false;
 let newResultRetainedHorizonRVerified = false;
+let newResultRetainedFallbackHorizonRVerified = false;
 // Real local socket + client decompression, not Response.json() pretending to
 // decode compressed bytes. This is NOT a hosted Netlify behavior attestation.
 async function verifyHttp(readers, body) {
@@ -545,6 +546,28 @@ try {
     assert.equal(honestR.current_price, midpoint + 0.05);
     assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "0");
     newResultRetainedHorizonRVerified = true;
+    // Exercise the actual persisted EOD fallback selected when current R is
+    // absent; it must agree with the same original sixty-minute close.
+    const fallbackNeither = { ...honestNeither, current_price: null, current_r: null,
+      eod_price: midpoint + 0.05, eod_r: 9 };
+    assert.equal((await readers.persistRecommendationOutcome(fallbackNeither,
+      { supabaseClient: client, server: true })).status, "saved");
+    const beforeFallbackR = await readers.readRecommendationLearningBaselineSource(owner);
+    const rejectedFallbackR = await readers.createRelativePlanCharterResultService().finalize(owner, {});
+    assert.equal(rejectedFallbackR.blocker, "relative_plan_result_retained_candle_realized_r_conflicting");
+    assert.equal(rejectedFallbackR.terminal_quality_decision, null);
+    assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "0");
+    assert.deepEqual((await readers.readRecommendationLearningBaselineSource(owner)).data, beforeFallbackR.data);
+    assert.equal((await readers.persistRecommendationOutcome({ ...fallbackNeither, eod_r: neither.current_r },
+      { supabaseClient: client, server: true })).status, "saved");
+    const honestFallbackR = readers.parseRecommendationLearningBaselineSource(
+      (await readers.readRecommendationLearningBaselineSource(owner)).data).outcomes.find(row => row.id === originalOutcome.id);
+    assert.equal(honestFallbackR.current_r, null);
+    assert.equal(honestFallbackR.current_price, null);
+    assert.equal(honestFallbackR.eod_r, neither.current_r);
+    assert.equal(honestFallbackR.eod_price, midpoint + 0.05);
+    assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "0");
+    newResultRetainedFallbackHorizonRVerified = true;
     assert.equal((await readers.persistRecommendationOutcome(validRetained, { supabaseClient: client, server: true })).status, "saved");
     newResultRetainedCandlesVerified = true;
     if (originalInputs) {
@@ -705,6 +728,7 @@ try {
     sealed_result_ignores_later_mutable_original_inputs: sealedResultIgnoresMutableInputs,
     new_result_rejects_contradictory_retained_forward_candles_before_storage: newResultRetainedCandlesVerified,
     new_result_rejects_contradictory_retained_horizon_r_before_storage: newResultRetainedHorizonRVerified,
+    new_result_rejects_contradictory_retained_fallback_horizon_r_before_storage: newResultRetainedFallbackHorizonRVerified,
     valid_retained_forward_candles_keep_complete_result_population: newResultRetainedCandlesVerified,
     sealed_result_ignores_later_mutable_forward_candles: sealedResultIgnoresMutableCandles,
     new_training_rejects_contradictory_retained_candles_before_storage: newTrainingRetainedCoverageVerified,

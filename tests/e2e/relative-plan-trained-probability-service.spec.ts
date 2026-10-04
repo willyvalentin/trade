@@ -271,6 +271,36 @@ test("valid retained legacy candles remain eligible without reducing the origina
   expect(JSON.stringify(h.data)).toBe(before);
 });
 
+test("new training rejects contradictory consumed EOD fallback before fitting without dropping its member", async () => {
+  const h = await harness(), snapshot = h.source[0].snapshots[0];
+  const anchor = recommendationOutcomeEvaluationAnchorFromSnapshot(snapshot)!;
+  const start = Date.parse(anchor.evaluation_anchor_start_at);
+  const candles = Array.from({ length: 12 }, (_, index) => ({
+    timestamp: new Date(start + index * 300000).toISOString(),
+    open: 100, high: 101, low: 99, close: 100.5, volume: 1000,
+  }));
+  const outcome = computeRecommendationOutcome({ snapshot, horizon: "60m", evaluated_at: new Date(start + 3900000),
+    candles, eod_price: 100.5, provider: "twelve_data", source: "intraday_candles", data_completeness: "complete" }).outcome;
+  expect(outcome.status).toBe("neither_hit");
+  expect(outcome.current_r).toBeNull();
+  const coverage = buildCanonicalOutcomeProviderCoverageReceipt({ candles, request: {
+    interval: "5min", horizon: "60m", ...anchor, start_at: anchor.evaluation_anchor_start_at,
+    end_at: new Date(start + 3900000).toISOString(),
+  }, result: { status: "available", provider: "twelve_data" } });
+  await h.replaceOutcome({ ...outcome, eod_r: 9, payload_json: { ...outcome.payload_json,
+    canonical_provider_coverage: coverage, counterfactual_candles: candles,
+    counterfactual_candle_source: "horizon_filtered_intraday_candles",
+    retained_candles_available: true, retained_candle_count: candles.length,
+  } });
+  const before = JSON.stringify(h.data);
+  expect(await h.service.train(prospectiveOwner, {})).toMatchObject({ status: "unavailable", receipt: null,
+    blocker: "trained_probability_retained_candle_realized_r_conflicting" });
+  expect(h.calls).not.toContain("materialize");
+  expect(h.calls).not.toContain("confirm");
+  expect(h.data.recommendation_outcomes).toHaveLength(48);
+  expect(JSON.stringify(h.data)).toBe(before);
+});
+
 test("new training rejects a retained terminal label contradicted by otherwise complete coherent candles", async () => {
   const h = await legacyCandleSource("aligned_target");
   const row = h.data.recommendation_outcomes.find(row =>

@@ -52,7 +52,8 @@ async function retainedForwardHarness(index = 103) {
   return { input, data, payload };
 }
 
-test("NEW terminal admission rejects neither-hit R that contradicts the retained original horizon close", async () => {
+for (const measurement of ["current", "eod_fallback"] as const) {
+test(`NEW terminal admission rejects ${measurement} neither-hit R that contradicts the retained original horizon close`, async () => {
   test.setTimeout(120000);
   const base = await retainedForwardHarness(103);
   const original = base.input.source.outcomes[103];
@@ -67,7 +68,9 @@ test("NEW terminal admission rejects neither-hit R that contradicts the retained
   Object.assign(row, { status: neither.status, entry_triggered: true, target_hit: false, stop_hit: false,
     first_terminal_event: "neither" });
   Object.assign(base.payload, { entry_triggered_at: neither.entry_triggered_at, target_hit_at: null, stop_hit_at: null,
-    current_price: 100.5, current_r: 9, counterfactual_candles: bars });
+    current_price: measurement === "current" ? 100.5 : null,
+    current_r: measurement === "current" ? 9 : null, counterfactual_candles: bars });
+  if (measurement === "eod_fallback") Object.assign(row, { eod_price: 100.5, eod_r: 9 });
   const before = JSON.stringify(base.data);
   let writes = 0;
   const h = harness({ clock: () => new Date(base.input.now),
@@ -85,11 +88,12 @@ test("NEW terminal admission rejects neither-hit R that contradicts the retained
   expect(JSON.stringify(base.data)).toBe(before);
   expect(base.data.recommendation_snapshots).toHaveLength(576);
 });
+}
 
 test("retained horizon R admission preserves honest positive, negative and missing measurements without relabelling", async () => {
   const base = await retainedForwardHarness(103), original = base.input.source.outcomes[103];
   const snapshot = base.input.source.snapshots.find(row => row.snapshot_fingerprint === original.snapshot_fingerprint)!;
-  for (const close of [100.5, 99.25]) {
+  for (const close of [100.5, 99.25, 100]) {
     const candles = (base.payload.counterfactual_candles as Record<string, unknown>[]).map(row => ({ ...row,
       timestamp: String(row.timestamp), open: 100, high: 101, low: 99, close }));
     const result = computeRecommendationOutcome({ snapshot, horizon: "60m", evaluated_at: original.evaluated_at,
@@ -103,7 +107,17 @@ test("retained horizon R admission preserves honest positive, negative and missi
     expect(relativePlanRetainedOutcomeCandleConflict(snapshot, { ...retained,
       current_price: close + 0.1 })).toBe("retained_candle_realized_r_conflicting");
     expect(relativePlanRetainedOutcomeCandleConflict(snapshot, { ...retained,
-      current_r: -retained.current_r! })).toBe("retained_candle_realized_r_conflicting");
+      current_r: retained.current_r! + 1 })).toBe("retained_candle_realized_r_conflicting");
+    const fallback = { ...retained, current_price: null, current_r: null,
+      eod_price: close, eod_r: retained.current_r };
+    expect(relativePlanRetainedOutcomeCandleConflict(snapshot, fallback)).toBeNull();
+    expect(relativePlanRetainedOutcomeCandleConflict(snapshot, { ...fallback,
+      eod_price: close + 0.1 })).toBe("retained_candle_realized_r_conflicting");
+    expect(relativePlanRetainedOutcomeCandleConflict(snapshot, { ...fallback,
+      eod_r: retained.current_r! + 1 })).toBe("retained_candle_realized_r_conflicting");
+    expect(relativePlanRetainedOutcomeCandleConflict(snapshot, { ...fallback, eod_r: null })).toBeNull();
+    expect(relativePlanRetainedOutcomeCandleConflict(snapshot, { ...retained,
+      eod_price: close + 1, eod_r: 9 })).toBeNull(); // Current (including zero) wins.
     const legacy = { ...retained, payload_json: {} };
     expect(relativePlanRetainedOutcomeCandleConflict(snapshot, legacy)).toBeNull();
     expect(JSON.stringify(retained)).toBe(before);
