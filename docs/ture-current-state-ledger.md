@@ -42,7 +42,30 @@ warnings, gaps and source non-mutation. Sixty-one affected checks pass including
 the actual decision capture/readback and both existing shadow paths. Types and
 changed-file lint pass; full lint has zero errors/eight existing warnings.
 These are local engine/readback checks, not deployed or authenticated UI proof.
-Clean exact-revision build remains required before this slice is complete.
+The clean exact-revision normal Linux build passes on product/test revision
+`7ccebc1fcbd05e0a4561065dd33f54c99a37cfb7`, Node 22.23.1 / Next 16.3.8,
+locked read-only dependencies, no build network or production credentials.
+Lock SHA-256 remains `859ed09eed4d3de2e7ade5c74bea78e73770bea57f92d6cb3656224bfcace6f7`.
+This bounded correction is complete locally and parked after the preceding
+composition; no push, PR, merge, deploy, provider or broker action occurred.
+Logs: `/private/tmp/ture-ranking-explanation-{red,regression,types,lint,changed-lint,exact-build}-oct4.log`.
+
+Read-only analysis also preserves the Oct 2 v4 run `rec_scan_run_1mk6om7`:
+eight original members, three fresh feature snapshots and five provider gaps.
+Its stored completed run does not overturn the observation's publication-clock
+FAIL. No original decision clock or raw provider archive is retained, so the
+current relative-plan comparison correctly remains unavailable (zero assessed,
+eight unassessed); no clock is reconstructed and no member is dropped. The
+three preserved first-target distances are approximately 8–13 times their
+preceding-hour ranges. This RECONFIRMS the already documented Oct 2 diagnosis,
+not a new finding or evidence that those future targets are impossible. It
+does not authorize a competing ranking hypothesis, refitting or quality claim.
+Thirteen governance/model readback checks pass after this receipt; log
+`/private/tmp/ture-ranking-explanation-receipt-governance-correct-oct4.log`.
+Two preliminary invocations selected the web-server mode unintentionally and
+failed to bind its sandbox port before running any tests; the documented
+`PLAYWRIGHT_SKIP_WEB_SERVER=true` invocation passed. These failed launches are
+not counted as tests or successful environment behavior.
 
 **CLOSED preview-verification reconciliation complete locally — 2026-10-04:**
 Owner: Codex; the independent four-active-hour supporting_blocker_removal slice
