@@ -128,6 +128,16 @@ coverage and baseline-relative quality. Only the last can establish that the
 recommendations became better, and it still requires the full quality charter.
 
 Persisted diagnostic presence is not assessment integrity or market feasibility.
+Original-input arithmetic reproduction now has a local implementation using
+validated parsed daily/session bars and the two original session-calculation
+clocks, with an owned reader for all 25 used scanner features and indicators.
+Its broader/exact-build acceptance remains in progress in the ledger. Preserve
+snapshot/decision/lineage and historical replay contracts; do not reinterpret
+this additive diagnosis as a revised ranker, original upstream JSON recovery,
+fully observed input fitness, legacy baseline eligibility or quality lift.
+Missing originals and original null features remain explicit. Finish the
+bounded selected original-input audit, then return to the frozen same-population
+canonical-outcome/full-charter comparison instead of extending diagnostic scope.
 New completed-input research assessments must remain consistent with their
 retained original candidate, plan, inputs and decision clock before they count
 as valid quality-measurement evidence. A contradictory or missing assessment

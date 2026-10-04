@@ -2,6 +2,56 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Local implementation / acceptance in progress — complete original input replay, 2026-10-04:**
+Product `8799be3a1f5b2189caeb3c2b6f090858ac1a0c2e` implements the
+selected continuation below, on the same isolated branch. The normalized
+producer now retains the validated parsed session bars and BOTH original
+integer-millisecond arithmetic clocks in an independently bounded, versioned
+sidecar. The complete owner-only replay uses the actual six historical and
+nineteen session formulas plus retained indicators. Historical archive/reader
+v1, normalized snapshot v1, decision/lineage, ranking, charter, publication,
+provider budgets and the full original population remain unchanged.
+
+The actual packaged cold producer -> durable isolated SQL -> deleted cache ->
+restarted owned SDK/installed Next HTTP test reproduces three complete members
+and preserves five unavailable originals out of eight. Forty controls cover
+source substitution/corruption, invalid archive identities/versions/clocks,
+all nineteen changed used features and three changed indicators. Reading on
+the next synthetic day returns the same result, never replacing either
+original calculation clock. Separate actual shared-calculator checks preserve
+missing early-session windows and volume expiry between the two clocks.
+The authenticated GET accepts only one original run id, returns no raw bars,
+and has no source/model/owner/clock override or write/provider path.
+The existing model-input whitelist also omits these new raw capture fields.
+Thirty-six security/governance/exact-CI and two included new capability checks
+pass in 23.8s: `/private/tmp/ture-original-input-replay-security-oct4.log`.
+Nonincremental types and lint pass (zero errors/eight existing warnings):
+`/private/tmp/ture-original-input-replay-final-types-oct4.log` and
+`/private/tmp/ture-original-input-replay-final-lint-oct4.log`.
+The earlier 29 focused compatibility checks overlap these suites and are not
+added to the latest unique count.
+
+Acceptance is NOT yet complete. The 128-check original-input/outcome/volume
+suite and 33 server-condition charter/result/model checks are still running
+serially in their own artifact directories; do not claim their terminal pass.
+Logs: `/private/tmp/ture-original-input-replay-chain-oct4.log` and
+`/private/tmp/ture-original-input-replay-server-oct4.log`.
+The exact clean locked Linux build compiled in 71s but was terminated at its
+unchanged five-minute bound during types; it is not a build pass. No compiler
+type error was reported before termination. Parallel-load contention is a
+possible explanation, not established causality. Finish the current owned
+regressions, then perform one exact same-revision/same-budget build retry under
+reduced load; do not increase the timeout, change dependencies or bypass types.
+Failed-build log: `/private/tmp/ture-original-input-replay-exact-linux-build-oct4.log`.
+
+This is `quality_measurement`, not demonstrated input fitness or alpha:
+reproducing an original null does not make that feature observed. Upstream
+provider JSON is still unavailable, legacy decisions are not backfilled, and
+no baseline/promotion authority is gained. No push, merge, deploy, migration,
+real provider request or broker action occurred. Primary #732 remains Draft
+and release-held. Complete this same vertical before selecting another slice;
+integration order and the frozen intelligence hypothesis remain unchanged.
+
 **Selected continuation — complete original session-feature reproduction, 2026-10-04:**
 Codex continues the same isolated original-input audit vertical on
 `codex/original-input-replay-oct4`; primary #732 remains release-held. Total
