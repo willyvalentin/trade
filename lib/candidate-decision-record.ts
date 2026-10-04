@@ -9,6 +9,7 @@ import {
 import type { SelectedCandidateBuildDiagnostic } from "@/lib/recommendation-build-diagnostics";
 import type { RecommendationScanRun } from "@/lib/recommendation-scan-run";
 import type { ScannerCandidate } from "@/lib/scanner";
+import type { CompletedDailyContext } from "@/lib/scanner-completed-daily-context";
 import type {
   ScannerCandidateRankingResult,
   ScannerCandidateRankingSummary,
@@ -103,6 +104,7 @@ export type CandidateDecisionCapture = {
     stale: boolean | null;
     data_gap_codes: CandidateDecisionReasonCode[];
     input_snapshot?: ScannerDecisionInputSnapshot;
+    historical_input_context?: CompletedDailyContext;
   }>;
   ranking: ScannerCandidateRankingSummary | null;
   eligible_candidate_tickers: string[];
@@ -378,6 +380,8 @@ export function buildCandidateDecisionCapture({
                 : null,
           data_gap_codes: dataGapCodes,
           ...(inputAttributed ? { input_snapshot: captureScannerDecisionInputSnapshot(candidate, normalizedCaptureTimestamp) } : {}),
+          ...(inputAttributed && candidate.historical_input_context
+            ? { historical_input_context: candidate.historical_input_context } : {}),
         },
       ];
     }),

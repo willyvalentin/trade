@@ -49,6 +49,9 @@ import type { TwelveDataResponseIdentity } from "@/lib/twelve-data-response-iden
 import { COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION } from "@/lib/scanner-decision-input-snapshot";
 import { isValidCompletedBenchmarkReuse, type CompletedBenchmarkReuse } from "@/lib/completed-benchmark-reuse";
 export { COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION } from "@/lib/scanner-decision-input-snapshot";
+// Bump if any of the six retained historical feature formulas change. Replay
+// must not silently evaluate an old archive with a different calculator.
+export const SCANNER_HISTORICAL_FEATURE_CALCULATOR_VERSION = "scanner_historical_feature_calculator_v1" as const;
 
 export type ScannerCandidate = {
   ticker: string;
@@ -98,6 +101,9 @@ export type ScannerCandidate = {
   reference_price_provider?: string | null;
   reference_price_read_path?: string | null;
   daily_context_evidence?: Omit<CompletedDailyContext, "candles">;
+  // Original validated parsed bars for optional historical arithmetic replay.
+  // Never a current quote, provider refresh or ranking/publication authority.
+  historical_input_context?: CompletedDailyContext;
   daily_context_latest_close?: number;
   scanner_input_policy_version?: typeof COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION;
   current_session_evidence?: Omit<CurrentSessionContext, "candles">;
@@ -398,7 +404,7 @@ function buildVolumeContext(volumeRatio: number) {
   return `Volume is light at ${volumeRatio}x the 20-day average`;
 }
 
-function calculateScannerValues(candles: DailyCandle[]): ScannerValues {
+export function calculateScannerValues(candles: DailyCandle[]): ScannerValues {
   if (candles.length < 50) {
     throw new Error("Scanner needs at least 50 daily candles.");
   }
@@ -1101,6 +1107,7 @@ async function scanMarketCore(
     const buildHistoricalCandidate = (history: CompletedDailyContext) => {
       const { candles, ...evidence } = history;
       return { ...buildCandidate(baseCandidate, calculateScannerValues(candles)),
+        historical_input_context: history,
         daily_context_evidence: evidence, daily_context_latest_close: candles.at(-1)!.close,
         scanner_input_policy_version: COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION };
     };

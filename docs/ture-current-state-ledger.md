@@ -2,6 +2,35 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Selected independent CLOSED slice — original historical-feature reproduction, 2026-10-04:**
+Codex owns `codex/original-input-replay-oct4`, isolated from verified main
+`55576078` and locally fast-forwarded onto exact #732 dependency `2741f946`.
+Eight active hours, investigation capped at four. Classification is
+`quality_measurement`: the original-input arithmetic link cannot currently be
+checked from durable original bars after cache replacement. The actual cold
+packaged scheduler/SQL/SDK regression fails on absent raw history archive;
+this is a disclosed reproduction limitation, not a diagnosed production bug
+or evidence of poor ranking. Verify six existing historical features against
+the SAME producer calculator, using the original validated context and clock.
+This can distinguish historical input/arithmetic mismatch from subsequent
+ranking error without selecting another challenger or changing acceptance.
+
+Write ownership is limited to an additive daily-context candidate/capture field,
+an independently versioned scan-run payload sidecar and bounded owner-only
+reproduction reader. Preserve normalized snapshot v1, decision/lineage identity,
+all original members, ranking, cohorts, charter, price freshness and budgets.
+No schema, order, portfolio, scheduler, provider, publication or broker change.
+Legacy originals without bars remain unavailable; no live-cache backfill.
+Acceptance is actual producer -> durable SQL -> cache deletion -> restarted
+owner SDK read -> exact six-feature recomputation, explicit missing/invalid
+members, tamper/owner rejection, unchanged original decision and zero extra
+requests, followed by affected tests/types/lint/exact build. Current-session
+features and original upstream JSON reproduction are explicitly out of scope.
+No quality lift is claimed. Integration order: original #732 vertical first,
+then the complete parked terminal-context slice, then this slice against
+then-current main. Keep this local while the primary release gate remains held;
+no competing PR or planning-only push is selected.
+
 **Now — exact-head Draft verification of the integrated original learning vertical, 2026-10-04:**
 The bounded IF-2b corrections below have passed their combined local acceptance.
 Select one coherent fast-forward update of existing Draft #732, not a competing

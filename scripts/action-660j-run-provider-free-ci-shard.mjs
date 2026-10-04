@@ -68,6 +68,7 @@ const foundationTests = [
   "tests/e2e/reference-refresh-diagnostics.spec.ts",
   "tests/e2e/scanner-plan-reference-binding.spec.ts",
   "tests/e2e/scanner-completed-daily-context.spec.ts",
+  "tests/e2e/scanner-historical-input-replay.spec.ts",
   "tests/e2e/original-outcome-source-window.spec.ts",
   "tests/e2e/completed-input-published-source.spec.ts",
   "tests/e2e/completed-benchmark-reuse.spec.ts",

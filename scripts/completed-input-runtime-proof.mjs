@@ -15,6 +15,9 @@ import { setTimeout as syntheticDelay } from "node:timers/promises";
 
 const root = process.cwd();
 const cold = process.argv.includes("--cold");
+const historicalFeatureReplay = process.argv.includes("--historical-feature-replay");
+assert(!historicalFeatureReplay || cold && process.argv.length === 4,
+  "Historical feature replay retains the unchanged original cold eight-member proof");
 const existingPremarketSetup = process.argv.includes("--existing-premarket-setup");
 const expandedPremarketSetup = process.argv.includes("--existing-premarket-budget8");
 const rotationDay = process.argv.includes("--rotation-day");
@@ -275,6 +278,7 @@ try {
       export { buildScannerProviderCreditAllocationExecutionPlan } from './lib/scanner-provider-credit-allocation-plan';
       export { scannerUniverseTickers } from './lib/scanner-universe';
       export { scanMarket } from './lib/scanner';
+      ${historicalFeatureReplay ? "export { readOwnedScannerHistoricalInputReplay, replayScannerHistoricalInputs, SCANNER_HISTORICAL_INPUT_MAX_BYTES } from './lib/server/scanner-historical-input-replay'; export { captureCompletedDailyContext } from './lib/scanner-completed-daily-context';" : ""}
       ${fullOriginalHistorySetup ? "export { readCompletedDailyContext } from './lib/scanner-completed-daily-context';" : ""}
       ${budgetedHistorySetup ? "export { prepareCompletedSessionHistories, COMPLETED_SESSION_HISTORY_PREPARATION_VERSION } from './lib/server/completed-session-history-preparation';" : ""}
       ${fullOriginalHistorySetup ? "export { createRelativePlanProspectiveService } from './lib/server/relative-plan-prospective-service';" : ""}
@@ -1738,6 +1742,101 @@ try {
     const benchmarkRead=await benchmarkReader.readRecommendationLearningBaselineSource(owner);
     const benchmarkSource=benchmarkReader.parseRecommendationLearningBaselineSource(benchmarkRead.data);
     assert(benchmarkSource && benchmarkSource.scanRuns.length===1);
+    if (historicalFeatureReplay) {
+      const archive=scanRuns[0].payload_json.scanner_historical_input_archive;
+      assert(archive,"Actual original decisions must retain their used daily bars, not only derived features or mutable cache");
+      assert.equal(archive.entries.length,3);
+      const archiveBytes=Buffer.byteLength(JSON.stringify(archive),"utf8");
+      assert(archiveBytes<benchmarkReader.SCANNER_HISTORICAL_INPUT_MAX_BYTES);
+      assert(archive.entries.every(entry=>entry.historical_context.candles.length>=50));
+      const before=await benchmarkReader.readOwnedScannerHistoricalInputReplay(owner,scanRuns[0].id);
+      assert.equal(before.status,"available"); assert.equal(before.original_candidate_count,8);
+      assert.equal(before.matched_count,3);
+      assert.equal(before.members.filter(member=>member.status==="unavailable").length,5);
+      assert(before.members.every(member=>member.mismatched_features.length===0));
+      const frozenDecision=JSON.stringify(record), frozenLineage=JSON.stringify(lineage);
+      const requestsBefore=externalRequests;
+      sql("delete from scanner_cache;");
+      delete require.cache[require.resolve(join(generated,"reader.cjs"))];
+      const restarted=require(join(generated,"reader.cjs"));
+      assert.deepEqual(await restarted.readOwnedScannerHistoricalInputReplay(owner,scanRuns[0].id),before,
+        "Reproduction must use durable original bars, never mutable cache or a refreshed source");
+      assert.equal(externalRequests,requestsBefore);
+      const wrong=await restarted.readOwnedScannerHistoricalInputReplay("00000000-0000-4000-8000-000000000002",scanRuns[0].id);
+      assert.equal(wrong.status,"unavailable"); assert.equal(wrong.members.length,0);
+      assert.equal(wrong.scan_run_id,null);
+      assert.equal((await restarted.readOwnedScannerHistoricalInputReplay(owner,"invalid-run-id")).status,"unavailable");
+      const legacy=structuredClone(scanRuns[0]); delete legacy.payload_json.scanner_historical_input_archive;
+      const missing=await restarted.replayScannerHistoricalInputs(legacy);
+      assert.equal(missing.status,"unavailable"); assert.equal(missing.original_candidate_count,8);
+      assert(missing.members.every(member=>member.status==="unavailable"));
+      const controls=[];
+      for(const [name,mutate] of [
+        ["duplicate_member",value=>value.entries.push(structuredClone(value.entries[0]))],
+        ["wrong_run",value=>value.scan_run_id="rec_scan_run_wrong"],
+        ["wrong_fingerprint",value=>value.scan_run_fingerprint="wrong"],
+        ["wrong_clock",value=>value.decision_timestamp="2026-10-01T17:35:00.000Z"],
+        ["unknown_version",value=>value.archive_version="unknown"],
+        ["wrong_calculator",value=>value.calculator_version="unknown"],
+        ["extra_member",value=>value.entries[0].candidate_id="unknown"],
+        ["wrong_symbol",value=>value.entries[0].ticker="WRONG"],
+        ["oversized",value=>value.extra="x".repeat(restarted.SCANNER_HISTORICAL_INPUT_MAX_BYTES)],
+      ]) {
+        const changed=structuredClone(scanRuns[0]); mutate(changed.payload_json.scanner_historical_input_archive);
+        const rejected=await restarted.replayScannerHistoricalInputs(changed);
+        assert.equal(rejected.status,"unavailable",name); assert.equal(rejected.matched_count,0,name);
+        assert.equal(rejected.original_candidate_count,8,name); controls.push(name);
+      }
+      for(const [name,mutate] of [
+        ["corrupt_bar",value=>value.entries[0].historical_context.candles[0].volume+=1],
+        ["wrong_source_identity",value=>value.entries[0].historical_context.response_identity.payload_byte_length+=1],
+        ["future_capture",value=>value.entries[0].historical_context.captured_at="2026-10-02T17:30:00.000Z"],
+        ["wrong_context_symbol",value=>value.entries[0].historical_context.symbol="WRONG"],
+      ]) {
+        const changed=structuredClone(scanRuns[0]); mutate(changed.payload_json.scanner_historical_input_archive);
+        const rejected=await restarted.replayScannerHistoricalInputs(changed);
+        assert.equal(rejected.status,"available",name); assert.equal(rejected.matched_count,2,name);
+        assert.equal(rejected.members.filter(member=>member.status==="invalid_source").length,1,name);
+        assert.equal(rejected.original_candidate_count,8,name); controls.push(name);
+      }
+      // A valid retained decision with a wrong used feature is distinguishable
+      // from missing/corrupt input. This does not modify the original SQL row.
+      for (const feature of ["ma20","ma50","high_20d","change_5d_percent","average_range_percent","previous_close"]) {
+        const changed=structuredClone(scanRuns[0]);
+        changed.payload_json.candidate_decision_record.candidates.find(c=>c.data.input_snapshot).data.input_snapshot.features[feature]+=1;
+        const mismatch=await restarted.replayScannerHistoricalInputs(changed);
+        assert.equal(mismatch.status,"available"); assert.equal(mismatch.matched_count,2);
+        assert.deepEqual(mismatch.members.find(member=>member.status==="mismatch").mismatched_features,[feature]);
+      }
+      const replaced=structuredClone(scanRuns[0]);
+      const entry=replaced.payload_json.scanner_historical_input_archive.entries[0];
+      entry.historical_context.candles[0].volume+=1;
+      entry.historical_context=await restarted.captureCompletedDailyContext({ ...entry.historical_context,
+        contract_version:"daily_candle_response_v1" },entry.ticker,
+        new OriginalDate(record.candidates.find(c=>c.ticker===entry.ticker).data.input_snapshot.captured_at));
+      assert(entry.historical_context,"Alternate raw context must independently validate, not merely be corrupt");
+      const replacement=await restarted.replayScannerHistoricalInputs(replaced);
+      assert.equal(replacement.matched_count,2);
+      assert.equal(replacement.members.find(member=>member.status==="invalid_source").reason,
+        "historical_context_not_bound_to_original_input");
+      const partial=structuredClone(scanRuns[0]); partial.payload_json.scanner_historical_input_archive.entries.pop();
+      const partialReplay=await restarted.replayScannerHistoricalInputs(partial);
+      assert.equal(partialReplay.original_candidate_count,8); assert.equal(partialReplay.matched_count,2);
+      assert.equal(partialReplay.members.filter(member=>member.status==="unavailable").length,6);
+      const misbound=structuredClone(scanRuns[0]);
+      misbound.payload_json.decision_lineage_receipt.scan_run_id="wrong";
+      assert.equal((await restarted.replayScannerHistoricalInputs(misbound)).status,"unavailable");
+      assert.equal(JSON.stringify(record),frozenDecision); assert.equal(JSON.stringify(lineage),frozenLineage);
+      assert.equal(externalRequests,requestsBefore);
+      assert.deepEqual(restarted.candidateDecisionRecordFromScanRun(scanRuns[0]),record);
+      assert.deepEqual(restarted.decisionLineageReceiptFromScanRun(scanRuns[0],record),lineage);
+      originalLog(JSON.stringify({historical_feature_replay:"passed",original_population_count:8,matched:3,
+        missing:5,features_per_matched_member:6,archive_bytes:archiveBytes,fail_closed_controls:controls,
+        valid_replacement_source_rejected:true,partial_archive_original_population_retained:true,
+        cache_deleted_restart_exact:true,original_decision_unchanged:true,extra_requests:0,
+        actual_provider_requests:0,production_actions:0,current_session_features_checked:false,
+        original_provider_json_reproduced:false,quality_improvement_claimed:false}));
+    }
     assert.deepEqual(benchmarkSource.scanRuns[0].payload_json.market_regime.input_evidence,regimeEvidence);
     const benchmarkWrongOwner=await benchmarkReader.readRecommendationLearningBaselineSource("00000000-0000-4000-8000-000000000002");
     assert.equal(benchmarkWrongOwner.data.recommendation_scan_runs.length,0);
