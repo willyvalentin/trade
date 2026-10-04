@@ -2,6 +2,38 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Selected CLOSED IF-2b → IF-4 combined acceptance, 2026-10-04:**
+Codex owns isolated `codex/closed-intelligence-integration-oct4`, created from
+freshly verified main `55576078` and locally advanced through completed
+`a090a39b`. Four active hours, investigation at most four. Original #732 remains
+the release-held primary; all former independent deliveries stay complete and
+parked. Reuse ONLY completed empty-selection `e4edaff5`, full dynamic-admission
+chain `4979045a` → `88a8f472` → `5798efe4`, and missing numeric-cache `fa5956ec`.
+The earlier acceptance proves each separately, not their combined scanner,
+original-source and immutable full-charter runtime. Select joint composition
+and minimum conflict repair, not a new ranking hypothesis or another guard.
+
+Acceptance requires the combined real scanner/SDK/native SQL missing/zero/
+empty/discovery tests, affected acquisition/original-outcome and full-charter
+goldens, original 576-member SQL/SDK/HTTP retention, types/lint and one exact
+clean locked normal build. Keep budgets, source/owner/freshness semantics,
+model, full charter, denominators, old sealed readback and all CI requirements.
+Resolve source conflicts from understood completed implementations; preserve
+their receipts, not conflicting active queues. No new migration, provider,
+production activation/deploy, hypothesis freeze or broker operation. This is
+local combined capability/evidence, NOT integration on main or quality lift.
+Protected release and later then-main integration remain separately required.
+After acceptance, return to the original full-charter prospective delivery.
+
+Read-only production evidence today finds zero relative-plan comparison freezes,
+zero materialized models and zero committed-model confirmations; the terminal
+result table is not yet deployed. The code-level frozen hypothesis is not a
+started production forward cohort. Do not backfill old decisions or invent a
+pre-forward fit. The unchanged full audit still reports five high affected
+packages through Next ESLint → fast-glob → micromatch → braces; replacing the
+TypeScript resolver does not remove that actual chain. No audit exception,
+alias/fork, speculative upgrade or framework downgrade is selected.
+
 **Local acceptance complete — consumed fallback horizon R, 2026-10-04:**
 Product `e93f0d160537649a9328d90f34cb8583943c5887` on isolated
 `codex/horizon-fallback-r-admission-oct4` closes a reproduced NEW result/training
