@@ -115,6 +115,7 @@ import {
 } from "@/lib/candidate-decision-record";
 import { buildDecisionLineageReceipt } from "@/lib/decision-lineage-receipt";
 import { buildScannerHistoricalInputArchive } from "@/lib/server/scanner-historical-input-archive";
+import { buildScannerCurrentInputArchive } from "@/lib/server/scanner-current-input-archive";
 import { buildCandidateDecisionLearningAttribution } from "@/lib/candidate-decision-learning-attribution";
 import { buildScannerIntradayLiquidityShadowAttribution } from "@/lib/scanner-ranking-intraday-liquidity-shadow-attribution";
 import { buildScannerClockPriorShadowAttribution } from "@/lib/scanner-ranking-clock-prior-shadow-attribution";
@@ -2886,6 +2887,8 @@ async function persistAutomationArtifacts({
       buildDecisionLineageReceipt(candidateDecisionRecord);
     scanRun.payload_json.scanner_historical_input_archive =
       buildScannerHistoricalInputArchive(candidateDecisionCapture, candidateDecisionRecord);
+    scanRun.payload_json.scanner_current_input_archive =
+      buildScannerCurrentInputArchive(candidateDecisionCapture, candidateDecisionRecord);
   }
   const scannerIntradayLiquidityShadowAttribution =
     buildScannerIntradayLiquidityShadowAttribution({

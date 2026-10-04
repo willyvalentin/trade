@@ -15,7 +15,8 @@ import { setTimeout as syntheticDelay } from "node:timers/promises";
 
 const root = process.cwd();
 const cold = process.argv.includes("--cold");
-const historicalFeatureReplay = process.argv.includes("--historical-feature-replay");
+const originalFeatureReplay = process.argv.includes("--original-feature-replay");
+const historicalFeatureReplay = process.argv.includes("--historical-feature-replay") || originalFeatureReplay;
 assert(!historicalFeatureReplay || cold && process.argv.length === 4,
   "Historical feature replay retains the unchanged original cold eight-member proof");
 const existingPremarketSetup = process.argv.includes("--existing-premarket-setup");
@@ -244,7 +245,7 @@ try {
       builder.onResolve({ filter: /^next\// }, args=>({ path: rootRequire.resolve(args.path === "next/navigation"
         ? "next/dist/client/components/navigation.react-server" : args.path), external: true }));
     } }], stdin: { resolveDir: root, contents: `
-      export { GET } from './app/api/app/scanner-historical-input-replay/route';
+      export { GET } from './app/api/app/${originalFeatureReplay ? "scanner-original-input-replay" : "scanner-historical-input-replay"}/route';
       export { proxy } from './proxy';
       export { createApplicationSession } from './lib/application-session-core';` },
     outfile: join(generated, "historical-replay-app.cjs") });
@@ -290,6 +291,7 @@ try {
       export { scannerUniverseTickers } from './lib/scanner-universe';
       export { scanMarket } from './lib/scanner';
       ${historicalFeatureReplay ? "export { readOwnedScannerHistoricalInputReplay, replayScannerHistoricalInputs, SCANNER_HISTORICAL_INPUT_MAX_BYTES } from './lib/server/scanner-historical-input-replay'; export { captureCompletedDailyContext } from './lib/scanner-completed-daily-context';" : ""}
+      ${originalFeatureReplay ? "export { readOwnedScannerOriginalInputReplay, replayScannerOriginalInputs, SCANNER_CURRENT_INPUT_FEATURES } from './lib/server/scanner-original-input-replay'; export { SCANNER_CURRENT_INPUT_MAX_BYTES } from './lib/server/scanner-current-input-archive'; export { captureCurrentSessionContext } from './lib/scanner-current-session-context';" : ""}
       ${fullOriginalHistorySetup ? "export { readCompletedDailyContext } from './lib/scanner-completed-daily-context';" : ""}
       ${budgetedHistorySetup ? "export { prepareCompletedSessionHistories, COMPLETED_SESSION_HISTORY_PREPARATION_VERSION } from './lib/server/completed-session-history-preparation';" : ""}
       ${fullOriginalHistorySetup ? "export { createRelativePlanProspectiveService } from './lib/server/relative-plan-prospective-service';" : ""}
@@ -1841,6 +1843,110 @@ try {
       assert.equal(externalRequests,requestsBefore);
       assert.deepEqual(restarted.candidateDecisionRecordFromScanRun(scanRuns[0]),record);
       assert.deepEqual(restarted.decisionLineageReceiptFromScanRun(scanRuns[0],record),lineage);
+      let originalBefore = null;
+      const currentControls = [];
+      if (originalFeatureReplay) {
+        originalBefore=await restarted.readOwnedScannerOriginalInputReplay(owner,scanRuns[0].id);
+        assert.equal(originalBefore.status,"available");
+        assert.equal(originalBefore.original_candidate_count,8);
+        assert.equal(originalBefore.matched_count,3,JSON.stringify(originalBefore));
+        assert.equal(originalBefore.historical_matched_count,3);
+        assert.equal(originalBefore.current_matched_count,3);
+        assert.equal(originalBefore.current_session_features_checked,true);
+        assert.equal(originalBefore.input_fitness_proven,false);
+        assert.equal(originalBefore.recommendation_quality_proven,false);
+        const currentArchive=scanRuns[0].payload_json.scanner_current_input_archive;
+        assert.equal(currentArchive.entries.length,3);
+        assert(Buffer.byteLength(JSON.stringify(currentArchive),"utf8")<restarted.SCANNER_CURRENT_INPUT_MAX_BYTES);
+        const featureKeys=Object.keys(record.candidates.find(c=>c.data.input_snapshot).data.input_snapshot.features);
+        assert.deepEqual([...restarted.SCANNER_CURRENT_INPUT_FEATURES,"ma20","ma50","high_20d","change_5d_percent","average_range_percent","previous_close"].sort(),featureKeys.sort());
+        const savedClock=clock; clock+=86400000;
+        delete require.cache[require.resolve(join(generated,"reader.cjs"))];
+        assert.deepEqual(await require(join(generated,"reader.cjs")).readOwnedScannerOriginalInputReplay(owner,scanRuns[0].id),originalBefore,
+          "Reader wall clock cannot replace either original arithmetic clock");
+        clock=savedClock;
+        assert.equal((await restarted.readOwnedScannerOriginalInputReplay("00000000-0000-4000-8000-000000000002",scanRuns[0].id)).scan_run_id,null);
+        assert.equal((await restarted.readOwnedScannerOriginalInputReplay(owner,"invalid-run-id")).status,"unavailable");
+        const legacyCurrent=structuredClone(scanRuns[0]); delete legacyCurrent.payload_json.scanner_current_input_archive;
+        const legacyResult=await restarted.replayScannerOriginalInputs(legacyCurrent);
+        assert.equal(legacyResult.status,"unavailable"); assert.equal(legacyResult.original_candidate_count,8);
+        assert.equal(legacyResult.matched_count,0); assert.equal(legacyResult.current_session_features_checked,false);
+        for(const [name,mutate] of [
+          ["duplicate_member",value=>value.entries.push(structuredClone(value.entries[0]))],
+          ["wrong_run",value=>value.scan_run_id="rec_scan_run_wrong"],
+          ["wrong_fingerprint",value=>value.scan_run_fingerprint="wrong"],
+          ["wrong_clock",value=>value.decision_timestamp="2026-10-01T17:35:00.000Z"],
+          ["unknown_version",value=>value.archive_version="unknown"],
+          ["wrong_calculator",value=>value.calculator_version="unknown"],
+          ["extra_member",value=>value.entries[0].candidate_id="unknown"],
+          ["wrong_symbol",value=>value.entries[0].ticker="WRONG"],
+          ["oversized",value=>value.extra="x".repeat(restarted.SCANNER_CURRENT_INPUT_MAX_BYTES)],
+        ]) {
+          const changed=structuredClone(scanRuns[0]); mutate(changed.payload_json.scanner_current_input_archive);
+          const rejected=await restarted.replayScannerOriginalInputs(changed);
+          assert.equal(rejected.status,"unavailable",name); assert.equal(rejected.matched_count,0,name);
+          assert.equal(rejected.original_candidate_count,8,name); currentControls.push(name);
+        }
+        for(const [name,mutate] of [
+          ["corrupt_bar",entry=>entry.current_context.candles[0].volume+=1],
+          ["wrong_identity",entry=>entry.current_context.response_identity.payload_byte_length+=1],
+          ["wrong_context_symbol",entry=>entry.current_context.symbol="WRONG"],
+          ["future_clock",entry=>entry.calculation_clock.volume_observed_at="2026-10-02T17:30:00.000Z"],
+          ["pre_source_clock",entry=>entry.calculation_clock.indicator_observed_at="2026-10-01T13:00:00.000Z"],
+          ["noncanonical_clock",entry=>entry.calculation_clock.indicator_observed_at="2026-10-01T17:30:00Z"],
+          ["extra_clock",entry=>entry.calculation_clock.extra=true],
+          ["reversed_clocks",entry=>entry.calculation_clock.indicator_observed_at=
+            new OriginalDate(OriginalDate.parse(entry.calculation_clock.volume_observed_at)+1).toISOString()],
+        ]) {
+          const changed=structuredClone(scanRuns[0]); mutate(changed.payload_json.scanner_current_input_archive.entries[0]);
+          const rejected=await restarted.replayScannerOriginalInputs(changed);
+          assert.equal(rejected.status,"available",name); assert.equal(rejected.matched_count,2,name);
+          assert.equal(rejected.members.filter(m=>m.current_status==="invalid_source").length,1,name);
+          assert.equal(rejected.original_candidate_count,8,name); currentControls.push(name);
+        }
+        const alternateCurrent=structuredClone(scanRuns[0]);
+        const alternateEntry=alternateCurrent.payload_json.scanner_current_input_archive.entries[0];
+        alternateEntry.current_context.candles[0].volume+=1;
+        const alternateSnapshot=record.candidates.find(c=>c.ticker===alternateEntry.ticker).data.input_snapshot;
+        alternateEntry.current_context=await restarted.captureCurrentSessionContext({...alternateEntry.current_context,
+          exchange_timezone:"America/New_York"},alternateEntry.ticker,new OriginalDate(alternateSnapshot.captured_at));
+        assert(alternateEntry.current_context,"Replacement current source must independently validate");
+        const alternateResult=await restarted.replayScannerOriginalInputs(alternateCurrent);
+        assert.equal(alternateResult.matched_count,2);
+        assert.equal(alternateResult.members.find(m=>m.current_status==="invalid_source").reason,
+          "current_context_not_bound_to_original_input");
+        const featureTamperResults=[];
+        for(const feature of restarted.SCANNER_CURRENT_INPUT_FEATURES) {
+          const changed=structuredClone(scanRuns[0]);
+          const snapshot=changed.payload_json.candidate_decision_record.candidates.find(c=>c.data.input_snapshot).data.input_snapshot;
+          snapshot.features[feature]=(snapshot.features[feature]??0)+1;
+          const mismatch=await restarted.replayScannerOriginalInputs(changed);
+          // Point-in-time/schema checks can reject some inconsistent used values
+          // before arithmetic. Neither rejection nor mismatch may claim a match.
+          assert(mismatch.matched_count<3,feature);
+          if(mismatch.status==="available") assert(mismatch.members.some(m=>m.mismatched_features.includes(feature)),feature);
+          featureTamperResults.push(feature);
+        }
+        const indicatorTamperResults=[];
+        for(const indicator of ["vwap","momentumPercent","recentVolumeRatio"]) {
+          const changed=structuredClone(scanRuns[0]);
+          const snapshot=changed.payload_json.candidate_decision_record.candidates.find(c=>c.data.input_snapshot).data.input_snapshot;
+          snapshot.intraday_indicators[indicator]=(snapshot.intraday_indicators[indicator]??0)+1;
+          const mismatch=await restarted.replayScannerOriginalInputs(changed);
+          assert.equal(mismatch.status,"available"); assert.equal(mismatch.matched_count,2,indicator);
+          assert(mismatch.members.some(m=>m.mismatched_indicators.includes(indicator)),indicator);
+          indicatorTamperResults.push(indicator);
+        }
+        currentControls.push("valid_replacement_source",...featureTamperResults.map(f=>`used_feature:${f}`),
+          ...indicatorTamperResults.map(f=>`used_indicator:${f}`));
+        const partialCurrent=structuredClone(scanRuns[0]); partialCurrent.payload_json.scanner_current_input_archive.entries.pop();
+        const partialResult=await restarted.replayScannerOriginalInputs(partialCurrent);
+        assert.equal(partialResult.original_candidate_count,8); assert.equal(partialResult.matched_count,2);
+        assert.equal(partialResult.members.filter(m=>m.current_status==="unavailable").length,6);
+        assert.equal((await restarted.replayScannerOriginalInputs(misbound)).status,"unavailable");
+        assert.equal(JSON.stringify(record),frozenDecision); assert.equal(JSON.stringify(lineage),frozenLineage);
+        assert.equal(externalRequests,requestsBefore);
+      }
       globalThis.AsyncLocalStorage = AsyncLocalStorage;
       const rootRequire=createRequire(resolve(root,"package.json"));
       const { NextRequest }=rootRequire("next/server");
@@ -1857,7 +1963,7 @@ try {
         if(boundary.headers.get("x-middleware-next")!=="1") return boundary;
         const store=createRequestStoreForAPI(request,{pathname:request.nextUrl.pathname,search:request.nextUrl.search},
           {tags:[],expirationsByCacheKind:new Map()},undefined,undefined,undefined);
-        const work=createWorkStore({page:"/api/app/scanner-historical-input-replay/route",buildId:"isolated-closed",
+        const work=createWorkStore({page:`/api/app/${originalFeatureReplay ? "scanner-original-input-replay" : "scanner-historical-input-replay"}/route`,buildId:"isolated-closed",
           deploymentId:"isolated-closed",previouslyRevalidatedTags:[],renderOpts:{supportsDynamicResponse:true,
             cacheLifeProfiles:{},cacheComponents:false,experimental:{},staticPageGenerationTimeout:60}});
         return workAsyncStorage.run(work,()=>workUnitAsyncStorage.run(store,()=>app.GET(request)));
@@ -1871,7 +1977,7 @@ try {
         } catch(error) {outgoing.writeHead(500);outgoing.end(String(error));}
       });
       await new Promise(done=>historyAppServer.listen(0,"127.0.0.1",done));
-      const endpoint=`http://127.0.0.1:${historyAppServer.address().port}/api/app/scanner-historical-input-replay`;
+      const endpoint=`http://127.0.0.1:${historyAppServer.address().port}/api/app/${originalFeatureReplay ? "scanner-original-input-replay" : "scanner-historical-input-replay"}`;
       const token=await appRuntime().createApplicationSession(); assert(token);
       const send=async(query,headers={cookie:`trade_auth=${token}`})=>{
         const response=await originalFetch(endpoint+query,{headers});
@@ -1886,7 +1992,7 @@ try {
       assert.equal((await send("?scan_run_id=rec_scan_run_missing")).response.status,404);
       const delivered=await send(query);
       assert.equal(delivered.response.status,200); assert.equal(delivered.response.headers.get("cache-control"),"no-store");
-      assert.deepEqual(delivered.result,before); assert(!JSON.stringify(delivered.result).includes("candles"));
+      assert.deepEqual(delivered.result,originalBefore ?? before); assert(!JSON.stringify(delivered.result).includes("candles"));
       assert.equal(externalRequests,requestsBefore);
       originalLog(JSON.stringify({historical_feature_replay:"passed",original_population_count:8,matched:3,
         missing:5,features_per_matched_member:6,archive_bytes:archiveBytes,fail_closed_controls:controls,
@@ -1895,6 +2001,13 @@ try {
         cache_deleted_restart_exact:true,original_decision_unchanged:true,extra_requests:0,
         actual_provider_requests:0,production_actions:0,current_session_features_checked:false,
         original_provider_json_reproduced:false,quality_improvement_claimed:false}));
+      if(originalFeatureReplay) originalLog(JSON.stringify({original_input_replay:"passed",original_population_count:8,
+        matched:originalBefore.matched_count,missing:5,features_per_matched_member:25,current_feature_count:19,
+        fail_closed_controls:currentControls,indicators_reproduced:true,current_session_features_checked:true,
+        original_null_features_preserved:true,reader_clock_independent:true,authenticated_http_readback:true,
+        cache_deleted_restart_exact:true,original_decision_unchanged:true,extra_requests:0,
+        actual_provider_requests:0,production_actions:0,input_fitness_proven:false,recommendation_quality_proven:false,
+        original_provider_json_reproduced:false}));
     }
     assert.deepEqual(benchmarkSource.scanRuns[0].payload_json.market_regime.input_evidence,regimeEvidence);
     const benchmarkWrongOwner=await benchmarkReader.readRecommendationLearningBaselineSource("00000000-0000-4000-8000-000000000002");

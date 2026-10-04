@@ -10,6 +10,8 @@ import type { SelectedCandidateBuildDiagnostic } from "@/lib/recommendation-buil
 import type { RecommendationScanRun } from "@/lib/recommendation-scan-run";
 import type { ScannerCandidate } from "@/lib/scanner";
 import type { CompletedDailyContext } from "@/lib/scanner-completed-daily-context";
+import type { CurrentSessionContext } from "@/lib/scanner-current-session-context";
+import type { ScannerCurrentInputCalculationClock } from "@/lib/server/scanner-current-input-archive";
 import type {
   ScannerCandidateRankingResult,
   ScannerCandidateRankingSummary,
@@ -105,6 +107,8 @@ export type CandidateDecisionCapture = {
     data_gap_codes: CandidateDecisionReasonCode[];
     input_snapshot?: ScannerDecisionInputSnapshot;
     historical_input_context?: CompletedDailyContext;
+    current_input_context?: CurrentSessionContext;
+    current_input_calculation_clock?: ScannerCurrentInputCalculationClock;
   }>;
   ranking: ScannerCandidateRankingSummary | null;
   eligible_candidate_tickers: string[];
@@ -382,6 +386,9 @@ export function buildCandidateDecisionCapture({
           ...(inputAttributed ? { input_snapshot: captureScannerDecisionInputSnapshot(candidate, normalizedCaptureTimestamp) } : {}),
           ...(inputAttributed && candidate.historical_input_context
             ? { historical_input_context: candidate.historical_input_context } : {}),
+          ...(inputAttributed && candidate.current_input_context && candidate.current_input_calculation_clock
+            ? { current_input_context: candidate.current_input_context,
+              current_input_calculation_clock: candidate.current_input_calculation_clock } : {}),
         },
       ];
     }),

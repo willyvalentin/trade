@@ -100,18 +100,22 @@ export async function replayScannerHistoricalInputs(scanRun: RecommendationScanR
 
 /** Fixed-purpose owner read: one durable run, no caller inputs/clock or writes.
  * Database failures remain unavailable, never an empty successful replay. */
-export async function readOwnedScannerHistoricalInputReplay(ownerUserId: string, scanRunId: string) {
+export async function readOwnedOriginalInputScanRun(ownerUserId: string, scanRunId: string): Promise<RecommendationScanRun | null> {
   const owner = normalizeApplicationOwnerUserId(ownerUserId);
   if (!owner || typeof scanRunId !== "string" || !/^rec_scan_run_[a-z0-9]{1,16}$/.test(scanRunId)) {
-    return result(null, "owned_original_run_unavailable");
+    return null;
   }
   const { client } = getServerSupabaseClient();
-  if (!client) return result(null, "owned_original_run_unavailable");
+  if (!client) return null;
   try {
     const { data, error } = await client.from("recommendation_scan_runs").select("*")
       .eq("owner_user_id", owner).eq("id", scanRunId).limit(1).maybeSingle();
-    if (error || !data || data.owner_user_id !== owner || data.id !== scanRunId) return result(null, "owned_original_run_unavailable");
-    const run = recommendationScanRunFromPersistenceRow(data);
-    return run ? await replayScannerHistoricalInputs(run) : result(null, "owned_original_run_unavailable");
-  } catch { return result(null, "owned_original_run_unavailable"); }
+    if (error || !data || data.owner_user_id !== owner || data.id !== scanRunId) return null;
+    return recommendationScanRunFromPersistenceRow(data);
+  } catch { return null; }
+}
+
+export async function readOwnedScannerHistoricalInputReplay(ownerUserId: string, scanRunId: string) {
+  const run = await readOwnedOriginalInputScanRun(ownerUserId, scanRunId);
+  return run ? replayScannerHistoricalInputs(run) : result(null, "owned_original_run_unavailable");
 }
