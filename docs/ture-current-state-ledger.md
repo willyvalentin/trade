@@ -30,6 +30,51 @@ production/broker action, push or competing PR; integration follows #732 and
 then-current main. Real varied original source and forward market quality
 remain distinct missing evidence, not something a synthetic pass can supply.
 
+**Local v3 acceptance / bounded exit — 2026-10-05:** verified test/harness
+revision `9aa7970aece45001a476fb3cde1161b954f8eb84`. Both new registered
+native checks pass serially in 8.8 minutes (2.4-minute actual training and
+6.3-minute terminal finalization). The same complete original population is
+retained: 96 training members, 30 decisions / 240 members in each forward
+partition, and 72 original runs in the terminal source. Twelve unrelated prior
+decisions remain in the physical database rather than reducing its input.
+
+Actual isolated Postgres/PostgREST/SDK training verifies real database-clock
+materialization and its separate-transaction pre-forward committed witness.
+The independent terminal proof verifies actual SQL-clock finalization,
+lossless bounded storage, installed Next/loopback negotiated readback and
+restarted immutable consumption after later mutable-source changes. That
+terminal proof deliberately uses the disclosed historical synthetic model-clock
+fixture; it is NOT an actual pre-forward model seal. Persisted/restarted
+training and retained terminal snapshots preserve the homogeneous v3
+`daily_average_range_percent` basis, without the old intraday-named alias.
+The unchanged charter still rejects the known synthetic source; no threshold,
+cohort, missing label, provider ceiling or policy is altered to obtain a pass.
+
+Three focused existing regressions pass in 25.6 seconds, including exact legacy
+model/result goldens and mixed-basis rejection. Nonincremental types pass;
+full lint has zero errors/eight unchanged warnings. Product files under
+app/lib/schema/dependencies are byte-identical to accepted `b006ad02`: reuse
+its exact locked Linux product build, not a claim that this test/ledger HEAD
+was rebuilt. Logs: `/private/tmp/ture-v3-original-learning-{native,regression,types,lint}-oct5.log`.
+The proof-owned disposable containers are removed after both terminal results.
+
+Stop this `quality_measurement` composition slice. No production fitting job,
+prospective real cohort, market-quality improvement, provider/production/broker
+action, push or competing PR occurred. At 03:43Z #732 remains Draft on
+`2741f946`, passing Draft verification but failed mandatory aggregate and
+blocked merge; fresh main at 03:35Z remains `55576078`. Integration order is
+still #732 and then-current main, without a release bypass. The next decisive
+intelligence evidence remains varied original decision-time source, a real
+pre-forward committed training model and full multi-day forward outcomes;
+another replay of this unchanged synthetic population cannot supply it.
+
+After this factual receipt, all seventeen existing active-governance checks pass
+in 2.5 seconds. Together with two new native checks and three focused regressions,
+this acceptance comprises **22 DISTINCT checks**, not a sum of overlapping
+earlier delivery results. Log:
+`/private/tmp/ture-v3-original-learning-governance-oct5.log`. Diff checks pass;
+only the ledger changes after verified `9aa7970a`.
+
 **Selected CLOSED quote-time integrity maintenance — 2026-10-05:** Codex,
 `codex/quote-market-time-integrity-oct5`, reuses the clean isolated checkout
 after completed diagnosis `495b0d00`; verified main remains `55576078` and
