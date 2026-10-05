@@ -2,7 +2,7 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
-**Combined local intelligence acceptance in progress — 2026-10-05:** Codex,
+**Combined local intelligence acceptance locally complete — 2026-10-05:** Codex,
 `codex/original-intelligence-combined-oct5`, reuses the clean isolated checkout
 after factual overlap closeout `98d3c0d2`. Fresh remote main is still exactly
 `55576078`; #732 remains the release-held primary. This is acceptance closure
@@ -22,6 +22,51 @@ after acceptance. Reuse the exact product Linux build already passed at
 serial test coverage/failures truthfully, never add overlapping prior counts.
 No real provider/prod/broker operation, new hypothesis or release bypass.
 Integration still follows #732 and then-current main, not a competing PR.
+
+**Acceptance closure / bounded exit — 2026-10-05:** all **370 DISTINCT
+registered checks in 29 files pass** together, serially, in 56.2 minutes on
+clean local composition `5bb36fec`. The invocation uses the existing
+`react-server` condition and skips the unrelated browser web server; it does
+not weaken a test limit, reduce original populations, retry a failed case or
+alter a product. This run includes actual isolated Postgres/PostgREST/SDK and
+loopback HTTP continuity, owner isolation, as-of original inputs, prospective
+freeze, immutable model/result restart, full charter/context, benchmark reuse
+and ordinary canonical-outcome resumption. Historical v1/v2 controls and the
+new v3 daily-range basis remain separately interpreted, never pooled.
+
+The complete-original archive checks retain 72 source runs, 96 training members
+and 240 members in each forward partition. The ordinary full-session source
+still retains its 26 decisions / 208 source observations / 176 enrolled members,
+49 continuations / 192 distinct synthetic requests, 144 canonical / 32 missing
+outcomes and honestly incomplete charter. Green acceptance does not replace
+these early input/late horizon gaps or qualify the synthetic model-clock
+fixture as a prospectively committed production model.
+
+Nonincremental types pass; full lint has zero errors and the same eight
+unrelated warnings. Tracked-source/diff checks pass and the user's unrelated
+root changes remain unchanged. `git diff ee11a7de HEAD` changes only this ledger:
+the exact clean product Linux build previously passed at `ee11a7de` therefore
+applies to unchanged product bytes, not a claim that documentation HEAD itself
+was rebuilt. Logs: `/private/tmp/ture-original-intelligence-combined-{regression,types,lint}-oct5.log`.
+
+At 03:03–03:04Z fresh remote main remains `55576078`; #732 remains Draft at
+`2741f946` with passing Draft verification, failed mandatory aggregate and
+skipped protected Ready/provenance checks. Official npm still publishes braces
+3.0.3, last modified 2024-09-18; no upstream correction or release bypass is
+selected. Stop combined acceptance without a product correction, new validator,
+competing PR or repeat test queue. This closes local `quality_measurement`
+composition acceptance only, not main/production behavior or recommendation
+lift. No push, merge, deploy, migration/configuration, real provider request,
+candidate publication or broker action occurred. Keep the completed local
+slices parked for the declared #732-then-current-main integration order; further
+CLOSED work must address a concrete earlier intelligence gap rather than
+extend these finished acceptance/support streams.
+
+The subsequent four existing active-governance files pass all seventeen checks
+in 2.5 seconds after this factual receipt. They are separate from the 29-file
+run above: **387 DISTINCT checks** in this combined acceptance, not a sum of
+overlapping earlier slice results. Log:
+`/private/tmp/ture-original-intelligence-combined-governance-oct5.log`.
 
 **Selected CLOSED IF-4 original outcome-window overlap investigation — 2026-10-05:**
 Owner Codex, `codex/original-outcome-overlap-oct5`, isolated from freshly
