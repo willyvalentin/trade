@@ -2,6 +2,70 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Selected CLOSED IF-4 original outcome-window overlap investigation — 2026-10-05:**
+Owner Codex, `codex/original-outcome-overlap-oct5`, isolated from freshly
+verified main `55576078` plus locally complete `060e841d`. #732 stays the
+release-held primary; the daily-range correction is parked, not another active
+development slice. Four-active-hour maximum original-source investigation.
+The same actual packaged session currently needs 49 ordinary continuations /
+192 distinct synthetic providerrequests while preserving 26 decisions / 208
+source observations / 176 enrolled members and 144 canonical / 32 missing
+outcomes. These counts are an acquisition baseline, not an alpha result or
+proof that every request could be avoided.
+
+Question: can overlapping same-symbol original horizon windows or already
+retained, attributable bars reduce requests needed for exact mature original
+outcome coverage within the existing bounds? Inspect the current request reuse,
+owner/identity binding, admitted-work ordering and actual complete source.
+Measure useful original labels and exact request/reservation counts separately.
+Keep every original decision, its sixty-minute anchor, horizon geometry,
+first-thirty enrollment and full numerical charter. Early unavailable inputs
+and late horizons after the regular close remain missing; no future fill or
+shorter-horizon substitution. Do not relabel retained bars as fresh provider
+responses, change acquisition ceilings, provider entitlements, budgets, schema,
+ranking/publication policy or live configuration.
+
+Initial ownership is a read-only isolated diagnostic and this selection. Only
+after an actual avoidable source/request gap is reproduced may a smallest
+separately declared correction be implemented and tested. If existing reuse is
+already maximal under the admitted-work bounds, record that bounded stop and
+return to the frozen quality chain instead of inventing a new work ceiling,
+another scheduler/readiness stream or competing ranking hypothesis. No real
+provider request, production/broker action or release bypass; integration of a
+verified correction would follow #732 against then-current main.
+
+**Bounded original-source diagnosis / exit — 2026-10-05:** unchanged product
+`ee11a7de` is observed through the actual packaged original-session
+SQL/PostgREST/SDK route. The observer reads only original-owner ticker/bar
+fields before each ordinary continuation; it changes no fixture input, work
+selection, snapshot/request limit, label or outcome. The same 26 decisions /
+208 source observations / 176 enrolled members retain membership
+`ff147ad25507e20b09d40cf7b8feef787d3497e0520c3e6958a9617b354b51c6`,
+144 canonical / 32 missing labels and the incomplete full charter.
+
+All 49 continuations / 192 distinct synthetic requests have **zero fully
+retained request windows** before acquisition and zero duplicated tickers
+within an admitted invocation. Six windows overlap partially (30 retained
+bars across 2,296 requested closed slots); each still needs unavailable bars.
+These aggregates include the original late incomplete windows, not a newly
+selected mature subset. No contradiction among retained same-symbol OHLC
+bars is observed. Partial overlap does not establish an avoidable provider
+credit or justify changing the existing bounded batch/work selection.
+
+Stop this investigation without a product change, new cache, widened ceiling
+or alternative ranker. This is `hypothesis_evidence` narrowing one proposed
+acquisition optimization, not market quality or proof of minimum possible
+cost under every other policy. Log:
+`/private/tmp/ture-original-outcome-overlap-native-oct5.log`; observer:
+`/private/tmp/ture-original-outcome-overlap-inspect-oct5.mjs`. An initial
+observer-only nonunique insertion failed before execution; its first SQL
+projection then exceeded the unchanged CLI buffer before completion. The
+passing rerun reads only required owner-bound bar fields, never increases a
+buffer, reduces a population or treats either failed diagnosis as acceptance.
+No real provider/production/broker operation occurred. #732 remains held;
+resume combined original-input/model/outcome/full-charter acceptance before
+integration, keeping all missingness and quality gates explicit.
+
 **Selected CLOSED IF-2b daily-range feature-basis correction — 2026-10-05:**
 Owner Codex, `codex/daily-range-feature-basis-oct5`, isolated from verified
 main `55576078` plus completed local original-source diagnosis `ddf9f1a4`.
