@@ -58,6 +58,7 @@ export type IntradayCandleRequestDiagnostics = {
 };
 
 export type MarketQuote = {
+  market_time: string | null;
   current_price: number;
   change: number;
   percent_change: number;
@@ -114,6 +115,7 @@ type TwelveDataTimeSeriesResponse = TwelveDataErrorResponse & {
 };
 
 type TwelveDataQuoteResponse = TwelveDataErrorResponse & {
+  last_quote_at?: unknown;
   close?: unknown;
   change?: unknown;
   percent_change?: unknown;
@@ -667,7 +669,16 @@ export async function getQuote(
     interval: "1day",
   }, options);
 
+  // /quote interval timestamp/datetime identify the bar's OPEN, not price
+  // freshness. Only last_quote_at identifies the provider's last minute candle.
+  const quoteTime = data.last_quote_at;
+  const marketTimeMs = typeof quoteTime === "number" && Number.isSafeInteger(quoteTime)
+    && quoteTime > 0 ? quoteTime * 1000 : Number.NaN;
+  const marketTime = Number.isFinite(marketTimeMs) && marketTimeMs <= 8.64e15
+    ? new Date(marketTimeMs).toISOString() : null;
+
   return {
+    market_time: marketTime,
     current_price: numberField(data.close, "current price"),
     change: numberField(data.change, "change"),
     percent_change: numberField(data.percent_change, "percent change"),

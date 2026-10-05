@@ -67,12 +67,19 @@ export async function captureCompletedDailyContext(
   if (!dataset || !validatedCalendar.computed_fingerprint) return null;
   const today = getUsEquityMarketSession(now, dataset);
   const identity = twelveDataResponseIdentityFromUnknown(value.response_identity);
-  const captured = typeof value.captured_at === "string" ? Date.parse(value.captured_at) : NaN;
+  // The original producer writes Date.toISOString(). Validate that exact clock
+  // before parsing can truncate a future fraction or normalize an invalid date
+  // into a different information set with the original content digest.
+  const rawCaptured = value.captured_at;
+  const captured = typeof rawCaptured === "string" &&
+    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(rawCaptured)
+    ? Date.parse(rawCaptured) : NaN;
   if (today.verification_status !== "verified" || today.freshness_status !== "current" || !today.market_date ||
     value.contract_version !== "daily_candle_response_v1" ||
     value.symbol !== ticker.trim().toUpperCase() || value.interval !== "1day" ||
     value.exchange_timezone !== "America/New_York" || value.price_adjustment !== "splits" ||
     !identity || identity.payload_byte_length === 0 || !Number.isFinite(captured) ||
+    new Date(captured).toISOString() !== rawCaptured ||
     captured > now.getTime() || !Array.isArray(value.candles) ||
     value.candles.length < 50 || value.candles.length > 60) return null;
 

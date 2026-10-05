@@ -59,6 +59,21 @@ test("old or mixed feature versions cannot satisfy the original current-vector r
   expect(buildRelativePlanCharterContext([value]).feasibility.supported_original_vector).toBe(false);
 });
 
+test("daily-basis and legacy-named populations remain separately measurable and never silently pooled", async () => {
+  const source = await prospectiveSource({ featureVectorVersion: "recommendation_decision_feature_vector_v3" });
+  const current = buildRelativePlanCharterObservations({ source, scanRun: source.scanRuns[0],
+    now: new Date("2026-10-12T19:00:00.000Z") })!;
+  const measured = buildRelativePlanCharterContext([current]);
+  expect(measured.feasibility).toMatchObject({ complete:true, supported_original_vector:true,
+    decision_feature_vector_version:"recommendation_decision_feature_vector_v3" });
+  const mixed = structuredClone(current);
+  mixed.rows[0].decision_feature_vector_version = "recommendation_decision_feature_vector_v2";
+  const gap = buildRelativePlanCharterContext([mixed]);
+  expect(gap.original_population_count).toBe(4);
+  expect(gap.feasibility.supported_original_vector).toBe(false);
+  expect(gap.feasibility.complete).toBe(false);
+});
+
 test("fixed 95-percent descriptive Wilson bounds disclose uncertainty and reject invalid denominators", () => {
   expect(relativePlanCharterProportion(0, 10)?.upper).toBeCloseTo(0.2775327999);
   expect(relativePlanCharterProportion(10, 10)?.lower).toBeCloseTo(0.7224672001);

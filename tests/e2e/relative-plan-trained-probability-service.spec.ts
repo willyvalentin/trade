@@ -13,7 +13,7 @@ import { createApplicationSession, TRADE_AUTH_COOKIE } from "@/lib/application-s
 import { persistRecommendationScanRun } from "@/lib/server/recommendation-scan-run-persistence";
 import { persistRecommendationSnapshot } from "@/lib/server/recommendation-snapshot-persistence";
 import { persistRecommendationOutcome } from "@/lib/server/recommendation-outcome-persistence";
-import { relativePlanCompleteHttpResponse, RELATIVE_PLAN_COMPLETE_RESPONSE_MAX_BYTES } from "@/lib/server/relative-plan-complete-http-response";
+import { relativePlanCompleteHttpResponse, relativePlanCompleteResponseFitsTransport, RELATIVE_PLAN_COMPLETE_RESPONSE_MAX_BYTES } from "@/lib/server/relative-plan-complete-http-response";
 import { RELATIVE_PLAN_COMPLETE_DECODED_MAX_BYTES, RELATIVE_PLAN_COMPLETE_GZIP_MAX_BYTES } from "@/lib/server/relative-plan-complete-http-response";
 import { gunzipSync } from "node:zlib";
 import { randomBytes } from "node:crypto";
@@ -21,6 +21,7 @@ import { computeRecommendationOutcome } from "@/lib/recommendation-outcome-track
 import { recommendationOutcomeEvaluationAnchorFromSnapshot } from "@/lib/recommendation-outcome-evaluation-anchor";
 import { buildCanonicalOutcomeProviderCoverageReceipt } from "@/lib/recommendation-outcome-canonical-coverage";
 import { parseRecommendationLearningBaselineSource } from "@/lib/recommendation-learning-baseline-source";
+import { appendSyntheticOriginalArchives } from "../fixtures/original-input-archive-evidence";
 
 const now = new Date("2026-10-10T00:00:00.000Z");
 const pieces = Promise.all([5, 6, 7].flatMap(day => [0, 1, 2, 3].map(n =>
@@ -93,6 +94,23 @@ test("only an empty fixed-purpose request can start server-owned training", asyn
   expect(h.calls).toEqual([]);
 });
 
+test("new training cannot fit contradictory original inputs even on a non-top-three member", async () => {
+  const h = await harness(), run = h.source[0].scanRuns[0];
+  const archives = await appendSyntheticOriginalArchives(run);
+  // Last original member, not selected top-three: do not silently shrink the
+  // fit population to only its published or favorable observations.
+  archives.dailyArchive.entries = archives.dailyArchive.entries.slice(-1);
+  archives.currentArchive.entries = archives.currentArchive.entries.slice(-1);
+  const row = h.data.recommendation_scan_runs.find(row => row.id === run.id)!;
+  Object.assign(row.payload_json as object, run.payload_json);
+  const original = JSON.stringify(h.data);
+  expect(await h.service.train(prospectiveOwner, {})).toMatchObject({ status: "unavailable", receipt: null,
+    blocker: "trained_probability_original_input_arithmetic_conflicting" });
+  expect(h.calls).not.toContain("materialize");
+  expect(h.calls).not.toContain("confirm");
+  expect(JSON.stringify(h.data)).toBe(original);
+});
+
 test("actual source parsing, fixed model, committed read and restarted command share one immutable receipt", async () => {
   const h = await harness();
   expect((await h.service.read(prospectiveOwner)).status).toBe("not_found");
@@ -100,6 +118,9 @@ test("actual source parsing, fixed model, committed read and restarted command s
   const first = await h.service.train(prospectiveOwner, {});
   expect(first).toMatchObject({ status: "materialized", receipt: { trained_model: {
     original_population_count: 48, canonical_outcome_count: 48, model: { sample_count: 48 } } } });
+  expect(h.source.every(part => part.scanRuns[0].payload_json.candidate_decision_record.candidates.every(candidate =>
+    candidate.ranking?.components.find(component => component.component === "data_completeness")?.reason.includes(
+      "does not establish market-data completeness or freshness")))).toBe(true);
   const restart = createRelativePlanTrainedProbabilityService({ ...h.dependencies,
     readSource: async () => { throw new Error("existing_model_cannot_refit"); }, clock: () => new Date("2026-11-07T00:00:00.000Z") });
   expect(await restart.read(prospectiveOwner)).toMatchObject({ status: "available", receipt: first.receipt });
@@ -140,6 +161,135 @@ test("raw recording-time gaps and late/premature jobs never become fitted eviden
     expect((await service.train(prospectiveOwner, {})).status).toBe("not_ready");
   }
   expect(complete.calls).not.toContain("materialize");
+});
+
+test("new training cannot seal an original scan recorded after its source-as-of clock", async () => {
+  const h = await harness();
+  h.data.recommendation_scan_runs[0].created_at = "2026-10-10T00:00:00.001Z";
+  h.data.recommendation_scan_runs[0].updated_at = "2026-10-10T00:00:00.001Z";
+  const before = JSON.stringify(h.data);
+  const result = await h.service.train(prospectiveOwner, {});
+  expect(h.calls).not.toContain("materialize");
+  expect(result).toMatchObject({ status: "unavailable", receipt: null,
+    blocker: "trained_probability_scan_run_recording_times_invalid" });
+  expect(h.data.recommendation_scan_runs).toHaveLength(12);
+  expect(h.data.recommendation_snapshots).toHaveLength(48);
+  expect(JSON.stringify(h.data)).toBe(before);
+});
+
+test("new training requires explicit original scan clocks without changing the retained training population", async () => {
+  for (const clocks of [
+    { created_at: undefined }, { updated_at: undefined }, { created_at: null },
+    { created_at: "2026-10-05" }, { created_at: "2026-02-30T17:00:00.000Z" },
+    { created_at: "2026-10-05T17:00:00.000002Z", updated_at: "2026-10-05T17:00:00.000001Z" },
+    { updated_at: "2026-10-10T00:00:00.000001Z" },
+  ]) {
+    const h = await harness(); Object.assign(h.data.recommendation_scan_runs[3], clocks);
+    const before = JSON.stringify(h.data);
+    expect(await h.service.train(prospectiveOwner, {})).toMatchObject({ status: "unavailable", receipt: null,
+      blocker: "trained_probability_scan_run_recording_times_invalid" });
+    expect(h.calls).not.toContain("materialize"); expect(h.calls).not.toContain("confirm");
+    expect(h.data.recommendation_scan_runs).toHaveLength(12);
+    expect(h.data.recommendation_outcomes).toHaveLength(48);
+    expect(JSON.stringify(h.data)).toBe(before);
+  }
+});
+
+test("exact scan clocks seal all original members and a restarted model never samples later mutable clocks", async () => {
+  for (const at of [now.toISOString(), "2026-10-10T02:00:00.000000+02:00"]) {
+    const h = await harness();
+    Object.assign(h.data.recommendation_scan_runs[3], { created_at: at, updated_at: at });
+    const first = await h.service.train(prospectiveOwner, {});
+    expect(first.status).toBe("materialized");
+    expect(first.receipt?.trained_model.original_population_count).toBe(48);
+    expect(first.receipt?.trained_model.model.sample_count).toBe(48);
+    h.data.recommendation_scan_runs[3].updated_at = "later_mutable_clock_unavailable";
+    const restart = createRelativePlanTrainedProbabilityService({ ...h.dependencies,
+      clock: () => new Date("2026-11-07T00:00:00.000Z"),
+      readSource: async () => { throw new Error("sealed_model_cannot_sample_current_scan_clocks"); } });
+    expect(await restart.train(prospectiveOwner, {})).toEqual({ ...first, status: "already_materialized" });
+    h.interruptConfirmation();
+    expect((await restart.train(prospectiveOwner, {})).receipt).toEqual(first.receipt);
+    expect(h.calls.filter(call => call === "materialize")).toHaveLength(1);
+  }
+});
+
+test("new training cannot seal a snapshot recorded after its source-as-of clock", async () => {
+  const h = await harness();
+  h.data.recommendation_snapshots[0].created_at = "2026-10-10T00:00:00.001Z";
+  h.data.recommendation_snapshots[0].updated_at = "2026-10-10T00:00:00.001Z";
+  const original = JSON.stringify(h.data);
+  const result = await h.service.train(prospectiveOwner, {});
+  expect(result.status).toBe("unavailable");
+  expect(result.receipt).toBeNull();
+  expect(result.blocker).toBe("trained_probability_snapshot_recording_times_invalid");
+  expect(h.calls).not.toContain("materialize");
+  expect(h.calls).not.toContain("confirm");
+  expect(JSON.stringify(h.data)).toBe(original);
+});
+
+test("new training rejects missing, impossible and microsecond-late raw snapshot clocks without shrinking originals", async () => {
+  test.setTimeout(120000);
+  for (const clocks of [
+    { created_at: undefined }, { updated_at: undefined }, { created_at: null },
+    { created_at: "2026-10-05" }, { created_at: "2026-02-30T17:00:00.000Z" },
+    { created_at: "2026-10-05T17:00:00.000002Z", updated_at: "2026-10-05T17:00:00.000001Z" },
+    { updated_at: "2026-10-10T00:00:00.000001Z" },
+  ]) {
+    const h = await harness();
+    Object.assign(h.data.recommendation_snapshots[3], clocks);
+    const before = JSON.stringify(h.data);
+    const result = await h.service.train(prospectiveOwner, {});
+    expect(result.status).toBe("unavailable");
+    expect(result.blocker).toBe("trained_probability_snapshot_recording_times_invalid");
+    expect(result.receipt).toBeNull();
+    expect(h.calls).not.toContain("materialize");
+    expect(h.data.recommendation_snapshots).toHaveLength(48);
+    expect(JSON.stringify(h.data)).toBe(before);
+  }
+});
+
+test("exact and offset snapshot clocks preserve all fitting members and sealed retries ignore later mutable clocks", async () => {
+  test.setTimeout(120000);
+  for (const updated_at of [now.toISOString(), "2026-10-10T02:00:00.000000+02:00",
+    "2026-10-09T23:59:59.999999Z"]) {
+    const h = await harness();
+    h.data.recommendation_snapshots[3].updated_at = updated_at;
+    const first = await h.service.train(prospectiveOwner, {});
+    expect(first.status).toBe("materialized");
+    expect(first.receipt?.trained_model.original_population_count).toBe(48);
+    expect(first.receipt?.trained_model.model.sample_count).toBe(48);
+    h.data.recommendation_snapshots[3].created_at = "unavailable_later_mutable_clock";
+    const restart = createRelativePlanTrainedProbabilityService({ ...h.dependencies,
+      readSource: async () => { throw new Error("sealed_model_must_not_reread"); } });
+    const repeated = await restart.train(prospectiveOwner, {});
+    expect(repeated.status).toBe("already_materialized");
+    expect(repeated.receipt).toEqual(first.receipt);
+    h.interruptConfirmation();
+    expect((await restart.train(prospectiveOwner, {})).receipt).toEqual(first.receipt);
+    expect(h.calls.filter(call => call === "materialize")).toHaveLength(1);
+    expect(h.calls.filter(call => call === "source_read")).toHaveLength(1);
+  }
+});
+
+test("unrelated snapshot clocks cannot block fitting but colliding original keys cannot escape admission", async () => {
+  const h = await harness();
+  const extra = { ...h.data.recommendation_snapshots[0], id: "unrelated_snapshot",
+    snapshot_fingerprint: "unrelated_snapshot", scan_run_id: "unrelated_run",
+    recommended_at: "2026-11-10T17:00:00.000Z", created_at: undefined, updated_at: undefined };
+  h.data.recommendation_snapshots.push(extra);
+  const result = await h.service.train(prospectiveOwner, {});
+  expect(result.status).toBe("materialized");
+  expect(result.receipt?.trained_model.original_population_count).toBe(48);
+  expect(result.receipt?.trained_model.model.sample_count).toBe(48);
+  const colliding = await harness();
+  colliding.data.recommendation_snapshots.push({ ...colliding.data.recommendation_snapshots[0],
+    id: "different_id_same_original_key", created_at: undefined });
+  const rejected = await colliding.service.train(prospectiveOwner, {});
+  expect(rejected.status).toBe("unavailable");
+  expect(rejected.blocker).toBe("trained_probability_snapshot_recording_times_invalid");
+  expect(colliding.calls).not.toContain("materialize");
+  expect(colliding.data.recommendation_snapshots).toHaveLength(49);
 });
 
 test("a fresh training job cannot seal a future or contradictory persisted outcome revision", async () => {
@@ -250,6 +400,36 @@ test("valid retained legacy candles remain eligible without reducing the origina
   expect(await h.service.train(prospectiveOwner, {})).toMatchObject({ status: "materialized", receipt: { trained_model: {
     original_population_count: 48, canonical_outcome_count: 48, missing_outcome_count: 0, model: { sample_count: 48 },
   } } });
+  expect(JSON.stringify(h.data)).toBe(before);
+});
+
+test("new training rejects contradictory consumed EOD fallback before fitting without dropping its member", async () => {
+  const h = await harness(), snapshot = h.source[0].snapshots[0];
+  const anchor = recommendationOutcomeEvaluationAnchorFromSnapshot(snapshot)!;
+  const start = Date.parse(anchor.evaluation_anchor_start_at);
+  const candles = Array.from({ length: 12 }, (_, index) => ({
+    timestamp: new Date(start + index * 300000).toISOString(),
+    open: 100, high: 101, low: 99, close: 100.5, volume: 1000,
+  }));
+  const outcome = computeRecommendationOutcome({ snapshot, horizon: "60m", evaluated_at: new Date(start + 3900000),
+    candles, eod_price: 100.5, provider: "twelve_data", source: "intraday_candles", data_completeness: "complete" }).outcome;
+  expect(outcome.status).toBe("neither_hit");
+  expect(outcome.current_r).toBeNull();
+  const coverage = buildCanonicalOutcomeProviderCoverageReceipt({ candles, request: {
+    interval: "5min", horizon: "60m", ...anchor, start_at: anchor.evaluation_anchor_start_at,
+    end_at: new Date(start + 3900000).toISOString(),
+  }, result: { status: "available", provider: "twelve_data" } });
+  await h.replaceOutcome({ ...outcome, eod_r: 9, payload_json: { ...outcome.payload_json,
+    canonical_provider_coverage: coverage, counterfactual_candles: candles,
+    counterfactual_candle_source: "horizon_filtered_intraday_candles",
+    retained_candles_available: true, retained_candle_count: candles.length,
+  } });
+  const before = JSON.stringify(h.data);
+  expect(await h.service.train(prospectiveOwner, {})).toMatchObject({ status: "unavailable", receipt: null,
+    blocker: "trained_probability_retained_candle_realized_r_conflicting" });
+  expect(h.calls).not.toContain("materialize");
+  expect(h.calls).not.toContain("confirm");
+  expect(h.data.recommendation_outcomes).toHaveLength(48);
   expect(JSON.stringify(h.data)).toBe(before);
 });
 
@@ -400,6 +580,7 @@ test("gzip never bypasses independent decoded and compressed bounds", async () =
   const decodedOverflow = { evidence: "x".repeat(RELATIVE_PLAN_COMPLETE_DECODED_MAX_BYTES) };
   const incompressible = { evidence: randomBytes(RELATIVE_PLAN_COMPLETE_GZIP_MAX_BYTES + 1048576).toString("base64") };
   for (const result of [decodedOverflow, incompressible]) {
+    expect(relativePlanCompleteResponseFitsTransport(result, "gzip")).toBe(false);
     const response = relativePlanCompleteHttpResponse(result, { status: 200, headers: {}, acceptEncoding: "gzip" });
     expect(response.status).toBe(503);
     expect(response.headers.get("content-encoding")).toBeNull();

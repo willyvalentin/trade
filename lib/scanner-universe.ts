@@ -278,7 +278,12 @@ export function selectScannerUniverse(
     });
   const activeWindow = isActiveSelectionWindow(scanWindow);
   const dynamicTickers = activeWindow
-    ? dynamicMovers.selected_movers.map(dynamicMoverToUniverseTicker)
+    ? dynamicMovers.selected_movers
+        .filter((mover) =>
+          !blockedTickers.has(mover.ticker) &&
+          (allowedTickers.size === 0 || allowedTickers.has(mover.ticker)),
+        )
+        .map(dynamicMoverToUniverseTicker)
     : [];
   const dynamicTickerSymbols = new Set(
     dynamicTickers.map((item) => item.ticker),
@@ -705,14 +710,26 @@ function buildCoverageSummary({
 }): ScannerUniverseCoverageSummary {
   const enabledTickers = scannerUniverseTickers.filter((item) => item.enabled);
   const tradableTickers = enabledTickers.filter((item) => item.tradable);
-  const blockedTickersRemoved = tradableTickers.filter((item) =>
-    blockedTickers.has(item.ticker),
+  // Count the actual static + supplied dynamic population, without double
+  // counting a symbol present in both. The upstream mover receipt stays intact.
+  const riskPopulation = new Set([
+    ...tradableTickers.map((item) => item.ticker),
+    ...dynamicMovers.selected_movers.map((item) => item.ticker),
+  ]);
+  const blockedTickersRemoved = [...riskPopulation].filter((ticker) =>
+    blockedTickers.has(ticker),
   ).length;
   const allowedTickersMatched =
     allowedTickers.size === 0
       ? 0
-      : tradableTickers.filter((item) => allowedTickers.has(item.ticker)).length;
+      : [...riskPopulation].filter((ticker) => allowedTickers.has(ticker)).length;
   const categoryBreakdown = buildCategoryBreakdown(selectedTickers);
+  const dynamicMoverSourceBreakdown = { ...dynamicMovers.summary.source_breakdown };
+  for (const source of Object.keys(dynamicMoverSourceBreakdown) as DynamicMarketMoversSource[]) {
+    dynamicMoverSourceBreakdown[source] = selectedTickers.filter(
+      (item) => item.selection_source === source,
+    ).length;
+  }
   const warnings = buildWarnings({
     scanWindow,
     selectedTickers,
@@ -751,7 +768,7 @@ function buildCoverageSummary({
     dynamic_mover_selected_count: selectedTickers.filter(
       (item) => item.selection_source !== "base_universe",
     ).length,
-    dynamic_mover_source_breakdown: dynamicMovers.summary.source_breakdown,
+    dynamic_mover_source_breakdown: dynamicMoverSourceBreakdown,
     warnings,
     notes: [
       dynamicMovers.summary.status === "provider_unavailable"

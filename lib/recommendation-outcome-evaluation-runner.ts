@@ -31,6 +31,7 @@ import {
 } from "@/lib/plan-reference-metadata-trace";
 import { buildCanonicalOutcomeProviderCoverageReceipt, canonicalOutcomeProviderCoverageQuality } from "@/lib/recommendation-outcome-canonical-coverage";
 import { recommendationOutcomeEvaluationAnchorFromSnapshot } from "@/lib/recommendation-outcome-evaluation-anchor";
+import { deferObservedCanonicalOutcomeWindow, hasIncompleteCanonicalOutcomeCoverage } from "@/lib/canonical-outcome-acquisition-readiness";
 
 export type RecommendationOutcomeEvaluationRunStatus =
   | "idle"
@@ -176,6 +177,7 @@ export type RecommendationOutcomeEvaluationRunnerOptions = {
   maxCandleRequests?: number | null;
   snapshotOrder?: "newest_first" | "input";
   enrichCompletedOutcomes?: boolean;
+  deferObservedCanonicalWindow?: boolean;
   fetchCandles?: (
     request: RecommendationOutcomeCandleRequest,
   ) => Promise<RecommendationOutcomeCandleResult>;
@@ -245,7 +247,8 @@ function isOutcomePending(outcome: RecommendationOutcome | undefined) {
     outcome.status === "pending" ||
     outcome.status === "incomplete" ||
     outcome.status === "unknown" ||
-    outcome.status === "invalid"
+    outcome.status === "invalid" ||
+    hasIncompleteCanonicalOutcomeCoverage(outcome)
   );
 }
 
@@ -884,6 +887,20 @@ export async function runRecommendationOutcomeEvaluation(
           outcome.snapshot_fingerprint === snapshot.snapshot_fingerprint &&
           outcome.horizon === horizon,
       );
+
+      if (options.deferObservedCanonicalWindow === true && existingOutcome &&
+        deferObservedCanonicalOutcomeWindow(existingOutcome, now)) {
+        const reason = "Canonical coverage remains incomplete; retry is deferred until the next provider-bar window.";
+        candidates.push({ candidate_id: `${snapshot.snapshot_fingerprint}:${horizon}`,
+          snapshot_id: snapshot.id, snapshot_fingerprint: snapshot.snapshot_fingerprint,
+          recommendation_id: snapshot.recommendation_id, ticker: snapshot.ticker, horizon,
+          status: "pending_candles", candle_request: null, candle_count: 0,
+          outcome_id: existingOutcome.id, outcome_status: existingOutcome.status, persistence_mode: "unknown",
+          entry_type_metadata: entryTypeMetadataFromOutcome(existingOutcome),
+          entry_type_aware_trigger: entryTypeTriggerFromOutcome(existingOutcome), warnings: [reason], error: null });
+        warnings.push(warning(snapshot, horizon, "canonical_retry_window_deferred", reason));
+        continue;
+      }
 
       if (isProviderLimitOutcome(existingOutcome)) {
         retryIncompleteCount += 1;

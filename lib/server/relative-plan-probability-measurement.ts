@@ -6,6 +6,8 @@ import { buildScannerScoreProbabilityCalibrationModel, applyScannerScoreProbabil
 import { RELATIVE_PLAN_CONTEXT_SHADOW_VERSION } from "@/lib/scanner-relative-plan-context-shadow";
 import type { RelativePlanContextOutcomeComparison } from "@/lib/scanner-relative-plan-context-outcomes";
 import type { RecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
+import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
+import type { RecommendationScanRun } from "@/lib/recommendation-scan-run";
 import { verifiedRelativePlanTrainedProbabilityReceipt, relativePlanTrainedPopulationMatches } from "@/lib/server/relative-plan-trained-probability-model";
 
 type Window = { start_at: string; end_at: string };
@@ -28,6 +30,18 @@ function explicitOutcomeRecordingInstant(value: unknown): value is string {
   const offset = value.endsWith("Z") ? 0 : (suffix[0] === "+" ? 1 : -1) *
     (Number(suffix.slice(1, 3)) * 60 + Number(suffix.slice(4)));
   return new Date(Date.parse(value) + offset * 60000).toISOString().slice(0, 19) === value.slice(0, 19);
+}
+
+/** Explicit raw-clock availability, preserving PostgreSQL microseconds. This
+ * does not impose relation-specific ordering or attest historical storage.
+ * Use only at NEW mutable consumers, never to reinterpret sealed capsules.
+ */
+export function hasObservedRelativePlanRecordingTime(value: unknown, now: Date): boolean {
+  const asOf = now.getTime(), scale = BigInt(1000);
+  if (!Number.isFinite(asOf) || !explicitOutcomeRecordingInstant(value)) return false;
+  const micros = BigInt(Date.parse(value)) * scale +
+    BigInt((value.match(/\.(\d{1,6})(?:Z|[+-]\d{2}:\d{2})$/)?.[1] ?? "").padEnd(6, "0").slice(3));
+  return micros <= BigInt(asOf) * scale;
 }
 export function hasExplicitRelativePlanOutcomeRecordingTimes(rows: unknown): boolean {
   return Array.isArray(rows) && rows.length <= 100000 && rows.every(row => row && typeof row === "object" && !Array.isArray(row) &&
@@ -70,6 +84,47 @@ export function hasAdmissibleRelativePlanCurrentOutcomeRevisionTimes(rows: unkno
     (rows as Record<string, unknown>[]).every(row =>
       Math.max(Date.parse(row.evaluated_at as string), Date.parse(row.created_at as string)) > asOf ||
       hasAdmissibleRelativePlanOutcomeRevisionTimes([row], now));
+}
+
+/** NEW job admission only. Validate the actual persistence clocks for the
+ * complete retained snapshot scope, including colliding keys. Never filter a
+ * bad original member out of the population or retrofit an immutable capsule.
+ * Legacy decoding may invent created_at/updated_at; its clocks cannot attest
+ * that these raw rows were already recorded at the server's sampled as-of.
+ */
+export function hasAdmissibleRelativePlanSnapshotRecordingTimes(rows: unknown,
+  snapshots: Pick<RecommendationSnapshot, "snapshot_fingerprint">[], now: Date): boolean {
+  if (snapshots.length > 100000) return false;
+  return hasAdmissibleOriginalRecordingTimes(rows, snapshots.map(row => row.snapshot_fingerprint), "snapshot_fingerprint", now);
+}
+
+/** Same raw-time admission for original decisions. Decoded observed_at or the
+ * embedded decision timestamp cannot attest to the row's recording/revision.
+ * Only NEW mutable consumers use this; immutable capsules retain their source.
+ */
+export function hasAdmissibleRelativePlanScanRunRecordingTimes(rows: unknown,
+  scanRuns: Pick<RecommendationScanRun, "run_fingerprint">[], now: Date): boolean {
+  if (scanRuns.length > 100000) return false;
+  return hasAdmissibleOriginalRecordingTimes(rows, scanRuns.map(row => row.run_fingerprint), "run_fingerprint", now);
+}
+
+function hasAdmissibleOriginalRecordingTimes(rows: unknown, fingerprints: string[],
+  field: "snapshot_fingerprint" | "run_fingerprint", now: Date): boolean {
+  const asOf = now.getTime(), scale = BigInt(1000);
+  if (!Number.isFinite(asOf) || !Array.isArray(rows) || rows.length > 100000 || fingerprints.length > 100000) return false;
+  const keys = new Set(fingerprints), seen = new Set<string>();
+  const micros = (value: string) => BigInt(Date.parse(value)) * scale +
+    BigInt((value.match(/\.(\d{1,6})(?:Z|[+-]\d{2}:\d{2})$/)?.[1] ?? "").padEnd(6, "0").slice(3));
+  for (const row of rows) {
+    if (!row || typeof row !== "object" || Array.isArray(row)) return false;
+    // Same key normalization as the source decoder; keep ALL collisions.
+    const key = String(row[field] ?? row.id ?? "").trim();
+    if (!keys.has(key)) continue;
+    seen.add(key);
+    if (!explicitOutcomeRecordingInstant(row.created_at) || !explicitOutcomeRecordingInstant(row.updated_at) ||
+      micros(row.created_at) > micros(row.updated_at) || micros(row.updated_at) > BigInt(asOf) * scale) return false;
+  }
+  return seen.size === keys.size;
 }
 function ordered(rows: Comparison[]) {
   return [...rows].sort((a, b) => Date.parse(a.decision_timestamp ?? "") - Date.parse(b.decision_timestamp ?? "") ||

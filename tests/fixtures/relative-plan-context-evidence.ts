@@ -62,13 +62,26 @@ async function candidate(ticker: string, range = 1, now = NOW, interval: "5min" 
   return result;
 }
 
-export async function relativePlanEvidence(options: { range?: number; now?: Date; interval?: "5min" | "15min"; missing?: boolean; rankedCount?: 4 | 8; buildVersion?: string; learningAttribution?: CandidateDecisionLearningAttribution; publishedTickers?: string[] } = {}) {
+export async function relativePlanEvidence(options: { range?: number; now?: Date; interval?: "5min" | "15min"; missing?: boolean; rankedCount?: 4 | 8; buildVersion?: string; learningAttribution?: CandidateDecisionLearningAttribution; publishedTickers?: string[]; historicalFieldPresenceWording?: true } = {}) {
   const now = options.now ?? NOW;
   const observed = await Promise.all([candidate("AAA", options.range ?? 1, now, options.interval), candidate("ZZZ", 8, now, options.interval)]);
   if (options.rankedCount === 4 || options.rankedCount === 8) observed.push(...await Promise.all([candidate("BBB", 8, now), candidate("CCC", 8, now)]));
   if (options.rankedCount === 8) observed.push(...await Promise.all(["DDD", "EEE", "FFF", "GGG"].map(ticker => candidate(ticker, 8, now))));
   const missing = Array.from({ length: options.missing === false ? 0 : 8 - observed.length }, (_, i) => ({ ...observed[0], ticker: `MISS${i}` }));
   const ranking = buildScannerCandidateRankingSummary({ candidates: observed, targetMin: 0, targetMax: 3, now });
+  if (options.historicalFieldPresenceWording) {
+    // Explicit retained synthetic v1 wording, BEFORE capture/fingerprinting.
+    // A current explanation correction must not rewrite the old golden source.
+    // All new fixtures keep the current honest explanation by default.
+    for (const result of ranking.results) {
+      const component = result.score.components.find(row => row.component === "data_completeness")!;
+      expect(component.score).toBe(100);
+      const current = component.reason;
+      component.reason = "data completeness is strong.";
+      result.rank_reason = result.rank_reason.replace(current, component.reason);
+      ranking.top_ranking_reasons = ranking.top_ranking_reasons.map(reason => reason === current ? component.reason : reason);
+    }
+  }
   const run = buildRecommendationScanRun({ trading_date: getNyMarketTime(now.toISOString()).ny_date, observed_at: now.toISOString(),
     ...(options.buildVersion ? { scheduled_scan_run_id: `synthetic_prospective_${now.toISOString()}` } : {}),
     completed_at: new Date(now.getTime() + 100).toISOString(), window: "midday", source: "supabase",

@@ -1,5 +1,5 @@
 import "server-only";
-import { RECOMMENDATION_DECISION_FEATURE_VECTOR_VERSION } from "@/lib/recommendation-decision-feature-vector";
+import { isCompletedInputDecisionFeatureVectorVersion } from "@/lib/recommendation-decision-feature-vector";
 import type { RelativePlanCharterObservations } from "@/lib/server/relative-plan-charter-observations";
 
 export const RELATIVE_PLAN_CHARTER_CONTEXT_VERSION = "relative_plan_charter_context_v1" as const;
@@ -28,7 +28,7 @@ export function buildRelativePlanCharterContext(observations: RelativePlanCharte
   const uniqueRows = new Set(observations.flatMap(observation => observation.rows.map(row =>
     `${observation.scan_run_fingerprint}:${row.candidate_id}`)));
   const samePopulation = expected > 0 && expected === rows.length && uniqueScans.size === observations.length && uniqueRows.size === expected;
-  const valid = (value: number | null) => value !== null && Number.isFinite(value) && value >= 0;
+  const valid = (value: unknown) => typeof value === "number" && Number.isFinite(value) && value >= 0;
   const coverage = (count: number) => ({ observed_count: count, expected_count: expected,
     missing_count: samePopulation ? expected - count : null, coverage: samePopulation ? relativePlanCharterProportion(count, expected) : null,
     complete: samePopulation && count === expected });
@@ -36,7 +36,7 @@ export function buildRelativePlanCharterContext(observations: RelativePlanCharte
   const volatility = coverage(rows.filter(row => Object.values(row.volatility).every(valid)).length);
   const trigger = coverage(rows.filter(row => typeof row.trigger_attainment === "boolean").length);
   const versions = [...new Set(rows.map(row => row.decision_feature_vector_version))];
-  const vectorSupported = samePopulation && versions.length === 1 && versions[0] === RECOMMENDATION_DECISION_FEATURE_VECTOR_VERSION;
+  const vectorSupported = samePopulation && versions.length === 1 && isCompletedInputDecisionFeatureVectorVersion(versions[0]);
   const concentration = Object.fromEntries((["ticker", "sector", "setup", "regime"] as const).map(dimension => {
     const values = rows.map(row => row[dimension]);
     const known = values.filter((value): value is string => typeof value === "string" && value.length > 0);

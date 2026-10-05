@@ -1,5 +1,7 @@
 import "server-only";
 import type { RecommendationLearningBaselineSource } from "@/lib/recommendation-learning-baseline-source";
+import { recommendationDecisionFeatureVectorFromUnknown,
+  isCompletedInputDecisionFeatureVectorVersion } from "@/lib/recommendation-decision-feature-vector";
 import { buildScannerScoreProbabilityCalibrationModel,
   type ScannerScoreProbabilityCalibrationTrainingInput } from "@/lib/scanner-score-probability-calibration";
 import { buildRelativePlanProspectiveEnrollment } from "@/lib/server/relative-plan-prospective-enrollment";
@@ -91,6 +93,11 @@ export function buildRelativePlanTrainedProbabilityModel(input: {
   const training = original.partitions[0].decisions;
   const trainingRuns = new Set(training.map(row => row.fingerprint));
   const snapshots = input.source.snapshots.filter(row => trainingRuns.has(row.scan_run_id ?? ""));
+  const bases = new Set(snapshots.map(row => recommendationDecisionFeatureVectorFromUnknown(
+    row.payload_json.decision_feature_vector)?.contract_version).filter(isCompletedInputDecisionFeatureVectorVersion));
+  // Do not select a convenient version subset or rename retained evidence.
+  // Homogeneous historical v2 models keep their exact original capsule/hash.
+  if (bases.size > 1) return blocked("trained_probability_mixed_original_feature_bases");
   const snapshotFingerprints = new Set(snapshots.map(row => row.snapshot_fingerprint));
   const outcomeIds = new Set(input.source.outcomes.filter(row => row.snapshot_fingerprint !== null &&
     snapshotFingerprints.has(row.snapshot_fingerprint)).map(row => row.id));

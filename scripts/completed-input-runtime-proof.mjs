@@ -15,6 +15,10 @@ import { setTimeout as syntheticDelay } from "node:timers/promises";
 
 const root = process.cwd();
 const cold = process.argv.includes("--cold");
+const originalFeatureReplay = process.argv.includes("--original-feature-replay");
+const historicalFeatureReplay = process.argv.includes("--historical-feature-replay") || originalFeatureReplay;
+assert(!historicalFeatureReplay || cold && process.argv.length === 4,
+  "Historical feature replay retains the unchanged original cold eight-member proof");
 const existingPremarketSetup = process.argv.includes("--existing-premarket-setup");
 const expandedPremarketSetup = process.argv.includes("--existing-premarket-budget8");
 const rotationDay = process.argv.includes("--rotation-day");
@@ -102,8 +106,16 @@ assert(!minimumOrderBaseline || (mixedHistory || rotationDay) && !acquisitionBas
 assert(!firstObservationBaseline || rotationDay && !acquisitionBaseline && !minimumOrderBaseline);
 assert(!fairOrderBaseline || rotationDay && !acquisitionBaseline && !minimumOrderBaseline && !firstObservationBaseline);
 assert(!invalidMixedHistory || mixedHistory && !acquisitionBaseline);
-const invalidBenchmarkReuse = process.argv.includes("--benchmark-reuse-invalid");
+const invalidBenchmarkClockReuse = process.argv.includes("--benchmark-reuse-invalid-clock");
+const invalidBenchmarkCaptureReuse = process.argv.includes("--benchmark-reuse-invalid-capture-clock");
+const invalidBenchmarkReuse = process.argv.includes("--benchmark-reuse-invalid") || invalidBenchmarkClockReuse || invalidBenchmarkCaptureReuse;
 const baselineBenchmarkReuse = process.argv.includes("--benchmark-reuse-baseline");
+assert(!invalidBenchmarkClockReuse || benchmarkReuse && !process.argv.includes("--benchmark-reuse-invalid") &&
+  process.argv.slice(2).every(value=>["--benchmark-reuse", "--benchmark-reuse-invalid-clock", "--cold"].includes(value)),
+  "Classification-clock fault retains only the existing two-slot original population and eight-call budget");
+assert(!invalidBenchmarkCaptureReuse || benchmarkReuse && !process.argv.includes("--benchmark-reuse-invalid") &&
+  process.argv.slice(2).every(value=>["--benchmark-reuse", "--benchmark-reuse-invalid-capture-clock", "--cold"].includes(value)),
+  "Capture-clock fault retains only the existing two-slot original population and eight-call budget");
 // Branch ancestor with the exact verified predecessor tree 640df041; unlike
 // the original local cherry-pick source, this commit travels with this branch.
 const reuseBaselineRevision = "92374a300f986a4241ba41a1a35a83b5335caf2e";
@@ -117,6 +129,9 @@ assert(!pagedOutcomeReads || nextSessionOutcomes, "Paged reads use the same orig
 assert(!nextSessionOutcomes || diagnoseOutcomes && !cold && !rotationDay && !process.argv.includes("--publication-clock"),
   "Cross-date continuation retains the existing six original hidden sources and four-request first pass");
 const relativePlan60m = process.argv.includes("--relative-plan-60m");
+const partialHorizonResumption = process.argv.includes("--partial-horizon-resumption");
+assert(!partialHorizonResumption || relativePlan60m && diagnoseOutcomes && !cold && !nextSessionOutcomes,
+  "Partial-horizon resumption retains the existing original warm 60m population");
 assert(!relativePlan60m || diagnoseOutcomes && !process.argv.includes("--opening") && !wrongPolicy,
   "Mature relative-plan outcomes require their own unchanged original-input CLOSED scenario");
 const opening = process.argv.includes("--opening");
@@ -235,6 +250,17 @@ try {
       export { createApplicationSession } from './lib/application-session-core';` },
     outfile: join(generated, "history-app.cjs") });
   }
+  if (historicalFeatureReplay) {
+    const rootRequire = createRequire(resolve(root, "package.json"));
+    await build({ ...options, plugins: [{ name: "same-installed-next-replay-runtime", setup(builder) {
+      builder.onResolve({ filter: /^next\// }, args=>({ path: rootRequire.resolve(args.path === "next/navigation"
+        ? "next/dist/client/components/navigation.react-server" : args.path), external: true }));
+    } }], stdin: { resolveDir: root, contents: `
+      export { GET } from './app/api/app/${originalFeatureReplay ? "scanner-original-input-replay" : "scanner-historical-input-replay"}/route';
+      export { proxy } from './proxy';
+      export { createApplicationSession } from './lib/application-session-core';` },
+    outfile: join(generated, "historical-replay-app.cjs") });
+  }
   // Before/after comparison uses the exact original committed product modules
   // in memory; neither product checkout nor fixtures/cohort are rewritten.
   const baselinePlugin = { name: "frozen-original-benchmark-allocation", setup(builder) {
@@ -275,6 +301,8 @@ try {
       export { buildScannerProviderCreditAllocationExecutionPlan } from './lib/scanner-provider-credit-allocation-plan';
       export { scannerUniverseTickers } from './lib/scanner-universe';
       export { scanMarket } from './lib/scanner';
+      ${historicalFeatureReplay ? "export { readOwnedScannerHistoricalInputReplay, replayScannerHistoricalInputs, SCANNER_HISTORICAL_INPUT_MAX_BYTES } from './lib/server/scanner-historical-input-replay'; export { captureCompletedDailyContext } from './lib/scanner-completed-daily-context';" : ""}
+      ${originalFeatureReplay ? "export { readOwnedScannerOriginalInputReplay, replayScannerOriginalInputs, SCANNER_CURRENT_INPUT_FEATURES } from './lib/server/scanner-original-input-replay'; export { SCANNER_CURRENT_INPUT_MAX_BYTES } from './lib/server/scanner-current-input-archive'; export { captureCurrentSessionContext } from './lib/scanner-current-session-context';" : ""}
       ${fullOriginalHistorySetup ? "export { readCompletedDailyContext } from './lib/scanner-completed-daily-context';" : ""}
       ${budgetedHistorySetup ? "export { prepareCompletedSessionHistories, COMPLETED_SESSION_HISTORY_PREPARATION_VERSION } from './lib/server/completed-session-history-preparation';" : ""}
       ${fullOriginalHistorySetup ? "export { createRelativePlanProspectiveService } from './lib/server/relative-plan-prospective-service';" : ""}
@@ -328,7 +356,7 @@ try {
     TWELVE_DATA_API_KEY: "synthetic-boundary-only",
     OPENAI_API_KEY: "synthetic-boundary-only-no-ai-calls-permitted",
     ...(publicationClock ? { TURE_SCHEDULED_SCAN_SKIP_OPENAI: "true" } : {}),
-    ...(historyPreparationApp ? { NODE_ENV: "production", TRADE_APP_PASSWORD: "isolated-history-app-only",
+    ...(historyPreparationApp || historicalFeatureReplay ? { NODE_ENV: "production", TRADE_APP_PASSWORD: "isolated-history-app-only",
       TURE_APPLICATION_ORIGIN: "https://trade.valentinlabs.com", URL: "https://trade.valentinlabs.com" } : {}),
   };
   // No credentials from the invoking environment may leak into this runtime.
@@ -1274,12 +1302,17 @@ try {
           const body=await evaluated.json();
           assert.equal(evaluated.status,200,JSON.stringify(body));
           assert.equal(externalRequests-before,4);
-          assert.equal(body.eligible_snapshot_count,index===0?8:4);
+          // Partial canonical identities remain pending; they must not vanish
+          // from the population just because their early target/stop is known.
+          assert.equal(body.eligible_snapshot_count,lateOriginalOutcomes?8:index===0?8:4);
+          assert.equal(body.same_day_official_batch_revisit.selected_snapshot_acquisition_policy_version,
+            "official_original_bar_window_resumption_v2");
           assert.equal(body.batch_fingerprint,batch.batch_fingerprint);
           assert.equal(body.persistence_status,"success",body.persistence_error);
           const databaseRows=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_outcomes t;"));
           assert(databaseRows.every(row=>row.owner_user_id===owner && row.horizon==="60m"));
           passes.push({requests:externalRequests-before,selected_batch_fingerprint:body.batch_fingerprint,
+            acquisition_policy_version:body.same_day_official_batch_revisit.selected_snapshot_acquisition_policy_version,
             eligible_snapshot_count:body.eligible_snapshot_count,persisted_outcome_count:body.persisted_outcome_count,
             persistence_status:body.persistence_status,outcomes_created_count:body.outcomes_created_count,
             outcomes_updated_count:body.outcomes_updated_count,physical_database_rows:databaseRows.length,
@@ -1492,8 +1525,28 @@ try {
               continuationPasses.push({requests:externalRequests-before,status:body.status,
                 eligible_snapshot_count:body.eligible_snapshot_count,persisted_outcome_count:body.persisted_outcome_count,
                 source_selection:body.same_day_official_batch_revisit,persistence_status:body.persistence_status});
+              process.stderr.write(JSON.stringify({original_continuation_trace:{pass:index+1,
+                requests:externalRequests-before,status:body.status,
+                requested:syntheticRequestEvidence.slice(scheduledRequestEvidenceOffset+before,
+                  scheduledRequestEvidenceOffset+externalRequests),
+                selected_batches:body.same_day_official_batch_revisit?.batches_evaluated,
+                remaining_original_backlog:body.same_day_official_batch_revisit?.remaining_backlog_after_run,
+                physical_outcomes:Number(sql("select count(*) from recommendation_outcomes;")),
+                created:body.outcomes_created_count,updated:body.outcomes_updated_count,
+                skipped_equal_or_better:body.outcomes_skipped_equal_or_better_count}})+"\n");
               if(externalRequests===before) break;
             }
+            const boundedRead=await refreshed.createRelativePlanProspectiveService().read(owner,asOf);
+            const boundedHeld=boundedRead.learning?.partitions.find(partition=>partition.partition==="held_out");
+            process.stderr.write(JSON.stringify({original_continuation_bounded_coverage:{
+              passes:continuationPasses.length,synthetic_requests:externalRequests-continuationStart,
+              source_status:boundedRead.status,blocker:boundedRead.blocker??null,
+              original_population_count:boundedHeld?.original_population_count??null,
+              canonical_outcome_count:boundedHeld?.canonical_outcome_count??null,
+              missing_outcome_count:boundedHeld?.missing_outcome_count??null,
+              charter_disposition:boundedRead.learning?.full_charter.computed_disposition??null,
+              terminal_quality_decision:boundedRead.learning?.terminal_quality_decision??null,
+              quality_improvement_claimed:false,actual_provider_requests:0,production_actions:0}})+"\n");
             assert(continuationPasses.length<60,"Bounded diagnostic must reach a truthful source-selection stop");
             delete require.cache[require.resolve(join(generated,"reader.cjs"))];
             const resumed=require(join(generated,"reader.cjs"));
@@ -1575,12 +1628,52 @@ try {
             assert.equal(continuedHeld.original_membership_fingerprint,heldRead.original_membership_fingerprint);
             assert.equal(continuedCharter.computed_disposition,"evidence_incomplete");
             assert.equal(continuedCharter.terminal_quality_decision,null);
+            // Inspect all ORIGINAL members already read by the restarted SQL /
+            // SDK consumer. A daily-bar mean must not claim an intraday basis.
+            // No values, source membership, lookbacks or charter are changed.
+            const dailyRangeRows=continuedHeld.observations.flatMap(observation=>{
+              const run=completeSource.scanRuns.find(row=>row.run_fingerprint===observation.scan_run_fingerprint);
+              const record=refreshed.candidateDecisionRecordFromScanRun(run);
+              return observation.rows.map(row=>{
+                const candidate=record.candidates.find(member=>member.candidate_id===row.candidate_id);
+                const archive=run.payload_json.scanner_current_input_archive;
+                const originalBars=archive?.entries.find(member=>member.candidate_id===row.candidate_id)?.current_context.candles??[];
+                const recent=originalBars.slice(-12);
+                const intradayMean=recent.length===12?recent.reduce((sum,bar)=>sum+(bar.high-bar.low)/bar.close*100,0)/12:null;
+                return {candidate_id:row.candidate_id,version:row.decision_feature_vector_version,
+                  original_daily_mean:candidate.data.input_snapshot?.features.average_range_percent??null,
+                  projected_daily_mean:row.volatility.daily_average_range_percent,
+                  old_intraday_key_present:Object.hasOwn(row.volatility,"intraday_average_range_percent"),
+                  original_intraday_mean:intradayMean};
+              });
+            });
+            assert.equal(dailyRangeRows.length,176);
+            assert.equal(new Set(dailyRangeRows.map(row=>row.candidate_id)).size,176);
+            assert(dailyRangeRows.every(row=>row.version==="recommendation_decision_feature_vector_v3" &&
+              row.original_daily_mean===row.projected_daily_mean && !row.old_intraday_key_present));
+            const dailyRangeBasis={contract_version:"original_daily_range_feature_basis_proof_v1",
+              original_member_count:dailyRangeRows.length,
+              original_membership_fingerprint:continuedHeld.original_membership_fingerprint,
+              original_daily_value_matches:dailyRangeRows.filter(row=>row.original_daily_mean===row.projected_daily_mean).length,
+              old_intraday_key_count:dailyRangeRows.filter(row=>row.old_intraday_key_present).length,
+              original_intraday_mean_differs:dailyRangeRows.filter(row=>row.original_intraday_mean!==null &&
+                Math.abs(row.projected_daily_mean-row.original_intraday_mean)>0.005).length,
+              feature_vector_version:"recommendation_decision_feature_vector_v3",
+              original_feasibility:continuedHeld.quality.context.feasibility,
+              numeric_input_changes:0,cohort_changes:0,quality_improvement_claimed:false};
+            const continuationRequests=syntheticRequestEvidence.slice(scheduledRequestEvidenceOffset+continuationStart,
+              scheduledRequestEvidenceOffset+externalRequests);
+            const uniqueContinuationRequests=new Set(continuationRequests.map(request=>JSON.stringify([
+              request.ticker,request.interval,request.start_date,request.end_date]))).size;
             fullOriginalHistoryEvidence.original_outcome_continuation={
               scope:"synthetic_actual_unselected_outcome_route_sql_sdk_not_quality_or_live",
               passes:continuationPasses,separate_synthetic_requests:externalRequests-continuationStart,
+              unique_original_candle_requests:uniqueContinuationRequests,
+              repeated_original_candle_requests:continuationRequests.length-uniqueContinuationRequests,
               original_decisions:completeSource.scanRuns.length,original_population_count:heldRead.original_population_count,
               canonical_outcome_count:heldRead.canonical_outcome_count,missing_outcome_count:heldRead.missing_outcome_count,
               persisted_neither_horizon_marks_verified:measuredNeither.length,
+              original_daily_range_feature_basis:dailyRangeBasis,
               remaining_missingness:remainingMissingness,
               original_full_charter:{
                 disposition:continuedCharter.computed_disposition,
@@ -1738,6 +1831,260 @@ try {
     const benchmarkRead=await benchmarkReader.readRecommendationLearningBaselineSource(owner);
     const benchmarkSource=benchmarkReader.parseRecommendationLearningBaselineSource(benchmarkRead.data);
     assert(benchmarkSource && benchmarkSource.scanRuns.length===1);
+    if (historicalFeatureReplay) {
+      const archive=scanRuns[0].payload_json.scanner_historical_input_archive;
+      assert(archive,"Actual original decisions must retain their used daily bars, not only derived features or mutable cache");
+      assert.equal(archive.entries.length,3);
+      const archiveBytes=Buffer.byteLength(JSON.stringify(archive),"utf8");
+      assert(archiveBytes<benchmarkReader.SCANNER_HISTORICAL_INPUT_MAX_BYTES);
+      assert(archive.entries.every(entry=>entry.historical_context.candles.length>=50));
+      const before=await benchmarkReader.readOwnedScannerHistoricalInputReplay(owner,scanRuns[0].id);
+      assert.equal(before.status,"available"); assert.equal(before.original_candidate_count,8);
+      assert.equal(before.matched_count,3);
+      assert.equal(before.members.filter(member=>member.status==="unavailable").length,5);
+      assert(before.members.every(member=>member.mismatched_features.length===0));
+      const frozenDecision=JSON.stringify(record), frozenLineage=JSON.stringify(lineage);
+      const requestsBefore=externalRequests;
+      sql("delete from scanner_cache;");
+      delete require.cache[require.resolve(join(generated,"reader.cjs"))];
+      const restarted=require(join(generated,"reader.cjs"));
+      assert.deepEqual(await restarted.readOwnedScannerHistoricalInputReplay(owner,scanRuns[0].id),before,
+        "Reproduction must use durable original bars, never mutable cache or a refreshed source");
+      assert.equal(externalRequests,requestsBefore);
+      const wrong=await restarted.readOwnedScannerHistoricalInputReplay("00000000-0000-4000-8000-000000000002",scanRuns[0].id);
+      assert.equal(wrong.status,"unavailable"); assert.equal(wrong.members.length,0);
+      assert.equal(wrong.scan_run_id,null);
+      assert.equal((await restarted.readOwnedScannerHistoricalInputReplay(owner,"invalid-run-id")).status,"unavailable");
+      const legacy=structuredClone(scanRuns[0]); delete legacy.payload_json.scanner_historical_input_archive;
+      const missing=await restarted.replayScannerHistoricalInputs(legacy);
+      assert.equal(missing.status,"unavailable"); assert.equal(missing.original_candidate_count,8);
+      assert(missing.members.every(member=>member.status==="unavailable"));
+      const controls=[];
+      for(const [name,mutate] of [
+        ["duplicate_member",value=>value.entries.push(structuredClone(value.entries[0]))],
+        ["wrong_run",value=>value.scan_run_id="rec_scan_run_wrong"],
+        ["wrong_fingerprint",value=>value.scan_run_fingerprint="wrong"],
+        ["wrong_clock",value=>value.decision_timestamp="2026-10-01T17:35:00.000Z"],
+        ["unknown_version",value=>value.archive_version="unknown"],
+        ["wrong_calculator",value=>value.calculator_version="unknown"],
+        ["extra_member",value=>value.entries[0].candidate_id="unknown"],
+        ["wrong_symbol",value=>value.entries[0].ticker="WRONG"],
+        ["oversized",value=>value.extra="x".repeat(restarted.SCANNER_HISTORICAL_INPUT_MAX_BYTES)],
+      ]) {
+        const changed=structuredClone(scanRuns[0]); mutate(changed.payload_json.scanner_historical_input_archive);
+        const rejected=await restarted.replayScannerHistoricalInputs(changed);
+        assert.equal(rejected.status,"unavailable",name); assert.equal(rejected.matched_count,0,name);
+        assert.equal(rejected.original_candidate_count,8,name); controls.push(name);
+      }
+      for(const [name,mutate] of [
+        ["corrupt_bar",value=>value.entries[0].historical_context.candles[0].volume+=1],
+        ["wrong_source_identity",value=>value.entries[0].historical_context.response_identity.payload_byte_length+=1],
+        ["future_capture",value=>value.entries[0].historical_context.captured_at="2026-10-02T17:30:00.000Z"],
+        ["wrong_context_symbol",value=>value.entries[0].historical_context.symbol="WRONG"],
+      ]) {
+        const changed=structuredClone(scanRuns[0]); mutate(changed.payload_json.scanner_historical_input_archive);
+        const rejected=await restarted.replayScannerHistoricalInputs(changed);
+        assert.equal(rejected.status,"available",name); assert.equal(rejected.matched_count,2,name);
+        assert.equal(rejected.members.filter(member=>member.status==="invalid_source").length,1,name);
+        assert.equal(rejected.original_candidate_count,8,name); controls.push(name);
+      }
+      // A valid retained decision with a wrong used feature is distinguishable
+      // from missing/corrupt input. This does not modify the original SQL row.
+      for (const feature of ["ma20","ma50","high_20d","change_5d_percent","average_range_percent","previous_close"]) {
+        const changed=structuredClone(scanRuns[0]);
+        changed.payload_json.candidate_decision_record.candidates.find(c=>c.data.input_snapshot).data.input_snapshot.features[feature]+=1;
+        const mismatch=await restarted.replayScannerHistoricalInputs(changed);
+        assert.equal(mismatch.status,"available"); assert.equal(mismatch.matched_count,2);
+        assert.deepEqual(mismatch.members.find(member=>member.status==="mismatch").mismatched_features,[feature]);
+      }
+      const replaced=structuredClone(scanRuns[0]);
+      const entry=replaced.payload_json.scanner_historical_input_archive.entries[0];
+      entry.historical_context.candles[0].volume+=1;
+      entry.historical_context=await restarted.captureCompletedDailyContext({ ...entry.historical_context,
+        contract_version:"daily_candle_response_v1" },entry.ticker,
+        new OriginalDate(record.candidates.find(c=>c.ticker===entry.ticker).data.input_snapshot.captured_at));
+      assert(entry.historical_context,"Alternate raw context must independently validate, not merely be corrupt");
+      const replacement=await restarted.replayScannerHistoricalInputs(replaced);
+      assert.equal(replacement.matched_count,2);
+      assert.equal(replacement.members.find(member=>member.status==="invalid_source").reason,
+        "historical_context_not_bound_to_original_input");
+      const partial=structuredClone(scanRuns[0]); partial.payload_json.scanner_historical_input_archive.entries.pop();
+      const partialReplay=await restarted.replayScannerHistoricalInputs(partial);
+      assert.equal(partialReplay.original_candidate_count,8); assert.equal(partialReplay.matched_count,2);
+      assert.equal(partialReplay.members.filter(member=>member.status==="unavailable").length,6);
+      const misbound=structuredClone(scanRuns[0]);
+      misbound.payload_json.decision_lineage_receipt.scan_run_id="wrong";
+      assert.equal((await restarted.replayScannerHistoricalInputs(misbound)).status,"unavailable");
+      assert.equal(JSON.stringify(record),frozenDecision); assert.equal(JSON.stringify(lineage),frozenLineage);
+      assert.equal(externalRequests,requestsBefore);
+      assert.deepEqual(restarted.candidateDecisionRecordFromScanRun(scanRuns[0]),record);
+      assert.deepEqual(restarted.decisionLineageReceiptFromScanRun(scanRuns[0],record),lineage);
+      let originalBefore = null;
+      const currentControls = [];
+      if (originalFeatureReplay) {
+        originalBefore=await restarted.readOwnedScannerOriginalInputReplay(owner,scanRuns[0].id);
+        assert.equal(originalBefore.status,"available");
+        assert.equal(originalBefore.original_candidate_count,8);
+        assert.equal(originalBefore.matched_count,3,JSON.stringify(originalBefore));
+        assert.equal(originalBefore.historical_matched_count,3);
+        assert.equal(originalBefore.current_matched_count,3);
+        assert.equal(originalBefore.current_session_features_checked,true);
+        assert.equal(originalBefore.input_fitness_proven,false);
+        assert.equal(originalBefore.recommendation_quality_proven,false);
+        const currentArchive=scanRuns[0].payload_json.scanner_current_input_archive;
+        assert.equal(currentArchive.entries.length,3);
+        assert(Buffer.byteLength(JSON.stringify(currentArchive),"utf8")<restarted.SCANNER_CURRENT_INPUT_MAX_BYTES);
+        const featureKeys=Object.keys(record.candidates.find(c=>c.data.input_snapshot).data.input_snapshot.features);
+        assert.deepEqual([...restarted.SCANNER_CURRENT_INPUT_FEATURES,"ma20","ma50","high_20d","change_5d_percent","average_range_percent","previous_close"].sort(),featureKeys.sort());
+        const savedClock=clock; clock+=86400000;
+        delete require.cache[require.resolve(join(generated,"reader.cjs"))];
+        assert.deepEqual(await require(join(generated,"reader.cjs")).readOwnedScannerOriginalInputReplay(owner,scanRuns[0].id),originalBefore,
+          "Reader wall clock cannot replace either original arithmetic clock");
+        clock=savedClock;
+        assert.equal((await restarted.readOwnedScannerOriginalInputReplay("00000000-0000-4000-8000-000000000002",scanRuns[0].id)).scan_run_id,null);
+        assert.equal((await restarted.readOwnedScannerOriginalInputReplay(owner,"invalid-run-id")).status,"unavailable");
+        const legacyCurrent=structuredClone(scanRuns[0]); delete legacyCurrent.payload_json.scanner_current_input_archive;
+        const legacyResult=await restarted.replayScannerOriginalInputs(legacyCurrent);
+        assert.equal(legacyResult.status,"unavailable"); assert.equal(legacyResult.original_candidate_count,8);
+        assert.equal(legacyResult.matched_count,0); assert.equal(legacyResult.current_session_features_checked,false);
+        for(const [name,mutate] of [
+          ["duplicate_member",value=>value.entries.push(structuredClone(value.entries[0]))],
+          ["wrong_run",value=>value.scan_run_id="rec_scan_run_wrong"],
+          ["wrong_fingerprint",value=>value.scan_run_fingerprint="wrong"],
+          ["wrong_clock",value=>value.decision_timestamp="2026-10-01T17:35:00.000Z"],
+          ["unknown_version",value=>value.archive_version="unknown"],
+          ["wrong_calculator",value=>value.calculator_version="unknown"],
+          ["extra_member",value=>value.entries[0].candidate_id="unknown"],
+          ["wrong_symbol",value=>value.entries[0].ticker="WRONG"],
+          ["oversized",value=>value.extra="x".repeat(restarted.SCANNER_CURRENT_INPUT_MAX_BYTES)],
+        ]) {
+          const changed=structuredClone(scanRuns[0]); mutate(changed.payload_json.scanner_current_input_archive);
+          const rejected=await restarted.replayScannerOriginalInputs(changed);
+          assert.equal(rejected.status,"unavailable",name); assert.equal(rejected.matched_count,0,name);
+          assert.equal(rejected.original_candidate_count,8,name); currentControls.push(name);
+        }
+        for(const [name,mutate] of [
+          ["corrupt_bar",entry=>entry.current_context.candles[0].volume+=1],
+          ["wrong_identity",entry=>entry.current_context.response_identity.payload_byte_length+=1],
+          ["wrong_context_symbol",entry=>entry.current_context.symbol="WRONG"],
+          ["future_clock",entry=>entry.calculation_clock.volume_observed_at="2026-10-02T17:30:00.000Z"],
+          ["pre_source_clock",entry=>entry.calculation_clock.indicator_observed_at="2026-10-01T13:00:00.000Z"],
+          ["noncanonical_clock",entry=>entry.calculation_clock.indicator_observed_at="2026-10-01T17:30:00Z"],
+          ["extra_clock",entry=>entry.calculation_clock.extra=true],
+          ["reversed_clocks",entry=>entry.calculation_clock.indicator_observed_at=
+            new OriginalDate(OriginalDate.parse(entry.calculation_clock.volume_observed_at)+1).toISOString()],
+        ]) {
+          const changed=structuredClone(scanRuns[0]); mutate(changed.payload_json.scanner_current_input_archive.entries[0]);
+          const rejected=await restarted.replayScannerOriginalInputs(changed);
+          assert.equal(rejected.status,"available",name); assert.equal(rejected.matched_count,2,name);
+          assert.equal(rejected.members.filter(m=>m.current_status==="invalid_source").length,1,name);
+          assert.equal(rejected.original_candidate_count,8,name); currentControls.push(name);
+        }
+        const alternateCurrent=structuredClone(scanRuns[0]);
+        const alternateEntry=alternateCurrent.payload_json.scanner_current_input_archive.entries[0];
+        alternateEntry.current_context.candles[0].volume+=1;
+        const alternateSnapshot=record.candidates.find(c=>c.ticker===alternateEntry.ticker).data.input_snapshot;
+        alternateEntry.current_context=await restarted.captureCurrentSessionContext({...alternateEntry.current_context,
+          exchange_timezone:"America/New_York"},alternateEntry.ticker,new OriginalDate(alternateSnapshot.captured_at));
+        assert(alternateEntry.current_context,"Replacement current source must independently validate");
+        const alternateResult=await restarted.replayScannerOriginalInputs(alternateCurrent);
+        assert.equal(alternateResult.matched_count,2);
+        assert.equal(alternateResult.members.find(m=>m.current_status==="invalid_source").reason,
+          "current_context_not_bound_to_original_input");
+        const featureTamperResults=[];
+        for(const feature of restarted.SCANNER_CURRENT_INPUT_FEATURES) {
+          const changed=structuredClone(scanRuns[0]);
+          const snapshot=changed.payload_json.candidate_decision_record.candidates.find(c=>c.data.input_snapshot).data.input_snapshot;
+          snapshot.features[feature]=(snapshot.features[feature]??0)+1;
+          const mismatch=await restarted.replayScannerOriginalInputs(changed);
+          // Point-in-time/schema checks can reject some inconsistent used values
+          // before arithmetic. Neither rejection nor mismatch may claim a match.
+          assert(mismatch.matched_count<3,feature);
+          if(mismatch.status==="available") assert(mismatch.members.some(m=>m.mismatched_features.includes(feature)),feature);
+          featureTamperResults.push(feature);
+        }
+        const indicatorTamperResults=[];
+        for(const indicator of ["vwap","momentumPercent","recentVolumeRatio"]) {
+          const changed=structuredClone(scanRuns[0]);
+          const snapshot=changed.payload_json.candidate_decision_record.candidates.find(c=>c.data.input_snapshot).data.input_snapshot;
+          snapshot.intraday_indicators[indicator]=(snapshot.intraday_indicators[indicator]??0)+1;
+          const mismatch=await restarted.replayScannerOriginalInputs(changed);
+          assert.equal(mismatch.status,"available"); assert.equal(mismatch.matched_count,2,indicator);
+          assert(mismatch.members.some(m=>m.mismatched_indicators.includes(indicator)),indicator);
+          indicatorTamperResults.push(indicator);
+        }
+        currentControls.push("valid_replacement_source",...featureTamperResults.map(f=>`used_feature:${f}`),
+          ...indicatorTamperResults.map(f=>`used_indicator:${f}`));
+        const partialCurrent=structuredClone(scanRuns[0]); partialCurrent.payload_json.scanner_current_input_archive.entries.pop();
+        const partialResult=await restarted.replayScannerOriginalInputs(partialCurrent);
+        assert.equal(partialResult.original_candidate_count,8); assert.equal(partialResult.matched_count,2);
+        assert.equal(partialResult.members.filter(m=>m.current_status==="unavailable").length,6);
+        assert.equal((await restarted.replayScannerOriginalInputs(misbound)).status,"unavailable");
+        assert.equal(JSON.stringify(record),frozenDecision); assert.equal(JSON.stringify(lineage),frozenLineage);
+        assert.equal(externalRequests,requestsBefore);
+      }
+      globalThis.AsyncLocalStorage = AsyncLocalStorage;
+      const rootRequire=createRequire(resolve(root,"package.json"));
+      const { NextRequest }=rootRequire("next/server");
+      const { createRequestStoreForAPI }=rootRequire("next/dist/server/async-storage/request-store");
+      const { createWorkStore }=rootRequire("next/dist/server/async-storage/work-store");
+      const { workAsyncStorage }=rootRequire("next/dist/server/app-render/work-async-storage.external");
+      const { workUnitAsyncStorage }=rootRequire("next/dist/server/app-render/work-unit-async-storage.external");
+      const appRuntime=()=>{
+        delete require.cache[require.resolve(join(generated,"historical-replay-app.cjs"))];
+        return require(join(generated,"historical-replay-app.cjs"));
+      };
+      const dispatch=async request=>{
+        const app=appRuntime(), boundary=await app.proxy(request);
+        if(boundary.headers.get("x-middleware-next")!=="1") return boundary;
+        const store=createRequestStoreForAPI(request,{pathname:request.nextUrl.pathname,search:request.nextUrl.search},
+          {tags:[],expirationsByCacheKind:new Map()},undefined,undefined,undefined);
+        const work=createWorkStore({page:`/api/app/${originalFeatureReplay ? "scanner-original-input-replay" : "scanner-historical-input-replay"}/route`,buildId:"isolated-closed",
+          deploymentId:"isolated-closed",previouslyRevalidatedTags:[],renderOpts:{supportsDynamicResponse:true,
+            cacheLifeProfiles:{},cacheComponents:false,experimental:{},staticPageGenerationTimeout:60}});
+        return workAsyncStorage.run(work,()=>workUnitAsyncStorage.run(store,()=>app.GET(request)));
+      };
+      historyAppServer=createServer(async(incoming,outgoing)=>{
+        try {
+          const response=await dispatch(new NextRequest(`${environment.TURE_APPLICATION_ORIGIN}${incoming.url}`,
+            {method:incoming.method,headers:incoming.headers}));
+          outgoing.writeHead(response.status,Object.fromEntries(response.headers));
+          outgoing.end(Buffer.from(await response.arrayBuffer()));
+        } catch(error) {outgoing.writeHead(500);outgoing.end(String(error));}
+      });
+      await new Promise(done=>historyAppServer.listen(0,"127.0.0.1",done));
+      const endpoint=`http://127.0.0.1:${historyAppServer.address().port}/api/app/${originalFeatureReplay ? "scanner-original-input-replay" : "scanner-historical-input-replay"}`;
+      const token=await appRuntime().createApplicationSession(); assert(token);
+      const send=async(query,headers={cookie:`trade_auth=${token}`})=>{
+        const response=await originalFetch(endpoint+query,{headers});
+        return {response,result:await response.json()};
+      };
+      const query=`?scan_run_id=${encodeURIComponent(scanRuns[0].id)}`;
+      assert.equal((await send(query,{})).response.status,401);
+      assert.equal((await send(query,{cookie:"trade_auth=invalid"})).response.status,401);
+      for(const invalid of ["", "?scan_run_id=invalid",`${query}&owner_user_id=someone`,`${query}&scan_run_id=${scanRuns[0].id}`]) {
+        assert.equal((await send(invalid)).response.status,400);
+      }
+      assert.equal((await send("?scan_run_id=rec_scan_run_missing")).response.status,404);
+      const delivered=await send(query);
+      assert.equal(delivered.response.status,200); assert.equal(delivered.response.headers.get("cache-control"),"no-store");
+      assert.deepEqual(delivered.result,originalBefore ?? before); assert(!JSON.stringify(delivered.result).includes("candles"));
+      assert.equal(externalRequests,requestsBefore);
+      originalLog(JSON.stringify({historical_feature_replay:"passed",original_population_count:8,matched:3,
+        missing:5,features_per_matched_member:6,archive_bytes:archiveBytes,fail_closed_controls:controls,
+        valid_replacement_source_rejected:true,partial_archive_original_population_retained:true,
+        authenticated_http_readback:true,framework_request_cookie_stores:"installed_next_runtime",
+        cache_deleted_restart_exact:true,original_decision_unchanged:true,extra_requests:0,
+        actual_provider_requests:0,production_actions:0,current_session_features_checked:false,
+        original_provider_json_reproduced:false,quality_improvement_claimed:false}));
+      if(originalFeatureReplay) originalLog(JSON.stringify({original_input_replay:"passed",original_population_count:8,
+        matched:originalBefore.matched_count,missing:5,features_per_matched_member:25,current_feature_count:19,
+        fail_closed_controls:currentControls,indicators_reproduced:true,current_session_features_checked:true,
+        original_null_features_preserved:true,reader_clock_independent:true,authenticated_http_readback:true,
+        cache_deleted_restart_exact:true,original_decision_unchanged:true,extra_requests:0,
+        actual_provider_requests:0,production_actions:0,input_fitness_proven:false,recommendation_quality_proven:false,
+        original_provider_json_reproduced:false}));
+    }
     assert.deepEqual(benchmarkSource.scanRuns[0].payload_json.market_regime.input_evidence,regimeEvidence);
     const benchmarkWrongOwner=await benchmarkReader.readRecommendationLearningBaselineSource("00000000-0000-4000-8000-000000000002");
     assert.equal(benchmarkWrongOwner.data.recommendation_scan_runs.length,0);
@@ -2082,7 +2429,9 @@ try {
       // Exercise the real authenticated route, eligibility, runner, provider
       // adapter, persistence and owner readback; never flip stored visibility.
       clock=OriginalDate.parse(futureBoundary);
-      const before=externalRequests;
+      let before=externalRequests;
+      const scanRequestsBeforeOutcome=before;
+      let partialHorizonEvidence=null;
       const outcomeMultiplier=nextSessionOutcomes?3:1;
       const evaluate=()=>require(join(generated,"outcome-route.cjs")).POST(new Request("http://closed-fixture/api/recommendations/evaluate-outcomes",{
         method:"POST",headers:{"x-automation-secret":environment.AUTOMATION_SECRET,"Content-Type":"application/json"},
@@ -2125,6 +2474,22 @@ try {
         assert.equal(Number(sql("select count(*) from recommendation_outcomes;")),0);
       }
       sql(`update recommendation_scan_runs set payload_json='${JSON.stringify(originalRunPayload).replaceAll("'","''")}'::jsonb where id='${scanRuns[0].id}';`);
+      if(partialHorizonResumption) {
+        clock=OriginalDate.parse(slot)+900000;
+        const early=await evaluate(),earlyBody=await early.json();
+        assert.equal(early.status,200,JSON.stringify(earlyBody));
+        const rows=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_outcomes t;"));
+        assert.equal(rows.length,4);
+        assert.equal(externalRequests-before,4);
+        assert(rows.every(row=>row.payload_json.canonical_provider_coverage.horizon_elapsed===false &&
+          row.payload_json.canonical_provider_coverage.freshness!=="fresh" && row.payload_json.current_r===null));
+        assert(rows.every(row=>row.status==="target_before_stop" || row.status==="stop_before_target"));
+        partialHorizonEvidence={early_synthetic_requests:4,early_persisted_original_ids:rows.map(row=>row.id).sort(),
+          early_canonical_outcomes_qualified:0,early_horizon_r_available:false};
+        before=externalRequests;
+        clock=OriginalDate.parse(futureBoundary);
+        delete require.cache[require.resolve(join(generated,"outcome-route.cjs"))];
+      }
       const outcomeResponse=await evaluate();
       const outcomeBody=await outcomeResponse.json();
       assert.equal(outcomeResponse.status,200,JSON.stringify({outcomeBody,logs:logs.slice(-5)}));
@@ -2134,12 +2499,19 @@ try {
         batches:JSON.parse(sql("select coalesce(jsonb_agg(jsonb_build_object('id',id,'batch_type',batch_type,'status',status,'capture_version',payload_json->>'completed_input_research_capture_version')),'[]') from recommendation_batches;"))}));
       assert.equal(externalRequests-before,Math.min(4,researchSnapshots.length));
       assert(outcomes.every(row=>researchSnapshots.some(snapshot=>snapshot.snapshot_fingerprint===row.snapshot_fingerprint)));
+      if(partialHorizonEvidence) {
+        assert.deepEqual(outcomes.map(row=>row.id).sort(),partialHorizonEvidence.early_persisted_original_ids);
+        assert(outcomes.every(row=>row.payload_json.canonical_provider_coverage.horizon_elapsed===true &&
+          row.payload_json.canonical_provider_coverage.freshness==="fresh" && Number.isFinite(row.payload_json.current_r)));
+      }
       const futureRead=await restarted.readRecommendationLearningBaselineSource(owner);
       assert.equal(futureRead.data.recommendation_outcomes.length,outcomes.length);
       const otherFuture=await restarted.readRecommendationLearningBaselineSource("00000000-0000-4000-8000-000000000002");
       assert.equal(otherFuture.data.recommendation_outcomes.length,0);
       assert.equal(Number(sql("select count(*) from recommendation_snapshots where status <> 'hidden';")),0);
       outcomeChainEvidence={synthetic_future_boundary:futureBoundary,
+        ...(partialHorizonEvidence?{partial_horizon_resumption:{...partialHorizonEvidence,
+          mature_synthetic_requests:externalRequests-before,original_ids_preserved:true,mature_canonical_outcomes:4}}:{}),
         research_sources:researchSnapshots.length,persisted_outcomes:outcomes.length,
         separate_synthetic_outcome_requests:externalRequests-before,
         unobservable_population_members:8-researchSnapshots.length,
@@ -2527,7 +2899,7 @@ try {
         legacy_source_gate_unchanged:true,
         tampered_source_and_lineage_admitted:0,
       };
-      externalRequests=before;
+      externalRequests=scanRequestsBeforeOutcome;
       clock=OriginalDate.parse(slot)+20000;
     }
     const duplicate=await scheduler(new Request("http://closed-scheduler",{method:"POST",
@@ -2540,7 +2912,30 @@ try {
     const firstFresh=record.candidates.filter(candidate=>candidate.data.freshness==="fresh").length;
     assert.equal(firstFresh,mixedHistory?(minimumOrderBaseline&&!invalidMixedHistory?5:3):cold?3:6);
     const originalRegime=scanRuns[0].payload_json.market_regime;
-    if(invalidBenchmarkReuse) sql(`update recommendation_scan_runs set payload_json=jsonb_set(payload_json,
+    if(invalidBenchmarkClockReuse) {
+      assert.equal(originalRegime.input_evidence.evaluated_at,record.decision_timestamp);
+      assert.match(record.decision_timestamp,/\.\d{3}Z$/);
+      const unobservedClassification=record.decision_timestamp.slice(0,-1)+"001Z";
+      sql(`update recommendation_scan_runs set payload_json=jsonb_set(payload_json,
+        '{market_regime,input_evidence,evaluated_at}','"${unobservedClassification}"') where id='${scanRuns[0].id}';`);
+      const changedSource=JSON.parse(sql(`select row_to_json(t) from recommendation_scan_runs t where id='${scanRuns[0].id}';`));
+      assert.deepEqual(changedSource.payload_json.candidate_decision_record,record);
+      assert.deepEqual(changedSource.payload_json.market_regime.input_evidence.spy,originalRegime.input_evidence.spy);
+      assert.deepEqual(changedSource.payload_json.market_regime.input_evidence.qqq,originalRegime.input_evidence.qqq);
+      assert.equal(changedSource.payload_json.market_regime.input_evidence.evaluated_at,unobservedClassification);
+    } else if(invalidBenchmarkCaptureReuse) {
+      assert.equal(originalRegime.input_evidence.spy.captured_at,record.decision_timestamp);
+      assert.match(record.decision_timestamp,/\.\d{3}Z$/);
+      const unobservedCapture=record.decision_timestamp.slice(0,-1)+"001Z";
+      sql(`update recommendation_scan_runs set payload_json=jsonb_set(payload_json,
+        '{market_regime,input_evidence,spy,captured_at}','"${unobservedCapture}"') where id='${scanRuns[0].id}';`);
+      const changedSource=JSON.parse(sql(`select row_to_json(t) from recommendation_scan_runs t where id='${scanRuns[0].id}';`));
+      assert.deepEqual(changedSource.payload_json.candidate_decision_record,record);
+      assert.deepEqual(changedSource.payload_json.market_regime.input_evidence.qqq,originalRegime.input_evidence.qqq);
+      assert.equal(changedSource.payload_json.market_regime.input_evidence.evaluated_at,originalRegime.input_evidence.evaluated_at);
+      assert.deepEqual(changedSource.payload_json.market_regime.input_evidence.spy,
+        {...originalRegime.input_evidence.spy,captured_at:unobservedCapture});
+    } else if(invalidBenchmarkReuse) sql(`update recommendation_scan_runs set payload_json=jsonb_set(payload_json,
       '{market_regime,input_evidence,qqq,content_sha256}','"invalid-fixture-digest"') where id='${scanRuns[0].id}';`);
     const firstRequests=externalRequests;
     assert.equal(externalBenchmarkRequests,2);
@@ -2638,12 +3033,27 @@ try {
     assert.equal(await restarted.isValidCompletedBenchmarkReuse(structuredClone(restartedReuse),new OriginalDate(clock)),false);
     assert.deepEqual(restartedReuse.market_regime.input_evidence.spy,retained.spy);
     assert.deepEqual(restartedReuse.market_regime.input_evidence.qqq,retained.qqq);
+    if(!baselineBenchmarkReuse) {
+      const immutableHandle=JSON.stringify(restartedReuse);
+      assert.equal(Reflect.set(restartedReuse.market_regime.input_evidence,"evaluated_at",
+        new OriginalDate(clock+1000).toISOString()),false);
+      assert.equal(Reflect.set(restartedReuse.market_regime.input_evidence.reuse,"source_decision_timestamp",
+        new OriginalDate(clock+1000).toISOString()),false);
+      assert.equal(Reflect.set(restartedReuse.market_regime.input_evidence.spy.candles[0],"close",999),false);
+      assert(Object.isFrozen(restartedReuse.market_regime.input_evidence.qqq.response_identity));
+      assert(Object.isFrozen(restartedReuse.market_regime.input_evidence.spy.candles));
+      assert(!Object.isFrozen(latestOwned.payload_json.market_regime.input_evidence.spy.candles));
+      assert.equal(JSON.stringify(restartedReuse),immutableHandle);
+      assert(await restarted.isValidCompletedBenchmarkReuse(restartedReuse,new OriginalDate(clock)));
+    }
     const other=await restarted.readRecommendationLearningBaselineSource("00000000-0000-4000-8000-000000000002");
     assert.equal(other.data.recommendation_scan_runs.length,0);
     const secondDuplicate=await scheduler(new Request("http://closed-scheduler",{method:"POST",body:JSON.stringify({next_run:nextSlot})}),
       {deploy:{id:identity.deploy_id,context:"production",published:true}});
     assert.equal(secondDuplicate.status,204); assert.equal(externalRequests,8);
     benchmarkReuseEvidence={mode:baselineBenchmarkReuse?"original_committed_baseline":invalidBenchmarkReuse?"invalid_original_falls_back":"validated_owner_reuse",
+      ...(invalidBenchmarkClockReuse?{original_classification_clock_fault:"after_decision_by_one_microsecond"}:{}),
+      ...(invalidBenchmarkCaptureReuse?{original_capture_clock_fault:"after_decision_by_one_microsecond"}:{}),
       baseline_revision:mixedHistory?acquisitionBaselineRevision:reuseBaselineRevision,
       history_start:existingPremarketSetup?"existing_premarket_paid_setup":mixedHistory?"mixed":cold?"cold":"prewarmed",
       ...(mixedHistory ? {acquisition_mode:minimumOrderBaseline?"minimum_requests_first":"original_order"} : {}),
@@ -2652,7 +3062,8 @@ try {
       first_fresh_inputs:firstFresh,second_fresh_inputs:fresh,original_members_per_decision:8,
       attempts:allAttempts.length,cycles:allCycles.length,reservations:allClaims.length,
       reserved_credits:allClaims.reduce((sum,claim)=>sum+claim.requested_credits,0),benchmark_calls_second:externalBenchmarkRequests,
-      original_source_clocks_unchanged:expectReuse,restarted_owner_read:true,wrong_owner_runs:0};
+      original_source_clocks_unchanged:expectReuse,restarted_owner_read:true,wrong_owner_runs:0,
+      ...(baselineBenchmarkReuse?{}:{validated_capsule_immutable_after_restart:true,caller_source_not_frozen:true})};
     if(charterComposition) {
       assert.equal(setupRequests,historyOnlySetup||legacyHistorySetup?16:32); assert.equal(firstFresh,6); assert.equal(fresh,8);
       assert.equal(source.snapshots.length,14,"Actual generator retains the six partial and eight complete original sources");

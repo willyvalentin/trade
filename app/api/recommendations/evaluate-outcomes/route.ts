@@ -53,6 +53,7 @@ import {
   type BatchCandidateAuditSummary,
 } from "@/lib/batch-candidate-audit";
 import { hasBetterOutcomeCoverage } from "@/lib/recommendation-outcome-coverage";
+import { CANONICAL_OUTCOME_RETRY_WINDOW_VERSION, deferObservedCanonicalOutcomeWindow, hasIncompleteCanonicalOutcomeCoverage } from "@/lib/canonical-outcome-acquisition-readiness";
 import { canonicalizeOutcomeSnapshotsForBatch } from "@/lib/recommendation-outcome-snapshot-canonicalization";
 import {
   buildScheduledOutcomeEvaluationReceipt,
@@ -183,6 +184,7 @@ type ReceiptRun = Pick<
 >;
 
 const outcomeEvaluationRouteVersion = "outcome-evaluation-route-v1.3";
+const officialOutcomeAcquisitionOrderVersion = "official_original_bar_window_resumption_v2";
 const defaultOfficialLiveMaxBatchesPerRun = 5;
 // Page size, not permission to silently omit the rest of the day's sources.
 const officialLiveBatchDiscoveryLimit = 20;
@@ -1192,7 +1194,7 @@ function isOfficialOutcomePending(outcome: RecommendationOutcome | undefined) {
     return true;
   }
 
-  return outcome.data_completeness !== "complete";
+  return outcome.data_completeness !== "complete" || hasIncompleteCanonicalOutcomeCoverage(outcome);
 }
 
 function officialOutcomeBySnapshotAndHorizon(
@@ -1229,19 +1231,53 @@ function filterOfficialSnapshotsNeedingOutcomeEvaluation({
   existingOutcomes,
   horizons,
   maxBatchesPerRun,
+  now,
   snapshotBatchFingerprints,
   snapshots,
 }: {
   existingOutcomes: RecommendationOutcome[];
   horizons: RecommendationOutcomeHorizon[];
   maxBatchesPerRun: number;
+  now: Date;
   snapshotBatchFingerprints: Record<string, string>;
   snapshots: RecommendationSnapshot[];
 }) {
   const selectedPendingBatches = new Set<string>();
   const selectedSnapshots: RecommendationSnapshot[] = [];
+  const readySnapshotFingerprints = new Set(snapshots.filter(snapshot => horizons.some(horizon => {
+    const outcome = officialOutcomeBySnapshotAndHorizon(existingOutcomes, snapshot.snapshot_fingerprint, horizon);
+    return isOfficialOutcomePending(outcome) && !deferObservedCanonicalOutcomeWindow(outcome, now);
+  })).map(snapshot => snapshot.snapshot_fingerprint));
+  const readyBatches = new Set(snapshots.filter(snapshot => readySnapshotFingerprints.has(snapshot.snapshot_fingerprint))
+    .map(snapshot => snapshotBatchFingerprints[snapshot.snapshot_fingerprint] ?? "unknown_batch"));
 
+  const acquisitionPriority = (snapshot: RecommendationSnapshot) => {
+    let missing = false;
+    for (const horizon of horizons) {
+      const outcome = officialOutcomeBySnapshotAndHorizon(existingOutcomes, snapshot.snapshot_fingerprint, horizon);
+      if (!outcome) { missing = true; continue; }
+      if (!isOfficialOutcomePending(outcome)) continue;
+      const coverage = outcome.payload_json.canonical_provider_coverage;
+      if (!hasIncompleteCanonicalOutcomeCoverage(outcome) || typeof coverage !== "object" || coverage === null ||
+        Array.isArray(coverage) || (coverage as Record<string, unknown>).horizon_elapsed !== true) return 0;
+    }
+    return missing ? 1 : 2;
+  };
+  const sourceBatchOrder = new Map<string, number>();
+  const batchPriorities = new Map<string, number>();
   for (const snapshot of snapshots) {
+    const batch = snapshotBatchFingerprints[snapshot.snapshot_fingerprint] ?? "unknown_batch";
+    if (!sourceBatchOrder.has(batch)) sourceBatchOrder.set(batch, sourceBatchOrder.size);
+    if (readySnapshotFingerprints.has(snapshot.snapshot_fingerprint)) batchPriorities.set(batch,
+      Math.min(batchPriorities.get(batch) ?? 3, acquisitionPriority(snapshot)));
+  }
+  const orderedSnapshots = [...snapshots].sort((first, second) => {
+    const firstBatch = snapshotBatchFingerprints[first.snapshot_fingerprint] ?? "unknown_batch";
+    const secondBatch = snapshotBatchFingerprints[second.snapshot_fingerprint] ?? "unknown_batch";
+    return (batchPriorities.get(firstBatch) ?? 3) - (batchPriorities.get(secondBatch) ?? 3) ||
+      sourceBatchOrder.get(firstBatch)! - sourceBatchOrder.get(secondBatch)!;
+  });
+  for (const snapshot of orderedSnapshots) {
     const needsEvaluation = horizons.some((horizon) =>
       isOfficialOutcomePending(
         officialOutcomeBySnapshotAndHorizon(
@@ -1257,6 +1293,8 @@ function filterOfficialSnapshotsNeedingOutcomeEvaluation({
     const batchFingerprint =
       snapshotBatchFingerprints[snapshot.snapshot_fingerprint] ?? "unknown_batch";
 
+    if (!readyBatches.has(batchFingerprint)) continue;
+
     if (!selectedPendingBatches.has(batchFingerprint)) {
       if (selectedPendingBatches.size >= maxBatchesPerRun) {
         continue;
@@ -1267,7 +1305,21 @@ function filterOfficialSnapshotsNeedingOutcomeEvaluation({
     selectedSnapshots.push(snapshot);
   }
 
-  return selectedSnapshots;
+  // Recovery and never-observed batches precede elapsed partial retries;
+  // oldest original source order breaks ties. Keep every pending member of
+  // any selected batch, including same-window deferred canonical identities.
+  // Due work precedes deferred members so the runner's snapshot cap cannot
+  // strand unobserved originals behind zero-request early-horizon work.
+  const batchOrder = new Map([...selectedPendingBatches].map((fingerprint, index) => [fingerprint, index]));
+  const priorities = new Map(selectedSnapshots.map(snapshot => [snapshot.snapshot_fingerprint, acquisitionPriority(snapshot)]));
+  return selectedSnapshots.sort((first, second) => {
+    const firstBatch = snapshotBatchFingerprints[first.snapshot_fingerprint] ?? "unknown_batch";
+    const secondBatch = snapshotBatchFingerprints[second.snapshot_fingerprint] ?? "unknown_batch";
+    return batchOrder.get(firstBatch)! - batchOrder.get(secondBatch)! ||
+      Number(!readySnapshotFingerprints.has(first.snapshot_fingerprint)) -
+        Number(!readySnapshotFingerprints.has(second.snapshot_fingerprint)) ||
+      priorities.get(first.snapshot_fingerprint)! - priorities.get(second.snapshot_fingerprint)!;
+  });
 }
 
 function buildSameDayOfficialBatchRevisitDiagnostics({
@@ -1348,6 +1400,9 @@ function buildSameDayOfficialBatchRevisitDiagnostics({
     ...base,
     max_batches_per_run: maxBatchesPerRun,
     max_snapshots_per_run: maxSnapshotsForRun,
+    selected_snapshot_acquisition_policy_version: officialOutcomeAcquisitionOrderVersion,
+    selected_batch_order: "recovery_then_unobserved_then_elapsed_retry_oldest_ties",
+    canonical_retry_window_policy_version: CANONICAL_OUTCOME_RETRY_WINDOW_VERSION,
     batches_evaluated: batchesEvaluated,
     batches_skipped: batchesSkipped,
     oldest_pending_batch: oldestPendingBatch,
@@ -2307,6 +2362,7 @@ export async function POST(request: Request) {
           existingOutcomes,
           horizons,
           maxBatchesPerRun,
+          now,
           snapshotBatchFingerprints:
             officialSnapshotLoad?.snapshot_batch_fingerprints ?? {},
           snapshots: eligibleSnapshots,
@@ -2330,6 +2386,8 @@ export async function POST(request: Request) {
   const existingByKey = new Map(
     existingOutcomes.map((outcome) => [outcomeKey(outcome), outcome]),
   );
+  const originalPendingBeforeRun = pendingOfficialSnapshotCount({ horizons,
+    outcomesByKey: existingByKey, snapshots: eligibleSnapshots });
   const persistenceEvents: Array<{
     key: string;
     action: "created" | "updated" | "skipped_equal_or_better" | "failed";
@@ -2599,6 +2657,7 @@ export async function POST(request: Request) {
     source: scheduledAttempt ? "auto" : "api",
     provider: "twelve_data",
     enrichCompletedOutcomes: enrichmentMode,
+    deferObservedCanonicalWindow: mode === "official_live_today" || mode === "enrich_completed_outcomes",
     fetchCandles,
     persistOutcome: dryRun
       ? undefined
@@ -2683,17 +2742,20 @@ export async function POST(request: Request) {
   const remainingOutcomeBacklogCount = pendingOfficialSnapshotCount({
     horizons,
     outcomesByKey: existingByKey,
-    snapshots: outcomeEvaluationSnapshots,
+    snapshots: eligibleSnapshots,
   });
+  if (run.eligible_snapshot_count === 0 && remainingOutcomeBacklogCount > 0) {
+    run.summary = `${remainingOutcomeBacklogCount} original snapshots remain canonically incomplete; no acquisition is due in their last retained provider-bar window.`;
+  }
   const basicFreeScheduledOutcomeCapacity =
     scheduledAttempt && providerPlanProfile.effective_mode === "free"
       ? buildBasicFreeScheduledOutcomeCapacityReceipt({
-          backlog_snapshot_count_before_run: outcomeEvaluationSnapshots.length,
+          backlog_snapshot_count_before_run: originalPendingBeforeRun,
           backlog_snapshot_count_after_run: remainingOutcomeBacklogCount,
           runner_selected_snapshot_count: run.eligible_snapshot_count,
           snapshot_cap_deferred_count: Math.max(
             0,
-            outcomeEvaluationSnapshots.length - run.eligible_snapshot_count,
+            originalPendingBeforeRun - run.eligible_snapshot_count,
           ),
           provider_budget_deferred_snapshot_count:
             providerBudgetDeferredSnapshotCount,

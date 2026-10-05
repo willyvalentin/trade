@@ -17,6 +17,28 @@ async function input() {
   return { owner: prospectiveOwner, freeze: prospectiveReceipt(), source: structuredClone(await sourcePromise), now };
 }
 
+test("training keeps a single explicit original feature basis without picking a mixed-version subset", async () => {
+  const request = await input(), previous = buildRelativePlanTrainedProbabilityModel(request).trained_model!;
+  const current = await prospectiveSource({ now: new Date("2026-10-05T17:00:00.000Z"),
+    featureVectorVersion: "recommendation_decision_feature_vector_v3" });
+  // Same original identity and numeric evidence, only the separately versioned
+  // daily-range projection. No member may be dropped to fit a convenient basis.
+  request.source.snapshots[0] = current.snapshots[0];
+  const mixedBytes = JSON.stringify(request.source);
+  expect(buildRelativePlanTrainedProbabilityModel(request)).toMatchObject({ status: "not_ready", trained_model: null,
+    blocker: "trained_probability_mixed_original_feature_bases" });
+  expect(JSON.stringify(request.source)).toBe(mixedBytes);
+  const pieces = await Promise.all([5, 6, 7].flatMap(day => [0, 1, 2, 3].map(n =>
+    prospectiveSource({ now: new Date(Date.UTC(2026, 9, day, 17, n * 5)),
+      featureVectorVersion: "recommendation_decision_feature_vector_v3" }))));
+  request.source = { scanRuns: pieces.flatMap(row => row.scanRuns), snapshots: pieces.flatMap(row => row.snapshots),
+    outcomes: pieces.flatMap(row => row.outcomes) };
+  const currentModel = buildRelativePlanTrainedProbabilityModel(request).trained_model!;
+  expect(currentModel.original_training_membership_fingerprint).toBe(previous.original_training_membership_fingerprint);
+  expect(currentModel.original_population_count).toBe(48);
+  expect(currentModel.model).toEqual(previous.model);
+});
+
 test("a pre-forward training job retains all original members and the unchanged fitted model", async () => {
   const request = await input(), original = JSON.stringify(request), result = buildRelativePlanTrainedProbabilityModel(request);
   expect(result.status).toBe("ready");

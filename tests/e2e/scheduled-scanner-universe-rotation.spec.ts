@@ -29,6 +29,24 @@ function rotatedSelection(batchOffset: number) {
 }
 
 test.describe("scheduled scanner universe rotation", () => {
+  test("preserves an empty admitted universe instead of substituting starter symbols", () => {
+    for (const input of [
+      { scanWindow: "midday" as const, requestedScanBudget: 0 },
+      { scanWindow: "closed" as const, requestedScanBudget: scheduledBudget },
+      { scanWindow: "unknown" as const, requestedScanBudget: scheduledBudget },
+    ]) {
+      const selection = buildRealScannerBaseCandidateSelection({
+        ...input,
+        selectionMode: "scheduled_rotating",
+        now: rotationStart,
+      });
+      expect(selection.candidates).toEqual([]);
+      expect(selection.selection).not.toBeNull();
+      expect(selection.coverage?.selected_tickers).toBe(0);
+      expect(selection.coverage?.scan_budget.effective_tickers).toBe(input.requestedScanBudget);
+    }
+  });
+
   test("moves each scheduled batch through the full tradable universe without raising the per-run budget", () => {
     const batches = Array.from({ length: 10 }, (_, index) =>
       rotatedSelection(index),

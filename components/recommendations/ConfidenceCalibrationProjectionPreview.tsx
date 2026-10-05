@@ -1,4 +1,5 @@
 import type { ConfidenceCalibrationProjectionPreviewResult } from "@/lib/confidence-calibration-recommendation-advisory-projection-preview";
+import { isStaticSetupConfidenceProjection } from "@/lib/confidence-calibration-recommendation-advisory-projection-observation";
 
 export type ConfidenceCalibrationProjectionPreviewProps = {
   preview: ConfidenceCalibrationProjectionPreviewResult | null | undefined;
@@ -21,6 +22,23 @@ export function ConfidenceCalibrationProjectionPreview({
   preview,
 }: ConfidenceCalibrationProjectionPreviewProps) {
   if (!preview || preview.status === "preview_disabled") return null;
+
+  if (isStaticSetupConfidenceProjection(preview)) {
+    return (
+      <div className="trade-recommendation-details-text-card">
+        <div className="trade-recommendation-details-text-card__header">
+          <span className="trade-recommendation-details-text-card__label">
+            Calibration unavailable
+          </span>
+        </div>
+        <div className="trade-recommendation-details-text-card__content">
+          <p>No outcome-linked calibration model is available for this preview.</p>
+          <p>The original confidence is a ranking score, not a win probability.</p>
+          <p>The legacy setup adjustment is not applied or presented as a calibrated projection.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (preview.status === "preview_unavailable") {
     return (

@@ -1,10 +1,15 @@
 import { expect, test } from "@playwright/test";
+import { createHash } from "node:crypto";
 
 import { buildDayTradeScanOrchestrationSummary } from "../../lib/day-trade-scan-orchestration";
 import { buildDayTradeWindowRecommendationTargetSummary } from "../../lib/day-trade-window-recommendation-target";
 import { buildRecommendationEngineControlCenterSummary } from "../../lib/recommendation-engine-control-center";
 import { buildRecommendationServingCadenceSummary } from "../../lib/recommendation-serving-cadence";
-import { buildScannerCandidateRankingSummary } from "../../lib/scanner-candidate-ranking";
+import {
+  buildScannerCandidateRankingSummary,
+  buildClockNeutralShadowRankingSummary,
+  buildVerifiedIntradayLiquidityShadowRankingSummary,
+} from "../../lib/scanner-candidate-ranking";
 import type { ScannerCandidate } from "../../lib/scanner";
 
 const marketStatus = {
@@ -41,6 +46,52 @@ function rankedCandidate(ticker: string, localScore: number) {
     setup_type: "OPENING_RANGE_BREAKOUT",
   } as unknown as ScannerCandidate & { local_score: number; setup_type: string };
 }
+
+test("field-presence scoring never claims complete or fresh market inputs", () => {
+  // Synthetic reconstruction of the retained Oct 1 failure condition, NOT a
+  // raw-provider replay: all nine plan fields exist but intraday input is absent.
+  const candidate = { ...rankedCandidate("RESEARCH", 60), intraday_indicators: null,
+    intraday_indicator_source: "unavailable" as const, intraday_indicator_stale: true };
+  const summary = buildScannerCandidateRankingSummary({ candidates: [candidate],
+    now: new Date("2026-09-17T14:00:00.000Z") });
+  const completeness = summary.results[0].score.components.find(item => item.component === "data_completeness")!;
+  expect(completeness.score).toBe(100);
+  expect(summary.results[0].score.gaps).toContain("Intraday indicator context is missing.");
+  expect(completeness.reason).toBe("Identity, price and plan field presence is strong; this does not establish market-data completeness or freshness.");
+  expect(summary.results[0].rank_reason).toContain(completeness.reason);
+});
+
+test("partial field presence is explained without promoting it to data fitness", () => {
+  const summary = buildScannerCandidateRankingSummary({
+    candidates: [{ ...rankedCandidate("PARTIAL", 95), proposed_target_2: undefined }],
+    now: new Date("2026-09-17T14:00:00.000Z") });
+  expect(summary.results[0].score.components.find(item => item.component === "data_completeness")?.reason)
+    .toContain("field presence");
+  expect(summary.selection.selected_tickers).toEqual([]);
+});
+
+test("explanation repair preserves live and both frozen shadow numeric policies", () => {
+  const candidates = [rankedCandidate("FRESH", 95), { ...rankedCandidate("STALE", 60),
+    intraday_indicators: null, intraday_indicator_source: "unavailable" as const, intraday_indicator_stale: true }];
+  const before = JSON.stringify(candidates);
+  const summaries = [buildScannerCandidateRankingSummary, buildClockNeutralShadowRankingSummary,
+    buildVerifiedIntradayLiquidityShadowRankingSummary].map(build => build({ candidates,
+      scanWindow: "morning_momentum", now: new Date("2026-09-17T14:00:00.000Z") }));
+  const numeric = summaries.map(summary => ({ version: summary.summary_version,
+    selection: summary.selection, results: summary.results.map(result => ({ ticker: result.ticker,
+      rank: result.rank, selected: result.selected, bucket: result.selection_bucket,
+      score: result.score.normalized_score, tier: result.score.tier,
+      components: result.score.components.map(({ component, score, weight, contribution }) =>
+        ({ component, score, weight, contribution })), gaps: result.score.gaps, warnings: result.score.warnings })) }));
+  // Frozen from the unchanged predecessor BEFORE the explanation repair.
+  // Includes every component's arithmetic, warnings/gaps, order and selection;
+  // excludes only explanatory strings. This is policy invariance, NOT alpha.
+  expect(createHash("sha256").update(JSON.stringify(numeric)).digest("hex"))
+    .toBe("a7989944aa12ff2417bae59fa852bd840ed2472d26ea282201cf63d184c01edf");
+  expect(numeric.map(summary => summary.results.map(result => result.score)))
+    .toEqual([[89, 69], [78, 65], [77, 58]]);
+  expect(JSON.stringify(candidates)).toBe(before);
+});
 
 test("a single Strong candidate is selected without a fill quota", () => {
   const summary = buildScannerCandidateRankingSummary({

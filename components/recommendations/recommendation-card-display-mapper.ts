@@ -9,6 +9,7 @@ import {
 } from "@/lib/recommendation-freshness";
 import type { RecommendationCardMetric } from "@/components/recommendations/RecommendationCard";
 import type { RecommendationDetailsModalConfirmation } from "@/components/recommendations/RecommendationDetailsModal";
+import { buildPlanRiskRewardDisplay } from "@/components/recommendations/recommendation-plan-risk-reward-display";
 
 export type RecommendationCardDisplayConfidenceBreakdown = {
   market_regime_alignment: number;
@@ -24,6 +25,7 @@ export type RecommendationCardDisplayRecommendation = {
   confidenceBreakdown: RecommendationCardDisplayConfidenceBreakdown | null;
   confidenceLabel: string;
   confidenceScore: number | null;
+  direction?: string;
   entryZone: string;
   expiresAtRaw?: string | null;
   planReferencePrice?: {
@@ -227,11 +229,13 @@ export function buildRecommendationCardDisplayProps({
     ),
   ];
   const timing = buildRecommendationCardTiming(recommendation);
+  const planRiskReward = buildPlanRiskRewardDisplay(recommendation);
   const metrics: RecommendationCardMetric[] = [
     { label: "Entry", value: recommendation.entryZone },
     { label: "Stop", value: recommendation.stopLoss },
-    { label: "Target", value: recommendation.target1 },
-    { label: "Reward : Risk", value: recommendation.riskReward },
+    { label: "Target 1", value: recommendation.target1 },
+    { label: "Target 1 R/R", value: planRiskReward.target1 },
+    { label: "R/R basis", value: planRiskReward.basis },
     {
       label: "Confidence",
       value:

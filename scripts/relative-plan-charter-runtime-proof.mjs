@@ -13,7 +13,24 @@ import { createServer } from "node:http";
 
 const root = process.cwd(), directory = mkdtempSync(join(tmpdir(), "ture-relative-plan-charter-proof-"));
 const finalizedMode = process.argv.includes("--finalized-result");
+const contextRegressionMode = process.argv.includes("--terminal-context-regression");
+assert(!contextRegressionMode || finalizedMode, "terminal_context_requires_finalized_native_mode");
 const rankedCount = process.argv.includes("--full-eight-member-population") ? 8 : 4;
+const originalInputs = process.argv.includes("--complete-original-archives");
+const currentFeatureBasis = process.argv.includes("--current-feature-basis");
+assert(!currentFeatureBasis || originalInputs, "current_feature_basis_requires_complete_original_archives");
+const featureVectorVersion = currentFeatureBasis ? "recommendation_decision_feature_vector_v3" : undefined;
+function verifyCurrentFeatureBasis(source) {
+  if (!currentFeatureBasis) return;
+  assert(source.snapshots.length > 0);
+  for (const snapshot of source.snapshots) {
+    const vector = snapshot.payload_json.decision_feature_vector;
+    assert.equal(vector.contract_version, featureVectorVersion);
+    assert(Number.isFinite(vector.feature_values.daily_average_range_percent));
+    assert(!Object.hasOwn(vector.feature_values, "intraday_average_range_percent"));
+  }
+}
+assert(!originalInputs || rankedCount === 8, "original_capacity_proof_requires_unchanged_eight_member_population");
 const partitionPopulation = 30 * rankedCount;
 const db = `ture-relative-plan-charter-db-${process.pid}`, api = `ture-relative-plan-charter-api-${process.pid}`;
 const network = `ture-relative-plan-charter-net-${process.pid}`;
@@ -25,6 +42,20 @@ let dbCreated = false, apiCreated = false, networkCreated = false, blockedExtern
 let finalizedHttpBytes = null, resultPrewriteGuardsVerified = false;
 let originalDecodedHttpBytes = null, actualHttpReadbackVerified = false, transportEncoding = null;
 let newTrainingRetainedCoverageVerified = false, sealedModelIgnoresMutableCandles = false;
+let newTrainingOriginalInputVerified = false, newResultOriginalInputVerified = false;
+let sealedModelIgnoresMutableInputs = false, sealedResultIgnoresMutableInputs = false;
+let actualTrainingClockVerified = false, separateCommittedWitnessVerified = false;
+let sourceCapacitySqlVerified = false, negotiatedPrewriteVerified = false;
+let finalizedDecodedHttpBytes = null, finalizedTransportEncoding = null;
+let newResultRetainedCandlesVerified = false, sealedResultIgnoresMutableCandles = false;
+let newResultRetainedHorizonRVerified = false;
+let newResultRetainedFallbackHorizonRVerified = false;
+let newTrainingSnapshotClocksVerified = false, newResultSnapshotClocksVerified = false;
+let sealedModelIgnoresMutableSnapshotClocks = false, sealedResultIgnoresMutableSnapshotClocks = false;
+let newTrainingRunClocksVerified = false, newResultRunClocksVerified = false;
+let sealedModelIgnoresMutableRunClocks = false, sealedResultIgnoresMutableRunClocks = false;
+let currentRuntimeClocksVerified = false, runtimeClockSourcePreserved = false;
+let newResultRuntimeClocksVerified = false, sealedResultIgnoresMutableRuntimeClocks = false;
 // Real local socket + client decompression, not Response.json() pretending to
 // decode compressed bytes. This is NOT a hosted Netlify behavior attestation.
 async function verifyHttp(readers, body) {
@@ -61,6 +92,8 @@ try {
     stdin: { resolveDir: root, contents: `
       export { prospectiveInput, prospectiveOwner } from './tests/fixtures/relative-plan-prospective';
       export { prospectiveSource } from './tests/fixtures/relative-plan-prospective-source';
+      export { appendSyntheticOriginalArchives } from './tests/fixtures/original-input-archive-evidence';
+      export { buildDecisionLineageReceipt } from './lib/decision-lineage-receipt';
       export { charterRuntimeRows } from './tests/fixtures/relative-plan-charter-runtime';
       export { buildRelativePlanProspectivePlan } from './lib/server/relative-plan-prospective-comparison';
       export { relativePlanProspectiveStore } from './lib/server/relative-plan-prospective-store';
@@ -88,7 +121,7 @@ try {
   docker("network", "create", network); networkCreated = true;
   // Fresh Draft runners do not have the ordinary foundation shard's image
   // cache. Fetch only these named test images if absent, never a market API.
-  docker("run", "--pull=missing", "--rm", "-d", "--name", db, "--network", network,
+  docker("run", "--pull=missing", "--rm", "-d", "--name", db, "--network", network, "-p", "127.0.0.1::5432",
     "-e", "POSTGRES_PASSWORD=closed-proof-only", "postgres:16-alpine"); dbCreated = true;
   for (let i = 0; i < 40; i++) {
     try { sql("select 1"); break; } catch { if (i === 39) throw new Error("isolated_database_not_ready"); await delay(250); }
@@ -131,6 +164,28 @@ try {
       const rpc = (who, result) => JSON.parse(sql(`select public.finalize_relative_plan_charter_result_v1(
         '${who}','${candidate.prospective_freeze_id}','${JSON.stringify(result).replaceAll("'","''")}'::jsonb,
         'relative_plan_charter_result_receipt_v1')`));
+      if (originalInputs) {
+        assert(candidate.retained_source.decoded_byte_length > 16 * 1048576);
+        assert.equal(rpc(owner, candidate).status, "unavailable", "original 16 MiB SQL must reject the complete source");
+        assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "0");
+        const definition = sql("select pg_get_functiondef('public.finalize_relative_plan_charter_result_v1(uuid,uuid,jsonb,text)'::regprocedure)");
+        const attributes = sql("select proowner::text,proacl::text,prosecdef,proconfig::text from pg_proc where oid='public.finalize_relative_plan_charter_result_v1(uuid,uuid,jsonb,text)'::regprocedure");
+        const capacityMigration = readFileSync(resolve(root, "supabase/migrations/20261004054424_if4_complete_original_archive_source_capacity.sql"), "utf8");
+        // Direct SQL iteration on this disposable DB only; no migration history.
+        sql(capacityMigration);
+        const expected = definition.replace("not between 1 and 16777216", "not between 1 and 33554432");
+        assert.notEqual(expected, definition);
+        assert.equal(sql("select pg_get_functiondef('public.finalize_relative_plan_charter_result_v1(uuid,uuid,jsonb,text)'::regprocedure)"), expected);
+        assert.equal(sql("select proowner::text,proacl::text,prosecdef,proconfig::text from pg_proc where oid='public.finalize_relative_plan_charter_result_v1(uuid,uuid,jsonb,text)'::regprocedure"), attributes);
+        sql(capacityMigration); // safe idempotent readback, not a data rewrite
+        for (const length of [0, 32 * 1048576 + 1]) {
+          const oversized = structuredClone(candidate);
+          oversized.retained_source.decoded_byte_length = length;
+          assert.equal(rpc(owner, oversized).status, "unavailable", "decoded source bounds must remain strict");
+        }
+        assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "0");
+        sourceCapacitySqlVerified = true;
+      }
       const future = structuredClone(candidate);
       future.source_as_of = new Date(Date.now()+86400000).toISOString();
       future.measurement.read_as_of = future.source_as_of;
@@ -176,14 +231,83 @@ try {
     for (const snapshot of part.snapshots) assert.equal((await readers.persistRecommendationSnapshot(snapshot, { supabaseClient: client, server: true })).status, "saved");
     for (const outcome of part.outcomes.filter(row => row.id !== omittedId)) assert.equal((await readers.persistRecommendationOutcome(outcome, { supabaseClient: client, server: true })).status, "saved");
   };
+  // Isolated synthetic fault setup only. The ordinary producer deliberately
+  // ignores duplicate scan inserts; do not alter that immutable behavior just
+  // to inject a test contradiction. Change this fixture through the real SDK
+  // with exact owner/id predicates, then exercise the actual command/readback.
+  const replaceIsolatedRunPayload = async run => {
+    const response = await client.from("recommendation_scan_runs").update({ payload_json: run.payload_json })
+      .eq("owner_user_id", owner).eq("id", run.id).select("id").single();
+    assert.equal(response.error, null); assert.equal(response.data.id, run.id);
+  };
+  // Exact owner/id-bound synthetic fault injection in this disposable database
+  // only. The real snapshot producer ignores duplicate inserts; do not weaken
+  // that behavior to test NEW consumer admission of a contradictory raw row.
+  const replaceIsolatedSnapshotClocks = async (snapshot, clocks) => {
+    const response = await client.from("recommendation_snapshots").update(clocks)
+      .eq("owner_user_id", owner).eq("id", snapshot.id).select("id").single();
+    assert.equal(response.error, null); assert.equal(response.data.id, snapshot.id);
+  };
+  const replaceIsolatedRunClocks = async (run, clocks) => {
+    const response = await client.from("recommendation_scan_runs").update(clocks)
+      .eq("owner_user_id", owner).eq("id", run.id).select("id").single();
+    assert.equal(response.error, null); assert.equal(response.data.id, run.id);
+  };
+  const injectOriginalConflict = async run => {
+    if (!originalInputs) return readers.appendSyntheticOriginalArchives(run);
+    const record = run.payload_json.candidate_decision_record;
+    record.candidates[0].data.input_snapshot.features.session_high += 1;
+    run.payload_json.decision_lineage_receipt = readers.buildDecisionLineageReceipt(record);
+  };
   for (const day of days) for (let n = 0; n < 4; n++) {
-    await persist(await readers.prospectiveSource({ now: new Date(Date.parse(session(day).session_open) + 3.5 * 3600000 + n * 300000), rankedCount }));
+    await persist(await readers.prospectiveSource({ now: new Date(Date.parse(session(day).session_open) + 3.5 * 3600000 + n * 300000), rankedCount, originalInputs, featureVectorVersion }));
   }
   let training, validRetainedTrainingOutcome = null, contradictoryRetainedTrainingOutcome = null;
   if (!finalizedMode) {
     const physical = await readers.readRecommendationLearningBaselineSource(owner);
     assert.equal(physical.status, "available");
     const original = readers.parseRecommendationLearningBaselineSource(physical.data); assert(original);
+    const originalSnapshot = original.snapshots[rankedCount - 1];
+    const future = new Date(Date.now() + 86400000).toISOString();
+    await replaceIsolatedSnapshotClocks(originalSnapshot, { created_at: future, updated_at: future });
+    const snapshotBefore = await readers.readRecommendationLearningBaselineSource(owner);
+    const snapshotRejected = await readers.createRelativePlanTrainedProbabilityService().train(owner, {});
+    assert.equal(snapshotRejected.status, "unavailable");
+    assert.equal(snapshotRejected.blocker, "trained_probability_snapshot_recording_times_invalid");
+    assert.equal(snapshotRejected.receipt, null);
+    assert.deepEqual((await readers.readRecommendationLearningBaselineSource(owner)).data, snapshotBefore.data);
+    assert.equal(snapshotBefore.data.recommendation_snapshots.length, 12 * rankedCount);
+    assert.equal(sql("select count(*) from public.relative_plan_trained_probability_models"), "0");
+    assert.equal(sql("select count(*) from public.relative_plan_trained_probability_confirmations"), "0");
+    await replaceIsolatedSnapshotClocks(originalSnapshot, {
+      created_at: originalSnapshot.created_at, updated_at: originalSnapshot.updated_at });
+    newTrainingSnapshotClocksVerified = true;
+    const originalRun = original.scanRuns[0], conflictingRun = structuredClone(originalRun);
+    await replaceIsolatedRunClocks(originalRun, { created_at: future, updated_at: future });
+    const runBefore = await readers.readRecommendationLearningBaselineSource(owner);
+    const runRejected = await readers.createRelativePlanTrainedProbabilityService().train(owner, {});
+    assert.equal(runRejected.status, "unavailable");
+    assert.equal(runRejected.blocker, "trained_probability_scan_run_recording_times_invalid");
+    assert.equal(runRejected.receipt, null);
+    assert.deepEqual((await readers.readRecommendationLearningBaselineSource(owner)).data, runBefore.data);
+    assert.equal(runBefore.data.recommendation_scan_runs.length, 12);
+    assert.equal(sql("select count(*) from public.relative_plan_trained_probability_models"), "0");
+    assert.equal(sql("select count(*) from public.relative_plan_trained_probability_confirmations"), "0");
+    await replaceIsolatedRunClocks(originalRun, { created_at: originalRun.created_at, updated_at: originalRun.updated_at });
+    newTrainingRunClocksVerified = true;
+    await injectOriginalConflict(conflictingRun);
+    await replaceIsolatedRunPayload(conflictingRun);
+    const inputBefore = await readers.readRecommendationLearningBaselineSource(owner);
+    const inputRejected = await readers.createRelativePlanTrainedProbabilityService().train(owner, {});
+    assert.equal(inputRejected.status, "unavailable");
+    assert.equal(inputRejected.blocker, "trained_probability_original_input_arithmetic_conflicting");
+    assert.deepEqual((await readers.readRecommendationLearningBaselineSource(owner)).data, inputBefore.data);
+    assert.equal(sql("select count(*) from public.relative_plan_trained_probability_models"), "0");
+    assert.equal(sql("select count(*) from public.relative_plan_trained_probability_confirmations"), "0");
+    assert.equal(inputBefore.data.recommendation_scan_runs.length, 12);
+    assert.equal(inputBefore.data.recommendation_snapshots.length, 12 * rankedCount);
+    await replaceIsolatedRunPayload(originalRun);
+    newTrainingOriginalInputVerified = true;
     const outcome = original.outcomes[0], snapshot = original.snapshots.find(row => row.snapshot_fingerprint === outcome.snapshot_fingerprint);
     assert(snapshot);
     const anchor = readers.recommendationOutcomeEvaluationAnchorFromSnapshot(snapshot); assert(anchor);
@@ -228,6 +352,7 @@ try {
     assert.deepEqual(restored.outcomes.filter(row => row.id !== outcome.id), original.outcomes.filter(row => row.id !== outcome.id));
     newTrainingRetainedCoverageVerified = true;
   }
+  const beforeTraining = Date.now();
   if (finalizedMode) {
     // Explicit HISTORICAL SYNTHETIC admin fixture only, not an actual
     // pre-forward model seal. The default proof above separately proves actual
@@ -247,7 +372,66 @@ try {
   } else training = await readers.createRelativePlanTrainedProbabilityService().train(owner, {});
   assert.equal(training.status, "materialized", training.blocker); const sealed = training.receipt;
   assert.equal(sealed.trained_model.original_population_count, 12 * rankedCount);
+  verifyCurrentFeatureBasis(sealed.trained_model.retained_training_source);
   assert(Date.parse(sealed.committed_read_at) < Date.parse(windows.held_out.start_at));
+  if (!finalizedMode) {
+    const afterTraining = Date.now();
+    // Observe the existing real SQL job, not an injected/backdated model. Both
+    // database instants must lie inside the actual request interval, and the
+    // committed witness must have been inserted in another transaction.
+    const stored = JSON.parse(sql(`select jsonb_build_object(
+      'materialized_at', model.materialized_at, 'committed_read_at', witness.committed_read_at,
+      'materialization_txid', model.materialization_txid::text,
+      'model_insert_txid', model.xmin::text, 'witness_insert_txid', witness.xmin::text)
+      from public.relative_plan_trained_probability_models model
+      join public.relative_plan_trained_probability_confirmations witness on witness.materialization_id=model.id
+      where model.owner_user_id='${owner}' and model.prospective_freeze_id='${freeze.freeze_id}'`));
+    for (const instant of [sealed.materialized_at, sealed.committed_read_at]) {
+      assert(Date.parse(instant) >= beforeTraining);
+      assert(Date.parse(instant) <= afterTraining);
+    }
+    assert.equal(Date.parse(stored.materialized_at), Date.parse(sealed.materialized_at));
+    assert.equal(Date.parse(stored.committed_read_at), Date.parse(sealed.committed_read_at));
+    assert(Date.parse(sealed.committed_read_at) >= Date.parse(sealed.materialized_at));
+    // PL/pgSQL EXCEPTION creates a subtransaction: model.xmin can be a
+    // child XID, not txid_current() stored by the parent. The confirmation
+    // function has no such handler; compare its insertion with BOTH IDs.
+    assert.notEqual(stored.witness_insert_txid, stored.materialization_txid);
+    assert.notEqual(stored.witness_insert_txid, stored.model_insert_txid);
+    assert.equal(sql("select count(*) from public.relative_plan_trained_probability_models"), "1");
+    assert.equal(sql("select count(*) from public.relative_plan_trained_probability_confirmations"), "1");
+    actualTrainingClockVerified = true; separateCommittedWitnessVerified = true;
+  }
+  if (newTrainingOriginalInputVerified) {
+    const physical = await readers.readRecommendationLearningBaselineSource(owner);
+    const source = readers.parseRecommendationLearningBaselineSource(physical.data);
+    const originalRun = source.scanRuns[0], conflictingRun = structuredClone(originalRun);
+    await injectOriginalConflict(conflictingRun);
+    await replaceIsolatedRunPayload(conflictingRun);
+    assert.deepEqual((await readers.createRelativePlanTrainedProbabilityService().read(owner)).receipt, sealed);
+    const repeated = await readers.createRelativePlanTrainedProbabilityService().train(owner, {});
+    assert.equal(repeated.status, "already_materialized"); assert.deepEqual(repeated.receipt, sealed);
+    assert.equal(sql("select count(*) from public.relative_plan_trained_probability_models"), "1");
+    await replaceIsolatedRunPayload(originalRun);
+    sealedModelIgnoresMutableInputs = true;
+  }
+  if (newTrainingSnapshotClocksVerified) {
+    const source = readers.parseRecommendationLearningBaselineSource((await readers.readRecommendationLearningBaselineSource(owner)).data);
+    const originalSnapshot = source.snapshots[rankedCount - 1];
+    const future = new Date(Date.now() + 86400000).toISOString();
+    await replaceIsolatedSnapshotClocks(originalSnapshot, { created_at: future, updated_at: future });
+    const originalRun = source.scanRuns[0];
+    assert(newTrainingRunClocksVerified);
+    await replaceIsolatedRunClocks(originalRun, { created_at: future, updated_at: future });
+    const repeated = await readers.createRelativePlanTrainedProbabilityService().train(owner, {});
+    assert.equal(repeated.status, "already_materialized"); assert.deepEqual(repeated.receipt, sealed);
+    assert.equal(sql("select count(*) from public.relative_plan_trained_probability_models"), "1");
+    await replaceIsolatedSnapshotClocks(originalSnapshot, {
+      created_at: originalSnapshot.created_at, updated_at: originalSnapshot.updated_at });
+    sealedModelIgnoresMutableSnapshotClocks = true;
+    await replaceIsolatedRunClocks(originalRun, { created_at: originalRun.created_at, updated_at: originalRun.updated_at });
+    sealedModelIgnoresMutableRunClocks = true;
+  }
   if (newTrainingRetainedCoverageVerified) {
     assert.equal(sealed.trained_model.canonical_outcome_count, 12 * rankedCount);
     assert.equal(sealed.trained_model.missing_outcome_count, 0);
@@ -272,12 +456,13 @@ try {
     // Actual persisted prior history, not a shortened input fixture or mocked
     // readSource. It remains in the owned database after result finalization.
     for (let n = 0; n < unrelatedPriorDecisions; n++) await persist(await readers.prospectiveSource({
-      now: new Date(Date.parse(session(priorDay).session_open) + 2.5 * 3600000 + n * 300000), rankedCount }));
+      now: new Date(Date.parse(session(priorDay).session_open) + 2.5 * 3600000 + n * 300000), rankedCount, originalInputs, featureVectorVersion }));
   }
   const parts = [], runtimeRows = [];
   for (const day of futureDays) for (let n = 0; n < 10; n++) {
     const at = new Date(Date.parse(session(day).session_open) + 2.5 * 3600000 + n * 900000);
-    const part = await readers.prospectiveSource({ now: at, rankedCount });
+    const part = await readers.prospectiveSource({ now: at, rankedCount, originalInputs, featureVectorVersion,
+      positiveTickers: contextRegressionMode ? ["AAA"] : undefined });
     const context = { contract_version: "market_regime_decision_context_v1", classifier_version: "market_regime_v1",
       captured_at: at.toISOString(), regime: "risk_on" };
     Object.assign(part.scanRuns[0].payload_json, { market_regime: "risk_on", market_regime_context: context });
@@ -315,6 +500,7 @@ try {
   assert.equal(missing.learning.full_charter.partitions[0].quality.outcome_coverage.value, (partitionPopulation - 1) / partitionPopulation);
   assert.equal((await readers.persistRecommendationOutcome(pending, { supabaseClient: client, server: true })).status, "saved");
   const full = await read(), charter = full.learning.full_charter;
+  verifyCurrentFeatureBasis((await readers.createRelativePlanTrainedProbabilityService().read(owner)).receipt.trained_model.retained_training_source);
   assert.equal(charter.evidence_complete, true); assert.equal(charter.computed_disposition, "reject");
   assert.deepEqual(charter.missing_dimensions, []);
   assert(charter.measured_limit_failures.includes("held_out_sector_concentration_charter_limit_not_met"));
@@ -326,6 +512,68 @@ try {
   const httpBytes = fullTransport.wireBytes;
   originalDecodedHttpBytes = fullTransport.decodedBytes; transportEncoding = fullTransport.encoding;
   assert.deepEqual(await read(), full); // restarted service and actual fresh SDK reads, not cached source
+  // Only NEW isolated rows are faulted. Terminal cycle receipts are immutable;
+  // never weaken that writer/trigger just to alter an existing test receipt.
+  const originalRuntime = await readers.readRelativePlanCharterRuntimeSource({ owner, freeze, now });
+  assert.equal(originalRuntime.status, "available");
+  const sourceBeforeRuntimeFault = await readers.readRecommendationLearningBaselineSource(owner);
+  assert.equal(sourceBeforeRuntimeFault.status, "available");
+  let runtimeFaultSequence = 0;
+  const insertRuntimeClockFault = async (kind, field) => {
+    const at = new Date(Date.parse(session(futureDays[0]).session_open) + 6 * 3600000 + runtimeFaultSequence++ * 60000);
+    const fixture = structuredClone(readers.charterRuntimeRows({ at: at.toISOString(), fingerprint: null, failed: true }));
+    fixture[kind][field] = new Date(now.getTime() + 86400000).toISOString();
+    const inserted = [];
+    const restore = () => {
+      for (const [table, id] of inserted.reverse()) {
+        assert(/^[0-9a-f-]{36}$/.test(id));
+        sql(`delete from public.${table} where id='${id}'`);
+      }
+    };
+    try {
+      for (const [table, row] of [["scheduled_scan_attempts", fixture.attempt], ["observation_cycle_receipts", fixture.cycle]]) {
+        const response = await client.from(table).insert(row).select("id").single();
+        assert.equal(response.error, null); inserted.push([table, response.data.id]);
+      }
+      // The historic event fixture's actual producer generates a fresh receipt
+      // clock. Sample AFTER insertion, so the new raw-clock guard, not the
+      // existing event/generated-time guard, is the dimension under test.
+      return { restore, asOf: finalizedMode ? new Date() : now };
+    } catch (error) { restore(); throw error; }
+  };
+  for (const kind of ["cycle", "attempt"]) for (const field of ["created_at", "updated_at"]) {
+    const fault = await insertRuntimeClockFault(kind, field);
+    try {
+      const invalid = await readers.readRelativePlanCharterRuntimeSource({ owner, freeze, now: fault.asOf });
+      assert.equal(invalid.status, "unavailable");
+      assert.equal(invalid.blocker, "relative_plan_runtime_source_recording_times_invalid");
+      if (kind === "attempt" && field === "updated_at") {
+        const incomplete = await readers.createRelativePlanProspectiveService().read(owner, fault.asOf);
+        assert.equal(incomplete.status, "available", incomplete.blocker);
+        assert.equal(incomplete.learning.full_charter.computed_disposition, "evidence_incomplete");
+        assert.equal(incomplete.learning.full_charter.evidence_complete, false);
+        assert(incomplete.learning.full_charter.missing_dimensions.some(value =>
+          value.includes("relative_plan_runtime_source_recording_times_invalid")));
+        assert.deepEqual(incomplete.learning.full_charter.partitions.map(row => row.original_membership_fingerprint),
+          charter.partitions.map(row => row.original_membership_fingerprint));
+        assert.deepEqual(incomplete.learning.full_charter.partitions.map(row => row.original_population_count),
+          [partitionPopulation, partitionPopulation]);
+        if (finalizedMode) {
+          const refused = await readers.createRelativePlanCharterResultService().finalize(owner, {},
+            { acceptEncoding: originalInputs ? "gzip" : null });
+          assert.equal(refused.status, "unavailable");
+          assert.equal(refused.blocker, "relative_plan_runtime_source_recording_times_invalid");
+          assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "0");
+          newResultRuntimeClocksVerified = true;
+        }
+      }
+    } finally { fault.restore(); }
+    assert.deepEqual(await readers.readRelativePlanCharterRuntimeSource({ owner, freeze, now }), originalRuntime);
+  }
+  currentRuntimeClocksVerified = true;
+  assert.deepEqual(await readers.readRecommendationLearningBaselineSource(owner), sourceBeforeRuntimeFault);
+  assert.deepEqual(await read(), full);
+  runtimeClockSourcePreserved = true;
   // The mutable current label can have old evaluation/creation clocks but a
   // revision not yet observed at this read's as-of boundary. Verify through
   // the actual writer, SDK, SQL and restarted consumers, not a fake hash.
@@ -361,20 +609,205 @@ try {
   assert.deepEqual(await read(), full);
   let durable = null;
   if (finalizedMode) {
+    const physical = await readers.readRecommendationLearningBaselineSource(owner);
+    const source = readers.parseRecommendationLearningBaselineSource(physical.data);
+    const originalRun = source.scanRuns.find(run => Date.parse(run.observed_at) >= Date.parse(windows.held_out.start_at));
+    assert(originalRun);
+    const nonTopSnapshot = source.snapshots.find(row => row.scan_run_id === originalRun.run_fingerprint &&
+      originalRun.payload_json.candidate_decision_record.candidates.some(candidate =>
+        candidate.candidate_id === row.payload_json.candidate_id && candidate.ranking?.rank > 3));
+    assert(nonTopSnapshot);
+    const future = new Date(Date.now() + 86400000).toISOString();
+    await replaceIsolatedSnapshotClocks(nonTopSnapshot, { created_at: future, updated_at: future });
+    const snapshotBefore = await readers.readRecommendationLearningBaselineSource(owner);
+    const snapshotRejected = await readers.createRelativePlanCharterResultService().finalize(owner, {});
+    assert.equal(snapshotRejected.status, "unavailable");
+    assert.equal(snapshotRejected.blocker, "relative_plan_result_snapshot_recording_times_invalid");
+    assert.equal(snapshotRejected.receipt, null);
+    assert.deepEqual((await readers.readRecommendationLearningBaselineSource(owner)).data, snapshotBefore.data);
+    assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "0");
+    await replaceIsolatedSnapshotClocks(nonTopSnapshot, {
+      created_at: nonTopSnapshot.created_at, updated_at: nonTopSnapshot.updated_at });
+    newResultSnapshotClocksVerified = true;
+    await replaceIsolatedRunClocks(originalRun, { created_at: future, updated_at: future });
+    const runBefore = await readers.readRecommendationLearningBaselineSource(owner);
+    const runRejected = await readers.createRelativePlanCharterResultService().finalize(owner, {});
+    assert.equal(runRejected.status, "unavailable");
+    assert.equal(runRejected.blocker, "relative_plan_result_scan_run_recording_times_invalid");
+    assert.equal(runRejected.receipt, null);
+    assert.deepEqual((await readers.readRecommendationLearningBaselineSource(owner)).data, runBefore.data);
+    assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "0");
+    await replaceIsolatedRunClocks(originalRun, { created_at: originalRun.created_at, updated_at: originalRun.updated_at });
+    newResultRunClocksVerified = true;
+    const conflictingRun = structuredClone(originalRun);
+    await injectOriginalConflict(conflictingRun);
+    await replaceIsolatedRunPayload(conflictingRun);
+    const before = await readers.readRecommendationLearningBaselineSource(owner);
+    const rejected = await readers.createRelativePlanCharterResultService().finalize(owner, {});
+    assert.equal(rejected.status, "unavailable");
+    assert.equal(rejected.blocker, "relative_plan_result_original_input_arithmetic_conflicting");
+    assert.equal(rejected.terminal_quality_decision, null);
+    assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "0");
+    assert.deepEqual((await readers.readRecommendationLearningBaselineSource(owner)).data, before.data);
+    await replaceIsolatedRunPayload(originalRun);
+    newResultOriginalInputVerified = true;
+    // Keep a complete, original non-top-three forward member. The real
+    // producer + writer retain a coherent target outcome and its twelve bars;
+    // remove only the target touches to reproduce a NEW-result admission fault.
+    const nonTop = originalRun.payload_json.candidate_decision_record.candidates.find(row => row.ranking?.rank > 3);
+    assert(nonTop);
+    const forwardSnapshot = source.snapshots.find(row => row.scan_run_id === originalRun.run_fingerprint &&
+      row.payload_json.candidate_id === nonTop.candidate_id);
+    assert(forwardSnapshot);
+    const originalOutcome = source.outcomes.find(row => row.snapshot_fingerprint === forwardSnapshot.snapshot_fingerprint && row.horizon === "60m");
+    assert(originalOutcome);
+    const anchor = readers.recommendationOutcomeEvaluationAnchorFromSnapshot(forwardSnapshot);
+    assert(anchor);
+    const start = Date.parse(anchor.evaluation_anchor_start_at), midpoint = forwardSnapshot.entry;
+    const bars = Array.from({ length: 12 }, (_, index) => ({ timestamp: new Date(start + index * 300000).toISOString(),
+      open: midpoint, high: forwardSnapshot.target + 1, low: midpoint, close: forwardSnapshot.target, volume: 1000 }));
+    const replay = readers.computeRecommendationOutcome({ snapshot: forwardSnapshot, horizon: "60m",
+      evaluated_at: originalOutcome.evaluated_at, candles: bars, current_price: forwardSnapshot.target,
+      provider: "twelve_data", source: "intraday_candles", data_completeness: "complete" }).outcome;
+    assert.equal(replay.target_hit, true);
+    const coverage = readers.buildCanonicalOutcomeProviderCoverageReceipt({ candles: bars, request: {
+      interval: "5min", horizon: "60m", ...anchor, start_at: anchor.evaluation_anchor_start_at,
+      end_at: new Date(start + 3600000).toISOString(),
+    }, result: { status: "available", provider: "twelve_data" } });
+    const validRetained = { ...originalOutcome, ...replay, id: originalOutcome.id,
+      created_at: originalOutcome.created_at, updated_at: originalOutcome.updated_at,
+      payload_json: { ...originalOutcome.payload_json, ...replay.payload_json, canonical_provider_coverage: coverage,
+        counterfactual_candles: bars, counterfactual_candle_source: "horizon_filtered_intraday_candles",
+        retained_candles_available: true, retained_candle_count: bars.length } };
+    const conflictingRetained = structuredClone(validRetained);
+    for (const bar of conflictingRetained.payload_json.counterfactual_candles) Object.assign(bar, { high: midpoint + 0.01, close: midpoint });
+    assert.equal((await readers.persistRecommendationOutcome(conflictingRetained, { supabaseClient: client, server: true })).status, "saved");
+    const beforeCandles = await readers.readRecommendationLearningBaselineSource(owner);
+    const rejectedCandles = await readers.createRelativePlanCharterResultService().finalize(owner, {});
+    assert.equal(rejectedCandles.status, "unavailable");
+    assert.equal(rejectedCandles.blocker, "relative_plan_result_retained_candle_outcome_conflicting");
+    assert.equal(rejectedCandles.terminal_quality_decision, null);
+    assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "0");
+    assert.deepEqual((await readers.readRecommendationLearningBaselineSource(owner)).data, beforeCandles.data);
+    // The original neither-hit horizon return must not be replaced by a
+    // contradictory scalar before NEW immutable quality finalization.
+    const neitherBars = bars.map(bar => ({ ...bar, high: midpoint + 0.1,
+      low: midpoint - 0.1, close: midpoint + 0.05 }));
+    const neither = readers.computeRecommendationOutcome({ snapshot: forwardSnapshot, horizon: "60m",
+      evaluated_at: originalOutcome.evaluated_at, candles: neitherBars, current_price: midpoint + 0.05,
+      provider: "twelve_data", source: "intraday_candles", data_completeness: "complete" }).outcome;
+    assert.equal(neither.status, "neither_hit");
+    const honestNeither = { ...validRetained, ...neither, id: originalOutcome.id,
+      created_at: originalOutcome.created_at, updated_at: originalOutcome.updated_at,
+      payload_json: { ...validRetained.payload_json, ...neither.payload_json, counterfactual_candles: neitherBars } };
+    assert.equal((await readers.persistRecommendationOutcome({ ...honestNeither, current_r: 9 },
+      { supabaseClient: client, server: true })).status, "saved");
+    const beforeR = await readers.readRecommendationLearningBaselineSource(owner);
+    const rejectedR = await readers.createRelativePlanCharterResultService().finalize(owner, {});
+    assert.equal(rejectedR.blocker, "relative_plan_result_retained_candle_realized_r_conflicting");
+    assert.equal(rejectedR.terminal_quality_decision, null);
+    assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "0");
+    assert.deepEqual((await readers.readRecommendationLearningBaselineSource(owner)).data, beforeR.data);
+    assert.equal((await readers.persistRecommendationOutcome(honestNeither, { supabaseClient: client, server: true })).status, "saved");
+    const honestR = readers.parseRecommendationLearningBaselineSource(
+      (await readers.readRecommendationLearningBaselineSource(owner)).data).outcomes.find(row => row.id === originalOutcome.id);
+    assert.equal(honestR.current_r, neither.current_r);
+    assert.equal(honestR.current_price, midpoint + 0.05);
+    assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "0");
+    newResultRetainedHorizonRVerified = true;
+    // Exercise the actual persisted EOD fallback selected when current R is
+    // absent; it must agree with the same original sixty-minute close.
+    const fallbackNeither = { ...honestNeither, current_price: null, current_r: null,
+      eod_price: midpoint + 0.05, eod_r: 9 };
+    assert.equal((await readers.persistRecommendationOutcome(fallbackNeither,
+      { supabaseClient: client, server: true })).status, "saved");
+    const beforeFallbackR = await readers.readRecommendationLearningBaselineSource(owner);
+    const rejectedFallbackR = await readers.createRelativePlanCharterResultService().finalize(owner, {});
+    assert.equal(rejectedFallbackR.blocker, "relative_plan_result_retained_candle_realized_r_conflicting");
+    assert.equal(rejectedFallbackR.terminal_quality_decision, null);
+    assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "0");
+    assert.deepEqual((await readers.readRecommendationLearningBaselineSource(owner)).data, beforeFallbackR.data);
+    assert.equal((await readers.persistRecommendationOutcome({ ...fallbackNeither, eod_r: neither.current_r },
+      { supabaseClient: client, server: true })).status, "saved");
+    const honestFallbackR = readers.parseRecommendationLearningBaselineSource(
+      (await readers.readRecommendationLearningBaselineSource(owner)).data).outcomes.find(row => row.id === originalOutcome.id);
+    assert.equal(honestFallbackR.current_r, null);
+    assert.equal(honestFallbackR.current_price, null);
+    assert.equal(honestFallbackR.eod_r, neither.current_r);
+    assert.equal(honestFallbackR.eod_price, midpoint + 0.05);
+    assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "0");
+    newResultRetainedFallbackHorizonRVerified = true;
+    assert.equal((await readers.persistRecommendationOutcome(validRetained, { supabaseClient: client, server: true })).status, "saved");
+    newResultRetainedCandlesVerified = true;
+    if (originalInputs) {
+      const unsupported = await readers.createRelativePlanCharterResultService().finalize(owner, {});
+      assert.equal(unsupported.status, "not_ready");
+      assert.equal(unsupported.blocker, "relative_plan_complete_result_response_too_large");
+      assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "0");
+      negotiatedPrewriteVerified = true;
+    }
     const beforeFinalization = Date.now();
-    durable = await readers.createRelativePlanCharterResultService().finalize(owner,{});
+    durable = await readers.createRelativePlanCharterResultService().finalize(owner,{}, { acceptEncoding: originalInputs ? "gzip" : null });
     assert.equal(durable.status,"finalized",durable.blocker);
     assert.equal(durable.terminal_quality_decision.disposition,"reject");
     assert(durable.receipt.result.measurement.evidence_complete);
+    const contextDiagnostic = durable.terminal_quality_decision.context_diagnostic;
+    assert(contextDiagnostic);
+    assert.equal(contextDiagnostic.source.result_id, durable.receipt.result_id);
+    assert.equal(contextDiagnostic.source.result_fingerprint, durable.receipt.result.result_fingerprint);
+    assert.equal(contextDiagnostic.status, contextRegressionMode ? "conservative_regression_detected" : "no_conservative_regression");
+    if (contextRegressionMode) {
+      assert.equal(contextDiagnostic.priority_context.dimension, "setup");
+      assert.equal(contextDiagnostic.priority_context.key, "BREAKOUT_CONTINUATION");
+      assert.equal(contextDiagnostic.priority_context.baseline.resolved_outcome_count, 180);
+      assert.equal(contextDiagnostic.priority_context.challenger.resolved_outcome_count, 180);
+      assert(contextDiagnostic.priority_context.baseline.precision.lower > contextDiagnostic.priority_context.challenger.precision.upper);
+    }
+    assert(Object.values(contextDiagnostic.authority).every(value => value === false));
     if (unrelatedPriorDecisions) {
       const retained = readers.decodeRelativePlanRetainedSource(durable.receipt.result.retained_source); assert(retained);
       assert.equal(retained.scanRuns.length, 72);
+      verifyCurrentFeatureBasis(retained);
       assert.equal(sql(`select count(*) from public.recommendation_scan_runs where owner_user_id='${owner}'`), "84");
     }
     assert(Date.parse(durable.receipt.finalized_at) >= beforeFinalization);
     assert(Date.parse(durable.receipt.finalized_at) <= Date.now());
-    assert.deepEqual((await readers.createRelativePlanCharterResultService().read(owner)).receipt,durable.receipt);
+    const restartedTerminal = await readers.createRelativePlanCharterResultService().read(owner);
+    assert.deepEqual(restartedTerminal.receipt,durable.receipt);
+    assert.deepEqual(restartedTerminal.terminal_quality_decision.context_diagnostic,contextDiagnostic);
     assert.equal((await readers.createRelativePlanCharterResultService().finalize(owner,{})).status,"already_finalized");
+    await replaceIsolatedSnapshotClocks(nonTopSnapshot, { created_at: future, updated_at: future });
+    assert(newResultRunClocksVerified);
+    await replaceIsolatedRunClocks(originalRun, { created_at: future, updated_at: future });
+    const runtimeFault = await insertRuntimeClockFault("attempt", "updated_at");
+    try {
+      const invalidRuntime = await readers.readRelativePlanCharterRuntimeSource({ owner, freeze, now: runtimeFault.asOf });
+      assert.equal(invalidRuntime.blocker, "relative_plan_runtime_source_recording_times_invalid");
+      const snapshotRepeated = await readers.createRelativePlanCharterResultService().finalize(owner, {});
+      assert.equal(snapshotRepeated.status, "already_finalized"); assert.deepEqual(snapshotRepeated.receipt, durable.receipt);
+      assert.deepEqual((await readers.createRelativePlanCharterResultService().read(owner)).receipt, durable.receipt);
+      assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "1");
+      sealedResultIgnoresMutableRuntimeClocks = true;
+    } finally { runtimeFault.restore(); }
+    await replaceIsolatedSnapshotClocks(nonTopSnapshot, {
+      created_at: nonTopSnapshot.created_at, updated_at: nonTopSnapshot.updated_at });
+    sealedResultIgnoresMutableSnapshotClocks = true;
+    await replaceIsolatedRunClocks(originalRun, { created_at: originalRun.created_at, updated_at: originalRun.updated_at });
+    sealedResultIgnoresMutableRunClocks = true;
+    assert.equal((await readers.persistRecommendationOutcome(conflictingRetained, { supabaseClient: client, server: true })).status, "saved");
+    assert.deepEqual((await readers.createRelativePlanCharterResultService().read(owner)).receipt, durable.receipt);
+    const repeatCandles = await readers.createRelativePlanCharterResultService().finalize(owner, {});
+    assert.equal(repeatCandles.status, "already_finalized"); assert.deepEqual(repeatCandles.receipt, durable.receipt);
+    assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "1");
+    assert.equal((await readers.persistRecommendationOutcome(originalOutcome, { supabaseClient: client, server: true })).status, "saved");
+    sealedResultIgnoresMutableCandles = true;
+    await replaceIsolatedRunPayload(conflictingRun);
+    assert.deepEqual((await readers.createRelativePlanCharterResultService().read(owner)).receipt, durable.receipt);
+    const repeatedInput = await readers.createRelativePlanCharterResultService().finalize(owner, {});
+    assert.equal(repeatedInput.status, "already_finalized"); assert.deepEqual(repeatedInput.receipt, durable.receipt);
+    assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "1");
+    await replaceIsolatedRunPayload(originalRun);
+    sealedResultIgnoresMutableInputs = true;
     const persisted = await readers.createRelativePlanProspectiveService().read(owner,now);
     assert.equal(persisted.learning.status,"evaluated");
     assert.equal(persisted.learning.terminal_quality_decision.result_fingerprint,durable.receipt.result.result_fingerprint);
@@ -387,12 +820,15 @@ try {
     const sealedRepeat = await readers.createRelativePlanCharterResultService().finalize(owner, {});
     assert.equal(sealedRepeat.status, "already_finalized");
     assert.deepEqual(sealedRepeat.receipt, durable.receipt);
+    assert.deepEqual(sealedRepeat.terminal_quality_decision.context_diagnostic, contextDiagnostic);
     assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "1");
     assert.equal((await readers.persistRecommendationOutcome(originalRevision,
       { supabaseClient: client, server: true })).status, "saved");
     for (const body of [durable,persisted]) {
       const transported = await verifyHttp(readers, body);
       finalizedHttpBytes = Math.max(finalizedHttpBytes ?? 0, transported.wireBytes);
+      finalizedDecodedHttpBytes = Math.max(finalizedDecodedHttpBytes ?? 0, transported.decodedBytes);
+      finalizedTransportEncoding = transported.encoding;
     }
     for (const role of ["anon","authenticated","service_role"]) for (const privilege of ["select","insert","update","delete","truncate","references","trigger"]) {
       assert.equal(sql(`select has_table_privilege('${role}','public.relative_plan_charter_results','${privilege}')`),"f");
@@ -429,7 +865,7 @@ try {
   // Corrected unfavorable forward labels change errors, never the immutable
   // fitting job, original first thirty or thresholds.
   for (const part of [parts[0], parts[30]]) {
-    const losses = await readers.prospectiveSource({ now: new Date(part.snapshots[0].recommended_at), allLosses: true, rankedCount });
+    const losses = await readers.prospectiveSource({ now: new Date(part.snapshots[0].recommended_at), allLosses: true, rankedCount, originalInputs, featureVectorVersion });
     for (const outcome of losses.outcomes) assert.equal((await readers.persistRecommendationOutcome(outcome, { supabaseClient: client, server: true })).status, "saved");
   }
   const corrected = (await readers.createRelativePlanProspectiveService().read(owner,now)).learning.full_charter;
@@ -484,8 +920,35 @@ try {
   }
   assert.equal(blockedExternalRequests, 0);
   console.log(JSON.stringify({ status: "pass", environment: "isolated_postgres_postgrest_actual_sdk",
+    current_feature_basis_verified: currentFeatureBasis,
+    original_feature_basis: featureVectorVersion ?? "recommendation_decision_feature_vector_v2",
     evidence: finalizedMode ? "historical_synthetic_model_fixture_actual_database_finalization_not_market_alpha" : "synthetic_closed_not_market_alpha",
+    current_runtime_rejects_unobserved_recording_times: currentRuntimeClocksVerified,
+    runtime_clock_admission_preserves_complete_original_source: runtimeClockSourcePreserved,
+    new_result_rejects_unobserved_runtime_clocks_before_storage: newResultRuntimeClocksVerified,
+    sealed_result_ignores_later_mutable_runtime_clocks: sealedResultIgnoresMutableRuntimeClocks,
+    new_training_rejects_unobserved_snapshot_clocks_before_storage: newTrainingSnapshotClocksVerified,
+    new_result_rejects_unobserved_snapshot_clocks_before_storage: newResultSnapshotClocksVerified,
+    sealed_model_ignores_later_mutable_snapshot_clocks: sealedModelIgnoresMutableSnapshotClocks,
+    sealed_result_ignores_later_mutable_snapshot_clocks: sealedResultIgnoresMutableSnapshotClocks,
+    new_training_rejects_unobserved_scan_clocks_before_storage: newTrainingRunClocksVerified,
+    new_result_rejects_unobserved_scan_clocks_before_storage: newResultRunClocksVerified,
+    sealed_model_ignores_later_mutable_scan_clocks: sealedModelIgnoresMutableRunClocks,
+    sealed_result_ignores_later_mutable_scan_clocks: sealedResultIgnoresMutableRunClocks,
     immutable_actual_database_training_members: finalizedMode ? null : 12 * rankedCount,
+    actual_database_training_clock_verified: actualTrainingClockVerified,
+    separate_transaction_committed_model_witness_verified: separateCommittedWitnessVerified,
+    model_materialized_at: sealed.materialized_at, model_committed_read_at: sealed.committed_read_at,
+    first_synthetic_forward_window_start_at: windows.held_out.start_at,
+    new_training_rejects_original_input_conflict_before_storage: newTrainingOriginalInputVerified,
+    new_result_rejects_original_input_conflict_before_storage: newResultOriginalInputVerified,
+    sealed_model_ignores_later_mutable_original_inputs: sealedModelIgnoresMutableInputs,
+    sealed_result_ignores_later_mutable_original_inputs: sealedResultIgnoresMutableInputs,
+    new_result_rejects_contradictory_retained_forward_candles_before_storage: newResultRetainedCandlesVerified,
+    new_result_rejects_contradictory_retained_horizon_r_before_storage: newResultRetainedHorizonRVerified,
+    new_result_rejects_contradictory_retained_fallback_horizon_r_before_storage: newResultRetainedFallbackHorizonRVerified,
+    valid_retained_forward_candles_keep_complete_result_population: newResultRetainedCandlesVerified,
+    sealed_result_ignores_later_mutable_forward_candles: sealedResultIgnoresMutableCandles,
     new_training_rejects_contradictory_retained_candles_before_storage: newTrainingRetainedCoverageVerified,
     valid_legacy_candles_keep_complete_training_population: newTrainingRetainedCoverageVerified,
     sealed_model_ignores_later_mutable_candles: sealedModelIgnoresMutableCandles,
@@ -498,6 +961,8 @@ try {
     unobserved_current_revision_rejected_without_population_reduction: true,
     current_revision_cannot_finalize: finalizedMode,
     finalized_capsule_ignores_later_mutable_revision: finalizedMode,
+    terminal_context_readback_verified: finalizedMode,
+    terminal_context_regression_fixture: contextRegressionMode,
     durable_terminal_result_verified: finalizedMode, actual_database_finalization_clock_verified: finalizedMode,
     historical_model_clock_fixture: finalizedMode, quality_improvement_verified: false,
     unrelated_pre_window_decisions_persisted_and_preserved: unrelatedPriorDecisions,
@@ -506,6 +971,11 @@ try {
     actual_loopback_http_readback_verified: actualHttpReadbackVerified,
     full_population_transport_encoding: transportEncoding,
     complete_finalized_product_http_bytes: finalizedHttpBytes, result_prewrite_guards_verified: resultPrewriteGuardsVerified,
+    complete_original_archives: originalInputs, full_original_source_decoded_bytes: durable?.receipt.result.retained_source.decoded_byte_length ?? null,
+    full_original_source_sql_capacity_verified: sourceCapacitySqlVerified,
+    supported_transport_required_before_result_insert: negotiatedPrewriteVerified,
+    complete_finalized_product_decoded_http_bytes: finalizedDecodedHttpBytes,
+    finalized_product_transport_encoding: finalizedTransportEncoding,
     provider_requests: 0, production_writes: 0, broker_actions: 0 }));
 } finally {
   globalThis.fetch = originalFetch;

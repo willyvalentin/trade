@@ -9,6 +9,24 @@ async function input() {
   return { scanRun: source.scanRuns[0], source, now };
 }
 
+test("new daily-range observations use their explicit period while historical v2 shapes remain unchanged", async () => {
+  const legacy = await input(), legacyBytes = JSON.stringify(legacy);
+  const old = buildRelativePlanCharterObservations(legacy)!;
+  expect(old.contract_version).toBe("relative_plan_charter_observations_v1");
+  expect(old.rows.every(row => "intraday_average_range_percent" in row.volatility && row.volatility.intraday_average_range_percent === 4)).toBe(true);
+  expect(old.rows.every(row => !("daily_average_range_percent" in row.volatility))).toBe(true);
+  const source = await prospectiveSource({ featureVectorVersion: "recommendation_decision_feature_vector_v3" });
+  const before = JSON.stringify(source);
+  const current = buildRelativePlanCharterObservations({ source, scanRun: source.scanRuns[0], now })!;
+  expect(current.contract_version).toBe("relative_plan_charter_observations_v2");
+  expect(current.original_membership_fingerprint).toBe(old.original_membership_fingerprint);
+  expect(current.rows.every(row => "daily_average_range_percent" in row.volatility && row.volatility.daily_average_range_percent === 4)).toBe(true);
+  expect(current.rows.every(row => !("intraday_average_range_percent" in row.volatility))).toBe(true);
+  expect(current.rows.map(row => [row.candidate_id,row.baseline_rank,row.challenger_rank,row.r_result,row.blockers]))
+    .toEqual(old.rows.map(row => [row.candidate_id,row.baseline_rank,row.challenger_rank,row.r_result,row.blockers]));
+  expect(JSON.stringify(legacy)).toBe(legacyBytes); expect(JSON.stringify(source)).toBe(before);
+});
+
 test("retains every original candidate and measured features while honestly disclosing uncaptured context", async () => {
   const value = await input(), bytes = JSON.stringify(value), result = buildRelativePlanCharterObservations(value)!;
   expect(result.retained_original_population_count).toBe(4);

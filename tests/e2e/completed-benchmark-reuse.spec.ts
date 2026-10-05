@@ -65,11 +65,56 @@ test("only revalidated owned original benchmark capsules can free the two reserv
     expect(await runtime.readCompletedMarketRegime(regime, next)).not.toBeNull();
     const read = (source: unknown = row, currentOwner = owner, now = next) =>
       runtime.readOwnedCompletedBenchmarkReuse({ row: source, owner: currentOwner, now });
+    // Exact original producer clocks must not be parsed into a different
+    // information set. Date.parse normalizes impossible dates and truncates
+    // sub-millisecond futures to the original decision's millisecond.
+    for (const clock of [
+      "2026-10-01T17:30:00.000001Z", "2026-09-31T17:30:00.000Z",
+      "2026-10-01 17:30:00.000Z", "2026-10-01T17:30:00Z",
+      "2026-10-01T17:30:00.000Z trailing", "invalid", "",
+    ]) {
+      const changed = structuredClone(row);
+      changed.payload_json.market_regime.input_evidence!.evaluated_at = clock;
+      expect(await runtime.readCompletedMarketRegime(changed.payload_json.market_regime, captured), clock).toBeNull();
+      expect(await read(changed), clock).toBeNull();
+    }
+    expect(await runtime.readCompletedMarketRegime(regime, new OriginalDate("invalid"))).toBeNull();
+    const originalSource = JSON.stringify(row);
+    for (const symbol of ["spy", "qqq"] as const) {
+      for (const clock of ["2026-10-01T17:30:00.000001Z", "2026-09-31T17:30:00.000Z",
+        "2026-10-01 17:30:00.000Z"]) {
+        const changed = structuredClone(row);
+        changed.payload_json.market_regime.input_evidence![symbol].captured_at = clock;
+        expect(await runtime.readCompletedMarketRegime(changed.payload_json.market_regime, captured), `${symbol}: ${clock}`).toBeNull();
+        expect(await read(changed), `${symbol}: ${clock}`).toBeNull();
+      }
+    }
+    expect(JSON.stringify(row)).toBe(originalSource);
     const reused = await read();
     expect(reused).not.toBeNull();
     // The legacy serving-window label is not a historical input-fitness gate.
     expect(await read({ ...row, window: "outside_window" })).not.toBeNull();
     expect(await runtime.isValidCompletedBenchmarkReuse(reused!, next)).toBe(true);
+    // A validated WeakSet brand grants budget authority. Mutating its original
+    // decision information after minting must not retain that authority.
+    const mutableSource = structuredClone(row);
+    const immutableReuse = await read(mutableSource);
+    expect(immutableReuse).not.toBeNull();
+    const originalHandle = JSON.stringify(immutableReuse);
+    for (const [target, key, replacement] of [
+      [immutableReuse!.market_regime, "input_evidence", structuredClone(regime.input_evidence)],
+      [immutableReuse!.market_regime.input_evidence!, "evaluated_at", "2026-10-01T17:44:00.000Z"],
+      [immutableReuse!.market_regime.input_evidence!.reuse!, "source_decision_timestamp", next.toISOString()],
+      [immutableReuse!.market_regime.input_evidence!.spy.candles[0], "close", 999],
+      [immutableReuse!.market_regime.input_evidence!.qqq, "content_sha256", "changed-after-validation"],
+    ] as const) expect(Reflect.set(target, key, replacement), key).toBe(false);
+    expect(Object.isFrozen(immutableReuse!.market_regime.input_evidence!.spy.candles)).toBe(true);
+    expect(Object.isFrozen(mutableSource.payload_json.market_regime.input_evidence!.spy.candles)).toBe(false);
+    expect(JSON.stringify(immutableReuse)).toBe(originalHandle);
+    mutableSource.payload_json.market_regime.input_evidence!.evaluated_at = "2026-10-01T17:44:00.000Z";
+    mutableSource.payload_json.market_regime.input_evidence!.spy.candles[0].close = 999;
+    expect(JSON.stringify(immutableReuse)).toBe(originalHandle);
+    expect(await runtime.isValidCompletedBenchmarkReuse(immutableReuse!, next)).toBe(true);
     expect(await runtime.isValidCompletedBenchmarkReuse(structuredClone(reused!), next)).toBe(false);
     expect(await runtime.isValidCompletedBenchmarkReuse(reused!, new OriginalDate("2026-10-01T20:00:00Z"))).toBe(false);
     expect(await runtime.isValidCompletedBenchmarkReuse(reused!, new OriginalDate("invalid"))).toBe(false);
@@ -134,12 +179,14 @@ test("only revalidated owned original benchmark capsules can free the two reserv
 });
 
 for (const historyStart of ["prewarmed", "cold"] as const) {
-for (const mode of ["baseline", "reuse", "invalid"] as const) {
+for (const mode of ["baseline", "reuse", "invalid", "invalid_clock", "invalid_capture"] as const) {
   test(`packaged ${historyStart} ${mode} allocation preserves original populations and whole-scan credits after restart`, () => {
     test.setTimeout(90000);
     const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--benchmark-reuse",
       ...(historyStart === "cold" ? ["--cold"] : []),
-      ...(mode === "baseline" ? ["--benchmark-reuse-baseline"] : mode === "invalid" ? ["--benchmark-reuse-invalid"] : [])],
+      ...(mode === "baseline" ? ["--benchmark-reuse-baseline"] : mode === "invalid" ? ["--benchmark-reuse-invalid"] :
+        mode === "invalid_clock" ? ["--benchmark-reuse-invalid-clock"] :
+          mode === "invalid_capture" ? ["--benchmark-reuse-invalid-capture-clock"] : [])],
     { cwd: process.cwd(), encoding: "utf8", timeout: 80000 });
     expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
     const evidence = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
@@ -149,11 +196,18 @@ for (const mode of ["baseline", "reuse", "invalid"] as const) {
       scheduled_synthetic_requests: 16, attempts: 2, cycles: 2, claims: 2,
       fresh_inputs: secondFresh, actual_provider_requests: 0,
       production_actions: 0, publications: 0, broker_actions: 0, cleanup: "inert",
-      benchmark_reuse_evidence: { mode: mode === "baseline" ? "original_committed_baseline" : mode === "invalid" ? "invalid_original_falls_back" : "validated_owner_reuse",
+      benchmark_reuse_evidence: { mode: mode === "baseline" ? "original_committed_baseline" : mode !== "reuse" ? "invalid_original_falls_back" : "validated_owner_reuse",
         history_start: historyStart, first_scan_requests: 8, second_scan_requests: 8,
         first_fresh_inputs: firstFresh, second_fresh_inputs: secondFresh,
         original_members_per_decision: 8, attempts: 2, reservations: 2, reserved_credits: 16,
         benchmark_calls_second: mode === "reuse" ? 0 : 2, restarted_owner_read: true, wrong_owner_runs: 0 } });
+    if(mode!=="baseline") expect(evidence.benchmark_reuse_evidence).toMatchObject({
+      validated_capsule_immutable_after_restart:true,caller_source_not_frozen:true,
+    });
+    if(mode==="invalid_clock") expect(evidence.benchmark_reuse_evidence.original_classification_clock_fault)
+      .toBe("after_decision_by_one_microsecond");
+    if(mode==="invalid_capture") expect(evidence.benchmark_reuse_evidence.original_capture_clock_fault)
+      .toBe("after_decision_by_one_microsecond");
   });
 }
 }
@@ -329,10 +383,12 @@ test("late original complete inputs retain all eight partial outcomes without qu
   expect(late.outcome_passes).toMatchObject([
     { requests: 4, eligible_snapshot_count: 8, persisted_outcome_count: 4, physical_database_rows: 4,
       persistence_status: "success", outcomes_created_count: 4, outcomes_updated_count: 0 },
-    { requests: 4, eligible_snapshot_count: 4, persisted_outcome_count: 4, physical_database_rows: 8,
+    { requests: 4, eligible_snapshot_count: 8, persisted_outcome_count: 4, physical_database_rows: 8,
       persistence_status: "success", outcomes_created_count: 4, outcomes_updated_count: 0 },
   ]);
   expect(late.outcome_passes[1].selected_batch_fingerprint).toBe(late.outcome_passes[0].selected_batch_fingerprint);
+  expect(late.outcome_passes.every((pass: { acquisition_policy_version: string }) =>
+    pass.acquisition_policy_version === "official_original_bar_window_resumption_v2")).toBe(true);
   expect(late.outcome_passes.flatMap((pass: { requested_tickers: string[] }) => pass.requested_tickers).sort())
     .toEqual(late.original_members.map((row: { ticker: string }) => row.ticker).sort());
   expect(late.persisted_coverage).toHaveLength(8);
@@ -672,6 +728,12 @@ test("whole-session outcome continuation discovers every original batch before c
   expect(continuation).toMatchObject({ original_decisions: 26, original_batch_count: 26,
     original_population_count: 176, terminal_quality_decision: null, quality_improvement_claimed: false });
   expect(continuation.passes.every((pass: { requests: number }) => pass.requests <= 4)).toBe(true);
+  expect(continuation).toMatchObject({ physical_outcomes: 200, separate_synthetic_requests: 192,
+    unique_original_candle_requests: 192, repeated_original_candle_requests: 0 });
+  expect(continuation.passes).toHaveLength(49);
+  expect(continuation.passes.at(-1)).toMatchObject({ requests: 0, status: "blocked",
+    source_selection: { remaining_backlog_after_run: 32,
+      selected_snapshot_acquisition_policy_version: "official_original_bar_window_resumption_v2" } });
   // All original rows must be READ, not made eligible. The 13:30 original
   // decision has no completed research capsule; do not relax its admission.
   expect(continuation.original_source_read).toMatchObject({ status: "complete", original_batches_read: 26,
@@ -683,6 +745,18 @@ test("whole-session outcome continuation discovers every original batch before c
   expect(continuation.enrolled_coverage_diagnostic.members).toHaveLength(176);
   expect(continuation).toMatchObject({ canonical_outcome_count: 144, missing_outcome_count: 32,
     persisted_neither_horizon_marks_verified: 126 });
+  expect(continuation.original_daily_range_feature_basis).toMatchObject({
+    contract_version: "original_daily_range_feature_basis_proof_v1",
+    original_member_count: 176, original_daily_value_matches: 176, old_intraday_key_count: 0,
+    original_intraday_mean_differs: 176, feature_vector_version: "recommendation_decision_feature_vector_v3",
+    original_membership_fingerprint: "ff147ad25507e20b09d40cf7b8feef787d3497e0520c3e6958a9617b354b51c6",
+    original_feasibility: { decision_feature_vector_version: "recommendation_decision_feature_vector_v3",
+      supported_original_vector: true, complete: false,
+      liquidity: { observed_count: 144, expected_count: 176, missing_count: 32 },
+      volatility: { observed_count: 152, expected_count: 176, missing_count: 24 },
+      trigger_attainment: { observed_count: 144, expected_count: 176, missing_count: 32 } },
+    numeric_input_changes: 0, cohort_changes: 0, quality_improvement_claimed: false,
+  });
   expect(continuation.enrolled_coverage_diagnostic.reason_counts).toEqual({ resolved: 144, canonical_60m_outcome_missing: 32 });
   // Keep the full original scorecard, not a successful eight-member subset.
   // Known limit failures must remain separate from unavailable quality metrics.

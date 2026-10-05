@@ -476,6 +476,25 @@ test("capped database pages recover the complete original population without rea
   expect(evidence).toMatchObject({actual_provider_requests:0,production_actions:0,publications:0,broker_actions:0});
 });
 
+test("actual official route and restarted SQL/SDK resume early original canonical outcomes", () => {
+  test.setTimeout(90000);
+  const proof = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--diagnose-outcomes",
+    "--relative-plan-60m", "--partial-horizon-resumption"],
+    { cwd: process.cwd(), encoding: "utf8", timeout: 80000 });
+  expect(proof.status, `${proof.stdout}\n${proof.stderr}`).toBe(0);
+  const evidence = JSON.parse(proof.stdout.trim().split("\n").at(-1)!);
+  expect(evidence.outcome_chain_evidence.partial_horizon_resumption).toMatchObject({
+    early_synthetic_requests: 4, early_canonical_outcomes_qualified: 0, early_horizon_r_available: false,
+    mature_synthetic_requests: 4, original_ids_preserved: true, mature_canonical_outcomes: 4,
+  });
+  expect(evidence.outcome_chain_evidence.partial_horizon_resumption.early_persisted_original_ids).toHaveLength(4);
+  expect(evidence.outcome_chain_evidence.resumption).toMatchObject({persisted_outcomes:6,
+    additional_synthetic_outcome_requests:2,completed_repeat_requests:0,prior_outcomes_unchanged:true});
+  expect(evidence.outcome_chain_evidence.learning_admission.relative_plan_context_outcomes).toMatchObject({
+    original_population_count:8,selected_60m_receipt_count:6,resolved_60m_outcomes:6,missing_outcomes:2});
+  expect(evidence).toMatchObject({actual_provider_requests:0,production_actions:0,publications:0,broker_actions:0});
+});
+
 for (const scenario of ["cold", "warm", "opening", "opening_zero"]) {
   test(`packaged ${scenario} inputs retain hidden research plans and real isolated outcome persistence`, () => {
     test.setTimeout(90000);
@@ -578,6 +597,20 @@ test("captures closed daily dates as historical context, not a current price", a
   expect(context).not.toHaveProperty("reference_price_timestamp");
   expect(await api.readCompletedDailyContext(JSON.parse(JSON.stringify(context)),
     "SYNTH", new Date("2026-10-01T18:00:00.000Z"))).toEqual(context);
+});
+
+test("original completed daily capture rejects future microseconds and noncanonical aliases before normalization", async () => {
+  const baseline = receipt();
+  const original = JSON.stringify(baseline);
+  const context = await api.captureCompletedDailyContext(baseline, "SYNTH", at);
+  expect(context).not.toBeNull();
+  for (const captured_at of ["2026-10-01T15:50:00.000001Z", "2026-09-31T15:50:00.000Z",
+    "2026-10-01 15:50:00.000Z", "2026-10-01T15:50:00Z", "2026-10-01T15:50:00.000+00:00"]) {
+    expect(await api.captureCompletedDailyContext({ ...baseline, captured_at }, "SYNTH", at)).toBeNull();
+    expect(await api.readCompletedDailyContext({ ...context, captured_at }, "SYNTH", at)).toBeNull();
+  }
+  expect(await api.readCompletedDailyContext(JSON.parse(JSON.stringify(context)), "SYNTH", at)).toEqual(context);
+  expect(JSON.stringify(baseline)).toBe(original);
 });
 
 test("legacy daily response retention preserves candles and request shape while strict history stays fail closed", async () => {
@@ -952,6 +985,24 @@ test(`real scanner acquires raw history then reuses it after restart with ${stor
   try {
     const options = { source: "scheduled" as const, maxFreshProviderCalls: 2,
       freshProviderCallPacingMs: 0, completedDailyContextPolicyVersion: "completed_daily_intraday_input_v1" as const };
+    if (database) {
+      // A zero candidate budget is an empty original population, not authority
+      // to acquire fixed demo tickers. Benchmark acquisition remains separately
+      // reserved: two synthetic daily requests, no ticker/intraday acquisition.
+      const empty = await load().generateRecommendations({ ownerUserId: owner,
+        sessionType: "midday", scanWindow: "midday", source: "scheduled", scheduledMaxTickers: 0,
+        scheduledProviderCreditBudget: load().resolveScheduledScanProviderCreditBudget({ planMode: "free" }),
+        scheduledProviderCallPacingMs: 0, scannerInputPolicyVersion: "completed_daily_intraday_input_v1", skipOpenAi: true });
+      expect([daily, intraday]).toEqual([2, 0]);
+      expect(empty.recommendations).toEqual([]);
+      const emptyLog = empty.scan_log as import("@/lib/recommendation-generator").RecommendationScanLogDetails;
+      expect(emptyLog.no_publish_reason).toBe("no_raw_candidates");
+      expect(emptyLog.candidate_decision_capture?.observed_candidates).toEqual([]);
+      expect(emptyLog.real_scanner_candidate_generation?.universe.tickers).toEqual([]);
+      expect(emptyLog.real_scanner_candidate_generation?.universe.coverage?.selected_tickers).toBe(0);
+      // Remove only local request counters; no source/candidate row is erased.
+      daily = 0; intraday = 0;
+    }
     // Acquire each history through real scanner/provider/Supabase SDK, within
     // each run's two-credit fixture cap. No raw history is seeded by the test.
     for (const candidate of base) {
@@ -1202,6 +1253,54 @@ test(`real scanner acquires raw history then reuses it after restart with ${stor
     clock += 3600000;
     await load().scanMarket(base, { source: "scheduled", maxFreshProviderCalls: 6, freshProviderCallPacingMs: 0 });
     expect([daily, intraday]).toEqual([3, 3]);
+    // A real nullable numeric column is missing evidence, not numeric zero.
+    // Restart the actual scanner/SDK for each read, including genuine SQL NULL
+    // round trips in the native fixture. Never spend an unallocated refresh.
+    const cacheRow = structuredClone(rows.get(base[0].ticker)!);
+    const numericFields = ["latest_close", "ma20", "ma50", "high_20d", "volume_ratio",
+      "distance_to_20d_high", "change_5d_percent", "proposed_entry_low", "proposed_entry_high",
+      "proposed_stop_loss", "proposed_target_1", "proposed_target_2", "proposed_risk_reward"];
+    const patchCacheNumbers = async (patch: Record<string, unknown>) => {
+      if (database) {
+        const response = await originalFetch(database.origin + `/scanner_cache?ticker=eq.${base[0].ticker}`, {
+          method: "PATCH", headers: { Authorization: `Bearer ${database.token}`, "Content-Type": "application/json" },
+          body: JSON.stringify(patch),
+        });
+        expect(response.ok, await response.text()).toBe(true);
+      } else Object.assign(rows.get(base[0].ticker)!, patch);
+    };
+    const noRefresh = { source: "scheduled" as const, maxFreshProviderCalls: 0, freshProviderCallPacingMs: 0 };
+    daily = 0; intraday = 0;
+    for (const field of numericFields) {
+      await patchCacheNumbers({ [field]: null });
+      const scanner = load();
+      const missingTrace = scanner.createActiveScanTrace({ routeReceivedAt: new FixtureDate().toISOString() });
+      const missingCandidates = await scanner.scanMarket([base[0]], { ...noRefresh, activeScanTrace: missingTrace });
+      expect(missingCandidates, `${storage}: missing ${field}`).toHaveLength(0);
+      expect(missingTrace.trace.market_data_fetch.candidate_observation_summary).toMatchObject({
+        expected_candidate_count: 1, rankable_candidate_count: 0,
+        not_rankable_candidate_count: 1, total_reserved_credits: 0 });
+      const missingAt = new FixtureDate().toISOString();
+      const missingRun = buildRecommendationScanRun({ trading_date: "2026-10-01", observed_at: missingAt,
+        completed_at: missingAt, window: "midday", source: "supabase",
+        scheduled_scan_run_id: `synthetic_missing_cache_${field}`, scanned_ticker_count: 1, raw_candidate_count: 0 });
+      const missingDecision = buildCandidateDecisionRecord({ scanRun: missingRun,
+        capture: buildCandidateDecisionCapture({ captureTimestamp: missingAt,
+          universe: [base[0]], observedCandidates: missingCandidates }),
+        scoringVersion: "unchanged-local-scoring", buildVersion: "local-synthetic-input-proof" })!;
+      expect(missingDecision.coverage).toMatchObject({ expected_candidate_count: 1, observed_candidate_count: 0 });
+      expect(missingDecision.candidates).toHaveLength(1);
+      expect(missingDecision.candidates[0]).toMatchObject({ ticker: base[0].ticker, disposition: "not_evaluated" });
+      expect(rows.get(base[0].ticker)![field]).toBeNull();
+      expect([daily, intraday]).toEqual([0, 0]);
+      await patchCacheNumbers({ [field]: cacheRow[field] });
+    }
+    await patchCacheNumbers({ volume_ratio: 0, distance_to_20d_high: "0", change_5d_percent: 0 });
+    expect((await load().scanMarket([base[0]], noRefresh))[0]).toMatchObject({
+      volume_ratio: 0, distance_to_20d_high: 0, change_5d_percent: 0 });
+    expect([daily, intraday]).toEqual([0, 0]);
+    await patchCacheNumbers(Object.fromEntries(numericFields.map(field => [field, cacheRow[field]])));
+    if (database) await readDurableDecision(); // Mutable missingness cannot rewrite the sealed original decision.
     clock += 3600000;
     daily = 0; intraday = 0; wrongIntradayIdentity = true;
     const rejected = await load().scanMarket([base[0]], options);
