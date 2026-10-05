@@ -27,6 +27,36 @@ PR. Stop after the minimum verified correction, then resume the original
 IF-2b → IF-3 → IF-4 chain through #732 and then-current main. Local maintenance
 cannot substitute for varied original source, pre-forward model or real outcomes.
 
+**Local acceptance / bounded maintenance exit — 2026-10-05:** exact product
+revision `b006ad021baf665ba0eef53b58738956b24497dd` retains nullable provider
+`last_quote_at` as market time, never interval-open or local fetch time.
+Discovery excludes stale/unobserved/future quotes from fresh previews, and
+position updates reject them before indicator/AI calls or advisory/stop writes.
+The existing `live_reference_market_time_v1` threshold and valid rule actions
+are unchanged. Both RED reproductions failed on the preceding product: a stale
+quote appeared fresh and the actual handler reached `MOVE_STOP_TO_BREAKEVEN`.
+
+All **62 DISTINCT affected checks pass** (11 registered files, 4.2 seconds),
+including real quote decoding and installed Next response behavior with only
+synthetic provider/SDK boundaries, stale/absent/future rejection, the fresh
+positive action, origin/session rejection, owner predicates and zero scheduled
+quote credits. This is NOT a real Supabase persistence/owner attestation; the
+position SDK and verified-principal boundary are test doubles. Nonincremental
+types pass; full lint has zero errors/eight unchanged warnings; diff checks pass.
+The network-free, locked, read-only-dependency Linux build passes on its first
+attempt at exactly `b006ad02`, Node `22.23.1`, Next `16.3.8`; lock SHA-256
+`859ed09eed4d3de2e7ade5c74bea78e73770bea57f92d6cb3656224bfcace6f7`.
+Logs: `/private/tmp/ture-quote-market-time-{red,regression,types,lint,exact-build}-oct5.log`.
+
+Stop this support stream. No provider request, production configuration or
+migration, broker action, push, competing PR, merge or deploy occurred. Root
+user changes remain untouched; integration stays release-held behind #732 and
+then-current main. This is `supporting_blocker_removal`, not improved ranking or
+market quality. Resume the original intelligence chain: the current v3 feature
+basis has pure and producer evidence, while the complete native durable-model
+and terminal-result proof still explicitly uses retained v2. Check that narrow
+new-version composition separately without rewriting the legacy evidence.
+
 **Selected CLOSED IF-3 → IF-4 original relative-plan effect diagnosis — 2026-10-05:**
 Codex owns `codex/original-relative-plan-effect-oct5`, reusing the clean isolated
 checkout after completed composition acceptance `5eb3be8b`; freshly verified
