@@ -98,11 +98,47 @@ original research and publishes nothing. These two focused passes overlap the
 pending final affected-suite run; they are not real-market quality evidence.
 Types, lint, exact updated-revision build and protected CI still follow.
 
-The completed SQ→XYZ discovery secondary stays clean/local on `f0321631`,
-with 184 distinct checks and exact Linux build of product revision `2e7e514b`;
-no push/PR/release. Finish this measured primary defect before integrating
-that independent change and freezing any new full-charter comparison. Today's
-failed diagnostic is not a forward training cohort. Graduation remains `not_met`.
+**Final primary local acceptance — 2026-10-05:** exact final #735 head
+`91b06dba4a1de2644d1fbeb707db4e5a11769fd9` passes the normal locked Linux
+Node 22.23.1 / Next 16.3.8 build, both native dependency/consumer checks,
+TypeScript and all 33 generated pages. Lock SHA256 stays
+`c126ba15634fffec241592d1316ea2e0bb9708886f865dc72f5fd30b2e084083`;
+build network is disabled and no production credentials are mounted. The
+earlier concurrent build timeout and old-cache lock mismatch are NOT accepted.
+The final fresh install acquires 377 public locked packages and changes no
+product, dependency, compiler, golden, provider or protected-CI rule.
+Receipt: `/private/tmp/ture-original-plan-policy-serial-build-oct5-receipt.json`.
+
+Local tests now accept **253 distinct checks in 22 files**: the 242 affected
+checks plus all eleven separate whole-session controls. The unchanged broad
+whole-session command passes ten and times out its first native child at 80s
+under overlapping load; after serializing, that same registered control passes
+in 36.1s with the same 80s limit. Retain the first failure, not a rewritten green
+run. Original 26-slot populations, 208 credits, all original/missing members,
+canonical continuation and frozen baselines remain unchanged. Types/lint pass.
+New protected run `37349494982` on exact head executes all six unchanged groups;
+superseded run `37345153312` is normally cancelled. Normal merge-commit automerge
+is queued only behind existing branch protection. No review finding is present
+in the latest readback, but protected CI, main, deployment and NEW OPEN behavior
+are still pending. Production is read-only verified inert at 17:54:27.400Z on
+old main `4a939831`, with global disable true and all competing modes off.
+
+The independent SQ→XYZ discovery composition is now locally accepted on
+`3a2a99b1b3430ed3e5bfa565d2d00701f1ae088d`, including primary product
+`03e5f030`. **237 distinct checks in 22 files**, nonincremental types and full
+lint pass (zero errors/eight existing warnings). Its exact clean committed
+Linux build, two native consumer checks and all 33 pages pass on the same
+locked Node 22.23.1 / Next 16.3.8 environment, without provider credentials or
+build network. Receipt: `/private/tmp/ture-xyz-post735-exact-build-oct5-receipt.json`.
+A root-only cache transplant omitted the linked private lint package's nested
+dependencies and correctly failed its actual consumer test; fresh complete
+`npm ci` restores the unchanged expected behavior. No source or golden is
+modified to hide that failure. This acceptance annotation changes documentation
+only. No push/PR/release, real XYZ data support or discovery-quality lift is
+claimed. Finish #735 protected release, exact inert runtime readback and any
+NEW original-plan diagnostic plus verified cleanup before the independent
+discovery release and any new full-charter freeze. Today's failed diagnostic
+is not a forward training cohort. Graduation remains `not_met`.
 
 
 **Independent CLOSED post-735 composition — 2026-10-05:** while the unchanged
