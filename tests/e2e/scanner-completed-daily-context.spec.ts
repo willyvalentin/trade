@@ -423,6 +423,33 @@ test("packaged normal publication binds its decision before actual database pers
   expect(evidence.synthetic_publication_count).toBeGreaterThan(0);
 });
 
+test("packaged publication preserves support-anchored original plans through canonical outcome learning", () => {
+  test.setTimeout(90000);
+  const proof=spawnSync(process.execPath,["scripts/completed-input-runtime-proof.mjs","--cold","--publication-clock",
+    "--original-plan-geometry","--published-original-learning"],{cwd:process.cwd(),encoding:"utf8",timeout:80000});
+  expect(proof.status,`${proof.stdout}\n${proof.stderr}`).toBe(0);
+  const rows=proof.stdout.trim().split("\n").map(line=>JSON.parse(line));
+  expect(rows.find(row=>row.original_plan_geometry_proof)).toMatchObject({ original_plan_geometry_proof:"passed",
+    original_plan_field_count:6,support_anchored_publication_count:3,original_population_count:8,
+    actual_provider_requests:0,production_actions:0 });
+  expect(rows.find(row=>row.published_original_learning_proof)).toMatchObject({ published_original_learning_proof:"passed",
+    original_population:8,canonical_published_outcomes:3,missing_original_members:5,
+    original_publications_unchanged:true,completed_repeat_requests:0,quality_improvement_claimed:false });
+});
+
+test("packaged power-hour publication admits the active original-plan policy before the closing cutoff", () => {
+  test.setTimeout(90000);
+  const proof=spawnSync(process.execPath,["scripts/completed-input-runtime-proof.mjs","--cold","--publication-clock",
+    "--original-plan-geometry","--power-hour-publication"],{cwd:process.cwd(),encoding:"utf8",timeout:80000});
+  expect(proof.status,`${proof.stdout}\n${proof.stderr}`).toBe(0);
+  const rows=proof.stdout.trim().split("\n").map(line=>JSON.parse(line));
+  expect(rows.find(row=>row.power_hour_publication_proof)).toMatchObject({power_hour_publication_proof:"passed",
+    target_slot:"2026-10-01T19:00:00.000Z",power_hour_publish_allowed:true,
+    original_plan_field_count:6,original_population_count:8,actual_provider_requests:0,production_actions:0});
+  expect(rows.at(-1)).toMatchObject({attempts:1,claims:1,scheduled_synthetic_requests:8,
+    publications:3,broker_actions:0,cleanup:"inert"});
+});
+
 test("packaged published original inputs survive SQL restart and canonical outcome learning without changing the population", () => {
   test.setTimeout(90000);
   const proof = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--cold", "--publication-clock", "--published-original-learning"],

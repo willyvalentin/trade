@@ -3,11 +3,12 @@ import { buildObservationCycleReceipt } from "@/lib/observation-cycle-receipt";
 import { scheduledScanInvocationReceiptFromAttempt } from "@/lib/scheduled-scan-invocation-receipt";
 import { getNyMarketTime } from "@/lib/market-session";
 import type { ScanLogEntry } from "@/lib/scan-log-core";
-import { prospectiveOwner, prospectiveInput } from "./relative-plan-prospective";
+import { prospectiveOwner, prospectiveInput, retainedV3Publication } from "./relative-plan-prospective";
 
 /** Synthetic CLOSED fixtures built through the actual trace/receipt producers.
  * No scheduled function, provider, production database or broker is invoked. */
-export function charterRuntimeRows(input: { at: string; fingerprint: string | null; failed?: boolean; owner?: string }) {
+export function charterRuntimeRows(input: { at: string; fingerprint: string | null; failed?: boolean; owner?: string;
+  publicationPolicy?: "current" | "retained_v3" }) {
   const owner = input.owner ?? prospectiveOwner;
   const id = `synthetic_charter_attempt_${input.at.replace(/[^0-9]/g, "")}`;
   const at = Date.parse(input.at), finalizedAt = new Date(at + 10000).toISOString();
@@ -37,6 +38,11 @@ export function charterRuntimeRows(input: { at: string; fingerprint: string | nu
   trace.updateRawCandidates({ raw_candidate_count: input.failed ? 0 : 4 });
   trace.updateRanking({ ranking_attempted: !input.failed, ranked_count: input.failed ? 0 : 4, selected_count: 0 });
   trace.updateFinal({ recommendations_created: 0, recommendations_published_count: 0, scan_run_fingerprint: input.fingerprint });
+  if (input.publicationPolicy === "retained_v3") {
+    trace.update({ recommendation_publish_policy_version: retainedV3Publication.policy_version,
+      build_marker: retainedV3Publication.build_marker });
+    trace.updateFinal({ publish_policy_version: retainedV3Publication.policy_version });
+  }
   const outcome = input.failed ? "request_failed" : "scanned";
   const cycle = buildObservationCycleReceipt({ ownerUserId: owner, attemptFingerprint: id,
     source: "netlify_scheduled_function", mode: "scheduled", outcome, allowed: true,

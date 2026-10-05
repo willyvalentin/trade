@@ -2,6 +2,233 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-05, recommendation intelligence first
 
+**Now — preserve original completed-input publication geometry, 2026-10-05:**
+Codex owns `codex/source-bound-publication-geometry-oct5`, isolated from the
+dirty user checkout on verified main `4a939831b46efdf6ad4089b148d6fc803e1cabd5`.
+One primary IF-2b -> IF-4 `quality_measurement` correction, initial budget four
+active hours. The Oct 5 frozen 16:15Z normal production diagnostic actually
+completes, but its immutable receipt is **fail** (`unbound_or_stale_publication`).
+A separate owner-bound read-only follow-up proves the defect is geometry,
+not freshness or clock order: NVDA's original stop/targets 223.79 / 262.24 /
+273.77 become 227.33 / 256.93 / 265.81 on publication; entry remains
+234.43–239.17. ASTS preserves its original geometry. The deterministic fallback
+rebuilds a percentage-based plan instead of retaining the scanner's support
+anchor. Old published rows, decisions, outcomes and the failed card are immutable.
+
+Reproduce RED using the registered packaged scheduler -> real generator ->
+isolated PostgreSQL/SDK publication proof, varying only provider-boundary
+historical bars to make the original support anchor differ. Then preserve
+the original six plan fields in completed-input fallback and reject any model
+plan mismatch before persistence. Retain legacy semantics, explicit no_trade,
+freshness, ownership, all eight identities/nulls, ranking/quality thresholds
+and eight-credit scan budget. Require exact published original-plan readback,
+canonical outcome continuity after restart, affected regressions, types/lint
+and an exact committed build before one focused protected release. No new
+scan, provider request, source rewrite or broker action is selected. The later
+reproduced SQL policy-refusal below selects only its additive, exact-identity
+function successor; production application remains unverified and pending.
+
+**Actual OPEN evidence retained:** attempt `scheduled_scan_attempt_10whjni`,
+run `rec_scan_run_of9yv0`; scheduler 16:15:25.663Z, route 16:15:27.799Z,
+original capture 16:15:38.528Z, decision 16:15:38.879Z, publication
+16:15:38.976208Z, completion 16:15:39.423Z, finalization 16:15:41.758Z.
+Exactly one reservation/finalization of eight credits, six scanner provider
+requests, zero overlap/unresolved/duplicate/broker effects. All eight original
+identities survive: three fresh complete inputs and matching original replays,
+five explicit unavailable-history members. Two publications and one hidden
+ADBE source do not prove recommendation quality or full input fitness.
+Raw frozen receipt observed 16:17:09.884Z within its absolute bounded window:
+`/private/tmp/ture-oct5-original-input-1815-readback.receipt.json`.
+Separate later diagnosis: `/private/tmp/ture-oct5-publication-binding-followup.receipt.json`.
+The single cleanup build `6ac3cd97ad37f1708160f6d7` publishes ready production
+deploy `6ac3cd97ad37f1708160f6d9` at 16:28:14.876Z on unchanged frozen main.
+Effective owner-bound inert runtime readback passes at 16:30:35.339Z, with zero
+active reservations, global scheduler-disable true and all competing modes off.
+The consumed heartbeat is deleted. No retry or second cleanup build occurs.
+
+Both original local RED native commands fail before product edits: the full
+learning continuation finds the published normalized input binding absent;
+the publication-only path proves stop 98.71 instead of original support 95.
+Only the synthetic historical provider-boundary bars differ, retaining the
+same eight-member population and existing scheduler/generator/database path.
+The proposed correction is versioned as
+`selective_top_3_strong_valid_v4_preserve_no_trade_original_plan`; numeric
+ranking, thresholds and candidate selection are unchanged. Verification and
+protected release are not yet complete.
+
+**Local acceptance — 2026-10-05:** the same formerly RED support-anchored
+packaged path now preserves all six original plan fields and its input binding,
+survives restarted owned SQL/SDK reads and produces three canonical synthetic
+60m outcomes while retaining all eight identities/five missing members.
+Completed repeats acquire nothing; old publications remain unchanged.
+Both affected local commands finish: 139 checks in ten files (6.0m), plus 63
+different checks in seven files (9.1s), **202 distinct passes**. The separately
+focused eight checks and native proof overlap this total, not extra passes.
+The actual private generator/sanitizer controls retain legacy percentage plans,
+reject every changed original field including sub-cent aliases, refuse missing,
+nonfinite/invalid/weak plans and stale/future reference evidence. Ranking's
+frozen numeric invariance, explicit no_trade, canonical coverage, resumption
+and historical source admission remain green. Nonincremental types and full
+lint pass, with zero errors/eight existing warnings. Environment: Node 26.5.0,
+macOS arm64, isolated local PostgreSQL/PostgREST and synthetic provider-boundary
+inputs. No real-market improvement, production release or live behavior of
+this correction is proven. Exact clean committed Linux build follows.
+
+**Exact build — 2026-10-05:** clean product/test revision
+`7d7aee124ea480002e5137716fd61e0afaf699c0` passes the normal Next 16.3.8
+Linux build on Node 22.23.1, after a locked public install, both native consumer
+checks and all 33 generated pages. Build network is disabled; no production
+credentials are mounted. Lock SHA256 remains
+`c126ba15634fffec241592d1316ea2e0bb9708886f865dc72f5fd30b2e084083`.
+Receipt: `/private/tmp/ture-original-plan-publication-exact-build-oct5-receipt.json`.
+This acceptance annotation changes documentation only; product/test/workflow
+bytes stay identical to the built commit. Protected CI, merge, deployed runtime
+and a newly frozen live original-plan observation remain pending. The old failed
+diagnostic remains failed. Do not arm or move any consumed observation card.
+
+**Active policy consumer correction — 2026-10-05:** final review finds the
+actual power-hour route gate still accepting only publication policy v3.
+A NEW registered cold packaged normal publication case, with only the
+synthetic scheduler clock moved to 19:00Z and the same original support bars,
+reproduces RED: `action_148_publish_policy_not_active` rejects the cycle before
+market-data acquisition. Update only the gate's exact supported version to v4;
+all session/calendar/closing-cutoff checks remain unchanged. The same native
+case now passes GREEN with three synthetic publications, all six exact original
+plan fields, eight original members, one attempt/claim and eight synthetic
+requests. The separate actual closing-context case still retains hidden
+original research and publishes nothing. These two focused passes overlap the
+pending final affected-suite run; they are not real-market quality evidence.
+Types, lint, exact updated-revision build and protected CI still follow.
+
+**Consumer-fix verification — 2026-10-05:** updated product/test revision
+`03e5f030c4b6f438cec4b2ee6f73db95fcc9b4e8` completes **242 distinct checks
+in 21 registered files** (12.3m), including both directional/flat closing
+no-publication paths and the new original-plan power-hour publication path.
+Nonincremental types and lint pass with zero errors/eight existing warnings.
+The original #735 foundation job on `8857b1a0` independently finds 11
+whole-session regressions in `completed-benchmark-reuse`: only 23/26 scan runs
+and 184/208 credits survive the old exact-v3 route gate. The original 26-slot
+denominator, budgets, baseline policies and all failed assertions are unchanged;
+reverify those actual cases with the already corrected consumer. A concurrent
+clean Linux build compiles but hits its five-minute local limit in TypeScript;
+it is NOT accepted. Serialize the exact updated build after the test jobs;
+do not change protected CI or route/test/provider limits. Local source is ready
+for focused CI correction, but merge/deployed behavior/NEW OPEN acceptance
+remain pending. The original real-market failed receipt remains immutable.
+
+**Verified release blocker — 2026-10-05:** protected exact-head `91b06dba`
+run `37349494982` passes five groups, including the formerly failed whole-session
+foundation, but lossless job `111902680799` finishes with 665 passes/two failures.
+This is not a timeout or accepted release. The retained full-charter golden's
+measurement changes from `cdcf680f51165fc75532c7fc6955d72b8c8c3cd88b2c35af88bd70e0a689d82b`
+to `cfda6f6f8695df150d30fe83394f62710fe577ba4748dd105a7578a96de27e10` because
+its historical fixture follows today's publication constants. The actual isolated
+prospective store separately returns `unavailable` instead of `frozen`: its
+deployed SQL accepts only the exact v3 canonical identity, not the new v4 tuple.
+Both are reproduced locally before corrections; the first native local attempt
+hits Docker sandbox permissions, then the authorized isolated retry reproduces
+the same SQL refusal. Automatic merge is disabled before changing the head.
+
+Close only these version boundaries in the existing primary delivery: preserve
+exact retained v3 receipt/source/golden semantics, retain strict current-policy
+NEW freeze admission, and add an exact SQL v4 admission successor without
+changing any owner, authority, population, charter, time or immutability guard.
+Unknown/mixed/self-rehashed policy identities must stay rejected. Verify actual
+isolated SQL/SDK restart, unchanged historical goldens and the same current v4
+producer-to-outcome chain, then affected tests/types/lint/exact build/protected CI.
+Main and published production remain `4a939831`; no NEW observation is frozen
+or armed and no provider, production schema/configuration or broker action occurs.
+The old OPEN failure remains immutable. SQ→XYZ release remains held after this
+primary and any newly justified, timely original-plan diagnostic's verified cleanup.
+
+**Local compatibility proof — 2026-10-05:** the registered native prospective
+SQL/PostgREST/real-SDK case now passes with the additive function successor
+`20261005190805_if4_publication_identity_compatibility.sql`. A mechanical comparison
+proves its complete prior function body is byte-identical except for exact v3/v4
+tuple admission. Original migrations, model/charter fingerprints, owner locks,
+clock boundaries and all row/ACL guards are unchanged. Two current v4 freezes,
+the original 48/12/12 calibration cohorts, missing/outcome controls and four-member
+source proof are preserved. One separately counted predecessor-written v3 row
+survives upgrade and restart verbatim, repeats without a write and conflicts
+with a new-policy replacement. Three self-rehashed unknown/mixed RPC identities
+are denied; anonymous/authenticated execution and immutable-row changes remain
+denied. All three comparison rows stay unchanged. Four focused registered cases
+pass (16.9s), including retained-v3 store/read admission; broader acceptance follows.
+Lock/load review: one short transactional function/ACL replacement, no source/table
+scan or rewrite, unchanged advisory owner lock. Failure rolls back atomically;
+the isolated proof restores the exact predecessor body and reapplies the successor
+without changing retained rows. Keep scheduling inert and preserve fingerprints
+through any recovery; production application is still pending.
+The CLI-generated filename replaces only the untracked local draft; its SQL body
+is unchanged. A read-only security-advisor baseline at 19:10:05Z reports 48
+RLS-enabled/no-policy INFO notices and one existing Auth leaked-password WARN;
+these are not new-function acceptance or a mandate to broaden this delivery.
+The comparison tables intentionally retain deny-by-default RLS and service-only
+RPCs, with actual native ACL denial above. The unrelated Auth notice is retained
+separately ([provider guidance](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection));
+no Auth setting, table policy or production data is changed.
+Read-only production catalog preflight at 19:13:55Z confirms PostgreSQL 17.6,
+the exact old v3-only freeze, empty search path, no anon/authenticated execute,
+service-only execution and the successor unapplied. There are zero stored
+prospective comparisons, trained models and terminal results; no actual forward
+cohort or fitted production model is thereby claimed. No write occurs.
+The historical golden independently passes with its exact unchanged two expected
+fingerprints, not updated expectations. This is local synthetic compatibility,
+not a production migration, new forward evidence or recommendation-quality lift.
+
+**Updated compatibility acceptance — 2026-10-05:** the complete affected
+registered run passes 268 distinct cases in 25 files (24.5m). A separate
+nine-case/two-file actual packaged scan-to-database continuation passes (2.5m),
+for **277 distinct cases in 27 files**; the four focused compatibility checks
+overlap this total. The current v4 original-plan producer reaches persisted
+publication, restarted canonical outcomes and full-charter evaluation. The
+original full-session population, power-hour admission, closing no-publication,
+legacy history and retained v3 golden all remain unchanged. Native successor
+upgrade/ACL checks use the final CLI-generated migration. Nonincremental types
+and full lint pass with zero errors/eight existing warnings. No assertion,
+cohort, deadline, provider/route limit, workflow or protected check is weakened.
+Environment: macOS arm64/Node 26.5.0, disposable PostgreSQL/PostgREST, actual SDK
+and packaged runtime, synthetic provider-boundary input. Exact clean committed
+Linux build and updated-candidate protected CI still follow. Production remains
+on the previously accepted main; neither the successor nor NEW live behavior
+has been accepted there. The original OPEN failure remains immutable.
+
+**Exact compatibility build — 2026-10-05:** clean product/test revision
+`d4ddc22021e60279801f9d1d8d9d1e890d273ecd` passes the normal Next 16.3.8
+Linux build on Node 22.23.1, all 33 generated pages and the two unchanged native
+lint-consumer/provenance checks. Build network is disabled and no production
+credentials are mounted. The exact public locked cache includes npm's separately
+installed `vendor/eslint-plugin-next/node_modules`; lock metadata and actual
+package versions are checked. An initial copy omitted that nested install,
+resolved root brace-expansion v1 and failed the unchanged consumer check before
+build; it is NOT acceptance. Correcting only the temporary copy layout makes
+the exact unchanged product source pass. Lock SHA256 remains
+`c126ba15634fffec241592d1316ea2e0bb9708886f865dc72f5fd30b2e084083`.
+Receipt: `/private/tmp/ture-publication-compatibility-exact-build-oct5-receipt.json`.
+This annotation changes documentation only; product/test/workflow/schema bytes
+remain identical to the built commit. Updated-candidate protected CI, main,
+production migration and exact inert runtime verification remain pending.
+
+**Today's second original-plan diagnostic is no-go:** updated-source acceptance
+is still pending at the 19:00Z latest activation-ready boundary for a useful
+19:15Z publication observation with a full 15-minute scheduler margin. No NEW
+card, capacity meter, arm or heartbeat exists; spend no further credits on an
+irrelevant closing-only path. Finish the minimum correction and protected release,
+then freeze the next useful OPEN question on its exact accepted runtime/schema.
+This is a timing/evidence boundary, not a blocker to further CLOSED product work.
+
+The SQ→XYZ discovery secondary is clean/local on `06acee093de85b77f6a98a66056414a220542a02`,
+with 237 distinct checks in 22 files and an exact Linux build of its original-plan
+composition `3a2a99b1b3430ed3e5bfa565d2d00701f1ae088d`. It has no push/PR/release
+and does not yet contain this compatibility successor. Finish the primary's
+protected release/schema/inert readback, then integrate and reverify that
+independent discovery correction without rewriting historical SQ evidence.
+Freeze the next useful original-plan OPEN question on the accepted runtime,
+not today's consumed failed card. Today's failed diagnostic is not a forward
+training cohort. Graduation remains `not_met`.
+
+### Retained original-clock release foundation
+
 **Now — original current-session clock admission, 2026-10-05:** Codex owns
 `codex/original-session-clock-admission-oct5`, isolated from the dirty user
 checkout and based on verified main `5d691f87167627e45e84220fd0276f91b7a45185`.

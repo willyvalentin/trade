@@ -141,6 +141,13 @@ assert(!closing || cold && !opening && !wrongPolicy && !diagnoseOutcomes,
 const publicationClock = process.argv.includes("--publication-clock");
 const publishedOriginalLearning = process.argv.includes("--published-original-learning");
 const contextLatency = process.argv.includes("--context-latency");
+const originalPlanGeometry = process.argv.includes("--original-plan-geometry");
+const powerHourPublication = process.argv.includes("--power-hour-publication");
+assert(!powerHourPublication || publicationClock && originalPlanGeometry && cold &&
+  !closing && !publishedOriginalLearning && !contextLatency,
+  "Power-hour publication retains the real original-plan path without fabricating post-close learning horizons");
+assert(!originalPlanGeometry || publicationClock && cold && !closing && !contextLatency,
+  "Original plan geometry uses the same normal publication path and provider boundary, not a fabricated decision");
 assert(!publishedOriginalLearning || publicationClock && cold && !closing && !contextLatency,
   "Published learning retains the existing isolated normal publication population");
 const pointInTimeContext = process.argv.includes("--point-in-time-context");
@@ -171,7 +178,7 @@ assert(!existingPremarketSetup || !process.argv.some(value=>[
   "--benchmark-reuse-invalid", "--benchmark-reuse-baseline", "--wrong-policy", "--opening", "--closing",
   "--publication-clock", "--point-in-time-context", "--benchmark-stale", "--benchmark-partial",
 ].includes(value)), "Actual pre-market preparation uses only the unchanged original regular-session comparison");
-const slot = rotationDay ? "2026-10-01T13:30:00.000Z" : closing ? "2026-10-01T19:45:00.000Z" : opening ? "2026-10-01T13:45:00.000Z" : "2026-10-01T17:30:00.000Z";
+const slot = rotationDay ? "2026-10-01T13:30:00.000Z" : closing ? "2026-10-01T19:45:00.000Z" : powerHourPublication ? "2026-10-01T19:00:00.000Z" : opening ? "2026-10-01T13:45:00.000Z" : "2026-10-01T17:30:00.000Z";
 const expiry = rotationDay ? "2026-10-01T20:00:00.000Z" : new Date(Date.parse(slot) + 900000).toISOString();
 const nextSlot = new Date(Date.parse(expiry) + 900000).toISOString();
 const futureBoundary = new Date(Date.parse(slot) + (relativePlan60m || publishedOriginalLearning || nextSessionOutcomes ? 4500000 : 1800000)).toISOString();
@@ -397,7 +404,8 @@ try {
     ...(nextSessionOutcomes ? ["20260918233411_if4_after_market_outcome_evaluation_receipts.sql"] : []),
     ...(charterComposition || fullOriginalHistorySetup ? ["20261002213547_if4_relative_plan_prospective_comparison.sql",
       "20261002233358_if4_relative_plan_trained_probability_model.sql",
-      "20261003015239_if4_relative_plan_charter_result.sql"] : []),
+      "20261003015239_if4_relative_plan_charter_result.sql",
+      "20261005190805_if4_publication_identity_compatibility.sql"] : []),
   ];
   // Source schema/owner constraints and real reservation functions, all isolated.
   sql(`create role anon nologin; create role authenticated nologin; create role service_role nologin bypassrls;
@@ -490,7 +498,9 @@ try {
         const day=new OriginalDate(staleBenchmark && benchmark ? "2026-05-26T00:00:00Z" : "2026-09-30T00:00:00Z");
         while(values.length<60) {
           const date=day.toISOString().slice(0,10);
-          if(readers.getUsEquityMarketSession(date).session_close) values.unshift({datetime:date,open:"100",high:"103",low:"99",close:"101",volume:"1000"});
+          if(readers.getUsEquityMarketSession(date).session_close) values.unshift(originalPlanGeometry && !benchmark
+            ? {datetime:date,open:"95",high:"98",low:"94",close:"95",volume:"1000"}
+            : {datetime:date,open:"100",high:"103",low:"99",close:"101",volume:"1000"});
           day.setUTCDate(day.getUTCDate()-1);
         }
         if (partialBenchmark && benchmark) {
@@ -1803,7 +1813,10 @@ try {
     assert.equal(response.status,200,JSON.stringify({body,logs:logs.slice(-15)}).slice(-12000));
     assert.equal(rows.length,1);
     assert.equal(receipts.length,1);
-    assert.equal(receipts[0].cycle_status,"completed");
+    assert.equal(receipts[0].cycle_status,"completed",JSON.stringify({cycle_status:receipts[0].cycle_status,
+      power_hour_publish_allowed:body.active_scan_trace?.power_hour_publish_allowed,
+      power_hour_publish_block_reason:body.active_scan_trace?.power_hour_publish_block_reason,
+      skip_reason:body.active_scan_trace?.skip_reason}));
     assert.equal(scanRuns.length,1);
     assert.equal(claims.length,1);
     assert.equal(claims[0].requested_credits,8);
@@ -2094,6 +2107,8 @@ try {
     assert.equal(record.record_version,"candidate_decision_record_v4");
     assert.equal(record.candidates.length,8);
     assert.equal(record.versions.input_policy_version,"completed_daily_intraday_input_v1");
+    if(powerHourPublication) assert.equal(scanRuns[0].payload_json.power_hour_publish_allowed,true,
+      "The active original-plan policy must pass the real pre-cutoff power-hour gate");
     assert.equal(record.final_decision.disposition,publicationClock && !closing?"recommendations_published":"no_trade");
     if(closing) {
       assert.equal(scanRuns[0].payload_json.analysis_policy_version,"regular_session_analysis_v1");
@@ -2160,9 +2175,14 @@ try {
         }
         assert.equal(candidate.data.freshness,"fresh");
         assert.deepEqual(candidate.data.gap_codes,[]);
+        if(originalPlanGeometry) assert(candidate.data.input_snapshot.features.proposed_stop_loss <
+          Number((candidate.data.input_snapshot.features.latest_close * 0.96).toFixed(2)),
+          "The actual scanner must produce a support-anchored plan distinct from the legacy percentage fallback");
         for(const [column,feature] of [["entry_low","proposed_entry_low"],["entry_high","proposed_entry_high"],
-          ["stop_loss","proposed_stop_loss"],["target_1","proposed_target_1"]]) {
-          assert.equal(Number(row[column]),candidate.data.input_snapshot.features[feature]);
+          ["stop_loss","proposed_stop_loss"],["target_1","proposed_target_1"],
+          ["target_2","proposed_target_2"],["risk_reward","proposed_risk_reward"]]) {
+          assert.equal(Number(row[column]),candidate.data.input_snapshot.features[feature],
+            `Publication must retain the exact original ${row.ticker} ${column}`);
         }
         assert(OriginalDate.parse(record.decision_timestamp)<=OriginalDate.parse(row.created_at),
           `Explicit decision must precede publication: decision=${record.decision_timestamp}, published=${row.created_at}`);
@@ -2177,6 +2197,10 @@ try {
         assert.equal(readers.candidateDecisionRecordFromScanRun(changed),null);
       }
       originalLog(JSON.stringify({publication_clock_proof:"passed",synthetic_publication_count:published.length,
+        ...(powerHourPublication ? {power_hour_publication_proof:"passed",target_slot:slot,
+          power_hour_publish_allowed:scanRuns[0].payload_json.power_hour_publish_allowed} : {}),
+        ...(originalPlanGeometry ? { original_plan_geometry_proof:"passed", original_plan_field_count:6,
+          support_anchored_publication_count:published.length, original_population_count:record.candidates.length } : {}),
         decision_timestamp:record.decision_timestamp,published_at:published.map(row=>row.created_at),
         completed_at:scanRuns[0].completed_at,actual_provider_requests:0,production_actions:0}));
     }
