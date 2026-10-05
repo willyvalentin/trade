@@ -2,6 +2,63 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Selected CLOSED IF-4 original whole-session outcome coverage — 2026-10-05:**
+Codex owns `codex/original-outcome-session-coverage-oct5`, isolated from freshly
+verified main `55576078` plus completed local composition `60ce8c31`. Primary
+#732 remains Draft/release-held. Four-active-hour bounded recovery of the second
+inherited ordinary no-fingerprint outcome-continuation failure. Within-batch
+missing-member acquisition is now locally verified; it does not establish
+complete discovery or coverage across every original decision batch. Baseline
+is unchanged `60ce8c31`, same original 26 decisions/208 member observations,
+same owner, original plans, chronological enrollment, four requests per pass,
+full frozen charter and existing 60-pass/230-second diagnostic bound.
+
+First trace one existing complete continuation to distinguish repeated
+selection, genuinely missing source members, provider availability and the
+truthful residual canonical backlog. Do not choose a speculative scheduler,
+schema, ranking, or receipt expansion. The exact missing link is original
+decision → canonical outcome → complete enrolled scorecard; the decision-changing
+metric is attributable original coverage with actual unique/repeated request
+cost, not an empty-backlog assertion or positive alpha. Preserve all enrolled,
+excluded and late members. A partial original window stays incomplete even
+when an early terminal target/stop is known. No shortened horizon or fabricated
+label; no increase of bounds or favorable population selection.
+
+Select only the smallest source/acquisition recovery justified by that trace,
+version/disclose any changed acquisition semantics, and verify actual route,
+complete SQL/SDK owner reads, unchanged source membership, credit/request caps,
+ordinary resumption and full-charter metrics before acceptance. Write ownership
+is the existing official acquisition path and registered native proofs/tests,
+plus this receipt. No production, real provider, migration, scheduler activation,
+publication, ranking/confidence, promotion or broker work. If the retained
+regular horizon cannot be recovered, keep `evidence_incomplete` and document a
+bounded honest stop instead of manufacturing a green quality result. Integration
+follows #732 and the completed composition against then-current main; stop this
+recovery at its minimum verified exit and resume the frozen primary.
+
+The bounded baseline trace reaches all 60 passes/240 synthetic continuation
+requests, then truthfully fails its existing stop assertion. It retains 144
+canonical / 32 missing of 176 enrolled members and `evidence_incomplete`.
+At the end, the same KLAC/LULU/AMAT/UBER requests create/update zero rows;
+physical outcome rows remain 176. Later original partial members are still
+unvisited. Log `/private/tmp/ture-original-outcome-session-coverage-baseline-trace-oct5.log`.
+Selected smallest recovery: defer a versioned incomplete canonical
+retry until the next provider-bar window, keep its learning status pending,
+and let oldest original batches with unobserved/acquirable members continue.
+Never-observed batches precede elapsed incomplete retry batches even at a later
+normal bar window; oldest original source order breaks ties within each class.
+Keep all pending identities within any selected batch and preserve the prior
+early-horizon recovery. Default/manual runner behavior stays unchanged; only
+the official route opts into the retry policy. Complete original backlog must
+remain explicit even when no new request is due. Expected metric is one initial
+visit of every eligible original identity and bounded zero-request deferral,
+not zero missing canonical outcomes. Freeze the same 144/32 full-charter result,
+all populations, the four-request cap and existing time/pass bounds.
+Deferral uses the last retained outcome evaluation window, not an invented
+last-attempt clock: equal-coverage retries in later windows may remain eligible
+if persistence correctly keeps the better original row unchanged. This is not
+a durable failed-attempt backoff contract or an assertion that late gaps heal.
+
 **CLOSED IF-4 missing original outcome acquisition locally built — 2026-10-05:**
 Codex owns `codex/original-outcome-missing-first-oct5`, isolated from freshly
 verified main `55576078` plus local composition `2eb4c1d2`. Primary #732 remains

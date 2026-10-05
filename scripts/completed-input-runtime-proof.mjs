@@ -1302,7 +1302,7 @@ try {
           // from the population just because their early target/stop is known.
           assert.equal(body.eligible_snapshot_count,lateOriginalOutcomes?8:index===0?8:4);
           assert.equal(body.same_day_official_batch_revisit.selected_snapshot_acquisition_policy_version,
-            "official_missing_before_elapsed_partial_v1");
+            "official_original_bar_window_resumption_v2");
           assert.equal(body.batch_fingerprint,batch.batch_fingerprint);
           assert.equal(body.persistence_status,"success",body.persistence_error);
           const databaseRows=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_outcomes t;"));
@@ -1521,8 +1521,27 @@ try {
               continuationPasses.push({requests:externalRequests-before,status:body.status,
                 eligible_snapshot_count:body.eligible_snapshot_count,persisted_outcome_count:body.persisted_outcome_count,
                 source_selection:body.same_day_official_batch_revisit,persistence_status:body.persistence_status});
+              process.stderr.write(JSON.stringify({original_continuation_trace:{pass:index+1,
+                requests:externalRequests-before,status:body.status,
+                requested:syntheticRequestEvidence.slice(scheduledRequestEvidenceOffset+before,
+                  scheduledRequestEvidenceOffset+externalRequests),
+                selection:body.same_day_official_batch_revisit,
+                physical_outcomes:Number(sql("select count(*) from recommendation_outcomes;")),
+                created:body.outcomes_created_count,updated:body.outcomes_updated_count,
+                skipped_equal_or_better:body.outcomes_skipped_equal_or_better_count}})+"\n");
               if(externalRequests===before) break;
             }
+            const boundedRead=await refreshed.createRelativePlanProspectiveService().read(owner,asOf);
+            const boundedHeld=boundedRead.learning?.partitions.find(partition=>partition.partition==="held_out");
+            process.stderr.write(JSON.stringify({original_continuation_bounded_coverage:{
+              passes:continuationPasses.length,synthetic_requests:externalRequests-continuationStart,
+              source_status:boundedRead.status,blocker:boundedRead.blocker??null,
+              original_population_count:boundedHeld?.original_population_count??null,
+              canonical_outcome_count:boundedHeld?.canonical_outcome_count??null,
+              missing_outcome_count:boundedHeld?.missing_outcome_count??null,
+              charter_disposition:boundedRead.learning?.full_charter.computed_disposition??null,
+              terminal_quality_decision:boundedRead.learning?.terminal_quality_decision??null,
+              quality_improvement_claimed:false,actual_provider_requests:0,production_actions:0}})+"\n");
             assert(continuationPasses.length<60,"Bounded diagnostic must reach a truthful source-selection stop");
             delete require.cache[require.resolve(join(generated,"reader.cjs"))];
             const resumed=require(join(generated,"reader.cjs"));
@@ -1604,9 +1623,15 @@ try {
             assert.equal(continuedHeld.original_membership_fingerprint,heldRead.original_membership_fingerprint);
             assert.equal(continuedCharter.computed_disposition,"evidence_incomplete");
             assert.equal(continuedCharter.terminal_quality_decision,null);
+            const continuationRequests=syntheticRequestEvidence.slice(scheduledRequestEvidenceOffset+continuationStart,
+              scheduledRequestEvidenceOffset+externalRequests);
+            const uniqueContinuationRequests=new Set(continuationRequests.map(request=>JSON.stringify([
+              request.ticker,request.interval,request.start_date,request.end_date]))).size;
             fullOriginalHistoryEvidence.original_outcome_continuation={
               scope:"synthetic_actual_unselected_outcome_route_sql_sdk_not_quality_or_live",
               passes:continuationPasses,separate_synthetic_requests:externalRequests-continuationStart,
+              unique_original_candle_requests:uniqueContinuationRequests,
+              repeated_original_candle_requests:continuationRequests.length-uniqueContinuationRequests,
               original_decisions:completeSource.scanRuns.length,original_population_count:heldRead.original_population_count,
               canonical_outcome_count:heldRead.canonical_outcome_count,missing_outcome_count:heldRead.missing_outcome_count,
               persisted_neither_horizon_marks_verified:measuredNeither.length,

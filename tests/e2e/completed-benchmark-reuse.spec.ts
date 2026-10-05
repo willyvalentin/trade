@@ -374,7 +374,7 @@ test("late original complete inputs retain all eight partial outcomes without qu
   ]);
   expect(late.outcome_passes[1].selected_batch_fingerprint).toBe(late.outcome_passes[0].selected_batch_fingerprint);
   expect(late.outcome_passes.every((pass: { acquisition_policy_version: string }) =>
-    pass.acquisition_policy_version === "official_missing_before_elapsed_partial_v1")).toBe(true);
+    pass.acquisition_policy_version === "official_original_bar_window_resumption_v2")).toBe(true);
   expect(late.outcome_passes.flatMap((pass: { requested_tickers: string[] }) => pass.requested_tickers).sort())
     .toEqual(late.original_members.map((row: { ticker: string }) => row.ticker).sort());
   expect(late.persisted_coverage).toHaveLength(8);
@@ -714,6 +714,12 @@ test("whole-session outcome continuation discovers every original batch before c
   expect(continuation).toMatchObject({ original_decisions: 26, original_batch_count: 26,
     original_population_count: 176, terminal_quality_decision: null, quality_improvement_claimed: false });
   expect(continuation.passes.every((pass: { requests: number }) => pass.requests <= 4)).toBe(true);
+  expect(continuation).toMatchObject({ physical_outcomes: 200, separate_synthetic_requests: 192,
+    unique_original_candle_requests: 192, repeated_original_candle_requests: 0 });
+  expect(continuation.passes).toHaveLength(49);
+  expect(continuation.passes.at(-1)).toMatchObject({ requests: 0, status: "blocked",
+    source_selection: { remaining_backlog_after_run: 32,
+      selected_snapshot_acquisition_policy_version: "official_original_bar_window_resumption_v2" } });
   // All original rows must be READ, not made eligible. The 13:30 original
   // decision has no completed research capsule; do not relax its admission.
   expect(continuation.original_source_read).toMatchObject({ status: "complete", original_batches_read: 26,

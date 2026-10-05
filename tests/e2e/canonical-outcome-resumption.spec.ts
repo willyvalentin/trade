@@ -4,6 +4,11 @@ import { runRecommendationOutcomeEvaluation } from "@/lib/recommendation-outcome
 import { canonicalOutcomeProviderCoverageQuality } from "@/lib/recommendation-outcome-canonical-coverage";
 import { hasIncompleteCanonicalOutcomeCoverage } from "@/lib/canonical-outcome-acquisition-readiness";
 import { hasBetterOutcomeCoverage } from "@/lib/recommendation-outcome-coverage";
+import { deferObservedCanonicalOutcomeWindow } from "@/lib/canonical-outcome-acquisition-readiness";
+import { build } from "esbuild";
+import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { dirname, resolve } from "node:path";
 
 async function matureSource() {
   const snapshot = buildRecommendationSnapshot({ recommendation_id: "synthetic_complete",
@@ -92,4 +97,78 @@ test("an early candle-backed neither outcome is resumed after its original horiz
   expect(canonicalOutcomeProviderCoverageQuality(second.outcomes[0].payload_json.canonical_provider_coverage)).toBe(3);
   expect(second.outcomes[0].current_r).toBeCloseTo(0.2);
   expect(JSON.stringify(first.outcomes)).toBe(original);
+});
+
+test("an observed incomplete canonical window defers only within its valid retained bar clock", async () => {
+  const { outcome } = await matureSource();
+  const partial = { ...outcome, payload_json: { ...outcome.payload_json,
+    canonical_provider_coverage: { ...(outcome.payload_json.canonical_provider_coverage as object), freshness: "unknown" } } };
+  const original = JSON.stringify(partial);
+  expect(deferObservedCanonicalOutcomeWindow(partial, new Date("2026-10-02T15:39:59.999Z"))).toBe(true);
+  expect(deferObservedCanonicalOutcomeWindow(partial, new Date("2026-10-02T15:40:00.000Z"))).toBe(false);
+  expect(deferObservedCanonicalOutcomeWindow(outcome, new Date("2026-10-02T15:35:00.000Z"))).toBe(false);
+  for (const evaluated_at of [null, "bad", "2026-09-31T15:35:00.000Z", "2026-10-02T15:36:00.000Z"]) {
+    expect(deferObservedCanonicalOutcomeWindow({ ...partial, evaluated_at } as unknown as typeof outcome,
+      new Date("2026-10-02T15:35:00.000Z"))).toBe(false);
+  }
+  expect(deferObservedCanonicalOutcomeWindow(partial, new Date(NaN))).toBe(false);
+  const legacy: typeof outcome = structuredClone(partial); delete legacy.payload_json.canonical_provider_coverage;
+  expect(deferObservedCanonicalOutcomeWindow(legacy, new Date("2026-10-02T15:35:00.000Z"))).toBe(false);
+  expect(JSON.stringify(partial)).toBe(original);
+});
+
+test("official opt-in retains pending canonical identity without requests or writes in its observed window", async () => {
+  const { snapshot, outcome, fetchCandles } = await matureSource();
+  const partial = { ...outcome, payload_json: { ...outcome.payload_json,
+    canonical_provider_coverage: { ...(outcome.payload_json.canonical_provider_coverage as object), freshness: "unknown" } } };
+  const before = JSON.stringify(partial);
+  const deferred = await runRecommendationOutcomeEvaluation({ snapshots: [snapshot], existingOutcomes: [partial],
+    horizons: ["60m"], now: "2026-10-02T15:35:00.000Z", deferObservedCanonicalWindow: true,
+    fetchCandles: async () => { throw new Error("same_window_request_not_allowed"); },
+    persistOutcome: async () => { throw new Error("same_window_write_not_allowed"); } });
+  expect(deferred).toMatchObject({ status: "partial", eligible_snapshot_count: 1,
+    candle_requests_executed: 0, persisted_outcome_count: 0, missing_candle_count: 1, outcomes: [] });
+  expect(deferred.candidates[0]).toMatchObject({ status: "pending_candles", outcome_id: partial.id });
+  expect(JSON.stringify(partial)).toBe(before);
+  for (const options of [{}, { deferObservedCanonicalWindow: true, now: "2026-10-02T15:40:00.000Z" }]) {
+    const resumed = await runRecommendationOutcomeEvaluation({ snapshots: [snapshot], existingOutcomes: [partial],
+      horizons: ["60m"], now: "2026-10-02T15:35:00.000Z", maxCandleRequests: 1, fetchCandles, ...options });
+    expect(resumed.candle_requests_executed).toBe(1);
+    expect(resumed.outcomes[0].id).toBe(partial.id);
+    expect(canonicalOutcomeProviderCoverageQuality(resumed.outcomes[0].payload_json.canonical_provider_coverage)).toBe(3);
+  }
+});
+
+test("early incomplete original coverage waits only its current bar, not its future whole horizon", async () => {
+  const { outcome } = await matureSource();
+  const early = { ...outcome, payload_json: { ...outcome.payload_json,
+    canonical_provider_coverage: { ...(outcome.payload_json.canonical_provider_coverage as object),
+      freshness: "unknown", horizon_elapsed: false } } };
+  expect(deferObservedCanonicalOutcomeWindow(early, new Date("2026-10-02T15:35:00.000Z"))).toBe(true);
+  expect(deferObservedCanonicalOutcomeWindow(early, new Date("2026-10-02T15:40:00.000Z"))).toBe(false);
+});
+
+test("actual official selector reaches unobserved later batches before elapsed incomplete retries in a new bar window", async () => {
+  const { snapshot, outcome } = await matureSource();
+  const partial = { ...outcome, payload_json: { ...outcome.payload_json,
+    canonical_provider_coverage: { ...(outcome.payload_json.canonical_provider_coverage as object), freshness: "unknown" } } };
+  const later = buildRecommendationSnapshot({ recommendation_id: "synthetic_later", ticker: "AMD",
+    recommended_at: "2026-10-02T15:00:00Z", side: "long", entry: 100, stop: 95, target: 110 });
+  const path = resolve(process.cwd(), "app/api/recommendations/evaluate-outcomes/route.ts");
+  // Add a test-only export to the unchanged actual source; no alternate selector
+  // or public Next route export is introduced in the product.
+  const bundle = await build({ stdin: { contents: readFileSync(path, "utf8") +
+    "\nexport { filterOfficialSnapshotsNeedingOutcomeEvaluation as testSelector };", resolveDir: dirname(path), loader: "ts" },
+    bundle: true, write: false, platform: "node", format: "cjs", conditions: ["react-server"], external: ["next", "next/*"] });
+  const loaded = { exports: {} };
+  new Function("require", "module", "exports", bundle.outputFiles[0].text)(
+    createRequire(resolve(process.cwd(), "package.json")), loaded, loaded.exports);
+  const { testSelector } = loaded.exports as { testSelector: (input: { existingOutcomes: typeof outcome[];
+    horizons: ["60m"]; maxBatchesPerRun: number; now: Date; snapshots: typeof snapshot[];
+    snapshotBatchFingerprints: Record<string, string> }) => typeof snapshot[] };
+  const selected = testSelector({ snapshots: [snapshot, later], existingOutcomes: [partial], horizons: ["60m"],
+    maxBatchesPerRun: 1, now: new Date("2026-10-02T15:40:00.000Z"),
+    snapshotBatchFingerprints: { [snapshot.snapshot_fingerprint!]: "older", [later.snapshot_fingerprint!]: "later" } });
+  expect(selected.map(row => row.snapshot_fingerprint)).toEqual([later.snapshot_fingerprint]);
+  expect(hasIncompleteCanonicalOutcomeCoverage(partial)).toBe(true);
 });
