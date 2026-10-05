@@ -28,6 +28,95 @@ scan, provider request, source rewrite or broker action is selected. The later
 reproduced SQL policy-refusal below selects only its additive, exact-identity
 function successor; production application remains unverified and pending.
 
+**Selected CLOSED secondary extension — first-scan prepared context, 2026-10-05:**
+Codex continues the existing isolated `codex/discovery-current-block-reference-oct5`
+data/discovery slice; this is not a third delivery. Retain the accepted current
+XYZ reference component and its historical SQ population unchanged. Primary
+`b9943f81` and its release/SQL boundary remain frozen and integrate first.
+The Oct 5 eight-member source has three complete inputs/five missing members;
+its scanner uses six calls because two whole-scan credits remain for SPY/QQQ.
+Current preopen preparation acquires the 95 original equities, not benchmarks;
+current benchmark reuse additionally requires an earlier regular-session run.
+Even the existing prewarmed native first-scan control therefore has six fresh
+members, not eight. Select one IF-2b `recommendation_capability` improvement:
+an explicit owner-only preparation command for original equity history plus
+the two fixed completed-daily context benchmarks, followed by actual owner/cache/
+terminal-claim validation and in-process-only benchmark budget reuse.
+No history is a current quote; never grant reuse from caller JSON, a self-hash,
+unfinalized/mismatched claims, stale/future sources or another owner. Use a
+separate signature domain with the existing server session secret; no new secret,
+schema, provider, subscription, scheduler or broker capability. Preserve the
+existing history claim namespace, legacy command/regular-run reuse and original
+equity denominator. Preparation costs remain separately declared and limited to
+eight per minute/800 per day; normal scan ceiling stays eight. Initial budget
+four active hours. Require a failing installed owner-command/native regression,
+then one actual packaged first scan with eight original complete assessed inputs,
+zero benchmark provider calls and at most eight scan requests after restart.
+Verify tamper/owner/clock/claim/default-off/legacy controls, affected regressions,
+types/lint and exact build. No ranking, quality threshold, charter, model or
+publication-policy change; no quality lift claimed. Primary release precedes
+one coherent secondary integration; no push, production acquisition or NEW OPEN
+card is selected before that acceptance. Today's failed card remains immutable.
+
+**Prepared first-scan local implementation and acceptance — 2026-10-05:**
+the formerly RED installed owner command now prepares all 95 original equities
+plus the two separately disclosed historical benchmarks through actual Next
+HTTP/proxy/session, isolated SQL/SDK and synthetic provider boundaries. The NEW
+capacity proof uses the actual current XYZ product catalog; older whole-session
+comparisons retain their original SQ declaration and immutable fingerprints.
+Thirteen modeled minute-bounded preparation batches consume exactly 97 separate
+one-credit claims, at most eight per minute, with no intraday setup requests.
+The first actual packaged regular scan then retains eight original identities
+and eight complete assessed inputs, without a fabricated prior regular run:
+eight scanner requests, zero benchmark requests, one normal eight-credit claim,
+exact decision/lineage and restarted owner readback. Repeats, corrupt paid
+sources, missing finalization and budget drift cannot buy another history;
+legacy derived-price fields/clocks and the v1 paid identity remain unchanged.
+
+The 14-file broader suite passes 198/198 (23.7m, one worker) before the final
+caller-owner review correction. That review requires the prepared reader's
+explicit caller owner to match the configured source owner before any database
+read; the generator passes its normalized actual owner. The final affected
+20-test subset then passes (2.4m), including the same full native chain and
+20 source controls: owner/missing-owner, MAC/signing realm, self-rehashed data,
+future microsecond clocks, incomplete/failed/no-provider claims, caller JSON,
+clone authority and cancellation. These overlap the 198 tests, not additional
+distinct passes. Strict action-plus-owner/ticker/budget overrides and absent
+signing secret fail before acquisition. Nonincremental types, script syntax,
+whitespace and lint pass; full lint retains eight pre-existing warnings and
+final affected files have no errors/warnings. No test deadline, assertion,
+quality threshold or original population is weakened.
+
+Environment: macOS arm64 / Node 26.5.0, installed Next 16.3.8, actual isolated
+PostgreSQL/PostgREST with synthetic market responses. No external provider,
+production, broker or scheduler activation occurs. This is
+`recommendation_capability` / data fitness, not alpha or proved quality lift.
+Exact clean build, primary protected release/schema/inert readback, subsequent
+secondary integration/CI/deploy and real-source behavior remain pending. Before
+any production history preparation, freeze its separate source/cost question
+and verify actual provider rights and remaining shared credit capacity. A
+97-credit setup is not free, included in the scan's eight credits or evidence
+that all original live inputs will actually be complete. Graduation `not_met`.
+
+**Verified Actions service recovery — 2026-10-05 22:22Z:** the official
+named incident `3q1yb5m7ltvb` now explicitly reports "Actions is operating
+normally" and component Actions is `operational` since 21:54:22Z. The incident
+itself remains investigating because Pages is separately degraded. Refine only
+the infrastructure recovery predicate to the recovered service responsible for
+the reproduced runner-allocation failure; do not wait for unrelated Pages.
+The earlier attempt-2 failure and consumed retry remain immutable. Permit the
+already bounded single targeted replay-lineage recovery only after this exact
+official service-recovery evidence and fresh unchanged-candidate/run/job/cost/
+no-overlap checks; maximum total attempt remains three, deadline Oct 6 11:00Z,
+with no fourth or ambiguous-response redispatch. All six protected groups,
+aggregate, candidate provenance and review requirements still apply. No workflow,
+runner label, timeout, assertion, quality gate, provider budget or source revision
+changes. Reuse the existing release follow-up; no new automation or preview.
+The single targeted dispatch is confirmed as run `37363517732` attempt 3 at
+22:27:09Z, actual job `112007887590`, runner `1000010385`, checkout in progress.
+No replacement/full-run retry, push, merge or deploy occurs. Follow this exact
+live job to terminal status; never dispatch a fourth attempt on a read timeout.
+
 **Actual OPEN evidence retained:** attempt `scheduled_scan_attempt_10whjni`,
 run `rec_scan_run_of9yv0`; scheduler 16:15:25.663Z, route 16:15:27.799Z,
 original capture 16:15:38.528Z, decision 16:15:38.879Z, publication

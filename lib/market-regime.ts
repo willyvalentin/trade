@@ -48,6 +48,19 @@ export type MarketRegime = {
       benchmark_provider_calls: 0;
       scanner_provider_call_cap: 8;
       whole_scan_provider_call_cap: 8;
+    } | {
+      policy_version: "prepared_completed_benchmark_context_v1";
+      source_kind: "owner_prepared_history_claims";
+      owner_user_id: string;
+      trading_date: string;
+      source_claim_ids: readonly [string, string];
+      original_captured_at: { spy: string; qqq: string };
+      original_classified_at: string;
+      revalidated_at: string;
+      source_signatures_verified: true;
+      benchmark_provider_calls: 0;
+      scanner_provider_call_cap: 8;
+      whole_scan_provider_call_cap: 8;
     };
   };
 };
@@ -196,6 +209,26 @@ export async function readCompletedMarketRegime(value: unknown, now: Date): Prom
     role: "completed_historical_daily_only", evaluated_at: input.evaluated_at,
     spy: spyContext, qqq: qqqContext,
   } };
+}
+
+/** Pure decision-time classification of revalidated completed history. This
+ * grants no budget authority: only the private owner/source reader may mint
+ * a reusable handle. Neither input is a current benchmark quote. */
+export async function marketRegimeFromCompletedHistories(input: {
+  spy: unknown; qqq: unknown; now: Date;
+}): Promise<MarketRegime | null> {
+  if (!Number.isFinite(input.now.getTime())) return null;
+  const [spyContext, qqqContext] = await Promise.all([
+    readCompletedDailyContext(input.spy, "SPY", input.now),
+    readCompletedDailyContext(input.qqq, "QQQ", input.now),
+  ]);
+  if (!spyContext || !qqqContext) return null;
+  const spy = analyzeSymbol(spyContext.candles), qqq = analyzeSymbol(qqqContext.candles);
+  const regime = classifyRegime(spy, qqq);
+  return { regime, summary: `Completed daily history only; not a current benchmark quote. ${buildSummary(regime, spy, qqq)}`,
+    spy, qqq, input_evidence: { policy_version: COMPLETED_DAILY_MARKET_REGIME_INPUT_POLICY_VERSION,
+      role: "completed_historical_daily_only", evaluated_at: input.now.toISOString(),
+      spy: spyContext, qqq: qqqContext } };
 }
 
 export async function getMarketRegime(options: {

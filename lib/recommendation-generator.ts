@@ -138,7 +138,7 @@ import {
   type ReferenceRefreshDiagnostics,
 } from "@/lib/reference-refresh-diagnostics";
 import { normalizeApplicationOwnerUserId } from "@/lib/application-session-core";
-import { readOwnedCompletedBenchmarkReuse } from "@/lib/completed-benchmark-reuse";
+import { readOwnedCompletedBenchmarkReuse, readPreparedCompletedBenchmarkReuse } from "@/lib/completed-benchmark-reuse";
 import {
   resolveScheduledScannerProviderCallCap,
   SCHEDULED_REFERENCE_REFRESH_DEFAULT_MAX_ATTEMPTS,
@@ -3276,9 +3276,12 @@ export async function generateRecommendations({
 
     // Existing owner-bound last-run read, never a new global cache or a provider
     // request. Freed credits are available only before any acquisition starts.
-    const completedBenchmarkReuse = inputAttributed && !latestMarketWideDiscoveryResult.error
+    const retainedBenchmarkReuse = inputAttributed && !latestMarketWideDiscoveryResult.error
       ? await readOwnedCompletedBenchmarkReuse({ row: latestMarketWideDiscoveryResult.data,
           owner, now: new Date(), signal }) : null;
+    const completedBenchmarkReuse = retainedBenchmarkReuse ??
+      (inputAttributed && source === "scheduled" && !latestMarketWideDiscoveryResult.error
+        ? await readPreparedCompletedBenchmarkReuse({ ownerUserId: owner, signal }) : null);
     throwIfAborted(signal);
     const scannerFreshProviderCallCap = completedBenchmarkReuse ? 8 : diagnosticMode
       ? Math.min(1, scannerBaseCandidates.length)
