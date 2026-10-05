@@ -516,10 +516,21 @@ eight pre-existing warnings and no errors. An accidentally launched four-worker
 invocation was deliberately stopped before this serial run (exit 130, 98 passes,
 three interrupted, 100 not run); it is not acceptance or a product-failure claim.
 No deadline, assertion, quality threshold or original population is weakened.
-Clean committed exact Linux build and protected release remain pending. Primary
-protected release/schema/inert readback must still precede secondary current-main
-integration, push or PR. Today's OPEN no-go remains unchanged; this local result
-does not authorize a new provider call or prove recommendation-quality lift.
+
+The clean committed composition `cdf6088579f334bfdb61ae4ccf5172d89b7f124a`
+also passes the exact Linux build (Node 22.23.1, Next 16.3.8, all 33 pages)
+and two unchanged native Next lint/security consumer checks, using the verified
+public locked install with no network or production credentials. Its delta from
+primary `b9943f81` is exactly the ledger, current-symbol catalog, reference-only
+runtime harness and two relevant test files. Lock SHA256 remains
+`c126ba15634fffec241592d1316ea2e0bb9708886f865dc72f5fd30b2e084083`.
+Receipt: `/private/tmp/ture-xyz-publication-compatibility-exact-build-oct5-receipt.json`.
+This annotation changes only documentation; the built product, schema, test and
+workflow bytes are unchanged. No secondary push, PR, main acceptance or production
+verification has occurred. Primary protected release/schema/inert readback must
+still precede secondary current-main integration, push or PR. Today's OPEN no-go
+remains unchanged; this local result does not authorize a new provider call or
+prove recommendation-quality lift.
 
 ### Retained original-clock release foundation
 
