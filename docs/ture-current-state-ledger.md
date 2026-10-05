@@ -35,6 +35,41 @@ affected tests/types/lint and exact build. Stop at that smallest verified exit;
 return to the frozen input/outcome/full-charter primary and integrate only after
 #732 against then-current main. No production/provider/broker action is selected.
 
+**Local acceptance / bounded exit — 2026-10-05:** product/test revision
+`a3b625fae7b0b134ee62854c80c31d828cb627e3` validates the existing exact
+millisecond UTC producer clock before daily-history normalization or hashing.
+All six invalid original SPY/QQQ capsules now fail both the original reader and
+owned reuse admission; both canonical controls and the legacy derived-value
+path are unchanged. Registered red controls reproduced the defect before the
+correction, including the actual warm packaged route consuming eight rather
+than the expected six fresh members. The ordinary cold/warm fallback now
+retains all eight original identities, reacquires the two benchmarks and stays
+within the same eight-credit claim. No feature/ranking/schema version changes,
+caller mutation, sealed-result rewrite or real market request.
+
+All **77 DISTINCT committed checks pass**: 60 affected original-history,
+owned-reuse and actual isolated SQL/PostgREST/SDK/API integrations (6.7 minutes),
+plus 17 governance/registered-verification controls. Earlier focused/replay
+checks overlap these and are not additional distinct checks. Nonincremental
+types pass; full lint has zero errors and eight retained unrelated warnings;
+changed-file lint and diff checks pass. The unchanged normal Linux build passes
+on its first attempt at the exact clean product revision, Node `22.23.1`, Next
+`16.3.8`, read-only lock-matched dependencies and no build network or production
+credentials. Logs:
+`/private/tmp/ture-original-history-capture-{committed-regression,governance-a3b6,exact-build}-oct5.log`.
+
+This closes only the reproduced original daily-history admission link and is
+`quality_measurement`, not better recommendations, production integration or
+accepted market-quality evidence. Main remains `55576078`; #732 remains Draft
+at `2741f946`, with the mandatory aggregate failed rather than running. No push,
+PR, merge, deploy, production migration/configuration, provider or broker action.
+Stop this validator slice now. The next bounded CLOSED investigation follows
+the same original 26-decision population: identify required decision-time
+liquidity/volatility features that remain unavailable in its earliest enrolled
+decisions, distinguish missing originals from inherently unavailable lookbacks,
+and preserve the frozen cohort, full charter and `evidence_incomplete` result.
+Do not replace this exit with another generic clock/readiness expansion.
+
 **CLOSED IF-4 original whole-session outcome coverage locally built — 2026-10-05:**
 Codex owns `codex/original-outcome-session-coverage-oct5`, isolated from freshly
 verified main `55576078` plus completed local composition `60ce8c31`. Primary
