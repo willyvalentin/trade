@@ -552,6 +552,39 @@ The fully accepted local secondary remains held after primary protected release
 and its selected-schema/inert readback. This blocker does not establish engine
 quality or authorize another OPEN observation.
 
+**Local full replay-lineage closure — 2026-10-05:** the exact unchanged
+primary head `b9943f8192b2a4071369f6c5763f3d0451cc5ead` completes all seven
+registered commands in fourteen files with terminal exit zero (owned local
+session `88103`, terminal chunk `172101`). This is the complete required
+`replay-lineage` command group, not the first thirty-test prefix that ran before
+the hosted-runner shutdown. The serial runner returns zero only after every
+registered command succeeds. No test, workflow, assertion, deadline or product
+source is changed. Source remains clean; tree
+`8f85c2c6d907c109378c7119f01ad75f3d89d6ca` matches the immutable GitHub
+merge candidate `e21fa9b67ead4986fe2688d313cdf524dff5ac8c` verified separately.
+Environment: macOS arm64 / Node 26.5.0, one worker, provider-free synthetic
+fixtures. Protected CI remains Ubuntu 24.04 / Node 24.19.0 and is not replaced
+by this local pass. Some middle output lines were display-truncated; retain
+the authoritative terminal status and full registered scope without inventing
+an aggregate test count. Receipt verified at 21:13:38Z:
+`/private/tmp/ture-pr735-replay-lineage-local-oct5.receipt.json`.
+
+The same read-only review independently reproduces the selected migration's
+exact SHA256 and predecessor/successor body MD5s. Its only function-body delta
+is exact v3/v4 build-identity admission; every other guard, signature and property
+is byte-identical. Empty search path, explicit service-only execution and atomic
+function/ACL replacement remain intact. Prior native upgrade/restart/restore
+evidence is retained, not newly inferred from this source comparison. No
+production migration occurs; fresh catalog, lock, row-count and migration-history
+readback is still mandatory after accepted release and inert runtime readback.
+The official 21:00Z check observes Actions `major_outage` and the named incident
+still investigating, so no recovery dispatch is made. Primary protected CI,
+merge, production/schema and NEW live original-plan acceptance remain pending.
+This annotation changes only the held secondary ledger, without push, CI or
+preview; its accepted product/test/schema bytes remain those of `cdf60885`.
+Neither local verification nor this review establishes recommendation-quality
+lift or changes today's immutable OPEN failure/no-go.
+
 ### Retained original-clock release foundation
 
 **Now — original current-session clock admission, 2026-10-05:** Codex owns
