@@ -2,6 +2,79 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Selected CLOSED IF-2b → IF-4 original feasibility-gap investigation — 2026-10-05:**
+Owner Codex, `codex/original-feature-feasibility-oct5`, isolated from freshly
+verified main `55576078` plus locally completed `579c8f91`. #732 remains the
+release-held primary; the original capture validator is complete/parked.
+Four-active-hour maximum investigation of the frozen relative-plan hypothesis's
+remaining required decision-time liquidity/volatility gaps. Reuse its actual
+packaged full-session source, isolated SQL/SDK restart and complete charter;
+retain all 26 original decisions, 208 source member observations, 176 enrolled
+members, first-thirty input-only rule and unchanged numerical limits.
+
+Decision-changing question: which original nulls are recoverable acquisition or
+normalization defects, and which require lookback information that did not yet
+exist at the decision? Compare the actual original inputs with the existing
+feature producers and exact enrolled charter observations. Outcome arrival must
+not fill an original feature; missing/late members and all denominators remain.
+Initial write ownership is only the isolated read-only diagnostic and this
+receipt. If the trace proves a product defect, select its smallest bounded
+correction with red/green actual-source evidence before editing product code.
+If the frozen information set cannot supply the required lookback, record a
+bounded `evidence_incomplete` stop and the next legitimate earlier evidence
+link; do not invent a shortened feature window, replace enrollment, weaken the
+charter, backfill future data or launch a competing ranker/cohort. No new
+schema, production/provider/broker action or release bypass. Integrate any
+verified correction only after #732 against then-current main.
+
+**Bounded original-source diagnosis / exit — 2026-10-05:** unchanged product
+composition `a3b625fa`/local closeout `579c8f91`; both actual isolated packaged
+SQL/PostgREST/SDK full-session diagnostics complete and clean up inertly.
+The first retains the same 26 source decisions / 208 member observations,
+22 enrolled decisions / 176 members and original membership fingerprint
+`ff147ad25507e20b09d40cf7b8feef787d3497e0520c3e6958a9617b354b51c6`.
+After the ordinary 49 outcome continuations it still has 144 canonical and
+32 missing outcomes, unchanged original first-thirty enrollment and full
+`evidence_incomplete` charter. No subset is re-enrolled or declared qualified.
+
+Required original volume-ratio absence is exactly 32 members at 12/15/18/21
+closed five-minute bars; its producer requires two complete twelve-bar windows.
+Required range-expansion absence is exactly 24 members at 12/15/18 bars; its
+producer requires twenty prior bars plus the latest bar. Other required
+liquidity/volatility values are retained. Consequently liquidity coverage is
+144/176, volatility coverage 152/176, and only 112 original members have both
+those inputs and a canonical outcome. These are disjoint early input and late
+horizon gaps, not missing rows that another current-data request can repair.
+The historical comparison stops honestly incomplete: no shortened lookback,
+future fill, late-horizon replacement, first-thirty rewrite or threshold change.
+Log `/private/tmp/ture-original-feature-feasibility-native-fixed-oct5.log`;
+observer `/private/tmp/ture-original-feature-feasibility-inspect-oct5.mjs`.
+The observer's first launch failed on its ESM file reference before database or
+product execution; the corrected file-URL launch is the completed evidence.
+
+A separately bounded read of that SAME original full source reproduces an
+earlier semantic defect: **all 176** retained values named
+`intraday_average_range_percent` equal the original DAILY average range, and
+all 176 differ from the independently calculated last-twelve ORIGINAL intraday
+bar averages. Example at 14:30:20Z: retained daily/named-intraday value 3.96%,
+original intraday average 2%. This is not an imagined acquisition gap or a
+future-bar reconstruction. All 176 archived original bar sets are present;
+membership, values, outcomes and their clocks are unchanged.
+Log `/private/tmp/ture-original-feature-range-basis-oct5.log`; observer
+`/private/tmp/ture-original-feature-range-basis-inspect-oct5.mjs`.
+
+Both diagnoses are `hypothesis_evidence` from a synthetic isolated source,
+not market-quality lift or production acceptance. Product code remains the
+previously tested composition; no push/PR/merge/deploy/configuration/migration,
+real provider request, publication or broker action. Stop the inherent-lookback
+investigation here. The next independent CLOSED correction is the reproduced
+DAILY-as-INTRADAY feature semantic defect: explicitly version a truthful new
+daily-range projection and its consumer compatibility, preserving all v1/v2
+original values and sealed results without silent reinterpretation or pooling.
+Keep the same ranker, hypotheses, full charter limits and source identities;
+no new data/cohort/feature values or provider budget are selected. #732 remains
+the release-held primary and integration still follows its complete gates.
+
 **Selected CLOSED IF-2b original daily-history capture admission — 2026-10-05:**
 Owner Codex, `codex/original-history-capture-oct5`, isolated from freshly verified
 main `55576078` plus completed local composition `9d8aa5b3`. #732 remains the
