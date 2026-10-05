@@ -84,6 +84,20 @@ bytes stay identical to the built commit. Protected CI, merge, deployed runtime
 and a newly frozen live original-plan observation remain pending. The old failed
 diagnostic remains failed. Do not arm or move any consumed observation card.
 
+**Active policy consumer correction — 2026-10-05:** final review finds the
+actual power-hour route gate still accepting only publication policy v3.
+A NEW registered cold packaged normal publication case, with only the
+synthetic scheduler clock moved to 19:00Z and the same original support bars,
+reproduces RED: `action_148_publish_policy_not_active` rejects the cycle before
+market-data acquisition. Update only the gate's exact supported version to v4;
+all session/calendar/closing-cutoff checks remain unchanged. The same native
+case now passes GREEN with three synthetic publications, all six exact original
+plan fields, eight original members, one attempt/claim and eight synthetic
+requests. The separate actual closing-context case still retains hidden
+original research and publishes nothing. These two focused passes overlap the
+pending final affected-suite run; they are not real-market quality evidence.
+Types, lint, exact updated-revision build and protected CI still follow.
+
 The completed SQ→XYZ discovery secondary stays clean/local on `f0321631`,
 with 184 distinct checks and exact Linux build of product revision `2e7e514b`;
 no push/PR/release. Finish this measured primary defect before integrating

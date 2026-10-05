@@ -617,7 +617,7 @@ function buildPowerHourTrialGate({
   if (
     String(AUTOMATION_ROUTE_VERSION) !== "action_148_publish_path_v1" ||
     String(RECOMMENDATION_PUBLISH_POLICY_VERSION) !==
-      "selective_top_3_strong_valid_v3_preserve_explicit_no_trade"
+      "selective_top_3_strong_valid_v4_preserve_no_trade_original_plan"
   ) {
     return {
       power_hour_trial_enabled: true,
