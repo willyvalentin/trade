@@ -28,10 +28,26 @@ retained; NEW training rejects aliases before materialization and retains all
 96 original members. The new hostile writer cases use actual services/serializer
 with injected stores, not a production database. Historical sealed-capsule
 regressions remain green. Nonincremental types and full lint pass (zero errors,
-eight existing warnings). Exact locked build/protected release still pending.
-No provider, production configuration or broker action is selected.
+eight existing warnings); six governance regressions pass. Exact clean committed
+source `a969b7f7bcc304421641f4c495fa08783ea5ca00` passes the normal Next 16.3.8
+Linux build on Node 22.23.1 after a locked install, two native consumer checks
+and all 33 generated pages. Build network is disabled, no production credentials
+are mounted and lock SHA256 stays
+`c126ba15634fffec241592d1316ea2e0bb9708886f865dc72f5fd30b2e084083`.
+Receipt: `/private/tmp/ture-original-session-clock-exact-build-oct5-receipt.json`.
+Protected release/main/production acceptance of this correction is still
+pending. No provider, production configuration or broker action is selected.
 After the minimum accepted correction, return to current-session original
 input/outcome evidence and the frozen full-charter comparison.
+
+**Next / OPEN:** prioritize the next eligible frozen current-session original
+input and canonical-outcome observation after exact release/runtime, verified
+regular session, actual remaining provider-budget and scope checks. No slot or
+series is armed. Missing account budget is not inferred from 800 daily credits
+or this application's zero reservations; it does not stop this independent
+CLOSED correction. Preserve the frozen charter and every original member;
+useful training, pre-forward sealing and the full forward comparison remain
+separate evidence requirements, not a daily candidate quota.
 
 **Verified release exit — PR #733, 2026-10-05:** complete protected Ready run
 `37300077755` passes all six groups on `a794129fb06b09922aca7086f07629976104addb`.
@@ -62,8 +78,8 @@ not prove pre-forward sealing.
 
 Authenticated provider-free production readback at 12:05:12.691Z verifies exact
 compiled revision/deploy, inert controls, no active reservation and truthful
-missing-freeze/model/result GETs. Original replay admission is verified, not an
-actual production archive replay. No observation is armed. Netlify release
+missing-freeze/model/result GETs. The original replay route rejects a missing
+ID; no production archive replay is exercised. No observation is armed. Netlify release
 capacity is human-confirmed; today's actual Twelve Data account remainder is
 still unverified and must be checked before OPEN. Useful production training,
 an actual pre-forward model seal, full forward cohorts and baseline-relative
