@@ -2,6 +2,54 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-05, recommendation intelligence first
 
+**Current protected release / exact schema-authority hold — 2026-10-05 23:05Z:**
+PR #735 is normally merged at `4be8c9c6d4a2ee1a897cad7629f4a27f0ea41c05`
+(22:59:32Z). All six unchanged groups, aggregate and candidate provenance pass
+on frozen head `b9943f81` in run `37363517732` attempt 3; actual replay-lineage
+job `112007887590` completes success at 22:54:28Z. No fourth/full-run retry,
+workflow change or protection bypass occurs. Merge tree
+`8f85c2c6d907c109378c7119f01ad75f3d89d6ca` exactly matches the locally and
+protected-CI accepted candidate. Normal post-merge run `37385873956` and its
+attestation job `112018918812` also pass on the exact new main.
+
+The single automatic Git-connected production build `6ac42bd62d14710008dd472e`
+publishes ready deploy `6ac42bd62d14710008dd4730` at 23:00:55.877Z on that
+main. Owned provider-free runtime verification passes 23:02:57.096Z: exact
+commit/deploy, global scheduler-disable true, all competing modes off, zero
+active reservations, anonymous denial and truthful missing-freeze/model/result
+GETs. No new provider, scan, comparison/model/result or broker action occurs.
+Normal owner login may update only its existing abuse-control counters.
+This proves protected code release and inert environment integration, not a
+new real-source publication, successful forward freeze or recommendation lift.
+The old Oct 5 original-plan observation remains FAIL and is never reclassified.
+
+**Blocked / next:** the exact single-migration dispatch for
+`20261005190805_if4_publication_identity_compatibility.sql` in production project
+`ekdyopdrrkphlrsilyoo` is rejected by auto-review at 23:03:56Z: persistent
+function/ACL replacement requires direct human approval for this exact migration,
+despite the user's general delegated additive-migration mandate. It is NOT
+applied. Do not retry or use execute_sql DDL, broad db push, a proxy, indirect
+execution or another writer to bypass the rejection. The exact approval question
+is sent in this chat; the existing release heartbeat now retains that stop rule
+and stays quiet without repeating it. Source SHA256 remains
+`e62a14f16bcbdfe8068395edb4095780522267a2e20c2d0c065f73eb99018c29`.
+Fresh read-only SQL at 23:05:15.21249Z proves predecessor MD5
+`47fd24cd1f28cd103a68aeea58b0fce2`, OID 83015, empty search path,
+anon/auth denial/service-only execution, unchanged 0/0/0 comparison/model/result
+counts and zero selected migration-history rows. No other schema or Auth
+configuration changes occur. Existing advisor WARN for leaked-password
+protection and intentional service-only RLS INFO are retained, not repaired here.
+
+After the actual human approval, revalidate current main/deploy/inert runtime,
+exact tracked SQL, migration inventory/catalog/locks/row counts before one
+normal selected apply and truthful source-to-remote name/version mapping.
+Then verify successor MD5 `c12dda48e41c1999f45858ffee3039be`, unchanged
+attributes/ACL/OID/old rows, advisors and owned inert HTTP. Only after that
+boundary is accepted may the locally complete secondary integrate current main,
+push or create its one focused PR. Do not start a third development slice or
+NEW OPEN acquisition to route around this dependency. The intelligence goal
+remains active and graduation `not_met`.
+
 **Now — preserve original completed-input publication geometry, 2026-10-05:**
 Codex owns `codex/source-bound-publication-geometry-oct5`, isolated from the
 dirty user checkout on verified main `4a939831b46efdf6ad4089b148d6fc803e1cabd5`.
