@@ -2,7 +2,7 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
-**Selected CLOSED IF-4 original whole-session outcome coverage — 2026-10-05:**
+**CLOSED IF-4 original whole-session outcome coverage locally built — 2026-10-05:**
 Codex owns `codex/original-outcome-session-coverage-oct5`, isolated from freshly
 verified main `55576078` plus completed local composition `60ce8c31`. Primary
 #732 remains Draft/release-held. Four-active-hour bounded recovery of the second
@@ -68,6 +68,47 @@ check fails `ENOBUFS`: complete output plus duplicated per-pass source diagnosti
 exceeds the existing subprocess buffer. Only the duplicated diagnostic selection
 is compacted; the full result/source/charter population and buffer/time/pass bounds
 are unchanged. A final settled-revision rerun is required before acceptance.
+
+Product/test revision `e45f4047e0ea8792597cba0f255bb210ffc87d01` completes the
+bounded local acquisition correction. The ordinary whole-session regression now
+stops at 49 passes: 192 distinct continuation requests, zero repeated original
+candle requests, 200 physical original outcome rows. Before correction it used
+240 requests, retained only 176 rows and failed at the unchanged 60-pass bound.
+All 26 original batches are read; the existing 13:30 source rejection remains
+explicit and 25 batches are admitted. The chronological learning cohort stays
+176 members / 22 decisions, with exactly 144 canonical / 32 missing labels and
+126 measured neither-horizon marks. Every late missing member now has its own
+partial physical row; none qualifies through a shortened horizon. The final
+zero-request stop retains backlog 32 and `evidence_incomplete`, not empty backlog,
+policy acceptance or better recommendations. Known concentration/coverage
+failures and unavailable calibration/paired uncertainty remain unchanged.
+
+All **82 DISTINCT affected committed checks pass** on `e45f4047`: 73 unit,
+source, credit/receipt and governance checks plus nine actual isolated
+Postgres/PostgREST/SDK/API integrations (6.1 minutes). The nine include the
+whole-session regression, two-pass late membership, complete/incomplete source
+reads, early original resumption, after-weekend budget recovery, published
+original learning and the unchanged joint full-charter path. Earlier focused
+passes are included, not additional distinct checks. The settled tests run
+serially, avoiding a secondary shared Playwright-artifact collision in the
+earlier diagnostic run. Nonincremental types and changed-file lint pass; full
+lint has zero errors and eight existing warnings. The FIRST ordinary exact
+Linux build passes on the same clean revision, Node 22.23.1 / Next 16.3.8,
+locked read-only dependencies, no network or production credentials; lock digest
+`859ed09eed4d3de2e7ade5c74bea78e73770bea57f92d6cb3656224bfcace6f7` is unchanged.
+Logs `/private/tmp/ture-original-outcome-session-coverage-{baseline-trace,snapshot-cap-red,snapshot-cap-fixed,final-controls,final-native,exact-build}-oct5.log`
+and `types-final-e45f`, `lint-final-e45f`, `changed-lint-final-e45f` logs.
+
+Classification: `quality_measurement`, locally built/tested, not main,
+protected-CI, production or market-quality accepted. Stop extending this
+acquisition policy at its verified exit; deferred equal-coverage attempts in
+later bar windows remain the disclosed limitation, not a new backoff project.
+Fresh main remains `55576078`; #732 remains Draft at `2741f946`, required CI
+failed rather than pending. The official npm registry still has no newer braces
+than 3.0.3; retain the full release audit without bypass. No push, PR, merge,
+deploy, real provider, production database, publication or broker action occurred.
+Root changes are preserved. Resume the frozen original-input/full-charter primary;
+another independent CLOSED slice needs a concrete reproduced earlier data link.
 
 **CLOSED IF-4 missing original outcome acquisition locally built — 2026-10-05:**
 Codex owns `codex/original-outcome-missing-first-oct5`, isolated from freshly
