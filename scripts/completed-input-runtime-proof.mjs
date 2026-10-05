@@ -141,6 +141,9 @@ assert(!closing || cold && !opening && !wrongPolicy && !diagnoseOutcomes,
 const publicationClock = process.argv.includes("--publication-clock");
 const publishedOriginalLearning = process.argv.includes("--published-original-learning");
 const contextLatency = process.argv.includes("--context-latency");
+const originalPlanGeometry = process.argv.includes("--original-plan-geometry");
+assert(!originalPlanGeometry || publicationClock && cold && !closing && !contextLatency,
+  "Original plan geometry uses the same normal publication path and provider boundary, not a fabricated decision");
 assert(!publishedOriginalLearning || publicationClock && cold && !closing && !contextLatency,
   "Published learning retains the existing isolated normal publication population");
 const pointInTimeContext = process.argv.includes("--point-in-time-context");
@@ -490,7 +493,9 @@ try {
         const day=new OriginalDate(staleBenchmark && benchmark ? "2026-05-26T00:00:00Z" : "2026-09-30T00:00:00Z");
         while(values.length<60) {
           const date=day.toISOString().slice(0,10);
-          if(readers.getUsEquityMarketSession(date).session_close) values.unshift({datetime:date,open:"100",high:"103",low:"99",close:"101",volume:"1000"});
+          if(readers.getUsEquityMarketSession(date).session_close) values.unshift(originalPlanGeometry && !benchmark
+            ? {datetime:date,open:"95",high:"98",low:"94",close:"95",volume:"1000"}
+            : {datetime:date,open:"100",high:"103",low:"99",close:"101",volume:"1000"});
           day.setUTCDate(day.getUTCDate()-1);
         }
         if (partialBenchmark && benchmark) {
@@ -2160,9 +2165,14 @@ try {
         }
         assert.equal(candidate.data.freshness,"fresh");
         assert.deepEqual(candidate.data.gap_codes,[]);
+        if(originalPlanGeometry) assert(candidate.data.input_snapshot.features.proposed_stop_loss <
+          Number((candidate.data.input_snapshot.features.latest_close * 0.96).toFixed(2)),
+          "The actual scanner must produce a support-anchored plan distinct from the legacy percentage fallback");
         for(const [column,feature] of [["entry_low","proposed_entry_low"],["entry_high","proposed_entry_high"],
-          ["stop_loss","proposed_stop_loss"],["target_1","proposed_target_1"]]) {
-          assert.equal(Number(row[column]),candidate.data.input_snapshot.features[feature]);
+          ["stop_loss","proposed_stop_loss"],["target_1","proposed_target_1"],
+          ["target_2","proposed_target_2"],["risk_reward","proposed_risk_reward"]]) {
+          assert.equal(Number(row[column]),candidate.data.input_snapshot.features[feature],
+            `Publication must retain the exact original ${row.ticker} ${column}`);
         }
         assert(OriginalDate.parse(record.decision_timestamp)<=OriginalDate.parse(row.created_at),
           `Explicit decision must precede publication: decision=${record.decision_timestamp}, published=${row.created_at}`);
@@ -2177,6 +2187,8 @@ try {
         assert.equal(readers.candidateDecisionRecordFromScanRun(changed),null);
       }
       originalLog(JSON.stringify({publication_clock_proof:"passed",synthetic_publication_count:published.length,
+        ...(originalPlanGeometry ? { original_plan_geometry_proof:"passed", original_plan_field_count:6,
+          support_anchored_publication_count:published.length, original_population_count:record.candidates.length } : {}),
         decision_timestamp:record.decision_timestamp,published_at:published.map(row=>row.created_at),
         completed_at:scanRuns[0].completed_at,actual_provider_requests:0,production_actions:0}));
     }

@@ -1605,6 +1605,33 @@ function buildPlanPricesFromReference(referencePrice: number) {
   };
 }
 
+function buildPlanPricesForCandidate(candidate: ScannerCandidate, referencePrice: number):
+  ReturnType<typeof buildPlanPricesFromReference> | null {
+  if (candidate.scanner_input_policy_version !== COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION) {
+    return buildPlanPricesFromReference(referencePrice);
+  }
+  // The original scanner already used the historical support anchor. Do not
+  // invent a second plan from its current price, or fill missing original fields.
+  const plan = {
+    entryLow: candidate.proposed_entry_low, entryHigh: candidate.proposed_entry_high,
+    stopLoss: candidate.proposed_stop_loss, target1: candidate.proposed_target_1,
+    target2: candidate.proposed_target_2, riskReward: candidate.proposed_risk_reward,
+  };
+  if (Object.values(plan).some(value => typeof value !== "number" || !Number.isFinite(value))) return null;
+  return plan as ReturnType<typeof buildPlanPricesFromReference>;
+}
+
+function recommendationMatchesOriginalPlan(candidate: ScannerCandidate, recommendation: {
+  entry_low: number; entry_high: number; stop_loss: number;
+  target_1: number; target_2: number; risk_reward: number;
+}) {
+  const plan = buildPlanPricesForCandidate(candidate, 0);
+  return plan !== null && riskGeometryStatus(plan) === "valid" &&
+    recommendation.entry_low === plan.entryLow && recommendation.entry_high === plan.entryHigh &&
+    recommendation.stop_loss === plan.stopLoss && recommendation.target_1 === plan.target1 &&
+    recommendation.target_2 === plan.target2 && recommendation.risk_reward === plan.riskReward;
+}
+
 function buildPlanEntryTypeMetadata(input: {
   side: "long" | "short";
   entry: number | null;
@@ -1787,8 +1814,10 @@ function buildOpenAiCandidatePayloads({
   });
 }
 
-function riskGeometryStatus(planPrices: ReturnType<typeof buildPlanPricesFromReference>) {
+function riskGeometryStatus(planPrices: ReturnType<typeof buildPlanPricesFromReference> | null) {
   if (
+    planPrices === null ||
+    Object.values(planPrices).some(value => !Number.isFinite(value)) ||
     planPrices.entryLow <= 0 ||
     planPrices.entryHigh <= 0 ||
     planPrices.stopLoss <= 0 ||
@@ -1985,10 +2014,10 @@ function buildDeterministicLearningRecommendations({
       continue;
     }
 
-    const planPrices = buildPlanPricesFromReference(referencePrice);
+    const planPrices = buildPlanPricesForCandidate(candidate, referencePrice);
     const geometryStatus = riskGeometryStatus(planPrices);
 
-    if (geometryStatus !== "valid") {
+    if (planPrices === null || geometryStatus !== "valid") {
       const rejectionReason =
         geometryStatus === "weak_risk_reward"
           ? "weak_risk_reward"
@@ -2347,6 +2376,11 @@ function sanitizeRecommendations(
         throw new Error(`Recommendation ${ticker} risk_reward must be positive.`);
       }
 
+      if (candidate.scanner_input_policy_version === COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION &&
+        !recommendationMatchesOriginalPlan(candidate, recommendation)) {
+        throw new Error(`Recommendation ${ticker} does not match its valid original completed-input plan.`);
+      }
+
       const warningSummary = stringArray(recommendation.warning_summary);
       const mergedWarningSummary = Array.from(
         new Set([
@@ -2395,6 +2429,8 @@ function sanitizeRecommendations(
         confidence_reasoning: recommendation.confidence_reasoning,
         risk_flags: riskFlags,
         plan_reference_price: retainedPlanReferencePrice,
+        plan_geometry_binding_version: candidate.scanner_input_policy_version === COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION
+          ? "completed_input_original_plan_binding_v1" : null,
         recommendation_build_path:
           recommendation.recommendation_build_path ??
           (recommendation.entry_type_source === "deterministic_plan_builder"
@@ -3844,7 +3880,7 @@ export async function generateRecommendations({
           const planPrices =
             referencePrice === null
               ? null
-              : buildPlanPricesFromReference(referencePrice);
+              : buildPlanPricesForCandidate(candidate, referencePrice);
           const geometryStatus = planPrices
             ? riskGeometryStatus(planPrices)
             : "not_checked";
@@ -4154,6 +4190,7 @@ export async function generateRecommendations({
     });
     const publicationCheckedAt = new Date();
     const publicationDecisionTimestamp = publicationCheckedAt.toISOString();
+    let originalPlanMismatch = false;
     const recommendationsToInsert = sanitizedRecommendations.recommendations.filter(recommendation => {
       if (!inputAttributed) return true;
       const candidate = scannerCandidates.find(candidate => candidate.ticker === recommendation.ticker);
@@ -4165,11 +4202,19 @@ export async function generateRecommendations({
         recordCandidateEligibilityRejection(recommendation.ticker, "provider_data_stale");
         sanitizedRecommendations.skippedReasons.push(`${recommendation.ticker}: versioned current-session inputs expired or unavailable before publication.`);
       }
+      if (usable && candidate && !recommendationMatchesOriginalPlan(candidate, recommendation)) {
+        originalPlanMismatch = true;
+        recordCandidateEligibilityRejection(recommendation.ticker, "recommendation_validation_failed");
+        sanitizedRecommendations.skippedReasons.push(`${recommendation.ticker}: recommendation geometry differs from its original scanner plan.`);
+        return false;
+      }
       return usable;
     });
     if (inputAttributed && recommendationsToInsert.length === 0 && sanitizedRecommendations.recommendations.length > 0) {
-      modelNoPublish = { reason: "current_session_inputs_expired",
-        message: "No trade: current-session inputs expired or became unavailable before publication." };
+      modelNoPublish = originalPlanMismatch
+        ? { reason: "openai_recommendation_validation_failed", message: "No trade: recommendation geometry differs from its original scanner plan." }
+        : { reason: "current_session_inputs_expired",
+          message: "No trade: current-session inputs expired or became unavailable before publication." };
     }
 
     const sanitizedPublicationAction =
@@ -4207,7 +4252,7 @@ export async function generateRecommendations({
         );
         const referencePrice = planReferencePrice.reference_price_used_for_plan;
         const planPrices =
-          referencePrice === null ? null : buildPlanPricesFromReference(referencePrice);
+          referencePrice === null ? null : buildPlanPricesForCandidate(candidate, referencePrice);
         const geometryStatus = planPrices ? riskGeometryStatus(planPrices) : "not_checked";
         const built = builtTickerSet.has(candidate.ticker);
 

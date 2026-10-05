@@ -2,6 +2,110 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-05, recommendation intelligence first
 
+**Now — preserve original completed-input publication geometry, 2026-10-05:**
+Codex owns `codex/source-bound-publication-geometry-oct5`, isolated from the
+dirty user checkout on verified main `4a939831b46efdf6ad4089b148d6fc803e1cabd5`.
+One primary IF-2b -> IF-4 `quality_measurement` correction, initial budget four
+active hours. The Oct 5 frozen 16:15Z normal production diagnostic actually
+completes, but its immutable receipt is **fail** (`unbound_or_stale_publication`).
+A separate owner-bound read-only follow-up proves the defect is geometry,
+not freshness or clock order: NVDA's original stop/targets 223.79 / 262.24 /
+273.77 become 227.33 / 256.93 / 265.81 on publication; entry remains
+234.43–239.17. ASTS preserves its original geometry. The deterministic fallback
+rebuilds a percentage-based plan instead of retaining the scanner's support
+anchor. Old published rows, decisions, outcomes and the failed card are immutable.
+
+Reproduce RED using the registered packaged scheduler -> real generator ->
+isolated PostgreSQL/SDK publication proof, varying only provider-boundary
+historical bars to make the original support anchor differ. Then preserve
+the original six plan fields in completed-input fallback and reject any model
+plan mismatch before persistence. Retain legacy semantics, explicit no_trade,
+freshness, ownership, all eight identities/nulls, ranking/quality thresholds
+and eight-credit scan budget. Require exact published original-plan readback,
+canonical outcome continuity after restart, affected regressions, types/lint
+and an exact committed build before one focused protected release. No new
+scan, provider request, migration, source rewrite or broker action is selected.
+
+**Actual OPEN evidence retained:** attempt `scheduled_scan_attempt_10whjni`,
+run `rec_scan_run_of9yv0`; scheduler 16:15:25.663Z, route 16:15:27.799Z,
+original capture 16:15:38.528Z, decision 16:15:38.879Z, publication
+16:15:38.976208Z, completion 16:15:39.423Z, finalization 16:15:41.758Z.
+Exactly one reservation/finalization of eight credits, six scanner provider
+requests, zero overlap/unresolved/duplicate/broker effects. All eight original
+identities survive: three fresh complete inputs and matching original replays,
+five explicit unavailable-history members. Two publications and one hidden
+ADBE source do not prove recommendation quality or full input fitness.
+Raw frozen receipt observed 16:17:09.884Z within its absolute bounded window:
+`/private/tmp/ture-oct5-original-input-1815-readback.receipt.json`.
+Separate later diagnosis: `/private/tmp/ture-oct5-publication-binding-followup.receipt.json`.
+The single cleanup build `6ac3cd97ad37f1708160f6d7` publishes ready production
+deploy `6ac3cd97ad37f1708160f6d9` at 16:28:14.876Z on unchanged frozen main.
+Effective owner-bound inert runtime readback passes at 16:30:35.339Z, with zero
+active reservations, global scheduler-disable true and all competing modes off.
+The consumed heartbeat is deleted. No retry or second cleanup build occurs.
+
+Both original local RED native commands fail before product edits: the full
+learning continuation finds the published normalized input binding absent;
+the publication-only path proves stop 98.71 instead of original support 95.
+Only the synthetic historical provider-boundary bars differ, retaining the
+same eight-member population and existing scheduler/generator/database path.
+The proposed correction is versioned as
+`selective_top_3_strong_valid_v4_preserve_no_trade_original_plan`; numeric
+ranking, thresholds and candidate selection are unchanged. Verification and
+protected release are not yet complete.
+
+**Local acceptance — 2026-10-05:** the same formerly RED support-anchored
+packaged path now preserves all six original plan fields and its input binding,
+survives restarted owned SQL/SDK reads and produces three canonical synthetic
+60m outcomes while retaining all eight identities/five missing members.
+Completed repeats acquire nothing; old publications remain unchanged.
+Both affected local commands finish: 139 checks in ten files (6.0m), plus 63
+different checks in seven files (9.1s), **202 distinct passes**. The separately
+focused eight checks and native proof overlap this total, not extra passes.
+The actual private generator/sanitizer controls retain legacy percentage plans,
+reject every changed original field including sub-cent aliases, refuse missing,
+nonfinite/invalid/weak plans and stale/future reference evidence. Ranking's
+frozen numeric invariance, explicit no_trade, canonical coverage, resumption
+and historical source admission remain green. Nonincremental types and full
+lint pass, with zero errors/eight existing warnings. Environment: Node 26.5.0,
+macOS arm64, isolated local PostgreSQL/PostgREST and synthetic provider-boundary
+inputs. No real-market improvement, production release or live behavior of
+this correction is proven. Exact clean committed Linux build follows.
+
+**Exact build — 2026-10-05:** clean product/test revision
+`7d7aee124ea480002e5137716fd61e0afaf699c0` passes the normal Next 16.3.8
+Linux build on Node 22.23.1, after a locked public install, both native consumer
+checks and all 33 generated pages. Build network is disabled; no production
+credentials are mounted. Lock SHA256 remains
+`c126ba15634fffec241592d1316ea2e0bb9708886f865dc72f5fd30b2e084083`.
+Receipt: `/private/tmp/ture-original-plan-publication-exact-build-oct5-receipt.json`.
+This acceptance annotation changes documentation only; product/test/workflow
+bytes stay identical to the built commit. Protected CI, merge, deployed runtime
+and a newly frozen live original-plan observation remain pending. The old failed
+diagnostic remains failed. Do not arm or move any consumed observation card.
+
+The completed SQ→XYZ discovery secondary stays clean/local on `f0321631`,
+with 184 distinct checks and exact Linux build of product revision `2e7e514b`;
+no push/PR/release. Finish this measured primary defect before integrating
+that independent change and freezing any new full-charter comparison. Today's
+failed diagnostic is not a forward training cohort. Graduation remains `not_met`.
+
+
+**Independent CLOSED post-735 composition — 2026-10-05:** while the unchanged
+primary #735 head `8857b1a0` runs protected CI, Codex composes that exact local
+product/test candidate with the already accepted Block-reference secondary
+`f0321631` on its existing isolated `codex/discovery-current-block-reference-oct5`
+branch. Only the ledger conflicts; product, test and schema ownership remain
+separate. Preserve both histories and verify discovery/input/publication/outcome
+composition locally. This is not a primary release, a third slice or new OPEN
+authority. No secondary push/PR/deploy until #735 is accepted on main and any
+new frozen primary diagnostic has verified cleanup. Exact current-main
+composition, tests/build and XYZ provider support are not yet reaccepted.
+The four-active-hour secondary budget and all existing cohort/budget/quality
+boundaries remain unchanged.
+
+### Retained pre-735 secondary and frozen observation receipts
+
 **Independent CLOSED composition — 2026-10-05:** Codex retains ownership of
 `codex/discovery-current-block-reference-oct5`; integrate only the accepted
 current issuer lookup/tests with exact main `4a939831b46efdf6ad4089b148d6fc803e1cabd5`.
@@ -174,7 +278,8 @@ Final nonincremental types and full lint also pass on the settled product/tests
 exact built `a0b7508a`; no claim that the later documentation HEAD was rebuilt.
 
 
-### Retained original-clock pre-release implementation and acceptance
+
+### Retained original-clock release foundation
 
 **Now — original current-session clock admission, 2026-10-05:** Codex owns
 `codex/original-session-clock-admission-oct5`, isolated from the dirty user
