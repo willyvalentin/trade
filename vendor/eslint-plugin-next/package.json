@@ -1,0 +1,27 @@
+{
+  "name": "@next/eslint-plugin-next",
+  "version": "16.3.8-ture.1",
+  "description": "Ture-maintained derivative of @next/eslint-plugin-next 16.3.8; unchanged lint rules, bounded root-directory glob replacement.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "license": "MIT",
+  "repository": {
+    "url": "vercel/next.js",
+    "directory": "packages/eslint-plugin-next"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "LICENSE-FAST-GLOB",
+    "PROVENANCE.json",
+    "root-consumer-baseline.json",
+    "README.md"
+  ],
+  "dependencies": {
+    "@eslint-community/eslint-utils": "4.9.1",
+    "brace-expansion": "5.0.12",
+    "glob-parent": "6.0.2",
+    "picomatch": "4.0.4"
+  },
+  "private": true
+}

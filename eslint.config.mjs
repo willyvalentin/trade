@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Compiled, provenance-verified third-party rule bytes; not application source.
+    "vendor/eslint-plugin-next/dist/**",
     "**/*#*.ts",
     "**/*#*.tsx",
   ]),

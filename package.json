@@ -28,7 +28,11 @@
     "react-dom": "19.2.4",
     "server-only": "0.0.1"
   },
+  "overrides": {
+    "@next/eslint-plugin-next": "$@next/eslint-plugin-next"
+  },
   "devDependencies": {
+    "@next/eslint-plugin-next": "file:vendor/eslint-plugin-next",
     "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",

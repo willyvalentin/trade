@@ -2,6 +2,32 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Selected user-approved CLOSED release blocker removal — 2026-10-05:**
+The human explicitly approves a bounded locally maintained Next lint-plugin
+replacement after upstream braces PR #72 closed unmerged on Oct 5. Codex owns
+the existing isolated #732 branch at `2741f946`; verified main is `55576078`.
+Budget four-to-eight active hours, investigation at most four. Retain the
+official 16.3.8 rule implementations/configuration and MIT notices, with exact
+upstream artifact provenance. Replace only root-directory glob acquisition
+and remove the actual fast-glob/micromatch/braces dependency chain. This is
+`supporting_blocker_removal`, not improved recommendation quality.
+
+Verify real default and configured string/array/monorepo root behavior against
+the original CLI consumer, malformed/adversarial patterns, all rule identities
+and severity/configuration, clean lockfile installation, unchanged full audit,
+lint/types and exact locked Linux build. The previously incompatible raw alias
+is not accepted. No renamed vulnerable braces, advisory exclusion, audit-only
+filter, rule disable, framework downgrade or protected-check change. The human
+approval selects this derivative, not any such bypass or an upstream write.
+
+Ownership: the vendored lint plugin/provenance, package manifest and lockfile,
+registered compatibility checks and this ledger. Update existing #732 only
+after coherent local acceptance. Protected Ready CI/review/provenance still
+precede merge; production schema and market evidence remain separate. Stop
+this support slice after its minimum verified exit and resume the original
+IF-2b -> IF-4 input/canonical-outcome/full-charter delivery. Park other locally
+complete intelligence slices; do not merge them into this dependency repair.
+
 **Now — exact-head Draft verification of the integrated original learning vertical, 2026-10-04:**
 The bounded IF-2b corrections below have passed their combined local acceptance.
 Select one coherent fast-forward update of existing Draft #732, not a competing

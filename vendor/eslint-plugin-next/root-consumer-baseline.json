@@ -1,0 +1,1876 @@
+{
+  "contract_version": "ture_next_lint_original_consumer_v1",
+  "upstream": "@next/eslint-plugin-next@16.3.8",
+  "cases": [
+    {
+      "name": "default",
+      "result": {
+        "roots": [
+          "$CWD"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": ".",
+      "result": {
+        "roots": [
+          "."
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "./",
+      "result": {
+        "roots": [
+          "./"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "apps/web",
+      "result": {
+        "roots": [
+          "apps/web"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "./apps/web",
+      "result": {
+        "roots": [
+          "./apps/web"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "apps/web/",
+      "result": {
+        "roots": [
+          "apps/web/"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "apps/*",
+      "result": {
+        "roots": [
+          "apps/mobile",
+          "apps/paren(site)",
+          "apps/site1",
+          "apps/site2",
+          "apps/site3",
+          "apps/web",
+          "apps/web-alias",
+          "apps/{literal}"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "apps/**",
+      "result": {
+        "roots": [
+          "apps/mobile",
+          "apps/paren(site)",
+          "apps/site1",
+          "apps/site2",
+          "apps/site3",
+          "apps/web",
+          "apps/web-alias",
+          "apps/{literal}",
+          "apps/mobile/app",
+          "apps/paren(site)/pages",
+          "apps/site1/pages",
+          "apps/site2/pages",
+          "apps/site3/pages",
+          "apps/web/pages",
+          "apps/web/public",
+          "apps/web-alias/pages",
+          "apps/web-alias/public",
+          "apps/{literal}/pages",
+          "apps/web/public/child",
+          "apps/web-alias/public/child"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "apps/**/",
+      "result": {
+        "roots": [
+          "apps/mobile",
+          "apps/paren(site)",
+          "apps/site1",
+          "apps/site2",
+          "apps/site3",
+          "apps/web",
+          "apps/web-alias",
+          "apps/{literal}",
+          "apps/mobile/app",
+          "apps/paren(site)/pages",
+          "apps/site1/pages",
+          "apps/site2/pages",
+          "apps/site3/pages",
+          "apps/web/pages",
+          "apps/web/public",
+          "apps/web-alias/pages",
+          "apps/web-alias/public",
+          "apps/{literal}/pages",
+          "apps/web/public/child",
+          "apps/web-alias/public/child"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "apps/w?b",
+      "result": {
+        "roots": [
+          "apps/web"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "apps/[wm]*",
+      "result": {
+        "roots": [
+          "apps/mobile",
+          "apps/web",
+          "apps/web-alias"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "apps/{web,mobile}",
+      "result": {
+        "roots": [
+          "apps/web",
+          "apps/mobile"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "apps/!(mobile)",
+      "result": {
+        "roots": [
+          "apps/.hidden",
+          "apps/paren(site)",
+          "apps/site1",
+          "apps/site2",
+          "apps/site3",
+          "apps/web",
+          "apps/web-alias",
+          "apps/{literal}"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "apps/@(web|mobile)",
+      "result": {
+        "roots": [
+          "apps/mobile",
+          "apps/web"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "apps/.hidden",
+      "result": {
+        "roots": [
+          "apps/.hidden"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "apps/**/.hidden",
+      "result": {
+        "roots": [
+          "apps/.hidden"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "packages/*",
+      "result": {
+        "roots": [
+          "packages/blog",
+          "packages/store"
+        ],
+        "messages": []
+      }
+    },
+    {
+      "name": "does-not-exist",
+      "result": {
+        "roots": [],
+        "messages": []
+      }
+    },
+    {
+      "name": "apps/not-a-directory",
+      "result": {
+        "roots": [],
+        "messages": []
+      }
+    },
+    {
+      "name": "!apps/web",
+      "result": {
+        "roots": [],
+        "messages": []
+      }
+    },
+    {
+      "name": "../external-site",
+      "result": {
+        "roots": [
+          "../external-site"
+        ],
+        "messages": []
+      }
+    },
+    {
+      "name": "apps\\web",
+      "result": {
+        "roots": [
+          "apps/web"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "empty-pattern",
+      "result": {
+        "error": {
+          "name": "TypeError",
+          "message": "Patterns must be a string (non empty) or an array of strings"
+        }
+      }
+    },
+    {
+      "name": "apps/{broken",
+      "result": {
+        "roots": [],
+        "messages": []
+      }
+    },
+    {
+      "name": "apps/[broken",
+      "result": {
+        "roots": [],
+        "messages": []
+      }
+    },
+    {
+      "name": "./apps/*",
+      "result": {
+        "roots": [
+          "./apps/mobile",
+          "./apps/paren(site)",
+          "./apps/site1",
+          "./apps/site2",
+          "./apps/site3",
+          "./apps/web",
+          "./apps/web-alias",
+          "./apps/{literal}"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "./apps/**",
+      "result": {
+        "roots": [
+          "./apps/mobile",
+          "./apps/paren(site)",
+          "./apps/site1",
+          "./apps/site2",
+          "./apps/site3",
+          "./apps/web",
+          "./apps/web-alias",
+          "./apps/{literal}",
+          "./apps/mobile/app",
+          "./apps/paren(site)/pages",
+          "./apps/site1/pages",
+          "./apps/site2/pages",
+          "./apps/site3/pages",
+          "./apps/web/pages",
+          "./apps/web/public",
+          "./apps/web-alias/pages",
+          "./apps/web-alias/public",
+          "./apps/{literal}/pages",
+          "./apps/web/public/child",
+          "./apps/web-alias/public/child"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "apps//web",
+      "result": {
+        "roots": [
+          "apps/web"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "apps//*/",
+      "result": {
+        "roots": [
+          "apps/mobile",
+          "apps/paren(site)",
+          "apps/site1",
+          "apps/site2",
+          "apps/site3",
+          "apps/web",
+          "apps/web-alias",
+          "apps/{literal}"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "apps/web/../mobile",
+      "result": {
+        "roots": [
+          "apps/web/../mobile"
+        ],
+        "messages": []
+      }
+    },
+    {
+      "name": "apps/*/pages",
+      "result": {
+        "roots": [
+          "apps/paren(site)/pages",
+          "apps/site1/pages",
+          "apps/site2/pages",
+          "apps/site3/pages",
+          "apps/web/pages",
+          "apps/web-alias/pages",
+          "apps/{literal}/pages"
+        ],
+        "messages": []
+      }
+    },
+    {
+      "name": "apps/**/pages",
+      "result": {
+        "roots": [
+          "apps/paren(site)/pages",
+          "apps/site1/pages",
+          "apps/site2/pages",
+          "apps/site3/pages",
+          "apps/web/pages",
+          "apps/web-alias/pages",
+          "apps/{literal}/pages"
+        ],
+        "messages": []
+      }
+    },
+    {
+      "name": "apps/{web,mobile}/**",
+      "result": {
+        "roots": [
+          "apps/web/pages",
+          "apps/web/public",
+          "apps/web/public/child",
+          "apps/mobile/app"
+        ],
+        "messages": []
+      }
+    },
+    {
+      "name": "apps/{web,mobile}/*",
+      "result": {
+        "roots": [
+          "apps/web/pages",
+          "apps/web/public",
+          "apps/mobile/app"
+        ],
+        "messages": []
+      }
+    },
+    {
+      "name": "{apps/*,packages/*}",
+      "result": {
+        "roots": [
+          "apps/mobile",
+          "apps/paren(site)",
+          "apps/site1",
+          "apps/site2",
+          "apps/site3",
+          "apps/web",
+          "apps/web-alias",
+          "apps/{literal}",
+          "packages/blog",
+          "packages/store"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "{packages/*,apps/*}",
+      "result": {
+        "roots": [
+          "apps/mobile",
+          "apps/paren(site)",
+          "apps/site1",
+          "apps/site2",
+          "apps/site3",
+          "apps/web",
+          "apps/web-alias",
+          "apps/{literal}",
+          "packages/blog",
+          "packages/store"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "{apps/web,packages/blog}",
+      "result": {
+        "roots": [
+          "apps/web",
+          "packages/blog"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "apps/{web,web,mobile}",
+      "result": {
+        "roots": [
+          "apps/web",
+          "apps/mobile"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "apps/{web,{mobile,.hidden}}",
+      "result": {
+        "roots": [
+          "apps/web",
+          "apps/mobile",
+          "apps/.hidden"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "apps/{,web}/pages",
+      "result": {
+        "roots": [
+          "apps/web/pages"
+        ],
+        "messages": []
+      }
+    },
+    {
+      "name": "apps/site{1..3}",
+      "result": {
+        "roots": [
+          "apps/site1",
+          "apps/site2",
+          "apps/site3"
+        ],
+        "messages": []
+      }
+    },
+    {
+      "name": "apps/site{3..1}",
+      "result": {
+        "roots": [
+          "apps/site3",
+          "apps/site2",
+          "apps/site1"
+        ],
+        "messages": []
+      }
+    },
+    {
+      "name": "apps/site{1..3..2}",
+      "result": {
+        "roots": [
+          "apps/site1",
+          "apps/site3"
+        ],
+        "messages": []
+      }
+    },
+    {
+      "name": "apps/{web,site1}",
+      "result": {
+        "roots": [
+          "apps/web",
+          "apps/site1"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "apps/{web*,site*}",
+      "result": {
+        "roots": [
+          "apps/site1",
+          "apps/site2",
+          "apps/site3",
+          "apps/web",
+          "apps/web-alias"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "apps/?(web|mobile)",
+      "result": {
+        "roots": [
+          "apps/mobile",
+          "apps/web"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "apps/+(web|mobile)",
+      "result": {
+        "roots": [
+          "apps/mobile",
+          "apps/web"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "apps/*(web|mobile)",
+      "result": {
+        "roots": [
+          "apps/mobile",
+          "apps/web"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "apps/(web|mobile)",
+      "result": {
+        "roots": [
+          "apps/mobile",
+          "apps/web"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "apps/[!w]*",
+      "result": {
+        "roots": [
+          "apps/.hidden",
+          "apps/mobile",
+          "apps/paren(site)",
+          "apps/site1",
+          "apps/site2",
+          "apps/site3",
+          "apps/{literal}"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "apps/[!w]*/**",
+      "result": {
+        "roots": [
+          "apps/.hidden",
+          "apps/mobile",
+          "apps/paren(site)",
+          "apps/site1",
+          "apps/site2",
+          "apps/site3",
+          "apps/{literal}",
+          "apps/.hidden/pages",
+          "apps/mobile/app",
+          "apps/paren(site)/pages",
+          "apps/site1/pages",
+          "apps/site2/pages",
+          "apps/site3/pages",
+          "apps/{literal}/pages"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "apps/.*",
+      "result": {
+        "roots": [
+          "apps/.hidden"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "apps/.hidden/**",
+      "result": {
+        "roots": [
+          "apps/.hidden/pages"
+        ],
+        "messages": []
+      }
+    },
+    {
+      "name": "apps/web-alias",
+      "result": {
+        "roots": [
+          "apps/web-alias"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "apps/web-alias/**",
+      "result": {
+        "roots": [
+          "apps/web-alias/pages",
+          "apps/web-alias/public",
+          "apps/web-alias/public/child"
+        ],
+        "messages": []
+      }
+    },
+    {
+      "name": "apps/broken",
+      "result": {
+        "roots": [],
+        "messages": []
+      }
+    },
+    {
+      "name": "apps/broken/**",
+      "result": {
+        "roots": [],
+        "messages": []
+      }
+    },
+    {
+      "name": "apps/paren(site)",
+      "result": {
+        "roots": [],
+        "messages": []
+      }
+    },
+    {
+      "name": "apps/{literal}",
+      "result": {
+        "roots": [
+          "apps/{literal}"
+        ],
+        "messages": []
+      }
+    },
+    {
+      "name": "{,apps/web}",
+      "result": {
+        "roots": [
+          "apps/web"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "{.,apps/web}",
+      "result": {
+        "roots": [
+          ".",
+          "apps/web"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "{apps/web,apps/*}",
+      "result": {
+        "roots": [
+          "apps/web",
+          "apps/mobile",
+          "apps/paren(site)",
+          "apps/site1",
+          "apps/site2",
+          "apps/site3",
+          "apps/web-alias",
+          "apps/{literal}"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "{apps/*,apps/web}",
+      "result": {
+        "roots": [
+          "apps/web",
+          "apps/mobile",
+          "apps/paren(site)",
+          "apps/site1",
+          "apps/site2",
+          "apps/site3",
+          "apps/web-alias",
+          "apps/{literal}"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "{apps/*,**/pages}",
+      "result": {
+        "roots": [
+          "pages",
+          "apps/mobile",
+          "apps/paren(site)",
+          "apps/site1",
+          "apps/site2",
+          "apps/site3",
+          "apps/web",
+          "apps/web-alias",
+          "apps/{literal}",
+          "src/pages",
+          "apps/paren(site)/pages",
+          "apps/site1/pages",
+          "apps/site2/pages",
+          "apps/site3/pages",
+          "apps/web/pages",
+          "apps/web-alias/pages",
+          "apps/{literal}/pages",
+          "letters/appa/pages",
+          "letters/appb/pages",
+          "letters/appc/pages",
+          "packages/blog/pages",
+          "packages/store/pages",
+          "ranges/app01/pages",
+          "ranges/app02/pages",
+          "ranges/app03/pages"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "../*/pages",
+      "result": {
+        "roots": [
+          "../external-site/pages",
+          "../workspace/pages"
+        ],
+        "messages": []
+      }
+    },
+    {
+      "name": "./../external-site",
+      "result": {
+        "roots": [
+          "./../external-site"
+        ],
+        "messages": []
+      }
+    },
+    {
+      "name": "apps/../apps/*",
+      "result": {
+        "roots": [
+          "apps/../apps/mobile",
+          "apps/../apps/paren(site)",
+          "apps/../apps/site1",
+          "apps/../apps/site2",
+          "apps/../apps/site3",
+          "apps/../apps/web",
+          "apps/../apps/web-alias",
+          "apps/../apps/{literal}"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "**",
+      "result": {
+        "roots": [
+          "app",
+          "apps",
+          "empty",
+          "letters",
+          "packages",
+          "pages",
+          "ranges",
+          "src",
+          "apps/mobile",
+          "apps/paren(site)",
+          "apps/site1",
+          "apps/site2",
+          "apps/site3",
+          "apps/web",
+          "apps/web-alias",
+          "apps/{literal}",
+          "letters/appa",
+          "letters/appb",
+          "letters/appc",
+          "packages/blog",
+          "packages/store",
+          "ranges/app01",
+          "ranges/app02",
+          "ranges/app03",
+          "src/pages",
+          "apps/mobile/app",
+          "apps/paren(site)/pages",
+          "apps/site1/pages",
+          "apps/site2/pages",
+          "apps/site3/pages",
+          "apps/web/pages",
+          "apps/web/public",
+          "apps/web-alias/pages",
+          "apps/web-alias/public",
+          "apps/{literal}/pages",
+          "letters/appa/pages",
+          "letters/appb/pages",
+          "letters/appc/pages",
+          "packages/blog/pages",
+          "packages/store/pages",
+          "ranges/app01/pages",
+          "ranges/app02/pages",
+          "ranges/app03/pages",
+          "apps/web/public/child",
+          "apps/web-alias/public/child"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "**/",
+      "result": {
+        "roots": [
+          "app",
+          "apps",
+          "empty",
+          "letters",
+          "packages",
+          "pages",
+          "ranges",
+          "src",
+          "apps/mobile",
+          "apps/paren(site)",
+          "apps/site1",
+          "apps/site2",
+          "apps/site3",
+          "apps/web",
+          "apps/web-alias",
+          "apps/{literal}",
+          "letters/appa",
+          "letters/appb",
+          "letters/appc",
+          "packages/blog",
+          "packages/store",
+          "ranges/app01",
+          "ranges/app02",
+          "ranges/app03",
+          "src/pages",
+          "apps/mobile/app",
+          "apps/paren(site)/pages",
+          "apps/site1/pages",
+          "apps/site2/pages",
+          "apps/site3/pages",
+          "apps/web/pages",
+          "apps/web/public",
+          "apps/web-alias/pages",
+          "apps/web-alias/public",
+          "apps/{literal}/pages",
+          "letters/appa/pages",
+          "letters/appb/pages",
+          "letters/appc/pages",
+          "packages/blog/pages",
+          "packages/store/pages",
+          "ranges/app01/pages",
+          "ranges/app02/pages",
+          "ranges/app03/pages",
+          "apps/web/public/child",
+          "apps/web-alias/public/child"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "**/pages",
+      "result": {
+        "roots": [
+          "pages",
+          "src/pages",
+          "apps/paren(site)/pages",
+          "apps/site1/pages",
+          "apps/site2/pages",
+          "apps/site3/pages",
+          "apps/web/pages",
+          "apps/web-alias/pages",
+          "apps/{literal}/pages",
+          "letters/appa/pages",
+          "letters/appb/pages",
+          "letters/appc/pages",
+          "packages/blog/pages",
+          "packages/store/pages",
+          "ranges/app01/pages",
+          "ranges/app02/pages",
+          "ranges/app03/pages"
+        ],
+        "messages": []
+      }
+    },
+    {
+      "name": "./**/pages",
+      "result": {
+        "roots": [
+          "pages",
+          "src/pages",
+          "apps/paren(site)/pages",
+          "apps/site1/pages",
+          "apps/site2/pages",
+          "apps/site3/pages",
+          "apps/web/pages",
+          "apps/web-alias/pages",
+          "apps/{literal}/pages",
+          "letters/appa/pages",
+          "letters/appb/pages",
+          "letters/appc/pages",
+          "packages/blog/pages",
+          "packages/store/pages",
+          "ranges/app01/pages",
+          "ranges/app02/pages",
+          "ranges/app03/pages"
+        ],
+        "messages": []
+      }
+    },
+    {
+      "name": "apps/**/public/**",
+      "result": {
+        "roots": [
+          "apps/web/public",
+          "apps/web-alias/public",
+          "apps/web/public/child",
+          "apps/web-alias/public/child"
+        ],
+        "messages": []
+      }
+    },
+    {
+      "name": "!apps/*",
+      "result": {
+        "roots": [],
+        "messages": []
+      }
+    },
+    {
+      "name": "!!apps/web",
+      "result": {
+        "roots": [],
+        "messages": []
+      }
+    },
+    {
+      "name": "apps/{malformed,",
+      "result": {
+        "roots": [],
+        "messages": []
+      }
+    },
+    {
+      "name": "apps/@(malformed",
+      "result": {
+        "roots": [],
+        "messages": []
+      }
+    },
+    {
+      "name": "{apps/*,!apps/mobile}",
+      "result": {
+        "roots": [
+          "apps/paren(site)",
+          "apps/site1",
+          "apps/site2",
+          "apps/site3",
+          "apps/web",
+          "apps/web-alias",
+          "apps/{literal}"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "{apps/**,!apps/web/**}",
+      "result": {
+        "roots": [
+          "apps/mobile",
+          "apps/paren(site)",
+          "apps/site1",
+          "apps/site2",
+          "apps/site3",
+          "apps/web-alias",
+          "apps/{literal}",
+          "apps/mobile/app",
+          "apps/paren(site)/pages",
+          "apps/site1/pages",
+          "apps/site2/pages",
+          "apps/site3/pages",
+          "apps/web-alias/pages",
+          "apps/web-alias/public",
+          "apps/{literal}/pages",
+          "apps/web-alias/public/child"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "{apps/**,!apps/.hidden}",
+      "result": {
+        "roots": [
+          "apps/mobile",
+          "apps/paren(site)",
+          "apps/site1",
+          "apps/site2",
+          "apps/site3",
+          "apps/web",
+          "apps/web-alias",
+          "apps/{literal}",
+          "apps/mobile/app",
+          "apps/paren(site)/pages",
+          "apps/site1/pages",
+          "apps/site2/pages",
+          "apps/site3/pages",
+          "apps/web/pages",
+          "apps/web/public",
+          "apps/web-alias/pages",
+          "apps/web-alias/public",
+          "apps/{literal}/pages",
+          "apps/web/public/child",
+          "apps/web-alias/public/child"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "{apps/web,!apps/web}",
+      "result": {
+        "roots": [],
+        "messages": []
+      }
+    },
+    {
+      "name": "{apps/web,../external-site}",
+      "result": {
+        "roots": [
+          "../external-site",
+          "apps/web"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "{../external-site,apps/web}",
+      "result": {
+        "roots": [],
+        "messages": []
+      }
+    },
+    {
+      "name": "{./apps/web,../external-site}",
+      "result": {
+        "roots": [
+          "../external-site",
+          "./apps/web"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "{packages/blog,apps/web,packages/store}",
+      "result": {
+        "roots": [
+          "apps/web",
+          "packages/blog",
+          "packages/store"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "{apps/mobile,packages/blog,apps/web}",
+      "result": {
+        "roots": [
+          "apps/web",
+          "apps/mobile",
+          "packages/blog"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "{./apps/*,../external-site/*}",
+      "result": {
+        "roots": [
+          "../external-site/pages",
+          "./apps/mobile",
+          "./apps/paren(site)",
+          "./apps/site1",
+          "./apps/site2",
+          "./apps/site3",
+          "./apps/web",
+          "./apps/web-alias",
+          "./apps/{literal}"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "{apps/**,!apps/**/pages}",
+      "result": {
+        "roots": [
+          "apps/mobile",
+          "apps/paren(site)",
+          "apps/site1",
+          "apps/site2",
+          "apps/site3",
+          "apps/web",
+          "apps/web-alias",
+          "apps/{literal}",
+          "apps/mobile/app",
+          "apps/web/public",
+          "apps/web-alias/public",
+          "apps/web/public/child",
+          "apps/web-alias/public/child"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "ranges/app{01..03}",
+      "result": {
+        "roots": [
+          "ranges/app01",
+          "ranges/app02",
+          "ranges/app03"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "apps/{web,,mobile}",
+      "result": {
+        "roots": [
+          "apps/",
+          "apps/web",
+          "apps/mobile"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "apps/{web,web}/*",
+      "result": {
+        "roots": [
+          "apps/web/pages",
+          "apps/web/public"
+        ],
+        "messages": []
+      }
+    },
+    {
+      "name": "ranges/app{03..01}",
+      "result": {
+        "roots": [
+          "ranges/app03",
+          "ranges/app02",
+          "ranges/app01"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "ranges/app{01..03..2}",
+      "result": {
+        "roots": [
+          "ranges/app01",
+          "ranges/app03"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "letters/app{a..c}",
+      "result": {
+        "roots": [
+          "letters/appa",
+          "letters/appb",
+          "letters/appc"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "letters/app{c..a}",
+      "result": {
+        "roots": [
+          "letters/appc",
+          "letters/appb",
+          "letters/appa"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "letters/app{a..c..2}",
+      "result": {
+        "roots": [
+          "letters/appa",
+          "letters/appc"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "absolute-literal",
+      "result": {
+        "roots": [
+          "$CWD/apps/web"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "absolute-glob",
+      "result": {
+        "roots": [
+          "$CWD/apps/mobile",
+          "$CWD/apps/paren(site)",
+          "$CWD/apps/site1",
+          "$CWD/apps/site2",
+          "$CWD/apps/site3",
+          "$CWD/apps/web",
+          "$CWD/apps/web-alias",
+          "$CWD/apps/{literal}"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "array",
+      "result": {
+        "roots": [
+          "apps/mobile",
+          "apps/paren(site)",
+          "apps/site1",
+          "apps/site2",
+          "apps/site3",
+          "apps/web",
+          "apps/web-alias",
+          "apps/{literal}",
+          "packages/blog",
+          "packages/store"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "array-preserves-duplicates",
+      "result": {
+        "roots": [
+          "apps/web",
+          "apps/web"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "array-negative-is-separate",
+      "result": {
+        "roots": [
+          "apps/mobile",
+          "apps/paren(site)",
+          "apps/site1",
+          "apps/site2",
+          "apps/site3",
+          "apps/web",
+          "apps/web-alias",
+          "apps/{literal}"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "array-nonstrings",
+      "result": {
+        "roots": [
+          "apps/web"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    },
+    {
+      "name": "empty-array",
+      "result": {
+        "roots": [],
+        "messages": []
+      }
+    },
+    {
+      "name": "nonstring",
+      "result": {
+        "roots": [
+          "$CWD"
+        ],
+        "messages": [
+          {
+            "ruleId": "@next/next/no-html-link-for-pages",
+            "severity": 2,
+            "message": "Do not use an `<a>` element to navigate to `/contact/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages",
+            "line": 1,
+            "column": 19
+          }
+        ]
+      }
+    }
+  ]
+}

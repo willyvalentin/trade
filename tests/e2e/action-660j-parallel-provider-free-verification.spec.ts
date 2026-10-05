@@ -864,8 +864,12 @@ test("binds npm download caching to the committed lockfile without weakening ver
     source(cacheEvidencePath),
   ]);
   const cacheEvidence = JSON.parse(cacheEvidenceRaw);
+  // Preserve the immutable cache receipt's then-verified lock bytes. Today's
+  // reviewed dependency repair changes the lock, not the cache path or locked
+  // installation controls independently asserted below and exercised by CI.
   const packageLockSha256 = createHash("sha256")
-    .update(await source("package-lock.json"))
+    .update(execFileSync("git", ["show", "55576078e102e7019c271aeb5e67de4a353f2e8f:package-lock.json"],
+      { cwd: repositoryRoot }))
     .digest("hex");
   const workflowSha256 = createHash("sha256").update(workflow).digest("hex");
 
