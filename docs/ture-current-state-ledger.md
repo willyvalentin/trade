@@ -98,6 +98,22 @@ original research and publishes nothing. These two focused passes overlap the
 pending final affected-suite run; they are not real-market quality evidence.
 Types, lint, exact updated-revision build and protected CI still follow.
 
+**Consumer-fix verification — 2026-10-05:** updated product/test revision
+`03e5f030c4b6f438cec4b2ee6f73db95fcc9b4e8` completes **242 distinct checks
+in 21 registered files** (12.3m), including both directional/flat closing
+no-publication paths and the new original-plan power-hour publication path.
+Nonincremental types and lint pass with zero errors/eight existing warnings.
+The original #735 foundation job on `8857b1a0` independently finds 11
+whole-session regressions in `completed-benchmark-reuse`: only 23/26 scan runs
+and 184/208 credits survive the old exact-v3 route gate. The original 26-slot
+denominator, budgets, baseline policies and all failed assertions are unchanged;
+reverify those actual cases with the already corrected consumer. A concurrent
+clean Linux build compiles but hits its five-minute local limit in TypeScript;
+it is NOT accepted. Serialize the exact updated build after the test jobs;
+do not change protected CI or route/test/provider limits. Local source is ready
+for focused CI correction, but merge/deployed behavior/NEW OPEN acceptance
+remain pending. The original real-market failed receipt remains immutable.
+
 The completed SQ→XYZ discovery secondary stays clean/local on `f0321631`,
 with 184 distinct checks and exact Linux build of product revision `2e7e514b`;
 no push/PR/release. Finish this measured primary defect before integrating
