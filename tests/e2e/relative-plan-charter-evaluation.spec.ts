@@ -8,6 +8,32 @@ const source = charterEvaluationInput();
 async function input() { return structuredClone(await source); }
 test.beforeEach(() => test.setTimeout(90000)); // Full original 60-decision source replay, not a shortened sample.
 
+test("full charter keeps daily-range versions separate across training and both complete forward populations", async () => {
+  const legacy = await input(), old = buildRelativePlanCharterEvaluation(legacy)!;
+  const current = await charterEvaluationInput(4, { featureVectorVersion: "recommendation_decision_feature_vector_v3" });
+  const complete = buildRelativePlanCharterEvaluation(current)!;
+  expect(complete.evidence_complete).toBe(true);
+  expect(complete.computed_disposition).toBe(old.computed_disposition);
+  expect(complete.partitions.map(row => [row.original_membership_fingerprint,row.quality.original_population_count,
+    row.thresholds.checks,row.probability.model])).toEqual(old.partitions.map(row => [row.original_membership_fingerprint,
+      row.quality.original_population_count,row.thresholds.checks,row.probability.model]));
+  // Each partition remains individually homogeneous; the new daily basis may
+  // still not silently qualify with a sealed model retaining the old basis.
+  const trainingRuns = new Set(legacy.trainedModelReceipt.trained_model.retained_training_source.scanRuns.map(row => row.run_fingerprint));
+  legacy.source.snapshots = legacy.source.snapshots.map(row => trainingRuns.has(row.scan_run_id ?? "") ? row :
+    current.source.snapshots.find(next => next.id === row.id)!);
+  const bytes = JSON.stringify(legacy);
+  const mixed = buildRelativePlanCharterEvaluation(legacy)!;
+  expect(mixed.evidence_complete).toBe(false);
+  expect(mixed.computed_disposition).toBe("evidence_incomplete");
+  for (const partition of mixed.partitions) {
+    expect(partition.original_population_count).toBe(120);
+    expect(partition.enrolled_decision_count).toBe(30);
+    expect(partition.missing_dimensions).toContain("separate_original_feature_vector_bases_required");
+  }
+  expect(JSON.stringify(legacy)).toBe(bytes);
+});
+
 test("full original forward charter measures known failures separately from missing evidence", async () => {
   const value = await input(), before = JSON.stringify(value), result = buildRelativePlanCharterEvaluation(value)!;
   expect(result.evidence_complete).toBe(true);

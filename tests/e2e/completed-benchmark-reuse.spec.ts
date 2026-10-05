@@ -745,6 +745,18 @@ test("whole-session outcome continuation discovers every original batch before c
   expect(continuation.enrolled_coverage_diagnostic.members).toHaveLength(176);
   expect(continuation).toMatchObject({ canonical_outcome_count: 144, missing_outcome_count: 32,
     persisted_neither_horizon_marks_verified: 126 });
+  expect(continuation.original_daily_range_feature_basis).toMatchObject({
+    contract_version: "original_daily_range_feature_basis_proof_v1",
+    original_member_count: 176, original_daily_value_matches: 176, old_intraday_key_count: 0,
+    original_intraday_mean_differs: 176, feature_vector_version: "recommendation_decision_feature_vector_v3",
+    original_membership_fingerprint: "ff147ad25507e20b09d40cf7b8feef787d3497e0520c3e6958a9617b354b51c6",
+    original_feasibility: { decision_feature_vector_version: "recommendation_decision_feature_vector_v3",
+      supported_original_vector: true, complete: false,
+      liquidity: { observed_count: 144, expected_count: 176, missing_count: 32 },
+      volatility: { observed_count: 152, expected_count: 176, missing_count: 24 },
+      trigger_attainment: { observed_count: 144, expected_count: 176, missing_count: 32 } },
+    numeric_input_changes: 0, cohort_changes: 0, quality_improvement_claimed: false,
+  });
   expect(continuation.enrolled_coverage_diagnostic.reason_counts).toEqual({ resolved: 144, canonical_60m_outcome_missing: 32 });
   // Keep the full original scorecard, not a successful eight-member subset.
   // Known limit failures must remain separate from unavailable quality metrics.

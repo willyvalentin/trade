@@ -25,7 +25,7 @@ import { hasCanonicalOutcomeProviderCoverageWithEvaluationAnchor } from "@/lib/r
 import { recommendationOutcomeEvaluationAnchorFromSnapshot } from "@/lib/recommendation-outcome-evaluation-anchor";
 import type { RecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
 import { recommendationDecisionSourceProvenanceFromSnapshot } from "@/lib/recommendation-decision-source-provenance";
-import type { RecommendationDecisionFeatureVector } from "@/lib/recommendation-decision-feature-vector";
+import { recommendationDecisionRangeFeature, type RecommendationDecisionFeatureVector } from "@/lib/recommendation-decision-feature-vector";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
 import {
   applyScannerScoreProbabilityCalibration,
@@ -126,7 +126,8 @@ export type ScannerRankingShadowFeasibilityObservation = {
     intraday_average_volume: number | null;
   };
   volatility: {
-    intraday_average_range_percent: number | null;
+    intraday_average_range_percent?: number | null;
+    daily_average_range_percent?: number | null;
     intraday_latest_range_percent: number | null;
     intraday_range_expansion_ratio: number | null;
     intraday_recent_range_percent: number | null;
@@ -1244,8 +1245,7 @@ export function evaluateScannerRankingShadowScan<AdapterVersion extends string>(
         intraday_average_volume: features.intraday_average_volume,
       },
       volatility: {
-        intraday_average_range_percent:
-          features.intraday_average_range_percent,
+        ...recommendationDecisionRangeFeature(item.decision_feature_vector),
         intraday_latest_range_percent: features.intraday_latest_range_percent,
         intraday_range_expansion_ratio:
           features.intraday_range_expansion_ratio,

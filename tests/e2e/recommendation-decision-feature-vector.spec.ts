@@ -62,6 +62,49 @@ function scannerCandidate(): ScannerCandidate & { local_score: number } {
   };
 }
 
+test("new vectors name the original DAILY range without inventing an intraday mean", () => {
+  const candidate = scannerCandidate(), original = JSON.stringify(candidate);
+  const vector = recommendationDecisionFeatureVectorFromScannerCandidate(candidate,
+    Date.parse("2026-09-17T14:01:00.000Z") / 1000);
+  expect(vector.contract_version).toBe("recommendation_decision_feature_vector_v3");
+  expect(vector.feature_values).toHaveProperty("daily_average_range_percent", 1.4);
+  expect(vector.feature_values).not.toHaveProperty("intraday_average_range_percent");
+  expect(Object.keys(vector.feature_values)).toHaveLength(18);
+  const legacy = recommendationDecisionFeatureVectorFromScannerCandidate(candidate,
+    Date.parse("2026-09-17T14:01:00.000Z") / 1000, "recommendation_decision_feature_vector_v2");
+  const { intraday_average_range_percent: dailyValue, ...unchangedValues } = legacy.feature_values;
+  expect(vector.feature_values).toEqual({ ...unchangedValues, daily_average_range_percent: dailyValue });
+  expect(vector.explicit_unavailable_feature_names).toEqual(legacy.explicit_unavailable_feature_names
+    .map(name => name === "intraday_average_range_percent" ? "daily_average_range_percent" : name).sort());
+  expect(recommendationDecisionFeatureVectorFromUnknown(vector)).toEqual(vector);
+  expect(JSON.stringify(candidate)).toBe(original);
+});
+
+test("original v1/v2 vectors remain lossless and cannot acquire a new daily-name interpretation", () => {
+  const legacy = recommendationDecisionFeatureVectorFromScannerCandidate(scannerCandidate(),
+    Date.parse("2026-09-17T14:01:00.000Z") / 1000, "recommendation_decision_feature_vector_v2");
+  expect(legacy.contract_version).toBe("recommendation_decision_feature_vector_v2");
+  expect(legacy.feature_values).toHaveProperty("intraday_average_range_percent", 1.4);
+  expect(legacy.feature_values).not.toHaveProperty("daily_average_range_percent");
+  for (const version of ["recommendation_decision_feature_vector_v1", "recommendation_decision_feature_vector_v2"]) {
+    const vector = { ...legacy, contract_version: version }, before = JSON.stringify(vector);
+    expect(JSON.stringify(recommendationDecisionFeatureVectorFromUnknown(vector))).toBe(before);
+  }
+  expect(recommendationDecisionFeatureVectorFromUnknown({ ...legacy,
+    contract_version: "recommendation_decision_feature_vector_v3" })).toBeNull();
+});
+
+test("new and legacy range names cannot coexist or substitute across vector versions", () => {
+  const vector = recommendationDecisionFeatureVectorFromScannerCandidate(scannerCandidate());
+  expect(recommendationDecisionFeatureVectorFromUnknown({ ...vector,
+    feature_values: { ...vector.feature_values, intraday_average_range_percent: 1.4 } })).toBeNull();
+  expect(recommendationDecisionFeatureVectorFromUnknown({ ...vector,
+    contract_version: "recommendation_decision_feature_vector_v2" })).toBeNull();
+  const unavailable = recommendationDecisionFeatureVectorFromScannerCandidate({ ...scannerCandidate(), average_range_percent: undefined });
+  expect(unavailable.explicit_unavailable_feature_names).toContain("daily_average_range_percent");
+  expect(unavailable.explicit_unavailable_feature_names).not.toContain("intraday_average_range_percent");
+});
+
 test("captures a bounded decision feature projection and propagates it through real scanner output", () => {
   const candidate = scannerCandidate();
   const featureVector = recommendationDecisionFeatureVectorFromScannerCandidate(
@@ -77,7 +120,7 @@ test("captures a bounded decision feature projection and propagates it through r
   });
 
   expect(featureVector).toMatchObject({
-    contract_version: "recommendation_decision_feature_vector_v2",
+    contract_version: "recommendation_decision_feature_vector_v3",
     feature_values: {
       latest_price: 100.5,
       daily_volume_ratio: 1.8,
@@ -121,7 +164,7 @@ test("keeps unavailable inputs explicit and rejects a malformed feature projecti
     featureVector,
   );
   const legacy = {
-    ...featureVector,
+    ...recommendationDecisionFeatureVectorFromScannerCandidate(candidate, 0, "recommendation_decision_feature_vector_v2"),
     contract_version: "recommendation_decision_feature_vector_v1",
   };
   expect(recommendationDecisionFeatureVectorFromUnknown(legacy)).toEqual(
@@ -130,7 +173,7 @@ test("keeps unavailable inputs explicit and rejects a malformed feature projecti
   expect(
     recommendationDecisionFeatureVectorFromUnknown({
       ...featureVector,
-      contract_version: "recommendation_decision_feature_vector_v3",
+      contract_version: "recommendation_decision_feature_vector_v4",
     }),
   ).toBeNull();
   expect(

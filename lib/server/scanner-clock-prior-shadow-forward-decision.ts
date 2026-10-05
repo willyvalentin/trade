@@ -8,7 +8,7 @@ import {
   canonicalQualityRankingKValues,
 } from "@/lib/canonical-quality-metrics";
 import type { RecommendationEvaluationCharter } from "@/lib/recommendation-evaluation-charter";
-import { RECOMMENDATION_DECISION_FEATURE_VECTOR_VERSION } from "@/lib/recommendation-decision-feature-vector";
+import { isCompletedInputDecisionFeatureVectorVersion, RECOMMENDATION_DECISION_FEATURE_VECTOR_VERSION } from "@/lib/recommendation-decision-feature-vector";
 import type { LearningBaselineScanRun } from "@/lib/recommendation-learning-baseline-readiness";
 import type { RecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
@@ -990,7 +990,9 @@ function feasibilitySummary(input: {
   ).length;
   const volatilityCount = input.observations.filter((observation) =>
     nonNegativeFinite(
-      observation.volatility.intraday_average_range_percent,
+      observation.decision_feature_vector_version === RECOMMENDATION_DECISION_FEATURE_VECTOR_VERSION
+        ? observation.volatility.daily_average_range_percent ?? null
+        : observation.volatility.intraday_average_range_percent ?? null,
     ) &&
     nonNegativeFinite(observation.volatility.intraday_latest_range_percent) &&
     nonNegativeFinite(
@@ -1031,7 +1033,7 @@ function feasibilitySummary(input: {
     summary,
     samePopulation,
     supportedVectorVersion: vectorVersions.length === 1 &&
-      vectorVersions[0] === RECOMMENDATION_DECISION_FEATURE_VECTOR_VERSION,
+      isCompletedInputDecisionFeatureVectorVersion(vectorVersions[0]),
     liquidityComplete: liquidityCount === input.denominator,
     volatilityComplete: volatilityCount === input.denominator,
     triggerAttainmentComplete: triggerAttainmentCount === input.denominator,

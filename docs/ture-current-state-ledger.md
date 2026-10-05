@@ -2,6 +2,33 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Selected CLOSED IF-2b daily-range feature-basis correction — 2026-10-05:**
+Owner Codex, `codex/daily-range-feature-basis-oct5`, isolated from verified
+main `55576078` plus completed local original-source diagnosis `ddf9f1a4`.
+#732 stays the release-held primary; this is the only independent CLOSED slice.
+Four-to-sixteen active-hour bounded correction of the reproduced daily mean
+projected under `intraday_average_range_percent` in all 176 original members.
+The numeric volatility inputs are useful, but their period must be truthful.
+
+Select a separately versioned new feature vector naming the existing original
+daily value `daily_average_range_percent`, without pretending to calculate a new
+intraday mean. Keep every other value, the bounded feature count, ranking/model,
+plan, full numerical charter, acquisition budgets and original identities.
+Preserve exact historical v1/v2 parsing, immutable receipts/results and retained
+goldens; never silently relabel an old vector or pool mixed vector versions.
+Original-source and feasibility consumers must explicitly support the new
+daily-period field and retain the legacy shapes for old evidence. No new cohort,
+data source, schema, live quality/publication policy or provider/broker action.
+
+Acceptance: red/green actual projection; lossless old-vector controls; strict
+cross-version alias rejection; actual packaged full-original SQL/SDK source
+readback showing all 176 new daily fields bound to their original daily inputs
+and the same original missingness/charter; affected regressions, types/lint and
+exact locked Linux build. Write ownership is the existing feature-vector and
+its original-source/feasibility consumers plus registered behavior tests/receipt.
+Integrate only after #732 against then-current main. Stop at this minimum
+semantic correction and resume the frozen same-population quality chain.
+
 **Selected CLOSED IF-2b → IF-4 original feasibility-gap investigation — 2026-10-05:**
 Owner Codex, `codex/original-feature-feasibility-oct5`, isolated from freshly
 verified main `55576078` plus locally completed `579c8f91`. #732 remains the

@@ -2,7 +2,8 @@ import { relativePlanEvidence } from "./relative-plan-context-evidence";
 import { reproducibleOriginalEvidence } from "./original-input-archive-evidence";
 import { prospectiveInput } from "./relative-plan-prospective";
 import { buildRecommendationSnapshot } from "@/lib/recommendation-snapshot";
-import { recommendationDecisionFeatureVectorFromScannerCandidate } from "@/lib/recommendation-decision-feature-vector";
+import { recommendationDecisionFeatureVectorFromScannerCandidate, LEGACY_INTRADAY_NAMED_DAILY_RANGE_VECTOR_VERSION,
+  type RecommendationDecisionFeatureVector } from "@/lib/recommendation-decision-feature-vector";
 import { recommendationOutcomeEvaluationAnchorFromSnapshot } from "@/lib/recommendation-outcome-evaluation-anchor";
 import { computeRecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
 import { buildCanonicalOutcomeProviderCoverageReceipt } from "@/lib/recommendation-outcome-canonical-coverage";
@@ -12,7 +13,8 @@ import { BUILD_MARKER, RECOMMENDATION_PUBLISH_POLICY_VERSION } from "@/lib/publi
 import { CANDIDATE_DECISION_PROVIDER_CONTRACT_VERSION } from "@/lib/candidate-decision-record";
 
 // Synthetic CLOSED point-in-time source. Future fixture dates are never market evidence.
-export async function prospectiveSource(options: { now?: Date; missingInputs?: boolean; missingOutcome?: boolean; allLosses?: boolean; positiveTickers?: string[]; rankedCount?: 4 | 8; originalInputs?: boolean; historicalFieldPresenceWording?: true } = {}) {
+export async function prospectiveSource(options: { now?: Date; missingInputs?: boolean; missingOutcome?: boolean; allLosses?: boolean; positiveTickers?: string[]; rankedCount?: 4 | 8; originalInputs?: boolean; historicalFieldPresenceWording?: true;
+  featureVectorVersion?: Exclude<RecommendationDecisionFeatureVector["contract_version"], "recommendation_decision_feature_vector_v1"> } = {}) {
   const now = options.now ?? new Date("2026-10-12T17:00:00.000Z"), revision = prospectiveInput.source_revision;
   const { run, record, observed } = await (options.originalInputs ? reproducibleOriginalEvidence : relativePlanEvidence)({ rankedCount: options.rankedCount ?? 4, now,
     ...(options.historicalFieldPresenceWording ? { historicalFieldPresenceWording: true as const } : {}),
@@ -46,7 +48,10 @@ export async function prospectiveSource(options: { now?: Date; missingInputs?: b
         market_data_adapter_version: "automation_scan_market_data_adapter_v1",
         recommendation_publish_policy_version: record.learning_attribution.recommendation_publish_policy_version,
         intraday_indicator_response_identity: input.current_session!.response_identity,
-        decision_feature_vector: recommendationDecisionFeatureVectorFromScannerCandidate(candidate, now.getTime() / 1000),
+        // Preserve the retained synthetic v2 model/terminal goldens. New v3
+        // behavior has an explicit arm and the actual packaged producer proof.
+        decision_feature_vector: recommendationDecisionFeatureVectorFromScannerCandidate(candidate, now.getTime() / 1000,
+          options.featureVectorVersion ?? LEGACY_INTRADAY_NAMED_DAILY_RANGE_VECTOR_VERSION),
       } });
   });
   const outcomes = snapshots.map((snapshot, i) => {

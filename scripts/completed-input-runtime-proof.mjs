@@ -1628,6 +1628,39 @@ try {
             assert.equal(continuedHeld.original_membership_fingerprint,heldRead.original_membership_fingerprint);
             assert.equal(continuedCharter.computed_disposition,"evidence_incomplete");
             assert.equal(continuedCharter.terminal_quality_decision,null);
+            // Inspect all ORIGINAL members already read by the restarted SQL /
+            // SDK consumer. A daily-bar mean must not claim an intraday basis.
+            // No values, source membership, lookbacks or charter are changed.
+            const dailyRangeRows=continuedHeld.observations.flatMap(observation=>{
+              const run=completeSource.scanRuns.find(row=>row.run_fingerprint===observation.scan_run_fingerprint);
+              const record=refreshed.candidateDecisionRecordFromScanRun(run);
+              return observation.rows.map(row=>{
+                const candidate=record.candidates.find(member=>member.candidate_id===row.candidate_id);
+                const archive=run.payload_json.scanner_current_input_archive;
+                const originalBars=archive?.entries.find(member=>member.candidate_id===row.candidate_id)?.current_context.candles??[];
+                const recent=originalBars.slice(-12);
+                const intradayMean=recent.length===12?recent.reduce((sum,bar)=>sum+(bar.high-bar.low)/bar.close*100,0)/12:null;
+                return {candidate_id:row.candidate_id,version:row.decision_feature_vector_version,
+                  original_daily_mean:candidate.data.input_snapshot?.features.average_range_percent??null,
+                  projected_daily_mean:row.volatility.daily_average_range_percent,
+                  old_intraday_key_present:Object.hasOwn(row.volatility,"intraday_average_range_percent"),
+                  original_intraday_mean:intradayMean};
+              });
+            });
+            assert.equal(dailyRangeRows.length,176);
+            assert.equal(new Set(dailyRangeRows.map(row=>row.candidate_id)).size,176);
+            assert(dailyRangeRows.every(row=>row.version==="recommendation_decision_feature_vector_v3" &&
+              row.original_daily_mean===row.projected_daily_mean && !row.old_intraday_key_present));
+            const dailyRangeBasis={contract_version:"original_daily_range_feature_basis_proof_v1",
+              original_member_count:dailyRangeRows.length,
+              original_membership_fingerprint:continuedHeld.original_membership_fingerprint,
+              original_daily_value_matches:dailyRangeRows.filter(row=>row.original_daily_mean===row.projected_daily_mean).length,
+              old_intraday_key_count:dailyRangeRows.filter(row=>row.old_intraday_key_present).length,
+              original_intraday_mean_differs:dailyRangeRows.filter(row=>row.original_intraday_mean!==null &&
+                Math.abs(row.projected_daily_mean-row.original_intraday_mean)>0.005).length,
+              feature_vector_version:"recommendation_decision_feature_vector_v3",
+              original_feasibility:continuedHeld.quality.context.feasibility,
+              numeric_input_changes:0,cohort_changes:0,quality_improvement_claimed:false};
             const continuationRequests=syntheticRequestEvidence.slice(scheduledRequestEvidenceOffset+continuationStart,
               scheduledRequestEvidenceOffset+externalRequests);
             const uniqueContinuationRequests=new Set(continuationRequests.map(request=>JSON.stringify([
@@ -1640,6 +1673,7 @@ try {
               original_decisions:completeSource.scanRuns.length,original_population_count:heldRead.original_population_count,
               canonical_outcome_count:heldRead.canonical_outcome_count,missing_outcome_count:heldRead.missing_outcome_count,
               persisted_neither_horizon_marks_verified:measuredNeither.length,
+              original_daily_range_feature_basis:dailyRangeBasis,
               remaining_missingness:remainingMissingness,
               original_full_charter:{
                 disposition:continuedCharter.computed_disposition,

@@ -1,5 +1,7 @@
 import "server-only";
 import type { RecommendationLearningBaselineSource } from "@/lib/recommendation-learning-baseline-source";
+import { recommendationDecisionFeatureVectorFromUnknown,
+  isCompletedInputDecisionFeatureVectorVersion } from "@/lib/recommendation-decision-feature-vector";
 import { buildRelativePlanProspectiveEnrollment } from "@/lib/server/relative-plan-prospective-enrollment";
 import { buildRelativePlanProbabilityMeasurement } from "@/lib/server/relative-plan-probability-measurement";
 import { verifiedRelativePlanTrainedProbabilityReceipt, relativePlanTrainedPopulationMatches } from "@/lib/server/relative-plan-trained-probability-model";
@@ -30,6 +32,16 @@ export function buildRelativePlanCharterEvaluationBundle(input: {
   const training = original[0].decisions.map(row => row.comparison);
   if (input.trainedModelReceipt != null && (!sealed || Date.parse(sealed.committed_read_at) > input.now.getTime() ||
     !relativePlanTrainedPopulationMatches(sealed, training))) return null;
+  const originalSnapshots = new Set(original.flatMap(partition => partition.decisions.flatMap(decision =>
+    decision.comparison.candidates.map(row => row.snapshot_fingerprint))));
+  const bases = new Set([...input.source.snapshots.filter(row => originalSnapshots.has(row.snapshot_fingerprint)),
+    ...(sealed?.trained_model.retained_training_source.snapshots ?? [])].map(row =>
+    recommendationDecisionFeatureVectorFromUnknown(row.payload_json.decision_feature_vector)?.contract_version)
+    .filter(isCompletedInputDecisionFeatureVectorVersion));
+  // Individual forward partitions can each be homogeneous while training and
+  // forward still have different bases. Disclose the gap on the full unchanged
+  // population instead of silently qualifying a mixed-version comparison.
+  const mixedOriginalBases = bases.size > 1;
   const runtime: RelativePlanCharterRuntimeSource = input.runtime ?? {
     status: "unavailable", partitions: null, blocker: "relative_plan_runtime_source_not_read" };
   const partitions = original.slice(1).map(partition => {
@@ -48,6 +60,7 @@ export function buildRelativePlanCharterEvaluationBundle(input: {
       runtime, source: input.source, enrolledFingerprints: partition.decisions.map(row => row.fingerprint), now: input.now });
     const thresholds = summarizeRelativePlanCharterThresholds({ owner: input.owner, freeze, quality, operational })!;
     const gaps = new Set(thresholds.missing_dimensions);
+    if (mixedOriginalBases) gaps.add("separate_original_feature_vector_bases_required");
     if (!sealed) gaps.add("durably_frozen_training_probability_model_required");
     if (input.now.getTime() < Date.parse(partition.window.end_at) + 3600000) gaps.add("original_forward_window_and_60m_maturity_required");
     if (partition.enrolled_decision_count !== partition.required_decisions) gaps.add("original_first_thirty_decisions_required");

@@ -7,9 +7,11 @@ import { marketRegimeDecisionContextFromPayload, marketRegimeValueFromPayload } 
 import type { RecommendationLearningBaselineSource } from "@/lib/recommendation-learning-baseline-source";
 import { buildRelativePlanContextOutcomeComparison } from "@/lib/scanner-relative-plan-context-outcomes";
 import { SETUP_TYPES, type SetupType } from "@/lib/setup-types";
+import { recommendationDecisionRangeFeature, RECOMMENDATION_DECISION_FEATURE_VECTOR_VERSION } from "@/lib/recommendation-decision-feature-vector";
 import { relativePlanSemanticFingerprint, relativePlanSemanticJson } from "@/lib/server/relative-plan-prospective-comparison";
 
 export const RELATIVE_PLAN_CHARTER_OBSERVATIONS_VERSION = "relative_plan_charter_observations_v1" as const;
+export const RELATIVE_PLAN_DAILY_RANGE_CHARTER_OBSERVATIONS_VERSION = "relative_plan_charter_observations_v2" as const;
 type Source = RecommendationLearningBaselineSource;
 
 function observedNonNegative(value: unknown) {
@@ -83,8 +85,13 @@ export function buildRelativePlanCharterObservations(input: {
       intraday_latest_volume: observedNonNegative(values?.intraday_latest_volume),
       intraday_average_volume: observedNonNegative(values?.intraday_average_volume),
     };
+    const range = provenance?.decision_feature_vector && admissible
+      ? recommendationDecisionRangeFeature(provenance.decision_feature_vector)
+      : { intraday_average_range_percent: null };
     const volatility = {
-      intraday_average_range_percent: observedNonNegative(values?.intraday_average_range_percent),
+      ...("daily_average_range_percent" in range
+        ? { daily_average_range_percent: observedNonNegative(range.daily_average_range_percent) }
+        : { intraday_average_range_percent: observedNonNegative(range.intraday_average_range_percent) }),
       intraday_latest_range_percent: observedNonNegative(values?.intraday_latest_range_percent),
       intraday_range_expansion_ratio: observedNonNegative(values?.intraday_range_expansion_ratio),
       intraday_recent_range_percent: observedNonNegative(values?.intraday_recent_range_percent),
@@ -114,7 +121,8 @@ export function buildRelativePlanCharterObservations(input: {
     };
   });
   return {
-    contract_version: RELATIVE_PLAN_CHARTER_OBSERVATIONS_VERSION,
+    contract_version: rows.some(row => row.decision_feature_vector_version === RECOMMENDATION_DECISION_FEATURE_VECTOR_VERSION)
+      ? RELATIVE_PLAN_DAILY_RANGE_CHARTER_OBSERVATIONS_VERSION : RELATIVE_PLAN_CHARTER_OBSERVATIONS_VERSION,
     source_basis: "completed_input_learning_provenance_v1",
     scan_run_fingerprint: input.scanRun.run_fingerprint, decision_at: decisionAt,
     expected_original_population_count: comparison.original_population_count,
