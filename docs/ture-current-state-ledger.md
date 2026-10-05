@@ -76,6 +76,36 @@ This is the minimum integration correction for the
 same original-learning delivery, not a new support stream, policy or production
 acceptance. Full protected CI must pass on the corrected head before release.
 
+**Measured CI duration correction — 2026-10-05:** corrected Ready run
+`37291811192` on `f185835ab2c186a6feb81235bfd2e75f113c55e4` passes five
+shards, but foundation reaches its unchanged 60-minute limit. Actual logs show
+28m19s for browser/server containment and more than 27m12s for the subsequent
+intelligence command, which is still executing native original-population
+checks when cancelled. No assertion failure is shown; the required aggregate
+fails, so neither merge nor release is accepted. Completed tests before
+cancellation are not a pass for the unfinished command.
+
+Move that entire unchanged server-conditioned intelligence command to the
+existing lossless-scalar shard (7m15s in the failed run). All 366 unique test
+files, six shards, per-command arguments/conditions, full audit/build,
+60-minute limits, required aggregate and provenance remain intact. The ordered
+registration changes only to match the new placement. All 20 affected CI and
+security checks pass locally (14 CI checks in 40.0s, six security checks in
+4.6s), including actual collection of both complete groups and explicit
+non-duplication. Nonincremental types and full lint pass with zero errors/eight
+existing warnings. The full combined local shard is running, not counted as a
+pass; the new complete protected matrix still must pass. Application, schema,
+dependency and workflow bytes are unchanged. This is a bounded integration
+blocker removal for the same original-learning vertical, not quality lift.
+
+The actual current React card/modal is also behavior-checked in an isolated
+loopback browser fixture: long/short plan ratios, unavailable direction,
+unchanged ordinal confidence, explicit unavailable calibration and native
+open/close. Synthetic fixtures and visual readback prove those component
+behaviors, not authenticated deployed behavior or market quality. The actual
+PR preview reaches its login page; no authenticated product-flow acceptance is
+claimed. No provider, production configuration or broker action occurred.
+
 **Next / OPEN:** prioritize the next eligible frozen current-session input and
 original-outcome observation after release/runtime, market-session, remaining
 provider-budget and scope checks. No observation is armed by this integration.

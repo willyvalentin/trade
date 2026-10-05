@@ -404,7 +404,6 @@ export const providerFreeVerificationPlan = Object.freeze({
     command("Generated-types provenance V2", "node", [
       "tests/e2e/action-660-ma09-generated-types-provenance-v2.spec.mjs",
     ]),
-    playwright("Provider-free intelligence contract", intelligenceTests),
     playwright("Predictive explanation foundation", [
       "tests/e2e/action-666m-predictive-outcome-explanation.spec.ts",
       "tests/e2e/action-666cj-current-main-predictive-explanation-freeze.spec.ts",
@@ -491,6 +490,9 @@ export const providerFreeVerificationPlan = Object.freeze({
       "tests/e2e/action-666ct-current-main-lossless-invalid-scalar-observation.spec.ts",
       "tests/e2e/action-666ct-current-main-lossless-invalid-scalar-observation-freeze.spec.ts",
     ]),
+    // Keep the complete server-conditioned suite intact, but separate it from
+    // containment: their measured serial duration exceeds foundation's limit.
+    playwright("Provider-free intelligence contract", intelligenceTests),
   ]),
 });
 

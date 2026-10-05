@@ -416,7 +416,6 @@ const expectedPlan: Record<string, PlannedCommand[]> = {
     command("Generated-types provenance V2", "node", [
       "tests/e2e/action-660-ma09-generated-types-provenance-v2.spec.mjs",
     ]),
-    playwright("Provider-free intelligence contract", intelligenceTests),
     playwright("Predictive explanation foundation", [
       "tests/e2e/action-666m-predictive-outcome-explanation.spec.ts",
       "tests/e2e/action-666cj-current-main-predictive-explanation-freeze.spec.ts",
@@ -503,6 +502,7 @@ const expectedPlan: Record<string, PlannedCommand[]> = {
       "tests/e2e/action-666ct-current-main-lossless-invalid-scalar-observation.spec.ts",
       "tests/e2e/action-666ct-current-main-lossless-invalid-scalar-observation-freeze.spec.ts",
     ]),
+    playwright("Provider-free intelligence contract", intelligenceTests),
   ],
 };
 
@@ -637,13 +637,30 @@ test("Draft fallback retains complete coverage without repeating identical chang
     .toEqual(["test", ...foundationTests, "--workers=1"]);
 });
 
+test("separates the complete intelligence command from timed-out foundation without dropping or duplicating coverage", () => {
+  const plan = JSON.parse(execFileSync(process.execPath,
+    [path.join(repositoryRoot, runnerPath), "--plan"], { encoding: "utf8" })) as Record<string, PlannedCommand[]>;
+  const allCommands = Object.values(plan).flat();
+  expect(plan.foundation.some(command => command.label === "Provider-free intelligence contract")).toBe(false);
+  expect(plan["lossless-scalar"].map(command => command.label)).toEqual([
+    "Lossless invalid-scalar observation", "Provider-free intelligence contract",
+  ]);
+  expect(allCommands.filter(command => command.label === "Provider-free intelligence contract"))
+    .toEqual([playwright("Provider-free intelligence contract", intelligenceTests)]);
+  expect(plan.foundation.find(command => command.label === "Browser and server containment"))
+    .toEqual(playwright("Browser and server containment", foundationTests, false));
+  const files = allCommands.flatMap(command => command.args.filter(argument => argument.startsWith("tests/")));
+  expect(files).toHaveLength(366);
+  expect(new Set(files).size).toBe(files.length);
+});
+
 test("actual registered containment and intelligence suites collect under their distinct server conditions", () => {
   test.setTimeout(90000);
   const plan = JSON.parse(execFileSync(process.execPath,
     [path.join(repositoryRoot, runnerPath), "--plan"], { encoding: "utf8" })) as Record<string, PlannedCommand[]>;
   const original = "tests/e2e/scanner-original-input-replay.spec.ts";
   for (const label of ["Browser and server containment", "Provider-free intelligence contract"]) {
-    const selected = plan.foundation.find(command => command.label === label)!;
+    const selected = Object.values(plan).flat().find(command => command.label === label)!;
     expect(selected).toBeDefined();
     expect(selected.args.includes(original)).toBe(label === "Provider-free intelligence contract");
     const environment: NodeJS.ProcessEnv = { ...process.env, PLAYWRIGHT_SKIP_WEB_SERVER: "true" };
