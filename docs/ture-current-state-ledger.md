@@ -40,6 +40,40 @@ pending. No provider, production configuration or broker action is selected.
 After the minimum accepted correction, return to current-session original
 input/outcome evidence and the frozen full-charter comparison.
 
+**PR #734 protected-CI correction — 2026-10-05:** Ready run `37309916393`
+on `6adebd023267f6fe7f48c155a4654495527db58f` passes five groups, but
+lossless job `111762639171` reaches its unchanged 60-minute job limit.
+Its complete-archive v3 and v2 cases are both marked failed after 7.8m,
+consistent with their unchanged 470-second native-child limit; cancellation
+prevents the detailed buffered failure report, so an exact CI error stack is
+not claimed. Prior accepted main run `37300077755` completed this group in
+53m, including both native cases at 6.6m. Failed partial CI is not acceptance.
+
+Actual pre-change local native v3/v2 cases pass in 6.9m/6.6m on Node 26.5.0.
+A comparable Node 24.19.0 CPU-profiled v3 run takes 424,119ms; repeated New
+York calendar conversion accounts for 206.08s (48.63%) of sampled duration.
+The minimum 13-line correction reuses only UTC numbers keyed by exact date
+and wall time in a bounded 256-entry map. Calendar verification, freshness,
+exceptions and source admission still run on every read; mutable Dates,
+session verdicts, sources and evaluator results are not cached. No cohort,
+deadline, CI group, charter, model, ranking or publication rule is changed.
+
+The same Node 24 command, native bounds, profiling and complete source now
+pass in 243,725ms (42.53% shorter). Decoded v3 source remains 21,105,117 bytes,
+with 30 original decisions / 240 members per forward partition and 12 older
+decisions retained. Actual formatter-call RED/GREEN behavior verifies reuse,
+changed/stale calendar rejection and bounded eviction; three independently
+captured pre-change raw-context digests remain exact across DST and half-day
+history. The broader six-file local command completes with **127 distinct
+passes in 16.1m**, including both actual PostgreSQL/PostgREST/SDK/restarted HTTP
+native archive cases at 4.1m each and the complete five affected suites.
+These local checks use Node 24.19.0 on macOS arm64, not the Linux CI runner.
+The separately focused nine checks overlap this command and are not added to
+its total. Nonincremental types, full lint (zero errors/eight existing warnings)
+and six governance regressions also pass on Node 24.19.0. Exact rebuilt source
+and new protected CI remain pending for this correction. No production/provider/broker action or observed
+recommendation-quality improvement is established by this performance result.
+
 **Next / OPEN:** prioritize the next eligible frozen current-session original
 input and canonical-outcome observation after exact release/runtime, verified
 regular session, actual remaining provider-budget and scope checks. No slot or

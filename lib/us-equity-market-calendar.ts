@@ -242,7 +242,16 @@ function newYorkParts(value: Date) {
   return { year: part("year"), month: part("month"), day: part("day"), hour: part("hour"), minute: part("minute"), second: part("second") };
 }
 
+// Only immutable timezone arithmetic is reused. Calendar verification,
+// freshness, exceptions and every session/readback are still evaluated anew.
+// Keep scalar UTC instants, never mutable Dates or session/source objects.
+const wallTimeUtcInstants = new Map<string, number>();
+const maxWallTimeUtcInstants = 256;
+
 function newYorkWallTimeToUtc(date: string, localTime: string) {
+  const key = `${date}T${localTime}`;
+  const retained = wallTimeUtcInstants.get(key);
+  if (retained !== undefined) return new Date(retained);
   const [year, month, day] = date.split("-").map(Number);
   const [hour, minute] = localTime.split(":").map(Number);
   let candidate = new Date(Date.UTC(year, month - 1, day, hour, minute));
@@ -254,6 +263,10 @@ function newYorkWallTimeToUtc(date: string, localTime: string) {
     if (correction === 0) break;
     candidate = new Date(candidate.getTime() + correction);
   }
+  if (wallTimeUtcInstants.size >= maxWallTimeUtcInstants) {
+    wallTimeUtcInstants.delete(wallTimeUtcInstants.keys().next().value!);
+  }
+  wallTimeUtcInstants.set(key, candidate.getTime());
   return candidate;
 }
 
