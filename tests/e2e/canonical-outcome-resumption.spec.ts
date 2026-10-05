@@ -24,6 +24,23 @@ async function matureSource() {
   return { snapshot, candles, fetchCandles, outcome: run.outcomes[0] };
 }
 
+async function loadOfficialSelector() {
+  const path = resolve(process.cwd(), "app/api/recommendations/evaluate-outcomes/route.ts");
+  // Expose the unchanged actual selector only in this in-memory test bundle.
+  const bundle = await build({ stdin: { contents: readFileSync(path, "utf8") +
+    "\nexport { filterOfficialSnapshotsNeedingOutcomeEvaluation as testSelector };", resolveDir: dirname(path), loader: "ts" },
+    bundle: true, write: false, platform: "node", format: "cjs", conditions: ["react-server"], external: ["next", "next/*"] });
+  const loaded = { exports: {} };
+  new Function("require", "module", "exports", bundle.outputFiles[0].text)(
+    createRequire(resolve(process.cwd(), "package.json")), loaded, loaded.exports);
+  return (loaded.exports as { testSelector: (input: {
+    existingOutcomes: Awaited<ReturnType<typeof matureSource>>["outcome"][];
+    horizons: ["60m"]; maxBatchesPerRun: number; now: Date;
+    snapshots: Awaited<ReturnType<typeof matureSource>>["snapshot"][];
+    snapshotBatchFingerprints: Record<string, string>;
+  }) => Awaited<ReturnType<typeof matureSource>>["snapshot"][] }).testSelector;
+}
+
 test("zero acquisition budget preserves an incomplete canonical identity without requests or writes", async () => {
   const { snapshot, outcome } = await matureSource();
   const partial = { ...outcome, payload_json: { ...outcome.payload_json,
@@ -154,21 +171,32 @@ test("actual official selector reaches unobserved later batches before elapsed i
     canonical_provider_coverage: { ...(outcome.payload_json.canonical_provider_coverage as object), freshness: "unknown" } } };
   const later = buildRecommendationSnapshot({ recommendation_id: "synthetic_later", ticker: "AMD",
     recommended_at: "2026-10-02T15:00:00Z", side: "long", entry: 100, stop: 95, target: 110 });
-  const path = resolve(process.cwd(), "app/api/recommendations/evaluate-outcomes/route.ts");
-  // Add a test-only export to the unchanged actual source; no alternate selector
-  // or public Next route export is introduced in the product.
-  const bundle = await build({ stdin: { contents: readFileSync(path, "utf8") +
-    "\nexport { filterOfficialSnapshotsNeedingOutcomeEvaluation as testSelector };", resolveDir: dirname(path), loader: "ts" },
-    bundle: true, write: false, platform: "node", format: "cjs", conditions: ["react-server"], external: ["next", "next/*"] });
-  const loaded = { exports: {} };
-  new Function("require", "module", "exports", bundle.outputFiles[0].text)(
-    createRequire(resolve(process.cwd(), "package.json")), loaded, loaded.exports);
-  const { testSelector } = loaded.exports as { testSelector: (input: { existingOutcomes: typeof outcome[];
-    horizons: ["60m"]; maxBatchesPerRun: number; now: Date; snapshots: typeof snapshot[];
-    snapshotBatchFingerprints: Record<string, string> }) => typeof snapshot[] };
+  const testSelector = await loadOfficialSelector();
   const selected = testSelector({ snapshots: [snapshot, later], existingOutcomes: [partial], horizons: ["60m"],
     maxBatchesPerRun: 1, now: new Date("2026-10-02T15:40:00.000Z"),
     snapshotBatchFingerprints: { [snapshot.snapshot_fingerprint!]: "older", [later.snapshot_fingerprint!]: "later" } });
   expect(selected.map(row => row.snapshot_fingerprint)).toEqual([later.snapshot_fingerprint]);
   expect(hasIncompleteCanonicalOutcomeCoverage(partial)).toBe(true);
+});
+
+test("same-window deferred early members cannot occupy the snapshot cap ahead of an unobserved batch member", async () => {
+  const { snapshot, outcome, fetchCandles } = await matureSource();
+  const earlyPartial = { ...outcome, payload_json: { ...outcome.payload_json,
+    canonical_provider_coverage: { ...(outcome.payload_json.canonical_provider_coverage as object),
+      freshness: "unknown", horizon_elapsed: false } } };
+  const original = JSON.stringify(earlyPartial);
+  const unobserved = buildRecommendationSnapshot({ recommendation_id: "synthetic_unobserved_member", ticker: "AMD",
+    recommended_at: snapshot.recommended_at, side: "long", entry: 100, stop: 95, target: 110 });
+  const select = await loadOfficialSelector();
+  const selected = select({ snapshots: [snapshot, unobserved], existingOutcomes: [earlyPartial], horizons: ["60m"],
+    maxBatchesPerRun: 1, now: new Date("2026-10-02T15:35:00.000Z"),
+    snapshotBatchFingerprints: { [snapshot.snapshot_fingerprint!]: "same", [unobserved.snapshot_fingerprint!]: "same" } });
+  expect(new Set(selected.map(row => row.snapshot_fingerprint))).toEqual(
+    new Set([snapshot.snapshot_fingerprint, unobserved.snapshot_fingerprint]));
+  const run = await runRecommendationOutcomeEvaluation({ snapshots: selected, existingOutcomes: [earlyPartial],
+    horizons: ["60m"], now: "2026-10-02T15:35:00.000Z", snapshotOrder: "input", maxSnapshots: 1,
+    maxCandleRequests: 1, deferObservedCanonicalWindow: true, fetchCandles });
+  expect(run.candle_requests_executed).toBe(1);
+  expect(run.outcomes[0].snapshot_fingerprint).toBe(unobserved.snapshot_fingerprint);
+  expect(JSON.stringify(earlyPartial)).toBe(original);
 });

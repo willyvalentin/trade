@@ -1525,7 +1525,8 @@ try {
                 requests:externalRequests-before,status:body.status,
                 requested:syntheticRequestEvidence.slice(scheduledRequestEvidenceOffset+before,
                   scheduledRequestEvidenceOffset+externalRequests),
-                selection:body.same_day_official_batch_revisit,
+                selected_batches:body.same_day_official_batch_revisit?.batches_evaluated,
+                remaining_original_backlog:body.same_day_official_batch_revisit?.remaining_backlog_after_run,
                 physical_outcomes:Number(sql("select count(*) from recommendation_outcomes;")),
                 created:body.outcomes_created_count,updated:body.outcomes_updated_count,
                 skipped_equal_or_better:body.outcomes_skipped_equal_or_better_count}})+"\n");

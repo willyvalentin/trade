@@ -1244,10 +1244,12 @@ function filterOfficialSnapshotsNeedingOutcomeEvaluation({
 }) {
   const selectedPendingBatches = new Set<string>();
   const selectedSnapshots: RecommendationSnapshot[] = [];
-  const readyBatches = new Set(snapshots.filter(snapshot => horizons.some(horizon => {
+  const readySnapshotFingerprints = new Set(snapshots.filter(snapshot => horizons.some(horizon => {
     const outcome = officialOutcomeBySnapshotAndHorizon(existingOutcomes, snapshot.snapshot_fingerprint, horizon);
     return isOfficialOutcomePending(outcome) && !deferObservedCanonicalOutcomeWindow(outcome, now);
-  })).map(snapshot => snapshotBatchFingerprints[snapshot.snapshot_fingerprint] ?? "unknown_batch"));
+  })).map(snapshot => snapshot.snapshot_fingerprint));
+  const readyBatches = new Set(snapshots.filter(snapshot => readySnapshotFingerprints.has(snapshot.snapshot_fingerprint))
+    .map(snapshot => snapshotBatchFingerprints[snapshot.snapshot_fingerprint] ?? "unknown_batch"));
 
   const acquisitionPriority = (snapshot: RecommendationSnapshot) => {
     let missing = false;
@@ -1266,7 +1268,7 @@ function filterOfficialSnapshotsNeedingOutcomeEvaluation({
   for (const snapshot of snapshots) {
     const batch = snapshotBatchFingerprints[snapshot.snapshot_fingerprint] ?? "unknown_batch";
     if (!sourceBatchOrder.has(batch)) sourceBatchOrder.set(batch, sourceBatchOrder.size);
-    if (readyBatches.has(batch)) batchPriorities.set(batch,
+    if (readySnapshotFingerprints.has(snapshot.snapshot_fingerprint)) batchPriorities.set(batch,
       Math.min(batchPriorities.get(batch) ?? 3, acquisitionPriority(snapshot)));
   }
   const orderedSnapshots = [...snapshots].sort((first, second) => {
@@ -1306,12 +1308,16 @@ function filterOfficialSnapshotsNeedingOutcomeEvaluation({
   // Recovery and never-observed batches precede elapsed partial retries;
   // oldest original source order breaks ties. Keep every pending member of
   // any selected batch, including same-window deferred canonical identities.
+  // Due work precedes deferred members so the runner's snapshot cap cannot
+  // strand unobserved originals behind zero-request early-horizon work.
   const batchOrder = new Map([...selectedPendingBatches].map((fingerprint, index) => [fingerprint, index]));
   const priorities = new Map(selectedSnapshots.map(snapshot => [snapshot.snapshot_fingerprint, acquisitionPriority(snapshot)]));
   return selectedSnapshots.sort((first, second) => {
     const firstBatch = snapshotBatchFingerprints[first.snapshot_fingerprint] ?? "unknown_batch";
     const secondBatch = snapshotBatchFingerprints[second.snapshot_fingerprint] ?? "unknown_batch";
     return batchOrder.get(firstBatch)! - batchOrder.get(secondBatch)! ||
+      Number(!readySnapshotFingerprints.has(first.snapshot_fingerprint)) -
+        Number(!readySnapshotFingerprints.has(second.snapshot_fingerprint)) ||
       priorities.get(first.snapshot_fingerprint)! - priorities.get(second.snapshot_fingerprint)!;
   });
 }

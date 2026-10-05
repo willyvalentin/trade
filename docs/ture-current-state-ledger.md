@@ -58,6 +58,16 @@ Deferral uses the last retained outcome evaluation window, not an invented
 last-attempt clock: equal-coverage retries in later windows may remain eligible
 if persistence correctly keeps the better original row unchanged. This is not
 a durable failed-attempt backoff contract or an assertion that late gaps heal.
+An additional actual-selector/runner red control reproduces a same-window early
+partial member occupying the snapshot cap ahead of an unobserved member. Due
+members now precede deferred members within the selected original batch, while
+both identities remain selected/pending. Batch priorities use only due work;
+earlier-horizon recovery still precedes elapsed retries in a later bar window.
+The first ordinary nine-check run passes eight integrations but its whole-session
+check fails `ENOBUFS`: complete output plus duplicated per-pass source diagnostics
+exceeds the existing subprocess buffer. Only the duplicated diagnostic selection
+is compacted; the full result/source/charter population and buffer/time/pass bounds
+are unchanged. A final settled-revision rerun is required before acceptance.
 
 **CLOSED IF-4 missing original outcome acquisition locally built — 2026-10-05:**
 Codex owns `codex/original-outcome-missing-first-oct5`, isolated from freshly
