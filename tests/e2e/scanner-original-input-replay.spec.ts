@@ -56,6 +56,21 @@ test("new learning rejects current arithmetic and indicator contradictions on an
   }
 });
 
+test("new learning rejects normalized current-source clock aliases on an unselected original member", async () => {
+  const original = await reproducibleOriginalRun();
+  const canonical = original.payload_json.scanner_current_input_archive!.entries[7].current_context.captured_at;
+  for (const captured_at of [canonical.replace(".000Z", ".000001Z"),
+    canonical.replace("Z", "+00:00"), canonical.replace(".000Z", "Z"), canonical.replace("T", " ")]) {
+    const run = structuredClone(original);
+    run.payload_json.scanner_current_input_archive!.entries[7].current_context.captured_at = captured_at;
+    const retained = JSON.stringify(run);
+    expect(await relativePlanOriginalInputConflict([run])).toBe("original_input_evidence_invalid");
+    expect(JSON.stringify(run)).toBe(retained);
+  }
+  expect(await replayScannerOriginalInputs(original)).toMatchObject({ original_candidate_count: 8, matched_count: 8 });
+  expect(await relativePlanOriginalInputConflict([original])).toBeNull();
+});
+
 test("the actual original-input audit reproduces current features as well as historical features", () => {
   test.setTimeout(90000);
   const proof = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--cold", "--original-feature-replay"],

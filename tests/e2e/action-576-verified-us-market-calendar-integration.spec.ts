@@ -243,6 +243,58 @@ test("full-cohort calendar replay reuses formatters without caching mutable sess
   }
 });
 
+test("repeated original-cohort clocks reuse bounded UTC arithmetic, never session evidence", async () => {
+  const expected = getUsEquityMarketSession("2026-07-22");
+  const bundle = await build({ entryPoints: [resolve(process.cwd(), calendarPath)], bundle: true,
+    write: false, platform: "node", format: "cjs" });
+  const original = Intl.DateTimeFormat.prototype.formatToParts;
+  let conversions = 0;
+  Intl.DateTimeFormat.prototype.formatToParts = function (...args) {
+    conversions += 1;
+    return Reflect.apply(original, this, args);
+  };
+  try {
+    const loaded = { exports: {} };
+    new Function("require", "module", "exports", bundle.outputFiles[0].text)(
+      createRequire(resolve(process.cwd(), "package.json")), loaded, loaded.exports);
+    const calendar = loaded.exports as typeof import("../../lib/us-equity-market-calendar");
+    expect(calendar.getUsEquityMarketSession("2026-07-22")).toEqual(expected);
+    const coldConversions = conversions;
+    expect(coldConversions).toBeGreaterThan(0);
+    for (let repeat = 0; repeat < 20; repeat += 1) {
+      expect(calendar.getUsEquityMarketSession("2026-07-22")).toEqual(expected);
+    }
+    expect(conversions).toBe(coldConversions);
+
+    const mutatedReturn = calendar.getUsEquityMarketSession("2026-07-22");
+    mutatedReturn.session_close = "not an instant";
+    expect(calendar.getUsEquityMarketSession("2026-07-22")).toEqual(expected);
+    const changed = dataset();
+    changed.exceptions.push({ market_date: "2026-07-22", session_type: "early_close_session",
+      open_local_time: "09:30", close_local_time: "13:00", reason: "Synthetic changed calendar" });
+    changed.exceptions.sort((a, b) => a.market_date.localeCompare(b.market_date));
+    expect(calendar.getUsEquityMarketSession("2026-07-22", reseal(changed))).toMatchObject({
+      session_type: "early_close_session", session_close: "2026-07-22T17:00:00.000Z" });
+    changed.provenance.recommended_refresh_date = "2026-07-22";
+    expect(calendar.getUsEquityMarketSession("2026-07-22", reseal(changed))).toMatchObject({
+      verification_status: "stale", session_type: "unknown", session_open: null, session_close: null });
+    expect(calendar.getUsEquityMarketSession("2026-07-22")).toEqual(expected);
+
+    // More than 256 distinct date/time pairs must evict the old arithmetic,
+    // without changing its result when independently recomputed afterward.
+    const day = new Date("2027-01-01T00:00:00.000Z");
+    for (let offset = 0; offset < 360; offset += 1) {
+      calendar.getUsEquityMarketSession(day.toISOString().slice(0, 10));
+      day.setUTCDate(day.getUTCDate() + 1);
+    }
+    const beforeEvictedRead = conversions;
+    expect(calendar.getUsEquityMarketSession("2026-07-22")).toEqual(expected);
+    expect(conversions).toBeGreaterThan(beforeEvictedRead);
+  } finally {
+    Intl.DateTimeFormat.prototype.formatToParts = original;
+  }
+});
+
 test("Action 576 handles weekends, verified holidays, observed holidays, and special closures", () => {
   expect(getUsEquityMarketSession("2026-07-18").session_type).toBe("closed_weekend");
   expect(getUsEquityMarketSession("2026-07-19").session_type).toBe("closed_weekend");

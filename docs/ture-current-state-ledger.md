@@ -2,7 +2,134 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-05, recommendation intelligence first
 
-**Now — composed original-learning vertical against verified main, 2026-10-05:**
+**Now — original current-session clock admission, 2026-10-05:** Codex owns
+`codex/original-session-clock-admission-oct5`, isolated from the dirty user
+checkout and based on verified main `5d691f87167627e45e84220fd0276f91b7a45185`.
+One primary IF-2b -> IF-4 `quality_measurement` correction; no secondary queue.
+Budget at most four active hours. Two actual CLOSED regressions reproduce a
+current-source `captured_at` with future microseconds being normalized down to
+the original decision clock and accepted by NEW learning admission, even on an
+unselected eighth member with the old context digest. That is a point-in-time
+integrity defect, not a new ranking hypothesis or observed quality lift.
+
+Require the original producer's exact millisecond UTC encoding before parsing;
+do not normalize/rewrite the retained source, remove its member, refit a sealed
+model or change a model, charter, ranking or publication threshold. Verify raw
+capture, restarted context/owned original replay, rejection before NEW
+model/result storage, unchanged canonical valid/missing inputs and historical
+sealed capsules, affected full regressions, types/lint and exact build. The
+first two red regressions now pass locally. The affected four-file command
+completes with 106 passes (9.8m), including actual isolated SQL/SDK/owned HTTP;
+the final 31-test training-service file also passes (32.7s), including its new
+pre-storage rejection and valid 96-member positive control. Thirty cases overlap:
+the accepted distinct total is 107, not 137. NEW terminal storage rejects the
+hostile forward clock with zero result writes and all 72 runs/576 snapshots
+retained; NEW training rejects aliases before materialization and retains all
+96 original members. The new hostile writer cases use actual services/serializer
+with injected stores, not a production database. Historical sealed-capsule
+regressions remain green. Nonincremental types and full lint pass (zero errors,
+eight existing warnings); six governance regressions pass. Exact clean committed
+source `a969b7f7bcc304421641f4c495fa08783ea5ca00` passes the normal Next 16.3.8
+Linux build on Node 22.23.1 after a locked install, two native consumer checks
+and all 33 generated pages. Build network is disabled, no production credentials
+are mounted and lock SHA256 stays
+`c126ba15634fffec241592d1316ea2e0bb9708886f865dc72f5fd30b2e084083`.
+Receipt: `/private/tmp/ture-original-session-clock-exact-build-oct5-receipt.json`.
+Protected release/main/production acceptance of this correction is still
+pending. No provider, production configuration or broker action is selected.
+After the minimum accepted correction, return to current-session original
+input/outcome evidence and the frozen full-charter comparison.
+
+**PR #734 protected-CI correction — 2026-10-05:** Ready run `37309916393`
+on `6adebd023267f6fe7f48c155a4654495527db58f` passes five groups, but
+lossless job `111762639171` reaches its unchanged 60-minute job limit.
+Its complete-archive v3 and v2 cases are both marked failed after 7.8m,
+consistent with their unchanged 470-second native-child limit; cancellation
+prevents the detailed buffered failure report, so an exact CI error stack is
+not claimed. Prior accepted main run `37300077755` completed this group in
+53m, including both native cases at 6.6m. Failed partial CI is not acceptance.
+
+Actual pre-change local native v3/v2 cases pass in 6.9m/6.6m on Node 26.5.0.
+A comparable Node 24.19.0 CPU-profiled v3 run takes 424,119ms; repeated New
+York calendar conversion accounts for 206.08s (48.63%) of sampled duration.
+The minimum 13-line correction reuses only UTC numbers keyed by exact date
+and wall time in a bounded 256-entry map. Calendar verification, freshness,
+exceptions and source admission still run on every read; mutable Dates,
+session verdicts, sources and evaluator results are not cached. No cohort,
+deadline, CI group, charter, model, ranking or publication rule is changed.
+
+The same Node 24 command, native bounds, profiling and complete source now
+pass in 243,725ms (42.53% shorter). Decoded v3 source remains 21,105,117 bytes,
+with 30 original decisions / 240 members per forward partition and 12 older
+decisions retained. Actual formatter-call RED/GREEN behavior verifies reuse,
+changed/stale calendar rejection and bounded eviction; three independently
+captured pre-change raw-context digests remain exact across DST and half-day
+history. The broader six-file local command completes with **127 distinct
+passes in 16.1m**, including both actual PostgreSQL/PostgREST/SDK/restarted HTTP
+native archive cases at 4.1m each and the complete five affected suites.
+These local checks use Node 24.19.0 on macOS arm64, not the Linux CI runner.
+The separately focused nine checks overlap this command and are not added to
+its total. Nonincremental types, full lint (zero errors/eight existing warnings)
+and six governance regressions also pass on Node 24.19.0. Exact clean committed
+source `141beb08ae6e3931139d095c03b6e68d42fbfc41` passes the normal locked
+Linux build on Node 22.23.1 / Next 16.3.8, including two native consumer checks
+and all 33 pages, with build network disabled, no production credentials and
+unchanged lock digest. Receipt:
+`/private/tmp/ture-original-clock-calendar-exact-build-oct5-receipt.json`.
+This final acceptance annotation changes documentation only; product/test,
+configuration and workflow bytes remain identical to the built revision.
+Fresh protected CI/main/production acceptance is still pending. No
+production/provider/broker action or observed recommendation-quality
+improvement is established by this performance result.
+
+**Next / OPEN:** prioritize the next eligible frozen current-session original
+input and canonical-outcome observation after exact release/runtime, verified
+regular session, actual remaining provider-budget and scope checks. No slot or
+series is armed. Missing account budget is not inferred from 800 daily credits
+or this application's zero reservations; it does not stop this independent
+CLOSED correction. Preserve the frozen charter and every original member;
+useful training, pre-forward sealing and the full forward comparison remain
+separate evidence requirements, not a daily candidate quota.
+
+**Verified release exit — PR #733, 2026-10-05:** complete protected Ready run
+`37300077755` passes all six groups on `a794129fb06b09922aca7086f07629976104addb`.
+The whole registered 663-test intelligence command also completes locally in
+44.0m with actual native SQL/SDK/HTTP checks; previous permission/timeout
+attempts stay separately failed, not successful partial runs. Normal protected
+merge produces main `5d691f87167627e45e84220fd0276f91b7a45185` at 11:57:19Z.
+Main run `37306273467` matches candidate tree
+`62bb92cfe99f22dc3d50c2bba377c0b37f6da350`, both parents and unchanged workflow
+blob with zero mismatches. Automatic Git production deploy
+`6ac390a3078a57000702ca9b` publishes at 11:59:19.282Z on that exact main;
+no additional build is triggered.
+
+The exact reviewed capacity migration
+`20261004054424_if4_complete_original_archive_source_capacity.sql` (SHA256
+`2da941dbce38a35c29a5bc2b7be45b2c52769fd6d6bc24e4bfaeb7334d8439a3`)
+is applied normally to production `ekdyopdrrkphlrsilyoo`, recorded as
+`20261005120425_if4_complete_original_archive_source_capacity`.
+Actual PG 17.6 postflight at 12:04:33Z verifies the exact single decoded-source
+16 -> 32 MiB literal replacement (definition MD5
+`6b6ea12426c0db8246198a5f051d6cad`), unchanged function identity/owner/config/ACL,
+8 MiB stored limit, RLS, service-only RPC and immutable trigger. No rows are
+rewritten; comparison/model/result counts stay zero. Native receipt unit
+correction: v3 source is 21,105,117 bytes and v2 is 21,106,845 bytes, about
+20.13 MiB / 21.1 MB, not >21 MiB. Both preserve the complete original population
+and exceed the old 16 MiB limit. Historical synthetic terminal-model clocks do
+not prove pre-forward sealing.
+
+Authenticated provider-free production readback at 12:05:12.691Z verifies exact
+compiled revision/deploy, inert controls, no active reservation and truthful
+missing-freeze/model/result GETs. The original replay route rejects a missing
+ID; no production archive replay is exercised. No observation is armed. Netlify release
+capacity is human-confirmed; today's actual Twelve Data account remainder is
+still unverified and must be checked before OPEN. Useful production training,
+an actual pre-forward model seal, full forward cohorts and baseline-relative
+quality remain unproven. The engine graduation gate remains `not_met`.
+
+### Retained pre-release evidence for the completed composition
+
+**Pre-release composition record, 2026-10-05:**
 Codex owns `codex/original-learning-main-integration-oct5`, isolated from the
 user's dirty checkout and based on main `39a2469a519539ae2c640f53aa6429ae2526280e`.
 The already locally accepted chain at `9db62128423611509a0bcb927c306b574783dca7`
@@ -35,7 +162,7 @@ accepted parked composition; no workflow or protected check was changed.
 The native training test uses actual database time and a separately committed
 pre-forward witness; the native terminal-result test instead deliberately uses
 a disclosed historical synthetic model-clock fixture. Complete original source
-exceeds 21 MiB without dropping any member; restarted storage/readback preserves
+exceeds 16 MiB without dropping any member; restarted storage/readback preserves
 it and 12 unrelated older decisions. The whole-session synthetic benchmark
 retains 176 enrolled members, 144 canonical outcomes and 32 explicitly missing
 labels. Its full charter remains incomplete/blocked, including coverage and
