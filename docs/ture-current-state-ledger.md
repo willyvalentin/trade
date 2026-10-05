@@ -70,9 +70,17 @@ native archive cases at 4.1m each and the complete five affected suites.
 These local checks use Node 24.19.0 on macOS arm64, not the Linux CI runner.
 The separately focused nine checks overlap this command and are not added to
 its total. Nonincremental types, full lint (zero errors/eight existing warnings)
-and six governance regressions also pass on Node 24.19.0. Exact rebuilt source
-and new protected CI remain pending for this correction. No production/provider/broker action or observed
-recommendation-quality improvement is established by this performance result.
+and six governance regressions also pass on Node 24.19.0. Exact clean committed
+source `141beb08ae6e3931139d095c03b6e68d42fbfc41` passes the normal locked
+Linux build on Node 22.23.1 / Next 16.3.8, including two native consumer checks
+and all 33 pages, with build network disabled, no production credentials and
+unchanged lock digest. Receipt:
+`/private/tmp/ture-original-clock-calendar-exact-build-oct5-receipt.json`.
+This final acceptance annotation changes documentation only; product/test,
+configuration and workflow bytes remain identical to the built revision.
+Fresh protected CI/main/production acceptance is still pending. No
+production/provider/broker action or observed recommendation-quality
+improvement is established by this performance result.
 
 **Next / OPEN:** prioritize the next eligible frozen current-session original
 input and canonical-outcome observation after exact release/runtime, verified
