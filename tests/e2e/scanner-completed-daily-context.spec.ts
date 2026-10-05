@@ -613,6 +613,24 @@ test("original completed daily capture rejects future microseconds and noncanoni
   expect(JSON.stringify(baseline)).toBe(original);
 });
 
+// Captured from the actual pre-optimization implementation at 6adebd0, not
+// recomputed expectations. Reusing UTC arithmetic must preserve every raw
+// candle and the exact archived digest across DST history and a half-day.
+for (const [last, capturedAt, digest] of [
+  ["2026-09-30", "2026-10-01T15:50:00.000Z", "sha256:3f110bcb72e3f076fea84eef6062e179d2e0b780bb91cc11b4b2641dcf3be502"],
+  ["2026-03-31", "2026-04-01T15:50:00.000Z", "sha256:7ce7304a32da108f25a547e894863bde4c9f65f35ad51cf88715b752d00c724e"],
+  ["2026-11-27", "2026-11-27T18:01:00.000Z", "sha256:f0a9dc82bb2f7216b1b2492d6a6f18e5f45250dffed70d37729210d15977c7fe"],
+]) {
+  test(`original daily context keeps its pre-optimization bytes at ${capturedAt}`, async () => {
+    const input = receipt(last, capturedAt), now = new Date(capturedAt);
+    const before = JSON.stringify(input);
+    const context = await api.captureCompletedDailyContext(input, "SYNTH", now);
+    expect(context).toMatchObject({ content_sha256: digest, candles: input.candles });
+    expect(await api.readCompletedDailyContext(JSON.parse(JSON.stringify(context)), "SYNTH", now)).toEqual(context);
+    expect(JSON.stringify(input)).toBe(before);
+  });
+}
+
 test("legacy daily response retention preserves candles and request shape while strict history stays fail closed", async () => {
   const bundle=await build({entryPoints:[resolve(process.cwd(),"lib/market-data.ts")],bundle:true,
     write:false,platform:"node",format:"cjs",conditions:["react-server"]});
@@ -770,6 +788,20 @@ test("current session rejects gaps, future bars, metadata drift, mutations and m
   expect(await api.readCurrentSessionContext(context, "OTHER", at)).toBeNull();
   expect(await api.readCurrentSessionContext({ ...context, session_close_at: "2026-10-01T21:00:00.000Z" }, "SYNTH", at)).toBeNull();
   expect(await api.readCurrentSessionContext(context, "SYNTH", new Date("2026-10-01T20:00:00.000Z"))).toBeNull();
+});
+
+test("current source capture and restart reject future microseconds and noncanonical clock aliases", async () => {
+  const input = sessionReceipt(at);
+  const original = JSON.stringify(input);
+  const context = await api.captureCurrentSessionContext(input, "SYNTH", at);
+  expect(context).not.toBeNull();
+  for (const captured_at of ["2026-10-01T15:50:00.000001Z", "2026-09-31T15:50:00.000Z",
+    "2026-10-01 15:50:00.000Z", "2026-10-01T15:50:00Z", "2026-10-01T15:50:00.000+00:00"]) {
+    expect(await api.captureCurrentSessionContext({ ...input, captured_at }, "SYNTH", at)).toBeNull();
+    expect(await api.readCurrentSessionContext({ ...context, captured_at }, "SYNTH", at)).toBeNull();
+  }
+  expect(await api.readCurrentSessionContext(JSON.parse(JSON.stringify(context)), "SYNTH", at)).toEqual(context);
+  expect(JSON.stringify(input)).toBe(original);
 });
 
 test("fifteen-minute current context respects early close and leaves short lookbacks unknown", async () => {

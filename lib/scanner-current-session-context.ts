@@ -44,14 +44,20 @@ export async function captureCurrentSessionContext(
   const validation = validateUsEquityMarketCalendarDataset(calendar);
   if (!validation.dataset || !validation.computed_fingerprint) return null;
   const session = getUsEquityMarketSession(now, validation.dataset);
-  const captured = typeof value.captured_at === "string" ? Date.parse(value.captured_at) : NaN;
+  // The producer records Date.toISOString(), not an arbitrary parseable alias.
+  // Validate the original encoding before parsing can round a future fraction
+  // down to the decision clock or normalize a different retained source.
+  const rawCaptured = value.captured_at;
+  const captured = typeof rawCaptured === "string" &&
+    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(rawCaptured)
+    ? Date.parse(rawCaptured) : NaN;
   const identity = twelveDataResponseIdentityFromUnknown(value.response_identity);
   if (session.verification_status !== "verified" || session.freshness_status !== "current" ||
     !session.session_open || !session.session_close || !session.market_date ||
     value.symbol !== ticker.trim().toUpperCase() ||
     (value.interval !== "5min" && value.interval !== "15min") ||
     value.exchange_timezone !== "America/New_York" || !identity || identity.payload_byte_length === 0 ||
-    !Number.isFinite(captured) || captured > now.getTime() ||
+    !Number.isFinite(captured) || new Date(captured).toISOString() !== rawCaptured || captured > now.getTime() ||
     captured < Date.parse(session.session_open) || now.getTime() >= Date.parse(session.session_close) ||
     !Array.isArray(value.candles) || value.candles.length === 0) return null;
   const step = value.interval === "5min" ? 300 : 900;

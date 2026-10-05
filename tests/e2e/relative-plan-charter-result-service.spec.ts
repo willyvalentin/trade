@@ -20,6 +20,7 @@ import { relativePlanRetainedOutcomeCandleConflict } from "@/lib/server/relative
 import { prospectiveSource } from "../fixtures/relative-plan-prospective-source";
 import { buildRelativePlanProspectiveEnrollment } from "@/lib/server/relative-plan-prospective-enrollment";
 import { parseRecommendationLearningBaselineSource } from "@/lib/recommendation-learning-baseline-source";
+import type { buildScannerCurrentInputArchive } from "@/lib/server/scanner-current-input-archive";
 
 async function retainedForwardHarness(index = 103) {
   const input = await charterEvaluationInput(8), outcome = input.source.outcomes[index];
@@ -642,6 +643,45 @@ test("new terminal results cannot call contradictory original forward inputs com
   expect(JSON.stringify(data)).toBe(original);
   expect(input.source.scanRuns).toHaveLength(72);
   expect(input.source.snapshots).toHaveLength(576);
+});
+
+test("new full-original terminal commands reject normalized forward clocks before an immutable result is stored", async () => {
+  test.setTimeout(120000);
+  const input = await charterEvaluationInput(8, { originalInputs: true });
+  const archive = (input.source.scanRuns[12].payload_json as Record<string, unknown>)
+    .scanner_current_input_archive as NonNullable<ReturnType<typeof buildScannerCurrentInputArchive>>;
+  expect(archive.entries).toHaveLength(8);
+  archive.entries[7].current_context.captured_at = archive.entries[7].current_context.captured_at.replace(".000Z", ".000001Z");
+  const data: Record<string, Record<string, unknown>[]> = {
+    recommendation_scan_runs: [], recommendation_snapshots: [], recommendation_outcomes: [],
+  };
+  const writer = { from(table: string) { return { async upsert(row: Record<string, unknown>) {
+    data[table].push(structuredClone(row)); return { error: null };
+  } }; } };
+  const originalOwner = process.env.TURE_APPLICATION_OWNER_USER_ID;
+  process.env.TURE_APPLICATION_OWNER_USER_ID = prospectiveOwner;
+  try {
+    for (const run of input.source.scanRuns) await persistRecommendationScanRun(run, { supabaseClient: writer, server: true });
+    for (const snapshot of input.source.snapshots) await persistRecommendationSnapshot(snapshot, { supabaseClient: writer, server: true });
+    for (const outcome of input.source.outcomes) await persistRecommendationOutcome(outcome, { supabaseClient: writer, server: true });
+  } finally {
+    if (originalOwner === undefined) delete process.env.TURE_APPLICATION_OWNER_USER_ID;
+    else process.env.TURE_APPLICATION_OWNER_USER_ID = originalOwner;
+  }
+  const original = JSON.stringify(data), model = JSON.stringify(input.trainedModelReceipt);
+  const h = harness({ clock: () => new Date(input.now),
+    modelStore: () => createRelativePlanTrainedProbabilityStore({ async read() {
+      return { status: "available", receipt: input.trainedModelReceipt };
+    }, async materialize() { throw new Error("must_not_refit"); }, async confirm() { throw new Error("must_not_confirm"); } }),
+    readSource: async () => ({ status: "available", data }), readRuntime: async () => input.runtime,
+  });
+  expect(await h.service.finalize(prospectiveOwner, {})).toMatchObject({ status: "unavailable", receipt: null,
+    blocker: "relative_plan_result_original_input_evidence_invalid", terminal_quality_decision: null });
+  expect(h.calls.writes).toBe(0);
+  expect(data.recommendation_scan_runs).toHaveLength(72);
+  expect(data.recommendation_snapshots).toHaveLength(576);
+  expect(JSON.stringify(data)).toBe(original);
+  expect(JSON.stringify(input.trainedModelReceipt)).toBe(model);
 });
 
 test("a new result also rejects an original contradiction retained only in the sealed training capsule", async () => {
