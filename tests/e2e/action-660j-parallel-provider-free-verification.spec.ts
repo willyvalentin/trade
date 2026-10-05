@@ -99,7 +99,6 @@ const foundationTests = [
   "tests/e2e/scanner-plan-reference-binding.spec.ts",
   "tests/e2e/scanner-completed-daily-context.spec.ts",
   "tests/e2e/scanner-historical-input-replay.spec.ts",
-  "tests/e2e/scanner-original-input-replay.spec.ts",
   "tests/e2e/original-outcome-source-window.spec.ts",
   "tests/e2e/canonical-outcome-resumption.spec.ts",
   "tests/e2e/completed-input-published-source.spec.ts",
@@ -288,6 +287,7 @@ const foundationTests = [
 ];
 
 const intelligenceTests = [
+  "tests/e2e/scanner-original-input-replay.spec.ts",
   "tests/e2e/action-576-verified-us-market-calendar-integration.spec.ts",
   "tests/e2e/action-555-official-outcome-candle-acquisition-investigation.spec.ts",
   "tests/e2e/recommendation-outcome-canonical-coverage.spec.ts",
@@ -613,10 +613,10 @@ test("Draft fallback retains complete coverage without repeating identical chang
     path.join(repositoryRoot, "scripts/action-660k-run-draft-ci.mjs"),
   ).href) as { selectDraftCommands: (paths: string[]) => PlannedCommand[] };
   const repeated = ["tests/e2e/completed-benchmark-reuse.spec.ts",
-    "tests/e2e/scanner-completed-daily-context.spec.ts", "tests/e2e/scanner-historical-input-replay.spec.ts",
+    "tests/e2e/scanner-completed-daily-context.spec.ts", "tests/e2e/scanner-historical-input-replay.spec.ts"];
+  const serverOnly = ["tests/e2e/recommendation-outcome-canonical-coverage.spec.ts",
     "tests/e2e/scanner-original-input-replay.spec.ts"];
-  const serverOnly = "tests/e2e/recommendation-outcome-canonical-coverage.spec.ts";
-  const selected = selectDraftCommands(["lib/scanner.ts", ...repeated, serverOnly]);
+  const selected = selectDraftCommands(["lib/scanner.ts", ...repeated, ...serverOnly]);
   for (const file of repeated) {
     const commands = selected.filter(command => command.args.includes(file));
     expect(commands).toHaveLength(1);
@@ -625,12 +625,39 @@ test("Draft fallback retains complete coverage without repeating identical chang
     expect(commands[0].args[0]).toBe("test");
     expect(commands[0].args.at(-1)).toBe("--workers=1");
   }
-  expect(selected.find(command => command.args.includes(serverOnly))).toMatchObject({
-    label: `Affected registered test: ${serverOnly}`, node_options: "--conditions=react-server" });
+  for (const file of serverOnly) {
+    const commands = selected.filter(command => command.args.includes(file));
+    expect(commands).toHaveLength(1);
+    expect(commands[0]).toMatchObject({ label: `Affected registered test: ${file}`,
+      args: ["test", file, "--workers=1"], node_options: "--conditions=react-server" });
+  }
   expect(selected.some(command => command.label === "Draft critical security smoke")).toBe(true);
   expect(selectDraftCommands(["lib/scanner.ts"]).find(command =>
     command.label === "Browser and server containment")?.args)
     .toEqual(["test", ...foundationTests, "--workers=1"]);
+});
+
+test("actual registered containment and intelligence suites collect under their distinct server conditions", () => {
+  test.setTimeout(90000);
+  const plan = JSON.parse(execFileSync(process.execPath,
+    [path.join(repositoryRoot, runnerPath), "--plan"], { encoding: "utf8" })) as Record<string, PlannedCommand[]>;
+  const original = "tests/e2e/scanner-original-input-replay.spec.ts";
+  for (const label of ["Browser and server containment", "Provider-free intelligence contract"]) {
+    const selected = plan.foundation.find(command => command.label === label)!;
+    expect(selected).toBeDefined();
+    expect(selected.args.includes(original)).toBe(label === "Provider-free intelligence contract");
+    const environment: NodeJS.ProcessEnv = { ...process.env, PLAYWRIGHT_SKIP_WEB_SERVER: "true" };
+    if (selected.node_options === null) delete environment.NODE_OPTIONS;
+    else environment.NODE_OPTIONS = selected.node_options;
+    // Collection executes real module imports without running provider/native
+    // test bodies. A misplaced server-only import must fail this regression.
+    const result = spawnSync(process.execPath, [path.join(repositoryRoot,
+      "node_modules/@playwright/test/cli.js"), ...selected.args, "--list"],
+    { cwd: repositoryRoot, env: environment, encoding: "utf8", timeout: 40000, maxBuffer: 16 * 1048576 });
+    expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
+    expect(result.stdout).toMatch(/Total: [1-9]\d* tests in [1-9]\d* files/);
+    expect(result.stdout.includes("scanner-original-input-replay.spec.ts:")).toBe(label === "Provider-free intelligence contract");
+  }
 });
 
 test("forwards cancellation to the active process group and exits before another command can start", async () => {

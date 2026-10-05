@@ -57,6 +57,25 @@ also unavailable. Next action is one focused Ready PR, not another local helper
 or a new ranking hypothesis. No production/provider/broker action occurred in
 these local checks.
 
+**Focused PR #733 CI correction — 2026-10-05:** Ready run `37290561903`
+on head `99ca5f0f` passes build but its foundation job `111699791742` fails
+at real Playwright collection: the original-input replay suite imports
+`server-only` while placed in the normal browser/server-containment command.
+The same failure is reproduced locally without `react-server`; it is not a
+market/provider failure or evidence that the product build failed.
+Move only that suite to the existing server-conditioned intelligence command,
+preserving exactly all 366 registered files, six shards, historical contract,
+required aggregate, audit and time limits. Draft selection still runs it once
+with its real server condition. Add actual collection regression for both
+complete registered groups, not a source-string substitute. All 17 affected
+governance/CI checks pass (20.1s); the unchanged original-input suite's five
+behavior checks pass (7.7s). Product bytes remain unchanged;
+nonincremental types pass and full lint retains zero errors
+and eight existing warnings. No application/schema/dependency/workflow change.
+This is the minimum integration correction for the
+same original-learning delivery, not a new support stream, policy or production
+acceptance. Full protected CI must pass on the corrected head before release.
+
 **Next / OPEN:** prioritize the next eligible frozen current-session input and
 original-outcome observation after release/runtime, market-session, remaining
 provider-budget and scope checks. No observation is armed by this integration.

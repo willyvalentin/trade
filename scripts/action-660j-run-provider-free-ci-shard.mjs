@@ -69,7 +69,6 @@ const foundationTests = [
   "tests/e2e/scanner-plan-reference-binding.spec.ts",
   "tests/e2e/scanner-completed-daily-context.spec.ts",
   "tests/e2e/scanner-historical-input-replay.spec.ts",
-  "tests/e2e/scanner-original-input-replay.spec.ts",
   "tests/e2e/original-outcome-source-window.spec.ts",
   "tests/e2e/canonical-outcome-resumption.spec.ts",
   "tests/e2e/completed-input-published-source.spec.ts",
@@ -258,6 +257,7 @@ const foundationTests = [
 ];
 
 const intelligenceTests = [
+  "tests/e2e/scanner-original-input-replay.spec.ts",
   "tests/e2e/action-576-verified-us-market-calendar-integration.spec.ts",
   "tests/e2e/action-555-official-outcome-candle-acquisition-investigation.spec.ts",
   "tests/e2e/recommendation-outcome-canonical-coverage.spec.ts",
