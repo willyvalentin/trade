@@ -2,7 +2,7 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
-**Selected CLOSED IF-4 missing original outcome acquisition — 2026-10-05:**
+**CLOSED IF-4 missing original outcome acquisition locally built — 2026-10-05:**
 Codex owns `codex/original-outcome-missing-first-oct5`, isolated from freshly
 verified main `55576078` plus local composition `2eb4c1d2`. Primary #732 remains
 Draft/release-held. Four-active-hour recovery of the reproduced ordinary
@@ -33,7 +33,49 @@ next recovery separately if still reproduced. Integrate only after #732 and the
 completed composition against then-current main. Synthetic coverage is learning
 admission evidence, not better recommendations or release acceptance.
 
-**Selected CLOSED IF-2b original benchmark information-set admission — 2026-10-05:**
+Product/test revision `556097b252fcb2b597f42e9a0a66ac09460c4bb3` implements
+`official_missing_before_elapsed_partial_v1` in the existing official selector
+and readback. Oldest selected batches and stable source order remain unchanged;
+never-observed members precede elapsed incomplete canonical retries within a
+selected batch. Existing early-horizon/recovery priority remains intact. No
+pending identity is removed or promoted to canonical completeness.
+
+The actual ordinary route's red proof retains all eight pending members and
+fails because the unchanged parent buys the same four again: only four physical
+SQL outcome identities. After correction, the two capped passes reach eight
+different original identities, persist four then eight rows, and survive
+route/SDK module restart with owner-bound SQL readback. All original 26 source
+decisions/208 member observations stay present. The late decision still has
+only five of twelve required regular-window bars per member: zero canonical
+labels, eight missing learning outcomes and `evidence_incomplete`, never a
+shortened-horizon pass or quality claim. The existing early-horizon proof still
+resumes the same four identities to complete original coverage.
+
+All **66 DISTINCT affected committed checks pass**: 60 existing unit/source,
+legacy, canonical/zero-budget, scheduler/receipt and governance checks plus six
+ordinary actual-source-schema SQL/PostgREST/SDK integrations in 3.0 minutes.
+The six include the eight-member correction, early resumption, complete capped
+source reads, rejected incomplete/over-bound source reads, published original
+learning and the joint original-input → canonical-outcome → full-charter path.
+The two earlier focused green checks are included, not extra distinct checks.
+Nonincremental types and changed-file lint pass; full lint has zero errors and
+eight existing warnings. The first ordinary exact Linux build passes on
+`556097b2`, Node 22.23.1 / Next 16.3.8, locked read-only dependencies, no network
+or production credentials; lock SHA-256 remains
+`859ed09eed4d3de2e7ade5c74bea78e73770bea57f92d6cb3656224bfcace6f7`.
+Logs `/private/tmp/ture-original-outcome-missing-first-{red,focused,controls,native-regression,types,lint,changed-lint,exact-build}-oct5.log`.
+
+This bounded `quality_measurement` correction is locally built/tested, not main
+or production verified, and establishes no recommendation-quality improvement.
+The composed primary is still release-held and not fully integration-green:
+whole-session continuation remains a separately reproduced inherited gap, not
+a passed acceptance. Stop extending within-batch ordering; perform one bounded
+existing whole-session continuation with exact transport/coverage evidence to
+select its smallest recovery. Do not increase its 60-pass/230-second bound,
+remove late members or change the frozen charter. No push, PR, merge, deploy,
+real provider, production database or broker action; root changes are preserved.
+
+**CLOSED IF-2b original benchmark admission locally built; integration incomplete — 2026-10-05:**
 Codex owns `codex/original-benchmark-information-set-oct5`, isolated from freshly
 verified main `55576078` plus locally completed composition `783adf70`.
 Primary #732 stays Draft/release-held at `2741f946`; its required aggregate is
