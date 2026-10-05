@@ -1189,7 +1189,7 @@ test("withholds a complete cohort until the full recommendation-quality charter 
       feasibility: expect.objectContaining({
         denominator: 10,
         decision_feature_vector_version:
-          "recommendation_decision_feature_vector_v2",
+          "recommendation_decision_feature_vector_v3",
         liquidity_coverage: expect.objectContaining({ value: 1 }),
         volatility_coverage: expect.objectContaining({ value: 1 }),
         trigger_attainment_coverage: expect.objectContaining({ value: 1 }),
@@ -1665,7 +1665,7 @@ test("fails the scorecard closed when point-in-time liquidity is unavailable", (
     feasibility: {
       denominator: 2,
       decision_feature_vector_version:
-        "recommendation_decision_feature_vector_v2",
+        "recommendation_decision_feature_vector_v3",
       liquidity_coverage: { value: 0, numerator: 0, denominator: 2 },
       volatility_coverage: { value: 1, numerator: 2, denominator: 2 },
       trigger_attainment_coverage: {

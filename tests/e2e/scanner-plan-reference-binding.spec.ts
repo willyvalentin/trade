@@ -91,27 +91,43 @@ test.describe("scanner plan reference binding", () => {
 
   test("scanner applies the binding after stale-safe intraday normalization", () => {
     const scanner = readFileSync(resolve(process.cwd(), "lib/scanner.ts"), "utf8");
+    const originalClock = scanner.indexOf(
+      "const indicatorObservedAtMs = completedContextMode",
+    );
     const originalNormalization = scanner.indexOf(
-      "const originalIndicators = completedContextMode",
+      "const originalIndicators = indicatorObservedAtMs !== undefined && result.session_context",
+      originalClock,
+    );
+    const volumeClock = scanner.indexOf(
+      "const volumeObservedAtMs = indicatorObservedAtMs !== undefined ? Date.now() : undefined",
+      originalNormalization,
     );
     const normalization = scanner.indexOf(
       "const intradayIndicators = originalIndicators",
       originalNormalization,
     );
     const staleSafeNormalization = scanner.indexOf(
-      "withAdmissibleRecentIntradayVolume(originalIndicators, result.stale)",
+      "withAdmissibleRecentIntradayVolume(originalIndicators, result.stale,",
       normalization,
     );
     const binding = scanner.indexOf("const planReference = bindScannerPlanReference");
     const spread = scanner.indexOf("...planReference", binding);
 
-    expect(originalNormalization).toBeGreaterThan(-1);
-    expect(normalization).toBeGreaterThan(originalNormalization);
+    expect(originalClock).toBeGreaterThan(-1);
+    expect(originalNormalization).toBeGreaterThan(originalClock);
+    expect(volumeClock).toBeGreaterThan(originalNormalization);
+    expect(normalization).toBeGreaterThan(volumeClock);
     expect(staleSafeNormalization).toBeGreaterThan(normalization);
     expect(binding).toBeGreaterThan(staleSafeNormalization);
     expect(spread).toBeGreaterThan(binding);
-    expect(scanner.slice(originalNormalization, normalization)).toContain(
+    expect(scanner.slice(originalClock, originalNormalization)).toContain(
       "completedContextMode && !result.stale && result.session_context",
+    );
+    expect(scanner.slice(originalNormalization, volumeClock)).toContain(
+      "observedAtSeconds: indicatorObservedAtMs / 1000",
+    );
+    expect(scanner.slice(staleSafeNormalization, binding)).toContain(
+      "volumeObservedAtMs !== undefined ? volumeObservedAtMs / 1000 : undefined",
     );
     expect(scanner.slice(binding, spread)).toContain(
       "intradayIndicators?.latestCandleTimestamp",
@@ -163,7 +179,11 @@ test("real scanner cache read never substitutes write time for missing market ti
   globalThis.Date = FixtureDate as DateConstructor;
   console.log = () => {};
   try {
-    const cases = [
+    const cases: {
+      name: string; timestamp: string | null | undefined;
+      expected: string | null; accepted: boolean;
+      cacheOverride?: Record<string, unknown>; rejectedCache?: boolean;
+    }[] = [
       { name: "missing", timestamp: undefined, expected: null, accepted: false },
       { name: "null", timestamp: null, expected: null, accepted: false },
       { name: "invalid", timestamp: "not-market-time", expected: null, accepted: false },
@@ -171,6 +191,23 @@ test("real scanner cache read never substitutes write time for missing market ti
       { name: "future", timestamp: "2026-10-01T15:51:00.000Z", expected: "2026-10-01T15:51:00.000Z", accepted: false },
       { name: "real source time", timestamp: "2026-10-01T15:49:00.000Z", expected: "2026-10-01T15:49:00.000Z", accepted: true },
       { name: "fresh intraday rescue", timestamp: undefined, expected: "2026-10-01T15:45:00.000Z", accepted: true },
+      ...["latest_close", "ma20", "ma50", "high_20d", "volume_ratio",
+        "distance_to_20d_high", "change_5d_percent", "proposed_entry_low",
+        "proposed_entry_high", "proposed_stop_loss", "proposed_target_1",
+        "proposed_target_2", "proposed_risk_reward"].map(field => ({
+          name: `missing numeric cache field: ${field}`,
+          timestamp: "2026-10-01T15:49:00.000Z", expected: null, accepted: false,
+          cacheOverride: { [field]: null }, rejectedCache: true,
+        })),
+      ...["", "  ", false, [], "not-numeric"].map(value => ({
+        name: `invalid numeric cache field: ${JSON.stringify(value)}`,
+        timestamp: "2026-10-01T15:49:00.000Z", expected: null, accepted: false,
+        cacheOverride: { proposed_entry_low: value }, rejectedCache: true,
+      })),
+      { name: "valid zero metrics and numeric strings",
+        timestamp: "2026-10-01T15:49:00.000Z", expected: "2026-10-01T15:49:00.000Z", accepted: true,
+        cacheOverride: { latest_close: "99", proposed_entry_low: "98", proposed_target_1: "108",
+          volume_ratio: 0, distance_to_20d_high: "0", change_5d_percent: 0 } },
     ];
     for (const [index, scenario] of cases.entries()) {
       const actual = load(); // Isolate the real indicator memory cache per case.
@@ -197,6 +234,7 @@ test("real scanner cache read never substitutes write time for missing market ti
         proposed_entry_low: 98, proposed_entry_high: 100, proposed_stop_loss: 95,
         proposed_target_1: 108, proposed_target_2: 112, proposed_risk_reward: 2.4,
         trend_context: "Synthetic history", volume_context: "Synthetic volume", raw,
+        ...scenario.cacheOverride,
       };
       let reads = 0;
       globalThis.fetch = async (input, init) => {
@@ -213,8 +251,16 @@ test("real scanner cache read never substitutes write time for missing market ti
         mock_trend: "", mock_volume_context: "", mock_support: 95,
         mock_resistance: 108, mock_news_context: "",
       }], { source: "scheduled", maxFreshProviderCalls: 0, freshProviderCallPacingMs: 0 });
-      expect(candidates).toHaveLength(1);
       expect(reads).toBe(1);
+      if (scenario.rejectedCache) {
+        expect(candidates, scenario.name).toHaveLength(0);
+        continue;
+      }
+      expect(candidates).toHaveLength(1);
+      if (scenario.cacheOverride) {
+        expect(candidates[0]).toMatchObject({ latest_close: 99, proposed_entry_low: 98,
+          proposed_target_1: 108, volume_ratio: 0, distance_to_20d_high: 0, change_5d_percent: 0 });
+      }
       expect(candidates[0].reference_price_timestamp, scenario.name).toBe(scenario.expected);
       const metadata = actual.resolvePlanReferencePriceMetadata(candidates[0], {
         enforceFreshness: true, now: new FixtureDate(),

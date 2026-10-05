@@ -61,7 +61,9 @@ test.describe("Action 548 future calibration observation data contract", () => {
     expect(confidence.original_confidence).toBe(82);
     expect(confidence.projected_confidence).toBe(87);
     expect(confidence.projection_source).toBe("stored_projection");
-    expect(confidence.calibration_status).toBe("calibrated_observation_only");
+    expect(confidence.calibration_status).toBe("uncalibrated_static_setup_rule_observation_only");
+    expect(confidence.historical_basis).toBeNull();
+    expect(confidence.explanation).toContain("not fitted to outcomes");
     expect(setup.setup_type).toBe("PULLBACK_CONTINUATION");
     expect(setup.recommendation_tier).toBe("valid");
     expect(setup.trading_window).toBe("morning");

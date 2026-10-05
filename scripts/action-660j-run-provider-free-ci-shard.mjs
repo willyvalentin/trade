@@ -68,9 +68,12 @@ const foundationTests = [
   "tests/e2e/reference-refresh-diagnostics.spec.ts",
   "tests/e2e/scanner-plan-reference-binding.spec.ts",
   "tests/e2e/scanner-completed-daily-context.spec.ts",
+  "tests/e2e/scanner-historical-input-replay.spec.ts",
   "tests/e2e/original-outcome-source-window.spec.ts",
+  "tests/e2e/canonical-outcome-resumption.spec.ts",
   "tests/e2e/completed-input-published-source.spec.ts",
   "tests/e2e/completed-benchmark-reuse.spec.ts",
+  "tests/e2e/mvp-02-stale-recommendation-presentation.spec.ts",
   "tests/e2e/action-652f-server-client-containment.spec.ts",
   "tests/e2e/action-660f-dashboard-owner-relation-disambiguation.spec.ts",
   "tests/e2e/action-660g-ma15-verified-production-reclosure.spec.ts",
@@ -254,6 +257,7 @@ const foundationTests = [
 ];
 
 const intelligenceTests = [
+  "tests/e2e/scanner-original-input-replay.spec.ts",
   "tests/e2e/action-576-verified-us-market-calendar-integration.spec.ts",
   "tests/e2e/action-555-official-outcome-candle-acquisition-investigation.spec.ts",
   "tests/e2e/recommendation-outcome-canonical-coverage.spec.ts",
@@ -266,6 +270,7 @@ const intelligenceTests = [
   "tests/e2e/relative-plan-charter-thresholds.spec.ts",
   "tests/e2e/relative-plan-charter-evaluation.spec.ts",
   "tests/e2e/relative-plan-charter-result.spec.ts",
+  "tests/e2e/relative-plan-terminal-context.spec.ts",
   "tests/e2e/relative-plan-charter-result-service.spec.ts",
   "tests/e2e/relative-plan-charter-result-store.spec.ts",
   "tests/e2e/relative-plan-prospective-comparison.spec.ts",
@@ -399,7 +404,6 @@ export const providerFreeVerificationPlan = Object.freeze({
     command("Generated-types provenance V2", "node", [
       "tests/e2e/action-660-ma09-generated-types-provenance-v2.spec.mjs",
     ]),
-    playwright("Provider-free intelligence contract", intelligenceTests),
     playwright("Predictive explanation foundation", [
       "tests/e2e/action-666m-predictive-outcome-explanation.spec.ts",
       "tests/e2e/action-666cj-current-main-predictive-explanation-freeze.spec.ts",
@@ -486,6 +490,9 @@ export const providerFreeVerificationPlan = Object.freeze({
       "tests/e2e/action-666ct-current-main-lossless-invalid-scalar-observation.spec.ts",
       "tests/e2e/action-666ct-current-main-lossless-invalid-scalar-observation-freeze.spec.ts",
     ]),
+    // Keep the complete server-conditioned suite intact, but separate it from
+    // containment: their measured serial duration exceeds foundation's limit.
+    playwright("Provider-free intelligence contract", intelligenceTests),
   ]),
 });
 

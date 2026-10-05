@@ -48,7 +48,10 @@ import { getServerSupabaseClient } from "@/lib/supabase-server";
 import type { TwelveDataResponseIdentity } from "@/lib/twelve-data-response-identity";
 import { COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION } from "@/lib/scanner-decision-input-snapshot";
 import { isValidCompletedBenchmarkReuse, type CompletedBenchmarkReuse } from "@/lib/completed-benchmark-reuse";
+import type { ScannerCurrentInputCalculationClock } from "@/lib/server/scanner-current-input-archive";
 export { COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION } from "@/lib/scanner-decision-input-snapshot";
+export { SCANNER_HISTORICAL_FEATURE_CALCULATOR_VERSION } from "@/lib/server/scanner-historical-input-archive";
+export { SCANNER_CURRENT_INPUT_CALCULATOR_VERSION } from "@/lib/server/scanner-current-input-archive";
 
 export type ScannerCandidate = {
   ticker: string;
@@ -98,9 +101,14 @@ export type ScannerCandidate = {
   reference_price_provider?: string | null;
   reference_price_read_path?: string | null;
   daily_context_evidence?: Omit<CompletedDailyContext, "candles">;
+  // Original validated parsed bars for optional historical arithmetic replay.
+  // Never a current quote, provider refresh or ranking/publication authority.
+  historical_input_context?: CompletedDailyContext;
   daily_context_latest_close?: number;
   scanner_input_policy_version?: typeof COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION;
   current_session_evidence?: Omit<CurrentSessionContext, "candles">;
+  current_input_context?: CurrentSessionContext;
+  current_input_calculation_clock?: ScannerCurrentInputCalculationClock;
 };
 
 type ScannerCacheRow = {
@@ -203,6 +211,10 @@ function roundInt(value: number) {
 }
 
 function parseNumber(value: unknown) {
+  // Database NULL and blank/non-numeric JSON values are absent evidence, not
+  // numeric zero. Preserve actual zero and PostgREST numeric strings.
+  if ((typeof value !== "number" && typeof value !== "string") ||
+      (typeof value === "string" && value.trim() === "")) return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
 }
@@ -398,7 +410,7 @@ function buildVolumeContext(volumeRatio: number) {
   return `Volume is light at ${volumeRatio}x the 20-day average`;
 }
 
-function calculateScannerValues(candles: DailyCandle[]): ScannerValues {
+export function calculateScannerValues(candles: DailyCandle[]): ScannerValues {
   if (candles.length < 50) {
     throw new Error("Scanner needs at least 50 daily candles.");
   }
@@ -506,6 +518,42 @@ function calculateScannerValues(candles: DailyCandle[]): ScannerValues {
     reference_price_timestamp: isoFromTimestampSeconds(latestCandle.timestamp),
     reference_price_provider: "twelve_data",
     reference_price_read_path: "scanner_candidate.latest_close",
+  };
+}
+
+/** The actual normalized producer arithmetic, also used by original-bar replay.
+ * Admission/freshness stays outside this pure calculator, as before. */
+export function calculateCompletedCurrentInputFeatures(
+  candidate: Pick<ScannerCandidate, "ma20" | "high_20d">,
+  indicators: IntradayIndicators | null,
+  freshCurrentPrice: number | undefined,
+  sessionContext: CurrentSessionContext | null | undefined,
+  stale: boolean,
+) {
+  const session = sessionContext ? currentSessionFeatures(sessionContext) : null;
+  const entryHigh = freshCurrentPrice ? round(freshCurrentPrice * 1.01) : undefined;
+  const stop = freshCurrentPrice && candidate.ma20 !== undefined
+    ? round(Math.min(candidate.ma20, freshCurrentPrice * 0.96)) : undefined;
+  const risk = entryHigh !== undefined && stop !== undefined && freshCurrentPrice
+    ? Math.max(entryHigh - stop, freshCurrentPrice * 0.01) : undefined;
+  return {
+    latest_close: freshCurrentPrice,
+    distance_to_20d_high: freshCurrentPrice && candidate.high_20d
+      ? round((candidate.high_20d - freshCurrentPrice) / candidate.high_20d * 100) : undefined,
+    session_open: session?.session_open, session_high: session?.session_high, session_low: session?.session_low,
+    recent_change_percent: !stale ? indicators?.momentumPercent ?? undefined : undefined,
+    recent_range_position: session?.recent_range_position,
+    recent_higher_highs_count: session?.recent_higher_highs_count,
+    recent_higher_lows_count: session?.recent_higher_lows_count,
+    recent_bullish_candles: session?.recent_bullish_candles,
+    recent_volume_ratio: freshCurrentPrice ? indicators?.recentVolumeRatio ?? undefined : undefined,
+    latest_range_percent: session?.latest_range_percent,
+    range_expansion_ratio: session?.range_expansion_ratio,
+    proposed_entry_low: freshCurrentPrice ? round(freshCurrentPrice * 0.99) : undefined,
+    proposed_entry_high: entryHigh, proposed_stop_loss: stop,
+    proposed_target_1: risk !== undefined && entryHigh !== undefined ? round(entryHigh + risk * 1.5) : undefined,
+    proposed_target_2: risk !== undefined && entryHigh !== undefined ? round(entryHigh + risk * 2.25) : undefined,
+    proposed_risk_reward: risk !== undefined ? 2.25 : undefined,
   };
 }
 
@@ -983,13 +1031,19 @@ async function scanMarketCore(
     // A rounded legacy-cache price can lie outside a valid narrow provider bar.
     // Recompute only the normalized path from its already validated, fresh
     // closed context; no cache rewrite, provider call or historical replay.
-    const originalIndicators = completedContextMode && !result.stale && result.session_context
+    const indicatorObservedAtMs = completedContextMode && !result.stale && result.session_context
+      ? Date.now() : undefined;
+    const originalIndicators = indicatorObservedAtMs !== undefined && result.session_context
       ? calculateIntradayIndicators(result.session_context.candles, {
-          interval: result.session_context.interval, observedAtSeconds: Date.now() / 1000,
+          interval: result.session_context.interval, observedAtSeconds: indicatorObservedAtMs / 1000,
           priceBasis: PROVIDER_CLOSED_BAR_PRICE_BASIS,
         }) : result.indicators;
+    // Retain both ORIGINAL calls' clocks. The second volume admission can cross
+    // a freshness boundary; replay must not infer either clock from read time.
+    const volumeObservedAtMs = indicatorObservedAtMs !== undefined ? Date.now() : undefined;
     const intradayIndicators = originalIndicators
-      ? withAdmissibleRecentIntradayVolume(originalIndicators, result.stale)
+      ? withAdmissibleRecentIntradayVolume(originalIndicators, result.stale,
+          volumeObservedAtMs !== undefined ? volumeObservedAtMs / 1000 : undefined)
       : null;
     const planReference = bindScannerPlanReference({
       fallback: {
@@ -1012,13 +1066,7 @@ async function scanMarketCore(
     const freshCurrentPrice = !result.stale && intradayIndicators?.latestPrice &&
       planReference.reference_price_timestamp === intradayIndicators.latestCandleTimestamp
       ? intradayIndicators.latestPrice : undefined;
-    const currentEntryHigh = freshCurrentPrice ? round(freshCurrentPrice * 1.01) : undefined;
-    const currentStop = freshCurrentPrice && candidate.ma20 !== undefined
-      ? round(Math.min(candidate.ma20, freshCurrentPrice * 0.96)) : undefined;
-    const currentRisk = currentEntryHigh !== undefined && currentStop !== undefined && freshCurrentPrice
-      ? Math.max(currentEntryHigh - currentStop, freshCurrentPrice * 0.01) : undefined;
     const sessionContext = completedContextMode && freshCurrentPrice ? result.session_context : null;
-    const sessionFeatures = sessionContext ? currentSessionFeatures(sessionContext) : null;
     const sessionEvidence = sessionContext ? (() => {
       const { candles, ...evidence } = sessionContext;
       void candles;
@@ -1063,27 +1111,18 @@ async function scanMarketCore(
         ...(completedContextMode ? {
           // Current-session fields come only from validated closed intraday bars.
           // Daily history remains separately attributable, never today's OHLC.
-          latest_close: freshCurrentPrice,
+          ...calculateCompletedCurrentInputFeatures(candidate, intradayIndicators, freshCurrentPrice, sessionContext, result.stale),
           ...(freshCurrentPrice ? { mock_current_price: freshCurrentPrice } : {}),
-          session_open: sessionFeatures?.session_open,
-          session_high: sessionFeatures?.session_high, session_low: sessionFeatures?.session_low,
           previous_close: candidate.daily_context_latest_close,
-          recent_change_percent: !result.stale ? intradayIndicators?.momentumPercent ?? undefined : undefined,
-          recent_range_position: sessionFeatures?.recent_range_position,
-          recent_higher_highs_count: sessionFeatures?.recent_higher_highs_count,
-          recent_higher_lows_count: sessionFeatures?.recent_higher_lows_count,
-          recent_bullish_candles: sessionFeatures?.recent_bullish_candles,
-          latest_range_percent: sessionFeatures?.latest_range_percent,
-          range_expansion_ratio: sessionFeatures?.range_expansion_ratio,
           current_session_evidence: sessionEvidence,
-          distance_to_20d_high: freshCurrentPrice && candidate.high_20d
-            ? round((candidate.high_20d - freshCurrentPrice) / candidate.high_20d * 100) : undefined,
+          ...(sessionContext && indicatorObservedAtMs !== undefined && volumeObservedAtMs !== undefined ? {
+            current_input_context: sessionContext,
+            current_input_calculation_clock: {
+              indicator_observed_at: new Date(indicatorObservedAtMs).toISOString(),
+              volume_observed_at: new Date(volumeObservedAtMs).toISOString(),
+            },
+          } : {}),
           volume_ratio: undefined,
-          proposed_entry_low: freshCurrentPrice ? round(freshCurrentPrice * 0.99) : undefined,
-          proposed_entry_high: currentEntryHigh, proposed_stop_loss: currentStop,
-          proposed_target_1: currentRisk !== undefined && currentEntryHigh !== undefined ? round(currentEntryHigh + currentRisk * 1.5) : undefined,
-          proposed_target_2: currentRisk !== undefined && currentEntryHigh !== undefined ? round(currentEntryHigh + currentRisk * 2.25) : undefined,
-          proposed_risk_reward: currentRisk !== undefined ? 2.25 : undefined,
         } : {}),
       },
       indicatorSource: result.source,
@@ -1101,6 +1140,7 @@ async function scanMarketCore(
     const buildHistoricalCandidate = (history: CompletedDailyContext) => {
       const { candles, ...evidence } = history;
       return { ...buildCandidate(baseCandidate, calculateScannerValues(candles)),
+        historical_input_context: history,
         daily_context_evidence: evidence, daily_context_latest_close: candles.at(-1)!.close,
         scanner_input_policy_version: COMPLETED_DAILY_INTRADAY_INPUT_POLICY_VERSION };
     };

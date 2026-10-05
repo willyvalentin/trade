@@ -117,9 +117,14 @@ export function buildDynamicMarketMoversSelection(
     Number.isFinite(input.dynamicBudgetShare)
       ? Math.min(Math.max(input.dynamicBudgetShare, 0), 1)
       : defaultDynamicBudgetShare;
+  const maxDynamicTickers =
+    typeof input.maxDynamicTickers === "number" &&
+    Number.isFinite(input.maxDynamicTickers)
+      ? Math.max(0, Math.floor(input.maxDynamicTickers))
+      : defaultMaxDynamicTickers;
   const budgetLimit = Math.min(
     Math.max(0, Math.round(selectedBudget * dynamicBudgetShare)),
-    input.maxDynamicTickers ?? defaultMaxDynamicTickers,
+    maxDynamicTickers,
   );
   const providerResult = input.providerResult ?? null;
   const allowedTickers = normalizeTickerSet(
@@ -177,6 +182,10 @@ export function buildDynamicMarketMoversSelection(
   let contextOnlySkippedCount = 0;
 
   for (const mover of rankMoversForWindow(fetchedMovers, scanWindow)) {
+    // Check before admission: a zero allocation must not consume one slot.
+    if (selectedMovers.length >= budgetLimit) {
+      break;
+    }
     // An unusable receipt must not reserve its ticker. A later fresh receipt
     // from another source remains eligible for selection.
     if (mover.stale) {
@@ -206,10 +215,6 @@ export function buildDynamicMarketMoversSelection(
     }
 
     selectedMovers.push(mover);
-
-    if (selectedMovers.length >= budgetLimit) {
-      break;
-    }
   }
 
   const summary = buildSummary({

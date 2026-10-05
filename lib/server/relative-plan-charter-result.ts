@@ -7,15 +7,17 @@ import { replayRelativePlanCharterRuntimePartition, type RelativePlanRetainedRun
 import type { RelativePlanCharterRuntimeSource } from "@/lib/server/relative-plan-charter-runtime-source";
 import { relativePlanSemanticFingerprint, relativePlanSemanticJson, verifiedRelativePlanProspectiveFreeze } from "@/lib/server/relative-plan-prospective-comparison";
 import { verifiedRelativePlanTrainedProbabilityReceipt, type RelativePlanTrainedProbabilityReceipt } from "@/lib/server/relative-plan-trained-probability-model";
+import { relativePlanTerminalContextDiagnostic } from "@/lib/server/relative-plan-terminal-context";
 
 export const RELATIVE_PLAN_CHARTER_RESULT_VERSION = "relative_plan_charter_result_v1" as const;
 export const RELATIVE_PLAN_CHARTER_RESULT_RECEIPT_VERSION = "relative_plan_charter_result_receipt_v1" as const;
 // Complete evidence only. This is a physical bound, never a cohort selector.
 export const RELATIVE_PLAN_CHARTER_RESULT_MAX_BYTES = 8 * 1048576;
-// Eight original members across all training + 60 forward decisions require
-// more than 8 MiB decoded. Keep the stored capsule at 8 MiB and the decoded
-// source independently capped; this changes no population/quality policy.
-export const RELATIVE_PLAN_CHARTER_SOURCE_MAX_BYTES = 16 * 1048576;
+// Eight original members across all training + 60 forward decisions with
+// original daily/session archives require >20 MiB decoded. Keep the stored
+// capsule at 8 MiB and an independent 32 MiB decompression cap. This physical
+// bound changes no population, numerical model or quality policy.
+export const RELATIVE_PLAN_CHARTER_SOURCE_MAX_BYTES = 32 * 1048576;
 type RetainedSource = { encoding: "canonical_json_gzip_base64_v1"; decoded_byte_length: number;
   source_fingerprint: string; payload: string };
 type Measurement = NonNullable<ReturnType<typeof buildRelativePlanCharterEvaluation>>;
@@ -205,6 +207,7 @@ export function relativePlanTerminalQualityDecision(receipt: RelativePlanCharter
     evidence_complete: receipt.result.measurement.evidence_complete,
     missing_dimensions: receipt.result.measurement.missing_dimensions,
     measured_limit_failures: receipt.result.measurement.measured_limit_failures,
+    context_diagnostic: relativePlanTerminalContextDiagnostic(receipt),
     quality_improvement_claimed: false, live_policy_effect: false,
     next_action: receipt.result.measurement.computed_disposition === "continue"
       ? "shadow_validation_only_not_policy_promotion" : "investigate_frozen_result_without_live_policy_change",

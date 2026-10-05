@@ -98,9 +98,12 @@ const foundationTests = [
   "tests/e2e/reference-refresh-diagnostics.spec.ts",
   "tests/e2e/scanner-plan-reference-binding.spec.ts",
   "tests/e2e/scanner-completed-daily-context.spec.ts",
+  "tests/e2e/scanner-historical-input-replay.spec.ts",
   "tests/e2e/original-outcome-source-window.spec.ts",
+  "tests/e2e/canonical-outcome-resumption.spec.ts",
   "tests/e2e/completed-input-published-source.spec.ts",
   "tests/e2e/completed-benchmark-reuse.spec.ts",
+  "tests/e2e/mvp-02-stale-recommendation-presentation.spec.ts",
   "tests/e2e/action-652f-server-client-containment.spec.ts",
   "tests/e2e/action-660f-dashboard-owner-relation-disambiguation.spec.ts",
   "tests/e2e/action-660g-ma15-verified-production-reclosure.spec.ts",
@@ -284,6 +287,7 @@ const foundationTests = [
 ];
 
 const intelligenceTests = [
+  "tests/e2e/scanner-original-input-replay.spec.ts",
   "tests/e2e/action-576-verified-us-market-calendar-integration.spec.ts",
   "tests/e2e/action-555-official-outcome-candle-acquisition-investigation.spec.ts",
   "tests/e2e/recommendation-outcome-canonical-coverage.spec.ts",
@@ -296,6 +300,7 @@ const intelligenceTests = [
   "tests/e2e/relative-plan-charter-thresholds.spec.ts",
   "tests/e2e/relative-plan-charter-evaluation.spec.ts",
   "tests/e2e/relative-plan-charter-result.spec.ts",
+  "tests/e2e/relative-plan-terminal-context.spec.ts",
   "tests/e2e/relative-plan-charter-result-service.spec.ts",
   "tests/e2e/relative-plan-charter-result-store.spec.ts",
   "tests/e2e/relative-plan-prospective-comparison.spec.ts",
@@ -411,7 +416,6 @@ const expectedPlan: Record<string, PlannedCommand[]> = {
     command("Generated-types provenance V2", "node", [
       "tests/e2e/action-660-ma09-generated-types-provenance-v2.spec.mjs",
     ]),
-    playwright("Provider-free intelligence contract", intelligenceTests),
     playwright("Predictive explanation foundation", [
       "tests/e2e/action-666m-predictive-outcome-explanation.spec.ts",
       "tests/e2e/action-666cj-current-main-predictive-explanation-freeze.spec.ts",
@@ -498,6 +502,7 @@ const expectedPlan: Record<string, PlannedCommand[]> = {
       "tests/e2e/action-666ct-current-main-lossless-invalid-scalar-observation.spec.ts",
       "tests/e2e/action-666ct-current-main-lossless-invalid-scalar-observation-freeze.spec.ts",
     ]),
+    playwright("Provider-free intelligence contract", intelligenceTests),
   ],
 };
 
@@ -608,9 +613,10 @@ test("Draft fallback retains complete coverage without repeating identical chang
     path.join(repositoryRoot, "scripts/action-660k-run-draft-ci.mjs"),
   ).href) as { selectDraftCommands: (paths: string[]) => PlannedCommand[] };
   const repeated = ["tests/e2e/completed-benchmark-reuse.spec.ts",
-    "tests/e2e/scanner-completed-daily-context.spec.ts"];
-  const serverOnly = "tests/e2e/recommendation-outcome-canonical-coverage.spec.ts";
-  const selected = selectDraftCommands(["lib/scanner.ts", ...repeated, serverOnly]);
+    "tests/e2e/scanner-completed-daily-context.spec.ts", "tests/e2e/scanner-historical-input-replay.spec.ts"];
+  const serverOnly = ["tests/e2e/recommendation-outcome-canonical-coverage.spec.ts",
+    "tests/e2e/scanner-original-input-replay.spec.ts"];
+  const selected = selectDraftCommands(["lib/scanner.ts", ...repeated, ...serverOnly]);
   for (const file of repeated) {
     const commands = selected.filter(command => command.args.includes(file));
     expect(commands).toHaveLength(1);
@@ -619,12 +625,56 @@ test("Draft fallback retains complete coverage without repeating identical chang
     expect(commands[0].args[0]).toBe("test");
     expect(commands[0].args.at(-1)).toBe("--workers=1");
   }
-  expect(selected.find(command => command.args.includes(serverOnly))).toMatchObject({
-    label: `Affected registered test: ${serverOnly}`, node_options: "--conditions=react-server" });
+  for (const file of serverOnly) {
+    const commands = selected.filter(command => command.args.includes(file));
+    expect(commands).toHaveLength(1);
+    expect(commands[0]).toMatchObject({ label: `Affected registered test: ${file}`,
+      args: ["test", file, "--workers=1"], node_options: "--conditions=react-server" });
+  }
   expect(selected.some(command => command.label === "Draft critical security smoke")).toBe(true);
   expect(selectDraftCommands(["lib/scanner.ts"]).find(command =>
     command.label === "Browser and server containment")?.args)
     .toEqual(["test", ...foundationTests, "--workers=1"]);
+});
+
+test("separates the complete intelligence command from timed-out foundation without dropping or duplicating coverage", () => {
+  const plan = JSON.parse(execFileSync(process.execPath,
+    [path.join(repositoryRoot, runnerPath), "--plan"], { encoding: "utf8" })) as Record<string, PlannedCommand[]>;
+  const allCommands = Object.values(plan).flat();
+  expect(plan.foundation.some(command => command.label === "Provider-free intelligence contract")).toBe(false);
+  expect(plan["lossless-scalar"].map(command => command.label)).toEqual([
+    "Lossless invalid-scalar observation", "Provider-free intelligence contract",
+  ]);
+  expect(allCommands.filter(command => command.label === "Provider-free intelligence contract"))
+    .toEqual([playwright("Provider-free intelligence contract", intelligenceTests)]);
+  expect(plan.foundation.find(command => command.label === "Browser and server containment"))
+    .toEqual(playwright("Browser and server containment", foundationTests, false));
+  const files = allCommands.flatMap(command => command.args.filter(argument => argument.startsWith("tests/")));
+  expect(files).toHaveLength(366);
+  expect(new Set(files).size).toBe(files.length);
+});
+
+test("actual registered containment and intelligence suites collect under their distinct server conditions", () => {
+  test.setTimeout(90000);
+  const plan = JSON.parse(execFileSync(process.execPath,
+    [path.join(repositoryRoot, runnerPath), "--plan"], { encoding: "utf8" })) as Record<string, PlannedCommand[]>;
+  const original = "tests/e2e/scanner-original-input-replay.spec.ts";
+  for (const label of ["Browser and server containment", "Provider-free intelligence contract"]) {
+    const selected = Object.values(plan).flat().find(command => command.label === label)!;
+    expect(selected).toBeDefined();
+    expect(selected.args.includes(original)).toBe(label === "Provider-free intelligence contract");
+    const environment: NodeJS.ProcessEnv = { ...process.env, PLAYWRIGHT_SKIP_WEB_SERVER: "true" };
+    if (selected.node_options === null) delete environment.NODE_OPTIONS;
+    else environment.NODE_OPTIONS = selected.node_options;
+    // Collection executes real module imports without running provider/native
+    // test bodies. A misplaced server-only import must fail this regression.
+    const result = spawnSync(process.execPath, [path.join(repositoryRoot,
+      "node_modules/@playwright/test/cli.js"), ...selected.args, "--list"],
+    { cwd: repositoryRoot, env: environment, encoding: "utf8", timeout: 40000, maxBuffer: 16 * 1048576 });
+    expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
+    expect(result.stdout).toMatch(/Total: [1-9]\d* tests in [1-9]\d* files/);
+    expect(result.stdout.includes("scanner-original-input-replay.spec.ts:")).toBe(label === "Provider-free intelligence contract");
+  }
 });
 
 test("forwards cancellation to the active process group and exits before another command can start", async () => {

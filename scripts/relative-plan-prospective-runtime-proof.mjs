@@ -105,8 +105,11 @@ try {
   const owner = readers.prospectiveOwner;
   process.env.TURE_APPLICATION_OWNER_USER_ID = owner;
   const at = Date.now();
-  const window = (startDay, endDay) => ({ start_at: new Date(at + startDay * 86400000).toISOString(),
-    end_at: new Date(at + endDay * 86400000).toISOString() });
+  // Future UTC calendar-day windows contain the fixture's 17:00Z decisions
+  // even when this CLOSED proof runs after 17:00Z. Rolling 24h offsets from
+  // the host clock otherwise silently exclude the first training day.
+  const dayAt = days => { const day = new Date(at + days * 86400000); day.setUTCHours(0, 0, 0, 0); return day; };
+  const window = (startDay, endDay) => ({ start_at: dayAt(startDay).toISOString(), end_at: dayAt(endDay).toISOString() });
   const heldDay = new Date(at + 10 * 86400000); heldDay.setUTCHours(0, 0, 0, 0);
   while (!readers.getUsEquityMarketSession(heldDay.toISOString().slice(0, 10)).session_open) heldDay.setUTCDate(heldDay.getUTCDate() + 1);
   const input = { ...readers.prospectiveInput, windows: { training: window(1, 8),
@@ -230,6 +233,65 @@ try {
   assert.equal(complete.learning.legacy_baseline_readiness.status, "not_ready");
   assert(complete.learning.legacy_baseline_readiness.blockers.includes("completed_input_research_requires_prospective_baseline_contract"));
   assert.deepEqual(await readers.createRelativePlanProspectiveService().read(owner, readAt), complete);
+  const runRows = async () => {
+    const result = await client.from("recommendation_scan_runs").select("*").eq("owner_user_id", owner).order("id");
+    assert.equal(result.error, null); return result.data;
+  };
+  const originalRunRows = await runRows();
+  const clockRun = originalRunRows.find(row => row.id === source.scanRuns[0].id);
+  assert(clockRun);
+  const replaceRunClock = async patch => {
+    const result = await client.from("recommendation_scan_runs").update(patch)
+      .eq("owner_user_id", owner).eq("id", clockRun.id).select("id");
+    assert.equal(result.error, null); assert.equal(result.data.length, 1);
+  };
+  const futureRunAt = new Date(readAt.getTime() + 1).toISOString();
+  await replaceRunClock({ created_at: futureRunAt, updated_at: futureRunAt });
+  const futureRunRows = await runRows();
+  assert.deepEqual(await readers.createRelativePlanProspectiveService().read(owner, readAt), {
+    status: "unavailable", receipt: null, learning: null, blocker: "prospective_scan_run_recording_times_invalid" });
+  assert.deepEqual(await runRows(), futureRunRows);
+  assert.equal(futureRunRows.length, 1);
+  assert.equal(sql("select count(*) from recommendation_outcomes"), "4");
+  assert.equal(sql("select count(*) from relative_plan_trained_probability_models"), "0");
+  assert.equal(sql("select count(*) from relative_plan_charter_results"), "0");
+  assert.equal((await readers.createRelativePlanProspectiveService().read(concurrentOwner, readAt))
+    .learning.partitions[1].original_population_count, 0);
+  await replaceRunClock({ created_at: clockRun.created_at, updated_at: clockRun.updated_at });
+  assert.deepEqual(await runRows(), originalRunRows);
+  assert.deepEqual(await readers.createRelativePlanProspectiveService().read(owner, readAt), complete);
+  // Synthetic fault injection only, into one exact original owner/id. The
+  // production snapshot producer remains ignore-duplicates/immutable. An
+  // unfinalized read must not claim a source it has not yet observed.
+  const snapshotRows = async () => {
+    const result = await client.from("recommendation_snapshots").select("*").eq("owner_user_id", owner).order("id");
+    assert.equal(result.error, null); return result.data;
+  };
+  const originalSnapshotRows = await snapshotRows();
+  assert.equal(originalSnapshotRows.length, 4);
+  const clockRow = originalSnapshotRows.find(row => row.snapshot_fingerprint === source.snapshots[3].snapshot_fingerprint);
+  assert(clockRow);
+  const replaceSnapshotClock = async patch => {
+    const result = await client.from("recommendation_snapshots").update(patch)
+      .eq("owner_user_id", owner).eq("id", clockRow.id).select("id");
+    assert.equal(result.error, null); assert.equal(result.data.length, 1);
+  };
+  const futureSnapshotAt = new Date(readAt.getTime() + 1).toISOString();
+  await replaceSnapshotClock({ created_at: futureSnapshotAt, updated_at: futureSnapshotAt });
+  const futureSnapshotRows = await snapshotRows();
+  const invalidSnapshotRead = await readers.createRelativePlanProspectiveService().read(owner, readAt);
+  assert.deepEqual(invalidSnapshotRead, { status: "unavailable", receipt: null, learning: null,
+    blocker: "prospective_snapshot_recording_times_invalid" });
+  assert.deepEqual(await snapshotRows(), futureSnapshotRows);
+  assert.equal(futureSnapshotRows.length, originalSnapshotRows.length);
+  assert.equal(sql("select count(*) from recommendation_outcomes"), "4");
+  assert.equal(sql("select count(*) from relative_plan_trained_probability_models"), "0");
+  assert.equal(sql("select count(*) from relative_plan_charter_results"), "0");
+  assert.equal((await readers.createRelativePlanProspectiveService().read(concurrentOwner, readAt))
+    .learning.partitions[1].original_population_count, 0);
+  await replaceSnapshotClock({ created_at: clockRow.created_at, updated_at: clockRow.updated_at });
+  assert.deepEqual(await snapshotRows(), originalSnapshotRows);
+  assert.deepEqual(await readers.createRelativePlanProspectiveService().read(owner, readAt), complete);
   assert.equal((await readers.createRelativePlanProspectiveService().read(concurrentOwner, readAt)).learning.partitions[1].enrolled_decision_count, 0);
   // Actual persisted inputs -> canonical outcome adapter -> restarted product
   // learner. Neither a numerical-only helper nor a substituted source reader.
@@ -242,6 +304,9 @@ try {
   const sourceAt = (day, ordinal, allLosses = false) => readers.prospectiveSource({
     now: new Date(day.getTime() + 17 * 3600000 + ordinal * 5 * 60000), allLosses });
   const trainingSources = await Promise.all(trainingDays.flatMap(day => [0, 1, 2].map(n => sourceAt(day, n))));
+  assert(Date.parse(input.windows.training.start_at) > at);
+  assert(trainingSources.every(part => Date.parse(part.snapshots[0].recommended_at) >= Date.parse(input.windows.training.start_at) &&
+    Date.parse(part.snapshots[0].recommended_at) < Date.parse(input.windows.training.end_at)), "all_original_training_days_inside_future_fixture_window");
   const heldSources = [source, ...await Promise.all([1, 2].map(n => sourceAt(heldDay, n)))];
   const walkDay = new Date(input.windows.walk_forward.start_at);
   const walkSources = await Promise.all([0, 1, 2].map(n => sourceAt(walkDay, n, true)));
@@ -355,6 +420,10 @@ try {
     missing_label_retained_in_12_original_population: true,
     later_forward_labels_never_fit_model: true,
     persisted_late_training_label_excluded: true, persisted_future_forward_recording_retained_as_missing: true,
+    persisted_future_snapshot_read_unavailable: true, snapshot_clock_read_preserves_original_rows: true,
+    restored_snapshot_read_reproduces_original_measurement: true,
+    persisted_future_scan_read_unavailable: true, scan_clock_read_preserves_original_rows: true,
+    restored_scan_read_reproduces_original_measurement: true,
     durable_freeze_count: 2, restarted_exact_readback: true, idempotent_repeats: 7, concurrent_single_owner_freeze: true, retroactive_rejected: true,
     actual_source_persistence_and_restarted_learner: true, retained_original_population: 4,
     malformed_ohlc_synthetic_requests:integrityCases.filter(row=>!row.fault.startsWith("off_grid_")).length,

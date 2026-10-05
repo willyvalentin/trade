@@ -14,7 +14,7 @@ import {
 } from "@/lib/recommendation-decision-source-provenance";
 import type { LearningBaselineScanRun } from "@/lib/recommendation-learning-baseline-readiness";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
-import { recommendationDecisionFeatureVectorFromScannerCandidate, RECOMMENDATION_DECISION_FEATURE_VECTOR_VERSION } from "@/lib/recommendation-decision-feature-vector";
+import { recommendationDecisionFeatureVectorFromScannerCandidate, isCompletedInputDecisionFeatureVectorVersion } from "@/lib/recommendation-decision-feature-vector";
 
 export const COMPLETED_INPUT_LEARNING_PROVENANCE_VERSION =
   "completed_input_learning_provenance_v1" as const;
@@ -104,7 +104,8 @@ export function recommendationResearchLearningSourceProvenance(
   }
   const vector = legacy.decision_feature_vector?.feature_values;
   const features = input?.features;
-  const expectedVector = features && input && record ? recommendationDecisionFeatureVectorFromScannerCandidate({
+  const vectorVersion = legacy.decision_feature_vector?.contract_version;
+  const expectedVector = features && input && record && isCompletedInputDecisionFeatureVectorVersion(vectorVersion) ? recommendationDecisionFeatureVectorFromScannerCandidate({
     latest_close: features.latest_close ?? undefined,
     distance_to_20d_high: features.distance_to_20d_high ?? undefined,
     change_5d_percent: features.change_5d_percent ?? undefined,
@@ -116,10 +117,10 @@ export function recommendationResearchLearningSourceProvenance(
     proposed_risk_reward: features.proposed_risk_reward ?? undefined,
     intraday_indicators: input.intraday_indicators ?? undefined,
     intraday_indicator_stale: false,
-  }, Date.parse(record.decision_timestamp) / 1000) : null;
+  }, Date.parse(record.decision_timestamp) / 1000, vectorVersion) : null;
   // Reconstruct all observed market features. The local ordinal score is not
   // an archived market input and is explicitly outside this replay basis.
-  if (!vector || legacy.decision_feature_vector?.contract_version !== RECOMMENDATION_DECISION_FEATURE_VECTOR_VERSION ||
+  if (!vector || !isCompletedInputDecisionFeatureVectorVersion(vectorVersion) ||
     !expectedVector || Object.entries(expectedVector.feature_values).some(
     ([name,value]) => name !== "scanner_local_score" && vector[name as keyof typeof vector] !== value,
   )) {

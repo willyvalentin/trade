@@ -17,6 +17,15 @@ function record(value: unknown): value is Record<string, unknown> {
 function instant(value: unknown) {
   return typeof value === "string" && Number.isFinite(Date.parse(value)) ? Date.parse(value) : NaN;
 }
+// Only detached, reconstructed JSON capsules reach this helper. A shallow
+// outer freeze cannot protect a WeakSet-branded handle's budget authority.
+function freezeOwnedInput<T>(value: T): T {
+  if (value !== null && typeof value === "object") {
+    for (const child of Object.values(value)) freezeOwnedInput(child);
+    Object.freeze(value);
+  }
+  return value;
+}
 
 export async function readOwnedCompletedBenchmarkReuse(input: {
   row: unknown; owner: string; now: Date; signal?: AbortSignal;
@@ -64,7 +73,7 @@ export async function readOwnedCompletedBenchmarkReuse(input: {
     revalidated_at: input.now.toISOString(), benchmark_provider_calls: 0,
     scanner_provider_call_cap: 8, whole_scan_provider_call_cap: 8,
   };
-  const result = Object.freeze({ market_regime: regime });
+  const result = Object.freeze({ market_regime: freezeOwnedInput(structuredClone(regime)) });
   validated.add(result);
   return result;
 }

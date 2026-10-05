@@ -3,7 +3,7 @@ import "server-only";
 import { createHash } from "node:crypto";
 
 import { SCANNER_SCORE_PROBABILITY_CALIBRATION_MODEL_VERSION } from "@/lib/scanner-score-probability-calibration";
-import { RECOMMENDATION_DECISION_FEATURE_VECTOR_VERSION } from "@/lib/recommendation-decision-feature-vector";
+import { isCompletedInputDecisionFeatureVectorVersion } from "@/lib/recommendation-decision-feature-vector";
 import {
   SCANNER_RANKING_SHADOW_FEASIBILITY_OBSERVATION_VERSION,
   SCANNER_RANKING_SHADOW_PROBABILITY_CALIBRATION_OBSERVATION_VERSION,
@@ -363,8 +363,7 @@ function feasibility(value: unknown, expectedCandidateCount: number) {
     value.observation_version !==
       SCANNER_RANKING_SHADOW_FEASIBILITY_OBSERVATION_VERSION ||
     value.denominator !== expectedCandidateCount ||
-    value.decision_feature_vector_version !==
-      RECOMMENDATION_DECISION_FEATURE_VECTOR_VERSION ||
+    !isCompletedInputDecisionFeatureVectorVersion(value.decision_feature_vector_version) ||
     !record(value.unavailable_disclosed) ||
     value.unavailable_disclosed.spread !== true ||
     value.unavailable_disclosed.halt_risk !== true ||

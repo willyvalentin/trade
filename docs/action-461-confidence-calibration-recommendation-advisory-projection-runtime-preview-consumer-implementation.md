@@ -1,5 +1,40 @@
 # Action 461: Confidence Calibration Recommendation Advisory Projection Runtime Preview Consumer Implementation
 
+## Current observation-mode reconciliation — 2026-10-04
+
+The remaining sections retain the original Action 461 approval contract; they
+are historical, not today's runtime defaults or deployment authority. The later
+observation package (`0896246e`) enabled the read-only preview by default,
+including production, with explicit false/malformed opt-out. Empty or missing
+configuration means enabled; no browser query/storage/cookie activation exists.
+The later honest static-setup disclosure suppresses fabricated calibration and
+keeps original confidence authoritative. Neither change is introduced here.
+
+The executable Action 461 suite now distinguishes these current behaviors from
+historical approval. It compiles the actual React component and checks rendered
+disabled, missing, successful, warning, no-adjustment and static-setup states.
+All eight unsafe authority flags reject; retained numerical projection, lineage,
+failure handling and non-mutation tests remain. Synthetic advisory rendering is
+compatibility evidence, not proof of an outcome-trained calibration model.
+
+The original verifiers are unchanged and continue to exit 1: Action 460 rejects
+`feature_flag_remains_disabled_by_default`; Action 461 reports
+`action460_contract_healthy`, `flag_defaults_disabled`,
+`no_global_dashboard_scanner_execution_integration`, `runtime_preview_waiting`.
+Its Action 460 loader discards a nonzero nested report, hence the two dependent
+failures. The suite retains and asserts these exact failures, fails on ANY new
+historical failure, and separately proves current flag/UI behavior. A passing
+current suite must NOT be reported as a passing historical approval, whole-chain
+release, protected CI or production acceptance. No old gate is relaxed, no
+historical report is rewritten, and Action 462–467 remain their own historical
+contracts, not a new queue to reconcile recursively.
+
+This bounded verification-only support fix enables trustworthy local acceptance
+of the already-built intelligence/UI composition. It changes no product code,
+model, threshold, frozen charter/cohort, provider budget, CI or dependencies and
+does not remove the independent dependency/security release blocker. Return to
+the existing original-population IF-4 primary after this suite's acceptance.
+
 ## Purpose
 
 Action 461 implements the first narrow consumer boundary for the verified Recommendation Advisory Projection chain. The preview is read-only, disabled by default, non-authoritative, non-persistent, and isolated from Recommendation behavior.

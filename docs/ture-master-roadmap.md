@@ -114,11 +114,15 @@ consumption that survives later outcome upserts; its historical synthetic
 model-clock fixture is not a production seal or market-quality result. Complete
 source uses lossless, independently bounded compression, never reduced cohorts.
 The fixed-purpose owner command accepts no caller source, model, metric or clock;
-GET is read-only. Production integration and the full release gates are still
-unverified for this vertical. The unchanged mandatory dependency audit has an
-unpatched high-severity dev-only transitive advisory; no audit exclusion or
-forced framework downgrade is permitted. Continue independent CLOSED
-intelligence work while retaining that release blocker. No actual forward
+GET is read-only. PR #732 is now protected-CI accepted and production-integrated
+on main `39a2469a`, with the exact additive result migration applied and inert
+authenticated readback verified on 2026-10-05. The user-approved minimal private
+Next lint derivative removes the vulnerable dependency chain; the unchanged
+full audit passes without exclusions or a framework downgrade. This closes
+the release interruption, not the intelligence acceptance gate. Integrate and
+verify the already locally complete original-input/canonical-outcome/v3
+full-charter chain against that main, preserving every original population,
+immutable model/result and declared missingness. No actual forward
 cohort, context-triage qualification, policy promotion or quality lift is claimed.
 When those first two links pass their declared acceptance, return the primary
 delivery to the largest attributable recommendation-quality defect; do not
@@ -128,11 +132,49 @@ coverage and baseline-relative quality. Only the last can establish that the
 recommendations became better, and it still requires the full quality charter.
 
 Persisted diagnostic presence is not assessment integrity or market feasibility.
+Original-input arithmetic reproduction now has a local implementation using
+validated parsed daily/session bars and the two original session-calculation
+clocks, with an owned reader for all 25 used scanner features and indicators.
+Its local acceptance is complete: actual durable SQL/restarted SDK/installed
+Next HTTP behavior, affected regressions and exact locked Linux build. The
+broad run's single timeout remains recorded separately from its unchanged
+focused passing retry; this is not protected CI or production integration. Preserve
+snapshot/decision/lineage and historical replay contracts; do not reinterpret
+this additive diagnosis as a revised ranker, original upstream JSON recovery,
+fully observed input fitness, legacy baseline eligibility or quality lift.
+Missing originals and original null features remain explicit. The bounded
+original-input audit is locally complete; return to the frozen same-population
+canonical-outcome/full-charter comparison instead of extending diagnostic scope.
 New completed-input research assessments must remain consistent with their
 retained original candidate, plan, inputs and decision clock before they count
 as valid quality-measurement evidence. A contradictory or missing assessment
 is an explicit measurement gap; it must not erase otherwise valid canonical
 outcomes, rewrite historical evidence or grant baseline/promotion authority.
+
+The CLOSED IF-4 admission link is locally accepted at `d40f4b8b`: it rejects
+contradictory retained original inputs before a NEW training capsule or terminal
+result is stored. Actual isolated SQL/SDK, affected regression/golden checks,
+types/lint and exact Linux build pass; main/production integration is still
+release-held. Reuse the actual
+original-clock feature replay, keep every relevant original member and check
+the immutable fitted source as well as the complete forward source. Previously
+sealed v1 models/results keep their own semantics; absent legacy bars stay a
+reproduction gap, not fitness evidence. This is measurement integrity, not a
+new ranking hypothesis or proven alpha. The reproduced complete-archive capacity
+gap is now locally closed at `501b96de`: all 72 original runs survive bounded,
+lossless retention and restarted actual isolated SQL/SDK/loopback HTTP readback,
+with 96 training and 240 original members in each forward partition. The
+decoded source cap is independently 32 MiB; stored capsule and buffered HTTP
+bounds are unchanged. NEW finalization checks the actual negotiated transport
+before storing, not after an immutable result is created. Owner/model/clock,
+decompression and old golden contracts remain strict. Types/lint, affected
+tests and exact locked Linux build pass. This is synthetic measurement-capacity
+evidence, not production integration or accepted recommendation quality. The
+ledger holds the exact revision, migration, recovery boundaries, retained
+historical test failures and integration order. Stop this capacity slice and
+resume the frozen complete original-population charter comparison; do not
+extend support scope, rewrite cohorts or select a competing ranking hypothesis
+before the existing hypothesis has its full attributable disposition.
 
 **Learning-to-improvement loop — 2026-10-02.** The immediate priorities above
 supersede the dated work selections retained below. Close the fresh-input and
