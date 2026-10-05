@@ -2,6 +2,48 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Local acceptance — user-approved minimum Next lint release repair, 2026-10-05:**
+Exact product revision `73b8a03e048d74b9ec601649e1efe5a71fc7da2c` replaces
+only the Next lint plugin's root-directory acquisition. The actual installed
+fast-glob/micromatch/braces chain is removed. Next and eslint-config-next stay
+16.3.8; the honest private local derivative is `16.3.8-ture.1`. Its official
+npm artifact is independently integrity-verified and 53 of 54 dist files retain
+exact upstream bytes, including every rule, configuration, severity and export.
+The remaining file preserves the original consumer behavior except explicit
+abuse/cycle bounds; MIT notices and a documented official-upstream exit remain.
+
+103 real CLI-root/ESLint diagnostic cases match the original, including default,
+monorepo/string/array, symlink, dot-directory, negative-filter and padded/stepped
+range behavior. Five adversarial cases fail explicitly. All 35 affected
+security/governance checks pass on host Node 26.5.0; the two native derivative
+checks also pass in clean Linux Node 22.23.1, an overlapping environment check,
+not two additional unique tests. Nonincremental types pass; full lint has zero
+errors/eight existing warnings. The unchanged full `npm audit --audit-level=high
+--no-fund` reports zero findings after a valid clean locked installation, not a
+production-only audit or advisory exclusion. The initial relative npm override
+was rejected by clean-install/resolver verification and replaced by one direct
+root file dependency plus its referenced override; both consumers now resolve
+the same valid derivative with no dangling package link.
+
+The exact committed-source, clean locked, network-free normal Linux Next 16.3.8
+build passes, including TypeScript and all 33 static pages. Lock SHA256:
+`c126ba15634fffec241592d1316ea2e0bb9708886f865dc72f5fd30b2e084083`.
+Log: `/private/tmp/ture-next-lint-exact-linux-build-oct5.log`; bounded receipt:
+`/private/tmp/ture-next-lint-exact-linux-build-oct5-receipt.json`. An earlier
+build of an intermediate revision is not the final acceptance. No production
+credentials, market provider requests or production changes occurred.
+
+**Now:** one coherent fast-forward update of existing #732 followed by protected
+Ready CI/review/provenance. The later human approval supersedes the retained
+official-fix-only/Draft-only hold for this single reviewed derivative; it does
+not waive any release check. No workflow, protected requirement, audit command,
+application lint rule, model/ranking/publication policy or provider budget was
+changed. No scan is armed by this repair. This is `supporting_blocker_removal`,
+not recommendation-quality improvement, main/production acceptance or OPEN
+evidence. After its minimum release exit, resume the original IF-2b -> IF-4
+input/canonical-outcome/full-charter vertical; the separate local intelligence
+chain remains parked until integration against then-current main.
+
 **Selected user-approved CLOSED release blocker removal — 2026-10-05:**
 The human explicitly approves a bounded locally maintained Next lint-plugin
 replacement after upstream braces PR #72 closed unmerged on Oct 5. Codex owns
