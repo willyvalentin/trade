@@ -13,6 +13,11 @@ import { isScannerDecisionInputPublishable } from "@/lib/scanner-decision-input-
 import { scheduledScannerInputPolicy } from "@/lib/scheduled-scanner-input-policy";
 import { resolveScheduledScanProviderCreditBudget } from "@/lib/scheduled-scan-ticker-cap";
 import type { ScheduledScanInvocationReceipt } from "@/lib/scheduled-scan-invocation-receipt";
+import type { MarketRegime } from "@/lib/market-regime";
+import {
+  buildMarketRegimeDecisionContext,
+  retainMarketRegimeDecisionContext,
+} from "@/lib/market-regime-decision-context";
 import {
   getUsEquityMarketSession,
   usEquityMarketCalendarDataset,
@@ -20,6 +25,75 @@ import {
 
 // Synthetic CLOSED fixtures. No market data, credentials or production writes.
 const at = new Date("2026-10-01T15:50:00.000Z");
+for (const staleCache of [false, true]) {
+  test(`scheduled intraday quota rejection propagates with ${staleCache ? "stale" : "missing"} cache`, async () => {
+    const bundle = await build({ entryPoints: [resolve(process.cwd(), "lib/intraday-indicator-cache.ts")],
+      bundle: true, write: false, platform: "node", format: "cjs", conditions: ["react-server"] });
+    const loaded = { exports: {} };
+    new Function("require", "module", "exports", bundle.outputFiles[0].text)(
+      createRequire(resolve(process.cwd(), "package.json")), loaded, loaded.exports);
+    const { getOrRefreshIntradayIndicators } = loaded.exports as typeof import("@/lib/intraday-indicator-cache");
+    const originalFetch = globalThis.fetch, originalKey = process.env.TWELVE_DATA_API_KEY;
+    process.env.TWELVE_DATA_API_KEY = "synthetic-closed-quota-test";
+    const calls: string[] = [];
+    let message = "You have run out of API credits for the current minute.";
+    let status = 429;
+    globalThis.fetch = async input => {
+      const url = new URL(typeof input === "string" || input instanceof URL ? input : input.url);
+      // Any DB, other provider or unexpected route fails the CLOSED test.
+      expect(url.origin).toBe("https://api.twelvedata.com");
+      expect(url.pathname).toBe("/time_series");
+      calls.push(url.searchParams.get("symbol")!);
+      return Response.json({ status: "error", code: status, message }, { status });
+    };
+    const preloadedScannerCacheRaw = staleCache ? { intraday_indicator_cache: {
+      interval: "5min", cached_at: "2026-01-01T14:00:00.000Z",
+      indicators: { latestPrice: 100, latestCandleTimestamp: "2026-01-01T13:55:00.000Z" },
+    } } : null;
+    try {
+      const fresh = await getOrRefreshIntradayIndicators("SYNTH_FRESH", { source: "scheduled",
+        preloadedScannerCacheRaw: { intraday_indicator_cache: { interval: "5min",
+          cached_at: new Date().toISOString(), indicators: { latestPrice: 100,
+            latestCandleTimestamp: new Date(Date.now() - 120000).toISOString() } } } });
+      expect(fresh.source).toBe("cache"); expect(fresh.stale).toBe(false);
+      expect(calls).toEqual([]);
+      await expect(getOrRefreshIntradayIndicators("SYNTH", { source: "scheduled", preloadedScannerCacheRaw }))
+        .rejects.toThrow(message);
+      expect(calls).toEqual(["SYNTH"]);
+      // Non-scheduled consumers retain their explicit stale/unavailable result.
+      const manual = await getOrRefreshIntradayIndicators("SYNTH", { source: "manual", preloadedScannerCacheRaw });
+      expect(manual.stale).toBe(true);
+      expect(manual.source).toBe(staleCache ? "cache" : "unavailable");
+      message = "Invalid candle payload.";
+      status = 400;
+      const ordinary = await getOrRefreshIntradayIndicators("SYNTH", { source: "scheduled", preloadedScannerCacheRaw });
+      expect(ordinary.stale).toBe(true);
+      expect(ordinary.warnings.at(-1)).toContain(message);
+      const controller = new AbortController(); controller.abort();
+      await expect(getOrRefreshIntradayIndicators("SYNTH", {
+        source: "scheduled", signal: controller.signal, preloadedScannerCacheRaw,
+      })).rejects.toThrow("time budget");
+      expect(calls).toEqual(["SYNTH", "SYNTH", "SYNTH"]);
+    } finally {
+      globalThis.fetch = originalFetch;
+      if (originalKey === undefined) delete process.env.TWELVE_DATA_API_KEY;
+      else process.env.TWELVE_DATA_API_KEY = originalKey;
+    }
+  });
+}
+test("packaged original scanner retains valid fractional provider prices without losing its input population", () => {
+  test.setTimeout(90000);
+  const proof = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--cold", "--fractional-price"],
+    { cwd: process.cwd(), encoding: "utf8", timeout: 80000 });
+  expect(proof.status, `${proof.stdout}\n${proof.stderr}`).toBe(0);
+  const rows = proof.stdout.trim().split("\n").map(line => JSON.parse(line));
+  expect(rows.find(row => row.fractional_price_fitness)).toMatchObject({ fractional_price_fitness: "passed",
+    original_population_count: 8, fresh_inputs: 3, retained_latest_price: 100.0041, scheduled_synthetic_requests: 8,
+    fresh_cache_and_restart_exact_price: true, cache_rows_unchanged: true, stale_reuse_blocked: true,
+    actual_provider_requests: 0, production_actions: 0, quality_improvement_claimed: false });
+  expect(rows.at(-1)).toMatchObject({ attempts: 1, claims: 1, decision_version: "candidate_decision_record_v4",
+    fresh_inputs: 3, publications: 0, actual_provider_requests: 0, production_actions: 0, broker_actions: 0, cleanup: "inert" });
+});
 for (const strongInput of [false, true]) {
 test(`closing regular-session analysis retains ${strongInput ? "directional" : "flat"} original decisions without late publication`, () => {
   test.setTimeout(90000);
@@ -33,14 +107,14 @@ test(`closing regular-session analysis retains ${strongInput ? "directional" : "
     actual_provider_requests:0,production_actions:0,broker_actions:0,cleanup:"inert"});
 });
 }
-for (const bounded of [true, false]) {
-test(`market context ${bounded ? "drains owned transports" : "preserves unbounded legacy rejection"} on benchmark failure`, async () => {
+for (const [bounded, selected] of [[true,false],[true,true],[false,false]]) {
+test(`market context ${bounded ? "drains owned transports" : "preserves unbounded legacy rejection"}${selected ? " with completed inputs" : ""} on benchmark failure`, async () => {
   const bundle = await build({ entryPoints: [resolve(process.cwd(), "lib/market-regime.ts")],
     bundle: true, write: false, platform: "node", format: "cjs", conditions: ["react-server"] });
   const loaded = { exports: {} };
   new Function("require", "module", "exports", bundle.outputFiles[0].text)(
     createRequire(resolve(process.cwd(), "package.json")), loaded, loaded.exports);
-  const { getMarketRegime } = loaded.exports as typeof import("@/lib/market-regime");
+  const { getMarketRegime, COMPLETED_DAILY_MARKET_REGIME_INPUT_POLICY_VERSION } = loaded.exports as typeof import("@/lib/market-regime");
   const originalFetch = globalThis.fetch, originalKey = process.env.TWELVE_DATA_API_KEY;
   process.env.TWELVE_DATA_API_KEY = "synthetic-closed-boundary-only";
   let release!: () => void, settled = false;
@@ -55,7 +129,9 @@ test(`market context ${bounded ? "drains owned transports" : "preserves unbounde
     return Response.json({ values: bars().map(bar => ({datetime:new Date(bar.timestamp*1000).toISOString().slice(0,10),
       open:"100",high:"103",low:"99",close:"101",volume:"1000"})) });
   };
-  const running = getMarketRegime(bounded ? {signal:new AbortController().signal} : {}).then(() => { settled = true; return null; }, error => { settled = true; return error; });
+  const running = getMarketRegime(bounded ? {signal:new AbortController().signal,
+    ...(selected ? {inputPolicyVersion:COMPLETED_DAILY_MARKET_REGIME_INPUT_POLICY_VERSION} : {})} : {})
+    .then(() => { settled = true; return null; }, error => { settled = true; return error; });
   try {
     await new Promise(resolve => setImmediate(resolve));
     expect(symbols.sort()).toEqual(["QQQ","SPY"]);
@@ -71,6 +147,84 @@ test(`market context ${bounded ? "drains owned transports" : "preserves unbounde
 });
 }
 
+test("normalized benchmark inputs reject stale or misidentified history without changing legacy evidence", async () => {
+  const bundle = await build({ entryPoints: [resolve(process.cwd(), "lib/market-regime.ts")],
+    bundle: true, write: false, platform: "node", format: "cjs", conditions: ["react-server"] });
+  const loaded = { exports: {} };
+  new Function("require", "module", "exports", bundle.outputFiles[0].text)(
+    createRequire(resolve(process.cwd(), "package.json")), loaded, loaded.exports);
+  const { getMarketRegime, marketRegimePromptInput, COMPLETED_DAILY_MARKET_REGIME_INPUT_POLICY_VERSION } = loaded.exports as typeof import("@/lib/market-regime");
+  const OriginalDate = globalThis.Date, originalFetch = globalThis.fetch, originalKey = process.env.TWELVE_DATA_API_KEY;
+  const clock = new OriginalDate("2026-10-01T17:30:00.000Z").getTime();
+  globalThis.Date = class extends OriginalDate {
+    constructor(...args: ConstructorParameters<typeof Date>) { super(...(args.length ? args : [clock]) as ConstructorParameters<typeof Date>); }
+    static now() { return clock; }
+  } as typeof Date;
+  process.env.TWELVE_DATA_API_KEY = "synthetic-closed-boundary-only";
+  let scenario = "stale", requests = 0;
+  globalThis.fetch = async (input) => {
+    const url = new URL(typeof input === "string" || input instanceof URL ? input : input.url);
+    expect(url.origin).toBe("https://api.twelvedata.com"); expect(url.pathname).toBe("/time_series");
+    expect(url.searchParams.get("outputsize")).toBe("60"); requests++;
+    const values = bars(scenario === "stale" ? "2026-05-26" : "2026-09-30").map(bar => ({
+      datetime:new OriginalDate(bar.timestamp*1000).toISOString().slice(0,10),
+      open:"100",high:"103",low:"99",close:"101",volume:"1000" }));
+    if (scenario === "partial") {
+      values.shift(); values.push({datetime:"2026-10-01",open:"100",high:"1001",low:"99",close:"1000",volume:"1000"});
+    }
+    if (scenario === "missing_session") values.splice(58,1);
+    if (scenario === "future") { values.shift(); values.push({...values.at(-1)!,datetime:"2026-10-02"}); }
+    if (scenario === "duplicate") values[58] = {...values[57]};
+    return Response.json({meta:{symbol:scenario === "wrong_symbol" ? "OTHER" : url.searchParams.get("symbol"),
+      interval:"1day",exchange_timezone:scenario === "wrong_timezone" ? "UTC" : "America/New_York"},values});
+  };
+  try {
+    const selected = () => getMarketRegime({signal:new AbortController().signal,
+      inputPolicyVersion:COMPLETED_DAILY_MARKET_REGIME_INPUT_POLICY_VERSION});
+    const legacy = await getMarketRegime();
+    expect(legacy.spy.close).toBe(101); expect(legacy.input_evidence).toBeUndefined();
+    expect(JSON.stringify(marketRegimePromptInput(legacy))).toBe(JSON.stringify(legacy));
+    await expect(selected()).rejects.toThrow("market_regime_completed_daily_input_unavailable");
+    for (scenario of ["wrong_symbol","wrong_timezone","missing_session","future","duplicate"]) await expect(selected()).rejects.toThrow();
+    scenario = "partial";
+    const observed = await selected();
+    expect(observed.regime).toBe("risk_off"); expect(observed.spy.close).toBe(101);
+    expect(observed.input_evidence).toMatchObject({policy_version:COMPLETED_DAILY_MARKET_REGIME_INPUT_POLICY_VERSION,
+      role:"completed_historical_daily_only",evaluated_at:"2026-10-01T17:30:00.000Z",
+      spy:{symbol:"SPY",latest_completed_market_date:"2026-09-30",latest_completed_at:"2026-09-30T20:00:00.000Z"},
+      qqq:{symbol:"QQQ",latest_completed_market_date:"2026-09-30"}});
+    expect(observed.input_evidence!.spy.candles).toHaveLength(59);
+    expect(observed.input_evidence!.spy.response_identity.payload_byte_length).toBeGreaterThan(0);
+    expect(observed.input_evidence!.spy.content_sha256).toMatch(/^sha256:[a-f0-9]{64}$/);
+    expect(marketRegimePromptInput(observed)).toEqual({regime:observed.regime,summary:observed.summary,spy:observed.spy,qqq:observed.qqq});
+    expect(JSON.stringify(marketRegimePromptInput(observed))).not.toContain("candles");
+    expect(JSON.stringify(marketRegimePromptInput(observed))).not.toContain("response_identity");
+    expect((await getMarketRegime()).spy.close).toBe(1000);
+    expect(requests).toBe(18); // Exactly two original reads per call; no fallback/retry.
+    await expect(getMarketRegime({inputPolicyVersion:"unknown" as never})).rejects.toThrow("market_regime_input_policy_unavailable");
+    expect(requests).toBe(18);
+  } finally {
+    globalThis.Date = OriginalDate; globalThis.fetch = originalFetch;
+    if (originalKey === undefined) delete process.env.TWELVE_DATA_API_KEY; else process.env.TWELVE_DATA_API_KEY = originalKey;
+  }
+});
+
+for (const scenario of ["stale", "partial"]) {
+test(`packaged ${scenario} benchmark evidence reaches the actual data gate and retained source`, () => {
+  test.setTimeout(90000);
+  const proof = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--cold", `--benchmark-${scenario}`],
+    {cwd:process.cwd(),encoding:"utf8",timeout:80000});
+  expect(proof.status, `${proof.stdout}\n${proof.stderr}`).toBe(0);
+  const evidence = JSON.parse(proof.stdout.trim().split("\n").at(-1)!);
+  expect(evidence).toMatchObject({scheduled_synthetic_requests:8,attempts:1,claims:1,
+    benchmark_input_fitness:scenario === "stale" ? "stale_rejected_not_no_trade" : "partial_current_bar_discarded",
+    terminal_reservation_status:scenario === "stale" ? "failed" : "completed",
+    decision_count:scenario === "stale" ? 0 : 1,
+    retained_market_regime_input_policy:scenario === "stale" ? null : "completed_daily_market_regime_input_v1",
+    actual_provider_requests:0,production_actions:0,publications:0,broker_actions:0,cleanup:"inert"});
+});
+}
+
 test("packaged bounded input pipeline overlaps independent context without changing its budget or clocks", () => {
   test.setTimeout(90000);
   const proof=spawnSync(process.execPath,["scripts/completed-input-runtime-proof.mjs","--cold","--publication-clock","--context-latency"],
@@ -81,6 +235,44 @@ test("packaged bounded input pipeline overlaps independent context without chang
     route_budget_ms:23000,cleanup_reserve_ms:3000,fresh_inputs:3,actual_provider_requests:0,production_actions:0,cleanup:"inert"});
   expect(evidence.bounded_duration_ms).toBeLessThan(19000);
   expect(evidence.publications).toBeGreaterThan(0);
+});
+
+for (const scenario of ["published", "no_trade", "closing_research"] as const) {
+test(`packaged ${scenario} retains original pre-decision context in its run and any actual snapshots`, () => {
+  test.setTimeout(90000);
+  const proof = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--cold",
+    "--point-in-time-context", ...(scenario !== "no_trade" ? ["--publication-clock", "--context-latency"] : []),
+    ...(scenario === "closing_research" ? ["--closing"] : [])],
+    { cwd: process.cwd(), encoding: "utf8", timeout: 80000 });
+  expect(proof.status, `${proof.stdout}\n${proof.stderr}`).toBe(0);
+  const rows = proof.stdout.trim().split("\n").map(line => JSON.parse(line));
+  const original = rows.find(row => row.point_in_time_market_context_proof === "passed");
+  expect(original).toMatchObject({ actual_provider_requests: 0, production_actions: 0 });
+  expect(Date.parse(original.context_captured_at)).toBeLessThanOrEqual(Date.parse(original.original_decision_at));
+  if (scenario === "no_trade") expect(original.snapshot_count).toBe(0);
+  else expect(original.snapshot_count).toBeGreaterThan(0);
+  expect(original.final_disposition).toBe(scenario === "published" ? "recommendations_published" : "no_trade");
+  expect(rows.at(-1)).toMatchObject({ scheduled_synthetic_requests: 8, fresh_inputs: 3, cleanup: "inert" });
+  if (scenario !== "no_trade") expect(rows.at(-1)).toMatchObject({ route_budget_ms: 23000, cleanup_reserve_ms: 3000 });
+});
+}
+
+test("context transport retains its original instant but cannot invent observed evidence", () => {
+  const symbol = { close: 101, ma20: 100, ma50: 99, change_5d_percent: 1,
+    above_ma20: true, above_ma50: true };
+  const marketRegime: MarketRegime = { regime: "risk_on", summary: "Synthetic CLOSED context",
+    spy: symbol, qqq: symbol };
+  const context = buildMarketRegimeDecisionContext({ marketRegime, capturedAt: at });
+  expect(retainMarketRegimeDecisionContext({ marketRegime, capturedContext: context })).toEqual(context);
+  for (const capturedContext of [null, undefined, {}, { ...context, regime: "risk_off" },
+    { ...context, captured_at: "not a date" }, { ...context, classifier_version: "unknown" }]) {
+    expect(retainMarketRegimeDecisionContext({ marketRegime, capturedContext })).toBeNull();
+  }
+  expect(retainMarketRegimeDecisionContext({ marketRegime: null, capturedContext: context })).toBeNull();
+  expect(retainMarketRegimeDecisionContext({ marketRegime: { ...marketRegime, spy: { ...symbol, close: 0 } },
+    capturedContext: context })).toBeNull();
+  expect(retainMarketRegimeDecisionContext({ marketRegime: { ...marketRegime, qqq: { ...symbol, above_ma20: false } },
+    capturedContext: context })).toBeNull();
 });
 
 test("overlapped context still aborts at the unchanged deadline and drains every transport", () => {
@@ -106,6 +298,18 @@ test("early scanner rate limit cancels context without becoming a timeout", () =
   const evidence=JSON.parse(proof.stdout.trim().split("\n").at(-1)!);
   expect(evidence).toMatchObject({context_latency_proof:"preserved_scanner_rate_limit",scheduled_synthetic_requests:3,
     publications:0,pending_synthetic_transports:0,actual_provider_requests:0,production_actions:0,cleanup:"inert"});
+  expect(evidence.bounded_duration_ms).toBeLessThan(10000);
+});
+
+test("intraday quota rejection stops subsequent acquisitions and drains benchmarks", () => {
+  test.setTimeout(90000);
+  const proof=spawnSync(process.execPath,["scripts/completed-input-runtime-proof.mjs","--cold","--publication-clock",
+    "--context-latency","--intraday-rate-limit"],{cwd:process.cwd(),encoding:"utf8",timeout:80000});
+  expect(proof.status,`${proof.stdout}\n${proof.stderr}`).toBe(0);
+  const evidence=JSON.parse(proof.stdout.trim().split("\n").at(-1)!);
+  expect(evidence).toMatchObject({context_latency_proof:"preserved_intraday_rate_limit",scheduled_synthetic_requests:4,
+    attempts:1,claims:1,publications:0,pending_synthetic_transports:0,actual_provider_requests:0,
+    production_actions:0,broker_actions:0,cleanup:"inert"});
   expect(evidence.bounded_duration_ms).toBeLessThan(10000);
 });
 
@@ -164,7 +368,8 @@ test("scheduled input selection stays default-off and requires a matching claim 
 function bars(last = "2026-09-30", count = 60) {
   const result = [];
   const day = new Date(`${last}T00:00:00.000Z`);
-  while (result.length < count) {
+  let inspected = 0;
+  while (result.length < count && inspected++ < 200) {
     const date = day.toISOString().slice(0, 10);
     if (getUsEquityMarketSession(date).session_close) {
       result.unshift({ timestamp: day.getTime() / 1000, open: 100, high: 103,
@@ -172,6 +377,7 @@ function bars(last = "2026-09-30", count = 60) {
     }
     day.setUTCDate(day.getUTCDate() - 1);
   }
+  if (result.length !== count) throw new Error("Synthetic history exceeds verified calendar coverage");
   return result;
 }
 
@@ -215,6 +421,59 @@ test("packaged normal publication binds its decision before actual database pers
     .find(row=>row.publication_clock_proof==="passed");
   expect(evidence).toMatchObject({actual_provider_requests:0,production_actions:0});
   expect(evidence.synthetic_publication_count).toBeGreaterThan(0);
+});
+
+test("packaged published original inputs survive SQL restart and canonical outcome learning without changing the population", () => {
+  test.setTimeout(90000);
+  const proof = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--cold", "--publication-clock", "--published-original-learning"],
+    { cwd: process.cwd(), encoding: "utf8", timeout: 80000 });
+  expect(proof.status, `${proof.stdout}\n${proof.stderr}`).toBe(0);
+  const evidence = proof.stdout.trim().split("\n").map(line => JSON.parse(line))
+    .find(row => row.published_original_learning_proof === "passed");
+  expect(evidence).toMatchObject({ original_population: 8, canonical_published_outcomes: 3,
+    missing_original_members: 5, separate_synthetic_outcome_requests: 3, completed_repeat_requests: 0,
+    distinct_original_publication_clocks: true, restarted_owned_read: true, original_publications_unchanged: true,
+    actual_provider_requests: 0, production_actions: 0, broker_actions: 0, quality_improvement_claimed: false });
+});
+
+test("ordinary scheduled outcomes recover only budget-deferred original sources after a weekend", () => {
+  test.setTimeout(90000);
+  const proof = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--diagnose-outcomes", "--next-session-outcomes"],
+    { cwd: process.cwd(), encoding: "utf8", timeout: 80000 });
+  expect(proof.status, `${proof.stdout}\n${proof.stderr}`).toBe(0);
+  const evidence = JSON.parse(proof.stdout.trim().split("\n").at(-1)!);
+  expect(evidence.outcome_chain_evidence.resumption.next_session).toEqual({
+    policy_version: "trailing_seven_ny_dates_v1", original_date: "2026-10-01", evaluation_date: "2026-10-05",
+    scheduled_attempts: 3, reserved_credits: 4, synthetic_requests: 2,
+    previous_outcomes_unchanged: true, repeat_requests: 0, completed_next_slot_requests: 0,
+    original_horizon_retained: true, late_label_clock_retained: true, original_members: 8,
+  });
+  expect(evidence.outcome_chain_evidence.cross_date_source_controls).toEqual({
+    same_day_predecessor_missing_sources: 2, other_owner_excluded: true,
+    expired_original_source_excluded: true, future_source_excluded: true, invalid_scope_requests: 0,
+    rejected_scopes: ["unknown_scope", "direct_call", "frozen_one_shot", "frozen_series", "global_disabled"],
+    concurrent_delivery_claims: 1, invalid_original_outcome_rejected: true,
+    late_labels_excluded_from_original_cutoff: true,
+  });
+  expect(evidence).toMatchObject({ actual_provider_requests: 0, production_actions: 0, publications: 0, broker_actions: 0 });
+});
+
+test("capped database pages recover the complete original population without reacquiring completed labels", () => {
+  test.setTimeout(90000);
+  const proof = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--diagnose-outcomes", "--next-session-outcomes", "--paged-outcome-reads"],
+    { cwd: process.cwd(), encoding: "utf8", timeout: 80000 });
+  expect(proof.status, `${proof.stdout}\n${proof.stderr}`).toBe(0);
+  const evidence = JSON.parse(proof.stdout.trim().split("\n").at(-1)!);
+  expect(evidence.outcome_chain_evidence.resumption.next_session).toMatchObject({
+    scheduled_attempts: 3, reserved_credits: 4, synthetic_requests: 2,
+    previous_outcomes_unchanged: true, repeat_requests: 0, completed_next_slot_requests: 0,
+    original_horizon_retained: true, original_members: 8,
+  });
+  expect(evidence.outcome_chain_evidence.cross_date_source_controls).toMatchObject({
+    complete_capped_outcome_read: true, capped_learning_read_complete: true, concurrent_delivery_claims: 1,
+    other_owner_excluded: true, late_labels_excluded_from_original_cutoff: true,
+  });
+  expect(evidence).toMatchObject({actual_provider_requests:0,production_actions:0,publications:0,broker_actions:0});
 });
 
 for (const scenario of ["cold", "warm", "opening", "opening_zero"]) {
@@ -319,6 +578,67 @@ test("captures closed daily dates as historical context, not a current price", a
   expect(context).not.toHaveProperty("reference_price_timestamp");
   expect(await api.readCompletedDailyContext(JSON.parse(JSON.stringify(context)),
     "SYNTH", new Date("2026-10-01T18:00:00.000Z"))).toEqual(context);
+});
+
+test("legacy daily response retention preserves candles and request shape while strict history stays fail closed", async () => {
+  const bundle=await build({entryPoints:[resolve(process.cwd(),"lib/market-data.ts")],bundle:true,
+    write:false,platform:"node",format:"cjs",conditions:["react-server"]});
+  const loaded={exports:{}};
+  new Function("require","module","exports",bundle.outputFiles[0].text)(
+    createRequire(resolve(process.cwd(),"package.json")),loaded,loaded.exports);
+  const runtime=loaded.exports as typeof import("@/lib/market-data");
+  const OriginalDate=globalThis.Date,originalFetch=globalThis.fetch,originalKey=process.env.TWELVE_DATA_API_KEY;
+  globalThis.Date=class extends OriginalDate {
+    constructor(...args:ConstructorParameters<typeof Date>) {super(...(args.length?args:[at.getTime()]) as ConstructorParameters<typeof Date>);}
+    static now(){return at.getTime();}
+  } as typeof Date;
+  process.env.TWELVE_DATA_API_KEY="synthetic-legacy-retention-only";
+  let scenario="valid",requests=0;
+  const params:string[]=[];
+  globalThis.fetch=async input=>{
+    const url=new URL(typeof input==="string"||input instanceof URL?input:input.url);
+    expect(url.origin).toBe("https://api.twelvedata.com");expect(url.pathname).toBe("/time_series");
+    requests++;url.searchParams.delete("apikey");params.push(url.search);
+    expect(url.searchParams.has("adjust")).toBe(false);
+    const values=bars().map(bar=>({datetime:new OriginalDate(bar.timestamp*1000).toISOString().slice(0,10),
+      open:String(bar.open),high:String(bar.high),low:String(bar.low),close:String(bar.close),volume:String(bar.volume)}));
+    const meta={symbol:scenario==="wrong_symbol"?"OTHER":"SYNTH",interval:"1day",
+      exchange_timezone:scenario==="wrong_timezone"?"UTC":"America/New_York"};
+    if(scenario==="partial"||scenario==="future"){
+      values.shift();values.push({...values.at(-1)!,datetime:scenario==="partial"?"2026-10-01":"2026-10-02",close:"1000",high:"1001"});
+    }
+    if(scenario==="duplicate") values[58]={...values[57]};
+    if(scenario==="blank_volume")values[58].volume="";
+    if(scenario==="dated_timestamp")values[58].datetime+="T00:00:00Z";
+    return Response.json({...(scenario!=="missing_meta"?{meta}:{}),values});
+  };
+  try {
+    for(scenario of ["valid","partial","future","duplicate","blank_volume","dated_timestamp","wrong_symbol","wrong_timezone","missing_meta"]){
+      if(scenario==="blank_volume"){
+        await expect(runtime.getDailyCandles("synth",60)).rejects.toThrow("invalid candle 59 volume");
+        await expect(runtime.getDailyCandlesWithRetainedHistory("synth",60)).rejects.toThrow("invalid candle 59 volume");
+        continue;
+      }
+      const legacy=await runtime.getDailyCandles("synth",60);
+      const retained=await runtime.getDailyCandlesWithRetainedHistory("synth",60);
+      expect(retained.candles).toEqual(legacy);expect(params.at(-1)).toBe(params.at(-2));
+      const history=await api.captureCompletedDailyContext(retained.completed_response,"SYNTH",at);
+      if(scenario==="valid"||scenario==="partial"){
+        expect(history).toMatchObject({role:"completed_historical_daily",captured_at:at.toISOString(),
+          latest_completed_market_date:"2026-09-30",price_adjustment:"splits"});
+        expect(history!.candles).toHaveLength(scenario==="partial"?59:60);
+        expect(history).not.toHaveProperty("reference_price_timestamp");
+        expect(await api.readCompletedDailyContext(history,"SYNTH",new OriginalDate("2026-10-02T15:50:00Z"))).toBeNull();
+      } else expect(history).toBeNull();
+    }
+    expect(requests).toBe(18); // One existing request per API, never supplemental/fallback reads.
+    const controller=new AbortController();controller.abort();
+    await expect(runtime.getDailyCandlesWithRetainedHistory("SYNTH",60,{signal:controller.signal})).rejects.toThrow();
+    expect(requests).toBe(18);
+  } finally {
+    globalThis.Date=OriginalDate;globalThis.fetch=originalFetch;
+    if(originalKey===undefined)delete process.env.TWELVE_DATA_API_KEY;else process.env.TWELVE_DATA_API_KEY=originalKey;
+  }
 });
 
 test("excludes today's unfinished bar and never upgrades it after close", async () => {
@@ -482,7 +802,7 @@ function disposableCacheDatabase() {
     docker(["run", "-d", "--rm", "--network", network, "--name", rest,
       "-p", "127.0.0.1::3000", "-e", `PGRST_DB_URI=postgres://postgres:postgres@${database}:5432/postgres`,
       "-e", "PGRST_DB_SCHEMAS=public", "-e", "PGRST_DB_ANON_ROLE=anon", "-e", `PGRST_JWT_SECRET=${secret}`,
-      "public.ecr.aws/supabase/postgrest:v16.1"]);
+      "ghcr.io/postgrest/postgrest@sha256:5922bde07147b82b1c9d8f749e48c1e5b99ebb233f3888bb7ab65f07cf4ac82d"]);
     const port = docker(["port", rest, "3000/tcp"]).match(/^127\.0\.0\.1:(\d+)$/)?.[1];
     if (!port) throw new Error("isolated PostgREST loopback mapping unavailable");
     const head = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url");

@@ -406,6 +406,10 @@ export async function getDailyCandles(
     options,
   );
 
+  return legacyDailyCandles(data);
+}
+
+function legacyDailyCandles(data: TwelveDataTimeSeriesResponse): DailyCandle[] {
   if (!Array.isArray(data.values)) {
     throw new Error("Market data provider returned invalid candle data.");
   }
@@ -426,6 +430,38 @@ export async function getDailyCandles(
     .sort((left, right) => left.timestamp - right.timestamp);
 }
 
+/** Retain an attributable copy of an ALREADY paid legacy daily response.
+ * Its candles, request parameters and errors retain legacy semantics. Optional
+ * history admission is stricter and never retries, grants live freshness or
+ * changes the legacy candle result. Twelve Data's documented daily default is
+ * split-adjusted (support article 5179064); this exact request has no override.
+ */
+export async function getDailyCandlesWithRetainedHistory(
+  symbol: string,
+  days: number,
+  options?: { signal?: AbortSignal },
+): Promise<{ candles: DailyCandle[]; completed_response: DailyCandleResponse | null }> {
+  if (!Number.isInteger(days) || days <= 0) {
+    throw new Error("days must be a positive whole number.");
+  }
+  const normalized = normalizeSymbol(symbol);
+  const result = await fetchTwelveDataDetailed<TwelveDataTimeSeriesResponse>(
+    "/time_series", { symbol: normalized, interval: "1day", outputsize: days, order: "ASC" }, options,
+  );
+  const capturedAt = new Date().toISOString();
+  const candles = legacyDailyCandles(result.data);
+  let completedResponse: DailyCandleResponse | null = null;
+  if (days >= 50 && days <= 60) {
+    try {
+      completedResponse = attributableDailyResponse(result, normalized, days, capturedAt);
+    } catch {
+      // Invalid strict history is unavailable, not a failed legacy acquisition.
+    }
+  }
+  throwIfAborted(options?.signal);
+  return { candles, completed_response: completedResponse };
+}
+
 /** Raw daily history for the explicit completed-context input challenger only.
  * The legacy API above deliberately keeps its original behavior and callers.
  * Daily datetime is an exchange date label; timezone cannot convert it into a
@@ -444,6 +480,17 @@ export async function getDailyCandlesWithIdentity(
     "/time_series", { symbol: normalized, interval: "1day", outputsize: days,
       order: "ASC", adjust: "splits" }, options,
   );
+  const response = attributableDailyResponse(result, normalized, days, new Date().toISOString());
+  throwIfAborted(options?.signal);
+  return response;
+}
+
+function attributableDailyResponse(
+  result: { data: TwelveDataTimeSeriesResponse; responseIdentity: TwelveDataResponseIdentity },
+  normalized: string,
+  days: number,
+  capturedAt: string,
+): DailyCandleResponse {
   const meta = result.data.meta;
   if (!meta || typeof meta !== "object" || Array.isArray(meta) ||
     (meta as Record<string, unknown>).symbol !== normalized ||
@@ -473,10 +520,9 @@ export async function getDailyCandlesWithIdentity(
       open: value("open"), high: value("high"), low: value("low"),
       close: value("close"), volume: value("volume") };
   });
-  throwIfAborted(options?.signal);
   return { contract_version: "daily_candle_response_v1", symbol: normalized,
     interval: "1day", exchange_timezone: "America/New_York", price_adjustment: "splits",
-    captured_at: new Date().toISOString(), response_identity: result.responseIdentity,
+    captured_at: capturedAt, response_identity: result.responseIdentity,
     candles };
 }
 

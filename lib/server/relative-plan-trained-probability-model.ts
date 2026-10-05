@@ -47,9 +47,10 @@ export type RelativePlanTrainedProbabilityReceipt = {
  * identities, scores and bound snapshot plans must match the sealed population. */
 export function relativePlanTrainedPopulationMatches(receipt: RelativePlanTrainedProbabilityReceipt,
   comparisons: RelativePlanContextOutcomeComparison[]): boolean {
-  const current = [...comparisons].sort((a, b) => (a.decision_timestamp ?? "").localeCompare(b.decision_timestamp ?? "") ||
+  if (comparisons.some(row => !Number.isFinite(Date.parse(row.decision_timestamp ?? "")))) return false;
+  const current = [...comparisons].sort((a, b) => Date.parse(a.decision_timestamp ?? "") - Date.parse(b.decision_timestamp ?? "") ||
     a.scan_run_fingerprint.localeCompare(b.scan_run_fingerprint)).flatMap(comparison => comparison.candidates.map(row => ({
-      run_fingerprint: comparison.scan_run_fingerprint, decision_at: comparison.decision_timestamp, candidate_id: row.candidate_id,
+      run_fingerprint: comparison.scan_run_fingerprint, decision_at: new Date(comparison.decision_timestamp!).toISOString(), candidate_id: row.candidate_id,
       ticker: row.ticker, baseline_score: row.baseline_score, candidate_score: row.shadow_score,
       snapshot_fingerprint: row.snapshot_fingerprint })));
   const sealed = receipt.trained_model.original_training_receipts.map(row => ({
@@ -121,7 +122,9 @@ export function buildRelativePlanTrainedProbabilityModel(input: {
       evaluated <= input.now.getTime() && recorded <= input.now.getTime() && evaluated < cutoff && recorded < cutoff;
     const label = available && row.terminal_outcome === "target_before_stop" ? 1 :
       available && row.terminal_outcome === "stop_before_target" ? 0 : null;
-    receipts.push({ run_fingerprint: decision.fingerprint, decision_at: decision.decision_at,
+    // The receipt's existing clock contract is canonical UTC; the retained
+    // original source above preserves its exact offset encoding independently.
+    receipts.push({ run_fingerprint: decision.fingerprint, decision_at: new Date(decision.decision_at).toISOString(),
       candidate_id: row.candidate_id, ticker: row.ticker, baseline_score: row.baseline_score,
       candidate_score: row.shadow_score, snapshot_fingerprint: row.snapshot_fingerprint,
       outcome_id: row.outcome_id ?? outcome?.id ?? null, evaluated_at: Number.isFinite(evaluated) ? new Date(evaluated).toISOString() : null,

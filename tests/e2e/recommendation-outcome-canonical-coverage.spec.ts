@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import {
   buildCanonicalOutcomeProviderCoverageReceipt,
+  canonicalOutcomeProviderCoverageQuality,
   CANONICAL_OUTCOME_PROVIDER_COVERAGE_RECEIPT_VERSION,
 } from "@/lib/recommendation-outcome-canonical-coverage";
 import { runRecommendationOutcomeEvaluation } from "@/lib/recommendation-outcome-evaluation-runner";
@@ -53,6 +54,7 @@ test.describe("versioned canonical outcome coverage receipts", () => {
       }),
     ).toEqual({
       contract_version: CANONICAL_OUTCOME_PROVIDER_COVERAGE_RECEIPT_VERSION,
+      candle_validation_policy_version: "positive_coherent_aligned_original_horizon_ohlc_v2",
       provider_status: "available",
       freshness: "fresh",
       expected_candle_count: 3,
@@ -107,6 +109,74 @@ test.describe("versioned canonical outcome coverage receipts", () => {
         "candle_coverage_incomplete",
       ]),
     );
+  });
+
+  test("all original expected slots require positive coherent OHLC, not only finite numbers", () => {
+    for (const index of [0, 1, 2]) {
+      for (const patch of [
+        { open: 0 }, { high: -1 }, { low: 0 }, { close: -1 },
+        { open: 200 }, { close: 200 }, { open: 1 }, { close: 1 },
+        { low: 104, high: 103 }, { close: Infinity }, { open: NaN },
+      ]) {
+        const candles = completeCandles.map((bar, at) => at === index ? { ...bar, ...patch } : bar);
+        const receipt = buildCanonicalOutcomeProviderCoverageReceipt({ request: alignedRequest, candles,
+          result: { status: "available", provider: "twelve_data" } });
+        expect(receipt).toMatchObject({
+          candle_validation_policy_version: "positive_coherent_aligned_original_horizon_ohlc_v2",
+          freshness: "unknown", expected_candle_count: 3, observed_candle_count: 2, malformed_candle_count: 1,
+          blockers: expect.arrayContaining(["malformed_candle_observed", "candle_coverage_incomplete"]),
+        });
+      }
+    }
+    // Closed boundaries and flat but positive bars are valid observations.
+    for (const bars of [completeCandles.map(bar => ({ ...bar, open: bar.low, close: bar.high })),
+      completeCandles.map(bar => ({ ...bar, open: 100, high: 100, low: 100, close: 100 }))]) {
+      expect(buildCanonicalOutcomeProviderCoverageReceipt({ request: alignedRequest, candles: bars,
+        result: { status: "available", provider: "twelve_data" } })).toMatchObject({
+        freshness: "fresh", observed_candle_count: 3, malformed_candle_count: 0, blockers: [],
+      });
+    }
+  });
+
+  test("extra in-horizon interval starts fail closed without discarding any expected slot", () => {
+    for (const interval of ["5min", "15min"] as const) {
+      const bars = interval === "5min" ? completeCandles : [completeCandles[0]];
+      for (const offset of [1, 1000, 299999]) {
+        const at = Date.parse(alignedRequest.start_at) + offset;
+        for (const timestamp of [new Date(at), at, at / 1000, new Date(at).toISOString(),
+          new Date(at).toISOString().replace("Z", "+00:00")]) {
+          const receipt = buildCanonicalOutcomeProviderCoverageReceipt({ request: { ...alignedRequest, interval },
+            candles: [...bars, { ...bars[0], timestamp, high: 200 }],
+            result: { status: "available", provider: "twelve_data" } });
+          expect(receipt).toMatchObject({ freshness: "unknown", observed_candle_count: bars.length,
+            expected_candle_count: bars.length, malformed_candle_count: 1,
+            blockers: ["malformed_candle_observed", "unexpected_candle_interval_observed"] });
+          expect(canonicalOutcomeProviderCoverageQuality(receipt)).toBe(1);
+        }
+      }
+      const outside = [-1, 900000, 900001].map(offset => ({ ...bars[0],
+        timestamp: new Date(Date.parse(alignedRequest.start_at) + offset).toISOString(), high: 200 }));
+      const receipt = buildCanonicalOutcomeProviderCoverageReceipt({ request: { ...alignedRequest, interval },
+        candles: [...outside, ...bars], result: { status: "available", provider: "twelve_data" } });
+      expect(receipt).toMatchObject({ freshness: "fresh", observed_candle_count: bars.length,
+        malformed_candle_count: 0, blockers: [] });
+      expect(canonicalOutcomeProviderCoverageQuality(receipt)).toBe(3);
+    }
+  });
+
+  test("new acquisition policy does not reinterpret or mutate retained legacy receipt versions", () => {
+    const current = buildCanonicalOutcomeProviderCoverageReceipt({ request: alignedRequest,
+      candles: completeCandles, result: { status: "available", provider: "twelve_data" } });
+    const historical = Object.fromEntries(Object.entries(current)
+      .filter(([name]) => name !== "candle_validation_policy_version"));
+    const legacy = { ...historical, contract_version: "canonical_outcome_provider_coverage_receipt_v1" };
+    const priorPolicy = { ...current, candle_validation_policy_version: "positive_coherent_original_horizon_ohlc_v1" };
+    const original = JSON.stringify({ historical, legacy, priorPolicy });
+    expect(canonicalOutcomeProviderCoverageQuality(current)).toBe(3);
+    expect(canonicalOutcomeProviderCoverageQuality(historical)).toBe(3);
+    expect(canonicalOutcomeProviderCoverageQuality(legacy)).toBe(2);
+    expect(canonicalOutcomeProviderCoverageQuality(priorPolicy)).toBe(3);
+    expect(JSON.stringify({ historical, legacy, priorPolicy })).toBe(original);
   });
 
   test("uses the first complete candle after an unaligned decision without borrowing the in-flight candle", () => {

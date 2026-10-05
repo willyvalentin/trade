@@ -21,6 +21,7 @@ const historicalSourceCommit =
   "dbeed25f2074bff4dba8cee7f6d511cb17992efc";
 const successionSourceCommit =
   "ddce80b57c9ab21b5210d2aa484271c2da0f60e6";
+const retainedDraftVerificationCommit = "55576078e102e7019c271aeb5e67de4a353f2e8f";
 const originalOutcomeIncludedFiles =
   '  included_files = ["netlify/.generated/scheduled-outcome-evaluation-runtime.cjs"]';
 const outcomeIncludedFilesWithDeployIdentity =
@@ -60,6 +61,42 @@ const historicalCurrentStateSources = {
   "docs/ture-current-state-ledger.md": "docs/ture-current-state-ledger.md",
   "docs/ture-master-roadmap.md": "docs/ture-master-roadmap.md",
 } as const;
+
+test("Next lint derivative retains verified upstream rule bytes and removes the actual vulnerable chain", async () => {
+  const verification = JSON.parse(execFileSync(process.execPath,
+    ["scripts/next-lint-derivative-verification.mjs"],
+    { cwd: repositoryRoot, encoding: "utf8", timeout: 15000 }));
+  expect(verification).toMatchObject({
+    upstream: "@next/eslint-plugin-next@16.3.8", derivative: "16.3.8-ture.1",
+    original_dist_files: 54, preserved_dist_files_per_copy: 53, installed_verified: true,
+  });
+});
+
+test("actual Next root consumer retains original CLI diagnostics and fails abusive patterns explicitly", async () => {
+  const baselineBytes = await source("vendor/eslint-plugin-next/root-consumer-baseline.json");
+  expect(sha256(baselineBytes)).toBe("eceb87465e84cd0743fca2eacac81f061df1a31116547715693bf4c412853c59");
+  const baseline = JSON.parse(baselineBytes);
+  const normal = JSON.parse(execFileSync(process.execPath,
+    ["scripts/next-lint-glob-compatibility.mjs"],
+    { cwd: repositoryRoot, encoding: "utf8", timeout: 15000 }));
+  expect(normal.comparedAgainstOriginal).toBe(false);
+  expect(normal.rows.map((row: { name: string; results: unknown[] }) =>
+    ({ name: row.name, result: row.results[0] }))).toEqual(baseline.cases);
+  expect(baseline.cases).toHaveLength(103);
+  expect(baseline.cases[0].result.messages).toMatchObject([{
+    ruleId: "@next/next/no-html-link-for-pages", severity: 2,
+  }]);
+  const abusive = JSON.parse(execFileSync(process.execPath,
+    ["scripts/next-lint-glob-compatibility.mjs", "--adversarial"],
+    { cwd: repositoryRoot, encoding: "utf8", timeout: 15000 }));
+  expect(abusive.rows.map((row: { name: string }) => row.name)).toEqual([
+    "nesting", "expansion", "length", "rewrite", "cycle",
+  ]);
+  for (const row of abusive.rows) {
+    expect(row.results[0].error.name).toBe("RangeError");
+    expect(row.results[0]).not.toHaveProperty("roots");
+  }
+});
 
 type PlannedCommand = {
   label: string;
@@ -131,6 +168,16 @@ async function sourceHashes() {
     historicalCurrentStateSources,
   )) {
     hashes[historicalPath] = sha256(historicalSource(snapshotPath));
+  }
+  // Preserve the exact original receipt bytes while current runtime tests
+  // independently require the full audit/build, authority and CI boundaries.
+  // The receipt retained these exact dependency bytes at the later verified
+  // release revision. Do not rewrite it to describe today's derivative.
+  // Current installed dependencies are independently checked above and audited.
+  for (const snapshotPath of [draftRunnerPath, draftCostControlTestPath, "package.json", "package-lock.json"]) {
+    hashes[snapshotPath] = sha256(execFileSync("git", [
+      "show", `${retainedDraftVerificationCommit}:${snapshotPath}`,
+    ], { cwd: repositoryRoot }));
   }
   return hashes;
 }

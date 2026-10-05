@@ -108,6 +108,7 @@ export type RecommendationLearningBaselineReadiness = {
     decision_feature_vector_count: number;
     blocker_counts: Record<RecommendationDecisionSourceProvenanceBlocker, number> & Partial<Record<LearningSourceProvenanceBlocker, number>>;
     completed_input_research_snapshot_count?: number;
+    completed_input_published_snapshot_count?: number;
     upstream_provider_version_unavailable_count?: number;
   };
   intake_quality_provenance: RecommendationIntakeQualityProvenance;
@@ -334,7 +335,9 @@ export function buildRecommendationLearningBaselineReadiness({
     if (existing) return existing;
 
     assessedSnapshotsById.set(snapshot.id, snapshot);
-    const provenance = research
+    // A malformed new capture is not permission to fall back to the legacy
+    // basis (including a provider-version string added after the decision).
+    const provenance = research || snapshot.payload_json.published_input_capture_version !== undefined
       ? recommendationResearchLearningSourceProvenance(snapshot, scanRuns)
       : recommendationDecisionSourceProvenanceFromSnapshot(snapshot);
     sourceProvenanceBySnapshotId.set(snapshot.id, provenance);
@@ -762,7 +765,12 @@ export function buildRecommendationLearningBaselineReadiness({
         ? COMPLETED_INPUT_LEARNING_PROVENANCE_VERSION
         : RECOMMENDATION_DECISION_SOURCE_PROVENANCE_VERSION,
       ...(completedInputSources.length > 0 ? {
-        completed_input_research_snapshot_count: completedInputSources.length,
+        completed_input_research_snapshot_count: completedInputSources.filter(provenance =>
+          !("published_input_capture_version" in provenance)).length,
+        ...(completedInputSources.some(provenance => "published_input_capture_version" in provenance) ? {
+          completed_input_published_snapshot_count: completedInputSources.filter(provenance =>
+            "published_input_capture_version" in provenance).length,
+        } : {}),
         upstream_provider_version_unavailable_count: completedInputSources.filter(
           provenance => provenance.provider_version === null,
         ).length,

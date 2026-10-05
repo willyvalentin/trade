@@ -2,12 +2,17 @@ import { expect, test } from "@playwright/test";
 import { createRelativePlanProspectiveService } from "@/lib/server/relative-plan-prospective-service";
 import { createRelativePlanProspectiveStore } from "@/lib/server/relative-plan-prospective-store";
 import { createRelativePlanTrainedProbabilityStore } from "@/lib/server/relative-plan-trained-probability-store";
+import { createRelativePlanCharterResultStore } from "@/lib/server/relative-plan-charter-result-store";
 import { prospectiveOwner, prospectiveFrozenAt, prospectiveInput, prospectiveReceipt } from "../fixtures/relative-plan-prospective";
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { NextRequest } from "next/server";
 import { proxy } from "@/proxy";
 import { createApplicationSession, TRADE_AUTH_COOKIE } from "@/lib/application-session-core";
+import { prospectiveSource } from "../fixtures/relative-plan-prospective-source";
+import { persistRecommendationScanRun } from "@/lib/server/recommendation-scan-run-persistence";
+import { persistRecommendationSnapshot } from "@/lib/server/recommendation-snapshot-persistence";
+import { persistRecommendationOutcome } from "@/lib/server/recommendation-outcome-persistence";
 
 type Dependencies = NonNullable<Parameters<typeof createRelativePlanProspectiveService>[0]>;
 function harness(overrides: Partial<Dependencies> = {}) {
@@ -24,6 +29,9 @@ function harness(overrides: Partial<Dependencies> = {}) {
   const dependencies: Dependencies = {
     store: () => createRelativePlanProspectiveStore(database),
     revision: () => prospectiveInput.source_revision,
+    readRuntime: async () => ({ status: "unavailable", partitions: null, blocker: "synthetic_runtime_not_provided" }),
+    resultStore: () => createRelativePlanCharterResultStore({ async read() { return { status: "not_found",receipt: null }; },
+      async finalize() { throw new Error("read_must_not_finalize"); } }),
     modelStore: () => createRelativePlanTrainedProbabilityStore({
       async read() { return { status: "not_found", receipt: null }; },
       async materialize() { throw new Error("read_must_not_train"); },
@@ -104,6 +112,64 @@ test("raw persisted outcome clocks are checked before a legacy decoder can manuf
   }
 });
 
+test("unfinalized prospective read cannot measure a revision that was not observed at its as-of clock", async () => {
+  const source = await prospectiveSource();
+  const data: Record<string, Record<string, unknown>[]> = {
+    recommendation_scan_runs: [], recommendation_snapshots: [], recommendation_outcomes: [],
+  };
+  const writer = { from(table: string) { return { async upsert(row: Record<string, unknown>) {
+    data[table].push(structuredClone(row)); return { error: null };
+  } }; } };
+  const originalOwner = process.env.TURE_APPLICATION_OWNER_USER_ID;
+  process.env.TURE_APPLICATION_OWNER_USER_ID = prospectiveOwner;
+  try {
+    for (const run of source.scanRuns) expect((await persistRecommendationScanRun(run, { supabaseClient: writer, server: true })).status).toBe("saved");
+    for (const snapshot of source.snapshots) expect((await persistRecommendationSnapshot(snapshot, { supabaseClient: writer, server: true })).status).toBe("saved");
+    for (const outcome of source.outcomes) expect((await persistRecommendationOutcome(outcome, { supabaseClient: writer, server: true })).status).toBe("saved");
+  } finally {
+    if (originalOwner === undefined) delete process.env.TURE_APPLICATION_OWNER_USER_ID;
+    else process.env.TURE_APPLICATION_OWNER_USER_ID = originalOwner;
+  }
+  const h = harness({ readSource: async () => ({ status: "available", data }) });
+  await h.service.freeze(prospectiveOwner, { windows: prospectiveInput.windows }, new Date(prospectiveFrozenAt));
+  const now = new Date("2026-11-07T00:00:00.000Z");
+  const original = await h.service.read(prospectiveOwner, now);
+  expect(original.learning?.partitions[1]).toMatchObject({ original_population_count: 4, canonical_outcome_count: 4 });
+  for (const updatedAt of ["2026-11-07T00:00:00.001Z", "2026-11-07T00:00:00.000001Z",
+    "2026-10-12T16:00:00.000Z", undefined, null, "", "2026-02-30T17:00:00.000Z"]) {
+    const saved = data.recommendation_outcomes[0].updated_at;
+    data.recommendation_outcomes[0].updated_at = updatedAt;
+    const bytes = JSON.stringify(data);
+    expect(await createRelativePlanProspectiveService(h.dependencies).read(prospectiveOwner, now)).toMatchObject({
+      status: "unavailable", receipt: null, learning: null,
+      blocker: "prospective_outcome_revision_times_invalid",
+    });
+    expect(JSON.stringify(data)).toBe(bytes);
+    expect(data.recommendation_outcomes).toHaveLength(4);
+    data.recommendation_outcomes[0].updated_at = saved;
+  }
+  expect(await h.service.read(prospectiveOwner, now)).toEqual(original);
+  expect(h.writes()).toBe(1);
+});
+
+test("runtime reads occur only after a trusted owner freeze and complete source and cannot train or expose private errors", async () => {
+  const requests: Parameters<Dependencies["readRuntime"]>[0][] = [];
+  const h = harness({ readRuntime: async request => { requests.push(request); throw new Error("private_transport_details"); } });
+  expect((await h.service.read(prospectiveOwner)).status).toBe("not_found");
+  expect(requests).toEqual([]);
+  await h.service.freeze(prospectiveOwner, { windows: prospectiveInput.windows }, new Date(prospectiveFrozenAt));
+  const now = new Date("2026-11-07T00:00:00.000Z"), result = await h.service.read(prospectiveOwner, now);
+  expect(result.status).toBe("available");
+  expect(requests).toHaveLength(1);
+  expect(requests[0]).toMatchObject({ owner: prospectiveOwner, freeze: prospectiveReceipt(), now });
+  expect(result.learning?.full_charter.computed_disposition).toBe("evidence_incomplete");
+  expect(result.learning?.full_charter.missing_dimensions).toContain("held_out_relative_plan_runtime_source_read_failed");
+  expect(JSON.stringify(result)).not.toContain("private_transport_details");
+  expect((await h.service.read("33333333-3333-4333-8333-333333333333", now)).status).toBe("not_found");
+  expect(requests).toHaveLength(1);
+  expect(h.writes()).toBe(1);
+});
+
 test("original source writers, immutable freeze and restarted canonical learner share the exact isolated owner population", () => {
   test.setTimeout(90000);
   const result = spawnSync(process.execPath, ["scripts/relative-plan-prospective-runtime-proof.mjs"], {
@@ -117,8 +183,22 @@ test("original source writers, immutable freeze and restarted canonical learner 
     missing_label_retained_in_12_original_population: true, later_forward_labels_never_fit_model: true,
     persisted_late_training_label_excluded: true, persisted_future_forward_recording_retained_as_missing: true,
     retained_original_population: 4, missing_outcome_progression: [4, 1, 0], concurrent_single_owner_freeze: true,
+    malformed_ohlc_synthetic_requests: 5, persisted_malformed_terminal_labels_retained_as_missing: true,
+    off_grid_synthetic_requests: 2,
+    original_other_outcomes_unchanged: true,
     full_charter_decision: "evidence_incomplete", provider_requests: 0, production_changes: 0,
     broker_actions: 0, quality_improvement_verified: false });
+  expect(receipt.malformed_ohlc_cases.map((row: { fault: string }) => row.fault)).toEqual([
+    "winning_close_above_high", "winning_open_above_high", "losing_negative_close",
+    "losing_close_below_low", "losing_inverted_range",
+  ]);
+  for (const row of receipt.malformed_ohlc_cases) {
+    expect(row).toMatchObject({ original_population_count: 4, canonical_outcome_count: 3,
+      missing_outcome_count: 1, quality_improvement_claimed: false });
+  }
+  expect(receipt.off_grid_cases.map((row: { fault: string }) => row.fault)).toEqual(["off_grid_target", "off_grid_stop"]);
+  for (const row of receipt.off_grid_cases) expect(row).toMatchObject({ original_population_count: 4,
+    canonical_outcome_count: 3, missing_outcome_count: 1, quality_improvement_claimed: false });
 });
 
 test("the real proxy rejects anonymous, cross-owner and cross-origin comparison requests before command work", async () => {

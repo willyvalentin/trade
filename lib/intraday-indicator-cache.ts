@@ -14,6 +14,7 @@ import { captureCurrentSessionContext, readCurrentSessionContext,
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { isFreshLiveReferenceMarketTime } from "@/lib/live-reference-freshness-policy";
 import { throwIfAborted } from "@/lib/operation-abort";
+import { isProviderRateLimitLikeError } from "@/lib/provider-rate-limit";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 import {
   twelveDataResponseIdentityFromUnknown,
@@ -426,6 +427,12 @@ export async function getOrRefreshIntradayIndicators(
     };
   } catch (error) {
     throwIfAborted(options.signal);
+    // Stop the scheduled caller on account-wide quota rejection, just as its
+    // daily acquisition does; do not hide it behind an unavailable/stale cache.
+    // Preserve non-scheduled consumers and ordinary data-error fallbacks.
+    if (options.source === "scheduled" && isProviderRateLimitLikeError(error)) {
+      throw error;
+    }
     const message =
       error instanceof Error && error.message ? error.message : "Unknown error";
     const warning = `Intraday indicator refresh failed: ${message}`;

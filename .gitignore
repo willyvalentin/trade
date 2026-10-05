@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+/vendor/eslint-plugin-next/node_modules/
 /.pnp
 .pnp.*
 .yarn/*

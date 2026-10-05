@@ -1,6 +1,8 @@
 import type { ActiveScanTrace } from "@/lib/active-scan-trace";
 import type { ScanLogEntry } from "@/lib/scan-logs";
 import type { ScheduledScanInvocationReceipt } from "@/lib/scheduled-scan-invocation-receipt";
+import { basicFreeScheduledScanCreditReadbackFromUnknown } from "@/lib/basic-free-scheduled-scan-credit-readback";
+import { getNewYorkDateString } from "@/lib/intraday-scan-window";
 import {
   scannerProviderCoverageDiagnosticFromTrace,
   scannerProviderCoverageDiagnosticFromUnknown,
@@ -410,6 +412,23 @@ export function buildObservationCycleReceipt(
   const classification = classifyReceipt(input);
   const finalizedAt = terminalTimestamp(input);
   if (classification.terminal && !finalizedAt) return null;
+  const wholeScanCredit = basicFreeScheduledScanCreditReadbackFromUnknown(
+    input.scanLog?.basic_free_scheduled_scan_credit_reservation,
+    {
+      observed_at: routeReceivedAt,
+      trading_date: getNewYorkDateString(new Date(routeReceivedAt)),
+      window: null,
+    },
+  );
+  // The scanner trace covers acquisition only. SPY/QQQ context can use the
+  // other two credits of the same confirmed reservation. Keep whole-cycle
+  // reservation cost separate from actual requests/successes and preserve
+  // larger contradictory trace counts for downstream fail-closed checks.
+  const confirmedWholeScanCredits = input.mode === "scheduled" && input.allowed === true &&
+    wholeScanCredit.status === "available" &&
+    wholeScanCredit.reservation.status === "provider_execution_allowed"
+    ? wholeScanCredit.reservation.requested_credits ?? 0
+    : 0;
   const scheduledSlot = input.scheduledInvocationReceipt
     ?.scheduled_slot_started_at_utc ?? null;
   const receiptGeneratedAt = finalizedAt ?? routeReceivedAt;
@@ -479,7 +498,8 @@ export function buildObservationCycleReceipt(
       attempted_tickers:
         classification.trace?.market_data_fetch.attempted_tickers ?? 0,
       reserved_credits:
-        classification.trace?.market_data_fetch.provider_calls_reserved_count ?? 0,
+        Math.max(confirmedWholeScanCredits,
+          classification.trace?.market_data_fetch.provider_calls_reserved_count ?? 0),
       provider_credit_policy_version:
         textOrNull(
           classification.trace?.market_data_fetch.provider_credit_policy_version,

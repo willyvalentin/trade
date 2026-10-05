@@ -102,6 +102,18 @@ export function marketRegimeDecisionContextFromPayload(payload: unknown) {
   return marketRegimeDecisionContextFromUnknown(record?.market_regime_context);
 }
 
+/** Retain original evidence without inventing a clock for legacy/fallback data. */
+export function retainMarketRegimeDecisionContext(input: {
+  marketRegime: MarketRegime | null;
+  capturedContext: unknown;
+}): MarketRegimeDecisionContext | null {
+  const context = marketRegimeDecisionContextFromUnknown(input.capturedContext);
+  return hasObservedMarketRegimeEvidence(input.marketRegime) &&
+    context?.regime === input.marketRegime.regime
+    ? context
+    : null;
+}
+
 export function marketRegimeValueFromPayload(payload: unknown) {
   const record = recordOrNull(payload);
   const value = record?.market_regime ?? record?.regime;

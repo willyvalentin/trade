@@ -9,6 +9,7 @@ import { recommendationResearchLearningSourceProvenance } from "@/lib/completed-
 import { computeRecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
 import { recommendationOutcomeEvaluationAnchorFromSnapshot } from "@/lib/recommendation-outcome-evaluation-anchor";
 import { buildCanonicalOutcomeProviderCoverageReceipt } from "@/lib/recommendation-outcome-canonical-coverage";
+import { runRecommendationOutcomeEvaluation } from "@/lib/recommendation-outcome-evaluation-runner";
 
 async function source(populationMissing = false, outcome: "win" | "loss" | "no_entry" | "neither" | "ambiguous" = "win",
   context: Parameters<typeof relativePlanEvidence>[0] = {}) {
@@ -83,6 +84,86 @@ test("both unfavorable and untriggered entry outcomes retain their honest canoni
   expect(noEntry.candidates.every(row => row.terminal_outcome === "no_entry" && row.r_result === 0)).toBe(true);
   expect(noEntry.baseline.no_entry_count).toBe(3);
   expect(noEntry.baseline.expectancy_r.value).toBe(0);
+});
+
+test("incoherent outcome candles cannot become canonical winning or losing learning labels", async () => {
+  const input = await source();
+  const originalBytes = JSON.stringify(input);
+  const snapshot = input.snapshots[0];
+  const anchor = recommendationOutcomeEvaluationAnchorFromSnapshot(snapshot)!;
+  const start = Date.parse(anchor.evaluation_anchor_start_at);
+  for (const [fault, invalid] of [
+    ["winning_close_above_high", { open: 100, high: 109, low: 99, close: 120 }],
+    ["winning_open_above_high", { open: 120, high: 109, low: 99, close: 100 }],
+    ["losing_negative_close", { open: 100, high: 101, low: 95, close: -1 }],
+    ["losing_close_below_low", { open: 100, high: 101, low: 95, close: 90 }],
+    ["losing_inverted_range", { open: 100, high: 94, low: 95, close: 96 }],
+  ] as const) {
+    const candles = Array.from({ length: 12 }, (_, index) => ({
+      timestamp: new Date(start + index * 300000).toISOString(),
+      volume: 1000,
+      ...(index === 1 ? invalid : { open: 100, high: 101, low: 99, close: 100 }),
+    }));
+    let requests = 0;
+    // The owner-bound route exposes already admitted hidden research sources
+    // to this visible-only runner. Keep the stored original hidden and intact.
+    const run = await runRecommendationOutcomeEvaluation({ snapshots: [{ ...snapshot, is_visible: true }], horizons: ["60m"],
+      now: new Date(start + 3900000), maxCandleRequests: 1,
+      fetchCandles: async request => { requests += 1; return { request, candles,
+        status: "available", provider: "twelve_data", error: null, warnings: [] }; },
+      persistOutcome: async outcome => ({ status: "saved", mode: "supabase", outcome, error: null }),
+    });
+    expect(requests, fault).toBe(1);
+    const result = buildRelativePlanContextOutcomeComparison({ ...input,
+      outcomes: [run.outcomes[0], ...input.outcomes.slice(1)] });
+    expect(result.canonical_outcome_count, `${fault}: ${JSON.stringify({
+      status: run.outcomes[0].status, coverage: run.outcomes[0].payload_json.canonical_provider_coverage,
+      mark: run.outcomes[0].payload_json.canonical_horizon_price_mark,
+    })}`).toBe(3);
+    expect(result).toMatchObject({ original_population_count: 4, missing_outcome_count: 1,
+      population_complete: false, precision_delta: null });
+    expect(result.candidates[0]).toMatchObject({ outcome_status: "missing", r_result: null, positive_outcome: null });
+    expect(result.baseline.precision_at_3.value).toBeNull();
+    expect(result.challenger.expectancy_r.value).toBeNull();
+    expect(run.outcomes[0].payload_json.canonical_provider_coverage).toMatchObject({
+      freshness: "unknown", observed_candle_count: 11, malformed_candle_count: 1,
+      blockers: expect.arrayContaining(["malformed_candle_observed", "candle_coverage_incomplete"]),
+    });
+    expect(JSON.stringify(input)).toBe(originalBytes);
+  }
+});
+
+test("extra off-grid target and stop bars remain missing canonical labels in the original population", async () => {
+  const input = await source();
+  const originalBytes = JSON.stringify(input);
+  const snapshot = input.snapshots[0];
+  const anchor = recommendationOutcomeEvaluationAnchorFromSnapshot(snapshot)!;
+  const start = Date.parse(anchor.evaluation_anchor_start_at);
+  for (const event of ["target", "stop"] as const) {
+    const complete = Array.from({ length: 12 }, (_, index) => ({
+      timestamp: new Date(start + index * 300000).toISOString(), open: 100,
+      high: 101, low: 99, close: 100, volume: 1000,
+    }));
+    const extra = { ...complete[1], timestamp: new Date(start + 301000).toISOString(),
+      ...(event === "target" ? { high: 109 } : { low: 95 }) };
+    const run = await runRecommendationOutcomeEvaluation({ snapshots: [{ ...snapshot, is_visible: true }],
+      horizons: ["60m"], now: new Date(start + 3900000), maxCandleRequests: 1,
+      fetchCandles: async request => ({ request, candles: [...complete, extra],
+        status: "available", provider: "twelve_data", error: null, warnings: [] }),
+      persistOutcome: async outcome => ({ status: "saved", mode: "supabase", outcome, error: null }),
+    });
+    expect(run.outcomes[0].payload_json.retained_candle_count).toBe(13);
+    const result = buildRelativePlanContextOutcomeComparison({ ...input,
+      outcomes: [run.outcomes[0], ...input.outcomes.slice(1)] });
+    expect(result.canonical_outcome_count, `${event}: ${JSON.stringify({
+      status: run.outcomes[0].status, target_hit: run.outcomes[0].target_hit, stop_hit: run.outcomes[0].stop_hit,
+      coverage: run.outcomes[0].payload_json.canonical_provider_coverage,
+    })}`).toBe(3);
+    expect(result).toMatchObject({ original_population_count: 4, missing_outcome_count: 1,
+      population_complete: false, precision_delta: null });
+    expect(result.candidates[0]).toMatchObject({ outcome_status: "missing", r_result: null, positive_outcome: null });
+    expect(JSON.stringify(input)).toBe(originalBytes);
+  }
 });
 
 test("neither-hit uses measured horizon R, while ambiguous intrabar order remains unresolved", async () => {

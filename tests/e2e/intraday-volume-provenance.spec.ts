@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 import {
   admissibleRecentIntradayVolumeRatio,
   calculateIntradayIndicators,
+  PROVIDER_CLOSED_BAR_PRICE_BASIS,
   intradayIndicatorsFromUnknown,
   volumeTrendFromRecentVolumeRatio,
   withAdmissibleCandidateRecentVolume,
@@ -20,6 +21,34 @@ function candles(volumes: number[], intervalMinutes = 5): IntradayCandle[] {
     volume,
   }));
 }
+
+test("versioned normalized price basis retains fractional closes and ranges without rewriting the legacy basis", () => {
+  for (const [close, high, low] of [[100.0041, 100.0042, 100.0040], [0.5041, 0.5042, 0.5040],
+    [0.000041, 0.000042, 0.000040], [100, 101, 99]]) {
+    const bars = candles(Array(24).fill(1000)).map(bar => ({ ...bar, open: close, high, low, close }));
+    const original = JSON.stringify(bars), observedAtSeconds = bars.at(-1)!.timestamp + 300;
+    const options = { interval: "5min" as const, observedAtSeconds };
+    const legacy = calculateIntradayIndicators(bars, options);
+    const exact = calculateIntradayIndicators(bars, { ...options, priceBasis: PROVIDER_CLOSED_BAR_PRICE_BASIS });
+    expect(exact).toMatchObject({ priceBasis: PROVIDER_CLOSED_BAR_PRICE_BASIS, latestPrice: close,
+      recentHigh: high, recentLow: low, latestVolume: 1000, averageVolume: 1000, recentVolumeRatio: 1 });
+    expect(exact.recentRangePercent).toBe(Number(((high-low)/close*100).toFixed(2)));
+    expect(exact.vwap).toBeCloseTo((high+low+close)/3, 12);
+    expect(exact.latestCandleTimestamp).toBe(legacy.latestCandleTimestamp);
+    expect(exact.recentVolumeBarClosedAtSeconds).toBe(legacy.recentVolumeBarClosedAtSeconds);
+    expect(legacy.latestPrice).toBe(Number(close.toFixed(2)));
+    expect(legacy).not.toHaveProperty("priceBasis");
+    expect(calculateIntradayIndicators(bars, options)).toEqual(legacy);
+    expect(JSON.stringify(bars)).toBe(original);
+    const parsed = intradayIndicatorsFromUnknown(JSON.parse(JSON.stringify(exact)))!;
+    expect(parsed).toMatchObject({ priceBasis: PROVIDER_CLOSED_BAR_PRICE_BASIS, latestPrice: close,
+      recentHigh: high, recentLow: low, recentRangePercent: exact.recentRangePercent });
+  }
+  const options = { interval: "5min" as const, observedAtSeconds: 1 };
+  expect(calculateIntradayIndicators([], { ...options, priceBasis: PROVIDER_CLOSED_BAR_PRICE_BASIS })).toMatchObject({
+    priceBasis: PROVIDER_CLOSED_BAR_PRICE_BASIS, latestPrice: null, recentHigh: null, recentLow: null, recentVolumeRatio: null });
+  expect(() => calculateIntradayIndicators([], { ...options, priceBasis: "unknown" as never })).toThrow("intraday_indicator_price_basis_invalid");
+});
 
 test("opening volume mean retains three observed bars without inventing a complete ratio", () => {
   const observed = observedIndicators([1000, 1000, 0]);

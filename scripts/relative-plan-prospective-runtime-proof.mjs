@@ -39,7 +39,8 @@ try {
       export { getUsEquityMarketSession } from './lib/us-equity-market-calendar';
       export { persistRecommendationScanRun } from './lib/server/recommendation-scan-run-persistence';
       export { persistRecommendationSnapshot } from './lib/server/recommendation-snapshot-persistence';
-      export { persistRecommendationOutcome } from './lib/server/recommendation-outcome-persistence';` },
+      export { persistRecommendationOutcome } from './lib/server/recommendation-outcome-persistence';
+      export { runRecommendationOutcomeEvaluation } from './lib/recommendation-outcome-evaluation-runner';` },
     outfile: join(directory, "reader.cjs") });
   const readers = createRequire(import.meta.url)(join(directory, "reader.cjs"));
   docker("network", "create", network); networkCreated = true;
@@ -67,6 +68,7 @@ try {
   sql("grant all on all tables in schema public to service_role;");
   sql(readFileSync(resolve(root, "supabase/migrations/20261002213547_if4_relative_plan_prospective_comparison.sql"), "utf8"));
   sql(readFileSync(resolve(root, "supabase/migrations/20261002233358_if4_relative_plan_trained_probability_model.sql"), "utf8"));
+  sql(readFileSync(resolve(root, "supabase/migrations/20261003015239_if4_relative_plan_charter_result.sql"), "utf8"));
   const key = "closed-proof-jwt-only-0123456789012345678901234567890123456789";
   const encoded = value => Buffer.from(JSON.stringify(value)).toString("base64url");
   const tokenFor = role => {
@@ -76,7 +78,7 @@ try {
   docker("run", "--pull=missing", "--rm", "-d", "--name", api, "--network", network, "-p", "127.0.0.1::3000",
     "-e", `PGRST_DB_URI=postgresql://authenticator:closed-proof-only@${db}:5432/postgres`,
     "-e", "PGRST_DB_SCHEMAS=public", "-e", "PGRST_DB_ANON_ROLE=anon", "-e", `PGRST_JWT_SECRET=${key}`,
-    "public.ecr.aws/supabase/postgrest:v16.1"); apiCreated = true;
+    "ghcr.io/postgrest/postgrest@sha256:5922bde07147b82b1c9d8f749e48c1e5b99ebb233f3888bb7ab65f07cf4ac82d"); apiCreated = true;
   const endpoint = `http://${docker("port", api, "3000/tcp")}`;
   globalThis.fetch = async (input, options) => {
     const url = new URL(typeof input === "string" || input instanceof URL ? input : input.url);
@@ -151,6 +153,72 @@ try {
   assert.equal(partial.learning.partitions[1].missing_outcome_count, 1);
   assert.equal(partial.learning.partitions[1].original_membership_fingerprint, enrolledBefore.original_membership_fingerprint);
   assert.equal(partial.learning.partitions[1].precision_delta, null);
+  // The actual new-outcome writer and SDK persist malformed terminal candles;
+  // the restarted learner must retain the ORIGINAL member as missing, not a
+  // win, a loss or zero exposure. Stored historical sources are not patched.
+  const originalOtherOutcomes=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_outcomes t;"));
+  const originalSnapshot=source.snapshots[0];
+  const anchor=originalSnapshot.payload_json.outcome_evaluation_anchor;
+  const start=Date.parse(anchor.evaluation_anchor_start_at);
+  let integritySyntheticRequests=0;
+  const integrityCases=[];
+  for(const [fault,patch] of [
+    ["winning_close_above_high",{high:originalSnapshot.target+1,close:originalSnapshot.target+5}],
+    ["winning_open_above_high",{high:originalSnapshot.target+1,open:originalSnapshot.target+5}],
+    ["losing_negative_close",{low:originalSnapshot.stop-1,close:-1}],
+    ["losing_close_below_low",{low:originalSnapshot.stop-1,close:originalSnapshot.stop-5}],
+    ["losing_inverted_range",{high:originalSnapshot.stop-2,low:originalSnapshot.stop-1,close:originalSnapshot.stop}],
+    ["off_grid_target",{high:originalSnapshot.target+1}],
+    ["off_grid_stop",{low:originalSnapshot.stop-1}],
+  ]) {
+    const offGrid=fault.startsWith("off_grid_");
+    const candles=Array.from({length:12},(_,index)=>({timestamp:new Date(start+index*300000).toISOString(),
+      open:originalSnapshot.entry,high:originalSnapshot.entry+0.1,low:originalSnapshot.entry-0.1,
+      close:originalSnapshot.entry,volume:1000,...(index===1&&!offGrid?patch:{})}));
+    if(offGrid) candles.push({...candles[1],...patch,timestamp:new Date(start+301000).toISOString()});
+    const acquired=await readers.runRecommendationOutcomeEvaluation({
+      snapshots:[{...originalSnapshot,is_visible:true}],horizons:["60m"],now:new Date(start+3900000),
+      maxCandleRequests:1,fetchCandles:async request=>{integritySyntheticRequests++;return {
+        request,candles,status:"available",provider:"twelve_data",warnings:[],error:null};},
+      persistOutcome:outcome=>readers.persistRecommendationOutcome(outcome,{supabaseClient:client,server:true}),
+    });
+    assert.equal(acquired.persisted_outcome_count,1);
+    const physical=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_outcomes t;"));
+    assert.equal(physical.length,4);
+    for(const prior of originalOtherOutcomes) assert.deepEqual(physical.find(row=>row.id===prior.id),prior);
+    const persisted=physical.find(row=>row.snapshot_fingerprint===originalSnapshot.snapshot_fingerprint);
+    assert.equal(persisted.payload_json.canonical_provider_coverage.candle_validation_policy_version,
+      "positive_coherent_aligned_original_horizon_ohlc_v2");
+    assert.equal(persisted.payload_json.canonical_provider_coverage.malformed_candle_count,1);
+    assert(persisted.payload_json.canonical_provider_coverage.blockers.includes("malformed_candle_observed"));
+    if(offGrid) {
+      assert.equal(persisted.payload_json.canonical_provider_coverage.observed_candle_count,12);
+      assert(persisted.payload_json.canonical_provider_coverage.blockers.includes("unexpected_candle_interval_observed"));
+      assert.equal(persisted.payload_json.retained_candle_count,13);
+      assert.equal(persisted.payload_json.current_price,null);assert.equal(persisted.payload_json.current_r,null);
+      assert.equal(persisted.status,fault==="off_grid_target"?"target_before_stop":"stop_before_target");
+    }
+    const reread=await readers.createRelativePlanProspectiveService().read(owner,readAt);
+    assert.equal(reread.status,"available");
+    const retained=reread.learning.partitions[1];
+    assert.equal(retained.original_population_count,4);
+    assert.equal(retained.original_membership_fingerprint,enrolledBefore.original_membership_fingerprint);
+    assert.equal(retained.canonical_outcome_count,3);
+    assert.equal(retained.missing_outcome_count,1);
+    assert.equal(retained.precision_delta,null);
+    assert.equal(retained.baseline.precision_at_3,null);
+    assert.equal(retained.challenger.expectancy_r,null);
+    const missing=retained.decisions[0].comparison.candidates.find(row=>row.snapshot_fingerprint===originalSnapshot.snapshot_fingerprint);
+    assert.equal(missing.outcome_status,"missing");
+    assert.equal(missing.positive_outcome,null);assert.equal(missing.r_result,null);
+    assert.equal(reread.learning.terminal_quality_decision,null);
+    assert(Object.values(reread.learning.authority).every(value=>value===false));
+    assert.equal((await readers.createRelativePlanProspectiveService().read(concurrentOwner,readAt))
+      .learning.partitions[1].original_population_count,0);
+    integrityCases.push({fault,physical_status:persisted.status,original_population_count:4,
+      canonical_outcome_count:3,missing_outcome_count:1,quality_improvement_claimed:false});
+  }
+  assert.equal(integritySyntheticRequests,7);
   assert.equal((await readers.persistRecommendationOutcome(source.outcomes[0], { supabaseClient: client, server: true })).status, "saved");
   const complete = await readers.createRelativePlanProspectiveService().read(owner, readAt);
   const held = complete.learning.partitions[1];
@@ -234,7 +302,10 @@ try {
   assert.deepEqual(await measurement(1), changedProbability);
   // Persisted late training evidence and future-recorded forward evidence are
   // evaluated through the same product path, not merely numerical fixtures.
-  const lateTraining = { ...extraTraining[0].outcomes[0], created_at: input.windows.held_out.start_at };
+  // First recording is deliberately late, but its revision must not precede
+  // that recording. This case tests enrollment, not an invalid mutable clock.
+  const lateTraining = { ...extraTraining[0].outcomes[0], created_at: input.windows.held_out.start_at,
+    updated_at: input.windows.held_out.start_at };
   assert.equal((await readers.persistRecommendationOutcome(lateTraining, { supabaseClient: client, server: true })).status, "saved");
   const lateMeasurement = await measurement(1);
   assert.equal(lateMeasurement.result.training.original_population_count, 48);
@@ -286,6 +357,11 @@ try {
     persisted_late_training_label_excluded: true, persisted_future_forward_recording_retained_as_missing: true,
     durable_freeze_count: 2, restarted_exact_readback: true, idempotent_repeats: 7, concurrent_single_owner_freeze: true, retroactive_rejected: true,
     actual_source_persistence_and_restarted_learner: true, retained_original_population: 4,
+    malformed_ohlc_synthetic_requests:integrityCases.filter(row=>!row.fault.startsWith("off_grid_")).length,
+    malformed_ohlc_cases:integrityCases.filter(row=>!row.fault.startsWith("off_grid_")),
+    off_grid_synthetic_requests:integrityCases.filter(row=>row.fault.startsWith("off_grid_")).length,
+    off_grid_cases:integrityCases.filter(row=>row.fault.startsWith("off_grid_")),
+    persisted_malformed_terminal_labels_retained_as_missing:true,original_other_outcomes_unchanged:true,
     missing_outcome_progression: [4, 1, 0], mixed_canonical_outcomes: 4, baseline_precision_at_3: held.baseline.precision_at_3,
     challenger_precision_at_3: held.challenger.precision_at_3, full_charter_decision: "evidence_incomplete",
     model_fingerprint: result.receipt.plan.model_fingerprint, charter_fingerprint: result.receipt.plan.charter_fingerprint,

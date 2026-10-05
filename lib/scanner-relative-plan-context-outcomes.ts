@@ -80,10 +80,14 @@ export function buildRelativePlanContextOutcomeComparison(input: {
       !Number.isFinite(Date.parse(outcome.evaluated_at)) || Date.parse(outcome.evaluated_at) < Date.parse(record!.decision_timestamp)) ||
       linked.some(outcome => outcomeIdCounts.get(outcome.id) !== 1)) return missing("canonical_outcome_lineage_conflicting", true);
     const projected = projectRecommendationOutcomeBundle({ snapshot, outcomes: linked, metadata: {
-      producer_decision_id: row.candidate_id, candidate_id: row.candidate_id, decision_timestamp: record!.decision_timestamp,
-      sample_type: "research_only", numeric_confidence: null, confidence_label: null,
+      producer_decision_id: snapshot.recommendation_id ?? row.candidate_id, candidate_id: row.candidate_id,
+      // New published capture admits only an identical fully closed horizon.
+      // Canonical publication evidence keeps its own timestamp and identity;
+      // never relabel a visible publication as hidden research.
+      decision_timestamp: snapshot.recommendation_id ? snapshot.recommended_at : record!.decision_timestamp,
+      sample_type: snapshot.recommendation_id ? "visible" : "research_only", numeric_confidence: null, confidence_label: null,
       scan_run_fingerprint: record!.scan_run_fingerprint, snapshot_id: snapshot.id,
-      snapshot_fingerprint: snapshot.snapshot_fingerprint, recommendation_id: null,
+      snapshot_fingerprint: snapshot.snapshot_fingerprint, recommendation_id: snapshot.recommendation_id,
     } });
     if (projected.status === "conflicting") return missing("canonical_projection_conflicting", true);
     const primary = projected.projection.primary_outcome;
