@@ -8,6 +8,7 @@ import {
 } from "@/lib/intraday-indicator-cache";
 import type { IntradayIndicators } from "@/lib/intraday-indicators";
 import { getQuote } from "@/lib/market-data";
+import { isFreshLiveReferenceMarketTime } from "@/lib/live-reference-freshness-policy";
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 import {
@@ -397,6 +398,9 @@ async function monitorPosition(
   const target1 = optionalNumberValue(position.target_1);
   const target2 = optionalNumberValue(position.target_2);
   const quote = await getQuote(position.ticker);
+  if (!isFreshLiveReferenceMarketTime(quote.market_time)) {
+    throw new Error("Position quote market time is missing, stale or future-dated.");
+  }
   const indicatorResult = await getOrRefreshIntradayIndicators(position.ticker, {
     source: "position_update",
     maxAgeMinutes: POSITION_UPDATE_INDICATOR_MAX_AGE_MINUTES,

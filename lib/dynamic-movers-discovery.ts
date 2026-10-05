@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getQuote } from "@/lib/market-data";
+import { isFreshLiveReferenceMarketTime } from "@/lib/live-reference-freshness-policy";
 import { throwIfAborted } from "@/lib/operation-abort";
 import type { ScannerCandidate } from "@/lib/scanner";
 import { scannerUniverseTickers } from "@/lib/scanner-universe";
@@ -118,6 +119,7 @@ export async function discoverDynamicMoversDiagnostics(
     symbols.map(async (ticker) => {
       try {
         const quote = await getQuote(ticker, { signal: input.signal });
+        const stale = !isFreshLiveReferenceMarketTime(quote.market_time, now.getTime());
         const gapPct = distancePct(quote.open, quote.previous_close);
         const volatilityProxyPct = distancePct(quote.high, quote.low, quote.open);
         const invalid =
@@ -125,7 +127,7 @@ export async function discoverDynamicMoversDiagnostics(
           quote.open <= 0 ||
           quote.previous_close <= 0 ||
           quote.high < quote.low;
-        const score = invalid
+        const score = invalid || stale
           ? null
           : priorityScore({
               priceChangePct: quote.percent_change,
@@ -143,8 +145,8 @@ export async function discoverDynamicMoversDiagnostics(
           relative_volume: null,
           gap_pct: gapPct,
           volatility_proxy_pct: volatilityProxyPct,
-          freshness_timestamp: now.toISOString(),
-          stale: false,
+          freshness_timestamp: quote.market_time,
+          stale,
           invalid,
           would_have_been_scanned_today: selectedTickerSet.has(ticker),
           already_in_static_universe: staticUniverseTickerSet.has(ticker),
@@ -152,7 +154,7 @@ export async function discoverDynamicMoversDiagnostics(
             !invalid &&
             Math.abs(quote.percent_change) >= 0.5 &&
             quote.current_price > 0,
-          would_have_fresh_price: !invalid,
+          would_have_fresh_price: !invalid && !stale,
           hypothetical_scan_priority_score: score,
         } satisfies DynamicMoversDiscoveryMover;
       } catch {
@@ -166,8 +168,8 @@ export async function discoverDynamicMoversDiagnostics(
           relative_volume: null,
           gap_pct: null,
           volatility_proxy_pct: null,
-          freshness_timestamp: now.toISOString(),
-          stale: false,
+          freshness_timestamp: null,
+          stale: true,
           invalid: true,
           would_have_been_scanned_today: selectedTickerSet.has(ticker),
           already_in_static_universe: staticUniverseTickerSet.has(ticker),
@@ -178,7 +180,7 @@ export async function discoverDynamicMoversDiagnostics(
       }
     }),
   );
-  const validMovers = results.filter((mover) => !mover.invalid);
+  const validMovers = results.filter((mover) => !mover.invalid && !mover.stale);
   const previewMovers = [...validMovers]
     .sort(
       (first, second) =>

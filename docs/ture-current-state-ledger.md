@@ -2,6 +2,31 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Selected CLOSED quote-time integrity maintenance — 2026-10-05:** Codex,
+`codex/quote-market-time-integrity-oct5`, reuses the clean isolated checkout
+after completed diagnosis `495b0d00`; verified main remains `55576078` and
+#732 remains the release-held primary. Four-to-eight active hours, initial
+investigation at most four hours. This is a bounded `supporting_blocker_removal`,
+not new position/broker product work or another ranking hypothesis.
+
+Reproduce the existing quote path discarding the provider's latest-minute
+timestamp, discovery labeling local fetch time as fresh market time, and the
+position-update route accepting that undated price before indicator/AI calls
+and advisory/stop writes. Official Twelve Data quote schema distinguishes
+`last_quote_at` (last minute candle) from `timestamp`/`datetime` (interval open).
+Retain that distinction, use the existing versioned fifteen-minute live-reference
+freshness policy, and fail closed for absent, stale or future market time.
+
+Write ownership: `lib/market-data.ts`, `lib/dynamic-movers-discovery.ts`,
+`app/api/positions/update/route.ts`, the existing registered
+`scheduled-dynamic-movers-budget.spec.ts` and this ledger. Verify the actual
+quote decoder and route with synthetic HTTP/SDK boundaries, plus fresh positive,
+origin/owner and zero scheduled-credit controls. No new schema, provider budget,
+AI model, publication policy, broker operation, production action or competing
+PR. Stop after the minimum verified correction, then resume the original
+IF-2b → IF-3 → IF-4 chain through #732 and then-current main. Local maintenance
+cannot substitute for varied original source, pre-forward model or real outcomes.
+
 **Selected CLOSED IF-3 → IF-4 original relative-plan effect diagnosis — 2026-10-05:**
 Codex owns `codex/original-relative-plan-effect-oct5`, reusing the clean isolated
 checkout after completed composition acceptance `5eb3be8b`; freshly verified
