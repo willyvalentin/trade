@@ -29,6 +29,45 @@ its original-source/feasibility consumers plus registered behavior tests/receipt
 Integrate only after #732 against then-current main. Stop at this minimum
 semantic correction and resume the frozen same-population quality chain.
 
+**Local acceptance / bounded exit — 2026-10-05:** product/test revision
+`ee11a7dee33b2416627552d2b148ccf868de61b5` names the unchanged DAILY mean
+under `daily_average_range_percent` in new feature-vector v3. All eighteen
+numeric inputs are unchanged. Historical v1/v2 keep their exact keys, values
+and sealed goldens; both-name/cross-version aliases are rejected. Training and
+full-charter readers disclose mixed original v2/v3 bases rather than silently
+fitting or qualifying them, retaining every original member.
+
+All **112 DISTINCT checks pass**: 111 affected regression/governance checks
+(18.2 minutes) and one actual packaged full-original SQL/PostgREST/SDK
+continuation (2.1 minutes). The latter retains 26 decisions / 208 source member
+observations / 176 enrolled members; all 176 new daily fields equal their
+original daily inputs and differ from their original intraday means. It keeps
+membership `ff147ad25507e20b09d40cf7b8feef787d3497e0520c3e6958a9617b354b51c6`,
+144 canonical / 32 missing outcomes, liquidity coverage 144/176 and volatility
+coverage 152/176. The full charter remains honestly `evidence_incomplete`.
+Separate complete-archive regressions retain all 72 original runs, 96 training
+and 240 members per forward partition. Earlier focused tests overlap, and the
+first broad run's two fresh-producer v2 expectations were corrected only to the
+explicit new v3 contract; old-vector controls/goldens were not rewritten.
+
+Nonincremental types pass; full lint has zero errors and the same eight
+unrelated warnings; diff checks pass. Normal Linux build passes on its FIRST
+attempt at exact clean `ee11a7de`, Node `22.23.1`, Next `16.3.8`, read-only
+lock-matched dependencies, no build network or production credentials. Logs:
+`/private/tmp/ture-daily-range-feature-basis-{complete-regression,native-original,types-complete,lint-final,exact-build}-oct5.log`.
+The initial consumer launch lacked the react-server condition and failed
+before test collection; the correctly configured runs above are the evidence.
+
+This closes only the reproduced daily-as-intraday semantic error and is
+`quality_measurement`, not ranking/alpha lift or production acceptance. Fresh
+remote readback at 01:54Z still has main `55576078` and Draft #732 at `2741f946`
+with the mandatory aggregate FAILURE, not a running check. No push/PR/merge,
+deploy/configuration/migration, real provider request, publication or broker
+action. Park this locally complete slice and integrate after #732's unchanged
+release gates. Resume the frozen original-population quality chain; a further
+CLOSED change needs a concrete discovery/input/outcome/comparison gap, not an
+extension of this naming validator or a competing ranking hypothesis.
+
 **Selected CLOSED IF-2b → IF-4 original feasibility-gap investigation — 2026-10-05:**
 Owner Codex, `codex/original-feature-feasibility-oct5`, isolated from freshly
 verified main `55576078` plus locally completed `579c8f91`. #732 remains the
