@@ -2,6 +2,33 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-05, recommendation intelligence first
 
+**Selected independent CLOSED IF-2b current Block reference — 2026-10-05:**
+Codex owns `codex/discovery-current-block-reference-oct5`, reusing the clean
+isolated checkout from verified main `5d691f87`. Primary #734 remains in
+protected CI; completed earlier slices are parked. Four-active-hour maximum,
+including investigation. This is `recommendation_capability`: correct the
+eligible issuer reference used BEFORE point-in-time acquisition, not a new
+ranker, market-wide provider feed or evidence that recommendations improved.
+
+Block's official Jan 9, 2025 issuer announcement and current investor-relations
+site identify NYSE `XYZ`, effective Jan 21, 2025. The current reference universe
+still selects `SQ` and omits `XYZ`. Reproduce that gap through the ordinary
+scheduled candidate selector, then change only this issuer's current lookup.
+Keep population size, category/metadata, rotation, exact-symbol risk controls,
+all budgets and publication requirements. Retained `SQ` inputs, decisions,
+outcomes and sealed comparison evidence must not be rewritten or aliased.
+No provider request is needed to prove the reference error; provider support
+for `XYZ` and actual input/quality improvement remain OPEN evidence gaps.
+
+Ownership is only `lib/scanner-universe.ts`, the existing registered scheduled
+rotation behavior tests and this receipt; no shared schema, order/portfolio,
+model or clock contract. Verify actual selector red/green, risk filtering,
+historical input preservation, affected discovery/budget regressions, types,
+lint and exact build. Integrate AFTER #734 against then-current main; do not
+push a competing release or freeze a prospective comparison on an interim
+revision. Stop at this correction and resume varied original decision-time
+input, pre-forward model and full-charter forward evidence.
+
 **Now — composed original-learning vertical against verified main, 2026-10-05:**
 Codex owns `codex/original-learning-main-integration-oct5`, isolated from the
 user's dirty checkout and based on main `39a2469a519539ae2c640f53aa6429ae2526280e`.

@@ -203,7 +203,8 @@ export const scannerUniverseTickers = [
   ticker("MA", "Mastercard Incorporated", "financials", "Financials", "large", "low", "payments compounder", ["liquid", "financials"]),
   ticker("AXP", "American Express Company", "financials", "Financials", "large", "medium", "payments/credit", ["liquid", "financials"]),
   ticker("PYPL", "PayPal Holdings, Inc.", "financials", "Financials", "large", "high", "fintech turnaround", ["liquid", "financials", "high_beta"]),
-  ticker("SQ", "Block, Inc.", "financials", "Financials", "large", "high", "fintech high beta", ["liquid", "financials", "high_beta"]),
+  // Block's current NYSE symbol since 2025-01-21; retained SQ evidence is not aliased.
+  ticker("XYZ", "Block, Inc.", "financials", "Financials", "large", "high", "fintech high beta", ["liquid", "financials", "high_beta"]),
   ticker("DIS", "The Walt Disney Company", "consumer_discretionary", "Communication Services", "large", "medium", "consumer/media", ["liquid", "consumer"]),
   ticker("NKE", "NIKE, Inc.", "consumer_discretionary", "Consumer Discretionary", "large", "medium", "consumer brand", ["liquid", "consumer"]),
   ticker("SBUX", "Starbucks Corporation", "consumer_discretionary", "Consumer Discretionary", "large", "medium", "consumer brand", ["liquid", "consumer"]),
