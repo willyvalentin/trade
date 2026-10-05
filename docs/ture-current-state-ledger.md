@@ -98,6 +98,24 @@ and verify actual provider rights and remaining shared credit capacity. A
 97-credit setup is not free, included in the scan's eight credits or evidence
 that all original live inputs will actually be complete. Graduation `not_met`.
 
+**Exact prepared-context build and retained native witness — 2026-10-05:**
+clean source `d7cafad8ecf64c94bfdddeac55a674efb35650b7` passes the normal
+isolated Linux build on Node 22.23.1 / Next 16.3.8, all 33 generated pages and
+both unchanged native lint/security consumers. The exact eleven-file secondary
+composition against frozen primary `b9943f81` is checked; tracked package/lock,
+the complete verified public dependency cache and its vendor nested install
+are unchanged. Build network is `none`; no production credentials are mounted.
+Receipt: `/private/tmp/ture-prepared-context-exact-build-oct5-receipt.json`.
+The same clean commit separately completes the actual private-HTTP/SQL/native
+first-scan witness with all 20 negative controls and inert cleanup; raw final
+machine evidence, the earlier broad manifest and final affected-test distinction
+are retained in `/private/tmp/ture-prepared-first-scan-native-d7cafad8.receipt.json`.
+This annotation is documentation-only, not a new product/test revision or
+protected CI substitute. Implementation/local acceptance is complete; secondary
+is still unpushed, without a PR, main acceptance, production integration or live
+fitness/quality evidence. Primary-first release/schema/inert readback and the
+exact current-main integration remain required; no third slice is opened.
+
 **Verified Actions service recovery — 2026-10-05 22:22Z:** the official
 named incident `3q1yb5m7ltvb` now explicitly reports "Actions is operating
 normally" and component Actions is `operational` since 21:54:22Z. The incident
