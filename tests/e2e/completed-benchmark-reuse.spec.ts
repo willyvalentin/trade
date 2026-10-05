@@ -79,6 +79,17 @@ test("only revalidated owned original benchmark capsules can free the two reserv
       expect(await read(changed), clock).toBeNull();
     }
     expect(await runtime.readCompletedMarketRegime(regime, new OriginalDate("invalid"))).toBeNull();
+    const originalSource = JSON.stringify(row);
+    for (const symbol of ["spy", "qqq"] as const) {
+      for (const clock of ["2026-10-01T17:30:00.000001Z", "2026-09-31T17:30:00.000Z",
+        "2026-10-01 17:30:00.000Z"]) {
+        const changed = structuredClone(row);
+        changed.payload_json.market_regime.input_evidence![symbol].captured_at = clock;
+        expect(await runtime.readCompletedMarketRegime(changed.payload_json.market_regime, captured), `${symbol}: ${clock}`).toBeNull();
+        expect(await read(changed), `${symbol}: ${clock}`).toBeNull();
+      }
+    }
+    expect(JSON.stringify(row)).toBe(originalSource);
     const reused = await read();
     expect(reused).not.toBeNull();
     // The legacy serving-window label is not a historical input-fitness gate.
@@ -168,13 +179,14 @@ test("only revalidated owned original benchmark capsules can free the two reserv
 });
 
 for (const historyStart of ["prewarmed", "cold"] as const) {
-for (const mode of ["baseline", "reuse", "invalid", "invalid_clock"] as const) {
+for (const mode of ["baseline", "reuse", "invalid", "invalid_clock", "invalid_capture"] as const) {
   test(`packaged ${historyStart} ${mode} allocation preserves original populations and whole-scan credits after restart`, () => {
     test.setTimeout(90000);
     const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--benchmark-reuse",
       ...(historyStart === "cold" ? ["--cold"] : []),
       ...(mode === "baseline" ? ["--benchmark-reuse-baseline"] : mode === "invalid" ? ["--benchmark-reuse-invalid"] :
-        mode === "invalid_clock" ? ["--benchmark-reuse-invalid-clock"] : [])],
+        mode === "invalid_clock" ? ["--benchmark-reuse-invalid-clock"] :
+          mode === "invalid_capture" ? ["--benchmark-reuse-invalid-capture-clock"] : [])],
     { cwd: process.cwd(), encoding: "utf8", timeout: 80000 });
     expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
     const evidence = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
@@ -193,6 +205,8 @@ for (const mode of ["baseline", "reuse", "invalid", "invalid_clock"] as const) {
       validated_capsule_immutable_after_restart:true,caller_source_not_frozen:true,
     });
     if(mode==="invalid_clock") expect(evidence.benchmark_reuse_evidence.original_classification_clock_fault)
+      .toBe("after_decision_by_one_microsecond");
+    if(mode==="invalid_capture") expect(evidence.benchmark_reuse_evidence.original_capture_clock_fault)
       .toBe("after_decision_by_one_microsecond");
   });
 }

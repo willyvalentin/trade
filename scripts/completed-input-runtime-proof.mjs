@@ -107,11 +107,15 @@ assert(!firstObservationBaseline || rotationDay && !acquisitionBaseline && !mini
 assert(!fairOrderBaseline || rotationDay && !acquisitionBaseline && !minimumOrderBaseline && !firstObservationBaseline);
 assert(!invalidMixedHistory || mixedHistory && !acquisitionBaseline);
 const invalidBenchmarkClockReuse = process.argv.includes("--benchmark-reuse-invalid-clock");
-const invalidBenchmarkReuse = process.argv.includes("--benchmark-reuse-invalid") || invalidBenchmarkClockReuse;
+const invalidBenchmarkCaptureReuse = process.argv.includes("--benchmark-reuse-invalid-capture-clock");
+const invalidBenchmarkReuse = process.argv.includes("--benchmark-reuse-invalid") || invalidBenchmarkClockReuse || invalidBenchmarkCaptureReuse;
 const baselineBenchmarkReuse = process.argv.includes("--benchmark-reuse-baseline");
 assert(!invalidBenchmarkClockReuse || benchmarkReuse && !process.argv.includes("--benchmark-reuse-invalid") &&
   process.argv.slice(2).every(value=>["--benchmark-reuse", "--benchmark-reuse-invalid-clock", "--cold"].includes(value)),
   "Classification-clock fault retains only the existing two-slot original population and eight-call budget");
+assert(!invalidBenchmarkCaptureReuse || benchmarkReuse && !process.argv.includes("--benchmark-reuse-invalid") &&
+  process.argv.slice(2).every(value=>["--benchmark-reuse", "--benchmark-reuse-invalid-capture-clock", "--cold"].includes(value)),
+  "Capture-clock fault retains only the existing two-slot original population and eight-call budget");
 // Branch ancestor with the exact verified predecessor tree 640df041; unlike
 // the original local cherry-pick source, this commit travels with this branch.
 const reuseBaselineRevision = "92374a300f986a4241ba41a1a35a83b5335caf2e";
@@ -2885,6 +2889,18 @@ try {
       assert.deepEqual(changedSource.payload_json.market_regime.input_evidence.spy,originalRegime.input_evidence.spy);
       assert.deepEqual(changedSource.payload_json.market_regime.input_evidence.qqq,originalRegime.input_evidence.qqq);
       assert.equal(changedSource.payload_json.market_regime.input_evidence.evaluated_at,unobservedClassification);
+    } else if(invalidBenchmarkCaptureReuse) {
+      assert.equal(originalRegime.input_evidence.spy.captured_at,record.decision_timestamp);
+      assert.match(record.decision_timestamp,/\.\d{3}Z$/);
+      const unobservedCapture=record.decision_timestamp.slice(0,-1)+"001Z";
+      sql(`update recommendation_scan_runs set payload_json=jsonb_set(payload_json,
+        '{market_regime,input_evidence,spy,captured_at}','"${unobservedCapture}"') where id='${scanRuns[0].id}';`);
+      const changedSource=JSON.parse(sql(`select row_to_json(t) from recommendation_scan_runs t where id='${scanRuns[0].id}';`));
+      assert.deepEqual(changedSource.payload_json.candidate_decision_record,record);
+      assert.deepEqual(changedSource.payload_json.market_regime.input_evidence.qqq,originalRegime.input_evidence.qqq);
+      assert.equal(changedSource.payload_json.market_regime.input_evidence.evaluated_at,originalRegime.input_evidence.evaluated_at);
+      assert.deepEqual(changedSource.payload_json.market_regime.input_evidence.spy,
+        {...originalRegime.input_evidence.spy,captured_at:unobservedCapture});
     } else if(invalidBenchmarkReuse) sql(`update recommendation_scan_runs set payload_json=jsonb_set(payload_json,
       '{market_regime,input_evidence,qqq,content_sha256}','"invalid-fixture-digest"') where id='${scanRuns[0].id}';`);
     const firstRequests=externalRequests;
@@ -3003,6 +3019,7 @@ try {
     assert.equal(secondDuplicate.status,204); assert.equal(externalRequests,8);
     benchmarkReuseEvidence={mode:baselineBenchmarkReuse?"original_committed_baseline":invalidBenchmarkReuse?"invalid_original_falls_back":"validated_owner_reuse",
       ...(invalidBenchmarkClockReuse?{original_classification_clock_fault:"after_decision_by_one_microsecond"}:{}),
+      ...(invalidBenchmarkCaptureReuse?{original_capture_clock_fault:"after_decision_by_one_microsecond"}:{}),
       baseline_revision:mixedHistory?acquisitionBaselineRevision:reuseBaselineRevision,
       history_start:existingPremarketSetup?"existing_premarket_paid_setup":mixedHistory?"mixed":cold?"cold":"prewarmed",
       ...(mixedHistory ? {acquisition_mode:minimumOrderBaseline?"minimum_requests_first":"original_order"} : {}),

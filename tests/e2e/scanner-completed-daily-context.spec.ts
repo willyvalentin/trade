@@ -599,6 +599,20 @@ test("captures closed daily dates as historical context, not a current price", a
     "SYNTH", new Date("2026-10-01T18:00:00.000Z"))).toEqual(context);
 });
 
+test("original completed daily capture rejects future microseconds and noncanonical aliases before normalization", async () => {
+  const baseline = receipt();
+  const original = JSON.stringify(baseline);
+  const context = await api.captureCompletedDailyContext(baseline, "SYNTH", at);
+  expect(context).not.toBeNull();
+  for (const captured_at of ["2026-10-01T15:50:00.000001Z", "2026-09-31T15:50:00.000Z",
+    "2026-10-01 15:50:00.000Z", "2026-10-01T15:50:00Z", "2026-10-01T15:50:00.000+00:00"]) {
+    expect(await api.captureCompletedDailyContext({ ...baseline, captured_at }, "SYNTH", at)).toBeNull();
+    expect(await api.readCompletedDailyContext({ ...context, captured_at }, "SYNTH", at)).toBeNull();
+  }
+  expect(await api.readCompletedDailyContext(JSON.parse(JSON.stringify(context)), "SYNTH", at)).toEqual(context);
+  expect(JSON.stringify(baseline)).toBe(original);
+});
+
 test("legacy daily response retention preserves candles and request shape while strict history stays fail closed", async () => {
   const bundle=await build({entryPoints:[resolve(process.cwd(),"lib/market-data.ts")],bundle:true,
     write:false,platform:"node",format:"cjs",conditions:["react-server"]});

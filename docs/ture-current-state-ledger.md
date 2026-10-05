@@ -2,6 +2,39 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Selected CLOSED IF-2b original daily-history capture admission — 2026-10-05:**
+Owner Codex, `codex/original-history-capture-oct5`, isolated from freshly verified
+main `55576078` plus completed local composition `9d8aa5b3`. #732 remains the
+release-held primary. The original whole-session outcome recovery above its
+predecessors is locally complete/parked; this is the only independent CLOSED
+slice. Four-active-hour bounded correction of an actual producer → completed
+history reader → owned benchmark reuse defect, not another ranker or scheduler.
+The unchanged current baseline admits SPY and QQQ capture one microsecond after
+their original decision, an impossible September 31 date and a non-ISO alias,
+normalizing all to the original canonical clock and preserving the old digest.
+Two synthetic provider responses create the actual original descriptor; the
+six invalid substitutions use no extra response, DB write or real provider.
+Reproduction `/private/tmp/ture-original-history-capture-reproduction-oct5.log`.
+
+Close only this earlier point-in-time input → same-population comparison link.
+The producer already writes an exact Date.toISOString JSON clock; validate that
+existing clock contract before normalization or digest reconstruction. Preserve
+valid original histories, identities, values, fingerprints, caller data and the
+legacy derived-price path. Invalid capsules remain unavailable; the understood
+normal benchmark fallback stays inside eight credits and retains the original
+eight selected identities. No new schema, provenance hierarchy, score, quality
+threshold, live policy, source purchase or cohort selection. Do not rewrite
+sealed models/results or imply that synthetic CLOCK integrity proves alpha.
+Decision-changing metric: zero of the six invalid original capsules admitted,
+both canonical controls unchanged and ordinary packaged cold/warm fallback
+behavior still attributable within the exact budget. Write ownership is the
+existing daily-context validator, registered source/native tests and this receipt.
+Acceptance requires red/green actual-source and owned-reuse controls, unchanged
+legacy/valid-history cases, actual packaged owner/credit/population readback,
+affected tests/types/lint and exact build. Stop at that smallest verified exit;
+return to the frozen input/outcome/full-charter primary and integrate only after
+#732 against then-current main. No production/provider/broker action is selected.
+
 **CLOSED IF-4 original whole-session outcome coverage locally built — 2026-10-05:**
 Codex owns `codex/original-outcome-session-coverage-oct5`, isolated from freshly
 verified main `55576078` plus completed local composition `60ce8c31`. Primary
