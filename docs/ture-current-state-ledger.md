@@ -24,7 +24,9 @@ freshness, ownership, all eight identities/nulls, ranking/quality thresholds
 and eight-credit scan budget. Require exact published original-plan readback,
 canonical outcome continuity after restart, affected regressions, types/lint
 and an exact committed build before one focused protected release. No new
-scan, provider request, migration, source rewrite or broker action is selected.
+scan, provider request, source rewrite or broker action is selected. The later
+reproduced SQL policy-refusal below selects only its additive, exact-identity
+function successor; production application remains unverified and pending.
 
 **Actual OPEN evidence retained:** attempt `scheduled_scan_attempt_10whjni`,
 run `rec_scan_run_of9yv0`; scheduler 16:15:25.663Z, route 16:15:27.799Z,
@@ -97,6 +99,12 @@ requests. The separate actual closing-context case still retains hidden
 original research and publishes nothing. These two focused passes overlap the
 pending final affected-suite run; they are not real-market quality evidence.
 Types, lint, exact updated-revision build and protected CI still follow.
+
+### Retained local composition before current policy compatibility
+
+The following receipts preserve the earlier local revisions and then-current
+release state; the current compatibility/release evidence below supersedes
+their work selection and pending automatic-merge statements.
 
 **Final primary local acceptance — 2026-10-05:** exact final #735 head
 `91b06dba4a1de2644d1fbeb707db4e5a11769fd9` passes the normal locked Linux
@@ -335,6 +343,183 @@ Final nonincremental types and full lint also pass on the settled product/tests
 exact built `a0b7508a`; no claim that the later documentation HEAD was rebuilt.
 
 
+### Current primary publication compatibility acceptance
+
+**Consumer-fix verification — 2026-10-05:** updated product/test revision
+`03e5f030c4b6f438cec4b2ee6f73db95fcc9b4e8` completes **242 distinct checks
+in 21 registered files** (12.3m), including both directional/flat closing
+no-publication paths and the new original-plan power-hour publication path.
+Nonincremental types and lint pass with zero errors/eight existing warnings.
+The original #735 foundation job on `8857b1a0` independently finds 11
+whole-session regressions in `completed-benchmark-reuse`: only 23/26 scan runs
+and 184/208 credits survive the old exact-v3 route gate. The original 26-slot
+denominator, budgets, baseline policies and all failed assertions are unchanged;
+reverify those actual cases with the already corrected consumer. A concurrent
+clean Linux build compiles but hits its five-minute local limit in TypeScript;
+it is NOT accepted. Serialize the exact updated build after the test jobs;
+do not change protected CI or route/test/provider limits. Local source is ready
+for focused CI correction, but merge/deployed behavior/NEW OPEN acceptance
+remain pending. The original real-market failed receipt remains immutable.
+
+**Verified release blocker — 2026-10-05:** protected exact-head `91b06dba`
+run `37349494982` passes five groups, including the formerly failed whole-session
+foundation, but lossless job `111902680799` finishes with 665 passes/two failures.
+This is not a timeout or accepted release. The retained full-charter golden's
+measurement changes from `cdcf680f51165fc75532c7fc6955d72b8c8c3cd88b2c35af88bd70e0a689d82b`
+to `cfda6f6f8695df150d30fe83394f62710fe577ba4748dd105a7578a96de27e10` because
+its historical fixture follows today's publication constants. The actual isolated
+prospective store separately returns `unavailable` instead of `frozen`: its
+deployed SQL accepts only the exact v3 canonical identity, not the new v4 tuple.
+Both are reproduced locally before corrections; the first native local attempt
+hits Docker sandbox permissions, then the authorized isolated retry reproduces
+the same SQL refusal. Automatic merge is disabled before changing the head.
+
+Close only these version boundaries in the existing primary delivery: preserve
+exact retained v3 receipt/source/golden semantics, retain strict current-policy
+NEW freeze admission, and add an exact SQL v4 admission successor without
+changing any owner, authority, population, charter, time or immutability guard.
+Unknown/mixed/self-rehashed policy identities must stay rejected. Verify actual
+isolated SQL/SDK restart, unchanged historical goldens and the same current v4
+producer-to-outcome chain, then affected tests/types/lint/exact build/protected CI.
+Main and published production remain `4a939831`; no NEW observation is frozen
+or armed and no provider, production schema/configuration or broker action occurs.
+The old OPEN failure remains immutable. SQ→XYZ release remains held after this
+primary and any newly justified, timely original-plan diagnostic's verified cleanup.
+
+**Local compatibility proof — 2026-10-05:** the registered native prospective
+SQL/PostgREST/real-SDK case now passes with the additive function successor
+`20261005190805_if4_publication_identity_compatibility.sql`. A mechanical comparison
+proves its complete prior function body is byte-identical except for exact v3/v4
+tuple admission. Original migrations, model/charter fingerprints, owner locks,
+clock boundaries and all row/ACL guards are unchanged. Two current v4 freezes,
+the original 48/12/12 calibration cohorts, missing/outcome controls and four-member
+source proof are preserved. One separately counted predecessor-written v3 row
+survives upgrade and restart verbatim, repeats without a write and conflicts
+with a new-policy replacement. Three self-rehashed unknown/mixed RPC identities
+are denied; anonymous/authenticated execution and immutable-row changes remain
+denied. All three comparison rows stay unchanged. Four focused registered cases
+pass (16.9s), including retained-v3 store/read admission; broader acceptance follows.
+Lock/load review: one short transactional function/ACL replacement, no source/table
+scan or rewrite, unchanged advisory owner lock. Failure rolls back atomically;
+the isolated proof restores the exact predecessor body and reapplies the successor
+without changing retained rows. Keep scheduling inert and preserve fingerprints
+through any recovery; production application is still pending.
+The CLI-generated filename replaces only the untracked local draft; its SQL body
+is unchanged. A read-only security-advisor baseline at 19:10:05Z reports 48
+RLS-enabled/no-policy INFO notices and one existing Auth leaked-password WARN;
+these are not new-function acceptance or a mandate to broaden this delivery.
+The comparison tables intentionally retain deny-by-default RLS and service-only
+RPCs, with actual native ACL denial above. The unrelated Auth notice is retained
+separately ([provider guidance](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection));
+no Auth setting, table policy or production data is changed.
+Read-only production catalog preflight at 19:13:55Z confirms PostgreSQL 17.6,
+the exact old v3-only freeze, empty search path, no anon/authenticated execute,
+service-only execution and the successor unapplied. There are zero stored
+prospective comparisons, trained models and terminal results; no actual forward
+cohort or fitted production model is thereby claimed. No write occurs.
+The historical golden independently passes with its exact unchanged two expected
+fingerprints, not updated expectations. This is local synthetic compatibility,
+not a production migration, new forward evidence or recommendation-quality lift.
+
+**Updated compatibility acceptance — 2026-10-05:** the complete affected
+registered run passes 268 distinct cases in 25 files (24.5m). A separate
+nine-case/two-file actual packaged scan-to-database continuation passes (2.5m),
+for **277 distinct cases in 27 files**; the four focused compatibility checks
+overlap this total. The current v4 original-plan producer reaches persisted
+publication, restarted canonical outcomes and full-charter evaluation. The
+original full-session population, power-hour admission, closing no-publication,
+legacy history and retained v3 golden all remain unchanged. Native successor
+upgrade/ACL checks use the final CLI-generated migration. Nonincremental types
+and full lint pass with zero errors/eight existing warnings. No assertion,
+cohort, deadline, provider/route limit, workflow or protected check is weakened.
+Environment: macOS arm64/Node 26.5.0, disposable PostgreSQL/PostgREST, actual SDK
+and packaged runtime, synthetic provider-boundary input. Exact clean committed
+Linux build and updated-candidate protected CI still follow. Production remains
+on the previously accepted main; neither the successor nor NEW live behavior
+has been accepted there. The original OPEN failure remains immutable.
+
+**Exact compatibility build — 2026-10-05:** clean product/test revision
+`d4ddc22021e60279801f9d1d8d9d1e890d273ecd` passes the normal Next 16.3.8
+Linux build on Node 22.23.1, all 33 generated pages and the two unchanged native
+lint-consumer/provenance checks. Build network is disabled and no production
+credentials are mounted. The exact public locked cache includes npm's separately
+installed `vendor/eslint-plugin-next/node_modules`; lock metadata and actual
+package versions are checked. An initial copy omitted that nested install,
+resolved root brace-expansion v1 and failed the unchanged consumer check before
+build; it is NOT acceptance. Correcting only the temporary copy layout makes
+the exact unchanged product source pass. Lock SHA256 remains
+`c126ba15634fffec241592d1316ea2e0bb9708886f865dc72f5fd30b2e084083`.
+Receipt: `/private/tmp/ture-publication-compatibility-exact-build-oct5-receipt.json`.
+This annotation changes documentation only; product/test/workflow/schema bytes
+remain identical to the built commit. Updated-candidate protected CI, main,
+production migration and exact inert runtime verification remain pending.
+
+**Today's second original-plan diagnostic is no-go:** updated-source acceptance
+is still pending at the 19:00Z latest activation-ready boundary for a useful
+19:15Z publication observation with a full 15-minute scheduler margin. No NEW
+card, capacity meter, arm or heartbeat exists; spend no further credits on an
+irrelevant closing-only path. Finish the minimum correction and protected release,
+then freeze the next useful OPEN question on its exact accepted runtime/schema.
+This is a timing/evidence boundary, not a blocker to further CLOSED product work.
+
+**Current selected secondary, local-only composition — 2026-10-05:** the
+already accepted SQ→XYZ branch is composed locally from
+`06acee093de85b77f6a98a66056414a220542a02` and primary candidate
+`b9943f8192b2a4071369f6c5763f3d0451cc5ead` while its six protected CI groups
+run. Only the ledger conflicts; all product/test/schema merges are automatic
+and preserve the exact current-policy successor and the independently owned
+issuer lookup. Both historical ledger streams are retained above. The original
+237-check/22-file acceptance and exact build on `3a2a99b1` apply only to that
+older composition; this one requires fresh local acceptance. No new schema,
+ranking, budget, population, provider or broker change is introduced by the
+secondary. Finish primary protected release/schema/inert readback before
+secondary current-main integration, push or focused PR. This local preparation
+does not change that release order or authorize an OPEN scan. Freeze the next
+useful original-plan OPEN question on accepted runtime, never today's consumed
+failed card. Graduation remains `not_met`.
+
+**Secondary historical-reference regression and minimal correction —
+2026-10-05:** the first new local composition completes with **198/199 passes**
+(24.3m), not acceptance. The full-original outcome continuation rejects a changed
+membership fingerprint after its fixture regenerates the historical catalog
+from today's SQ→XYZ list. Keep the original expected
+`ff147ad25507e20b09d40cf7b8feef787d3497e0520c3e6958a9617b354b51c6`;
+do not rewrite the old cohort or weaken its independent guard.
+
+The CLOSED harness now retains only the exact historical catalog declaration
+from main `4a939831b46efdf6ad4089b148d6fc803e1cabd5`, with full-file SHA256
+`1aa57a49ee874105ab8e35f5ae4dd5014d68553e5623c57ea14049f9bbf7bb49`
+and declaration SHA256
+`5df334ca9bf77381cac29b8bfc4ca5713b60c8d0a0dd5c78bc9a32d15990878e`.
+All selection, controls, scanner, scheduler, SQL and SDK code remain the current
+implementation. The fixture discloses this data-only reference basis; historical
+and current catalogs cannot silently substitute for each other. A separate
+strict `--cold --rotation-day --current-reference-universe` case exercises the
+unmodified current catalog through all 26 actual packaged scheduled calls and
+isolated SQL/SDK: XYZ, not SQ, is selected and persisted with exact original
+decision/lineage, 26 distinct claims and 208 synthetic credits at no more than
+eight per slot. Historical/prospective/baseline combinations are rejected before
+runtime allocation. The old outcome proof independently retains all 176 original
+members, 144 usable/32 missing outcomes and unchanged incomplete charter limits.
+These three focused cases pass (2.2m), with zero actual provider/production/broker
+actions and inert cleanup. This is local synthetic reference integrity, not
+market-data entitlement or recommendation-quality lift.
+
+**Fresh local composition acceptance — 2026-10-05:** the corrected full serial
+regression passes **201/201 checks in 15 files (23.9m, one worker, exit 0)**.
+The three focused cases above are included in those 201 distinct checks, not
+additional acceptance. The original whole-session fingerprint, all 176 members,
+144 usable/32 missing outcomes and incomplete charter limits remain unchanged;
+the separate current-catalog native proof persists XYZ, not SQ. Nonincremental
+TypeScript, script syntax, whitespace and full lint pass; lint retains the same
+eight pre-existing warnings and no errors. An accidentally launched four-worker
+invocation was deliberately stopped before this serial run (exit 130, 98 passes,
+three interrupted, 100 not run); it is not acceptance or a product-failure claim.
+No deadline, assertion, quality threshold or original population is weakened.
+Clean committed exact Linux build and protected release remain pending. Primary
+protected release/schema/inert readback must still precede secondary current-main
+integration, push or PR. Today's OPEN no-go remains unchanged; this local result
+does not authorize a new provider call or prove recommendation-quality lift.
 
 ### Retained original-clock release foundation
 

@@ -723,7 +723,17 @@ test("whole-session outcome continuation discovers every original batch before c
   expect(result.status, `${result.error?.message ?? ""}\n${result.stdout.slice(-2000)}\n${result.stderr.slice(-2000)}`).toBe(0);
   const receipt = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
   expect(receipt).toMatchObject({ actual_provider_requests: 0, production_actions: 0, publications: 0,
-    broker_actions: 0, cleanup: "inert" });
+    broker_actions: 0, cleanup: "inert", reference_universe: {
+      evidence_scope: "synthetic_reference_catalog_not_market_data_or_quality_evidence",
+      basis: "frozen_original_reference_catalog",
+      source_revision: "4a939831b46efdf6ad4089b148d6fc803e1cabd5",
+      source_path: "lib/scanner-universe.ts",
+      source_snapshot_sha256: "1aa57a49ee874105ab8e35f5ae4dd5014d68553e5623c57ea14049f9bbf7bb49",
+      catalog_declaration_sha256: "5df334ca9bf77381cac29b8bfc4ca5713b60c8d0a0dd5c78bc9a32d15990878e",
+      selector_basis: "actual_current_product_selector",
+    } });
+  expect(receipt.eligible_tickers).toContain("SQ");
+  expect(receipt.eligible_tickers).not.toContain("XYZ");
   const continuation = receipt.full_original_history_evidence.original_outcome_continuation;
   expect(continuation).toMatchObject({ original_decisions: 26, original_batch_count: 26,
     original_population_count: 176, terminal_quality_decision: null, quality_improvement_claimed: false });

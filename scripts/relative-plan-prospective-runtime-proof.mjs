@@ -31,7 +31,8 @@ try {
         path: resolve(root, "node_modules/@playwright/test/index.js"), external: true }));
     } }],
     logLevel: "silent", stdin: { resolveDir: root, contents: `
-      export { prospectiveInput, prospectiveOwner } from './tests/fixtures/relative-plan-prospective';
+      export { prospectiveInput, prospectiveOwner, retainedV3Publication } from './tests/fixtures/relative-plan-prospective';
+      export { buildRelativePlanProspectivePlan, relativePlanSemanticFingerprint } from './lib/server/relative-plan-prospective-comparison';
       export { relativePlanProspectiveStore } from './lib/server/relative-plan-prospective-store';
       export { createRelativePlanProspectiveService } from './lib/server/relative-plan-prospective-service';
       export { prospectiveSource } from './tests/fixtures/relative-plan-prospective-source';
@@ -69,6 +70,9 @@ try {
   sql(readFileSync(resolve(root, "supabase/migrations/20261002213547_if4_relative_plan_prospective_comparison.sql"), "utf8"));
   sql(readFileSync(resolve(root, "supabase/migrations/20261002233358_if4_relative_plan_trained_probability_model.sql"), "utf8"));
   sql(readFileSync(resolve(root, "supabase/migrations/20261003015239_if4_relative_plan_charter_result.sql"), "utf8"));
+  const publicationIdentityMigration = readFileSync(resolve(root,
+    "supabase/migrations/20261005190805_if4_publication_identity_compatibility.sql"), "utf8");
+  sql(publicationIdentityMigration);
   const key = "closed-proof-jwt-only-0123456789012345678901234567890123456789";
   const encoded = value => Buffer.from(JSON.stringify(value)).toString("base64url");
   const tokenFor = role => {
@@ -409,6 +413,63 @@ try {
     p_owner_user_id: retroactivePlan.owner_user_id, p_plan: retroactivePlan, p_expected_contract_version: result.receipt.contract_version });
   assert.equal((await invalid.json()).status, "unavailable");
   assert.equal(sql("select count(*) from public.relative_plan_prospective_comparisons"), "2");
+  // Separately retain a genuine predecessor-written freeze. This disposable
+  // DB-only downgrade replaces just the OLD function body, never the schema,
+  // original source/cohort rows, ACLs, fingerprints or the two proofs above.
+  const legacyOwner = "55555555-5555-4555-8555-555555555555";
+  sql(`insert into auth.users values('${legacyOwner}');`);
+  const predecessorMigration = readFileSync(resolve(root,
+    "supabase/migrations/20261002213547_if4_relative_plan_prospective_comparison.sql"), "utf8");
+  const predecessorFunction = predecessorMigration.match(/create function public\.freeze_relative_plan_prospective_comparison_v1\([\s\S]*?\n\$\$;/)?.[0];
+  assert(predecessorFunction);
+  sql(predecessorFunction.replace("create function", "create or replace function"));
+  const legacyCurrentPlan = readers.buildRelativePlanProspectivePlan({ ...input, owner_user_id: legacyOwner }, new Date().toISOString());
+  assert(legacyCurrentPlan);
+  const { plan_fingerprint: _currentFingerprint, ...legacyBody } = legacyCurrentPlan;
+  void _currentFingerprint;
+  const retainedBody = { ...legacyBody, source_revision: { ...legacyBody.source_revision,
+    build_identity: readers.retainedV3Publication.build_identity } };
+  const legacyPlan = { ...retainedBody, plan_fingerprint: readers.relativePlanSemanticFingerprint(retainedBody) };
+  const legacyWrite = await rpc("service_role", "freeze_relative_plan_prospective_comparison_v1", {
+    p_owner_user_id: legacyOwner, p_plan: legacyPlan, p_expected_contract_version: result.receipt.contract_version });
+  assert.equal(legacyWrite.ok, true);
+  const legacyFreeze = await legacyWrite.json();
+  assert.equal(legacyFreeze.status, "frozen");
+  const originalRows = sql("select jsonb_agg(t order by owner_user_id) from public.relative_plan_prospective_comparisons t;");
+  // Applying the exact additive successor must leave every stored row intact.
+  sql(publicationIdentityMigration);
+  assert.equal(sql("select jsonb_agg(t order by owner_user_id) from public.relative_plan_prospective_comparisons t;"), originalRows);
+  const legacyRestart = readers.relativePlanProspectiveStore();
+  const legacyRead = await legacyRestart.read(legacyOwner);
+  assert.equal(legacyRead.status, "available");
+  assert.deepEqual(legacyRead.receipt.plan, legacyPlan);
+  assert.equal(legacyRead.receipt.freeze_id, legacyFreeze.receipt.freeze_id);
+  const legacyInput = { owner_user_id: legacyOwner, source_revision: legacyPlan.source_revision, windows: legacyPlan.windows };
+  const legacyRepeat = await legacyRestart.freeze(legacyInput, legacyOwner, new Date(at + 180 * 86400000));
+  assert.equal(legacyRepeat.status, "already_frozen");
+  assert.deepEqual(legacyRepeat.receipt, legacyRead.receipt);
+  assert.equal((await legacyRestart.freeze({ ...legacyInput, source_revision: input.source_revision },
+    legacyOwner, new Date())).status, "conflicting");
+  assert.deepEqual((await readers.relativePlanProspectiveStore().read(owner)).receipt, result.receipt);
+  assert.deepEqual((await readers.relativePlanProspectiveStore().read(concurrentOwner)).receipt, concurrent[0].receipt);
+  const rejectedIdentities = [readers.retainedV3Publication.build_identity + " ",
+    readers.retainedV3Publication.build_identity.replace("strong_valid_v3", "strong_valid_v99"),
+    input.source_revision.build_identity.replace("selective_top_3_v4_2026_10_05", readers.retainedV3Publication.build_marker)];
+  for (const identity of rejectedIdentities) {
+    const changed = { ...retainedBody, source_revision: { ...retainedBody.source_revision, build_identity: identity } };
+    const rejected = await rpc("service_role", "freeze_relative_plan_prospective_comparison_v1", {
+      p_owner_user_id: legacyOwner, p_plan: { ...changed, plan_fingerprint: readers.relativePlanSemanticFingerprint(changed) },
+      p_expected_contract_version: result.receipt.contract_version });
+    assert.equal(rejected.ok, true);
+    assert.equal((await rejected.json()).status, "unavailable");
+  }
+  for (const role of ["anon", "authenticated"]) {
+    assert.equal((await rpc(role, "freeze_relative_plan_prospective_comparison_v1", {
+      p_owner_user_id: legacyOwner, p_plan: legacyPlan, p_expected_contract_version: result.receipt.contract_version })).ok, false);
+  }
+  assert.throws(() => sql("update public.relative_plan_prospective_comparisons set plan_fingerprint = repeat('d',64)"), /Command failed/);
+  assert.equal(sql("select jsonb_agg(t order by owner_user_id) from public.relative_plan_prospective_comparisons t;"), originalRows);
+  assert.equal(sql("select count(*) from public.relative_plan_prospective_comparisons"), "3");
   assert.equal(blockedExternalRequests, 0);
   console.log(JSON.stringify({ status: "pass", environment: "isolated_closed_synthetic_postgres_postgrest_sdk",
     actual_product_probability_consumer_verified: true,
@@ -425,6 +486,10 @@ try {
     persisted_future_scan_read_unavailable: true, scan_clock_read_preserves_original_rows: true,
     restored_scan_read_reproduces_original_measurement: true,
     durable_freeze_count: 2, restarted_exact_readback: true, idempotent_repeats: 7, concurrent_single_owner_freeze: true, retroactive_rejected: true,
+    current_v4_sql_freeze_verified: true, retained_v3_upgrade_row_count: 1,
+    predecessor_written_v3_restart_and_idempotent_read: true, upgrade_preserves_all_original_rows: true,
+    new_policy_conflicts_with_retained_immutable_owner: true, self_rehashed_unknown_or_mixed_identity_rpc_rejections: rejectedIdentities.length,
+    successor_freeze_acl_and_immutability_preserved: true,
     actual_source_persistence_and_restarted_learner: true, retained_original_population: 4,
     malformed_ohlc_synthetic_requests:integrityCases.filter(row=>!row.fault.startsWith("off_grid_")).length,
     malformed_ohlc_cases:integrityCases.filter(row=>!row.fault.startsWith("off_grid_")),

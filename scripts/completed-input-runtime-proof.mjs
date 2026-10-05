@@ -3,14 +3,14 @@
 // external market provider, production database or broker may be contacted.
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
-import { createHmac } from "node:crypto";
+import { createHash, createHmac } from "node:crypto";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { createServer } from "node:http";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { build, buildSync } from "esbuild";
+import { build } from "esbuild";
 import { setTimeout as syntheticDelay } from "node:timers/promises";
 
 const root = process.cwd();
@@ -22,6 +22,10 @@ assert(!historicalFeatureReplay || cold && process.argv.length === 4,
 const existingPremarketSetup = process.argv.includes("--existing-premarket-setup");
 const expandedPremarketSetup = process.argv.includes("--existing-premarket-budget8");
 const rotationDay = process.argv.includes("--rotation-day");
+const currentReferenceUniverse = process.argv.includes("--current-reference-universe");
+assert(!currentReferenceUniverse || cold && rotationDay && process.argv.length === 5 &&
+  process.argv.slice(2).every(value => ["--cold", "--rotation-day", "--current-reference-universe"].includes(value)),
+  "Current reference universe is only the separate cold scheduled acquisition proof, never a historical or prospective population");
 const prospectiveEnrollment = process.argv.includes("--prospective-enrollment");
 const lateOriginalOutcomes = process.argv.includes("--late-original-outcomes");
 const fullOriginalHistorySetup = process.argv.includes("--full-original-history-setup");
@@ -243,12 +247,55 @@ try {
   mkdirSync(generated);
   mkdirSync(join(directory, "functions"));
   writeFileSync(join(generated, "scheduled-scan-deployment-identity.json"), JSON.stringify(identity));
-  const options = { bundle: true, platform: "node", format: "cjs", conditions: ["react-server"], alias: { "@": root }, logLevel: "silent" };
+  const referenceUniversePath = "lib/scanner-universe.ts";
+  const referenceUniverseRevision = "4a939831b46efdf6ad4089b148d6fc803e1cabd5";
+  const referenceUniverseSnapshotSha256 = "1aa57a49ee874105ab8e35f5ae4dd5014d68553e5623c57ea14049f9bbf7bb49";
+  const catalogDeclarationPattern = /export const scannerUniverseTickers = \[[\s\S]*?\n\] satisfies ScannerUniverseTicker\[\];/g;
+  const catalogDeclaration = source => {
+    const declarations = [...source.matchAll(catalogDeclarationPattern)];
+    assert.equal(declarations.length, 1, "The reference catalog declaration must match exactly once");
+    return declarations[0][0];
+  };
+  const sha256 = source => createHash("sha256").update(source).digest("hex");
+  let referenceUniverseEvidence = null;
+  const referencePlugins = [];
+  if (rotationDay) {
+    const currentSource = readFileSync(resolve(root, referenceUniversePath), "utf8");
+    const frozenSource = currentReferenceUniverse ? null : execFileSync("git", ["show",
+      `${referenceUniverseRevision}:${referenceUniversePath}`], { cwd: root, encoding: "utf8" });
+    if (frozenSource !== null) assert.equal(sha256(frozenSource), referenceUniverseSnapshotSha256,
+      "Historical reference data must retain its exact committed snapshot");
+    const source = frozenSource ?? currentSource;
+    const declaration = catalogDeclaration(source);
+    referenceUniverseEvidence = {
+      evidence_scope: "synthetic_reference_catalog_not_market_data_or_quality_evidence",
+      basis: currentReferenceUniverse ? "current_product_reference_catalog" : "frozen_original_reference_catalog",
+      source_revision: currentReferenceUniverse ? null : referenceUniverseRevision,
+      source_path: referenceUniversePath,
+      source_snapshot_sha256: sha256(source),
+      catalog_declaration_sha256: sha256(declaration),
+      selector_basis: "actual_current_product_selector",
+    };
+    if (!currentReferenceUniverse) referencePlugins.push({
+      name: "frozen-original-reference-catalog-data-only",
+      setup(builder) {
+        builder.onLoad({ filter: /\/lib\/scanner-universe\.ts$/ }, args => {
+          const current = readFileSync(args.path, "utf8");
+          const currentDeclaration = catalogDeclaration(current);
+          // Retain only the original catalog DATA. Selection, controls, budget,
+          // and all other product code are the actual current implementation.
+          return { contents: current.replace(currentDeclaration, declaration), loader: "ts",
+            resolveDir: join(root, "lib") };
+        });
+      },
+    });
+  }
+  const options = { bundle: true, platform: "node", format: "cjs", conditions: ["react-server"], alias: { "@": root }, logLevel: "silent", plugins: referencePlugins };
   if (historyPreparationApp) {
     // Use the installed framework's real request/cookie stores, never stub
     // requireApplicationSession, owner verification, proxy or history operation.
     const rootRequire = createRequire(resolve(root, "package.json"));
-    await build({ ...options, plugins: [{ name: "same-installed-next-request-runtime", setup(builder) {
+    await build({ ...options, plugins: [...options.plugins, { name: "same-installed-next-request-runtime", setup(builder) {
       builder.onResolve({ filter: /^next\// }, args=>({ path: rootRequire.resolve(args.path === "next/navigation"
         ? "next/dist/client/components/navigation.react-server" : args.path), external: true }));
     } }], stdin: { resolveDir: root, contents: `
@@ -259,7 +306,7 @@ try {
   }
   if (historicalFeatureReplay) {
     const rootRequire = createRequire(resolve(root, "package.json"));
-    await build({ ...options, plugins: [{ name: "same-installed-next-replay-runtime", setup(builder) {
+    await build({ ...options, plugins: [...options.plugins, { name: "same-installed-next-replay-runtime", setup(builder) {
       builder.onResolve({ filter: /^next\// }, args=>({ path: rootRequire.resolve(args.path === "next/navigation"
         ? "next/dist/client/components/navigation.react-server" : args.path), external: true }));
     } }], stdin: { resolveDir: root, contents: `
@@ -275,20 +322,20 @@ try {
       contents: execFileSync("git", ["show", `${omittedPairBaseline ? omittedPairBaselineRevision : firstClosedBarBaseline ? firstClosedBarBaselineRevision : regularSessionBaseline ? regularSessionBaselineRevision : fairOrderBaseline ? fairOrderBaselineRevision : firstObservationBaseline ? firstObservationBaselineRevision : minimumOrderBaseline ? minimumOrderBaselineRevision : acquisitionBaseline ? acquisitionBaselineRevision : reuseBaselineRevision}:${args.path.slice(root.length + 1)}`], {cwd:root,encoding:"utf8"}),
       loader:"ts", resolveDir:join(root,"lib") }));
   } };
-  await build({ ...options, ...(baselineBenchmarkReuse || acquisitionBaseline || minimumOrderBaseline || firstObservationBaseline || fairOrderBaseline || regularSessionBaseline || firstClosedBarBaseline || omittedPairBaseline ? {plugins:[baselinePlugin]} : {}),
+  await build({ ...options, ...(baselineBenchmarkReuse || acquisitionBaseline || minimumOrderBaseline || firstObservationBaseline || fairOrderBaseline || regularSessionBaseline || firstClosedBarBaseline || omittedPairBaseline ? {plugins:[...options.plugins,baselinePlugin]} : {}),
     entryPoints: [resolve(root, "app/api/automation/run-scan/route.ts")], outfile: join(generated, "scheduled-scan-runtime.cjs") });
-  if (diagnoseOutcomes || publishedOriginalLearning || charterComposition || lateOriginalOutcomes || fullOriginalHistorySetup) buildSync({ ...options, entryPoints: [resolve(root, "app/api/recommendations/evaluate-outcomes/route.ts")], outfile: join(generated, "outcome-route.cjs") });
-  buildSync({ ...options, entryPoints: [resolve(root, "netlify/functions/scheduled-scan.ts")], outfile: join(directory, "functions/scheduled.cjs") });
+  if (diagnoseOutcomes || publishedOriginalLearning || charterComposition || lateOriginalOutcomes || fullOriginalHistorySetup) await build({ ...options, entryPoints: [resolve(root, "app/api/recommendations/evaluate-outcomes/route.ts")], outfile: join(generated, "outcome-route.cjs") });
+  await build({ ...options, entryPoints: [resolve(root, "netlify/functions/scheduled-scan.ts")], outfile: join(directory, "functions/scheduled.cjs") });
   if(nextSessionOutcomes) {
-    buildSync({ ...options, entryPoints: [resolve(root, "netlify/functions/scheduled-outcome-evaluation.ts")],
+    await build({ ...options, entryPoints: [resolve(root, "netlify/functions/scheduled-outcome-evaluation.ts")],
       outfile: join(directory, "functions/scheduled-outcomes.cjs") });
     writeFileSync(join(generated,"scheduled-outcome-evaluation-runtime.cjs"),readFileSync(join(generated,"outcome-route.cjs")));
   }
-  await build({ ...options, ...(legacyRetentionBaseline ? {plugins:[{name:"legacy-retention-predecessor",setup(builder) {
+  await build({ ...options, ...(legacyRetentionBaseline ? {plugins:[...options.plugins,{name:"legacy-retention-predecessor",setup(builder) {
     builder.onLoad({filter:/\/lib\/(scanner|market-data)\.ts$/},args=>({
       contents:execFileSync("git",["show",`3c736f99:${args.path.slice(root.length+1)}`],{cwd:root,encoding:"utf8"}),
       loader:"ts",resolveDir:join(root,"lib")}));
-  }}]} : expandedPremarketSetup ? {plugins:[{name:"frozen-existing-premarket-capacity-arm",setup(builder) {
+  }}]} : expandedPremarketSetup ? {plugins:[...options.plugins,{name:"frozen-existing-premarket-capacity-arm",setup(builder) {
     // Only the existing preparation entry in this diagnostic reader receives
     // the six-call scanner cap. The scheduled product bundle is unchanged.
     builder.onLoad({filter:/\/lib\/recommendation-generator\.ts$/},args=>{
@@ -404,7 +451,8 @@ try {
     ...(nextSessionOutcomes ? ["20260918233411_if4_after_market_outcome_evaluation_receipts.sql"] : []),
     ...(charterComposition || fullOriginalHistorySetup ? ["20261002213547_if4_relative_plan_prospective_comparison.sql",
       "20261002233358_if4_relative_plan_trained_probability_model.sql",
-      "20261003015239_if4_relative_plan_charter_result.sql"] : []),
+      "20261003015239_if4_relative_plan_charter_result.sql",
+      "20261005190805_if4_publication_identity_compatibility.sql"] : []),
   ];
   // Source schema/owner constraints and real reservation functions, all isolated.
   sql(`create role anon nologin; create role authenticated nologin; create role service_role nologin bypassrls;
@@ -1091,6 +1139,9 @@ try {
     const slots=[];
     const observations=new Map();
     const eligible=readers.scannerUniverseTickers.filter(ticker=>ticker.enabled && ticker.tradable).map(ticker=>ticker.ticker).sort();
+    assert.equal(eligible.length,95,"Reference isolation may not change the full retained universe size");
+    assert(eligible.includes(currentReferenceUniverse?"XYZ":"SQ") && !eligible.includes(currentReferenceUniverse?"SQ":"XYZ"),
+      "The actual compiled selector must use the declared current or original reference catalog");
     const runFingerprints=new Set();
     const attemptFingerprints=new Set();
     let previousOriginalRun=null;
@@ -1735,6 +1786,7 @@ try {
     originalLog(JSON.stringify({evidence_mode:"synthetic_closed_packaged_input_runtime_actual_source_schema",
       scenario:fullOriginalHistorySetup?"full_session_original_universe_history_preparation":existingPremarketSetup?"full_session_existing_premarket_preparation":"full_session_cold_rotation",acquisition_mode:omittedPairBaseline?"otherwise_omitted_first_pair_guard":acquisitionBaseline?"original_order":firstObservationBaseline?"first_observation_guard":minimumOrderBaseline?"minimum_requests_first":fairOrderBaseline?"fair_cost_ties":firstClosedBarBaseline?"original_order_first_closed_bar":"original_order_regular_session_reuse",
       baseline_revision:acquisitionBaselineRevision,minimum_order_baseline_revision:minimumOrderBaselineRevision,
+      reference_universe:referenceUniverseEvidence,
       original_slots:26,original_member_observations:26*8,eligible_tickers:eligible,slots,ticker_coverage:tickerCoverage,
       selected_unique_tickers:tickerCoverage.length,ever_complete_tickers:tickerCoverage.filter(ticker=>ticker.fresh>0).length,
       never_complete_tickers:tickerCoverage.filter(ticker=>ticker.fresh===0).map(ticker=>ticker.ticker),

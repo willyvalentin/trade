@@ -10,16 +10,19 @@ import type { RelativePlanCharterRuntimeSource } from "@/lib/server/relative-pla
 export async function charterEvaluationInput(rankedCount: 4 | 8 = 4,
   options: { outcomePolicy?: "current" | "retained_pre_ohlc_validation_v2"; originalInputs?: boolean; forwardPositiveTickers?: string[];
     featureVectorVersion?: "recommendation_decision_feature_vector_v2" | "recommendation_decision_feature_vector_v3";
+    publicationPolicy?: "current" | "retained_v3";
     rankingExplanationPolicy?: "current" | "retained_field_presence_wording_v1" } = {}) {
-  const owner = prospectiveOwner, freeze = prospectiveReceipt();
+  const owner = prospectiveOwner, freeze = prospectiveReceipt({ publicationPolicy: options.publicationPolicy });
   const historicalFieldPresenceWording = options.rankingExplanationPolicy === "retained_field_presence_wording_v1" ? true as const : undefined;
   if (historicalFieldPresenceWording && options.originalInputs) throw new Error("historical_golden_uses_retained_pre_archive_fixture");
   const trainingParts = await Promise.all([5, 6, 7].flatMap(day => [0, 1, 2, 3].map(n =>
     prospectiveSource({ now: new Date(Date.UTC(2026, 9, day, 17, n * 5)), rankedCount, originalInputs: options.originalInputs,
-      featureVectorVersion: options.featureVectorVersion, historicalFieldPresenceWording }))));
+      featureVectorVersion: options.featureVectorVersion, historicalFieldPresenceWording,
+      publicationPolicy: options.publicationPolicy }))));
   const forwardParts = await Promise.all([12, 13, 14, 26, 27, 28].flatMap(day => Array.from({ length: 10 }, (_, n) =>
     prospectiveSource({ now: new Date(Date.UTC(2026, 9, day, 16, n * 15)), rankedCount, originalInputs: options.originalInputs,
       featureVectorVersion: options.featureVectorVersion, historicalFieldPresenceWording,
+      publicationPolicy: options.publicationPolicy,
       positiveTickers: options.forwardPositiveTickers }))));
   if (options.outcomePolicy === "retained_pre_ohlc_validation_v2") {
     // Pin the existing historical golden capsule's exact receipt shape. A
@@ -51,7 +54,8 @@ export async function charterEvaluationInput(rankedCount: 4 | 8 = 4,
   const now = new Date("2026-11-07T00:00:00.000Z");
   const partitions = (["held_out", "walk_forward"] as const).map((partition, index) => {
     const original = forwardParts.slice(index * 30, (index + 1) * 30);
-    const rows = original.map(row => charterRuntimeRows({ at: row.snapshots[0].recommended_at!, fingerprint: row.scanRuns[0].run_fingerprint }));
+    const rows = original.map(row => charterRuntimeRows({ at: row.snapshots[0].recommended_at!,
+      fingerprint: row.scanRuns[0].run_fingerprint, publicationPolicy: options.publicationPolicy }));
     const decoded = buildScannerClockPriorShadowForwardRuntimeEvidence({ ownerUserId: owner,
       observationCycleRows: rows.map(row => row.cycle), scheduledAttemptRows: rows.map(row => row.attempt) });
     if (decoded.status !== "available") throw new Error("synthetic_charter_runtime_invalid");

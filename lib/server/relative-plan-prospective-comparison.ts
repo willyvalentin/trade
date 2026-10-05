@@ -11,6 +11,7 @@ import { AUTOMATION_ROUTE_VERSION, RECOMMENDATION_PUBLISH_POLICY_VERSION, BUILD_
 // Netlify deploy ID. The latter identifies the freeze runtime separately and
 // must never be silently substituted for the original decision attribution.
 export const relativePlanCanonicalBuildIdentity = `${AUTOMATION_ROUTE_VERSION}:${RECOMMENDATION_PUBLISH_POLICY_VERSION}:${BUILD_MARKER}`;
+const retainedV3BuildIdentity = "action_148_publish_path_v1:selective_top_3_strong_valid_v3_preserve_explicit_no_trade:selective_top_3_v3_2026_09_17";
 
 export const RELATIVE_PLAN_PROSPECTIVE_COMPARISON_VERSION = "relative_plan_prospective_comparison_v1" as const;
 export const RELATIVE_PLAN_PROSPECTIVE_RECEIPT_VERSION = "relative_plan_prospective_freeze_receipt_v1" as const;
@@ -94,12 +95,12 @@ function utcInstant(value: unknown): value is string {
   return typeof value === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value) &&
     Number.isFinite(Date.parse(value)) && new Date(value).toISOString() === value;
 }
-export function buildRelativePlanProspectivePlan(value: unknown, frozenAt: string): RelativePlanProspectivePlan | null {
+function buildPlanForExactIdentity(value: unknown, frozenAt: string, buildIdentity: string): RelativePlanProspectivePlan | null {
   if (!utcInstant(frozenAt) || !keys(value, ["owner_user_id", "source_revision", "windows"]) ||
     typeof value.owner_user_id !== "string" || !/^[a-f0-9]{8}-[a-f0-9]{4}-[1-5][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(value.owner_user_id) ||
     !keys(value.source_revision, ["commit_ref", "build_identity", "deploy_id"]) ||
     typeof value.source_revision.commit_ref !== "string" || !/^[a-f0-9]{40}$/.test(value.source_revision.commit_ref) ||
-    value.source_revision.build_identity !== relativePlanCanonicalBuildIdentity ||
+    value.source_revision.build_identity !== buildIdentity ||
     typeof value.source_revision.deploy_id !== "string" || !/^[a-f0-9]{24}$/.test(value.source_revision.deploy_id) ||
     !keys(value.windows, ["training", "held_out", "walk_forward"])) return null;
   const windows = {} as Record<Partition, Window>;
@@ -145,6 +146,12 @@ export function buildRelativePlanProspectivePlan(value: unknown, frozenAt: strin
   return { ...body, plan_fingerprint: relativePlanSemanticFingerprint(body) };
 }
 
+/** NEW plans use only the current producer. Historical receipt validation
+ * below must not confer authority to create a new old-policy comparison. */
+export function buildRelativePlanProspectivePlan(value: unknown, frozenAt: string): RelativePlanProspectivePlan | null {
+  return buildPlanForExactIdentity(value, frozenAt, relativePlanCanonicalBuildIdentity);
+}
+
 /** A receipt is necessary, not sufficient, for any quality decision. The
  * caller must supply the trusted owner, never an owner copied from request data. */
 export function verifiedRelativePlanProspectiveFreeze(value: unknown, expectedOwner: string): RelativePlanProspectiveFreeze | null {
@@ -152,8 +159,13 @@ export function verifiedRelativePlanProspectiveFreeze(value: unknown, expectedOw
     value.contract_version !== RELATIVE_PLAN_PROSPECTIVE_RECEIPT_VERSION || value.owner_user_id !== expectedOwner ||
     typeof value.freeze_id !== "string" || !/^[a-f0-9]{8}-[a-f0-9]{4}-[1-5][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(value.freeze_id) ||
     !utcInstant(value.frozen_at) || !record(value.plan)) return null;
-  const plan = buildRelativePlanProspectivePlan({ owner_user_id: value.plan.owner_user_id,
-    source_revision: value.plan.source_revision, windows: value.plan.windows }, value.frozen_at);
+  const revision = value.plan.source_revision;
+  if (!record(revision) || (revision.build_identity !== relativePlanCanonicalBuildIdentity &&
+    revision.build_identity !== retainedV3BuildIdentity)) return null;
+  // Reproduce the retained tuple verbatim; never substitute today's identity
+  // into an immutable plan or accept an unknown/self-rehashed policy alias.
+  const plan = buildPlanForExactIdentity({ owner_user_id: value.plan.owner_user_id,
+    source_revision: revision, windows: value.plan.windows }, value.frozen_at, revision.build_identity);
   if (!plan || plan.owner_user_id !== expectedOwner || relativePlanSemanticJson(plan) !== relativePlanSemanticJson(value.plan)) return null;
   return { contract_version: RELATIVE_PLAN_PROSPECTIVE_RECEIPT_VERSION, freeze_id: value.freeze_id,
     owner_user_id: expectedOwner, frozen_at: value.frozen_at, plan };

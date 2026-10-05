@@ -3,7 +3,29 @@ import { buildRelativePlanProspectivePlan, relativePlanProspectiveCharter,
   relativePlanSemanticFingerprint, verifiedRelativePlanProspectiveFreeze } from "@/lib/server/relative-plan-prospective-comparison";
 import { scannerClockPriorShadowEvaluationCharterDefinition } from "@/lib/server/scanner-clock-prior-shadow-evaluation-charter";
 
-import { prospectiveOwner, prospectiveFrozenAt, prospectiveInput, prospectiveReceipt } from "../fixtures/relative-plan-prospective";
+import { prospectiveOwner, prospectiveFrozenAt, prospectiveInput, prospectiveReceipt, retainedV3Publication } from "../fixtures/relative-plan-prospective";
+
+test("retained v3 freezes remain verifiable without acquiring NEW current-policy freeze authority", () => {
+  const retained = prospectiveReceipt({ publicationPolicy: "retained_v3" });
+  expect(verifiedRelativePlanProspectiveFreeze(retained, prospectiveOwner)).toEqual(retained);
+  expect(buildRelativePlanProspectivePlan({ ...prospectiveInput, source_revision: {
+    ...prospectiveInput.source_revision, build_identity: retainedV3Publication.build_identity,
+  } }, prospectiveFrozenAt)).toBeNull();
+});
+
+test("a self-rehashed unknown publication identity cannot pass retained freeze admission", () => {
+  const retained = prospectiveReceipt({ publicationPolicy: "retained_v3" });
+  for (const identity of [retainedV3Publication.build_identity + " ",
+    retainedV3Publication.build_identity.replace("strong_valid_v3", "strong_valid_v99"),
+    "action_148_publish_path_v1:selective_top_3_strong_valid_v4_preserve_no_trade_original_plan:selective_top_3_v3_2026_09_17"]) {
+    const { plan_fingerprint: _priorFingerprint, ...body } = retained.plan;
+    void _priorFingerprint;
+    const changed = { ...body, source_revision: { ...body.source_revision, build_identity: identity } };
+    expect(verifiedRelativePlanProspectiveFreeze({ ...retained, plan: {
+      ...changed, plan_fingerprint: relativePlanSemanticFingerprint(changed),
+    } }, prospectiveOwner)).toBeNull();
+  }
+});
 
 test("prospective normalized-input comparison preserves the complete existing quality charter", () => {
   const plan = prospectiveReceipt().plan;
