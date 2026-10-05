@@ -193,6 +193,22 @@ Linux build and updated-candidate protected CI still follow. Production remains
 on the previously accepted main; neither the successor nor NEW live behavior
 has been accepted there. The original OPEN failure remains immutable.
 
+**Exact compatibility build — 2026-10-05:** clean product/test revision
+`d4ddc22021e60279801f9d1d8d9d1e890d273ecd` passes the normal Next 16.3.8
+Linux build on Node 22.23.1, all 33 generated pages and the two unchanged native
+lint-consumer/provenance checks. Build network is disabled and no production
+credentials are mounted. The exact public locked cache includes npm's separately
+installed `vendor/eslint-plugin-next/node_modules`; lock metadata and actual
+package versions are checked. An initial copy omitted that nested install,
+resolved root brace-expansion v1 and failed the unchanged consumer check before
+build; it is NOT acceptance. Correcting only the temporary copy layout makes
+the exact unchanged product source pass. Lock SHA256 remains
+`c126ba15634fffec241592d1316ea2e0bb9708886f865dc72f5fd30b2e084083`.
+Receipt: `/private/tmp/ture-publication-compatibility-exact-build-oct5-receipt.json`.
+This annotation changes documentation only; product/test/workflow/schema bytes
+remain identical to the built commit. Updated-candidate protected CI, main,
+production migration and exact inert runtime verification remain pending.
+
 **Today's second original-plan diagnostic is no-go:** updated-source acceptance
 is still pending at the 19:00Z latest activation-ready boundary for a useful
 19:15Z publication observation with a full 15-minute scheduler margin. No NEW
@@ -201,11 +217,15 @@ irrelevant closing-only path. Finish the minimum correction and protected releas
 then freeze the next useful OPEN question on its exact accepted runtime/schema.
 This is a timing/evidence boundary, not a blocker to further CLOSED product work.
 
-The completed SQ→XYZ discovery secondary stays clean/local on `f0321631`,
-with 184 distinct checks and exact Linux build of product revision `2e7e514b`;
-no push/PR/release. Finish this measured primary defect before integrating
-that independent change and freezing any new full-charter comparison. Today's
-failed diagnostic is not a forward training cohort. Graduation remains `not_met`.
+The SQ→XYZ discovery secondary is clean/local on `06acee093de85b77f6a98a66056414a220542a02`,
+with 237 distinct checks in 22 files and an exact Linux build of its original-plan
+composition `3a2a99b1b3430ed3e5bfa565d2d00701f1ae088d`. It has no push/PR/release
+and does not yet contain this compatibility successor. Finish the primary's
+protected release/schema/inert readback, then integrate and reverify that
+independent discovery correction without rewriting historical SQ evidence.
+Freeze the next useful original-plan OPEN question on the accepted runtime,
+not today's consumed failed card. Today's failed diagnostic is not a forward
+training cohort. Graduation remains `not_met`.
 
 ### Retained original-clock release foundation
 
