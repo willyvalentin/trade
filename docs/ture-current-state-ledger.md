@@ -2,6 +2,27 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Combined local intelligence acceptance in progress — 2026-10-05:** Codex,
+`codex/original-intelligence-combined-oct5`, reuses the clean isolated checkout
+after factual overlap closeout `98d3c0d2`. Fresh remote main is still exactly
+`55576078`; #732 remains the release-held primary. This is acceptance closure
+of the completed IF-2b → IF-3 → IF-4 product composition, not another model,
+validator, planning PR or independent product stream. All preceding slices
+are complete/parked. Four-active-hour maximum, unchanged product `ee11a7de`.
+
+Run the registered complete-input/original-source, prospective freeze,
+training/probability, outcome resumption and full-charter suites together on
+the current composition, separating normal and server-condition invocation
+where their existing runtime needs it. Verify the new v3 feature path and
+retained v1/v2 goldens without pooling versions, reducing originals, moving
+clocks or changing limits. Repair only a reproduced interaction that blocks
+that exact chain; declare its smallest scope before editing. Otherwise stop
+after acceptance. Reuse the exact product Linux build already passed at
+`ee11a7de`; any product correction requires a new exact-head build. Record
+serial test coverage/failures truthfully, never add overlapping prior counts.
+No real provider/prod/broker operation, new hypothesis or release bypass.
+Integration still follows #732 and then-current main, not a competing PR.
+
 **Selected CLOSED IF-4 original outcome-window overlap investigation — 2026-10-05:**
 Owner Codex, `codex/original-outcome-overlap-oct5`, isolated from freshly
 verified main `55576078` plus locally complete `060e841d`. #732 stays the
