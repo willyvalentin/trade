@@ -2,6 +2,34 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Selected CLOSED IF-2b → IF-4 v3 durable-consumer acceptance — 2026-10-05:**
+Codex owns `codex/v3-original-learning-acceptance-oct5`, following completed
+quote integrity maintenance `74213b86` in the clean isolated checkout. Main
+remains `55576078`; #732 remains the release-held primary. Four-to-eight active
+hours, initial investigation capped at four hours. This is `quality_measurement`
+acceptance of the already selected current feature basis, not a new model,
+fixture population, ranking hypothesis or transport project.
+
+The existing complete-original native training/finalization commands deliberately
+retain v2, while v3 has pure training/charter and ordinary producer evidence.
+Close that exact composition gap: add an explicit v3 arm to the same native
+SQL/PostgREST/SDK proof, retaining every original input, the 96 training members,
+240 members per forward partition and all unchanged charter/missingness checks.
+Verify actual database-clock training plus its separate-transaction committed
+witness independently from terminal finalization's disclosed historical
+synthetic model-clock fixture. Never claim the latter is a pre-forward seal.
+Inspect the persisted/restarted training capsule and full terminal source for
+the v3 daily-range name; no mixed-version pooling or legacy golden rewrites.
+
+Ownership is only `scripts/relative-plan-charter-runtime-proof.mjs`, its existing
+registered charter-evaluation/result tests and this ledger. Product bytes,
+provider ceilings, schemas, original cohort, thresholds and acceptance clocks
+stay fixed. Repair only a separately reproduced smallest version-propagation
+contradiction; otherwise stop after this narrow acceptance. No provider,
+production/broker action, push or competing PR; integration follows #732 and
+then-current main. Real varied original source and forward market quality
+remain distinct missing evidence, not something a synthetic pass can supply.
+
 **Selected CLOSED quote-time integrity maintenance — 2026-10-05:** Codex,
 `codex/quote-market-time-integrity-oct5`, reuses the clean isolated checkout
 after completed diagnosis `495b0d00`; verified main remains `55576078` and

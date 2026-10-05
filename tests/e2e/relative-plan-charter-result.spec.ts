@@ -247,6 +247,30 @@ test("full eight-member population survives actual SQL finalization and negotiat
   expect(proof.complete_original_product_http_bytes).toBeLessThanOrEqual(4 * 1048576);
   console.log(JSON.stringify({ local_eight_member_charter_evidence: proof }));
 });
+test("current v3 original archives survive durable terminal storage and restarted readback without pooling v2", () => {
+  test.setTimeout(480000);
+  const result = spawnSync(process.execPath,["scripts/relative-plan-charter-runtime-proof.mjs","--finalized-result",
+    "--full-eight-member-population","--complete-original-archives","--current-feature-basis"],{
+    encoding:"utf8",timeout:470000,env:{...process.env}});
+  expect(result.status,`${result.stdout}\n${result.stderr}`).toBe(0);
+  const proof=JSON.parse(result.stdout.trim().split("\n").at(-1)!);
+  expect(proof).toMatchObject({status:"pass",current_feature_basis_verified:true,
+    original_feature_basis:"recommendation_decision_feature_vector_v3",complete_original_archives:true,
+    original_candidates_per_forward_partition:240,original_held_out_decisions:30,original_walk_forward_decisions:30,
+    historical_model_clock_fixture:true,actual_database_training_clock_verified:false,
+    durable_terminal_result_verified:true,actual_database_finalization_clock_verified:true,
+    full_original_source_sql_capacity_verified:true,supported_transport_required_before_result_insert:true,
+    result_prewrite_guards_verified:true,terminal_context_readback_verified:true,
+    sealed_result_ignores_later_mutable_original_inputs:true,forward_losses_never_refit_model:true,
+    actual_loopback_http_readback_verified:true,unrelated_pre_window_decisions_persisted_and_preserved:12,
+    finalized_product_transport_encoding:"gzip",quality_improvement_verified:false,
+    provider_requests:0,production_writes:0,broker_actions:0});
+  expect(proof.full_original_source_decoded_bytes).toBeGreaterThan(16*1048576);
+  expect(proof.full_original_source_decoded_bytes).toBeLessThanOrEqual(32*1048576);
+  expect(proof.complete_finalized_product_http_bytes).toBeLessThanOrEqual(4*1048576);
+  console.log(JSON.stringify({local_v3_durable_terminal_evidence:proof}));
+});
+
 test("complete original archives survive actual SQL capacity migration and restarted negotiated readback", () => {
   test.setTimeout(480000);
   const result = spawnSync(process.execPath, ["scripts/relative-plan-charter-runtime-proof.mjs", "--finalized-result",

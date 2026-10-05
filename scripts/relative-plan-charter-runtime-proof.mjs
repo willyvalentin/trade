@@ -17,6 +17,19 @@ const contextRegressionMode = process.argv.includes("--terminal-context-regressi
 assert(!contextRegressionMode || finalizedMode, "terminal_context_requires_finalized_native_mode");
 const rankedCount = process.argv.includes("--full-eight-member-population") ? 8 : 4;
 const originalInputs = process.argv.includes("--complete-original-archives");
+const currentFeatureBasis = process.argv.includes("--current-feature-basis");
+assert(!currentFeatureBasis || originalInputs, "current_feature_basis_requires_complete_original_archives");
+const featureVectorVersion = currentFeatureBasis ? "recommendation_decision_feature_vector_v3" : undefined;
+function verifyCurrentFeatureBasis(source) {
+  if (!currentFeatureBasis) return;
+  assert(source.snapshots.length > 0);
+  for (const snapshot of source.snapshots) {
+    const vector = snapshot.payload_json.decision_feature_vector;
+    assert.equal(vector.contract_version, featureVectorVersion);
+    assert(Number.isFinite(vector.feature_values.daily_average_range_percent));
+    assert(!Object.hasOwn(vector.feature_values, "intraday_average_range_percent"));
+  }
+}
 assert(!originalInputs || rankedCount === 8, "original_capacity_proof_requires_unchanged_eight_member_population");
 const partitionPopulation = 30 * rankedCount;
 const db = `ture-relative-plan-charter-db-${process.pid}`, api = `ture-relative-plan-charter-api-${process.pid}`;
@@ -247,7 +260,7 @@ try {
     run.payload_json.decision_lineage_receipt = readers.buildDecisionLineageReceipt(record);
   };
   for (const day of days) for (let n = 0; n < 4; n++) {
-    await persist(await readers.prospectiveSource({ now: new Date(Date.parse(session(day).session_open) + 3.5 * 3600000 + n * 300000), rankedCount, originalInputs }));
+    await persist(await readers.prospectiveSource({ now: new Date(Date.parse(session(day).session_open) + 3.5 * 3600000 + n * 300000), rankedCount, originalInputs, featureVectorVersion }));
   }
   let training, validRetainedTrainingOutcome = null, contradictoryRetainedTrainingOutcome = null;
   if (!finalizedMode) {
@@ -359,6 +372,7 @@ try {
   } else training = await readers.createRelativePlanTrainedProbabilityService().train(owner, {});
   assert.equal(training.status, "materialized", training.blocker); const sealed = training.receipt;
   assert.equal(sealed.trained_model.original_population_count, 12 * rankedCount);
+  verifyCurrentFeatureBasis(sealed.trained_model.retained_training_source);
   assert(Date.parse(sealed.committed_read_at) < Date.parse(windows.held_out.start_at));
   if (!finalizedMode) {
     const afterTraining = Date.now();
@@ -442,12 +456,12 @@ try {
     // Actual persisted prior history, not a shortened input fixture or mocked
     // readSource. It remains in the owned database after result finalization.
     for (let n = 0; n < unrelatedPriorDecisions; n++) await persist(await readers.prospectiveSource({
-      now: new Date(Date.parse(session(priorDay).session_open) + 2.5 * 3600000 + n * 300000), rankedCount, originalInputs }));
+      now: new Date(Date.parse(session(priorDay).session_open) + 2.5 * 3600000 + n * 300000), rankedCount, originalInputs, featureVectorVersion }));
   }
   const parts = [], runtimeRows = [];
   for (const day of futureDays) for (let n = 0; n < 10; n++) {
     const at = new Date(Date.parse(session(day).session_open) + 2.5 * 3600000 + n * 900000);
-    const part = await readers.prospectiveSource({ now: at, rankedCount, originalInputs,
+    const part = await readers.prospectiveSource({ now: at, rankedCount, originalInputs, featureVectorVersion,
       positiveTickers: contextRegressionMode ? ["AAA"] : undefined });
     const context = { contract_version: "market_regime_decision_context_v1", classifier_version: "market_regime_v1",
       captured_at: at.toISOString(), regime: "risk_on" };
@@ -486,6 +500,7 @@ try {
   assert.equal(missing.learning.full_charter.partitions[0].quality.outcome_coverage.value, (partitionPopulation - 1) / partitionPopulation);
   assert.equal((await readers.persistRecommendationOutcome(pending, { supabaseClient: client, server: true })).status, "saved");
   const full = await read(), charter = full.learning.full_charter;
+  verifyCurrentFeatureBasis((await readers.createRelativePlanTrainedProbabilityService().read(owner)).receipt.trained_model.retained_training_source);
   assert.equal(charter.evidence_complete, true); assert.equal(charter.computed_disposition, "reject");
   assert.deepEqual(charter.missing_dimensions, []);
   assert(charter.measured_limit_failures.includes("held_out_sector_concentration_charter_limit_not_met"));
@@ -752,6 +767,7 @@ try {
     if (unrelatedPriorDecisions) {
       const retained = readers.decodeRelativePlanRetainedSource(durable.receipt.result.retained_source); assert(retained);
       assert.equal(retained.scanRuns.length, 72);
+      verifyCurrentFeatureBasis(retained);
       assert.equal(sql(`select count(*) from public.recommendation_scan_runs where owner_user_id='${owner}'`), "84");
     }
     assert(Date.parse(durable.receipt.finalized_at) >= beforeFinalization);
@@ -849,7 +865,7 @@ try {
   // Corrected unfavorable forward labels change errors, never the immutable
   // fitting job, original first thirty or thresholds.
   for (const part of [parts[0], parts[30]]) {
-    const losses = await readers.prospectiveSource({ now: new Date(part.snapshots[0].recommended_at), allLosses: true, rankedCount, originalInputs });
+    const losses = await readers.prospectiveSource({ now: new Date(part.snapshots[0].recommended_at), allLosses: true, rankedCount, originalInputs, featureVectorVersion });
     for (const outcome of losses.outcomes) assert.equal((await readers.persistRecommendationOutcome(outcome, { supabaseClient: client, server: true })).status, "saved");
   }
   const corrected = (await readers.createRelativePlanProspectiveService().read(owner,now)).learning.full_charter;
@@ -904,6 +920,8 @@ try {
   }
   assert.equal(blockedExternalRequests, 0);
   console.log(JSON.stringify({ status: "pass", environment: "isolated_postgres_postgrest_actual_sdk",
+    current_feature_basis_verified: currentFeatureBasis,
+    original_feature_basis: featureVectorVersion ?? "recommendation_decision_feature_vector_v2",
     evidence: finalizedMode ? "historical_synthetic_model_fixture_actual_database_finalization_not_market_alpha" : "synthetic_closed_not_market_alpha",
     current_runtime_rejects_unobserved_recording_times: currentRuntimeClocksVerified,
     runtime_clock_admission_preserves_complete_original_source: runtimeClockSourcePreserved,

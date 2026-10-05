@@ -110,6 +110,26 @@ test("actual persisted original sources, DB-attested model and runtime feed a re
     provider_requests: 0, production_writes: 0, broker_actions: 0 });
 });
 
+test("current v3 original archives retain their basis through actual DB-clock training and restarted full comparison", () => {
+  test.setTimeout(480000);
+  const result = spawnSync(process.execPath, ["scripts/relative-plan-charter-runtime-proof.mjs",
+    "--full-eight-member-population", "--complete-original-archives", "--current-feature-basis"], {
+    encoding: "utf8", timeout: 470000, env: { ...process.env } });
+  expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
+  const proof = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
+  expect(proof).toMatchObject({status:"pass",current_feature_basis_verified:true,
+    original_feature_basis:"recommendation_decision_feature_vector_v3",
+    complete_original_archives:true,immutable_actual_database_training_members:96,
+    actual_database_training_clock_verified:true,separate_transaction_committed_model_witness_verified:true,
+    historical_model_clock_fixture:false,original_candidates_per_forward_partition:240,
+    original_held_out_decisions:30,original_walk_forward_decisions:30,
+    missing_label_retains_original_denominator:true,actual_restarted_full_charter_consumer_verified:true,
+    eleven_charter_checks_per_partition:true,forward_losses_never_refit_model:true,
+    known_concentration_failure_separate_from_missing_evidence:true,actual_loopback_http_readback_verified:true,
+    quality_improvement_verified:false,provider_requests:0,production_writes:0,broker_actions:0});
+  console.log(JSON.stringify({local_v3_database_clock_training_evidence:proof}));
+});
+
 test("complete original archives train with real DB time before synthetic forward comparison", () => {
   // A separate full-original regression; keep the legacy four-member test and
   // its deadline unchanged. Never substitute historical admin model insertion.
