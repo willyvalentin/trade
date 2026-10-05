@@ -11,6 +11,30 @@ build locally. No push, main merge or deploy until the armed diagnostic has
 verified cleanup. Four-active-hour slice limit and unchanged risk/budget/population
 still apply. Actual-provider XYZ support and full-charter quality are unproven.
 
+**Completed current-main composition — 2026-10-05:** exact composed revision
+`2e7e514bedd10863ef63aaf2cfa1aa8b24d02f72`, based on released main `4a939831`,
+passes all **184 DISTINCT affected checks in 18 registered files** (5.3m),
+including actual isolated SQL/SDK/owner readback and retained full populations.
+This is one composed acceptance, not 184 added to the earlier 172. Provider
+boundaries remain synthetic. Nonincremental types and full lint pass (zero
+errors/eight existing warnings). The initial manual collection omitted the
+repository-required `react-server` condition and executed no tests; correcting
+the invocation, not a test population or server boundary, gives the full pass.
+
+The SAME clean revision passes the serial exact Linux Node 22.23.1 / Next
+16.3.8 build, both native lint-consumer checks and all 33 generated pages after
+locked install. The existing 300-second bound and build command are unchanged;
+build network is disabled and no production credentials are mounted. Lock
+SHA256 is unchanged at
+`c126ba15634fffec241592d1316ea2e0bb9708886f865dc72f5fd30b2e084083`.
+Receipt: `/private/tmp/ture-current-block-composed-exact-build-oct5-receipt.json`.
+Only ledger documentation changes after this exact tested/built revision.
+No push, PR, main merge, deploy or provider/broker action for this secondary.
+Park the completed local slice until the armed diagnostic's cleanup is verified;
+then finish this focused release and return to original-input/canonical-outcome
+evidence. Reference correctness is proven locally, not provider XYZ support,
+full market-wide discovery, recommendation quality or forward qualification.
+
 
 **Selected OPEN diagnostic — frozen 2026-10-05 before results:** Codex owns
 `codex/oct5-original-input-observation` on exact released main
