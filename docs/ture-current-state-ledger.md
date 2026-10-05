@@ -84,6 +84,20 @@ bytes stay identical to the built commit. Protected CI, merge, deployed runtime
 and a newly frozen live original-plan observation remain pending. The old failed
 diagnostic remains failed. Do not arm or move any consumed observation card.
 
+**Active policy consumer correction — 2026-10-05:** final review finds the
+actual power-hour route gate still accepting only publication policy v3.
+A NEW registered cold packaged normal publication case, with only the
+synthetic scheduler clock moved to 19:00Z and the same original support bars,
+reproduces RED: `action_148_publish_policy_not_active` rejects the cycle before
+market-data acquisition. Update only the gate's exact supported version to v4;
+all session/calendar/closing-cutoff checks remain unchanged. The same native
+case now passes GREEN with three synthetic publications, all six exact original
+plan fields, eight original members, one attempt/claim and eight synthetic
+requests. The separate actual closing-context case still retains hidden
+original research and publishes nothing. These two focused passes overlap the
+pending final affected-suite run; they are not real-market quality evidence.
+Types, lint, exact updated-revision build and protected CI still follow.
+
 The completed SQ→XYZ discovery secondary stays clean/local on `f0321631`,
 with 184 distinct checks and exact Linux build of product revision `2e7e514b`;
 no push/PR/release. Finish this measured primary defect before integrating
@@ -103,6 +117,13 @@ new frozen primary diagnostic has verified cleanup. Exact current-main
 composition, tests/build and XYZ provider support are not yet reaccepted.
 The four-active-hour secondary budget and all existing cohort/budget/quality
 boundaries remain unchanged.
+
+The first local composition `2f393fe1` completes 236 distinct checks across
+22 registered files, nonincremental types and lint (zero errors/eight existing
+warnings). Its primary ancestor is `8857b1a0`; it does not include the newly
+identified exact-v4 power-hour consumer correction. Compose local primary
+`03e5f030` next and reverify the changed native power-hour path and discovery
+integration before acceptance; no secondary push or release has occurred.
 
 ### Retained pre-735 secondary and frozen observation receipts
 
