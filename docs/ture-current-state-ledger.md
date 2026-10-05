@@ -532,6 +532,26 @@ still precede secondary current-main integration, push or PR. Today's OPEN no-go
 remains unchanged; this local result does not authorize a new provider call or
 prove recommendation-quality lift.
 
+**External primary CI allocation blocker — 2026-10-05:** the single previous
+infrastructure retry is consumed, not still running. Run `37363517732` attempt 2
+is terminal failure at 20:38:13Z: replay-lineage job `111962390202` is cancelled,
+has runner ID zero/no steps, and explicitly reports failed hosted-runner
+acquisition. The other five groups pass; required aggregate fails and provenance
+is skipped. GitHub's named Actions incident `3q1yb5m7ltvb` remains investigating,
+with degraded runner assignment at its authoritative 20:39:27Z update. Preserve
+the failed result; change no product, workflow, label, assertion or deadline for
+this infrastructure fault. The existing release heartbeat now requires explicit
+incident resolution and operational Actions before at most one separate recovery
+dispatch, on the unchanged candidate and terminal attempt 2, before Oct 6 11:00Z.
+Maximum total attempt is three, with no fourth or ambiguous-response redispatch;
+all six groups, aggregate and provenance remain mandatory. Standard hosted
+runner minutes are included for this verified public repository. No recovery
+retry, push, preview, deploy, migration or provider action occurs here.
+Diagnosis: `/private/tmp/ture-pr735-actions-incident-oct5.receipt.json`.
+The fully accepted local secondary remains held after primary protected release
+and its selected-schema/inert readback. This blocker does not establish engine
+quality or authorize another OPEN observation.
+
 ### Retained original-clock release foundation
 
 **Now — original current-session clock admission, 2026-10-05:** Codex owns
