@@ -43,6 +43,15 @@ export function createRelativePlanProspectiveStore(database: RelativePlanProspec
       const prior = await read(owner);
       if (prior.status === "unavailable" || prior.status === "conflicting") return prior;
       if (!Number.isFinite(now.getTime())) return unavailable();
+      if (prior.receipt) {
+        const originalInput = { owner_user_id: prior.receipt.plan.owner_user_id,
+          source_revision: prior.receipt.plan.source_revision, windows: prior.receipt.plan.windows };
+        // Exact idempotent readback of an already stored policy is not a NEW
+        // freeze. Preserve old receipts after producer-version changes.
+        if (relativePlanSemanticJson(input) === relativePlanSemanticJson(originalInput)) {
+          return { ...prior, status: "already_frozen" };
+        }
+      }
       // An idempotent request is rebuilt at the ORIGINAL database freeze, so
       // restarting after training begins can read the same immutable plan.
       const plan = buildRelativePlanProspectivePlan(input, prior.receipt?.frozen_at ?? now.toISOString());

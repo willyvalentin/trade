@@ -24,7 +24,9 @@ freshness, ownership, all eight identities/nulls, ranking/quality thresholds
 and eight-credit scan budget. Require exact published original-plan readback,
 canonical outcome continuity after restart, affected regressions, types/lint
 and an exact committed build before one focused protected release. No new
-scan, provider request, migration, source rewrite or broker action is selected.
+scan, provider request, source rewrite or broker action is selected. The later
+reproduced SQL policy-refusal below selects only its additive, exact-identity
+function successor; production application remains unverified and pending.
 
 **Actual OPEN evidence retained:** attempt `scheduled_scan_attempt_10whjni`,
 run `rec_scan_run_of9yv0`; scheduler 16:15:25.663Z, route 16:15:27.799Z,
@@ -113,6 +115,91 @@ it is NOT accepted. Serialize the exact updated build after the test jobs;
 do not change protected CI or route/test/provider limits. Local source is ready
 for focused CI correction, but merge/deployed behavior/NEW OPEN acceptance
 remain pending. The original real-market failed receipt remains immutable.
+
+**Verified release blocker — 2026-10-05:** protected exact-head `91b06dba`
+run `37349494982` passes five groups, including the formerly failed whole-session
+foundation, but lossless job `111902680799` finishes with 665 passes/two failures.
+This is not a timeout or accepted release. The retained full-charter golden's
+measurement changes from `cdcf680f51165fc75532c7fc6955d72b8c8c3cd88b2c35af88bd70e0a689d82b`
+to `cfda6f6f8695df150d30fe83394f62710fe577ba4748dd105a7578a96de27e10` because
+its historical fixture follows today's publication constants. The actual isolated
+prospective store separately returns `unavailable` instead of `frozen`: its
+deployed SQL accepts only the exact v3 canonical identity, not the new v4 tuple.
+Both are reproduced locally before corrections; the first native local attempt
+hits Docker sandbox permissions, then the authorized isolated retry reproduces
+the same SQL refusal. Automatic merge is disabled before changing the head.
+
+Close only these version boundaries in the existing primary delivery: preserve
+exact retained v3 receipt/source/golden semantics, retain strict current-policy
+NEW freeze admission, and add an exact SQL v4 admission successor without
+changing any owner, authority, population, charter, time or immutability guard.
+Unknown/mixed/self-rehashed policy identities must stay rejected. Verify actual
+isolated SQL/SDK restart, unchanged historical goldens and the same current v4
+producer-to-outcome chain, then affected tests/types/lint/exact build/protected CI.
+Main and published production remain `4a939831`; no NEW observation is frozen
+or armed and no provider, production schema/configuration or broker action occurs.
+The old OPEN failure remains immutable. SQ→XYZ release remains held after this
+primary and any newly justified, timely original-plan diagnostic's verified cleanup.
+
+**Local compatibility proof — 2026-10-05:** the registered native prospective
+SQL/PostgREST/real-SDK case now passes with the additive function successor
+`20261005190805_if4_publication_identity_compatibility.sql`. A mechanical comparison
+proves its complete prior function body is byte-identical except for exact v3/v4
+tuple admission. Original migrations, model/charter fingerprints, owner locks,
+clock boundaries and all row/ACL guards are unchanged. Two current v4 freezes,
+the original 48/12/12 calibration cohorts, missing/outcome controls and four-member
+source proof are preserved. One separately counted predecessor-written v3 row
+survives upgrade and restart verbatim, repeats without a write and conflicts
+with a new-policy replacement. Three self-rehashed unknown/mixed RPC identities
+are denied; anonymous/authenticated execution and immutable-row changes remain
+denied. All three comparison rows stay unchanged. Four focused registered cases
+pass (16.9s), including retained-v3 store/read admission; broader acceptance follows.
+Lock/load review: one short transactional function/ACL replacement, no source/table
+scan or rewrite, unchanged advisory owner lock. Failure rolls back atomically;
+the isolated proof restores the exact predecessor body and reapplies the successor
+without changing retained rows. Keep scheduling inert and preserve fingerprints
+through any recovery; production application is still pending.
+The CLI-generated filename replaces only the untracked local draft; its SQL body
+is unchanged. A read-only security-advisor baseline at 19:10:05Z reports 48
+RLS-enabled/no-policy INFO notices and one existing Auth leaked-password WARN;
+these are not new-function acceptance or a mandate to broaden this delivery.
+The comparison tables intentionally retain deny-by-default RLS and service-only
+RPCs, with actual native ACL denial above. The unrelated Auth notice is retained
+separately ([provider guidance](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection));
+no Auth setting, table policy or production data is changed.
+Read-only production catalog preflight at 19:13:55Z confirms PostgreSQL 17.6,
+the exact old v3-only freeze, empty search path, no anon/authenticated execute,
+service-only execution and the successor unapplied. There are zero stored
+prospective comparisons, trained models and terminal results; no actual forward
+cohort or fitted production model is thereby claimed. No write occurs.
+The historical golden independently passes with its exact unchanged two expected
+fingerprints, not updated expectations. This is local synthetic compatibility,
+not a production migration, new forward evidence or recommendation-quality lift.
+
+**Updated compatibility acceptance — 2026-10-05:** the complete affected
+registered run passes 268 distinct cases in 25 files (24.5m). A separate
+nine-case/two-file actual packaged scan-to-database continuation passes (2.5m),
+for **277 distinct cases in 27 files**; the four focused compatibility checks
+overlap this total. The current v4 original-plan producer reaches persisted
+publication, restarted canonical outcomes and full-charter evaluation. The
+original full-session population, power-hour admission, closing no-publication,
+legacy history and retained v3 golden all remain unchanged. Native successor
+upgrade/ACL checks use the final CLI-generated migration. Nonincremental types
+and full lint pass with zero errors/eight existing warnings. No assertion,
+cohort, deadline, provider/route limit, workflow or protected check is weakened.
+Environment: macOS arm64/Node 26.5.0, disposable PostgreSQL/PostgREST, actual SDK
+and packaged runtime, synthetic provider-boundary input. Exact clean committed
+Linux build and updated-candidate protected CI still follow. Production remains
+on the previously accepted main; neither the successor nor NEW live behavior
+has been accepted there. The original OPEN failure remains immutable.
+
+**Today's second original-plan diagnostic is no-go:** updated-source acceptance
+is still pending at the 19:00Z latest activation-ready boundary for a useful
+19:15Z publication observation with a full 15-minute scheduler margin. No NEW
+card, capacity meter, arm or heartbeat exists; spend no further credits on an
+irrelevant closing-only path. Finish the minimum correction and protected release,
+then freeze the next useful OPEN question on its exact accepted runtime/schema.
+This is a timing/evidence boundary, not a blocker to further CLOSED product work.
 
 The completed SQ→XYZ discovery secondary stays clean/local on `f0321631`,
 with 184 distinct checks and exact Linux build of product revision `2e7e514b`;

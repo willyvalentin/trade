@@ -15,7 +15,7 @@ import { relativePlanCompleteHttpResponse, relativePlanCompleteResponseFitsTrans
 import { gunzipSync } from "node:zlib";
 
 const fixture = charterEvaluationInput(4, { outcomePolicy: "retained_pre_ohlc_validation_v2",
-  rankingExplanationPolicy: "retained_field_presence_wording_v1" });
+  rankingExplanationPolicy: "retained_field_presence_wording_v1", publicationPolicy: "retained_v3" });
 test.beforeEach(() => test.setTimeout(180000));
 const candidate = fixture.then(input => ({ input,result: buildRelativePlanCharterResult(input).result! }));
 async function value() {

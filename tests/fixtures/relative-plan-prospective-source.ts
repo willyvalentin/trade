@@ -1,6 +1,6 @@
 import { relativePlanEvidence } from "./relative-plan-context-evidence";
 import { reproducibleOriginalEvidence } from "./original-input-archive-evidence";
-import { prospectiveInput } from "./relative-plan-prospective";
+import { prospectiveInput, retainedV3Publication } from "./relative-plan-prospective";
 import { buildRecommendationSnapshot } from "@/lib/recommendation-snapshot";
 import { recommendationDecisionFeatureVectorFromScannerCandidate, LEGACY_INTRADAY_NAMED_DAILY_RANGE_VECTOR_VERSION,
   type RecommendationDecisionFeatureVector } from "@/lib/recommendation-decision-feature-vector";
@@ -14,13 +14,17 @@ import { CANDIDATE_DECISION_PROVIDER_CONTRACT_VERSION } from "@/lib/candidate-de
 
 // Synthetic CLOSED point-in-time source. Future fixture dates are never market evidence.
 export async function prospectiveSource(options: { now?: Date; missingInputs?: boolean; missingOutcome?: boolean; allLosses?: boolean; positiveTickers?: string[]; rankedCount?: 4 | 8; originalInputs?: boolean; historicalFieldPresenceWording?: true;
+  publicationPolicy?: "current" | "retained_v3";
   featureVectorVersion?: Exclude<RecommendationDecisionFeatureVector["contract_version"], "recommendation_decision_feature_vector_v1"> } = {}) {
-  const now = options.now ?? new Date("2026-10-12T17:00:00.000Z"), revision = prospectiveInput.source_revision;
+  const now = options.now ?? new Date("2026-10-12T17:00:00.000Z");
+  const retained = options.publicationPolicy === "retained_v3";
+  const revision = { ...prospectiveInput.source_revision,
+    ...(retained ? { build_identity: retainedV3Publication.build_identity } : {}) };
   const { run, record, observed } = await (options.originalInputs ? reproducibleOriginalEvidence : relativePlanEvidence)({ rankedCount: options.rankedCount ?? 4, now,
     ...(options.historicalFieldPresenceWording ? { historicalFieldPresenceWording: true as const } : {}),
     missing: options.missingInputs ?? false, buildVersion: revision.build_identity,
     learningAttribution: buildCandidateDecisionLearningAttribution({
-      recommendationPublishPolicyVersion: RECOMMENDATION_PUBLISH_POLICY_VERSION,
+      recommendationPublishPolicyVersion: retained ? retainedV3Publication.policy_version : RECOMMENDATION_PUBLISH_POLICY_VERSION,
       canonicalEvaluationVersions: { engine_version: "ture_intelligence_engine_v1", scoring_version: "synthetic_original_score",
         ranking_version: "scanner_candidate_ranking_v1.2", setup_taxonomy_version: "setup_taxonomy_not_recorded_v1",
         confidence_contract_version: "ordinal_confidence_not_calibrated_v1", evaluator_version: CANONICAL_OUTCOME_EVALUATOR_VERSION,
@@ -44,7 +48,8 @@ export async function prospectiveSource(options: { now?: Date; missingInputs?: b
         candidate_id: original.candidate_id, candidate_decision_id: original.candidate_id,
         candidate_decision_disposition: original.disposition, candidate_decision_linkage_status: "verified",
         candidate_decision_linkage_version: "research_snapshot_candidate_decision_linkage_v2",
-        provider_source: "twelve_data", provider_version: null, build_marker: BUILD_MARKER,
+        provider_source: "twelve_data", provider_version: null,
+        build_marker: retained ? retainedV3Publication.build_marker : BUILD_MARKER,
         market_data_adapter_version: "automation_scan_market_data_adapter_v1",
         recommendation_publish_policy_version: record.learning_attribution.recommendation_publish_policy_version,
         intraday_indicator_response_identity: input.current_session!.response_identity,

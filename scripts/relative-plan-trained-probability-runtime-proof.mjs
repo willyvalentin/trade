@@ -60,7 +60,8 @@ try {
     "20260614000000_create_execution_records.sql", "20260724001500_create_transactional_open_position_command.sql",
     "20260811163228_add_fail_closed_application_owner_foundation.sql"]) sql(readFileSync(resolve(root, "supabase/migrations", file), "utf8"));
   sql("grant all on all tables in schema public to service_role;");
-  for (const file of ["20261002213547_if4_relative_plan_prospective_comparison.sql", "20261002233358_if4_relative_plan_trained_probability_model.sql", "20261003015239_if4_relative_plan_charter_result.sql"])
+  for (const file of ["20261002213547_if4_relative_plan_prospective_comparison.sql", "20261002233358_if4_relative_plan_trained_probability_model.sql", "20261003015239_if4_relative_plan_charter_result.sql",
+    "20261005190805_if4_publication_identity_compatibility.sql"])
     sql(readFileSync(resolve(root, "supabase/migrations", file), "utf8"));
   const key = "closed-proof-jwt-only-0123456789012345678901234567890123456789";
   const encoded = value => Buffer.from(JSON.stringify(value)).toString("base64url");

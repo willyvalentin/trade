@@ -404,7 +404,8 @@ try {
     ...(nextSessionOutcomes ? ["20260918233411_if4_after_market_outcome_evaluation_receipts.sql"] : []),
     ...(charterComposition || fullOriginalHistorySetup ? ["20261002213547_if4_relative_plan_prospective_comparison.sql",
       "20261002233358_if4_relative_plan_trained_probability_model.sql",
-      "20261003015239_if4_relative_plan_charter_result.sql"] : []),
+      "20261003015239_if4_relative_plan_charter_result.sql",
+      "20261005190805_if4_publication_identity_compatibility.sql"] : []),
   ];
   // Source schema/owner constraints and real reservation functions, all isolated.
   sql(`create role anon nologin; create role authenticated nologin; create role service_role nologin bypassrls;

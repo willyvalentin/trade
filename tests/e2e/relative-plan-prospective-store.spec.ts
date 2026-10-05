@@ -34,6 +34,33 @@ test("a different model/window cannot replace an owner's one immutable prospecti
   expect(h.writes()).toBe(1);
   expect(h.stored()?.plan.source_revision).toEqual(prospectiveInput.source_revision);
 });
+test("a retained v3 store restarts and reads idempotently without rewriting or silently upgrading its policy", async () => {
+  const retained = prospectiveReceipt({ publicationPolicy: "retained_v3" });
+  const original = JSON.stringify(retained);
+  let writes = 0;
+  const database: RelativePlanProspectiveDatabase = {
+    async read(owner) { return owner === prospectiveOwner ? { status: "available", receipt: structuredClone(retained) }
+      : { status: "not_found", receipt: null }; },
+    async freeze() { writes++; throw new Error("retained comparisons must not be rewritten"); },
+  };
+  const restarted = createRelativePlanProspectiveStore(database);
+  expect((await restarted.read(prospectiveOwner)).receipt).toEqual(retained);
+  const input = { owner_user_id: retained.plan.owner_user_id, source_revision: retained.plan.source_revision,
+    windows: retained.plan.windows };
+  expect(await restarted.freeze(input, prospectiveOwner, new Date("2026-11-30T00:00:00.000Z")))
+    .toMatchObject({ status: "already_frozen", receipt: retained });
+  expect((await restarted.freeze(prospectiveInput, prospectiveOwner, new Date(prospectiveFrozenAt))).status).toBe("conflicting");
+  for (const changed of [{ ...input, extra: "not an idempotent request" },
+    { ...input, source_revision: { ...input.source_revision, build_identity: input.source_revision.build_identity + " " } },
+    { ...input, source_revision: { ...input.source_revision, commit_ref: "c".repeat(40) } }]) {
+    expect((await restarted.freeze(changed, prospectiveOwner, new Date(prospectiveFrozenAt))).status).toBe("invalid_request");
+  }
+  expect((await createRelativePlanProspectiveStore({ ...database,
+    async read() { return { status: "not_found", receipt: null }; },
+  }).freeze(input, prospectiveOwner, new Date(prospectiveFrozenAt))).status).toBe("invalid_request");
+  expect(writes).toBe(0);
+  expect(JSON.stringify(retained)).toBe(original);
+});
 test("first-time retroactive requests and forged client owners do not write", async () => {
   const h = harness();
   expect((await h.store.freeze(prospectiveInput, prospectiveOwner, new Date("2026-10-05T13:30:00.000Z"))).status).toBe("invalid_request");
