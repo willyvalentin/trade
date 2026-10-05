@@ -2,6 +2,73 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Selected CLOSED IF-3 → IF-4 original relative-plan effect diagnosis — 2026-10-05:**
+Codex owns `codex/original-relative-plan-effect-oct5`, reusing the clean isolated
+checkout after completed composition acceptance `5eb3be8b`; freshly verified
+main is `55576078`. #732 remains the release-held primary and preceding local
+slices are complete/parked. Four-active-hour maximum read-only investigation,
+not a competing ranking hypothesis, new validator or another acceptance suite.
+
+Question: in the SAME actual packaged original-session SQL/SDK population, does
+the frozen relative-plan curve change scores, rank or diagnostic K=3 membership,
+and which original outcome/charter gaps prevent interpreting that change as
+quality? Observe all 26 decisions / 208 source members and the unchanged
+22-decision / 176-member enrolled denominator separately. Retain original order,
+missing/unassessed members, first-thirty rule, all plans, inputs, model and charter.
+Compare original arm identities, component penalties, ranked membership and
+available canonical outcomes without selecting a favorable or mature subset.
+
+Initial write ownership is only this selection/receipt and a read-only observer
+of the existing isolated harness. Make no product or fixture change merely to
+obtain contrast. A zero effect, incomplete charter or synthetic-only distinction
+is a useful bounded stop, never policy rejection/acceptance or market alpha.
+Only a separately reproduced implementation contradiction can select a smallest
+red/green correction. Stop after the diagnostic; no new cohort, model, schema,
+source, work ceiling, live policy, provider/prod/broker action, push or competing
+PR. Integration order remains #732 and then-current main.
+
+**Read-only mechanism diagnosis / bounded exit — 2026-10-05:** unchanged
+product `ee11a7de` completes the actual isolated packaged SQL/PostgREST/SDK
+source and ordinary 49 continuations / 192 distinct synthetic requests. All
+26 decisions / 208 source members remain; 176 are context-assessed and 32
+unassessed. The same 22 enrolled decisions / 176 members retain fingerprint
+`ff147ad25507e20b09d40cf7b8feef787d3497e0520c3e6958a9617b354b51c6`.
+
+Every enrolled member's plan component and aggregate score change, but **zero
+member ranks and zero K=3 membership/order decisions change**. Every original
+fixture member has the same relative range multiple `3.712871` and component
+penalty `17.850706`. This is a homogeneous synthetic information set, not an
+implementation contradiction or evidence that actual stocks have equal ranges.
+Do not modify those original inputs, their outcomes or the frozen curve merely
+to manufacture a ranking contrast or a favorable quality result.
+
+Both arms retain 66 expected top-K members, 54 resolved and 12 missing; aggregate
+precision/expectancy remain null. Whole-population canonical coverage remains
+144/176 with 32 missing. The unchanged charter reports known outcome-coverage,
+regime-, sector- and setup-concentration failures plus thirteen unavailable
+dimensions (including calibrated immutable model, thirty decisions, day/ticker
+diversity, paired uncertainty and required feasibility). These are synthetic
+measurement limitations/violations, not a production policy verdict or a reason
+to relax a charter. The full disposition stays `evidence_incomplete` and no
+terminal decision or quality lift is claimed.
+
+Stop the investigation without a product, fixture or policy change. This is
+`hypothesis_evidence`: the native source proves score propagation but cannot
+measure better stock selection or distinguish the arms' quality on this
+population. The decision-changing evidence still needs attributable varied
+decision-time source, a pre-forward committed training model and complete
+multi-day forward outcomes under the unchanged charter, after protected
+integration. No new ranker/cohort, transport/readiness stream or rerun of this
+same homogeneous source follows. Log:
+`/private/tmp/ture-original-relative-plan-effect-native-oct5.log`; read-only
+observer: `/private/tmp/ture-original-relative-plan-effect-inspect-oct5.mjs`.
+No provider/production/broker operation, push or release bypass occurred.
+All seventeen existing active-governance checks pass after this receipt in
+1.6 seconds; they overlap the completed combined acceptance and are not
+seventeen new unique engine checks. Diff checks pass; only this ledger changes
+relative to product `ee11a7de`, so no product build/type/lint rerun is warranted.
+Log: `/private/tmp/ture-original-relative-plan-effect-governance-oct5.log`.
+
 **Combined local intelligence acceptance locally complete — 2026-10-05:** Codex,
 `codex/original-intelligence-combined-oct5`, reuses the clean isolated checkout
 after factual overlap closeout `98d3c0d2`. Fresh remote main is still exactly
