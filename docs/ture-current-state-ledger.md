@@ -2,7 +2,76 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-05, recommendation intelligence first
 
-**Now — composed original-learning vertical against verified main, 2026-10-05:**
+**Now — original current-session clock admission, 2026-10-05:** Codex owns
+`codex/original-session-clock-admission-oct5`, isolated from the dirty user
+checkout and based on verified main `5d691f87167627e45e84220fd0276f91b7a45185`.
+One primary IF-2b -> IF-4 `quality_measurement` correction; no secondary queue.
+Budget at most four active hours. Two actual CLOSED regressions reproduce a
+current-source `captured_at` with future microseconds being normalized down to
+the original decision clock and accepted by NEW learning admission, even on an
+unselected eighth member with the old context digest. That is a point-in-time
+integrity defect, not a new ranking hypothesis or observed quality lift.
+
+Require the original producer's exact millisecond UTC encoding before parsing;
+do not normalize/rewrite the retained source, remove its member, refit a sealed
+model or change a model, charter, ranking or publication threshold. Verify raw
+capture, restarted context/owned original replay, rejection before NEW
+model/result storage, unchanged canonical valid/missing inputs and historical
+sealed capsules, affected full regressions, types/lint and exact build. The
+first two red regressions now pass locally. The affected four-file command
+completes with 106 passes (9.8m), including actual isolated SQL/SDK/owned HTTP;
+the final 31-test training-service file also passes (32.7s), including its new
+pre-storage rejection and valid 96-member positive control. Thirty cases overlap:
+the accepted distinct total is 107, not 137. NEW terminal storage rejects the
+hostile forward clock with zero result writes and all 72 runs/576 snapshots
+retained; NEW training rejects aliases before materialization and retains all
+96 original members. The new hostile writer cases use actual services/serializer
+with injected stores, not a production database. Historical sealed-capsule
+regressions remain green. Nonincremental types and full lint pass (zero errors,
+eight existing warnings). Exact locked build/protected release still pending.
+No provider, production configuration or broker action is selected.
+After the minimum accepted correction, return to current-session original
+input/outcome evidence and the frozen full-charter comparison.
+
+**Verified release exit — PR #733, 2026-10-05:** complete protected Ready run
+`37300077755` passes all six groups on `a794129fb06b09922aca7086f07629976104addb`.
+The whole registered 663-test intelligence command also completes locally in
+44.0m with actual native SQL/SDK/HTTP checks; previous permission/timeout
+attempts stay separately failed, not successful partial runs. Normal protected
+merge produces main `5d691f87167627e45e84220fd0276f91b7a45185` at 11:57:19Z.
+Main run `37306273467` matches candidate tree
+`62bb92cfe99f22dc3d50c2bba377c0b37f6da350`, both parents and unchanged workflow
+blob with zero mismatches. Automatic Git production deploy
+`6ac390a3078a57000702ca9b` publishes at 11:59:19.282Z on that exact main;
+no additional build is triggered.
+
+The exact reviewed capacity migration
+`20261004054424_if4_complete_original_archive_source_capacity.sql` (SHA256
+`2da941dbce38a35c29a5bc2b7be45b2c52769fd6d6bc24e4bfaeb7334d8439a3`)
+is applied normally to production `ekdyopdrrkphlrsilyoo`, recorded as
+`20261005120425_if4_complete_original_archive_source_capacity`.
+Actual PG 17.6 postflight at 12:04:33Z verifies the exact single decoded-source
+16 -> 32 MiB literal replacement (definition MD5
+`6b6ea12426c0db8246198a5f051d6cad`), unchanged function identity/owner/config/ACL,
+8 MiB stored limit, RLS, service-only RPC and immutable trigger. No rows are
+rewritten; comparison/model/result counts stay zero. Native receipt unit
+correction: v3 source is 21,105,117 bytes and v2 is 21,106,845 bytes, about
+20.13 MiB / 21.1 MB, not >21 MiB. Both preserve the complete original population
+and exceed the old 16 MiB limit. Historical synthetic terminal-model clocks do
+not prove pre-forward sealing.
+
+Authenticated provider-free production readback at 12:05:12.691Z verifies exact
+compiled revision/deploy, inert controls, no active reservation and truthful
+missing-freeze/model/result GETs. Original replay admission is verified, not an
+actual production archive replay. No observation is armed. Netlify release
+capacity is human-confirmed; today's actual Twelve Data account remainder is
+still unverified and must be checked before OPEN. Useful production training,
+an actual pre-forward model seal, full forward cohorts and baseline-relative
+quality remain unproven. The engine graduation gate remains `not_met`.
+
+### Retained pre-release evidence for the completed composition
+
+**Pre-release composition record, 2026-10-05:**
 Codex owns `codex/original-learning-main-integration-oct5`, isolated from the
 user's dirty checkout and based on main `39a2469a519539ae2c640f53aa6429ae2526280e`.
 The already locally accepted chain at `9db62128423611509a0bcb927c306b574783dca7`
@@ -35,7 +104,7 @@ accepted parked composition; no workflow or protected check was changed.
 The native training test uses actual database time and a separately committed
 pre-forward witness; the native terminal-result test instead deliberately uses
 a disclosed historical synthetic model-clock fixture. Complete original source
-exceeds 21 MiB without dropping any member; restarted storage/readback preserves
+exceeds 16 MiB without dropping any member; restarted storage/readback preserves
 it and 12 unrelated older decisions. The whole-session synthetic benchmark
 retains 176 enrolled members, 144 canonical outcomes and 32 explicitly missing
 labels. Its full charter remains incomplete/blocked, including coverage and

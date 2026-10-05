@@ -772,6 +772,20 @@ test("current session rejects gaps, future bars, metadata drift, mutations and m
   expect(await api.readCurrentSessionContext(context, "SYNTH", new Date("2026-10-01T20:00:00.000Z"))).toBeNull();
 });
 
+test("current source capture and restart reject future microseconds and noncanonical clock aliases", async () => {
+  const input = sessionReceipt(at);
+  const original = JSON.stringify(input);
+  const context = await api.captureCurrentSessionContext(input, "SYNTH", at);
+  expect(context).not.toBeNull();
+  for (const captured_at of ["2026-10-01T15:50:00.000001Z", "2026-09-31T15:50:00.000Z",
+    "2026-10-01 15:50:00.000Z", "2026-10-01T15:50:00Z", "2026-10-01T15:50:00.000+00:00"]) {
+    expect(await api.captureCurrentSessionContext({ ...input, captured_at }, "SYNTH", at)).toBeNull();
+    expect(await api.readCurrentSessionContext({ ...context, captured_at }, "SYNTH", at)).toBeNull();
+  }
+  expect(await api.readCurrentSessionContext(JSON.parse(JSON.stringify(context)), "SYNTH", at)).toEqual(context);
+  expect(JSON.stringify(input)).toBe(original);
+});
+
 test("fifteen-minute current context respects early close and leaves short lookbacks unknown", async () => {
   const now = new Date("2026-11-27T14:45:00.000Z");
   const context = await api.captureCurrentSessionContext(sessionReceipt(now, "15min"), "SYNTH", now);

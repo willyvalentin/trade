@@ -22,13 +22,14 @@ import { recommendationOutcomeEvaluationAnchorFromSnapshot } from "@/lib/recomme
 import { buildCanonicalOutcomeProviderCoverageReceipt } from "@/lib/recommendation-outcome-canonical-coverage";
 import { parseRecommendationLearningBaselineSource } from "@/lib/recommendation-learning-baseline-source";
 import { appendSyntheticOriginalArchives } from "../fixtures/original-input-archive-evidence";
+import type { buildScannerCurrentInputArchive } from "@/lib/server/scanner-current-input-archive";
 
 const now = new Date("2026-10-10T00:00:00.000Z");
 const pieces = Promise.all([5, 6, 7].flatMap(day => [0, 1, 2, 3].map(n =>
   prospectiveSource({ now: new Date(Date.UTC(2026, 9, day, 17, n * 5)) }))));
 type Dependencies = NonNullable<Parameters<typeof createRelativePlanTrainedProbabilityService>[0]>;
-async function harness() {
-  const source = structuredClone(await pieces), freeze = prospectiveReceipt();
+async function harness(originalSource?: Awaited<typeof pieces>) {
+  const source = structuredClone(originalSource ?? await pieces), freeze = prospectiveReceipt();
   const data: Record<"recommendation_scan_runs" | "recommendation_snapshots" | "recommendation_outcomes", Record<string, unknown>[]> = {
     recommendation_scan_runs: [], recommendation_snapshots: [], recommendation_outcomes: [] };
   // Capture the ACTUAL writer serialization, not already-decoded domain
@@ -109,6 +110,30 @@ test("new training cannot fit contradictory original inputs even on a non-top-th
   expect(h.calls).not.toContain("materialize");
   expect(h.calls).not.toContain("confirm");
   expect(JSON.stringify(h.data)).toBe(original);
+});
+
+test("NEW training rejects normalized original current clocks before model storage and keeps all original members", async () => {
+  const originalSource = await Promise.all([5, 6, 7].flatMap(day => [0, 1, 2, 3].map(n =>
+    prospectiveSource({ now: new Date(Date.UTC(2026, 9, day, 17, n * 5)), rankedCount: 8, originalInputs: true }))));
+  const h = await harness(originalSource);
+  const archive = (h.data.recommendation_scan_runs[0].payload_json as Record<string, unknown>)
+    .scanner_current_input_archive as NonNullable<ReturnType<typeof buildScannerCurrentInputArchive>>;
+  const canonical = archive.entries[7].current_context.captured_at, original = JSON.stringify(h.data);
+  for (const captured_at of [canonical.replace(".000Z", ".000001Z"), canonical.replace("Z", "+00:00")]) {
+    archive.entries[7].current_context.captured_at = captured_at;
+    const retained = JSON.stringify(h.data);
+    expect(await h.service.train(prospectiveOwner, {})).toMatchObject({ status: "unavailable", receipt: null,
+      blocker: "trained_probability_original_input_evidence_invalid" });
+    expect(h.calls).not.toContain("materialize"); expect(h.calls).not.toContain("confirm");
+    expect(JSON.stringify(h.data)).toBe(retained);
+  }
+  archive.entries[7].current_context.captured_at = canonical;
+  expect(JSON.stringify(h.data)).toBe(original);
+  expect(h.data.recommendation_scan_runs).toHaveLength(12);
+  expect(h.data.recommendation_snapshots).toHaveLength(96);
+  expect(h.data.recommendation_outcomes).toHaveLength(96);
+  expect(await h.service.train(prospectiveOwner, {})).toMatchObject({ status: "materialized", receipt: {
+    trained_model: { original_population_count: 96, canonical_outcome_count: 96 } } });
 });
 
 test("actual source parsing, fixed model, committed read and restarted command share one immutable receipt", async () => {

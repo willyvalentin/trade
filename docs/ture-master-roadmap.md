@@ -119,10 +119,12 @@ on main `39a2469a`, with the exact additive result migration applied and inert
 authenticated readback verified on 2026-10-05. The user-approved minimal private
 Next lint derivative removes the vulnerable dependency chain; the unchanged
 full audit passes without exclusions or a framework downgrade. This closes
-the release interruption, not the intelligence acceptance gate. Integrate and
-verify the already locally complete original-input/canonical-outcome/v3
-full-charter chain against that main, preserving every original population,
-immutable model/result and declared missingness. No actual forward
+the release interruption, not the intelligence acceptance gate. The composed
+original-input/canonical-outcome/v3 full-charter chain is now protected-CI
+accepted and inert production-integrated in PR #733 on main `5d691f87167627e45e84220fd0276f91b7a45185`;
+the exact independently bounded source-capacity migration is production-applied.
+Every original population, immutable model/result and declared missingness is
+preserved. The ledger holds exact release and behavior evidence. No actual forward
 cohort, context-triage qualification, policy promotion or quality lift is claimed.
 When those first two links pass their declared acceptance, return the primary
 delivery to the largest attributable recommendation-quality defect; do not
