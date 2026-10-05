@@ -72,6 +72,18 @@ macOS arm64, isolated local PostgreSQL/PostgREST and synthetic provider-boundary
 inputs. No real-market improvement, production release or live behavior of
 this correction is proven. Exact clean committed Linux build follows.
 
+**Exact build — 2026-10-05:** clean product/test revision
+`7d7aee124ea480002e5137716fd61e0afaf699c0` passes the normal Next 16.3.8
+Linux build on Node 22.23.1, after a locked public install, both native consumer
+checks and all 33 generated pages. Build network is disabled; no production
+credentials are mounted. Lock SHA256 remains
+`c126ba15634fffec241592d1316ea2e0bb9708886f865dc72f5fd30b2e084083`.
+Receipt: `/private/tmp/ture-original-plan-publication-exact-build-oct5-receipt.json`.
+This acceptance annotation changes documentation only; product/test/workflow
+bytes stay identical to the built commit. Protected CI, merge, deployed runtime
+and a newly frozen live original-plan observation remain pending. The old failed
+diagnostic remains failed. Do not arm or move any consumed observation card.
+
 The completed SQ→XYZ discovery secondary stays clean/local on `f0321631`,
 with 184 distinct checks and exact Linux build of product revision `2e7e514b`;
 no push/PR/release. Finish this measured primary defect before integrating
