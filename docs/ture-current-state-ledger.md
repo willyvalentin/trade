@@ -22,6 +22,41 @@ capacity migration remains unapplied pending its own reviewed acceptance.
 Do not arm a scan, change a threshold or use a reconstructed clock as a real
 pre-forward model witness. Original v2 contracts remain separate from v3.
 
+**Composed local acceptance — 2026-10-05:** product revision
+`43165c26b059b0936ebb2310ec52b94d0ec25cc5` passes all 275 selected checks:
+two actual isolated Postgres/PostgREST/SDK tests (10.5m), 91 discovery,
+canonical-outcome and publication regressions (6.6m), 90 training/result/clock
+service checks (4.3m), 27 presentation checks including real React rendering
+(3.8s), 16 CI-registration/governance checks (2.8s), and all 49 original-input,
+historical-replay and whole-session benchmark regressions (18.7m). No running
+test is counted as a pass. The source/runtime/schema/fixture bytes match the
+accepted parked composition; no workflow or protected check was changed.
+
+The native training test uses actual database time and a separately committed
+pre-forward witness; the native terminal-result test instead deliberately uses
+a disclosed historical synthetic model-clock fixture. Complete original source
+exceeds 21 MiB without dropping any member; restarted storage/readback preserves
+it and 12 unrelated older decisions. The whole-session synthetic benchmark
+retains 176 enrolled members, 144 canonical outcomes and 32 explicitly missing
+labels. Its full charter remains incomplete/blocked, including coverage and
+concentration: neither the simulation nor its negative result establishes live
+recommendation quality or policy acceptance.
+
+Nonincremental types pass; lint has zero errors/eight existing warnings; the
+unchanged full dependency audit reports zero vulnerabilities. Exact committed
+source passes the normal Linux Next 16.3.8 build on Node 22.23.1 after clean
+locked installation, with no build network or production credentials, including
+all 33 pages and two additional unchanged lint-derivative compatibility checks.
+Lock SHA256: `c126ba15634fffec241592d1316ea2e0bb9708886f865dc72f5fd30b2e084083`.
+Build log: `/private/tmp/ture-composed-original-learning-linux-build-oct5.log`;
+receipt: `/private/tmp/ture-composed-original-learning-linux-build-oct5-receipt.json`.
+This acceptance annotation changes documentation only. Protected CI, review,
+main/production integration, the capacity migration and actual production
+behavior remain pending separate verification; live-browser UI acceptance is
+also unavailable. Next action is one focused Ready PR, not another local helper
+or a new ranking hypothesis. No production/provider/broker action occurred in
+these local checks.
+
 **Next / OPEN:** prioritize the next eligible frozen current-session input and
 original-outcome observation after release/runtime, market-session, remaining
 provider-budget and scope checks. No observation is armed by this integration.
