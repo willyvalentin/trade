@@ -184,6 +184,7 @@ type ReceiptRun = Pick<
 >;
 
 const outcomeEvaluationRouteVersion = "outcome-evaluation-route-v1.3";
+const officialOutcomeAcquisitionOrderVersion = "official_missing_before_elapsed_partial_v1";
 const defaultOfficialLiveMaxBatchesPerRun = 5;
 // Page size, not permission to silently omit the rest of the day's sources.
 const officialLiveBatchDiscoveryLimit = 20;
@@ -1268,7 +1269,33 @@ function filterOfficialSnapshotsNeedingOutcomeEvaluation({
     selectedSnapshots.push(snapshot);
   }
 
-  return selectedSnapshots;
+  // Keep oldest-batch selection and every pending original identity. Within
+  // that selected batch, do not rebuy elapsed-but-incomplete canonical rows
+  // before members that have never been observed. Earlier-horizon/recovery
+  // work retains its existing priority and may still acquire complete labels.
+  const batchOrder = new Map([...selectedPendingBatches].map((fingerprint, index) => [fingerprint, index]));
+  const acquisitionPriority = (snapshot: RecommendationSnapshot) => {
+    let missing = false;
+    for (const horizon of horizons) {
+      const outcome = officialOutcomeBySnapshotAndHorizon(existingOutcomes, snapshot.snapshot_fingerprint, horizon);
+      if (!outcome) {
+        missing = true;
+        continue;
+      }
+      if (!isOfficialOutcomePending(outcome)) continue;
+      const coverage = outcome.payload_json.canonical_provider_coverage;
+      if (!hasIncompleteCanonicalOutcomeCoverage(outcome) || typeof coverage !== "object" || coverage === null ||
+        Array.isArray(coverage) || (coverage as Record<string, unknown>).horizon_elapsed !== true) return 0;
+    }
+    return missing ? 1 : 2;
+  };
+  const priorities = new Map(selectedSnapshots.map(snapshot => [snapshot.snapshot_fingerprint, acquisitionPriority(snapshot)]));
+  return selectedSnapshots.sort((first, second) => {
+    const firstBatch = snapshotBatchFingerprints[first.snapshot_fingerprint] ?? "unknown_batch";
+    const secondBatch = snapshotBatchFingerprints[second.snapshot_fingerprint] ?? "unknown_batch";
+    return batchOrder.get(firstBatch)! - batchOrder.get(secondBatch)! ||
+      priorities.get(first.snapshot_fingerprint)! - priorities.get(second.snapshot_fingerprint)!;
+  });
 }
 
 function buildSameDayOfficialBatchRevisitDiagnostics({
@@ -1349,6 +1376,7 @@ function buildSameDayOfficialBatchRevisitDiagnostics({
     ...base,
     max_batches_per_run: maxBatchesPerRun,
     max_snapshots_per_run: maxSnapshotsForRun,
+    selected_snapshot_acquisition_policy_version: officialOutcomeAcquisitionOrderVersion,
     batches_evaluated: batchesEvaluated,
     batches_skipped: batchesSkipped,
     oldest_pending_batch: oldestPendingBatch,

@@ -2,6 +2,37 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-04, recommendation intelligence first
 
+**Selected CLOSED IF-4 missing original outcome acquisition — 2026-10-05:**
+Codex owns `codex/original-outcome-missing-first-oct5`, isolated from freshly
+verified main `55576078` plus local composition `2eb4c1d2`. Primary #732 remains
+Draft/release-held. Four-active-hour recovery of the reproduced ordinary
+official outcome route: after one pass stores four partial canonical identities,
+the next pass spends its four-request cap on those same four and strands the
+other four original members. Baseline is unchanged `2eb4c1d2`; challenger changes
+only acquisition order within the already selected oldest pending batches.
+Only elapsed-but-incomplete canonical retries yield to never-observed members;
+early-horizon/recovery work retains its existing priority and exact identities.
+Keep every pending identity, oldest-batch selection, stable order among ties,
+owner isolation, original horizon, source fingerprint and four-request cap.
+Never recategorize incomplete canonical coverage as complete or zero backlog.
+Version and disclose missing-member-first acquisition in the existing readback;
+do not alter candidate ranking, confidence, publication or the frozen charter.
+Decision-changing metric: eight distinct original outcome identities reached
+after exactly two four-request passes, versus four repeated identities before,
+with unchanged zero canonical labels for the late regular-session case.
+Write ownership: existing official selector/readback, registered packaged proof
+and its existing tests, and this receipt. No schema, real provider, production,
+scheduler or broker changes. Acceptance: actual route red/green with persistent
+SQL across route/SDK restart and owner readback, no missing or repeated original
+identity in the two passes,
+unchanged legacy/complete/zero-budget and full-charter controls, affected tests,
+types, lint and exact build. Preserve the separately reproduced whole-session
+continuation failure as a next evidence gap; do not promise this within-batch
+correction solves it. Stop at the verified within-batch exit and select that
+next recovery separately if still reproduced. Integrate only after #732 and the
+completed composition against then-current main. Synthetic coverage is learning
+admission evidence, not better recommendations or release acceptance.
+
 **Selected CLOSED IF-2b original benchmark information-set admission — 2026-10-05:**
 Codex owns `codex/original-benchmark-information-set-oct5`, isolated from freshly
 verified main `55576078` plus locally completed composition `783adf70`.

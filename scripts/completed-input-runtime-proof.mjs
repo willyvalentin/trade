@@ -1298,12 +1298,17 @@ try {
           const body=await evaluated.json();
           assert.equal(evaluated.status,200,JSON.stringify(body));
           assert.equal(externalRequests-before,4);
-          assert.equal(body.eligible_snapshot_count,index===0?8:4);
+          // Partial canonical identities remain pending; they must not vanish
+          // from the population just because their early target/stop is known.
+          assert.equal(body.eligible_snapshot_count,lateOriginalOutcomes?8:index===0?8:4);
+          assert.equal(body.same_day_official_batch_revisit.selected_snapshot_acquisition_policy_version,
+            "official_missing_before_elapsed_partial_v1");
           assert.equal(body.batch_fingerprint,batch.batch_fingerprint);
           assert.equal(body.persistence_status,"success",body.persistence_error);
           const databaseRows=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_outcomes t;"));
           assert(databaseRows.every(row=>row.owner_user_id===owner && row.horizon==="60m"));
           passes.push({requests:externalRequests-before,selected_batch_fingerprint:body.batch_fingerprint,
+            acquisition_policy_version:body.same_day_official_batch_revisit.selected_snapshot_acquisition_policy_version,
             eligible_snapshot_count:body.eligible_snapshot_count,persisted_outcome_count:body.persisted_outcome_count,
             persistence_status:body.persistence_status,outcomes_created_count:body.outcomes_created_count,
             outcomes_updated_count:body.outcomes_updated_count,physical_database_rows:databaseRows.length,

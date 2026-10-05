@@ -369,10 +369,12 @@ test("late original complete inputs retain all eight partial outcomes without qu
   expect(late.outcome_passes).toMatchObject([
     { requests: 4, eligible_snapshot_count: 8, persisted_outcome_count: 4, physical_database_rows: 4,
       persistence_status: "success", outcomes_created_count: 4, outcomes_updated_count: 0 },
-    { requests: 4, eligible_snapshot_count: 4, persisted_outcome_count: 4, physical_database_rows: 8,
+    { requests: 4, eligible_snapshot_count: 8, persisted_outcome_count: 4, physical_database_rows: 8,
       persistence_status: "success", outcomes_created_count: 4, outcomes_updated_count: 0 },
   ]);
   expect(late.outcome_passes[1].selected_batch_fingerprint).toBe(late.outcome_passes[0].selected_batch_fingerprint);
+  expect(late.outcome_passes.every((pass: { acquisition_policy_version: string }) =>
+    pass.acquisition_policy_version === "official_missing_before_elapsed_partial_v1")).toBe(true);
   expect(late.outcome_passes.flatMap((pass: { requested_tickers: string[] }) => pass.requested_tickers).sort())
     .toEqual(late.original_members.map((row: { ticker: string }) => row.ticker).sort());
   expect(late.persisted_coverage).toHaveLength(8);
