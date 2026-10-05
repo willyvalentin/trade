@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { createRequire } from "node:module";
 import { build } from "esbuild";
+import type { ScannerCandidate } from "@/lib/scanner";
 
 import {
   bindScannerPlanReference,
@@ -16,6 +17,102 @@ const fallback = {
   reference_price_provider: "twelve_data",
   reference_price_read_path: "scanner_candidate.latest_close",
 };
+
+type PlanFields = { entry_low:number; entry_high:number; stop_loss:number;
+  target_1:number; target_2:number; risk_reward:number };
+type GeneratorPlanTestApi = {
+  buildDeterministicLearningRecommendations:(input:unknown)=>{
+    recommendations:(PlanFields & Record<string,unknown>)[]; skippedReasons:string[] };
+  sanitizeRecommendations:(recommendations:unknown[],candidates:unknown[],sessionType:string,
+    scanWindow:string,source:string,maxRecommendations:number,powerHourTrial:boolean)=>{
+      recommendations:(PlanFields & Record<string,unknown>)[]; skippedReasons:string[] };
+};
+let generatorPlanTestApi:Promise<GeneratorPlanTestApi> | undefined;
+function loadActualGeneratorPlanFunctions() {
+  return generatorPlanTestApi ??= (async () => {
+    // Export the actual private functions only from this in-memory test bundle.
+    // No replacement scanner, planner, sanitizer, SDK or persistence component.
+    const root=process.cwd();
+    const bundle=await build({stdin:{resolveDir:resolve(root,"lib"),loader:"ts",
+      contents:readFileSync(resolve(root,"lib/recommendation-generator.ts"),"utf8")+
+        "\nexport { buildDeterministicLearningRecommendations, sanitizeRecommendations };"},
+      absWorkingDir:root,bundle:true,write:false,platform:"node",format:"cjs",conditions:["react-server"]});
+    const loaded={exports:{}};
+    new Function("require","module","exports",bundle.outputFiles[0].text)(
+      createRequire(resolve(root,"package.json")),loaded,loaded.exports);
+    return loaded.exports as GeneratorPlanTestApi;
+  })();
+}
+function originalPlanCandidate():ScannerCandidate & Record<string,unknown> {
+  const price=236.8;
+  return { ticker:"NVDA",company_name:"Synthetic NVDA",sector:"Synthetic",
+    mock_current_price:price,mock_trend:"",mock_volume_context:"",mock_support:223.79,
+    mock_resistance:262.24,mock_news_context:"",latest_close:price,
+    scanner_input_policy_version:"completed_daily_intraday_input_v1",
+    proposed_entry_low:234.43,proposed_entry_high:239.17,proposed_stop_loss:223.79,
+    proposed_target_1:262.24,proposed_target_2:273.77,proposed_risk_reward:2.25,
+    intraday_indicators:{latestPrice:price,latestCandleTimestamp:new Date(Date.now()-120000).toISOString()},
+    intraday_indicator_source:"fresh",intraday_indicator_stale:false,
+    local_score:85,local_score_reasons:["Synthetic original support"],local_score_warnings:[],
+    local_score_breakdown:{trend:20,momentum:15,volume:10,riskReward:20,marketRegime:10,timing:10},
+    setup_type:"UNKNOWN",setup_type_label:"Unknown",setup_type_description:"Synthetic" } as unknown as ScannerCandidate & Record<string,unknown>;
+}
+function buildActualPlan(api:GeneratorPlanTestApi,candidate:ScannerCandidate) {
+  return api.buildDeterministicLearningRecommendations({candidates:[candidate],rankingSummary:{results:[]},
+    scanWindow:"midday_scan",source:"scheduled",maxRecommendations:1,powerHourTrial:false});
+}
+
+test("actual completed-input fallback retains the original support plan while legacy fallback stays percentage-based", async () => {
+  const api=await loadActualGeneratorPlanFunctions(), candidate=originalPlanCandidate();
+  const original=structuredClone(candidate);
+  const actual=buildActualPlan(api,candidate);
+  expect(actual.recommendations).toHaveLength(1);
+  expect(actual.recommendations[0]).toMatchObject({entry_low:234.43,entry_high:239.17,stop_loss:223.79,
+    target_1:262.24,target_2:273.77,risk_reward:2.25});
+  const legacy={...candidate,scanner_input_policy_version:undefined};
+  const old=buildActualPlan(api,legacy);
+  expect(old.recommendations[0]).toMatchObject({entry_low:234.43,entry_high:239.17,stop_loss:227.33,
+    target_1:256.93,target_2:265.81,risk_reward:2.25});
+  expect(candidate).toEqual(original);
+});
+
+test("actual publication sanitizer rejects every changed original plan field, including sub-cent aliases", async () => {
+  const api=await loadActualGeneratorPlanFunctions(),candidate=originalPlanCandidate();
+  const recommendation=buildActualPlan(api,candidate).recommendations[0];
+  const sanitize=(row:unknown,c=candidate)=>api.sanitizeRecommendations([row],[c],"midday","midday_scan","scheduled",1,false);
+  const accepted=sanitize(recommendation);
+  expect(accepted.recommendations).toHaveLength(1);
+  expect(accepted.recommendations[0].reason_to_avoid).toContain("completed_input_original_plan_binding_v1");
+  for(const field of ["entry_low","entry_high","stop_loss","target_1","target_2","risk_reward"] as const) {
+    for(const delta of [0.01,0.0001]) {
+      const rejected=sanitize({...recommendation,[field]:recommendation[field]+delta});
+      expect(rejected.recommendations,`${field} + ${delta}`).toEqual([]);
+      expect(rejected.skippedReasons[0]).toContain("original completed-input plan");
+    }
+  }
+  const original=structuredClone(candidate);
+  expect(sanitize({...recommendation,stop_loss:227.33,target_1:256.93,target_2:265.81},
+    {...candidate,scanner_input_policy_version:undefined}).recommendations).toHaveLength(1);
+  expect(candidate).toEqual(original);
+});
+
+test("actual completed-input fallback cannot invent absent plans or publish weak, invalid or stale original evidence", async () => {
+  const api=await loadActualGeneratorPlanFunctions(),candidate=originalPlanCandidate();
+  for(const field of ["proposed_entry_low","proposed_entry_high","proposed_stop_loss",
+    "proposed_target_1","proposed_target_2","proposed_risk_reward"]) {
+    for(const value of [undefined,null,NaN,Infinity,"223.79"]) {
+      expect(buildActualPlan(api,{...candidate,[field]:value}).recommendations,`${field}: ${value}`).toEqual([]);
+    }
+  }
+  for(const patch of [{proposed_stop_loss:235},{proposed_target_2:260},{proposed_risk_reward:1.49},
+    {intraday_indicator_stale:true},{intraday_indicators:{latestPrice:236.8}},
+    {intraday_indicators:{latestPrice:236.8,latestCandleTimestamp:new Date(Date.now()+1000).toISOString()}}]) {
+    expect(buildActualPlan(api,{...candidate,...patch} as ScannerCandidate).recommendations).toEqual([]);
+  }
+  const recommendation=buildActualPlan(api,candidate).recommendations[0];
+  expect(api.sanitizeRecommendations([recommendation],[{...candidate,intraday_indicator_stale:true}],
+    "midday","midday_scan","scheduled",1,false).recommendations).toEqual([]);
+});
 
 test.describe("scanner plan reference binding", () => {
   test("binds a fresh intraday price and its underlying market timestamp", () => {
