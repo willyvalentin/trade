@@ -14,6 +14,8 @@ Block's official Jan 9, 2025 issuer announcement and current investor-relations
 site identify NYSE `XYZ`, effective Jan 21, 2025. The current reference universe
 still selects `SQ` and omits `XYZ`. Reproduce that gap through the ordinary
 scheduled candidate selector, then change only this issuer's current lookup.
+Source: [Block's official ticker-change announcement](https://investors.block.xyz/investor-news/news-details/2025/Block-Announces-Ticker-Symbol-Change-to-XYZ-To-Report-Fourth-Quarter-Results/default.aspx),
+verified with its current investor-relations stock-info page on Oct 5.
 Keep population size, category/metadata, rotation, exact-symbol risk controls,
 all budgets and publication requirements. Retained `SQ` inputs, decisions,
 outcomes and sealed comparison evidence must not be rewritten or aliased.
@@ -29,7 +31,55 @@ push a competing release or freeze a prospective comparison on an interim
 revision. Stop at this correction and resume varied original decision-time
 input, pre-forward model and full-charter forward evidence.
 
-**Now — composed original-learning vertical against verified main, 2026-10-05:**
+**Completed local IF-2b Block-reference acceptance — 2026-10-05:**
+Product/test revision `a0b7508a857dde90f0f9f7b741034e2586b26dc1` changes one
+current issuer symbol, `SQ` -> `XYZ`, without aliases or historical data writes.
+The actual selector RED controls previously omitted `XYZ` and returned an
+empty exact-symbol allow selection. All **172 DISTINCT affected checks in
+18 existing registered files pass** (8.5m), including the three new current
+rotation, exact risk-filter and explicit historical-input controls. The retained
+reference pool remains 95 tradable names plus ten context-only instruments;
+ten capped ten-name batches cover all 95, including unchanged wrap duplicates.
+This fixes one eligible lookup, not market-wide discovery or a better ranker.
+
+The same run includes actual isolated Postgres/PostgREST/SDK and owned readback,
+original population/outcome resumption and provider-budget rejection. Provider
+boundaries are synthetic, not current-market or production evidence. The first
+full attempt had 24 Docker-permission failures and one incorrect new test
+assumption about unique wrap membership; those are not accepted partial passes.
+Correct permissions and the existing 95-name cadence, not a product/budget
+expansion, produce the complete green run. Nonincremental types and full lint
+pass (zero errors/eight existing warnings).
+
+The FIRST exact Linux build compiled/type-checked but exceeded the helper's
+unchanged 300-second bound during parallel native regression. The serial repeat
+passes on the SAME clean `a0b7508a`, Node 22.23.1 / Next 16.3.8, after locked
+installation, both native lint-consumer checks and all 33 pages; no increased
+deadline or changed build command. Lock SHA256 remains
+`c126ba15634fffec241592d1316ea2e0bb9708886f865dc72f5fd30b2e084083`.
+Receipt: `/private/tmp/ture-current-block-reference-exact-build-serial-oct5-receipt.json`;
+the failed first log is retained separately. Build network is disabled and no
+production credentials are mounted. Local regression/types/lint use Darwin
+Node 26.5.0; that is distinct from the locked Linux build environment.
+
+Stop this independent slice and park its clean local result. Primary #734 is
+still in protected CI; integrate only afterward against then-current main.
+No push, competing PR, merge/deploy, configuration/migration, real provider or
+broker action occurred. Current-provider support for `XYZ`, useful original
+inputs, prospective model sealing and full forward quality remain unverified.
+The existing Twelve Data balance question stays unresolved: a read-only account
+page redirects to login, not evidence of insufficient or adequate credits.
+Do not arm a scan or initialize a comparison on an interim release revision.
+This receipt supersedes the pre-release work selections retained below.
+After the receipt, all thirteen existing rotation/governance checks pass again
+(636ms); they overlap the 172-check acceptance and are not thirteen new checks.
+Final nonincremental types and full lint also pass on the settled product/tests
+(zero errors/eight unchanged warnings). Only this ledger changes after the
+exact built `a0b7508a`; no claim that the later documentation HEAD was rebuilt.
+
+### Retained pre-release selection for the completed composition
+
+**Pre-release primary — composed original-learning vertical, 2026-10-05:**
 Codex owns `codex/original-learning-main-integration-oct5`, isolated from the
 user's dirty checkout and based on main `39a2469a519539ae2c640f53aa6429ae2526280e`.
 The already locally accepted chain at `9db62128423611509a0bcb927c306b574783dca7`
