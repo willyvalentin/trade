@@ -70,6 +70,15 @@ the 97-credit preparation unexecuted and isolate this rights hold from the
 completed code/schema release. Do not edit rights evidence to manufacture
 admission or treat the meter's successful response as a license.
 
+**Authenticated evidence recovery — 2026-10-06 07:24Z:** current in-app and
+Chrome account navigation both redirect to Twelve Data's login page. The stale
+Chrome connection is replaced through supported browser discovery; the current
+connection works, but neither session is authenticated. No password/session
+store, credential, account setting or provider/meter API is read or changed.
+The Chrome login tab is retained for human handoff. Sign-in can permit reading
+existing account evidence; it does not itself supply the still-missing numeric
+retention/US-terms confirmation. No new history or OPEN follows from it.
+
 **Actual preserved-source arithmetic readback — 2026-10-06 07:13Z:** one
 owner-bound GET on new main/deploy replays the already retained Oct 5 run
 `rec_scan_run_of9yv0`. All eight original identities remain present. ASTS, NVDA
