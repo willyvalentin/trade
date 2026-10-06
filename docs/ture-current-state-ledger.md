@@ -2,6 +2,67 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-06, recommendation intelligence first
 
+**Local CLOSED completion — candle/event admission, Oct6 21:47Z:**
+Frozen product/test revision `7427114650713695e291ad7cf5ae075a8f7421d7` passes
+all128 affected cases in9 files serially in26.9m, plus4 distinct native Linux
+consumer/security checks:132 distinct cases, not repeated focused runs added
+to the denominator. Nonincremental types pass; full lint0 errors/8 unchanged
+warnings. Exact clean Linux Node22.23.1/Next16.3.8 build passes33 static pages,
+no network or production credentials, with unchanged complete locked public
+dependencies. Receipt:
+`/private/tmp/ture-new-candle-grid-exact-linux-build-oct6-receipt.json`.
+Both actual DB-clock NEW training and separate historical-model NEW terminal
+finalization reject lossily represented candle/event clocks before storage.
+Honest Date/epoch/offset/zero-fraction representations and original old golden
+metrics/fingerprints pass; all96 training/240/240 forward members and84 raw
+decisions/672 snapshots remain. Complete original v2/v3 archives over21MB fit
+the unchanged32MB decoded bound and restarted negotiated SDK/HTTP transport.
+Actual DB-clock training and historical synthetic model insertion remain
+separate evidence. Old sealed reads/retries stay byte-equivalent; no model
+refit, cohort reduction, threshold, global legacy coverage or decoder change.
+No push/PR/schema/production/provider/broker operation for this slice.
+Disposition `quality_measurement` locally complete; no real quality lift or
+graduation. Stop this minimum admission correction and retain release order.
+
+The preceding history correction now has normal Ready PR739 on `e0153c18`,
+protected run37532367431 attempt1 / merge candidate
+`e8c5de83f48b38bb953f2bf883f9c62e9bac36dd`, tree
+`503f9f168e71e5c699b834f968847aa4127ff497` identical to its frozen head, with
+both parents and exact new SQL SHA verified. Four groups are success at21:37Z;
+foundation/lossless/aggregate/provenance are still pending, not acceptance.
+One normal branch push; no rerun, merge or migration. Netlify's documented
+PR-title marker suppresses only an extra Deploy Preview; all protected GitHub
+checks remain unchanged. No matching preview deploy is created; no site
+configuration change. Existing ONE history-correction production-publication
+capacity is confirmed, but exact new SQL approval remains unanswered. Merge
+and production stay held for that separate approval. The app cannot attach
+PR739 because this chat exceeds100 attachment identities; preserve the actual
+PR URL, do not delete unrelated artifacts or modify GitHub to conceal it.
+Last verified production remains main `5e53047a` / deploy
+`6ac5516584f8ea00091d4f0b`; no new release is claimed.
+
+Next bounded CLOSED defect is reproduced on unchanged current-main context
+consumer/service modules in an actual isolated SQL/PostgREST/SDK NEW terminal
+command: original decision `2026-10-05T18:15:00.000Z` accepts raw regime
+capture `2026-10-05T18:15:00.000001Z` as complete evidence after legacy
+normalization. The immutable NEW result retains that exact future clock and
+reports evidence_complete=true where point-in-time coverage requires false.
+Its overall disposition remains reject, not a demonstrated policy acceptance
+or alpha. Complete30/30 decisions and240/240 original forward members remain;
+existing model is not refitted, consumer leaves source unchanged, disposable
+resources are cleaned and real provider/production/broker actions0. Receipt:
+`/private/tmp/ture-new-regime-context-clock-native-red-oct6.receipt.json`.
+Select the smallest NEW point-in-time context admission correction next after
+this local completion, with the existing exact raw-clock check, separate
+current-main branch, named owner/budget and unchanged legacy parser/old seals.
+No third active development slice or competing ranking hypothesis. Integration
+order remains history protected release/selected schema/inert readback, then
+this accepted candle/event slice, then independently accepted context work,
+each revalidated against actual main. No extra publication capacity is inferred.
+Goal active; graduation `not_met`. Future OPEN/source gates are unchanged.
+
+Historical selection, failures and preparation below remain retained evidence.
+
 **Current CLOSED primary — NEW retained candle grid admission, reconciled Oct6 21:08Z:**
 Direct human mandate is to continue useful CLOSED work while the market is
 closed. The preceding terminal-history correction is locally accepted on
