@@ -2,6 +2,91 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-06, recommendation intelligence first
 
+**Current CLOSED primary — NEW decision-time regime evidence, Oct6 21:49Z:**
+The direct human requests continued useful CLOSED work while the market is
+closed. The preceding candle/event correction is locally complete on
+`7427114650713695e291ad7cf5ae075a8f7421d7`, ledger-only head `262b07d6`:
+128 affected cases plus4 exact Linux native checks (132 distinct), types and
+lint pass. It is not pushed or production-integrated. The history correction
+is in Ready PR739 on `e0153c18`, protected run37532367431 attempt1/candidate
+`e8c5de83`; all six unchanged groups, required aggregate and exact candidate
+provenance are success in attempt1, verified22:08Z. Provenance artifact11447125605
+matches head/base/parents/tree503f9f16 and unchanged workflow f49297f2 exactly.
+Exact new SQL approval remains unanswered; only ONE history publication's
+existing quota is confirmed. No merge, migration or new production release.
+Last verified production is main `5e53047a` / deploy `6ac5516584f8ea00091d4f0b`.
+
+Select one bounded `quality_measurement` defect in the existing frozen
+relative-plan hypothesis's original point-in-time context, not a new ranker.
+Actual local SQL/PostgREST/SDK NEW terminal finalization on unchanged
+current-main context/service code counts original regime capture
+`2026-10-05T18:15:00.000001Z` as already known at decision
+`2026-10-05T18:15:00.000Z`, after the legacy parser truncates it. One immutable
+result retains the raw future clock and reports evidence_complete=true where
+point-in-time context coverage requires false. Overall disposition is reject,
+not actual policy acceptance or alpha. All30/30 original decisions and240/240
+forward members remain; no refit/source rewrite by the consumer. The disclosed
+historical synthetic model-clock fixture is not production or pre-forward model
+acceptance. Disposable SQL/API resources are cleaned and real provider,
+production and broker actions0. Receipt:
+`/private/tmp/ture-new-regime-context-clock-native-red-oct6.receipt.json`.
+
+Owner Codex in the existing isolated worktree on separate branch
+`codex/oct6-new-learning-regime-clock`, starting from freshly read-back exact
+main `5e53047a7b39d5bd4cbb87b55e9bcc0fd34dad8b`. Initial investigation at most4h,
+primary implementation/test/documentation slice4–16h. Scope only NEW command
+admission of contributing original run/snapshot regime clocks, reusing the
+existing exact raw-clock check. Validate complete fitted/forward original
+sources before NEW model/result storage; never filter a bad original member.
+Keep honest observed/offset clocks and absent legacy-context disclosure, old
+parser/observation semantics and immutable sealed reads/retries/fingerprints.
+No formula, rank, cohort, threshold, public route, SQL, dependency, provider,
+scheduler or broker change. The history slice owns its SQL/ACL contract.
+No third active development slice: the completed candle/event slice awaits
+integration, not continued implementation. Integration order is history
+protected release/approved exact schema/inert readback, candle/event acceptance
+against actual current main, then this context correction's own acceptance and
+fresh composition. No extra production-publication quota is inferred.
+Exit: reproduced NEW service and actual SQL/SDK negatives, honest positives,
+unchanged old goldens/seals, original missingness/populations, affected tests,
+nonincremental types/lint and exact Linux build. Then resume the earliest actual
+fresh-input/canonical-outcome/full-charter evidence link. Graduation `not_met`.
+No old OPEN/source card is resumed or armed; existing next-day gates remain.
+
+Historical selections, release and test evidence below remain unchanged.
+Initial local context evidence: both NEW-service regressions reproduce the
+microsecond-future escape before repair and now pass with the existing exact
+raw-clock guard at the NEW admission boundary. Honest offset training and
+unchanged sealed-model retries pass. The first absent-context positive fixture
+returned only a write acknowledgement while its read stayed not_found; the
+unchanged result store correctly rejected that uncommitted proof. Restore the
+fixture's committed readback, not a weaker product/store assertion. Keep this
+failed investigation separate from eventual full candidate acceptance.
+The first extended native pair retains a training failure: the attempted
+snapshot mutation used the ordinary first-writer-wins producer, which correctly
+ignored a duplicate and left the legacy context absent. The NEW guard therefore
+had no contributing snapshot context to reject. Terminal mode rejects the
+actual run-clock mutation, but its snapshot/offset mutation was not yet proven.
+Change only the disposable fixture method to exact owner/id-bound SDK payload
+UPDATE with independently read-back actual bytes, preserving production
+ignoreDuplicates semantics. Exercise run-only, snapshot-only and offset-both
+negatives, then restore every original row. No consumer assertion is weakened.
+The corrected actual SQL/SDK pair passes2/2 at22:09Z in4.1m: all three
+run-only/snapshot-only/offset-both faults use exact read-back fixture updates,
+actual NEW training rejects before model/confirmation storage, and actual
+terminal finalization rejects before result storage. Honest offset admission
+keeps240/240 forward members and sealed result read/retry bytes unchanged.
+This is focused local evidence, not full candidate acceptance. Add explicit
+retained offset-byte verification and a sealed fitted-source contradiction
+case before freezing the coherent full regression/build revision. The fitted-
+source case passes with all96 original training members unchanged, even though
+the mutable source lacks the contradiction. Explicit retained offset-byte
+assertion is included in the final native fixture. Nonincremental types pass;
+full lint0 errors/8 existing warnings. Freeze this coherent code/test revision
+for169 affected cases in12 files and a new exact Linux build with4 distinct
+native consumer/provenance checks. Full acceptance is still pending; focused
+reruns are not additional distinct cases.
+
 **Current primary release gate — PR738 corrected candidate, Oct6 18:58Z:**
 Code/test/schema/dependency revision
 `2f2528063005f68c845dc05505a110d05f9ef919` passes all120 distinct cases

@@ -50,6 +50,8 @@ let finalizedDecodedHttpBytes = null, finalizedTransportEncoding = null;
 let newResultRetainedCandlesVerified = false, sealedResultIgnoresMutableCandles = false;
 let newResultRetainedHorizonRVerified = false;
 let newResultRetainedFallbackHorizonRVerified = false;
+let newTrainingRegimeTimeVerified = false, newResultRegimeTimeVerified = false;
+let observedOffsetRegimeTimeVerified = false, sealedResultIgnoresMutableRegimeTime = false;
 let newTrainingSnapshotClocksVerified = false, newResultSnapshotClocksVerified = false;
 let sealedModelIgnoresMutableSnapshotClocks = false, sealedResultIgnoresMutableSnapshotClocks = false;
 let newTrainingRunClocksVerified = false, newResultRunClocksVerified = false;
@@ -249,6 +251,12 @@ try {
       .eq("owner_user_id", owner).eq("id", snapshot.id).select("id").single();
     assert.equal(response.error, null); assert.equal(response.data.id, snapshot.id);
   };
+  const replaceIsolatedSnapshotPayload = async snapshot => {
+    const response = await client.from("recommendation_snapshots").update({ payload_json: snapshot.payload_json })
+      .eq("owner_user_id", owner).eq("id", snapshot.id).select("id,payload_json").single();
+    assert.equal(response.error, null); assert.equal(response.data.id, snapshot.id);
+    assert.deepEqual(response.data.payload_json, snapshot.payload_json);
+  };
   const replaceIsolatedRunClocks = async (run, clocks) => {
     const response = await client.from("recommendation_scan_runs").update(clocks)
       .eq("owner_user_id", owner).eq("id", run.id).select("id").single();
@@ -352,6 +360,36 @@ try {
     const restored = readers.parseRecommendationLearningBaselineSource((await readers.readRecommendationLearningBaselineSource(owner)).data);
     assert.deepEqual(restored.outcomes.filter(row => row.id !== outcome.id), original.outcomes.filter(row => row.id !== outcome.id));
     newTrainingRetainedCoverageVerified = true;
+    const contextRun = original.scanRuns[0];
+    const contextSnapshots = original.snapshots.filter(row => row.scan_run_id === contextRun.run_fingerprint);
+    const decisionAt = contextRun.payload_json.candidate_decision_record.decision_timestamp;
+    assert(decisionAt.endsWith(".000Z"));
+    assert.equal(contextSnapshots.length, rankedCount);
+    for (const fault of ["run_future", "snapshot_future", "both_offset"]) {
+      const futureAt = decisionAt.replace(".000Z", fault === "both_offset" ? ".000001+00:00" : ".000001Z");
+      const context = { contract_version: "market_regime_decision_context_v1", classifier_version: "market_regime_v1",
+        regime: "risk_on", captured_at: fault === "snapshot_future" ? decisionAt : futureAt };
+      const badRun = structuredClone(contextRun);
+      Object.assign(badRun.payload_json, { market_regime: "risk_on", market_regime_context: context });
+      await replaceIsolatedRunPayload(badRun);
+      for (const snapshot of contextSnapshots) {
+        const bad = structuredClone(snapshot);
+        Object.assign(bad.payload_json, { market_regime: "risk_on", market_regime_context: {
+          ...context, captured_at: fault === "run_future" ? decisionAt : futureAt } });
+        await replaceIsolatedSnapshotPayload(bad);
+      }
+      const beforeContext = await readers.readRecommendationLearningBaselineSource(owner);
+      const rejectedContext = await readers.createRelativePlanTrainedProbabilityService().train(owner, {});
+      assert.equal(rejectedContext.status, "unavailable");
+      assert.equal(rejectedContext.blocker, "trained_probability_original_regime_context_clock_conflicting");
+      assert.equal(rejectedContext.receipt, null);
+      assert.deepEqual((await readers.readRecommendationLearningBaselineSource(owner)).data, beforeContext.data);
+      assert.equal(sql("select count(*) from public.relative_plan_trained_probability_models"), "0");
+      assert.equal(sql("select count(*) from public.relative_plan_trained_probability_confirmations"), "0");
+    }
+    await replaceIsolatedRunPayload(contextRun);
+    for (const snapshot of contextSnapshots) await replaceIsolatedSnapshotPayload(snapshot);
+    newTrainingRegimeTimeVerified = true;
   }
   const beforeTraining = Date.now();
   if (finalizedMode) {
@@ -740,6 +778,29 @@ try {
     newResultRetainedFallbackHorizonRVerified = true;
     assert.equal((await readers.persistRecommendationOutcome(validRetained, { supabaseClient: client, server: true })).status, "saved");
     newResultRetainedCandlesVerified = true;
+    const decisionAt = originalRun.payload_json.candidate_decision_record.decision_timestamp;
+    assert(decisionAt.endsWith(".000Z"));
+    for (const fault of ["run_future", "snapshot_future", "both_offset"]) {
+      const badRun = structuredClone(originalRun), badSnapshot = structuredClone(forwardSnapshot);
+      const futureAt = decisionAt.replace(".000Z", fault === "both_offset" ? ".000001+00:00" : ".000001Z");
+      badRun.payload_json.market_regime_context.captured_at = fault === "snapshot_future" ? decisionAt : futureAt;
+      badSnapshot.payload_json.market_regime_context.captured_at = fault === "run_future" ? decisionAt : futureAt;
+      await replaceIsolatedRunPayload(badRun);
+      await replaceIsolatedSnapshotPayload(badSnapshot);
+      const beforeContext = await readers.readRecommendationLearningBaselineSource(owner);
+      const rejectedContext = await readers.createRelativePlanCharterResultService().finalize(owner, {});
+      assert.equal(rejectedContext.status, "unavailable");
+      assert.equal(rejectedContext.blocker, "relative_plan_result_original_regime_context_clock_conflicting");
+      assert.equal(rejectedContext.receipt, null);
+      assert.deepEqual((await readers.readRecommendationLearningBaselineSource(owner)).data, beforeContext.data);
+      assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "0");
+    }
+    await replaceIsolatedRunPayload(originalRun);
+    const offsetSnapshot = structuredClone(forwardSnapshot);
+    offsetSnapshot.payload_json.market_regime_context.captured_at = new Date(Date.parse(decisionAt) + 120 * 60000)
+      .toISOString().replace(".000Z", ".000000+02:00");
+    await replaceIsolatedSnapshotPayload(offsetSnapshot);
+    newResultRegimeTimeVerified = true; observedOffsetRegimeTimeVerified = true;
     if (originalInputs) {
       const unsupported = await readers.createRelativePlanCharterResultService().finalize(owner, {});
       assert.equal(unsupported.status, "not_ready");
@@ -752,6 +813,10 @@ try {
     assert.equal(durable.status,"finalized",durable.blocker);
     assert.equal(durable.terminal_quality_decision.disposition,"reject");
     assert(durable.receipt.result.measurement.evidence_complete);
+    const retainedRegimeSource = readers.decodeRelativePlanRetainedSource(durable.receipt.result.retained_source);
+    assert(retainedRegimeSource);
+    assert.equal(retainedRegimeSource.snapshots.find(row => row.snapshot_fingerprint === forwardSnapshot.snapshot_fingerprint)
+      .payload_json.market_regime_context.captured_at, offsetSnapshot.payload_json.market_regime_context.captured_at);
     const contextDiagnostic = durable.terminal_quality_decision.context_diagnostic;
     assert(contextDiagnostic);
     assert.equal(contextDiagnostic.source.result_id, durable.receipt.result_id);
@@ -795,6 +860,19 @@ try {
     sealedResultIgnoresMutableSnapshotClocks = true;
     await replaceIsolatedRunClocks(originalRun, { created_at: originalRun.created_at, updated_at: originalRun.updated_at });
     sealedResultIgnoresMutableRunClocks = true;
+    const laterRunContext = structuredClone(originalRun), laterSnapshotContext = structuredClone(forwardSnapshot);
+    const laterContextAt = decisionAt.replace(".000Z", ".000001Z");
+    laterRunContext.payload_json.market_regime_context.captured_at = laterContextAt;
+    laterSnapshotContext.payload_json.market_regime_context.captured_at = laterContextAt;
+    await replaceIsolatedRunPayload(laterRunContext);
+    await replaceIsolatedSnapshotPayload(laterSnapshotContext);
+    assert.deepEqual((await readers.createRelativePlanCharterResultService().read(owner)).receipt, durable.receipt);
+    const contextRetry = await readers.createRelativePlanCharterResultService().finalize(owner, {});
+    assert.equal(contextRetry.status, "already_finalized"); assert.deepEqual(contextRetry.receipt, durable.receipt);
+    assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "1");
+    await replaceIsolatedRunPayload(originalRun);
+    await replaceIsolatedSnapshotPayload(forwardSnapshot);
+    sealedResultIgnoresMutableRegimeTime = true;
     assert.equal((await readers.persistRecommendationOutcome(conflictingRetained, { supabaseClient: client, server: true })).status, "saved");
     assert.deepEqual((await readers.createRelativePlanCharterResultService().read(owner)).receipt, durable.receipt);
     const repeatCandles = await readers.createRelativePlanCharterResultService().finalize(owner, {});
@@ -946,6 +1024,10 @@ try {
     sealed_model_ignores_later_mutable_original_inputs: sealedModelIgnoresMutableInputs,
     sealed_result_ignores_later_mutable_original_inputs: sealedResultIgnoresMutableInputs,
     new_result_rejects_contradictory_retained_forward_candles_before_storage: newResultRetainedCandlesVerified,
+    new_training_rejects_future_original_regime_context_before_storage: newTrainingRegimeTimeVerified,
+    new_result_rejects_future_original_regime_context_before_storage: newResultRegimeTimeVerified,
+    valid_observed_offset_regime_context_keeps_original_population: observedOffsetRegimeTimeVerified,
+    sealed_result_ignores_later_mutable_regime_context: sealedResultIgnoresMutableRegimeTime,
     new_result_rejects_contradictory_retained_horizon_r_before_storage: newResultRetainedHorizonRVerified,
     new_result_rejects_contradictory_retained_fallback_horizon_r_before_storage: newResultRetainedFallbackHorizonRVerified,
     valid_retained_forward_candles_keep_complete_result_population: newResultRetainedCandlesVerified,

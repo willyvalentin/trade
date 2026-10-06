@@ -88,6 +88,50 @@ async function harness(originalSource?: Awaited<typeof pieces>) {
     interruptConfirmation: () => { confirmed = false; } };
 }
 
+test("NEW training cannot retain regime context captured after its original decision", async () => {
+  for (const suffix of [".000001Z", ".000001+00:00"] as const) {
+    const h = await harness(), run = h.data.recommendation_scan_runs[0];
+    const payload = run.payload_json as Record<string, unknown>;
+    const decision = payload.candidate_decision_record as { decision_timestamp: string };
+    const context = { contract_version: "market_regime_decision_context_v1", classifier_version: "market_regime_v1",
+      regime: "risk_on", captured_at: decision.decision_timestamp.replace(".000Z", suffix) };
+    Object.assign(payload, { market_regime: "risk_on", market_regime_context: context });
+    for (const snapshot of h.data.recommendation_snapshots.filter(row => row.scan_run_id === run.run_fingerprint)) {
+      Object.assign(snapshot.payload_json as object, { market_regime: "risk_on", market_regime_context: context });
+    }
+    const before = JSON.stringify(h.data), result = await h.service.train(prospectiveOwner, {});
+    expect({ status: result.status, blocker: result.blocker, hasReceipt: result.receipt !== null }).toEqual({
+      status: "unavailable", hasReceipt: false, blocker: "trained_probability_original_regime_context_clock_conflicting" });
+    expect(h.calls).not.toContain("materialize"); expect(h.calls).not.toContain("confirm");
+    expect(h.data.recommendation_snapshots).toHaveLength(48); expect(JSON.stringify(h.data)).toBe(before);
+  }
+});
+
+test("NEW training preserves observed regime offsets and sealed retries ignore later mutable context", async () => {
+  const h = await harness(), run = h.data.recommendation_scan_runs[0];
+  const payload = run.payload_json as Record<string, unknown>;
+  const decision = payload.candidate_decision_record as { decision_timestamp: string };
+  const rawAt = new Date(Date.parse(decision.decision_timestamp) + 120 * 60000).toISOString().replace(".000Z", ".000000+02:00");
+  const context = { contract_version: "market_regime_decision_context_v1", classifier_version: "market_regime_v1",
+    regime: "risk_on", captured_at: rawAt };
+  Object.assign(payload, { market_regime: "risk_on", market_regime_context: context });
+  const snapshots = h.data.recommendation_snapshots.filter(row => row.scan_run_id === run.run_fingerprint);
+  for (const snapshot of snapshots) Object.assign(snapshot.payload_json as object, {
+    market_regime: "risk_on", market_regime_context: { ...context, captured_at: decision.decision_timestamp } });
+  const before = JSON.stringify(h.data), result = await h.service.train(prospectiveOwner, {});
+  expect(result.status).toBe("materialized");
+  expect(result.receipt?.trained_model.original_population_count).toBe(48);
+  expect(JSON.stringify(h.data)).toBe(before);
+  const retained = JSON.stringify(result.receipt);
+  context.captured_at = decision.decision_timestamp.replace(".000Z", ".000001Z");
+  const restart = createRelativePlanTrainedProbabilityService({ ...h.dependencies,
+    readSource: async () => { throw new Error("sealed_model_must_not_read_mutable_regime"); } });
+  expect((await restart.read(prospectiveOwner)).receipt).toEqual(result.receipt);
+  expect(await restart.train(prospectiveOwner, {})).toMatchObject({ status: "already_materialized", receipt: result.receipt });
+  expect(JSON.stringify(result.receipt)).toBe(retained);
+  expect(h.calls.filter(call => call === "materialize")).toHaveLength(1);
+});
+
 test("only an empty fixed-purpose request can start server-owned training", async () => {
   const h = await harness();
   for (const body of [null, [], { owner_user_id: prospectiveOwner }, { model: {} }, { now: now.toISOString() },
