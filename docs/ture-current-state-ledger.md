@@ -2,7 +2,39 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-05, recommendation intelligence first
 
-**Current PR #736 audit interruption — 2026-10-06 05:18Z:** the normal
+**Current PR #736 security successor locally accepted — 2026-10-06 05:35Z:**
+source `181f2979e711e72b4d5010873aa03dac4991e9df` closes the exact source-map
+audit interruption locally. Both fresh credential-free macOS/Linux `npm ci`
+installs are verified against the new complete lock; only the source-map-js
+1.2.1 -> 1.2.2 leaf changed. The old shared dependency tree remains untouched;
+only this isolated worktree's dependency symlink points to its fresh Mac cache.
+Full and production audits pass with zero findings and no exclusions. All seven
+registered security-file tests pass, including fourteen invalid/nested indexed
+offset rejections and unchanged benign source behavior. The initial new benign
+fixture failure is retained: independent old/patched consumers agree that its
+indexed position query needs the original column convention and complete source
+content. The fixture was corrected to assert both original query positions;
+no negative assertion, existing test or deadline was relaxed.
+
+Fresh prepared-context/legacy/owner/clock/current-reference subset passes 29/29
+in four files (1.0m), separately from the seven security tests. Nonincremental
+types pass. Full lint before the benign-only fixture correction has zero
+errors/eight old warnings; final affected lint is clean. The exact committed
+Linux Node 22.23.1/Next 16.3.8 build then passes all 33 pages, the two unchanged
+native Next consumers and the additional source-map consumer. Build network is
+none and no production credentials enter. New lock SHA256 remains
+`4c13acaedeb8cde211e6a6c5f1ec04dc52201f6067a0c3838ca76b0e871a740a`.
+Receipt: `/private/tmp/ture-pr736-source-map-security-exact-build-oct6-receipt.json`.
+This is local acceptance, not protected CI or production. The final annotation
+is ledger-only; perform one normal successor push in the same Ready PR and
+require fresh complete protected candidate CI/provenance before merge/deploy.
+Do not reuse the old failed foundation or e5/D7 old-lock build. Preserve its
+historic failure, all original populations/charter, no new OPEN and the already
+verified one-time compatibility migration. After release, resume the selected
+real-source input-fitness/source-to-learning question; quality stays `not_met`.
+
+**Historical PR #736 audit interruption — 2026-10-06 05:18Z
+(superseded by the locally accepted successor above):** the normal
 foundation job `112119857201` in run `37417665169` attempt 1 fails its unchanged
 production dependency audit, not a recommendation assertion or runner allocation.
 Local `npm audit --omit=dev --audit-level=high --json` reproduces exactly one
