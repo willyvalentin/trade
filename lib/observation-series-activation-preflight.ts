@@ -6,15 +6,16 @@ import type { ObservationSeriesControl } from "@/lib/observation-series-control"
 import { buildProviderPlanProfile } from "@/lib/provider-plan-profile";
 
 export const OBSERVATION_SERIES_ACTIVATION_PREFLIGHT_VERSION =
-  "observation_series_activation_preflight_v1" as const;
+  "observation_series_activation_preflight_v2" as const;
+const LEGACY_PREFLIGHT_VERSION = "observation_series_activation_preflight_v1" as const;
 export const OBSERVATION_SERIES_ACTIVATION_MANIFEST_VERSION =
   "observation_series_activation_manifest_v1" as const;
 export const OBSERVATION_SERIES_ACTIVATION_MANIFEST_TTL_MS = 5 * 60_000;
 export const observationSeriesActivationPreflightRpcName =
-  "read_basic_free_observation_series_preflight_v1" as const;
+  "read_basic_free_observation_series_preflight_v2" as const;
 
 type ObservationSeriesActivationPreflightSnapshot = Readonly<{
-  preflight_version: typeof OBSERVATION_SERIES_ACTIVATION_PREFLIGHT_VERSION;
+  preflight_version: typeof OBSERVATION_SERIES_ACTIVATION_PREFLIGHT_VERSION | typeof LEGACY_PREFLIGHT_VERSION;
   trading_date: string;
   starts_at_utc: string;
   expires_at_utc: string;
@@ -27,6 +28,10 @@ type ObservationSeriesActivationPreflightSnapshot = Readonly<{
   normal_scan_reserved_credits: number;
   catalog_observation_reservation_count: number;
   catalog_observation_reserved_credits: number;
+  completed_history_reservation_count: number;
+  completed_history_reserved_credits: number;
+  unclassified_reservation_count: number;
+  unclassified_reserved_credits: number;
   active_reservation_count: number;
   active_reserved_credits: number;
   terminal_reservation_count: number;
@@ -166,6 +171,14 @@ export function observationSeriesActivationPreflightReadbackFromUnknown(
   control: ObservationSeriesControl,
 ): ObservationSeriesActivationPreflightReadback {
   const row = objectOrNull(value);
+  const version = row?.preflight_version === OBSERVATION_SERIES_ACTIVATION_PREFLIGHT_VERSION
+    ? OBSERVATION_SERIES_ACTIVATION_PREFLIGHT_VERSION
+    : row?.preflight_version === LEGACY_PREFLIGHT_VERSION ? LEGACY_PREFLIGHT_VERSION : null;
+  // Legacy aggregates remain valid only under their original strict scan
+  // equation. They cannot supply/forge the new history partition.
+  const classifiedCount = (name: string) => version === LEGACY_PREFLIGHT_VERSION
+    ? row?.[name] === undefined ? 0 : null
+    : nonNegativeInteger(row?.[name]);
   const tradingDate = exactDate(row?.trading_date);
   const startsAtUtc = exactQuarterHour(row?.starts_at_utc);
   const expiresAtUtc = exactQuarterHour(row?.expires_at_utc);
@@ -189,6 +202,10 @@ export function observationSeriesActivationPreflightReadbackFromUnknown(
     catalog_observation_reserved_credits: nonNegativeInteger(
       row?.catalog_observation_reserved_credits,
     ),
+    completed_history_reservation_count: classifiedCount("completed_history_reservation_count"),
+    completed_history_reserved_credits: classifiedCount("completed_history_reserved_credits"),
+    unclassified_reservation_count: classifiedCount("unclassified_reservation_count"),
+    unclassified_reserved_credits: classifiedCount("unclassified_reserved_credits"),
     active_reservation_count: nonNegativeInteger(row?.active_reservation_count),
     active_reserved_credits: nonNegativeInteger(row?.active_reserved_credits),
     terminal_reservation_count: nonNegativeInteger(
@@ -250,7 +267,7 @@ export function observationSeriesActivationPreflightReadbackFromUnknown(
       : null;
 
   if (
-    row?.preflight_version !== OBSERVATION_SERIES_ACTIVATION_PREFLIGHT_VERSION ||
+    version === null ||
     control.status !== "ready" ||
     !control.trading_date ||
     !control.starts_at_utc ||
@@ -272,10 +289,12 @@ export function observationSeriesActivationPreflightReadbackFromUnknown(
     totalCredits === null ||
     totalCredits > BASIC_FREE_DISCOVERY_MAX_DAILY_CREDITS ||
     integerFields.normal_scan_reservation_count! +
-      integerFields.catalog_observation_reservation_count! !==
+      integerFields.catalog_observation_reservation_count! +
+      integerFields.completed_history_reservation_count! + integerFields.unclassified_reservation_count! !==
       totalReservations ||
     integerFields.normal_scan_reserved_credits! +
-      integerFields.catalog_observation_reserved_credits! !==
+      integerFields.catalog_observation_reserved_credits! +
+      integerFields.completed_history_reserved_credits! + integerFields.unclassified_reserved_credits! !==
       totalCredits ||
     integerFields.active_reservation_count! +
       integerFields.terminal_reservation_count! !==
@@ -288,6 +307,8 @@ export function observationSeriesActivationPreflightReadbackFromUnknown(
         BASIC_FREE_DISCOVERY_MAX_PER_MINUTE_CREDITS ||
     integerFields.catalog_observation_reserved_credits !==
       integerFields.catalog_observation_reservation_count ||
+    integerFields.completed_history_reserved_credits !== integerFields.completed_history_reservation_count ||
+    integerFields.unclassified_reservation_count !== 0 || integerFields.unclassified_reserved_credits !== 0 ||
     integerFields.window_reservation_count! > totalReservations! ||
     integerFields.window_reserved_credits! > totalCredits ||
     integerFields.window_distinct_attempt_slot_count! >
@@ -318,6 +339,10 @@ export function observationSeriesActivationPreflightReadbackFromUnknown(
       integerFields.catalog_observation_reservation_count!,
     catalog_observation_reserved_credits:
       integerFields.catalog_observation_reserved_credits!,
+    completed_history_reservation_count: integerFields.completed_history_reservation_count!,
+    completed_history_reserved_credits: integerFields.completed_history_reserved_credits!,
+    unclassified_reservation_count: integerFields.unclassified_reservation_count!,
+    unclassified_reserved_credits: integerFields.unclassified_reserved_credits!,
     active_reservation_count: integerFields.active_reservation_count!,
     active_reserved_credits: integerFields.active_reserved_credits!,
     terminal_reservation_count: integerFields.terminal_reservation_count!,
@@ -341,7 +366,7 @@ export function observationSeriesActivationPreflightReadbackFromUnknown(
   return Object.freeze({
     status: "available" as const,
     snapshot: Object.freeze({
-      preflight_version: OBSERVATION_SERIES_ACTIVATION_PREFLIGHT_VERSION,
+      preflight_version: version,
       trading_date: tradingDate,
       starts_at_utc: startsAtUtc,
       expires_at_utc: expiresAtUtc,

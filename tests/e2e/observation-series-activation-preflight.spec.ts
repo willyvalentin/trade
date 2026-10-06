@@ -5,6 +5,7 @@ import { pathToFileURL } from "node:url";
 
 import { expect, test } from "@playwright/test";
 import { buildSync } from "esbuild";
+import { execFileSync } from "node:child_process";
 
 const migrationPath =
   "supabase/migrations/20260926163715_a2_observation_series_activation_preflight.sql";
@@ -147,6 +148,49 @@ test("series activation preflight admits one coherent empty window", async () =>
   } finally {
     runtime.dispose();
   }
+});
+
+test("series preflight keeps eight real one-credit history claims charged without treating them as eight scans", async () => {
+  const runtime = await loadRuntime();
+  try {
+    const paid = {
+      ...validSnapshot(),
+      total_reservation_count: 8, total_reserved_credits: 8,
+      terminal_reservation_count: 8, terminal_reserved_credits: 8,
+      minimum_declared_daily_credit_budget: 800, maximum_declared_daily_credit_budget: 800,
+      minimum_declared_per_minute_credit_budget: 8, maximum_declared_per_minute_credit_budget: 8,
+    };
+    // The actual predecessor SQL classifies these as normal scans; its strict
+    // scan equation must remain rejected, not be weakened to admit one credit.
+    expect(runtime.observationSeriesActivationPreflightReadbackFromUnknown({
+      ...paid, normal_scan_reservation_count: 8, normal_scan_reserved_credits: 8,
+    }, control)).toMatchObject({ status: "unavailable" });
+    const classified = {
+      ...paid, preflight_version: "observation_series_activation_preflight_v2",
+      completed_history_reservation_count: 8, completed_history_reserved_credits: 8,
+      unclassified_reservation_count: 0, unclassified_reserved_credits: 0,
+    };
+    const readback = runtime.observationSeriesActivationPreflightReadbackFromUnknown(classified, control);
+    expect(readback).toMatchObject({ status: "available", snapshot: {
+      total_reserved_credits: 8, normal_scan_reservation_count: 0,
+      completed_history_reservation_count: 8, completed_history_reserved_credits: 8,
+    } });
+    expect(runtime.evaluateObservationSeriesActivationDatabasePreflight(readback)).toMatchObject({ status: "ready" });
+    for (const change of [
+      { completed_history_reserved_credits: 7 },
+      { completed_history_reservation_count: 7 },
+      { completed_history_reservation_count: undefined },
+      { unclassified_reservation_count: 1, unclassified_reserved_credits: 1 },
+      { normal_scan_reservation_count: 8, normal_scan_reserved_credits: 8, completed_history_reservation_count: 0, completed_history_reserved_credits: 0 },
+    ]) expect(runtime.observationSeriesActivationPreflightReadbackFromUnknown({ ...classified, ...change }, control))
+      .toMatchObject({ status: "unavailable" });
+    expect(runtime.evaluateObservationSeriesActivationDatabasePreflight(
+      runtime.observationSeriesActivationPreflightReadbackFromUnknown({
+        ...classified, terminal_reservation_count: 7, terminal_reserved_credits: 7,
+        active_reservation_count: 1, active_reserved_credits: 1,
+      }, control),
+    )).toMatchObject({ status: "blocked", reason_codes: expect.arrayContaining(["active_basic_free_reservation_exists"]) });
+  } finally { runtime.dispose(); }
 });
 
 test("series activation preflight blocks overlap, unresolved lineage, and insufficient whole-series budget", async () => {
@@ -468,4 +512,21 @@ test("SQL and authenticated GET route preserve aggregate-only authority", () => 
   expect(route).toContain("observationSeriesActivationBuildIdentityFromUnknown");
   expect(adapter).toContain("observationSeriesActivationPreflightRpcName");
   expect(adapter).not.toContain(".from(");
+});
+
+test("history preflight upgrade preserves real PostgreSQL rows, predecessor ACLs and restarted SDK HTTP guards", () => {
+  test.setTimeout(120000);
+  const output = execFileSync(process.execPath, ["scripts/history-credit-preflight-runtime-proof.mjs"],
+    { cwd: process.cwd(), encoding: "utf8", timeout: 110000 });
+  const receipt = JSON.parse(output.trim().split("\n").at(-1)!);
+  expect(receipt).toMatchObject({ status: "pass", environment: "isolated_postgres_postgrest_actual_sdk_http",
+    predecessor_misclassification_reproduced: true, eight_history_credits_remain_charged: true,
+    strict_scan_and_catalog_costs_preserved: true, unknown_owner_date_namespace_symbols_rejected: true,
+    mixed_failed_scan_charges_preserved: true, daily_800_active_target_window_guards_preserved: true,
+    predecessor_bodies_oids_acls_preserved: true, existing_rows_preserved: true,
+    empty_search_path_service_only_acl_verified: true, anonymous_authenticated_and_direct_table_denied: true,
+    installed_sdk_and_restarted_http_readback_verified: true, local_additive_rollback_reapply_verified: true,
+    server_adapters_reject_legacy_transport_without_rpc_fallback: true,
+    exact_predecessor_facts_and_unresolved_duplicate_unattributed_attempt_guards_preserved: true,
+    external_requests: 0, production_provider_scan_activation_broker_actions: 0 });
 });

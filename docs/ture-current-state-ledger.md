@@ -1,8 +1,318 @@
 # Ture Current-State Ledger
 
-## Active Now / Next / Blocked — reconciled 2026-10-05, recommendation intelligence first
+## Active Now / Next / Blocked — reconciled 2026-10-06, recommendation intelligence first
 
-**Current PR #736 security successor locally accepted — 2026-10-06 05:35Z:**
+**Selected additive preflight correction — final local acceptance, 2026-10-06
+09:53Z; protected release and exact migration approval still pending:** exact source migration
+`20261006090639_history_credit_preflight_compatibility.sql`, name
+`history_credit_preflight_compatibility`, SHA256
+`6a213e2febc0b699d3549012d73e9f1e8674f381223e17f0df977c53a308a7fa`
+adds only `read_basic_free_scheduled_scan_preflight_v3` and
+`read_basic_free_observation_series_preflight_v2`. Each wraps its unmodified
+predecessor in one SQL-STABLE snapshot and partitions exact owner/day claims
+into eight-credit scan, one-credit catalog, one-credit owner/date/namespace-
+bound history and explicit unclassified work. Unknown work stays charged and
+fails closed; the server requires the new exact RPC/version and has no legacy
+fallback or direct-table grant. Old pure snapshots keep their original strict
+equations and cannot forge the new partition. Empty search path, postgres
+owner and service-only execution apply only to the two new routines.
+
+Two new pure regressions first failed on the original code, then the complete
+two-file pure suite passed 12/12. A separate real disposable PostgreSQL,
+PostgREST and installed-SDK HTTP proof passes old/new bodies/OIDs/ACL and full
+row preservation, eight paid histories without refunds, owner/date/namespace/
+symbol negatives, exact 800/8 costs, active/slot/window denial, unresolved/
+duplicate/unattributed attempts, restart and local additive rollback/reapply.
+A coherent empty legacy HTTP response is rejected without a fallback RPC.
+The initial harness HTTP restart failed because Docker changed its ephemeral
+loopback port; the harness now reads the exact restarted mapping, with no
+product/assertion/deadline relaxation. An earlier Next webserver sandbox bind
+failed before assertions; the existing provider-free static mode was used.
+Fresh nonincremental types pass on final code/test revision
+`01aef7614ae8aba3cca745c02d7bfdd7e12083c8`; full lint has zero errors/eight
+existing warnings. The 171-test affected suite first finishes with 170 passed
+and one unchanged 95-second child timeout in 29.6m. That exact whole-session
+case then passes serially in 1.7m, with the same three arms, assertions and
+95-second child/300-second test limits. Its original trace/error context is
+retained in `/private/tmp/ture-history-preflight-timeout-evidence-6rQgrc`.
+Reduced-load success is evidence, not a proven causal attribution or a claim
+that the first broad run was green. All 171 distinct affected cases have now
+passed; a further final two-file 13/13 run repeats the current SQL/SDK/default-
+ACL/restarted-HTTP proof in 17.4s and is not added as thirteen new cases.
+No previous PR #736 build/CI result is reused as acceptance for this source.
+
+Read-only production catalog at 09:19:04.192225Z verifies inspection role
+postgres, PostgreSQL 17.6, predecessor one-slot OID 76939/body MD5
+`9537289eb2cb772ff23648d745334ad0` and series OID 76973/body MD5
+`78b566f2d9b0cbf49073da3fb0af5655`, both byte-matching tracked source,
+SQL-STABLE/security-definer and existing postgres/service-only ACLs. New
+routines/history are absent; all reservation rows 35, today's count/credits
+8/8, active count zero, cache rows 72 and waiting relevant locks zero. These
+are read-only preparation, not approval; revalidate before any dispatch.
+At 09:32:07.316243Z the existing owner/day index and actual public function
+default ACL are read: postgres/anon/authenticated/service-role EXECUTE, no
+other default grantee. The isolated fixture now reproduces those explicit
+grants; the unchanged migration's revoke/service-only SDK/HTTP negatives pass
+again. Expected new body MD5s are one-slot
+`5ba272a81be6323290067ba9957f470a` and series
+`39b57e9dd1444fcee31ddbdaa1d8bae4`.
+
+The exact clean Linux Node 22.23.1/Next 16.3.8 build on product revision
+`7791fdd8a0d02b228105f599d3e1eae934575f6c` passes all 33 pages and three
+unchanged native consumers; complete locked cache is reverified, build network
+is none and no production credentials enter. Receipt:
+`/private/tmp/ture-history-credit-preflight-exact-linux-build-oct6-receipt.json`.
+The subsequent production-default-ACL fixture-only change does not change SQL
+or application code. A new exact clean Linux build on
+`01aef7614ae8aba3cca745c02d7bfdd7e12083c8` now passes all 33 pages and the same
+three native consumers, including TypeScript, with a separately verified
+complete lock cache, no build network or production credentials. Receipt:
+`/private/tmp/ture-history-credit-preflight-final-exact-linux-build-oct6-receipt.json`.
+One existing whole-session child process initially reaches its unchanged
+95-second deadline during concurrent build, with null status and no product
+assertion; preserve that failure and diagnose the exact case serially after
+build/tests, without extending its deadline. Its two orphaned local synthetic
+containers/network are identified and cleaned; no user/production data is
+removed. The serial qualification above preserves this failed first-run
+evidence; no timeout or assertion is extended. Local acceptance receipt:
+`/private/tmp/ture-history-credit-preflight-oct6.local-acceptance.json`.
+
+The human has been asked once to approve this exact migration and hash in
+`ekdyopdrrkphlrsilyoo`, only after normal protected release. The question is
+pending: oral retention evidence and the old #735 approval are not this new
+DDL/ACL authority. Hold merge/production publication of the new required-RPC
+code until its test and schema-authority gates are satisfied; do not ship a
+known missing-function dependency while this exact approval is absent.
+No new production migration, deployment or source batch
+has occurred; freeze a new remaining-89 card only after accepted exact runtime,
+schema, fresh capacity and inert readback. Never repurchase the eight sources.
+
+**Active primary defect selected — 2026-10-06 09:03Z:** actual history setup
+is stopped after one successful eight-credit batch. The existing series
+preflight's read-only SQL correctly returns eight terminal one-credit claims,
+but classifies all non-catalog work as `normal_scan`; its deployed parser
+requires `normal_scan_reserved_credits = normal_scan_reservation_count * 8`.
+The second batch's owner GET therefore returns HTTP 503 BEFORE any second
+history POST/provider dispatch. Fresh raw RPC proves 8 total/terminal credits,
+zero active/window claims and zero scheduled attempts, not a transport/quota
+error. The ordinary one-slot preflight has the same reproduced classifier
+assumption. Do not bypass that guard, relax its eight-credit scan equation,
+change old claims, blindly retry or apply the prior migration again.
+
+Select only backward-compatible owner-bound read-only preflight classification
+for prepared history versus normal scan/catalog/unknown claims, with unchanged
+daily total, active/window/attempt constraints and strict unknown-claim denial.
+Old RPCs/ACL/OIDs, cached legacy fields/clocks and all historical populations
+must remain. Before any new production routine/ACL, require exact local
+SQL/SDK/HTTP and negative regression evidence, protected release and separate
+human approval for the exact new migration. This is the reproduced source-to-
+learning reliability defect, not a third slice or a new platform/paper stream.
+
+**Actual bounded source result — 2026-10-06 09:00–09:03Z:** first normal owner
+POST succeeds at 09:00:11.309Z with eight requested/reserved/finalized credits
+and eight available/acquired histories: SPY, QQQ, SLB, NVO, BABA, IONQ, RIVN,
+ASML. All eight have 60 completed daily candles through Oct 5; both benchmarks
+have owner-bound source receipts. The full denominator stays 97, remaining 89
+unprepared. Read-only SQL verifies all eight claims completed, none active or
+failed, and all 68 pre-existing selected cache rows retain their exact legacy
+field hashes and clocks. Two new benchmark rows bring total cache rows 70->72.
+One fresh meter plus eight history requests cost nine included credits on this
+card; observed meter usage before history was 2/800. No final meter is inferred,
+and no current daily remainder is claimed without a fresh observation.
+The source card is closed/stopped, not a complete dataset or an OPEN test;
+no scan/configuration/schema/model/result/publication/broker action occurred.
+Receipts: `/private/tmp/ture-oct6-oral-rights-history.batch-01.receipt.json`,
+`.post-batch-01.json` and `.stopped.json`. Quality stays `not_met`.
+
+**PR #736 protected release and inert production integration — 2026-10-06 07:00Z:**
+All six unchanged groups, required aggregate and candidate provenance pass on
+head `5306b8c1e17cf5bece13f6c73278bd7d84caae7e`, run `37419411425` attempt 1.
+Normal protected merge at 06:57:03Z produces main
+`7ebb2fb58a6a39278bde6b4c025a377e4975d986`, tree
+`2fc52339ff0d00583935dcb24776d8067eed52b4`, identical to the tested candidate.
+Post-merge run `37426683275` and attestation job `112147850078` match the exact
+tree, workflow and both parents with zero mismatches; skipped main shards are
+not a second full test run. No protection, workflow, audit or assertion changes
+occur. Foundation's actual unchanged audit reports zero vulnerabilities and
+the installed source-map regression passes. Its separate test scopes are not
+added together as a claimed unique total.
+
+The sole automatic Git-connected production build `6ac49bc13e83670008070d83`
+publishes ready deploy `6ac49bc13e83670008070d85` at 06:58:29.654Z on exact main.
+Owned provider-free HTTP readback passes at 07:00:32.560Z: exact commit/deploy,
+global scheduler-disable true, competing modes off, zero active reservations,
+anonymous denial and truthful missing comparison/model/result. Normal owner
+login may update existing abuse counters. No provider, scan, schema,
+configuration, comparison/model/result or broker action occurs. The previously
+approved compatibility migration is not applied again. The focused release
+monitor is deleted after verification. Receipt:
+`/private/tmp/ture-pr736-source-map-security-successor-handoff-oct6.receipt.json`.
+The predecessor run finishes `cancelled` after its final lossless job succeeds;
+its real earlier foundation audit failure remains immutable history.
+
+**Now — bounded source preparation after direct human retention evidence,
+not OPEN activation (2026-10-06):** The human states "Twelve Data säger att vi
+får lagra på obestämd tid. Vi fortsätter", then clarifies "Twelve Data berättade
+det för mig muntligen." Record unlimited active-account retention as a direct
+human report of an oral provider statement, NOT an independently read written
+license, a fabricated finite numeric ceiling, commercial/redistribution rights
+or C6/C8 database admission. The narrow working scope is the existing Basic
+Free account's owner-only pre-release historical US-equity/ETF research; no
+external display, paper/broker policy provisioning or post-termination exemption
+is inferred. Current official US-equities documentation explicitly includes
+historical/EOD data from Basic with no additional historical-data licensing;
+the personal/commercial-use documentation keeps this work internal and
+noncommercial. The old numeric paper reconciliation evidence is not altered.
+This direct new evidence supersedes the old absence-of-provider-confirmation
+hold for this limited historical preparation, not any later OPEN/paper gate.
+
+Fresh owned inert runtime readback succeeds at 08:49:54.356Z on exact main
+`7ebb2fb58a6a39278bde6b4c025a377e4975d986` and ready published deploy
+`6ac49bc13e83670008070d85`. Read-only SQL at 08:53:13.089466Z confirms one
+compatibility migration (remote `20261006050453`), successor MD5
+`c12dda48e41c1999f45858ffee3039be`, OID 83015, unchanged owner/security-definer/
+empty search path and anon/auth denial/service execution. Comparison/model/
+result counts remain 0/0/0; today's reservation, preparation-claim and prepared
+cache counts are all zero. One initial read-only query used a nonexistent
+credit-column name and failed before execution; the corrected query uses the
+actual `requested_credits` and `claimed`/`attempted` schema, with no DDL/write.
+
+**Frozen historical source card — 2026-10-06, before any request:** reuse the
+released explicit owner POST `/api/app/completed-session-history` with exactly
+`{"action":"prepare_current_session_context"}`. Source population is the
+server-selected 95 original equities over all 26 regular-session slots plus
+fixed SPY/QQQ; never shrink the denominator or use caller-supplied symbols.
+Exact local source derives calendar `fnv1a32:6aa61e36`, open 13:30Z, close 20:00Z,
+and universe `sha256:a096086c8680efccbeec187be4277ee7058cd8bc1a404169a870500972e5c77f`.
+Maximum 97 new one-credit 60-daily-candle history acquisitions, eight/minute,
+13 bounded HTTP batches, and one separate fresh one-credit `/api_usage` meter;
+zero HTTP/provider retries, deadline 09:20Z. This is a new purpose-bound meter,
+NOT reuse/reset of the expired 07:45Z card. Require fresh Basic 800/8 capacity
+with at least 97 credits plus a 200-credit unused allowance and no overlapping
+claims, unchanged main/deploy/inert owner runtime before each batch. Persist
+immutable started/terminal receipts before/after dispatch; unknown outcomes
+stop and are reconciled read-only, never blindly repeated. Only complete or
+truthful partial no-error batches may advance to new remaining identities in
+a later minute. Preserve legacy cache fields/clocks, all old rows, original
+failures/cohorts/fingerprints and the durable non-repurchase claim namespace.
+No scan, recommendation publication, comparison/model/result, activation,
+environment/schema change, purchase, support message or broker action is
+selected. Receipt prefix: `/private/tmp/ture-oct6-oral-rights-history`.
+
+**Actual source-card preflight — 2026-10-06 08:57Z:** the new frozen one-shot
+meter succeeds at 08:56:30.874Z: daily usage 2/800, observed remaining 798,
+conservative allowance 797, minute usage 1/8. It costs one separate credit and
+is not a license or reservation for future requests. The 08:57:00.161615Z
+read-only cache baseline retains hashes/clocks for all 68 pre-existing selected
+rows (70 total cache rows); no prices/secrets are printed and no cache is
+changed by this baseline. Source acquisition is still unexecuted at this line.
+The operator keeps at least 65 seconds between paid batch dispatches and does
+not dispatch a history batch late in a UTC minute. Meter and cache baseline:
+`/private/tmp/ture-oct6-oral-rights-history.meter.receipt.json` and `.baseline.json`.
+
+**Historical 07:00Z source/cost readiness selection (superseded above):** Codex
+reuses the clean isolated checkout on exact main under
+`codex/oct6-prepared-original-input-observation`; the closed product PR branch
+and dirty user checkout are preserved. Resume the missing real-source IF-2b
+input-fitness -> IF-4 original-source/learning link. First verify applicable
+existing-source/storage rights and actual shared-account capacity. The explicit
+owner command's optional 95-equity plus SPY/QQQ preparation is at most 97 separate
+one-credit claims, not free or part of the eight-credit normal scan. It has NOT
+been executed. Unknown source/storage rights or capacity remain no-go for that
+acquisition; do not infer rights from a successful API response or alter old data.
+
+**Capacity-only meter card — frozen before request, 2026-10-06:** one
+`/api_usage` metadata request on the existing function-scoped production key,
+exact main/deploy above, before 07:45Z. Maximum one attempt/one credit, zero
+retries, market-data requests, cache writes, scans, configuration or broker
+actions. Require the same Git-connected ready release and global disable true
+before dispatch; unexpected plan, invalid response or unknown outcome stops
+this card without another request. Pass means observed nonnegative daily/minute
+counts and exact Basic Free limits 800/8, not reserved future capacity or data
+rights. Preserve both provider-reported remainder and a conservative extra
+meter allowance. Existing included-quota authority is unchanged; this card
+does not create new financial, history-acquisition or OPEN authority.
+
+**Actual capacity / scoped remaining rights hold — 2026-10-06 07:09Z:** the
+single frozen meter succeeds at 07:09:21.767Z on the exact released runtime:
+Basic Free 800/day and 8/minute, daily usage 1, observed remainder 799,
+conservative extra-meter allowance 798, current minute usage 1. The request
+costs one separate credit; zero retries, market-data/history requests or scans.
+Receipt: `/private/tmp/ture-oct6-prepared-context-capacity.receipt.json`.
+This resolves present account-capacity observation, not a future reservation.
+
+Fresh official terms still allow internal storage only subject to subscription,
+documentation and third-party restrictions; their 30-day post-termination deletion
+window is NOT an active retention ceiling. Existing C6/C8 evidence has no numeric
+account-scoped exact-price/candle retention confirmation. The master-roadmap
+rights-admission rule therefore keeps NEW retained history/OPEN acquisition
+no-go. The exact missing evidence is requested from the human in this chat;
+no key, purchase, subscription change or permission bypass is requested. Keep
+the 97-credit preparation unexecuted and isolate this rights hold from the
+completed code/schema release. Do not edit rights evidence to manufacture
+admission or treat the meter's successful response as a license.
+
+**Authenticated account readback — 2026-10-06 07:33Z:** after the human's
+"Klart" login handoff, Chrome now shows the authenticated Valentin Labs account.
+The existing subscribed plan is Basic Free / Basic 8, with 8 API credits per
+minute, 800/day and internal non-display usage. The account's plan and market-data
+pages do not supply a numeric exact-price/candle retention ceiling or resolved
+account-scoped US third-party terms. The existing support messenger's Messages
+tab shows "Inga meddelanden"; that is not evidence about separate email records.
+No API key/input value, password/session store or hidden network state is read.
+No support question, purchase, terms acceptance, account configuration, new
+provider/meter request, history acquisition or OPEN activation is submitted.
+The authenticated support tab is retained for human handoff. A new provider
+inquiry requires explicit messaging authority; sign-in is not rights admission.
+
+The 07:24Z login-page result remains historical evidence in
+`/private/tmp/ture-oct6-rights-account-browser-readback.receipt.json`; it no longer
+describes current Chrome authentication. The same receipt now retains the
+authenticated readback separately. The existing rights hold remains scoped to
+new retained source data, not the already completed code/schema release.
+
+**Historical blocked decision audit — 2026-10-06 07:35Z
+(superseded by the direct human oral-provider report above):** the same missing account-scoped
+retention/US-terms confirmation persists across at least three consecutive goal
+turns. Human sign-in resolved access, not this entitlement condition. Current
+GitHub main remains protected at `7ebb2fb58a6a39278bde6b4c025a377e4975d986`.
+The active work-selection gate, completed source/replay acceptance and existing
+original 3/8 readback leave no independently authorized CLOSED step with satisfied
+dependencies that would close the selected hypothesis's next missing link.
+Do not invent another helper, competing hypothesis or paper/broker stream.
+The support-messaging question is already awaiting the human's answer; automatic
+goal continuation is not approval. The full goal is incomplete and its next
+action requires that decision and then actual provider confirmation. No live
+process is being waited on, no support message is sent and no new acquisition,
+scan, model/result, promotion or runtime configuration is started by this audit.
+
+**Actual preserved-source arithmetic readback — 2026-10-06 07:13Z:** one
+owner-bound GET on new main/deploy replays the already retained Oct 5 run
+`rec_scan_run_of9yv0`. All eight original identities remain present. ASTS, NVDA
+and ADBE match the original historical and current arithmetic/indicators with
+zero mismatched fields; GS, SBUX, NVO, GE and QCOM remain explicitly unavailable
+because their original historical bars were not retained. Nulls are preserved.
+This verifies the deployed 25-feature/indicator replay on three real original
+members, not eight complete inputs, original upstream JSON or new OPEN fitness.
+No provider request, new data/claim, comparison/model/result or source rewrite
+occurs; normal login may update existing abuse counters. The old publication-
+geometry FAIL is unchanged. Receipt:
+`/private/tmp/ture-oct6-historical-original-input-arithmetic.receipt.json`.
+
+Today's verified regular session is 13:30-20:00Z. CLOSED evaluation of unchanged
+source establishes that 13:45Z has only three closed five-minute bars; the
+existing relative-plan assessment requires twelve, earliest 14:30Z. Its separate
+recent-volume comparison requires 24, earliest 15:30Z. Clock eligibility is not
+actual input coverage, valid original geometry, full-market volume or quality.
+Freeze any later OPEN question only on accepted runtime/schema with actual
+rights/capacity, its own budget/session/activation margin and automatic expiry
+plus cleanup. Oct 5's FAIL, cohorts, fingerprints and charter stay unchanged.
+Actual prepared live fitness, useful forward learning and full-charter quality
+remain unverified; graduation stays `not_met`. No new development/support slice
+or policy promotion is selected.
+
+**Retained PR #736 security successor local acceptance — 2026-10-06 05:35Z
+(release status superseded above):**
 source `181f2979e711e72b4d5010873aa03dac4991e9df` closes the exact source-map
 audit interruption locally. Both fresh credential-free macOS/Linux `npm ci`
 installs are verified against the new complete lock; only the source-map-js
