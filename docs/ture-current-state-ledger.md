@@ -2,6 +2,52 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-06, recommendation intelligence first
 
+**Current release gate — focused benchmark claim-read fix, Oct6 18:08Z:**
+Code/test/schema revision `21fdd0079980cee402359c131b62a45686ea322e` is
+locally accepted:112 distinct affected cases (69 original-input/publication/
+replay/credit regressions and all43 benchmark/history cases,18.7m serially),
+nonincremental types, full lint0 errors/8 existing warnings. The first-source
+actual packaged scheduler/route/Postgres/PostgREST/SDK proof uses the production
+RPC-only table ACL and explicit production function default grants; all20
+original source negatives plus10 read/rollback controls pass without real
+providers, production actions, new paid identities or policy relaxation.
+The exact clean Linux Node22.23.1/Next16.3.8 build on this revision passes all33
+pages and3 unchanged native consumer/provenance checks, with verified locked
+cache, networknone and no production credentials. Receipt:
+`/private/tmp/ture-prepared-benchmark-claim-exact-linux-build-oct6-receipt.json`.
+The following ledger-only commit preserves these exact product/SQL bytes;
+protected candidate CI still follows. No previous PR/build is acceptance here.
+
+The direct human has approved the exact new SQL/SHA below AND separately
+confirmed sufficient existing Netlify capacity for one normal focused release
+publication/15 credits plus incidental compute after the trial's two
+publications. Numeric remaining balance is still unknown; no purchase/top-up,
+plan change, new OPEN or further source acquisition is inferred.
+Fresh repo read18:04Z confirms public/active and unchanged main `e33c2f4f`.
+New function/history remain absent in read-only catalog17:50:35.082659Z;
+old function/OID/body/ACL and table denials are unchanged, waiting claim locks0.
+Next: one normal Ready PR, unchanged six-shard/aggregate/candidate acceptance,
+protected merge and exact ready Git production; only then revalidate source,
+runtime, fresh catalog/history/ACL/locks/rows and apply the approved single
+migration once. Unknown dispatch outcome is read back, never blindly repeated.
+Skip only if correct same migration/body already exists. Verify full source to
+remote version/name/SQL mapping, new/old bodies/OIDs/ACL, unchanged row digests,
+advisors and inert authenticated HTTP afterward. No manual/force/admin merge,
+db push, history repair, blanket table grant or private-key extraction.
+
+This is supporting_blocker_removal enabling the original IF-2b fresh-input
+question, not production8/8 fitness or recommendation quality. The observed
+Oct6 run remains3/8 and frozen; actual first scheduled consumption of the fix
+still needs its own eligible future card. Terminal-history-failure continuation
+has a separate old direct-table read and is not claimed production-ACL accepted
+by this benchmark-only fix. The prospective source card stops on any failure
+and may not enter an unproven failure-resume path or buy an old identity again.
+Current production remains inert cleanup deploy `6ac52de6d2c1692e314bddf1`;
+no new provider/meter/scan/config/schema action has happened. Goal active and
+graduation `not_met`. Private approval/capacity/local receipts share prefix
+`/private/tmp/ture-prepared-claim-`; Oct7 follow-up remains separately held on
+actual accepted source/runtime/schema and its original fresh gates.
+
 **Current Now / Next — actual17:15Z result and verified cleanup, Oct6 17:34Z:**
 The one ordinary scheduled attempt `scheduled_scan_attempt_eygk9m` fired at
 17:15:26.665Z on unchanged main `e33c2f4f` / activation deploy
