@@ -1,8 +1,102 @@
 # Ture Current-State Ledger
 
-## Active Now / Next / Blocked — reconciled 2026-10-05, recommendation intelligence first
+## Active Now / Next / Blocked — reconciled 2026-10-06, recommendation intelligence first
 
-**Current PR #736 security successor locally accepted — 2026-10-06 05:35Z:**
+**PR #736 protected release and inert production integration — 2026-10-06 07:00Z:**
+All six unchanged groups, required aggregate and candidate provenance pass on
+head `5306b8c1e17cf5bece13f6c73278bd7d84caae7e`, run `37419411425` attempt 1.
+Normal protected merge at 06:57:03Z produces main
+`7ebb2fb58a6a39278bde6b4c025a377e4975d986`, tree
+`2fc52339ff0d00583935dcb24776d8067eed52b4`, identical to the tested candidate.
+Post-merge run `37426683275` and attestation job `112147850078` match the exact
+tree, workflow and both parents with zero mismatches; skipped main shards are
+not a second full test run. No protection, workflow, audit or assertion changes
+occur. Foundation's actual unchanged audit reports zero vulnerabilities and
+the installed source-map regression passes. Its separate test scopes are not
+added together as a claimed unique total.
+
+The sole automatic Git-connected production build `6ac49bc13e83670008070d83`
+publishes ready deploy `6ac49bc13e83670008070d85` at 06:58:29.654Z on exact main.
+Owned provider-free HTTP readback passes at 07:00:32.560Z: exact commit/deploy,
+global scheduler-disable true, competing modes off, zero active reservations,
+anonymous denial and truthful missing comparison/model/result. Normal owner
+login may update existing abuse counters. No provider, scan, schema,
+configuration, comparison/model/result or broker action occurs. The previously
+approved compatibility migration is not applied again. The focused release
+monitor is deleted after verification. Receipt:
+`/private/tmp/ture-pr736-source-map-security-successor-handoff-oct6.receipt.json`.
+The predecessor run finishes `cancelled` after its final lossless job succeeds;
+its real earlier foundation audit failure remains immutable history.
+
+**Now — separately selected source/cost readiness, not OPEN activation:** Codex
+reuses the clean isolated checkout on exact main under
+`codex/oct6-prepared-original-input-observation`; the closed product PR branch
+and dirty user checkout are preserved. Resume the missing real-source IF-2b
+input-fitness -> IF-4 original-source/learning link. First verify applicable
+existing-source/storage rights and actual shared-account capacity. The explicit
+owner command's optional 95-equity plus SPY/QQQ preparation is at most 97 separate
+one-credit claims, not free or part of the eight-credit normal scan. It has NOT
+been executed. Unknown source/storage rights or capacity remain no-go for that
+acquisition; do not infer rights from a successful API response or alter old data.
+
+**Capacity-only meter card — frozen before request, 2026-10-06:** one
+`/api_usage` metadata request on the existing function-scoped production key,
+exact main/deploy above, before 07:45Z. Maximum one attempt/one credit, zero
+retries, market-data requests, cache writes, scans, configuration or broker
+actions. Require the same Git-connected ready release and global disable true
+before dispatch; unexpected plan, invalid response or unknown outcome stops
+this card without another request. Pass means observed nonnegative daily/minute
+counts and exact Basic Free limits 800/8, not reserved future capacity or data
+rights. Preserve both provider-reported remainder and a conservative extra
+meter allowance. Existing included-quota authority is unchanged; this card
+does not create new financial, history-acquisition or OPEN authority.
+
+**Actual capacity / scoped remaining rights hold — 2026-10-06 07:09Z:** the
+single frozen meter succeeds at 07:09:21.767Z on the exact released runtime:
+Basic Free 800/day and 8/minute, daily usage 1, observed remainder 799,
+conservative extra-meter allowance 798, current minute usage 1. The request
+costs one separate credit; zero retries, market-data/history requests or scans.
+Receipt: `/private/tmp/ture-oct6-prepared-context-capacity.receipt.json`.
+This resolves present account-capacity observation, not a future reservation.
+
+Fresh official terms still allow internal storage only subject to subscription,
+documentation and third-party restrictions; their 30-day post-termination deletion
+window is NOT an active retention ceiling. Existing C6/C8 evidence has no numeric
+account-scoped exact-price/candle retention confirmation. The master-roadmap
+rights-admission rule therefore keeps NEW retained history/OPEN acquisition
+no-go. The exact missing evidence is requested from the human in this chat;
+no key, purchase, subscription change or permission bypass is requested. Keep
+the 97-credit preparation unexecuted and isolate this rights hold from the
+completed code/schema release. Do not edit rights evidence to manufacture
+admission or treat the meter's successful response as a license.
+
+**Actual preserved-source arithmetic readback — 2026-10-06 07:13Z:** one
+owner-bound GET on new main/deploy replays the already retained Oct 5 run
+`rec_scan_run_of9yv0`. All eight original identities remain present. ASTS, NVDA
+and ADBE match the original historical and current arithmetic/indicators with
+zero mismatched fields; GS, SBUX, NVO, GE and QCOM remain explicitly unavailable
+because their original historical bars were not retained. Nulls are preserved.
+This verifies the deployed 25-feature/indicator replay on three real original
+members, not eight complete inputs, original upstream JSON or new OPEN fitness.
+No provider request, new data/claim, comparison/model/result or source rewrite
+occurs; normal login may update existing abuse counters. The old publication-
+geometry FAIL is unchanged. Receipt:
+`/private/tmp/ture-oct6-historical-original-input-arithmetic.receipt.json`.
+
+Today's verified regular session is 13:30-20:00Z. CLOSED evaluation of unchanged
+source establishes that 13:45Z has only three closed five-minute bars; the
+existing relative-plan assessment requires twelve, earliest 14:30Z. Its separate
+recent-volume comparison requires 24, earliest 15:30Z. Clock eligibility is not
+actual input coverage, valid original geometry, full-market volume or quality.
+Freeze any later OPEN question only on accepted runtime/schema with actual
+rights/capacity, its own budget/session/activation margin and automatic expiry
+plus cleanup. Oct 5's FAIL, cohorts, fingerprints and charter stay unchanged.
+Actual prepared live fitness, useful forward learning and full-charter quality
+remain unverified; graduation stays `not_met`. No new development/support slice
+or policy promotion is selected.
+
+**Retained PR #736 security successor local acceptance — 2026-10-06 05:35Z
+(release status superseded above):**
 source `181f2979e711e72b4d5010873aa03dac4991e9df` closes the exact source-map
 audit interruption locally. Both fresh credential-free macOS/Linux `npm ci`
 installs are verified against the new complete lock; only the source-map-js
