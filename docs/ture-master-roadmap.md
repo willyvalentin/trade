@@ -1,6 +1,52 @@
 # Ture Master Roadmap
 
-## Active product direction — recommendation intelligence first, reconciled 2026-10-03
+<a id="current-delivery-map"></a>
+## Current delivery map — 2026-10-07
+
+Ture's product vision is an evidence-based recommendation and learning engine,
+followed by autonomous internal paper, IBKR paper and separately approved
+controlled live/options execution. The active priority remains
+**IF-2b -> IF-3 -> IF-4 -> IF-5**. Retain the complete scientific/execution
+destination below; improve the rate of verified outcomes on its critical path.
+
+The [current delivery board](./ture-current-state-ledger.md#current-delivery-board)
+is the single work queue. This map defines outcomes and their order, not another
+backlog. The acceptance contracts below remain binding. Dated implementation
+and experimental selections below are retained context; they cannot restart an
+old experiment or override the current board.
+
+| Order | Usable product outcome | Evidence required to finish | Current evidence boundary |
+| --- | --- | --- | --- |
+| IF-2b -> IF-4: complete source-to-outcome path | A real scheduled decision retains its complete declared fresh inputs, original plan and population through canonical outcome readback | Integrated CLOSED proof with production-equivalent permissions/configuration, then the selected bounded OPEN input-fitness check and mature original outcome linkage; explicit missingness and costs | Oct 5 and Oct 6 scans each retained only 3/8 complete inputs. Fixes/merges are progress toward acceptance, not acceptance of the whole path. |
+| IF-3 -> IF-4: decide one quality hypothesis | The existing same-population baseline/challenger produces an interpretable full-charter result | Prospectively frozen windows, pre-forward committed model, original enrollment, canonical outcomes, uncertainty and every existing quality/cost/reliability/feasibility dimension | Integrated measurement exists; useful real forward comparison remains unproven. Keep stopped or incompatible experiments separate. |
+| IF-5: improve and monitor reversibly | A qualifying policy can be promoted, monitored and withdrawn | Passing frozen absolute and relative limits, one reversible promotion decision, then its separately predeclared monitoring period | Blocked by recommendation evidence, not by missing broker features. |
+| Later SV delivery | Autonomous paper and IBKR execution of validated decisions | Existing scientific, operational, risk, account and release gates for each stage | Retained destination; no execution expansion selected by this reconciliation. |
+
+For 7–21 October, prioritize completion of the first outcome and a bounded
+disposition of the selected quality question. This is a planning focus, not a
+promise of positive alpha or a shorter statistical window. Review on 14 October
+and 21 October using observed delivery/market evidence. If the frozen sample
+cannot mature by then, report its exact deficit, earliest feasible completion
+and bounded recovery or stop; do not extend `evidence_incomplete` indefinitely.
+These review dates do not schedule an automation or authorize an observation.
+
+Before further acquisition optimization, the selected source-to-outcome slice
+must establish whether the intended universe, cadence, benchmark context and
+outcome collection fit the existing data rights, freshness and total budget.
+Count preparation, requests, failures and result collection, not scans alone.
+Reuse existing receipts and a short calculation in the current board. If the
+path is infeasible or unknown, make a bounded scope/data decision before more
+helpers; any changed prospective experiment has a new contract and preserves
+old populations. This does not purchase data or relax an existing charter.
+
+Report capability delivered, environment behavior verified and quality accepted
+separately. A negative scientific result can finish a hypothesis. Infrastructure
+completion, candidate count and rank movement cannot establish quality lift.
+Use the five weekly measures and outcome brief in
+[governance](./roadmap-operating-governance.md#outcome-delivery-and-completion).
+No new dashboard, metric service or planning-only successor stream is needed.
+
+## Product acceptance and retained delivery context — recommendation intelligence first, reconciled 2026-10-03
 
 The latest product selection is **data fitness and broad discovery → contextual
 ranking → complete outcome-linked evaluation → shadow-tested, reversible policy
