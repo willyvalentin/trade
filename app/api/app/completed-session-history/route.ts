@@ -5,6 +5,7 @@ import {
   requireApplicationSession,
 } from "@/lib/server/application-session";
 import { prepareCompletedSessionHistories } from "@/lib/server/completed-session-history-preparation";
+import { PREPARED_BENCHMARK_CONTEXT_POLICY_VERSION } from "@/lib/server/prepared-benchmark-source";
 
 export const dynamic = "force-dynamic";
 const headers = { "Cache-Control": "no-store" };
@@ -23,6 +24,7 @@ export async function POST(request: Request) {
     request.headers.get("content-type")?.split(";")[0].trim().toLowerCase() !== "application/json") return invalid();
   const body = request.body?.getReader();
   if (!body) return invalid();
+  let prepareContext = false;
   try {
     let text = "", bytes = 0;
     const decoder = new TextDecoder("utf-8", { fatal: true });
@@ -35,13 +37,18 @@ export async function POST(request: Request) {
     }
     text += decoder.decode();
     const parsed: unknown = JSON.parse(text);
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed) || Object.keys(parsed).length) return invalid();
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return invalid();
+    const keys = Object.keys(parsed);
+    prepareContext = keys.length === 1 && keys[0] === "action" &&
+      (parsed as Record<string, unknown>).action === "prepare_current_session_context";
+    if (keys.length !== 0 && !prepareContext) return invalid();
   } catch {
     return invalid();
   } finally {
     body.releaseLock();
   }
-  const result = await prepareCompletedSessionHistories({ signal: request.signal });
+  const result = await prepareCompletedSessionHistories({ signal: request.signal,
+    ...(prepareContext ? { benchmarkContextPolicyVersion: PREPARED_BENCHMARK_CONTEXT_POLICY_VERSION } : {}) });
   // Partial means a finished bounded batch, not an async job or trade decision.
   return NextResponse.json(result, { status: result.status === "blocked" ? 422 : 200, headers });
 }

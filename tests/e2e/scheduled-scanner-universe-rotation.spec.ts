@@ -1,10 +1,17 @@
 import { expect, test } from "@playwright/test";
+import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 
-import { buildRealScannerBaseCandidateSelection } from "@/lib/real-scanner-candidate-generation";
+import {
+  buildRealScannerBaseCandidates,
+  buildRealScannerBaseCandidateSelection,
+} from "@/lib/real-scanner-candidate-generation";
 import {
   getScheduledScannerUniverseRotationBatch,
   scannerUniverseTickers,
   scheduledScannerUniverseRotationCadenceMinutes,
+  selectScannerUniverse,
 } from "@/lib/scanner-universe";
 import { buildDynamicMarketMoversSelection } from "@/lib/dynamic-market-movers";
 
@@ -29,6 +36,119 @@ function rotatedSelection(batchOffset: number) {
 }
 
 test.describe("scheduled scanner universe rotation", () => {
+  test("actual packaged schedule persists the current XYZ universe with unchanged bounded claims and original lineage", () => {
+    test.setTimeout(90_000);
+    const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs",
+      "--cold", "--rotation-day", "--current-reference-universe"],
+    { cwd: process.cwd(), encoding: "utf8", timeout: 80_000 });
+    expect(result.status, `${result.error?.message ?? ""}\n${result.stdout.slice(-2000)}\n${result.stderr.slice(-2000)}`).toBe(0);
+    const receipt = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
+    expect(receipt).toMatchObject({
+      evidence_mode: "synthetic_closed_packaged_input_runtime_actual_source_schema",
+      scenario: "full_session_cold_rotation", original_slots: 26, original_member_observations: 208,
+      attempts: 26, cycles: 26, scan_runs: 26, reservations: 26, reserved_credits: 208,
+      setup_synthetic_requests: 0, scheduled_synthetic_requests: 208, selected_unique_tickers: 95,
+      restarted_owner_read: true, wrong_owner_runs: 0, actual_provider_requests: 0,
+      production_actions: 0, publications: 0, broker_actions: 0, cleanup: "inert",
+      reference_universe: {
+        evidence_scope: "synthetic_reference_catalog_not_market_data_or_quality_evidence",
+        basis: "current_product_reference_catalog", source_revision: null,
+        source_path: "lib/scanner-universe.ts", selector_basis: "actual_current_product_selector",
+        source_snapshot_sha256: createHash("sha256").update(readFileSync("lib/scanner-universe.ts")).digest("hex"),
+      },
+    });
+    expect(receipt.eligible_tickers).toHaveLength(95);
+    expect(receipt.eligible_tickers).toContain("XYZ");
+    expect(receipt.eligible_tickers).not.toContain("SQ");
+    expect(receipt.unselected_eligible_tickers).toEqual([]);
+    expect(receipt.ticker_coverage.find((row: { ticker: string }) => row.ticker === "XYZ").selected).toBeGreaterThan(0);
+    const originalMembers = receipt.slots.flatMap((row: { members: { ticker: string }[] }) => row.members);
+    expect(originalMembers).toHaveLength(208);
+    expect(originalMembers.some((member: { ticker: string }) => member.ticker === "XYZ")).toBe(true);
+    expect(originalMembers.some((member: { ticker: string }) => member.ticker === "SQ")).toBe(false);
+    for (const row of receipt.slots) {
+      expect(row).toMatchObject({ attempts: 1, runs: 1, reservations: 1 });
+      expect(row.requests).toBeLessThanOrEqual(8);
+      expect(row.members).toHaveLength(8);
+      expect(row.members.every((member: { freshness: string }) => member.freshness !== "no_decision")).toBe(true);
+    }
+  });
+
+  test("current reference runtime cannot replace a frozen historical or prospective population", () => {
+    for (const extra of ["--prospective-enrollment", "--acquisition-baseline", "--original-outcome-continuation"]) {
+      const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs",
+        "--cold", "--rotation-day", "--current-reference-universe", extra],
+      { cwd: process.cwd(), encoding: "utf8", timeout: 10_000 });
+      expect(result.status).not.toBe(0);
+      expect(result.stderr).toContain("Current reference universe is only the separate cold scheduled acquisition proof");
+      expect(result.stdout).toBe("");
+    }
+  });
+
+  test("uses Block's current XYZ reference in bounded scheduled acquisition, not obsolete SQ", () => {
+    const now = new Date("2026-10-05T13:30:00.000Z");
+    const batches = Array.from({ length: 10 }, (_, index) =>
+      buildRealScannerBaseCandidateSelection({
+        scanWindow: "midday",
+        requestedScanBudget: scheduledBudget,
+        selectionMode: "scheduled_rotating",
+        now: new Date(now.getTime() + index * 15 * 60_000),
+      }),
+    );
+    const selected = batches.flatMap((batch) => batch.candidates);
+    const symbols = selected.map((candidate) => candidate.ticker);
+
+    expect(symbols).toContain("XYZ");
+    expect(symbols).not.toContain("SQ");
+    // Ten bounded batches wrap the retained 95-name pool; duplicates at the
+    // wrap are existing cadence behavior, not new symbols or a larger budget.
+    expect(new Set(symbols).size).toBe(95);
+    expect(batches.every((batch) => batch.candidates.length === scheduledBudget)).toBe(true);
+    expect(batches.every((batch) => batch.coverage?.scan_budget.effective_tickers === scheduledBudget)).toBe(true);
+    expect(selected.find((candidate) => candidate.ticker === "XYZ")).toMatchObject({
+      company_name: "Block, Inc.",
+      sector: "Financials",
+    });
+    expect(scannerUniverseTickers.find((candidate) => candidate.ticker === "XYZ")).toMatchObject({
+      category: "financials",
+      liquidity_tier: "large",
+      volatility_tier: "high",
+      beta_momentum_label: "fintech high beta",
+      tags: ["liquid", "financials", "high_beta"],
+      source: "expanded_static_v1",
+      tradable: true,
+    });
+  });
+
+  test("keeps current Block selection behind exact-symbol allow and block controls", () => {
+    const input = {
+      scanWindow: "midday" as const,
+      requestedScanBudget: 1,
+      now: new Date("2026-10-05T13:30:00.000Z"),
+    };
+    const allowed = selectScannerUniverse({
+      ...input,
+      riskControlsSettings: { allowed_tickers: ["XYZ"], blocked_tickers: [] },
+    });
+    expect(allowed.selected_tickers.map((candidate) => candidate.ticker)).toEqual(["XYZ"]);
+    expect(allowed.coverage_summary.scan_budget.effective_tickers).toBe(1);
+    expect(selectScannerUniverse({
+      ...input,
+      riskControlsSettings: { allowed_tickers: ["XYZ"], blocked_tickers: ["XYZ"] },
+    }).selected_tickers).toEqual([]);
+    expect(selectScannerUniverse({
+      ...input,
+      riskControlsSettings: { allowed_tickers: ["SQ"], blocked_tickers: [] },
+    }).selected_tickers).toEqual([]);
+  });
+
+  test("does not rewrite an explicitly retained historical SQ source into XYZ", () => {
+    const original = [{ ticker: "SQ", company_name: "Block, Inc.", sector: "Financials" }];
+    const retained = structuredClone(original);
+    expect(buildRealScannerBaseCandidates(original).map((candidate) => candidate.ticker)).toEqual(["SQ"]);
+    expect(original).toEqual(retained);
+  });
+
   test("preserves an empty admitted universe instead of substituting starter symbols", () => {
     for (const input of [
       { scanWindow: "midday" as const, requestedScanBudget: 0 },

@@ -2,6 +2,165 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-05, recommendation intelligence first
 
+**Current PR #736 security successor locally accepted — 2026-10-06 05:35Z:**
+source `181f2979e711e72b4d5010873aa03dac4991e9df` closes the exact source-map
+audit interruption locally. Both fresh credential-free macOS/Linux `npm ci`
+installs are verified against the new complete lock; only the source-map-js
+1.2.1 -> 1.2.2 leaf changed. The old shared dependency tree remains untouched;
+only this isolated worktree's dependency symlink points to its fresh Mac cache.
+Full and production audits pass with zero findings and no exclusions. All seven
+registered security-file tests pass, including fourteen invalid/nested indexed
+offset rejections and unchanged benign source behavior. The initial new benign
+fixture failure is retained: independent old/patched consumers agree that its
+indexed position query needs the original column convention and complete source
+content. The fixture was corrected to assert both original query positions;
+no negative assertion, existing test or deadline was relaxed.
+
+Fresh prepared-context/legacy/owner/clock/current-reference subset passes 29/29
+in four files (1.0m), separately from the seven security tests. Nonincremental
+types pass. Full lint before the benign-only fixture correction has zero
+errors/eight old warnings; final affected lint is clean. The exact committed
+Linux Node 22.23.1/Next 16.3.8 build then passes all 33 pages, the two unchanged
+native Next consumers and the additional source-map consumer. Build network is
+none and no production credentials enter. New lock SHA256 remains
+`4c13acaedeb8cde211e6a6c5f1ec04dc52201f6067a0c3838ca76b0e871a740a`.
+Receipt: `/private/tmp/ture-pr736-source-map-security-exact-build-oct6-receipt.json`.
+This is local acceptance, not protected CI or production. The final annotation
+is ledger-only; perform one normal successor push in the same Ready PR and
+require fresh complete protected candidate CI/provenance before merge/deploy.
+Do not reuse the old failed foundation or e5/D7 old-lock build. Preserve its
+historic failure, all original populations/charter, no new OPEN and the already
+verified one-time compatibility migration. After release, resume the selected
+real-source input-fitness/source-to-learning question; quality stays `not_met`.
+
+**Historical PR #736 audit interruption — 2026-10-06 05:18Z
+(superseded by the locally accepted successor above):** the normal
+foundation job `112119857201` in run `37417665169` attempt 1 fails its unchanged
+production dependency audit, not a recommendation assertion or runner allocation.
+Local `npm audit --omit=dev --audit-level=high --json` reproduces exactly one
+high finding: `source-map-js` 1.2.1, GHSA-68fv-2mgg-jv7q / CVE-2026-93749.
+The reviewed upstream patch is 1.2.2. Select only this actual safety/release
+blocker inside the existing product PR, not a separate infrastructure slice.
+The lock-only update changes one transitive package's version/resolved/integrity;
+package.json, Next, SDKs, other dependencies and all audit/CI/quality limits stay
+unchanged. New lock SHA256 is
+`4c13acaedeb8cde211e6a6c5f1ec04dc52201f6067a0c3838ca76b0e871a740a`.
+A new test in the already registered security test file is RED against the old
+installed package: invalid indexed offsets are accepted. It will require fourteen
+malformed/nested offset rejections and unchanged valid source-map behavior.
+No unbounded exploit is run. The earlier exact build/29-test acceptance below
+belongs to the old lock and cannot accept this successor. Require fresh locked
+installed dependencies, unchanged full audit, native consumers, affected
+prepared-context regressions/types/lint and exact Linux build before one normal
+successor push in the same PR. No blind CI rerun, workflow/runner/timeout/assertion
+weakening, schema/config/provider/broker action or new PR is selected. After this
+minimum fix passes, finish the existing recommendation-capability release and
+return to its separate real-source fitness/evaluation question. Remaining five
+old jobs are live at discovery; do not describe the whole run as terminal.
+
+**Current primary release accepted; prepared-context integration — 2026-10-06 05:05Z:**
+The direct human explicitly approved the exact pending
+`20261005190805_if4_publication_identity_compatibility.sql` in production project
+`ekdyopdrrkphlrsilyoo` after the status named that migration/project. Fresh
+main/deploy/owner-runtime and catalog checks precede one authorized normal apply.
+Source SHA256 remains `e62a14f16bcbdfe8068395edb4095780522267a2e20c2d0c065f73eb99018c29`.
+The source version `20261005190805` maps truthfully to remote version
+`20261006050453`, name `if4_publication_identity_compatibility`: the single
+remote statement's MD5 `c59d3bb2a0d5073d8b1b808b5e5ff099` matches the exact
+merged source bytes. No migration-history repair or alternate writer occurs.
+The earlier rejected dispatch is retained as history, not counted as an apply.
+
+Postflight at 05:05:15.69607Z proves successor body MD5
+`c12dda48e41c1999f45858ffee3039be`, unchanged OID 83015/postgres owner,
+security-definer/volatile/jsonb attributes, empty search path, public/anon/auth
+denial and service-only execution. Comparison/model/result row counts remain
+0/0/0; no related lock waits. Advisors retain one existing security WARN and
+INFO diagnostics; no additional Auth, RLS, index or environment change is made.
+Owned inert HTTP readback at 05:05:30.770Z verifies main
+`4be8c9c6d4a2ee1a897cad7629f4a27f0ea41c05`, ready Git-connected production
+deploy `6ac42bd62d14710008dd4730`, global disable true, competing modes off and
+zero active reservations. This closes the focused primary release and its
+specific authorization impasse. The old release heartbeat is deleted after
+verification; its initially non-terminal deletion response is resolved by a
+read-only view and the normal app tool, with final deletion confirmed.
+Receipt: `/private/tmp/ture-pr735-approved-migration-release-oct6.receipt.json`.
+
+**Now / next:** finish the existing prepared-context capability as the sole
+primary development slice. Its branch integrates current main as
+`8f09e25c6bc8cd880fd5739047e03c0273b3747b`; the complete tree is unchanged
+from locally accepted `3bae4fd0` (product/test source `d7cafad8`). Perform
+exact integrated acceptance, one focused protected PR and normal Git production
+delivery. Do not reuse older CDF acceptance for this capability, or describe
+local native proof as production behavior. The public locked dependency cache,
+all original populations, frozen charter, strict caller-owner/source guards and
+eight-credit scan limit remain unchanged. The optional 97-credit preparation
+is separate, not executed or authorized here. New OPEN needs separately frozen
+source/cost/session/activation/cleanup acceptance after this release. The Oct 5
+failed observation remains immutable; quality graduation stays `not_met`.
+
+**Exact integrated acceptance — 2026-10-06:** clean integrated source
+`e5b2342e4c1369401619525b38e5bbcc6581e71f` passes a fresh 29/29 affected
+four-file subset (1.2m), including both actual first-scan/20-negative-control and
+current-XYZ whole-session witnesses, legacy fallback and microsecond clock
+guards. Nonincremental types pass; full lint has zero errors/eight existing
+warnings. Exact committed Linux/Node 22.23.1/Next 16.3.8 build passes all 33
+pages and both unchanged native Next consumers with no network or production
+credentials. Receipt: `/private/tmp/ture-prepared-context-integrated-oct6-receipt.json`.
+Every non-ledger byte equals accepted product/test source `d7cafad8`; the old
+198-before-final-owner and 20-after-owner scopes remain separately labelled.
+This annotation is documentation-only. Next is one Ready main-targeted product
+PR, unchanged protected CI/provenance, then normal merge/deploy and owned inert
+readback; no production fitness/quality claim or OPEN acquisition yet.
+
+**Historical protected release / exact schema-authority hold — 2026-10-05 23:05Z
+(superseded by the approved release above):**
+PR #735 is normally merged at `4be8c9c6d4a2ee1a897cad7629f4a27f0ea41c05`
+(22:59:32Z). All six unchanged groups, aggregate and candidate provenance pass
+on frozen head `b9943f81` in run `37363517732` attempt 3; actual replay-lineage
+job `112007887590` completes success at 22:54:28Z. No fourth/full-run retry,
+workflow change or protection bypass occurs. Merge tree
+`8f85c2c6d907c109378c7119f01ad75f3d89d6ca` exactly matches the locally and
+protected-CI accepted candidate. Normal post-merge run `37385873956` and its
+attestation job `112018918812` also pass on the exact new main.
+
+The single automatic Git-connected production build `6ac42bd62d14710008dd472e`
+publishes ready deploy `6ac42bd62d14710008dd4730` at 23:00:55.877Z on that
+main. Owned provider-free runtime verification passes 23:02:57.096Z: exact
+commit/deploy, global scheduler-disable true, all competing modes off, zero
+active reservations, anonymous denial and truthful missing-freeze/model/result
+GETs. No new provider, scan, comparison/model/result or broker action occurs.
+Normal owner login may update only its existing abuse-control counters.
+This proves protected code release and inert environment integration, not a
+new real-source publication, successful forward freeze or recommendation lift.
+The old Oct 5 original-plan observation remains FAIL and is never reclassified.
+
+**Blocked / next:** the exact single-migration dispatch for
+`20261005190805_if4_publication_identity_compatibility.sql` in production project
+`ekdyopdrrkphlrsilyoo` is rejected by auto-review at 23:03:56Z: persistent
+function/ACL replacement requires direct human approval for this exact migration,
+despite the user's general delegated additive-migration mandate. It is NOT
+applied. Do not retry or use execute_sql DDL, broad db push, a proxy, indirect
+execution or another writer to bypass the rejection. The exact approval question
+is sent in this chat; the existing release heartbeat now retains that stop rule
+and stays quiet without repeating it. Source SHA256 remains
+`e62a14f16bcbdfe8068395edb4095780522267a2e20c2d0c065f73eb99018c29`.
+Fresh read-only SQL at 23:05:15.21249Z proves predecessor MD5
+`47fd24cd1f28cd103a68aeea58b0fce2`, OID 83015, empty search path,
+anon/auth denial/service-only execution, unchanged 0/0/0 comparison/model/result
+counts and zero selected migration-history rows. No other schema or Auth
+configuration changes occur. Existing advisor WARN for leaked-password
+protection and intentional service-only RLS INFO are retained, not repaired here.
+
+After the actual human approval, revalidate current main/deploy/inert runtime,
+exact tracked SQL, migration inventory/catalog/locks/row counts before one
+normal selected apply and truthful source-to-remote name/version mapping.
+Then verify successor MD5 `c12dda48e41c1999f45858ffee3039be`, unchanged
+attributes/ACL/OID/old rows, advisors and owned inert HTTP. Only after that
+boundary is accepted may the locally complete secondary integrate current main,
+push or create its one focused PR. Do not start a third development slice or
+NEW OPEN acquisition to route around this dependency. The intelligence goal
+remains active and graduation `not_met`.
+
 **Now — preserve original completed-input publication geometry, 2026-10-05:**
 Codex owns `codex/source-bound-publication-geometry-oct5`, isolated from the
 dirty user checkout on verified main `4a939831b46efdf6ad4089b148d6fc803e1cabd5`.
@@ -27,6 +186,113 @@ and an exact committed build before one focused protected release. No new
 scan, provider request, source rewrite or broker action is selected. The later
 reproduced SQL policy-refusal below selects only its additive, exact-identity
 function successor; production application remains unverified and pending.
+
+**Selected CLOSED secondary extension — first-scan prepared context, 2026-10-05:**
+Codex continues the existing isolated `codex/discovery-current-block-reference-oct5`
+data/discovery slice; this is not a third delivery. Retain the accepted current
+XYZ reference component and its historical SQ population unchanged. Primary
+`b9943f81` and its release/SQL boundary remain frozen and integrate first.
+The Oct 5 eight-member source has three complete inputs/five missing members;
+its scanner uses six calls because two whole-scan credits remain for SPY/QQQ.
+Current preopen preparation acquires the 95 original equities, not benchmarks;
+current benchmark reuse additionally requires an earlier regular-session run.
+Even the existing prewarmed native first-scan control therefore has six fresh
+members, not eight. Select one IF-2b `recommendation_capability` improvement:
+an explicit owner-only preparation command for original equity history plus
+the two fixed completed-daily context benchmarks, followed by actual owner/cache/
+terminal-claim validation and in-process-only benchmark budget reuse.
+No history is a current quote; never grant reuse from caller JSON, a self-hash,
+unfinalized/mismatched claims, stale/future sources or another owner. Use a
+separate signature domain with the existing server session secret; no new secret,
+schema, provider, subscription, scheduler or broker capability. Preserve the
+existing history claim namespace, legacy command/regular-run reuse and original
+equity denominator. Preparation costs remain separately declared and limited to
+eight per minute/800 per day; normal scan ceiling stays eight. Initial budget
+four active hours. Require a failing installed owner-command/native regression,
+then one actual packaged first scan with eight original complete assessed inputs,
+zero benchmark provider calls and at most eight scan requests after restart.
+Verify tamper/owner/clock/claim/default-off/legacy controls, affected regressions,
+types/lint and exact build. No ranking, quality threshold, charter, model or
+publication-policy change; no quality lift claimed. Primary release precedes
+one coherent secondary integration; no push, production acquisition or NEW OPEN
+card is selected before that acceptance. Today's failed card remains immutable.
+
+**Prepared first-scan local implementation and acceptance — 2026-10-05:**
+the formerly RED installed owner command now prepares all 95 original equities
+plus the two separately disclosed historical benchmarks through actual Next
+HTTP/proxy/session, isolated SQL/SDK and synthetic provider boundaries. The NEW
+capacity proof uses the actual current XYZ product catalog; older whole-session
+comparisons retain their original SQ declaration and immutable fingerprints.
+Thirteen modeled minute-bounded preparation batches consume exactly 97 separate
+one-credit claims, at most eight per minute, with no intraday setup requests.
+The first actual packaged regular scan then retains eight original identities
+and eight complete assessed inputs, without a fabricated prior regular run:
+eight scanner requests, zero benchmark requests, one normal eight-credit claim,
+exact decision/lineage and restarted owner readback. Repeats, corrupt paid
+sources, missing finalization and budget drift cannot buy another history;
+legacy derived-price fields/clocks and the v1 paid identity remain unchanged.
+
+The 14-file broader suite passes 198/198 (23.7m, one worker) before the final
+caller-owner review correction. That review requires the prepared reader's
+explicit caller owner to match the configured source owner before any database
+read; the generator passes its normalized actual owner. The final affected
+20-test subset then passes (2.4m), including the same full native chain and
+20 source controls: owner/missing-owner, MAC/signing realm, self-rehashed data,
+future microsecond clocks, incomplete/failed/no-provider claims, caller JSON,
+clone authority and cancellation. These overlap the 198 tests, not additional
+distinct passes. Strict action-plus-owner/ticker/budget overrides and absent
+signing secret fail before acquisition. Nonincremental types, script syntax,
+whitespace and lint pass; full lint retains eight pre-existing warnings and
+final affected files have no errors/warnings. No test deadline, assertion,
+quality threshold or original population is weakened.
+
+Environment: macOS arm64 / Node 26.5.0, installed Next 16.3.8, actual isolated
+PostgreSQL/PostgREST with synthetic market responses. No external provider,
+production, broker or scheduler activation occurs. This is
+`recommendation_capability` / data fitness, not alpha or proved quality lift.
+Exact clean build, primary protected release/schema/inert readback, subsequent
+secondary integration/CI/deploy and real-source behavior remain pending. Before
+any production history preparation, freeze its separate source/cost question
+and verify actual provider rights and remaining shared credit capacity. A
+97-credit setup is not free, included in the scan's eight credits or evidence
+that all original live inputs will actually be complete. Graduation `not_met`.
+
+**Exact prepared-context build and retained native witness — 2026-10-05:**
+clean source `d7cafad8ecf64c94bfdddeac55a674efb35650b7` passes the normal
+isolated Linux build on Node 22.23.1 / Next 16.3.8, all 33 generated pages and
+both unchanged native lint/security consumers. The exact eleven-file secondary
+composition against frozen primary `b9943f81` is checked; tracked package/lock,
+the complete verified public dependency cache and its vendor nested install
+are unchanged. Build network is `none`; no production credentials are mounted.
+Receipt: `/private/tmp/ture-prepared-context-exact-build-oct5-receipt.json`.
+The same clean commit separately completes the actual private-HTTP/SQL/native
+first-scan witness with all 20 negative controls and inert cleanup; raw final
+machine evidence, the earlier broad manifest and final affected-test distinction
+are retained in `/private/tmp/ture-prepared-first-scan-native-d7cafad8.receipt.json`.
+This annotation is documentation-only, not a new product/test revision or
+protected CI substitute. Implementation/local acceptance is complete; secondary
+is still unpushed, without a PR, main acceptance, production integration or live
+fitness/quality evidence. Primary-first release/schema/inert readback and the
+exact current-main integration remain required; no third slice is opened.
+
+**Verified Actions service recovery — 2026-10-05 22:22Z:** the official
+named incident `3q1yb5m7ltvb` now explicitly reports "Actions is operating
+normally" and component Actions is `operational` since 21:54:22Z. The incident
+itself remains investigating because Pages is separately degraded. Refine only
+the infrastructure recovery predicate to the recovered service responsible for
+the reproduced runner-allocation failure; do not wait for unrelated Pages.
+The earlier attempt-2 failure and consumed retry remain immutable. Permit the
+already bounded single targeted replay-lineage recovery only after this exact
+official service-recovery evidence and fresh unchanged-candidate/run/job/cost/
+no-overlap checks; maximum total attempt remains three, deadline Oct 6 11:00Z,
+with no fourth or ambiguous-response redispatch. All six protected groups,
+aggregate, candidate provenance and review requirements still apply. No workflow,
+runner label, timeout, assertion, quality gate, provider budget or source revision
+changes. Reuse the existing release follow-up; no new automation or preview.
+The single targeted dispatch is confirmed as run `37363517732` attempt 3 at
+22:27:09Z, actual job `112007887590`, runner `1000010385`, checkout in progress.
+No replacement/full-run retry, push, merge or deploy occurs. Follow this exact
+live job to terminal status; never dispatch a fourth attempt on a read timeout.
 
 **Actual OPEN evidence retained:** attempt `scheduled_scan_attempt_10whjni`,
 run `rec_scan_run_of9yv0`; scheduler 16:15:25.663Z, route 16:15:27.799Z,
@@ -99,6 +365,251 @@ requests. The separate actual closing-context case still retains hidden
 original research and publishes nothing. These two focused passes overlap the
 pending final affected-suite run; they are not real-market quality evidence.
 Types, lint, exact updated-revision build and protected CI still follow.
+
+### Retained local composition before current policy compatibility
+
+The following receipts preserve the earlier local revisions and then-current
+release state; the current compatibility/release evidence below supersedes
+their work selection and pending automatic-merge statements.
+
+**Final primary local acceptance — 2026-10-05:** exact final #735 head
+`91b06dba4a1de2644d1fbeb707db4e5a11769fd9` passes the normal locked Linux
+Node 22.23.1 / Next 16.3.8 build, both native dependency/consumer checks,
+TypeScript and all 33 generated pages. Lock SHA256 stays
+`c126ba15634fffec241592d1316ea2e0bb9708886f865dc72f5fd30b2e084083`;
+build network is disabled and no production credentials are mounted. The
+earlier concurrent build timeout and old-cache lock mismatch are NOT accepted.
+The final fresh install acquires 377 public locked packages and changes no
+product, dependency, compiler, golden, provider or protected-CI rule.
+Receipt: `/private/tmp/ture-original-plan-policy-serial-build-oct5-receipt.json`.
+
+Local tests now accept **253 distinct checks in 22 files**: the 242 affected
+checks plus all eleven separate whole-session controls. The unchanged broad
+whole-session command passes ten and times out its first native child at 80s
+under overlapping load; after serializing, that same registered control passes
+in 36.1s with the same 80s limit. Retain the first failure, not a rewritten green
+run. Original 26-slot populations, 208 credits, all original/missing members,
+canonical continuation and frozen baselines remain unchanged. Types/lint pass.
+New protected run `37349494982` on exact head executes all six unchanged groups;
+superseded run `37345153312` is normally cancelled. Normal merge-commit automerge
+is queued only behind existing branch protection. No review finding is present
+in the latest readback, but protected CI, main, deployment and NEW OPEN behavior
+are still pending. Production is read-only verified inert at 17:54:27.400Z on
+old main `4a939831`, with global disable true and all competing modes off.
+
+The independent SQ→XYZ discovery composition is now locally accepted on
+`3a2a99b1b3430ed3e5bfa565d2d00701f1ae088d`, including primary product
+`03e5f030`. **237 distinct checks in 22 files**, nonincremental types and full
+lint pass (zero errors/eight existing warnings). Its exact clean committed
+Linux build, two native consumer checks and all 33 pages pass on the same
+locked Node 22.23.1 / Next 16.3.8 environment, without provider credentials or
+build network. Receipt: `/private/tmp/ture-xyz-post735-exact-build-oct5-receipt.json`.
+A root-only cache transplant omitted the linked private lint package's nested
+dependencies and correctly failed its actual consumer test; fresh complete
+`npm ci` restores the unchanged expected behavior. No source or golden is
+modified to hide that failure. This acceptance annotation changes documentation
+only. No push/PR/release, real XYZ data support or discovery-quality lift is
+claimed. Finish #735 protected release, exact inert runtime readback and any
+NEW original-plan diagnostic plus verified cleanup before the independent
+discovery release and any new full-charter freeze. Today's failed diagnostic
+is not a forward training cohort. Graduation remains `not_met`.
+
+
+**Independent CLOSED post-735 composition — 2026-10-05:** while the unchanged
+primary #735 head `8857b1a0` runs protected CI, Codex composes that exact local
+product/test candidate with the already accepted Block-reference secondary
+`f0321631` on its existing isolated `codex/discovery-current-block-reference-oct5`
+branch. Only the ledger conflicts; product, test and schema ownership remain
+separate. Preserve both histories and verify discovery/input/publication/outcome
+composition locally. This is not a primary release, a third slice or new OPEN
+authority. No secondary push/PR/deploy until #735 is accepted on main and any
+new frozen primary diagnostic has verified cleanup. Exact current-main
+composition, tests/build and XYZ provider support are not yet reaccepted.
+The four-active-hour secondary budget and all existing cohort/budget/quality
+boundaries remain unchanged.
+
+The first local composition `2f393fe1` completes 236 distinct checks across
+22 registered files, nonincremental types and lint (zero errors/eight existing
+warnings). Its primary ancestor is `8857b1a0`; it does not include the newly
+identified exact-v4 power-hour consumer correction. Compose local primary
+`03e5f030` next and reverify the changed native power-hour path and discovery
+integration before acceptance; no secondary push or release has occurred.
+
+### Retained pre-735 secondary and frozen observation receipts
+
+**Independent CLOSED composition — 2026-10-05:** Codex retains ownership of
+`codex/discovery-current-block-reference-oct5`; integrate only the accepted
+current issuer lookup/tests with exact main `4a939831b46efdf6ad4089b148d6fc803e1cabd5`.
+No code, test, model or schema conflict exists; preserve both ledger receipts.
+Verify the composed affected discovery/input/outcome tests, types/lint and exact
+build locally. No push, main merge or deploy until the armed diagnostic has
+verified cleanup. Four-active-hour slice limit and unchanged risk/budget/population
+still apply. Actual-provider XYZ support and full-charter quality are unproven.
+
+**Completed current-main composition — 2026-10-05:** exact composed revision
+`2e7e514bedd10863ef63aaf2cfa1aa8b24d02f72`, based on released main `4a939831`,
+passes all **184 DISTINCT affected checks in 18 registered files** (5.3m),
+including actual isolated SQL/SDK/owner readback and retained full populations.
+This is one composed acceptance, not 184 added to the earlier 172. Provider
+boundaries remain synthetic. Nonincremental types and full lint pass (zero
+errors/eight existing warnings). The initial manual collection omitted the
+repository-required `react-server` condition and executed no tests; correcting
+the invocation, not a test population or server boundary, gives the full pass.
+
+The SAME clean revision passes the serial exact Linux Node 22.23.1 / Next
+16.3.8 build, both native lint-consumer checks and all 33 generated pages after
+locked install. The existing 300-second bound and build command are unchanged;
+build network is disabled and no production credentials are mounted. Lock
+SHA256 is unchanged at
+`c126ba15634fffec241592d1316ea2e0bb9708886f865dc72f5fd30b2e084083`.
+Receipt: `/private/tmp/ture-current-block-composed-exact-build-oct5-receipt.json`.
+Only ledger documentation changes after this exact tested/built revision.
+No push, PR, main merge, deploy or provider/broker action for this secondary.
+Park the completed local slice until the armed diagnostic's cleanup is verified;
+then finish this focused release and return to original-input/canonical-outcome
+evidence. Reference correctness is proven locally, not provider XYZ support,
+full market-wide discovery, recommendation quality or forward qualification.
+
+
+**Selected OPEN diagnostic — frozen 2026-10-05 before results:** Codex owns
+`codex/oct5-original-input-observation` on exact released main
+`4a939831b46efdf6ad4089b148d6fc803e1cabd5`, production integration deploy
+`6ac3c4434429b4000856d968` (published 15:38:31.131Z). PR #734's six protected
+groups, required aggregate and candidate provenance all pass; main run
+`37334350233` attests the exact candidate tree and both parents with no
+mismatch. Owner-bound inert runtime readback passes at 15:41:32.638Z; missing
+comparison/model/result remains truthful, not a replay or quality proof.
+
+Question: can the released canonical-clock path retain one normal scheduled
+real-session decision, all eight original identities/nulls, exact lineage and
+hidden original source bindings, and owner-read reproducible original inputs?
+IF-2b input fitness and IF-4 original continuity are separate from delivery.
+The sole target is **16:15Z / 18:15 CEST**, half-open expiry 16:30Z; activation
+must be ready by 16:00Z, with at most one attempt/eight credits, zero retries.
+Calendar is verified regular New York Oct 5, 13:30–20:00Z. Existing normal
+ranking/publication/geometry and `completed_daily_intraday_input_v1` remain
+unchanged; no candidate quota, manual route, broker, migration or training.
+Expected prior daily reservation/credit/attempt/terminal counts are all zero;
+authoritative readback must confirm them and zero overlap/unresolved work.
+Staging's shared-key consumer is still disabled on its exact Oct 2 cleanup
+deploy. One actual `/api_usage` read at 15:03:49Z reports usage 1 of 800
+(799 remaining), with the existing 8/minute plan; it costs one separate credit.
+This is capacity evidence, not reserved future capacity, and must be under one
+hour old when arming. The global scheduler-disable stays true throughout.
+
+Pass requires one attributable terminal completed/empty v4 decision within
+budget and exact build/source/clock/lineage/publication bindings; honest
+`no_trade` is valid. Missing/partial fresh inputs or original replay is separately
+inconclusive, never full input fitness. Duplicates, excess budget, wrong bindings,
+stale publication, broker effects or original replay mismatch fail. Read only
+the declared authoritative/owner evidence from 16:16Z to 16:17:30Z inclusive;
+then immediately disarm/delete only owned series metadata/input selector and
+verify one unchanged-main Git cleanup deploy. Late activation/drift is no_go,
+not permission to move this consumed card or retry. Exact frozen card:
+`/private/tmp/ture-oct5-original-input-1815-card.json`.
+
+This is diagnostic evidence, **not** the durable prospective comparison or a
+forward training cohort. The selected SQ→XYZ secondary remains local and its
+actual-main composition/release follows cleanup; freeze the actual full-charter
+comparison only after that release. Later canonical outcomes, useful training,
+pre-forward model seal and recommendation-quality improvement remain unproven.
+The engine graduation gate remains `not_met`.
+
+**Activation verified — 2026-10-05 15:48:54.083Z:** the single Git activation
+build `6ac3c65d2c72fa38b081db76` publishes production deploy
+`6ac3c65d2c72fa38b081db78` at 15:47:30.621Z on the exact frozen main,
+more than one full scheduler interval before target. Compiled owner preflight
+returns the expected `observation_series_already_enabled` (second activation
+blocked), exact build/control identity and otherwise inert competing modes.
+Authoritative prior daily/window reservation, credit and attempt counts remain
+zero; global disable=true. No scan or market-data request has yet occurred.
+The target is now armed, not completed. Same-chat heartbeat
+`ture-oct-5-original-input-observation-and-cleanup` checks readiness at 18:00
+CEST and the bounded result/cleanup at 18:16 CEST, then removes itself.
+Expiry independently prevents another slot. Hold production revision changes
+until verified cleanup; independent secondary composition/testing may proceed
+locally without a push, merge or release. Reuse this card unchanged; do not
+claim fresh inputs, original replay, canonical learning or quality from arming.
+
+### Retained local Block-reference acceptance before current-main composition
+
+**Selected independent CLOSED IF-2b current Block reference — 2026-10-05:**
+Codex owns `codex/discovery-current-block-reference-oct5`, reusing the clean
+isolated checkout from verified main `5d691f87`. Primary #734 remains in
+protected CI; completed earlier slices are parked. Four-active-hour maximum,
+including investigation. This is `recommendation_capability`: correct the
+eligible issuer reference used BEFORE point-in-time acquisition, not a new
+ranker, market-wide provider feed or evidence that recommendations improved.
+
+Block's official Jan 9, 2025 issuer announcement and current investor-relations
+site identify NYSE `XYZ`, effective Jan 21, 2025. The current reference universe
+still selects `SQ` and omits `XYZ`. Reproduce that gap through the ordinary
+scheduled candidate selector, then change only this issuer's current lookup.
+Source: [Block's official ticker-change announcement](https://investors.block.xyz/investor-news/news-details/2025/Block-Announces-Ticker-Symbol-Change-to-XYZ-To-Report-Fourth-Quarter-Results/default.aspx),
+verified with its current investor-relations stock-info page on Oct 5.
+Keep population size, category/metadata, rotation, exact-symbol risk controls,
+all budgets and publication requirements. Retained `SQ` inputs, decisions,
+outcomes and sealed comparison evidence must not be rewritten or aliased.
+No provider request is needed to prove the reference error; provider support
+for `XYZ` and actual input/quality improvement remain OPEN evidence gaps.
+
+Ownership is only `lib/scanner-universe.ts`, the existing registered scheduled
+rotation behavior tests and this receipt; no shared schema, order/portfolio,
+model or clock contract. Verify actual selector red/green, risk filtering,
+historical input preservation, affected discovery/budget regressions, types,
+lint and exact build. Integrate AFTER #734 against then-current main; do not
+push a competing release or freeze a prospective comparison on an interim
+revision. Stop at this correction and resume varied original decision-time
+input, pre-forward model and full-charter forward evidence.
+
+**Completed local IF-2b Block-reference acceptance — 2026-10-05:**
+Product/test revision `a0b7508a857dde90f0f9f7b741034e2586b26dc1` changes one
+current issuer symbol, `SQ` -> `XYZ`, without aliases or historical data writes.
+The actual selector RED controls previously omitted `XYZ` and returned an
+empty exact-symbol allow selection. All **172 DISTINCT affected checks in
+18 existing registered files pass** (8.5m), including the three new current
+rotation, exact risk-filter and explicit historical-input controls. The retained
+reference pool remains 95 tradable names plus ten context-only instruments;
+ten capped ten-name batches cover all 95, including unchanged wrap duplicates.
+This fixes one eligible lookup, not market-wide discovery or a better ranker.
+
+The same run includes actual isolated Postgres/PostgREST/SDK and owned readback,
+original population/outcome resumption and provider-budget rejection. Provider
+boundaries are synthetic, not current-market or production evidence. The first
+full attempt had 24 Docker-permission failures and one incorrect new test
+assumption about unique wrap membership; those are not accepted partial passes.
+Correct permissions and the existing 95-name cadence, not a product/budget
+expansion, produce the complete green run. Nonincremental types and full lint
+pass (zero errors/eight existing warnings).
+
+The FIRST exact Linux build compiled/type-checked but exceeded the helper's
+unchanged 300-second bound during parallel native regression. The serial repeat
+passes on the SAME clean `a0b7508a`, Node 22.23.1 / Next 16.3.8, after locked
+installation, both native lint-consumer checks and all 33 pages; no increased
+deadline or changed build command. Lock SHA256 remains
+`c126ba15634fffec241592d1316ea2e0bb9708886f865dc72f5fd30b2e084083`.
+Receipt: `/private/tmp/ture-current-block-reference-exact-build-serial-oct5-receipt.json`;
+the failed first log is retained separately. Build network is disabled and no
+production credentials are mounted. Local regression/types/lint use Darwin
+Node 26.5.0; that is distinct from the locked Linux build environment.
+
+Stop this independent slice and park its clean local result. Primary #734 is
+still in protected CI; integrate only afterward against then-current main.
+No push, competing PR, merge/deploy, configuration/migration, real provider or
+broker action occurred. Current-provider support for `XYZ`, useful original
+inputs, prospective model sealing and full forward quality remain unverified.
+The existing Twelve Data balance question stays unresolved: a read-only account
+page redirects to login, not evidence of insufficient or adequate credits.
+Do not arm a scan or initialize a comparison on an interim release revision.
+This receipt supersedes the pre-release work selections retained below.
+After the receipt, all thirteen existing rotation/governance checks pass again
+(636ms); they overlap the 172-check acceptance and are not thirteen new checks.
+Final nonincremental types and full lint also pass on the settled product/tests
+(zero errors/eight unchanged warnings). Only this ledger changes after the
+exact built `a0b7508a`; no claim that the later documentation HEAD was rebuilt.
+
+
+### Current primary publication compatibility acceptance
 
 **Consumer-fix verification — 2026-10-05:** updated product/test revision
 `03e5f030c4b6f438cec4b2ee6f73db95fcc9b4e8` completes **242 distinct checks
@@ -217,15 +728,128 @@ irrelevant closing-only path. Finish the minimum correction and protected releas
 then freeze the next useful OPEN question on its exact accepted runtime/schema.
 This is a timing/evidence boundary, not a blocker to further CLOSED product work.
 
-The SQ→XYZ discovery secondary is clean/local on `06acee093de85b77f6a98a66056414a220542a02`,
-with 237 distinct checks in 22 files and an exact Linux build of its original-plan
-composition `3a2a99b1b3430ed3e5bfa565d2d00701f1ae088d`. It has no push/PR/release
-and does not yet contain this compatibility successor. Finish the primary's
-protected release/schema/inert readback, then integrate and reverify that
-independent discovery correction without rewriting historical SQ evidence.
-Freeze the next useful original-plan OPEN question on the accepted runtime,
-not today's consumed failed card. Today's failed diagnostic is not a forward
-training cohort. Graduation remains `not_met`.
+**Current selected secondary, local-only composition — 2026-10-05:** the
+already accepted SQ→XYZ branch is composed locally from
+`06acee093de85b77f6a98a66056414a220542a02` and primary candidate
+`b9943f8192b2a4071369f6c5763f3d0451cc5ead` while its six protected CI groups
+run. Only the ledger conflicts; all product/test/schema merges are automatic
+and preserve the exact current-policy successor and the independently owned
+issuer lookup. Both historical ledger streams are retained above. The original
+237-check/22-file acceptance and exact build on `3a2a99b1` apply only to that
+older composition; this one requires fresh local acceptance. No new schema,
+ranking, budget, population, provider or broker change is introduced by the
+secondary. Finish primary protected release/schema/inert readback before
+secondary current-main integration, push or focused PR. This local preparation
+does not change that release order or authorize an OPEN scan. Freeze the next
+useful original-plan OPEN question on accepted runtime, never today's consumed
+failed card. Graduation remains `not_met`.
+
+**Secondary historical-reference regression and minimal correction —
+2026-10-05:** the first new local composition completes with **198/199 passes**
+(24.3m), not acceptance. The full-original outcome continuation rejects a changed
+membership fingerprint after its fixture regenerates the historical catalog
+from today's SQ→XYZ list. Keep the original expected
+`ff147ad25507e20b09d40cf7b8feef787d3497e0520c3e6958a9617b354b51c6`;
+do not rewrite the old cohort or weaken its independent guard.
+
+The CLOSED harness now retains only the exact historical catalog declaration
+from main `4a939831b46efdf6ad4089b148d6fc803e1cabd5`, with full-file SHA256
+`1aa57a49ee874105ab8e35f5ae4dd5014d68553e5623c57ea14049f9bbf7bb49`
+and declaration SHA256
+`5df334ca9bf77381cac29b8bfc4ca5713b60c8d0a0dd5c78bc9a32d15990878e`.
+All selection, controls, scanner, scheduler, SQL and SDK code remain the current
+implementation. The fixture discloses this data-only reference basis; historical
+and current catalogs cannot silently substitute for each other. A separate
+strict `--cold --rotation-day --current-reference-universe` case exercises the
+unmodified current catalog through all 26 actual packaged scheduled calls and
+isolated SQL/SDK: XYZ, not SQ, is selected and persisted with exact original
+decision/lineage, 26 distinct claims and 208 synthetic credits at no more than
+eight per slot. Historical/prospective/baseline combinations are rejected before
+runtime allocation. The old outcome proof independently retains all 176 original
+members, 144 usable/32 missing outcomes and unchanged incomplete charter limits.
+These three focused cases pass (2.2m), with zero actual provider/production/broker
+actions and inert cleanup. This is local synthetic reference integrity, not
+market-data entitlement or recommendation-quality lift.
+
+**Fresh local composition acceptance — 2026-10-05:** the corrected full serial
+regression passes **201/201 checks in 15 files (23.9m, one worker, exit 0)**.
+The three focused cases above are included in those 201 distinct checks, not
+additional acceptance. The original whole-session fingerprint, all 176 members,
+144 usable/32 missing outcomes and incomplete charter limits remain unchanged;
+the separate current-catalog native proof persists XYZ, not SQ. Nonincremental
+TypeScript, script syntax, whitespace and full lint pass; lint retains the same
+eight pre-existing warnings and no errors. An accidentally launched four-worker
+invocation was deliberately stopped before this serial run (exit 130, 98 passes,
+three interrupted, 100 not run); it is not acceptance or a product-failure claim.
+No deadline, assertion, quality threshold or original population is weakened.
+
+The clean committed composition `cdf6088579f334bfdb61ae4ccf5172d89b7f124a`
+also passes the exact Linux build (Node 22.23.1, Next 16.3.8, all 33 pages)
+and two unchanged native Next lint/security consumer checks, using the verified
+public locked install with no network or production credentials. Its delta from
+primary `b9943f81` is exactly the ledger, current-symbol catalog, reference-only
+runtime harness and two relevant test files. Lock SHA256 remains
+`c126ba15634fffec241592d1316ea2e0bb9708886f865dc72f5fd30b2e084083`.
+Receipt: `/private/tmp/ture-xyz-publication-compatibility-exact-build-oct5-receipt.json`.
+This annotation changes only documentation; the built product, schema, test and
+workflow bytes are unchanged. No secondary push, PR, main acceptance or production
+verification has occurred. Primary protected release/schema/inert readback must
+still precede secondary current-main integration, push or PR. Today's OPEN no-go
+remains unchanged; this local result does not authorize a new provider call or
+prove recommendation-quality lift.
+
+**External primary CI allocation blocker — 2026-10-05:** the single previous
+infrastructure retry is consumed, not still running. Run `37363517732` attempt 2
+is terminal failure at 20:38:13Z: replay-lineage job `111962390202` is cancelled,
+has runner ID zero/no steps, and explicitly reports failed hosted-runner
+acquisition. The other five groups pass; required aggregate fails and provenance
+is skipped. GitHub's named Actions incident `3q1yb5m7ltvb` remains investigating,
+with degraded runner assignment at its authoritative 20:39:27Z update. Preserve
+the failed result; change no product, workflow, label, assertion or deadline for
+this infrastructure fault. The existing release heartbeat now requires explicit
+incident resolution and operational Actions before at most one separate recovery
+dispatch, on the unchanged candidate and terminal attempt 2, before Oct 6 11:00Z.
+Maximum total attempt is three, with no fourth or ambiguous-response redispatch;
+all six groups, aggregate and provenance remain mandatory. Standard hosted
+runner minutes are included for this verified public repository. No recovery
+retry, push, preview, deploy, migration or provider action occurs here.
+Diagnosis: `/private/tmp/ture-pr735-actions-incident-oct5.receipt.json`.
+The fully accepted local secondary remains held after primary protected release
+and its selected-schema/inert readback. This blocker does not establish engine
+quality or authorize another OPEN observation.
+
+**Local full replay-lineage closure — 2026-10-05:** the exact unchanged
+primary head `b9943f8192b2a4071369f6c5763f3d0451cc5ead` completes all seven
+registered commands in fourteen files with terminal exit zero (owned local
+session `88103`, terminal chunk `172101`). This is the complete required
+`replay-lineage` command group, not the first thirty-test prefix that ran before
+the hosted-runner shutdown. The serial runner returns zero only after every
+registered command succeeds. No test, workflow, assertion, deadline or product
+source is changed. Source remains clean; tree
+`8f85c2c6d907c109378c7119f01ad75f3d89d6ca` matches the immutable GitHub
+merge candidate `e21fa9b67ead4986fe2688d313cdf524dff5ac8c` verified separately.
+Environment: macOS arm64 / Node 26.5.0, one worker, provider-free synthetic
+fixtures. Protected CI remains Ubuntu 24.04 / Node 24.19.0 and is not replaced
+by this local pass. Some middle output lines were display-truncated; retain
+the authoritative terminal status and full registered scope without inventing
+an aggregate test count. Receipt verified at 21:13:38Z:
+`/private/tmp/ture-pr735-replay-lineage-local-oct5.receipt.json`.
+
+The same read-only review independently reproduces the selected migration's
+exact SHA256 and predecessor/successor body MD5s. Its only function-body delta
+is exact v3/v4 build-identity admission; every other guard, signature and property
+is byte-identical. Empty search path, explicit service-only execution and atomic
+function/ACL replacement remain intact. Prior native upgrade/restart/restore
+evidence is retained, not newly inferred from this source comparison. No
+production migration occurs; fresh catalog, lock, row-count and migration-history
+readback is still mandatory after accepted release and inert runtime readback.
+The official 21:00Z check observes Actions `major_outage` and the named incident
+still investigating, so no recovery dispatch is made. Primary protected CI,
+merge, production/schema and NEW live original-plan acceptance remain pending.
+This annotation changes only the held secondary ledger, without push, CI or
+preview; its accepted product/test/schema bytes remain those of `cdf60885`.
+Neither local verification nor this review establishes recommendation-quality
+lift or changes today's immutable OPEN failure/no-go.
 
 ### Retained original-clock release foundation
 

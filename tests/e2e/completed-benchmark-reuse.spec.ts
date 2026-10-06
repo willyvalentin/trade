@@ -178,6 +178,38 @@ test("only revalidated owned original benchmark capsules can free the two reserv
   }
 });
 
+test("owned prepared context supplies the first complete original scan without a prior regular decision", () => {
+  test.setTimeout(90_000);
+  const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--cold",
+    "--rotation-day", "--prospective-enrollment", "--full-original-history-setup", "--budgeted-history-setup",
+    "--history-preparation-app", "--prepared-first-scan"],
+  { cwd: process.cwd(), encoding: "utf8", timeout: 80_000 });
+  expect(result.status, `${result.error?.message ?? ""}\n${result.stdout.slice(-2500)}\n${result.stderr.slice(-2500)}`).toBe(0);
+  const evidence = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
+  expect(evidence).toMatchObject({ actual_provider_requests: 0, production_actions: 0,
+    publications: 0, broker_actions: 0, cleanup: "inert",
+    reference_universe: { basis: "current_product_reference_catalog", source_revision: null,
+      selector_basis: "actual_current_product_selector" },
+    prepared_first_scan_evidence: {
+      evidence_scope: "synthetic_owner_prepared_context_not_market_quality",
+      original_equity_history_count: 95, benchmark_history_count: 2,
+      setup_provider_requests: 97, maximum_setup_minute_credits: 8,
+      prior_regular_scan_count: 0, original_member_count: 8, complete_assessed_input_count: 8,
+      benchmark_provider_requests: 0, scanner_provider_requests: 8,
+      attempts: 1, normal_reservations: 1, normal_reserved_credits: 8,
+      restarted_owner_read: true, owner_bound_source_signatures: true,
+      original_claim_namespace_preserved: true, quality_improvement_claimed: false,
+    },
+  });
+  expect(evidence.prepared_first_scan_evidence.source_controls).toHaveLength(20);
+  expect(evidence.prepared_first_scan_evidence.prepared_equity_tickers).toHaveLength(95);
+  expect(evidence.prepared_first_scan_evidence.prepared_equity_tickers).toContain("XYZ");
+  expect(evidence.prepared_first_scan_evidence.prepared_equity_tickers).not.toContain("SQ");
+  expect(evidence.prepared_first_scan_evidence.source_controls.every((control: {
+    provider_requests: number; original_source_restored: boolean;
+  }) => control.provider_requests === 0 && control.original_source_restored)).toBe(true);
+});
+
 for (const historyStart of ["prewarmed", "cold"] as const) {
 for (const mode of ["baseline", "reuse", "invalid", "invalid_clock", "invalid_capture"] as const) {
   test(`packaged ${historyStart} ${mode} allocation preserves original populations and whole-scan credits after restart`, () => {
@@ -723,7 +755,17 @@ test("whole-session outcome continuation discovers every original batch before c
   expect(result.status, `${result.error?.message ?? ""}\n${result.stdout.slice(-2000)}\n${result.stderr.slice(-2000)}`).toBe(0);
   const receipt = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
   expect(receipt).toMatchObject({ actual_provider_requests: 0, production_actions: 0, publications: 0,
-    broker_actions: 0, cleanup: "inert" });
+    broker_actions: 0, cleanup: "inert", reference_universe: {
+      evidence_scope: "synthetic_reference_catalog_not_market_data_or_quality_evidence",
+      basis: "frozen_original_reference_catalog",
+      source_revision: "4a939831b46efdf6ad4089b148d6fc803e1cabd5",
+      source_path: "lib/scanner-universe.ts",
+      source_snapshot_sha256: "1aa57a49ee874105ab8e35f5ae4dd5014d68553e5623c57ea14049f9bbf7bb49",
+      catalog_declaration_sha256: "5df334ca9bf77381cac29b8bfc4ca5713b60c8d0a0dd5c78bc9a32d15990878e",
+      selector_basis: "actual_current_product_selector",
+    } });
+  expect(receipt.eligible_tickers).toContain("SQ");
+  expect(receipt.eligible_tickers).not.toContain("XYZ");
   const continuation = receipt.full_original_history_evidence.original_outcome_continuation;
   expect(continuation).toMatchObject({ original_decisions: 26, original_batch_count: 26,
     original_population_count: 176, terminal_quality_decision: null, quality_improvement_claimed: false });

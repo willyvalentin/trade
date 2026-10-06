@@ -1,10 +1,10 @@
 import "server-only";
 
 import { createHash } from "node:crypto";
-import { getConfiguredApplicationOwnerUserId } from "@/lib/application-session-core";
+import { getConfiguredApplicationOwnerUserId, getConfiguredApplicationSessionSecret } from "@/lib/application-session-core";
 import { buildBasicFreeDiscoveryCreditReservationClaimId } from "@/lib/basic-free-discovery-credit-reservation-store";
 import { getIntradayScanWindow } from "@/lib/intraday-scan-window";
-import { getDailyCandlesWithRetainedHistory } from "@/lib/market-data";
+import { getDailyCandlesWithRetainedHistory, getDailyCandlesWithIdentity } from "@/lib/market-data";
 import { throwIfAborted } from "@/lib/operation-abort";
 import { isProviderRateLimitLikeError } from "@/lib/provider-rate-limit";
 import { buildRealScannerBaseCandidateSelection } from "@/lib/real-scanner-candidate-generation";
@@ -12,6 +12,8 @@ import { captureCompletedDailyContext, readCompletedDailyContext } from "@/lib/s
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 import { getUsEquityMarketSession, usEquityMarketCalendarDataset } from "@/lib/us-equity-market-calendar";
 import { prepareBasicFreeDiscoveryCreditReservation, finalizeBasicFreeDiscoveryCreditReservation } from "@/lib/server/basic-free-discovery-credit-reservation-persistence";
+import { PREPARED_BENCHMARK_CONTEXT_POLICY_VERSION, preparedBenchmarkTickers,
+  createPreparedBenchmarkSourceReceipt, readPreparedBenchmarkSourceReceipt } from "@/lib/server/prepared-benchmark-source";
 
 export const COMPLETED_SESSION_HISTORY_PREPARATION_VERSION = "completed_session_history_preparation_v1" as const;
 export const COMPLETED_SESSION_HISTORY_RESUMPTION_VERSION = "completed_history_terminal_failure_resumption_v1" as const;
@@ -40,7 +42,8 @@ function minute(now: Date) {
  * attempt cannot be retried under a different minute or cohort fingerprint.
  * No current-price, candidate, publication, outcome or execution authority.
  */
-export async function prepareCompletedSessionHistories(options: { signal?: AbortSignal } = {}) {
+export async function prepareCompletedSessionHistories(options: { signal?: AbortSignal;
+  benchmarkContextPolicyVersion?: typeof PREPARED_BENCHMARK_CONTEXT_POLICY_VERSION } = {}) {
   const signal = AbortSignal.any([AbortSignal.timeout(45000), ...(options.signal ? [options.signal] : [])]);
   const abortedReason = () => options.signal?.aborted ? "history_preparation_aborted" : "history_preparation_deadline_exhausted";
   const started = new Date();
@@ -49,6 +52,8 @@ export async function prepareCompletedSessionHistories(options: { signal?: Abort
   const dailyBudget = budget(process.env.TURE_BASIC_FREE_CATALOG_DAILY_CREDIT_BUDGET, 800);
   const minuteBudget = budget(process.env.TURE_BASIC_FREE_CATALOG_PER_MINUTE_CREDIT_BUDGET, 8);
   const members: Member[] = [];
+  const benchmarkMembers: Member[] = [];
+  const prepareBenchmarks = options.benchmarkContextPolicyVersion === PREPARED_BENCHMARK_CONTEXT_POLICY_VERSION;
   let fingerprint: string | null = null;
   let requested = 0;
   let reserved = 0;
@@ -59,16 +64,21 @@ export async function prepareCompletedSessionHistories(options: { signal?: Abort
     resumption_policy_version: COMPLETED_SESSION_HISTORY_RESUMPTION_VERSION,
     started_at: started.toISOString(), completed_at: new Date().toISOString(),
     trading_date: session.market_date, universe_fingerprint: fingerprint,
-    scope: "server_selected_original_regular_session_universe" as const,
-    status: blocker ? "blocked" as const : members.every(row => row.status === "available" || row.status === "acquired")
+    scope: prepareBenchmarks ? "original_equities_and_required_completed_benchmark_context" as const
+      : "server_selected_original_regular_session_universe" as const,
+    status: blocker ? "blocked" as const : [...members, ...benchmarkMembers].every(row => row.status === "available" || row.status === "acquired")
       ? "complete" as const : "partial" as const,
     blocker, original_members: members,
+    ...(prepareBenchmarks ? { benchmark_context_policy_version: PREPARED_BENCHMARK_CONTEXT_POLICY_VERSION,
+      benchmark_members: benchmarkMembers } : {}),
     requested_credits: requested, reserved_credits: reserved, finalized_credits: finalized,
     reservation_accounting_complete: accountingComplete,
     cost_scope: "current_invocation_known_credits_durable_ledger_is_authoritative" as const,
     current_price_allowed: false, publication_allowed: false, broker_allowed: false,
   });
-  if (Object.keys(options).some(key => key !== "signal")) return result("history_preparation_request_invalid");
+  if (Object.keys(options).some(key => !["signal", "benchmarkContextPolicyVersion"].includes(key)) ||
+    (options.benchmarkContextPolicyVersion !== undefined && !prepareBenchmarks)) return result("history_preparation_request_invalid");
+  if (prepareBenchmarks && !getConfiguredApplicationSessionSecret()) return result("history_preparation_source_signing_unavailable");
   // Preparation is same-day before a verified open. Normalized current-session
   // scanning keeps its separate regular-hours gate, unchanged.
   if (!owner || process.env.TWELVE_DATA_PLAN_MODE !== "free" || !dailyBudget || !minuteBudget)
@@ -87,6 +97,11 @@ export async function prepareCompletedSessionHistories(options: { signal?: Abort
   if (!tickers.size || tickers.size > 256) return result("history_preparation_original_selection_unavailable");
   members.push(...[...tickers].map(ticker => ({ ticker, status: "pending" as const,
     claim_id: null, captured_at: null, content_sha256: null, blocker: null })));
+  if (prepareBenchmarks) benchmarkMembers.push(...preparedBenchmarkTickers.map(ticker => ({ ticker,
+    status: "pending" as const, claim_id: null, captured_at: null, content_sha256: null, blocker: null })));
+  const acquisitionMembers = [...benchmarkMembers, ...members];
+  const readTickers = new Set(acquisitionMembers.map(member => member.ticker));
+  if (readTickers.size > 256) return result("history_preparation_original_selection_unavailable");
   fingerprint = `sha256:${createHash("sha256").update(JSON.stringify({ policy: COMPLETED_SESSION_HISTORY_PREPARATION_VERSION,
     date: session.market_date, calendar: usEquityMarketCalendarDataset.dataset_fingerprint, tickers: [...tickers] })).digest("hex")}`;
   const { client } = getServerSupabaseClient();
@@ -104,19 +119,19 @@ export async function prepareCompletedSessionHistories(options: { signal?: Abort
     for (let page = 0; page < 256; page++) {
       throwIfAborted(readSignal);
       let query = client.from("scanner_cache").select("ticker,raw,updated_at", { count: "exact" })
-        .in("ticker", [...tickers]).order("ticker", { ascending: true }).limit(64);
+        .in("ticker", [...readTickers]).order("ticker", { ascending: true }).limit(64);
       if (cursor !== null) query = query.gt("ticker", cursor);
       const cached = await query.abortSignal(readSignal);
       throwIfAborted(readSignal);
       if (cached.error || !Array.isArray(cached.data) || !Number.isSafeInteger(cached.count) ||
-        cached.count === null || cached.count < 0 || cached.count > tickers.size)
+        cached.count === null || cached.count < 0 || cached.count > readTickers.size)
         return result("history_preparation_cache_unavailable");
       if (expectedCount === null) expectedCount = cached.count;
       if (cached.count !== expectedCount - rows.size || cached.data.length > 64 ||
         cached.data.length > cached.count || (!cached.data.length && cached.count !== 0))
         return result("history_preparation_cache_unavailable");
       for (const row of cached.data) {
-        if (!row || typeof row.ticker !== "string" || !tickers.has(row.ticker) || rows.has(row.ticker))
+        if (!row || typeof row.ticker !== "string" || !readTickers.has(row.ticker) || rows.has(row.ticker))
           return result("history_preparation_cache_unavailable");
         rows.set(row.ticker, row);
       }
@@ -126,16 +141,18 @@ export async function prepareCompletedSessionHistories(options: { signal?: Abort
     }
     if (expectedCount === null || rows.size !== expectedCount) return result("history_preparation_cache_unavailable");
     const finalCount = await client.from("scanner_cache").select("ticker", { count: "exact", head: true })
-      .in("ticker", [...tickers]).abortSignal(readSignal);
+      .in("ticker", [...readTickers]).abortSignal(readSignal);
     throwIfAborted(readSignal);
     if (finalCount.error || finalCount.count !== expectedCount) return result("history_preparation_cache_unavailable");
-    for (const member of members) {
+    for (const member of acquisitionMembers) {
       throwIfAborted(signal);
       const raw = record(rows.get(member.ticker)?.raw);
       const context = await readCompletedDailyContext(raw.completed_daily_context,
         member.ticker, new Date());
       if (context) {
         const preparation = record(raw.completed_history_preparation);
+        if (benchmarkMembers.includes(member) && !readPreparedBenchmarkSourceReceipt(preparation.benchmark_source_receipt,
+          { owner, tradingDate: session.market_date, context })) continue;
         if (preparation.policy_version === COMPLETED_SESSION_HISTORY_PREPARATION_VERSION && preparation.owner_user_id === owner) {
           const execution = `${COMPLETED_SESSION_HISTORY_PREPARATION_VERSION}|${owner}|${session.market_date}|${member.ticker}`;
           const claimId = buildBasicFreeDiscoveryCreditReservationClaimId({ trading_date: session.market_date,
@@ -157,7 +174,7 @@ export async function prepareCompletedSessionHistories(options: { signal?: Abort
           content_sha256: context.content_sha256 });
       }
     }
-    for (const member of members.filter(row => row.status === "pending")) {
+    for (const member of acquisitionMembers.filter(row => row.status === "pending")) {
       // A retained failure consumes no new invocation credit, but never refunds
       // its original claim. Limit NEW reservations rather than visited members.
       if (reserved >= minuteBudget) break;
@@ -242,16 +259,24 @@ export async function prepareCompletedSessionHistories(options: { signal?: Abort
         if (minute(new Date()) !== bucket || Date.now() >= Date.parse(session.session_open))
           throw new Error("history_preparation_reservation_window_expired");
         requested += 1;
-        const response = await getDailyCandlesWithRetainedHistory(member.ticker, 60, { signal });
+        const response = benchmarkMembers.includes(member)
+          ? await getDailyCandlesWithIdentity(member.ticker, 60, { signal })
+          : (await getDailyCandlesWithRetainedHistory(member.ticker, 60, { signal })).completed_response;
         throwIfAborted(signal);
-        const context = await captureCompletedDailyContext(response.completed_response, member.ticker, new Date());
+        const context = await captureCompletedDailyContext(response, member.ticker, new Date());
         if (!context || getUsEquityMarketSession(new Date()).market_date !== session.market_date)
           throw new Error("history_preparation_attributable_context_unavailable");
+        const benchmarkSource = benchmarkMembers.includes(member)
+          ? Date.now() < Date.parse(session.session_open)
+            ? createPreparedBenchmarkSourceReceipt({ owner, tradingDate: session.market_date, minuteBucket: bucket, context }) : null
+          : undefined;
+        if (benchmarkSource === null) throw new Error("history_preparation_attributable_context_unavailable");
         const old = rows.get(member.ticker);
         const raw = { ...record(old?.raw), completed_daily_context: context,
           completed_history_preparation: { policy_version: COMPLETED_SESSION_HISTORY_PREPARATION_VERSION,
             owner_user_id: owner, universe_fingerprint: fingerprint, claim_id: claimId,
-            execution_fingerprint: execution, minute_bucket: bucket, content_sha256: context.content_sha256 } };
+            execution_fingerprint: execution, minute_bucket: bucket, content_sha256: context.content_sha256,
+            ...(benchmarkSource ? { benchmark_source_receipt: benchmarkSource } : {}) } };
         // Never freshen the legacy derived-price clock or replace its fields.
         // A concurrent scanner update must not be overwritten after acquisition.
         const write = old
