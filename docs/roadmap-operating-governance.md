@@ -1,6 +1,6 @@
 # Roadmap Operating Governance
 
-## Active delivery policy — recommendation intelligence first, 2026-09-27
+## Active delivery policy — recommendation intelligence first, 2026-10-07
 
 Follow the active IF-2b -> IF-3 -> IF-4 -> IF-5 selection in the master roadmap
 and the single Now / Next / Blocked queue in the ledger. The retained SV-A-SV-U
@@ -68,6 +68,54 @@ Only the first three advance the intelligence roadmap. The fourth is necessary
 maintenance and must identify the resumed intelligence delivery; it cannot be
 reported as proof that recommendations improved.
 
+<a id="outcome-delivery-and-completion"></a>
+### Outcome delivery and completion
+
+Use one brief in the ledger's marked **Current delivery board**, normally no more
+than ten lines: usable outcome; frozen hypothesis/population; earliest missing
+link; named owner and branch; dependencies/integration order; acceptance and
+environment; active effort/market wait; stop condition; next decision. Related
+helpers belong to that outcome and are not separately counted product wins.
+Keep the current board around 100 lines; link to exact dated evidence below it.
+
+Complete a slice when its declared integrated behavior is verified and its
+result changes the next decision, or when an evidence-backed stop disposes of
+it. Record implementation, environment acceptance and scientific acceptance
+independently. A local proof may complete implementation while OPEN acceptance
+remains pending. A rejected hypothesis is useful; a support fix only removes
+its named blocker. An `evidence_incomplete` disposition must name the missing
+dimension, owner, bounded recovery cost/window and review date, or an explicit
+stop. Never mark quality accepted because a time budget or review date expired.
+
+At the four-hour investigation limit, produce a reproduced defect, integrated
+proof or scope/feasibility decision. At the 4–16-hour slice limit, report the
+actual gap and reselect the smallest useful outcome. Keep cumulative effort and
+same-cause failures on the parent outcome so renaming successor tasks cannot
+reset the limit. Do not automatically append another helper. Preserve one
+primary and at most one selected independent CLOSED slice.
+
+Data-capacity feasibility belongs to the active outcome, not a new platform:
+use existing evidence to account for the complete original universe, histories,
+benchmark/context calls, freshness windows, outcome horizons, failures/retries,
+provider quotas and preparation/hosting costs. Distinguish paid/reserved/actual
+credits. Record feasible, infeasible or unknown and the smallest next action.
+Unknown entitlement or capacity cannot be treated as available. A smaller future
+population/cadence or another source requires a prospective scope decision;
+never shrink an old denominator, buy data or change thresholds implicitly.
+
+### Review the assumptions that can invalidate an outcome
+
+For changed ranking/evaluation semantics or production data/permission boundaries,
+seek an independent review of the actual chain and assumptions, with a link to
+the review in the PR. Focus on leakage, original membership, cost/feasibility,
+ACLs, runtime configuration and whether the test crosses the same boundary as
+production. Record reviewer, scope and unresolved findings; no recorded review
+means "not independently reviewed", not a claimed pass. Existing branch rules
+still determine required approvals. This is not a new blanket human approval
+gate, a reason to repeat unchanged reviews, or authority to message another chat.
+Routine reversible docs edits need consistency/link checks and applicable
+existing checks, not a new mirrored test suite or product-runtime project.
+
 ### Evidence-driven roadmap reconciliation — 2026-10-02
 
 The latest active priority and ledger queue supersede dated experimental work
@@ -77,8 +125,11 @@ canonical outcome/learning coverage and baseline-relative recommendation
 quality. Record what changed the next development decision and its exact
 evidence gap. Do not promote a data-fitness proxy into quality evidence or
 restart a stopped experiment because an older paragraph still says "next".
-Bundle justified roadmap reconciliation with the selected product delivery;
+Bundle routine roadmap reconciliation with the selected product delivery;
 do not create a separate planning-only PR or a parallel control-plane stream.
+An explicit user request to revise strategy/governance, such as this Oct 7
+reconciliation, is a bounded documentation delivery; it does not open an ongoing
+planning workstream or advance scientific acceptance.
 
 A provider/data rejection is not an evaluated `no_trade`. Preserve the terminal
 reason, the original missing population and both the full-slot reservation and
@@ -202,6 +253,13 @@ rule, not a promise that experiments succeed or permission to weaken acceptance.
   database persistence → authoritative/owner-scoped readback. Substitute external
   providers at their boundary, not every internal component. Verify deployed
   packaging and runtime configuration assumptions, not only source strings.
+  Match the affected production roles, table/RPC/default privileges, schema,
+  transport limits and cold/warm preparation paths. Exercise the exact consumer
+  and result reader after restart. Record relevant differences explicitly;
+  broader fixture grants must not hide a production denial. Reuse the existing
+  integrated harness, adding the reproduced regression at its actual boundary.
+  The OPEN contract owns the concise readiness evidence; do not add duplicate
+  wrappers or gates merely to restate it.
 - Reproduce each operational escape as a failing CLOSED regression before fixing
   it. Cover identity continuity through updates, valid `no_trade`, stale/missing
   data, timeout, duplicate/restart, and unavailable runtime configuration where
@@ -317,10 +375,32 @@ checks; do not alter branch protection or CI just to expedite a plan.
 
 Report implemented, environment-verified and strategy/release-accepted states
 separately with exact revision, data/model/strategy identity, environment,
-session and behavior evidence. Include actual active hours only if tracked;
-keep observation time separate from engineering time. Re-estimate after the
-first selected slice of a phase. Update the existing ledger with each material
-outcome; do not create a separate reporting system or Notion mirror.
+session and behavior evidence. Update the marked current board in place only
+on material outcome, blocker or selection changes. Retain original evidence
+once, below the board or in its existing evidence file, and link to it. Historical
+"Now/Next" and approval notes are not current instructions. Do not copy entire
+status narratives or create status-only commits after every check.
+
+Maintain these five measures in the existing board at the weekly review or next
+ordinary delivery; retain one previous dated summary. No new reporting service,
+dashboard, scheduled job or test contract is required.
+
+| Measure | Denominator and reporting rule |
+| --- | --- |
+| Fresh input fitness | Fully observed, fresh original candidate observations / all original candidates in the declared observation window. Show failed/missing inputs; report acquisition failures separately from evaluated `no_trade`. |
+| Canonical outcome continuity | Exact original members with valid mature canonical outcomes / all original members whose declared horizon has matured. Show immature, missing, rejected and unlinked members separately; do not remove unfavorable observations. |
+| Hypotheses disposed | Frozen comparisons with complete `continue`, `narrow` or `reject` results; list `evidence_incomplete` separately with bounded recovery/stop. Do not count fixtures, support PRs or incomplete science as accepted policies. |
+| Time and cost per useful observation | For each declared question, define useful before collection. Report active engineering time, blocked/market wait, elapsed time and total attributable provider/hosting cost per useful observation, including failed attempts/preparation. With zero useful observations report total cost and ratio unavailable, not zero. |
+| Integration escapes and rework | Production/OPEN defects missed by CLOSED checks, grouped by cause; repeated causes, corrective effort and deploy/manual operations per series. Each escaped cause links to its existing regression and next verified outcome. |
+
+Use exact windows, revision/cohort identities, raw numerator/denominator and
+source links. Missing measures are unknown, not zero. Do not pool synthetic,
+historical and forward samples or incompatible revisions. For delivery timing,
+start at the actual slice start and finish at its declared acceptance, not PR
+creation/merge. Forecast from observed throughput and dependencies; do not infer
+engineering hours or a completion percentage from PR counts or old estimates.
+If useful observations or completed questions stop increasing, select the
+largest demonstrated bottleneck and a bounded scope decision before more work.
 
 ## Historical delivery policy — intelligence first, 2026-09-15 (superseded in selection)
 

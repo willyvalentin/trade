@@ -1,16 +1,21 @@
 # Ture
 
-Ture is a privacy-first trading decision-support product. The current delivery
-goal is a dependable advisory MVP with manual trade recording and truthful
-history; broker assistance and measured learning follow after MVP acceptance.
+Ture is a privacy-first trading decision-support product. Its current goal is
+a recommendation engine that can find, reject, explain and learn from US-equity
+opportunities with measurable useful quality. The immediate delivery is complete
+fresh inputs → attributable decisions → canonical outcomes → a frozen comparison
+that can change the next product decision. Better quality remains to be proven.
 
-Start with the active sections of the [master roadmap](docs/ture-master-roadmap.md),
-[current queue](docs/ture-current-state-ledger.md) and
-[delivery policy](docs/roadmap-operating-governance.md). Historical Action
-records are evidence, not a competing backlog. See `AGENTS.md` before work.
+Start with the compact [current delivery board](docs/ture-current-state-ledger.md#current-delivery-board),
+the [current delivery map](docs/ture-master-roadmap.md#current-delivery-map),
+and the active [delivery policy](docs/roadmap-operating-governance.md).
+See `AGENTS.md` before work. Historical Action records and queues are evidence,
+not competing work selections.
 
-The MVP journey is: sign in → current recommendation or honest no-trade state →
-record a manually executed trade → follow and close it → correct durable history.
+The longer-term vision is scientific validation, autonomous internal paper,
+IBKR paper and separately approved controlled live/options execution, after the
+recommendation-quality gate. Existing manual trade records and Avanza safety
+remain supported; new execution expansion does not precede proven intelligence.
 
 ## Framework development reference
 
@@ -45,8 +50,10 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
+## Delivery and production
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Use the repository's current Git/CI release path and the deployment evidence in
+the [current delivery board](docs/ture-current-state-ledger.md#current-delivery-board).
+Production is Git-connected Netlify; a local build or merged PR alone does not
+establish environment or product acceptance. Preserve existing release authority
+and verify the exact published revision when a delivery requires production.
