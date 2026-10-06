@@ -2,7 +2,47 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-06, recommendation intelligence first
 
-**Current blocker — PR738 production audit, Oct6 18:25Z:**
+**Current primary release gate — PR738 corrected candidate, Oct6 18:58Z:**
+Code/test/schema/dependency revision
+`2f2528063005f68c845dc05505a110d05f9ef919` passes all120 distinct cases
+serially in27.9m:69 original-input/publication/replay/credit regressions,
+43 benchmark/history cases and8 security/native cases. The production-ACL
+first-source proof retains all20 original source negatives and10 separate
+read/rollback controls; no real providers, production actions, paid-row rewrite
+or policy relaxation. Final nonincremental types pass; full lint0 errors/8
+existing warnings. Full fresh-install audit0 findings. The exact clean Linux
+Node22.23.1/Next16.3.8 build passes33 pages and4 native consumer/provenance
+checks on this exact revision, including actual sharp0.35.5/librsvg2.63.2.
+Build receipt:
+`/private/tmp/ture-pr738-sharp-final-exact-linux-build-oct6-receipt.json`.
+
+Only the27 sharp/prebuilt-artifact entries changed in the lock;
+Next/package.json/configuration and the exact approved migration bytes remain
+unchanged. The next commit changes only this acceptance ledger. Update SAME
+Ready PR738 once with the coherent verified correction; require all six
+groups/aggregate/current merge-candidate provenance anew, not old-head green
+checks. No status-only push, blind rerun, check relaxation or new PR.
+The old run37509338577 attempt1 is terminal: five groups success, foundation
+fails the now-corrected sharp audit, aggregate failure and provenance skipped.
+
+The direct human's exact SQL approval and separately sufficient existing quota
+for ONE normal focused production publication/15 credits plus incidental
+compute remain the applicable authority. Numeric balance remains unknown;
+no purchase/top-up, plan change, extra OPEN or source/meter acquisition.
+Next: protected candidate acceptance/merge, exact Git-ready published production
+and post-merge provenance; then fresh source/main/deploy/inert owner HTTP,
+catalog/history/ACL/locks/rows/advisors before the single approved migration.
+Read unknown dispatch outcomes, never blindly retry. Verify true source/remote
+version/name/SQL mapping, new/old function body/OID/ACL, unchanged old rows and
+inert owner HTTP afterward. Production remains cleanup deploy
+`6ac52de6d2c1692e314bddf1` on main `e33c2f4f`; no focused production/schema
+release yet. Future native consumption/real8-of8 fitness remain unproven.
+Stop on source preparation failure without the separately unproven terminal-
+failure resume path. After this supporting_blocker_removal, resume IF-2b full
+fresh original inputs and their source-to-canonical-outcome continuity, not
+another generic helper stream. Goal active; graduation `not_met`.
+
+**Historical reproduced release blocker — PR738 production audit, Oct6 18:25Z:**
 The normal Ready PR `https://github.com/willyvalentin/trade/pull/738` on
 `ea9286c10dcfc769a939688b54ca1208a7f04977` started protected run37509338577
 attempt1. Foundation job112426260052 passes lint/types but fails the unchanged
@@ -36,7 +76,7 @@ remain unchanged. Final clean candidate verification follows this test-only
 reconciliation; no old-run green checks or prior build acceptance are inherited.
 Private fresh-install/build receipts use `/private/tmp/ture-pr738-sharp-`.
 
-**Current release gate — focused benchmark claim-read fix, Oct6 18:08Z:**
+**Historical old-lock local acceptance — focused benchmark claim-read fix, Oct6 18:08Z:**
 Code/test/schema revision `21fdd0079980cee402359c131b62a45686ea322e` is
 locally accepted:112 distinct affected cases (69 original-input/publication/
 replay/credit regressions and all43 benchmark/history cases,18.7m serially),
