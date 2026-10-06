@@ -2,7 +2,48 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-05, recommendation intelligence first
 
-**Current protected release / exact schema-authority hold — 2026-10-05 23:05Z:**
+**Current primary release accepted; prepared-context integration — 2026-10-06 05:05Z:**
+The direct human explicitly approved the exact pending
+`20261005190805_if4_publication_identity_compatibility.sql` in production project
+`ekdyopdrrkphlrsilyoo` after the status named that migration/project. Fresh
+main/deploy/owner-runtime and catalog checks precede one authorized normal apply.
+Source SHA256 remains `e62a14f16bcbdfe8068395edb4095780522267a2e20c2d0c065f73eb99018c29`.
+The source version `20261005190805` maps truthfully to remote version
+`20261006050453`, name `if4_publication_identity_compatibility`: the single
+remote statement's MD5 `c59d3bb2a0d5073d8b1b808b5e5ff099` matches the exact
+merged source bytes. No migration-history repair or alternate writer occurs.
+The earlier rejected dispatch is retained as history, not counted as an apply.
+
+Postflight at 05:05:15.69607Z proves successor body MD5
+`c12dda48e41c1999f45858ffee3039be`, unchanged OID 83015/postgres owner,
+security-definer/volatile/jsonb attributes, empty search path, public/anon/auth
+denial and service-only execution. Comparison/model/result row counts remain
+0/0/0; no related lock waits. Advisors retain one existing security WARN and
+INFO diagnostics; no additional Auth, RLS, index or environment change is made.
+Owned inert HTTP readback at 05:05:30.770Z verifies main
+`4be8c9c6d4a2ee1a897cad7629f4a27f0ea41c05`, ready Git-connected production
+deploy `6ac42bd62d14710008dd4730`, global disable true, competing modes off and
+zero active reservations. This closes the focused primary release and its
+specific authorization impasse. The old release heartbeat is deleted after
+verification; its initially non-terminal deletion response is resolved by a
+read-only view and the normal app tool, with final deletion confirmed.
+Receipt: `/private/tmp/ture-pr735-approved-migration-release-oct6.receipt.json`.
+
+**Now / next:** finish the existing prepared-context capability as the sole
+primary development slice. Its branch integrates current main as
+`8f09e25c6bc8cd880fd5739047e03c0273b3747b`; the complete tree is unchanged
+from locally accepted `3bae4fd0` (product/test source `d7cafad8`). Perform
+exact integrated acceptance, one focused protected PR and normal Git production
+delivery. Do not reuse older CDF acceptance for this capability, or describe
+local native proof as production behavior. The public locked dependency cache,
+all original populations, frozen charter, strict caller-owner/source guards and
+eight-credit scan limit remain unchanged. The optional 97-credit preparation
+is separate, not executed or authorized here. New OPEN needs separately frozen
+source/cost/session/activation/cleanup acceptance after this release. The Oct 5
+failed observation remains immutable; quality graduation stays `not_met`.
+
+**Historical protected release / exact schema-authority hold — 2026-10-05 23:05Z
+(superseded by the approved release above):**
 PR #735 is normally merged at `4be8c9c6d4a2ee1a897cad7629f4a27f0ea41c05`
 (22:59:32Z). All six unchanged groups, aggregate and candidate provenance pass
 on frozen head `b9943f81` in run `37363517732` attempt 3; actual replay-lineage
