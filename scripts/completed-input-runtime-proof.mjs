@@ -52,6 +52,14 @@ assert(!originalSourceReadControls || budgetedHistorySetup,
 assert(!originalOutcomeContinuation || budgetedHistorySetup,
   "Original outcome continuation follows the actual budgeted full original session, never seeded source rows");
 const historyPreparationFault = process.argv.find(value=>value.startsWith("--history-preparation-fault="))?.split("=")[1];
+const terminalHistoryClaimAcl = process.argv.includes("--terminal-history-claim-acl");
+let terminalHistoryReadFault = null;
+const terminalHistoryReadMigration = "20261006201519_completed_history_terminal_failure_readback.sql";
+assert(!terminalHistoryClaimAcl || historyPreparationFault === "terminal_resume" &&
+  process.argv.slice(2).every(value => ["--cold", "--rotation-day", "--prospective-enrollment",
+    "--full-original-history-setup", "--budgeted-history-setup", "--history-preparation-fault=terminal_resume",
+    "--terminal-history-claim-acl"].includes(value)),
+  "Terminal history ACL proof is distinct from the immutable historical resume and prepared benchmark cases");
 assert(!historyPreparationFault || budgetedHistorySetup && ["rate_limit","provider_identity","cache_write","reservation","finalization","daily_limit","abort","deadline","concurrent","terminal_resume"].includes(historyPreparationFault),
   "Preparation fault uses only its isolated actual acquisition/budget boundary");
 assert(!budgetedHistorySetup || fullOriginalHistorySetup,
@@ -474,17 +482,30 @@ try {
   // Source schema/owner constraints and real reservation functions, all isolated.
   sql(`create role anon nologin; create role authenticated nologin; create role service_role nologin bypassrls;
     create role authenticator login password 'closed-proof-only'; grant anon, service_role to authenticator;
-    ${productionClaimAcl ? "alter default privileges in schema public grant execute on functions to anon, authenticated, service_role;" : ""}
+    ${productionClaimAcl || terminalHistoryClaimAcl ? "alter default privileges in schema public grant execute on functions to anon, authenticated, service_role;" : ""}
     create schema auth; create table auth.users(id uuid primary key);
     create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claims', true)::jsonb->>'sub','')::uuid $$;
     insert into auth.users values('${owner}'),('00000000-0000-4000-8000-000000000002');
     ${migrations.map(file=>readFileSync(resolve(root,"supabase/migrations",file),"utf8")).join("\n")}
     grant usage on schema public to service_role; grant all on all tables in schema public to service_role;
-    ${productionClaimAcl ? "revoke all on public.basic_free_discovery_credit_reservations from service_role;" : ""}
+    ${productionClaimAcl || terminalHistoryClaimAcl ? "revoke all on public.basic_free_discovery_credit_reservations from service_role;" : ""}
     insert into market_calendar_cache(cache_date,provider,is_open_day,reason,day_type,market_open_time,market_close_time,raw,updated_at)
       values('2026-10-01','polygon',true,'Synthetic CLOSED calendar','trading_day','09:30','16:00','{}',
         '${rotationDay ? "2026-10-01T13:00:00Z" : "2026-10-01T17:30:00Z"}');
     insert into user_settings(owner_user_id) values('${owner}');`);
+  const terminalLegacyCatalogSql = `select jsonb_build_object(
+    'routines',(select jsonb_agg(jsonb_build_object('oid',p.oid,'name',p.proname,'body',md5(p.prosrc),
+      'owner',p.proowner,'definer',p.prosecdef,'config',p.proconfig,'acl',p.proacl) order by p.oid)
+      from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public'
+      and p.proname <> 'read_completed_history_terminal_failure_v1'),
+    'defaults',(select jsonb_agg(t order by oid) from pg_default_acl t),
+    'claim_table',(select jsonb_build_object('acl',relacl,'rls',relrowsecurity)
+      from pg_class where oid='public.basic_free_discovery_credit_reservations'::regclass));`;
+  const terminalLegacyCatalog = terminalHistoryClaimAcl ? sql(terminalLegacyCatalogSql) : null;
+  // The existing schema is established first so the additive read API can be
+  // proven not to modify old routines/defaults/table ACL or RLS.
+  if (budgetedHistorySetup) sql(readFileSync(resolve(root,"supabase/migrations",terminalHistoryReadMigration),"utf8"));
+  if (terminalHistoryClaimAcl) assert.equal(sql(terminalLegacyCatalogSql), terminalLegacyCatalog);
   globalThis.Date = class extends OriginalDate {
     constructor(...args) { super(...(args.length ? args : [fixtureNow()])); }
     static now() { return fixtureNow(); }
@@ -600,6 +621,26 @@ try {
       method:request.method,headers:request.headers,
       ...(requestBody!==null?{body:requestBody}:{})
     });
+    if (terminalHistoryReadFault && url.pathname === "/rest/v1/rpc/read_completed_history_terminal_failure_v1") {
+      assert(terminalHistoryClaimAcl && response.ok, "Controls perturb only the actual isolated read response");
+      const headers = new Headers(response.headers), rows = await response.json();
+      assert.equal(rows.length, 1);
+      if (terminalHistoryReadFault === "missing_count") headers.delete("content-range");
+      if (terminalHistoryReadFault === "wrong_count") headers.set("content-range", "0-0/2");
+      if (terminalHistoryReadFault === "empty_rows") rows.length = 0;
+      if (terminalHistoryReadFault === "duplicate_rows") rows.push(structuredClone(rows[0]));
+      const fieldDrift = { wrong_owner:["owner_user_id","00000000-0000-4000-8000-000000000002"],
+        wrong_date:["trading_date","2026-09-30"], wrong_identity:["execution_fingerprint","unrelated_history"],
+        wrong_claim:["claim_id","unrelated_claim"], wrong_version:["contract_version","unknown"],
+        wrong_credits:["requested_credits",2], catalog_claim:["catalog_observation",true],
+        wrong_daily_budget:["declared_daily_credit_budget",15], wrong_minute_budget:["declared_per_minute_credit_budget",7],
+        wrong_status:["status","completed"], missing_finalization:["finalized_at",null],
+        future_minute:["minute_bucket","2026-10-01T12:50:00Z"],
+        future_finalization_microsecond:["finalized_at","2026-10-01T12:45:00.000001Z"],
+        observed_finalization_microseconds:["finalized_at","2026-10-01T12:45:00.000001Z"] }[terminalHistoryReadFault];
+      if (fieldDrift) rows[0][fieldDrift[0]] = fieldDrift[1];
+      return Response.json(rows,{status:response.status,headers});
+    }
     if (preparedClaimReadFault && url.pathname === "/rest/v1/rpc/read_prepared_benchmark_history_claims_v1") {
       assert(preparedFirstScan && response.ok, "Claim response controls use the actual isolated read RPC");
       if (preparedClaimReadFault === "unavailable") return Response.json({code:"42501",message:"synthetic_read_denied"},{status:403});
@@ -895,14 +936,74 @@ try {
       assert.deepEqual(pass.original_members.map(row=>row.ticker),first.original_members.map(row=>row.ticker));
       resumeControls.push({fault,blocker:pass.blocker,provider_requests:0,new_claims:0,original_population_count:95});
     };
+    const terminalReadControls = [];
+    const failedClaimBefore = sql("select row_to_json(t) from basic_free_discovery_credit_reservations t;");
+    if (terminalHistoryClaimAcl) {
+      assert.equal(sql("select has_table_privilege('service_role','public.basic_free_discovery_credit_reservations','SELECT');"),"f");
+      assert.equal(sql(`select p.prosecdef and p.provolatile='s' and l.lanname='sql'
+        and pg_get_userbyid(p.proowner)='postgres' and array_to_string(p.proconfig,',')='search_path=""'
+        from pg_proc p join pg_language l on l.oid=p.prolang
+        where p.oid='public.read_completed_history_terminal_failure_v1(uuid,date,text,text)'::regprocedure;`),"t");
+      const failed = JSON.parse(failedClaimBefore);
+      const params = {p_owner_user_id:owner,p_trading_date:"2026-10-01",p_ticker:first.original_members[0].ticker,p_claim_id:failed.claim_id};
+      const rpc = async (input=params, authorization=process.env.SUPABASE_SERVICE_ROLE_KEY) => originalFetch(
+        `${apiOrigin}/rpc/read_completed_history_terminal_failure_v1`, {method:"POST",
+          headers:{Authorization:`Bearer ${authorization}`,"Content-Type":"application/json",Prefer:"count=exact"},
+          body:JSON.stringify(input)});
+      const valid = await rpc();
+      assert(valid.ok);
+      assert.equal((await valid.json()).length,1);
+      for (const input of [ {...params,p_owner_user_id:"00000000-0000-4000-8000-000000000002"},
+        {...params,p_trading_date:"2026-09-30"}, {...params,p_ticker:"UNSELECTED"},
+        {...params,p_claim_id:"unrelated_claim"}, {...params,p_ticker:null} ]) {
+        const denied = await rpc(input); assert(denied.ok); assert.deepEqual(await denied.json(),[]);
+      }
+      assert.equal(Number(sql(`select count(*) from public.read_completed_history_terminal_failure_v1('${owner}','2026-10-01','${params.p_ticker}','${failed.claim_id}');`)),0);
+      for (const role of ["anon","authenticated"]) assert.equal(sql(`select has_function_privilege('${role}',
+        'public.read_completed_history_terminal_failure_v1(uuid,date,text,text)','EXECUTE');`),"f");
+      const anonymous = await originalFetch(`${apiOrigin}/rpc/read_completed_history_terminal_failure_v1`, {
+        method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(params)});
+      assert.equal(anonymous.status,401);
+      const directTable = await originalFetch(`${apiOrigin}/basic_free_discovery_credit_reservations?select=claim_id`,{
+        headers:{Authorization:`Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`}});
+      assert.equal(directTable.status,403);
+      for (const fault of ["missing_count","wrong_count","empty_rows","duplicate_rows","wrong_owner","wrong_date",
+        "wrong_identity","wrong_claim","wrong_version","wrong_credits","catalog_claim","wrong_daily_budget",
+        "wrong_minute_budget","wrong_status","missing_finalization","future_minute","future_finalization_microsecond"]) {
+        terminalHistoryReadFault = fault;
+        try { await checkResumeBlocked(fault); } finally { terminalHistoryReadFault = null; }
+        assert.equal(sql("select row_to_json(t) from basic_free_discovery_credit_reservations t;"),failedClaimBefore);
+        terminalReadControls.push({name:fault,paid_rows_unchanged:true,provider_requests:0,new_claims:0});
+        resumeControls.pop(); // These separately declared transport controls do not relabel the seven historical controls.
+      }
+      sql("drop function public.read_completed_history_terminal_failure_v1(uuid,date,text,text); notify pgrst,'reload schema';");
+      try { await checkResumeBlocked("absent_rpc_rollback_restore"); }
+      finally { sql(readFileSync(resolve(root,"supabase/migrations",terminalHistoryReadMigration),"utf8")+"\nnotify pgrst,'reload schema';"); }
+      for (let attempt=0; ; attempt++) {
+        const restored=await rpc();
+        if (restored.ok && (await restored.json()).length===1) break;
+        assert(attempt<30,"The restored local API must regain its exact schema before resume");
+        await syntheticDelay(100);
+      }
+      assert.equal(sql("select row_to_json(t) from basic_free_discovery_credit_reservations t;"),failedClaimBefore);
+      terminalReadControls.push({name:"absent_rpc_rollback_restore",paid_rows_unchanged:true,provider_requests:0,new_claims:0});
+      resumeControls.pop();
+      assert.equal(sql(terminalLegacyCatalogSql),terminalLegacyCatalog);
+    }
     sql("update public.basic_free_discovery_credit_reservations set finalized_at='2026-10-01T12:50:00Z' where status='failed';");
     await checkResumeBlocked("future_finalization_same_minute");
     sql("update public.basic_free_discovery_credit_reservations set finalized_at='2026-10-01T12:45:00Z' where status='failed';");
-    const same=await restarted.prepareCompletedSessionHistories();
+    // The same six-digit SQL instant becomes observable one millisecond later.
+    // Do not reject honest precision, alter the stored original terminal time
+    // or mint a different minute/paid identity to make the positive case pass.
+    if (terminalHistoryClaimAcl) { clock+=1; terminalHistoryReadFault="observed_finalization_microseconds"; }
+    let same;
+    try { same=await restarted.prepareCompletedSessionHistories(); }
+    finally { terminalHistoryReadFault=null; }
     clock+=60000;
-    sql("revoke select on public.basic_free_discovery_credit_reservations from service_role;");
+    sql("revoke execute on function public.read_completed_history_terminal_failure_v1(uuid,date,text,text) from service_role;");
     await checkResumeBlocked("unavailable_owner_ledger");
-    sql("grant select on public.basic_free_discovery_credit_reservations to service_role;");
+    sql("grant execute on function public.read_completed_history_terminal_failure_v1(uuid,date,text,text) to service_role;");
     sql("update public.basic_free_discovery_credit_reservations set finalized_at='2026-10-01T12:50:00Z' where status='failed';");
     await checkResumeBlocked("future_finalization");
     sql("update public.basic_free_discovery_credit_reservations set finalized_at='2026-10-01T12:45:00Z' where status='failed';");
@@ -946,6 +1047,16 @@ try {
       repeated_provider_requests:0,reserved_credits:16,failed_credits:1,finalized_credits:16,
       maximum_minute_credits:8,persisted_histories:15,missing_failed_source_preserved:true,
       physical_claims:claims,resume_controls:resumeControls,publications:0,broker_actions:0};
+    if (terminalHistoryClaimAcl) {
+      assert.equal(sql("select has_table_privilege('service_role','public.basic_free_discovery_credit_reservations','SELECT');"),"f");
+      assert.equal(sql("select row_to_json(t) from basic_free_discovery_credit_reservations t where status='failed';"),failedClaimBefore);
+      assert.equal(sql(terminalLegacyCatalogSql),terminalLegacyCatalog);
+      fullOriginalHistoryEvidence.terminal_claim_read_evidence = {production_like_table_select:false,
+        exact_owner_day_ticker_claim:true,service_only_execute:true,request_principal_required:true,
+        original_failed_row_unchanged:true,observed_terminal_microseconds_preserved:true,
+        old_routines_defaults_table_acl_rls_unchanged:true,
+        read_controls:terminalReadControls};
+    }
   } else if(historyPreparationFault) {
     clock=OriginalDate.parse("2026-10-01T12:45:00Z");
     process.env.TURE_BASIC_FREE_CATALOG_DAILY_CREDIT_BUDGET="1";

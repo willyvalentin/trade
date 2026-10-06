@@ -2,7 +2,176 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-06, recommendation intelligence first
 
-**Current primary release gate — PR738 corrected candidate, Oct6 18:58Z:**
+**Current CLOSED selection after direct human request, Oct6 20:32Z:**
+The human asks to find useful CLOSED work until the next source window. The
+goal is active again with its full200h objective, not a narrowed release goal.
+One concrete IF-2b source-fitness defect is now reproduced locally on exact
+released main `5e53047a`: the terminal-history-failure path at
+`lib/server/completed-session-history-preparation.ts:200` required direct
+private claim-table SELECT, intentionally absent in production. The unchanged
+native terminal_resume proof passes with its old permissive isolated grant.
+The same actual product/SQL/PostgREST/SDK chain with only that local table grant
+removed fails existing unrelated-history continuation acceptance:0 credits
+instead of7 on same-minute restart, `history_preparation_prior_failure_unproven`
+and accounting_complete=false despite one finalized failed one-credit claim.
+All95 original identities remain and the failed source is not repurchased.
+The private diagnostic reproduces this before any later fixture can restore
+SELECT; original product/test sources remain unchanged, both isolated databases
+are cleaned up and real provider/production/broker actions are0. Its frozen
+historical catalog remains SQ, not an alias of the separate future XYZ cohort.
+Receipt: `/private/tmp/ture-closed-history-terminal-claim-acl-oct6.receipt.json`.
+
+Priority CLOSED work: one bounded minimum terminal-history claim-read correction
+under unchanged RPC-only table access, then same/later-minute restart through
+actual SQL/SDK and owner/date/identity/clock/budget/ambiguous-state denial cases.
+Preserve the finalized failed claim, charge, minute and missing member; only
+proven terminal failure may yield to other original members. No provider retry,
+new identity, refund, changed population or threshold. Initial investigation4h,
+one coherent primary slice4–16h, same owner Codex in the existing isolated
+worktree; no competing ranking/paper/broker or generic helper stream.
+The isolated branch `codex/oct6-history-terminal-readback` starts from exact
+freshly verified main `5e53047a7b39d5bd4cbb87b55e9bcc0fd34dad8b` and retains
+every historical contract plus a distinct production-like ACL regression.
+The minimum local correction now passes both native terminal-resume cases:
+same-minute7/later-minute8 other histories,16 total synthetic requests with
+one old failed charge/15 stored histories and all95 original identities. The
+seven existing negatives and17 initial exact-count/identity/budget/state/clock and
+absent-API rollback/restore controls pass. The claim table remains SELECT=false;
+old routine bodies/OIDs/ACL, function defaults and table ACL/RLS remain unchanged.
+The initial full44-case history investigation run is still live, not final
+candidate acceptance. Nonincremental types now pass and full lint has0 errors/8
+existing warnings. Initial TypeScript inference
+failure is corrected with explicit unknown-response typing, not a relaxed guard.
+An additional actual SQL/SDK response-boundary probe reproduces future terminal
+time `12:45:00.000001Z` being truncated into sampled `12:45:00.000Z`:7 synthetic
+requests instead of0, with the95 original identities unchanged. Its isolated
+resources are cleaned up and product bytes were untouched by the probe.
+Receipt: `/private/tmp/ture-terminal-history-future-microsecond-red-oct6.receipt.json`.
+The same bounded local correction now compares explicit PostgreSQL instants in
+microseconds and requires the original minute to be exactly minute-aligned.
+The final focused pair passes again with18 read/rollback negatives plus an
+honest already-observed microsecond positive, preserving the exact old failed
+row. Types and full lint pass on the correction. The initial broad investigation
+retains one stale loaded-test failure: its running worker expected the initial17
+control names while the in-development native script emitted the new18. This
+mixed-source run is not candidate acceptance; do not restart it or weaken the
+assertion. Freeze the coherent implementation, then rerun the full current
+history/input/publication/replay/credit regression and exact Linux build.
+The installed CLI generated local SQL
+`20261006201519_completed_history_terminal_failure_readback.sql`; no production
+migration dispatch or source acquisition occurred. A new persistent SQL
+routine would require its own exact human approval and protected release;
+last migration approval/one-publication capacity do not authorize another.
+The selected new SQL SHA256 is
+`f47a3165c3b86b22eb4820a17a7c1732864315dfc799928fe18a743109164bb4`.
+It adds only one SQL-stable/service-only exact identity reader. Existing unique
+claim/identity indexes support its one-row lookup; migration performs no table scan or rewrite,
+table grant, global default privilege, RLS, Auth or old function change. Short
+catalog-only creation is transactional. Isolated drop/absence/exact restoration
+leaves paid rows and all old routines/defaults/table ACL/RLS unchanged; an absent
+reader stops the consumer rather than dispatching a retry. Production history,
+catalog/locks/rows/advisors and recovery authority still require fresh review
+after separate exact approval, not this local preparation.
+Current production stays on verified PR738. Tomorrow's source/OPEN gates are
+unchanged: stop on any source error/unknown and never restart old cards. No
+production source acquisition, activation, migration or publication is selected
+by this CLOSED search. After minimum verified removal, resume full fresh input
+fitness and canonical learning. Graduation `not_met`.
+
+Read-only next-link investigation: Oct6 original `rec_scan_run_3k1f7r` remains
+v4 with three owned original snapshots (TSM/SOFI research v1; NFLX published
+capture v1) and0 canonical60m outcomes. The first diagnostic's null version
+fields came from wrong JSON selectors, not missing engine evidence; corrected
+raw keys prove the proper versions. The existing actual owner HTTP replay
+receipt at17:22 already reproduces all25 original features/indicators for3 of8,
+with5 missing inputs explicit. Preserve that original result; no new provider,
+outcome route or duplicate replay is dispatched to manufacture coverage.
+Current canonical comparison already rejects geometry/identity collisions and
+NEW training/terminal admission checks retained original candles/clock/labels;
+no separate new defect or competing ranking slice has been selected by this
+read-only investigation. Continue looking after the minimum verified fix.
+
+**Verified production baseline — focused PR738 release, Oct6 19:58Z:**
+Normal protected two-parent merge of Ready PR738 completed at19:52:03Z as
+main `5e53047a7b39d5bd4cbb87b55e9bcc0fd34dad8b`, tree
+`b75e78d07a727e2a74f412f1f5b0c4a7fba3788e`, identical to tested candidate
+`836d84f2b1bb13c05f11654702f887c6bed29295` and frozen head
+`84daf17a7feaca6fdc528af6d0796ab9dba01e8f`. All six unchanged groups,
+required aggregate112468113655 and candidate provenance112468148666 pass
+run37515594474 attempt1. Full artifact11439483584 binds every group, both
+parents and unchanged workflow blob; current strict/app15368/admin/conversation
+protections and no-blocking-review readback hold. Post-merge run37522094220
+and attestation112469854100 pass; actual artifact11439144451 is `matched`.
+No old-head check reuse, CI rerun, admin/force/direct-main or status-only push.
+
+Exactly one automatic Git production publication, deploy
+`6ac5516584f8ea00091d4f0b`, is ready/public19:53:59.417Z on exact new main.
+It uses the direct human's confirmed existing one-release capacity; no purchase,
+top-up, plan change or manual trigger. Fresh provider-free owner HTTP before
+schema19:54:37.039Z and after19:57:05.639Z verifies exact build/deploy,
+global-disabletrue/all competing modesoff, anonymous401 and0 active claims.
+Existing comparison/model/result readers remain not_found; replay missing-ID
+admission is not actual original replay or first scheduled consumption.
+
+The exact human-approved migration was applied ONCE in `ekdyopdrrkphlrsilyoo`:
+source `20261006173541_prepared_benchmark_claim_readback.sql` maps truthfully
+to remote `20261006195553` / `prepared_benchmark_claim_readback`. The single
+history statement is byte-identical to tracked merged SQL SHA256
+`ee5154e702cc59129a1685916b51b8add41c5884217c78c9c2c3c03e32dc0d2e`.
+New routine OID83187/body `c8b22186cdca35e9ca43e9a6644de43c` is SQL stable,
+postgres-owned/security-definer, emptysearch_path and service-only EXECUTE.
+Actual read-only service-role SQL returns exactly two existing finalized paid
+SPY/QQQ claims despite direct tableSELECT=false; other owner/day and mismatched
+request principal return0. This SQL verification is not a live scheduler/RPC
+consumption test. Old three routine bodies/OIDs/ACL, function defaults and the
+RPC-only claim table/RLS remain identical. Fresh before/after counts and all
+seven business-row digests are identical:36 claims,9 today/16 credits, cache72,
+attempts2374,0 comparisons/models/confirmations/results/active claims. Advisors
+retain the same48 deny-all RLS info findings,1 existing leaked-password warning,
+10 unindexed-FK infos,117 unused-index infos and1 existing Auth-connection info;
+no advisor, Auth, RLS, environment or broker change is made. Complete receipt:
+`/private/tmp/ture-pr738-approved-migration-release-oct6.receipt.json`.
+
+Disposition: `supporting_blocker_removal` complete; stop this support stream.
+Resume the earliest missing IF-2b full fresh original-input link, then exact
+source-to-canonical-outcome/learning/full-charter evidence. The immutable Oct6
+17:15Z experiment remains3/8 and prepared-reuse FAIL, not8/8, no_trade or alpha.
+Actual future scheduled consumption remains unproven; terminal-failed history
+resume still has a separate unaccepted direct-table path. STOP on source failure,
+never resume/repurchase an old identity. No second OPEN/source/meter/configuration
+or broker action is selected here. The existing Oct7 08:00Stockholm/06:00Z
+same-chat one-shot follow-up is the bounded next legitimate source-gate check,
+not acquisition/scan authority. It must freshly verify accepted runtime/schema,
+new date/calendar/full population, same-day pre-open gate and actual shared800/8
+capacity before a new separately frozen source card. Earlier selection audit
+finds no independent CLOSED delivery with satisfied dependencies that closes
+this actual-input gap; create no helper or competing hypothesis to fill time.
+The full200h objective remains incomplete; graduation `not_met`. After three
+consecutive post-inspection goal turns with the same actual new-NY-day input
+gate closed and no independent dependency-satisfied CLOSED slice, the goal
+tool returns `blocked` on Oct6. This is neither a user pause nor completion,
+nor a live CI/build wait. The existing Oct7 08:00Stockholm/06:00Z follow-up is
+retained to check the changed date and all fresh gates within the remaining
+goal budget. No source/card/scan, support extension or new authority follows
+from the status. This local material release reconciliation is not pushed as
+a new documentation-only release.
+
+Provider-free source-date evidence at20:02:10.096Z uses current exact main's
+actual calendar/rotation/context readers and both retained real SPY/QQQ contexts.
+Both still validate on their original Oct6 clock and reject Oct7 reuse without
+changing their bytes. Oct7 is a normal13:30–20:00Z session; current code derives
+26 ordinary slots and the full95-equity+2-benchmark population (XYZ, not SQ),
+prospective universe fingerprint
+`sha256:d978bf83676feba4dcba206e875ae80737202014371447ea0021a62a22c64ff3`.
+Latest required completed session is Oct6; the old through-Oct5 histories cannot
+reduce the next date's missingness. This is source-eligibility evidence, not a
+frozen card, observed capacity, acquisition, first scheduled consumption or
+quality proof. Today's before-open preparation gate is already closed. Reuse
+the existing06:00Z follow-up; freshly recompute these gates there. No provider,
+production, model/result, policy, schema or broker action occurs. Receipt:
+`/private/tmp/ture-oct7-source-date-inspection-oct6.receipt.json`.
+
+**Historical primary release gate — PR738 corrected candidate, Oct6 18:58Z:**
 Code/test/schema/dependency revision
 `2f2528063005f68c845dc05505a110d05f9ef919` passes all120 distinct cases
 serially in27.9m:69 original-input/publication/replay/credit regressions,
