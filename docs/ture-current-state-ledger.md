@@ -2,8 +2,8 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-06, recommendation intelligence first
 
-**Selected additive preflight correction — local SQL/SDK verified, 2026-10-06
-09:17Z; broader acceptance still running:** exact source migration
+**Selected additive preflight correction — final local acceptance, 2026-10-06
+09:53Z; protected release and exact migration approval still pending:** exact source migration
 `20261006090639_history_credit_preflight_compatibility.sql`, name
 `history_credit_preflight_compatibility`, SHA256
 `6a213e2febc0b699d3549012d73e9f1e8674f381223e17f0df977c53a308a7fa`
@@ -28,9 +28,18 @@ The initial harness HTTP restart failed because Docker changed its ephemeral
 loopback port; the harness now reads the exact restarted mapping, with no
 product/assertion/deadline relaxation. An earlier Next webserver sandbox bind
 failed before assertions; the existing provider-free static mode was used.
-Nonincremental types pass, full lint has zero errors/eight existing warnings.
-The 171-test affected suite is in progress, not accepted yet. No previous
-PR #736 build/CI result is reused as acceptance for this changed source.
+Fresh nonincremental types pass on final code/test revision
+`01aef7614ae8aba3cca745c02d7bfdd7e12083c8`; full lint has zero errors/eight
+existing warnings. The 171-test affected suite first finishes with 170 passed
+and one unchanged 95-second child timeout in 29.6m. That exact whole-session
+case then passes serially in 1.7m, with the same three arms, assertions and
+95-second child/300-second test limits. Its original trace/error context is
+retained in `/private/tmp/ture-history-preflight-timeout-evidence-6rQgrc`.
+Reduced-load success is evidence, not a proven causal attribution or a claim
+that the first broad run was green. All 171 distinct affected cases have now
+passed; a further final two-file 13/13 run repeats the current SQL/SDK/default-
+ACL/restarted-HTTP proof in 17.4s and is not added as thirteen new cases.
+No previous PR #736 build/CI result is reused as acceptance for this source.
 
 Read-only production catalog at 09:19:04.192225Z verifies inspection role
 postgres, PostgreSQL 17.6, predecessor one-slot OID 76939/body MD5
@@ -54,14 +63,19 @@ unchanged native consumers; complete locked cache is reverified, build network
 is none and no production credentials enter. Receipt:
 `/private/tmp/ture-history-credit-preflight-exact-linux-build-oct6-receipt.json`.
 The subsequent production-default-ACL fixture-only change does not change SQL
-or application code, but requires final native regression and a new exact
-clean build before current-head acceptance. The serial affected suite is still
-running. One existing whole-session child process reaches its unchanged
+or application code. A new exact clean Linux build on
+`01aef7614ae8aba3cca745c02d7bfdd7e12083c8` now passes all 33 pages and the same
+three native consumers, including TypeScript, with a separately verified
+complete lock cache, no build network or production credentials. Receipt:
+`/private/tmp/ture-history-credit-preflight-final-exact-linux-build-oct6-receipt.json`.
+One existing whole-session child process initially reaches its unchanged
 95-second deadline during concurrent build, with null status and no product
 assertion; preserve that failure and diagnose the exact case serially after
 build/tests, without extending its deadline. Its two orphaned local synthetic
 containers/network are identified and cleaned; no user/production data is
-removed. Do not describe this incomplete suite as green.
+removed. The serial qualification above preserves this failed first-run
+evidence; no timeout or assertion is extended. Local acceptance receipt:
+`/private/tmp/ture-history-credit-preflight-oct6.local-acceptance.json`.
 
 The human has been asked once to approve this exact migration and hash in
 `ekdyopdrrkphlrsilyoo`, only after normal protected release. The question is
