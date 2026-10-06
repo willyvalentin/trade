@@ -32,6 +32,10 @@ const fullOriginalHistorySetup = process.argv.includes("--full-original-history-
 const budgetedHistorySetup = process.argv.includes("--budgeted-history-setup");
 const historyPreparationApp = process.argv.includes("--history-preparation-app");
 const preparedFirstScan = process.argv.includes("--prepared-first-scan");
+let preparedClaimReadFault = null;
+const productionClaimAcl = process.argv.includes("--production-claim-acl");
+assert(!productionClaimAcl || preparedFirstScan,
+  "Production claim ACL is only the first prepared-source readback boundary");
 const cappedHistoryPreparation = process.argv.includes("--capped-history-preparation");
 let historyReadFault = null, historyReadFaultApplied = false, historyReadFirstRow = null;
 let historyReadAbortController = null;
@@ -55,7 +59,7 @@ assert(!budgetedHistorySetup || fullOriginalHistorySetup,
 assert(!preparedFirstScan || historyPreparationApp && budgetedHistorySetup &&
   process.argv.slice(2).every(value => ["--cold", "--rotation-day", "--prospective-enrollment",
     "--full-original-history-setup", "--budgeted-history-setup", "--history-preparation-app",
-    "--prepared-first-scan"].includes(value)),
+    "--prepared-first-scan", "--production-claim-acl"].includes(value)),
   "Prepared first-scan context is a separately declared owner/source acquisition case, never a changed historical ranking arm");
 assert(!fullOriginalHistorySetup || cold && rotationDay && prospectiveEnrollment &&
   !existingPremarketSetup && !expandedPremarketSetup && !lateOriginalOutcomes &&
@@ -460,6 +464,7 @@ try {
     "20260926091134_sv_a2_observation_cycle_receipts.sql",
     "20260915222537_basic_free_discovery_credit_reservations.sql",
     "20260917135646_if2_basic_free_daily_observation_claim.sql",
+    ...(preparedFirstScan ? ["20261006173541_prepared_benchmark_claim_readback.sql"] : []),
     ...(nextSessionOutcomes ? ["20260918233411_if4_after_market_outcome_evaluation_receipts.sql"] : []),
     ...(charterComposition || fullOriginalHistorySetup ? ["20261002213547_if4_relative_plan_prospective_comparison.sql",
       "20261002233358_if4_relative_plan_trained_probability_model.sql",
@@ -469,11 +474,13 @@ try {
   // Source schema/owner constraints and real reservation functions, all isolated.
   sql(`create role anon nologin; create role authenticated nologin; create role service_role nologin bypassrls;
     create role authenticator login password 'closed-proof-only'; grant anon, service_role to authenticator;
+    ${productionClaimAcl ? "alter default privileges in schema public grant execute on functions to anon, authenticated, service_role;" : ""}
     create schema auth; create table auth.users(id uuid primary key);
     create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claims', true)::jsonb->>'sub','')::uuid $$;
     insert into auth.users values('${owner}'),('00000000-0000-4000-8000-000000000002');
     ${migrations.map(file=>readFileSync(resolve(root,"supabase/migrations",file),"utf8")).join("\n")}
     grant usage on schema public to service_role; grant all on all tables in schema public to service_role;
+    ${productionClaimAcl ? "revoke all on public.basic_free_discovery_credit_reservations from service_role;" : ""}
     insert into market_calendar_cache(cache_date,provider,is_open_day,reason,day_type,market_open_time,market_close_time,raw,updated_at)
       values('2026-10-01','polygon',true,'Synthetic CLOSED calendar','trading_day','09:30','16:00','{}',
         '${rotationDay ? "2026-10-01T13:00:00Z" : "2026-10-01T17:30:00Z"}');
@@ -593,6 +600,19 @@ try {
       method:request.method,headers:request.headers,
       ...(requestBody!==null?{body:requestBody}:{})
     });
+    if (preparedClaimReadFault && url.pathname === "/rest/v1/rpc/read_prepared_benchmark_history_claims_v1") {
+      assert(preparedFirstScan && response.ok, "Claim response controls use the actual isolated read RPC");
+      if (preparedClaimReadFault === "unavailable") return Response.json({code:"42501",message:"synthetic_read_denied"},{status:403});
+      const headers = new Headers(response.headers), rows = await response.json();
+      if (preparedClaimReadFault === "missing_count") headers.delete("content-range");
+      if (preparedClaimReadFault === "wrong_count") headers.set("content-range", "0-1/3");
+      if (preparedClaimReadFault === "truncated_rows") rows.pop();
+      if (preparedClaimReadFault === "duplicate_identity") rows[1] = structuredClone(rows[0]);
+      if (preparedClaimReadFault === "wrong_owner") rows[0].owner_user_id = "00000000-0000-4000-8000-000000000002";
+      if (preparedClaimReadFault === "wrong_date") rows[0].trading_date = "2026-09-30";
+      if (preparedClaimReadFault === "wrong_version") rows[0].contract_version = "unknown_claim_contract";
+      return Response.json(rows, {status:response.status, headers});
+    }
     if(historyReadFault && url.pathname==="/rest/v1/scanner_cache" && ["GET","HEAD"].includes(request.method)) {
       const laterPage=(url.searchParams.get("ticker")??"").startsWith("gt.") ||
         url.searchParams.getAll("ticker").some(value=>value.startsWith("gt."));
@@ -1167,6 +1187,19 @@ try {
         :{preparation_failure_evidence:fullOriginalHistoryEvidence}),actual_provider_requests:0,
       production_actions:0,publications:0,broker_actions:0,cleanup:"inert"}));
   } else if(preparedFirstScan) {
+    // The durable claim ledger is RPC-only in production, even for the
+    // service role. The legacy general fixture grant must not hide that
+    // boundary in the first scheduled prepared-source consumer.
+    if (productionClaimAcl) {
+      assert.equal(sql("select has_table_privilege('service_role','public.basic_free_discovery_credit_reservations','SELECT');"), "f");
+      for (const role of ["anon", "authenticated"]) {
+        assert.equal(sql(`select has_function_privilege('${role}','public.read_prepared_benchmark_history_claims_v1(uuid,date)','EXECUTE');`), "f");
+        assert.equal(sql(`select has_table_privilege('${role}','public.basic_free_discovery_credit_reservations','SELECT');`), "f");
+      }
+      assert.equal(sql("select has_function_privilege('service_role','public.read_prepared_benchmark_history_claims_v1(uuid,date)','EXECUTE');"), "t");
+      assert.equal(Number(sql(`select count(*) from public.read_prepared_benchmark_history_claims_v1('${owner}','2026-10-01');`)),0,
+        "A SQL call without the service request principal cannot expose paid rows");
+    }
     // A distinct first-scan source-capacity question. Do not create or pool a
     // historical whole-session/forward cohort, nor manufacture a prior scan.
     assert.equal(setupRequests,97);
@@ -1190,6 +1223,32 @@ try {
       "Only actual signed cache and finalized owned claims can release the two benchmark credits");
     assert.equal(handle.market_regime.input_evidence.reuse.source_kind,"owner_prepared_history_claims");
     const sourceControls=[];
+    const claimReadControls=[];
+    const originalClaimDigest = sql("select md5(string_agg(row_to_json(t)::text,'|' order by claim_id)) from basic_free_discovery_credit_reservations t;");
+    for (const fault of ["unavailable", "missing_count", "wrong_count", "truncated_rows", "duplicate_identity", "wrong_owner", "wrong_date", "wrong_version"]) {
+      preparedClaimReadFault = fault;
+      try { assert.equal(await readPrepared(), null, fault); }
+      finally { preparedClaimReadFault = null; }
+      assert(await readPrepared(), `${fault}: exact original paid rows are still usable`);
+      assert.equal(sql("select md5(string_agg(row_to_json(t)::text,'|' order by claim_id)) from basic_free_discovery_credit_reservations t;"), originalClaimDigest);
+      assert.equal(externalRequests, 0);
+      claimReadControls.push({name:fault,provider_requests:0,paid_rows_unchanged:true});
+    }
+    sql("revoke execute on function public.read_prepared_benchmark_history_claims_v1(uuid,date) from service_role;");
+    try { assert.equal(await readPrepared(), null, "Service execute denial must fail closed"); }
+    finally { sql("grant execute on function public.read_prepared_benchmark_history_claims_v1(uuid,date) to service_role;"); }
+    assert(await readPrepared());
+    assert.equal(sql("select md5(string_agg(row_to_json(t)::text,'|' order by claim_id)) from basic_free_discovery_credit_reservations t;"), originalClaimDigest);
+    assert.equal(externalRequests, 0);
+    claimReadControls.push({name:"service_execute_denied",provider_requests:0,paid_rows_unchanged:true});
+    sql("drop function public.read_prepared_benchmark_history_claims_v1(uuid,date);");
+    try { assert.equal(await readPrepared(), null, "An absent read-only API must not create a replacement claim"); }
+    finally { sql(readFileSync(resolve(root,"supabase/migrations/20261006173541_prepared_benchmark_claim_readback.sql"),"utf8")); }
+    assert(await readPrepared());
+    assert.equal(sql("select md5(string_agg(row_to_json(t)::text,'|' order by claim_id)) from basic_free_discovery_credit_reservations t;"), originalClaimDigest);
+    assert.equal(sql("select has_table_privilege('service_role','public.basic_free_discovery_credit_reservations','SELECT');"), productionClaimAcl ? "f" : "t");
+    assert.equal(externalRequests, 0);
+    claimReadControls.push({name:"absent_rpc_rollback_restore",provider_requests:0,paid_rows_unchanged:true});
     const originalSpyRaw=JSON.parse(sql("select raw from scanner_cache where ticker='SPY';"));
     const claimId=originalSpyRaw.completed_history_preparation.claim_id;
     const originalClaim=JSON.parse(sql(`select row_to_json(t) from basic_free_discovery_credit_reservations t where claim_id='${claimId}';`));
@@ -1259,6 +1318,8 @@ try {
     await assert.rejects(readPrepared({signal:AbortSignal.abort(new Error("synthetic-cancel"))}),
       error=>error.name==="OperationAbortedError");
     sourceControls.push({name:"cancelled_owner_read_zero_work",provider_requests:0,original_source_restored:true});
+    assert.equal(sql("select md5(string_agg(row_to_json(t)::text,'|' order by claim_id)) from basic_free_discovery_credit_reservations t;"), originalClaimDigest,
+      "All original paid rows survive source controls before the actual scheduled scan");
     assert.equal(externalRequests,0);
     await assert.rejects(restarted.scanMarket([], { source:"scheduled", maxFreshProviderCalls:8,
       completedDailyContextPolicyVersion:"completed_daily_intraday_input_v1", completedBenchmarkReuse:structuredClone(handle) }),
@@ -1310,7 +1371,9 @@ try {
         complete_assessed_input_count:assessment.assessed_count,benchmark_provider_requests:0,scanner_provider_requests:8,
         attempts:1,normal_reservations:1,normal_reserved_credits:8,restarted_owner_read:true,
         owner_bound_source_signatures:true,original_claim_namespace_preserved:true,quality_improvement_claimed:false,
+        ...(productionClaimAcl ? { production_claim_table_select_denied:true, service_only_claim_readback_rpc:true } : {}),
         source_controls:sourceControls,
+        claim_read_controls:claimReadControls,
         prepared_equity_tickers:preparedEquities,
         original_tickers:selected.map(member=>member.ticker),source_slot:sourceSlot,scan_fingerprint:run.run_fingerprint,
       } }));

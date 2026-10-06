@@ -132,6 +132,49 @@ test("installed source-map-js rejects malicious indexed offsets and preserves va
   expect(result).toEqual({ rejected: 14, valid_source_preserved: true });
 });
 
+test("actual Next image consumer uses patched sharp and librsvg with preserved native image bounds", () => {
+  const result = JSON.parse(execFileSync(process.execPath, ["-e", `
+    const assert = require('node:assert/strict');
+    const sharp = require('sharp');
+    const semver = require('semver');
+    const lock = require('./package-lock.json');
+    const { getSharp, optimizeImage } = require('next/dist/server/image-optimizer');
+    (async () => {
+      assert.equal(sharp.versions.sharp, lock.packages['node_modules/sharp'].version);
+      assert(semver.gte(sharp.versions.sharp, '0.35.5'), 'GHSA-wq5f-xc86-pv6w: unpatched sharp');
+      assert(semver.gte(sharp.versions.rsvg, '2.63.2'), 'CVE-2026-96889: unpatched native librsvg');
+      assert.equal(getSharp(1, false), sharp);
+      const svg = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="8" height="6"><rect width="8" height="6" fill="red"/></svg>');
+      const png = await optimizeImage({ buffer: svg, contentType: 'image/png',
+        quality: 80, width: 4, limitInputPixels: 64, timeoutInSeconds: 3 });
+      const decoded = await sharp(png).metadata();
+      assert.deepEqual([decoded.format, decoded.width, decoded.height], ['png', 4, 3]);
+      const pixels = await sharp(png).removeAlpha().raw().toBuffer();
+      assert(pixels.length > 0);
+      for (let offset = 0; offset < pixels.length; offset += 3) {
+        assert.deepEqual([...pixels.subarray(offset, offset + 3)], [255, 0, 0]);
+      }
+      for (const [contentType, format] of [['image/jpeg', 'jpeg'], ['image/webp', 'webp']]) {
+        const output = await optimizeImage({ buffer: png, contentType, quality: 80,
+          width: 4, limitInputPixels: 64, timeoutInSeconds: 3 });
+        const metadata = await sharp(output).metadata();
+        assert.deepEqual([metadata.format, metadata.width, metadata.height], [format, 4, 3]);
+      }
+      await assert.rejects(optimizeImage({ buffer: Buffer.from('not an image'),
+        contentType: 'image/png', quality: 80, width: 4, limitInputPixels: 64,
+        timeoutInSeconds: 3 }));
+      const oversized = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="20000" height="20000"/>');
+      await assert.rejects(optimizeImage({ buffer: oversized, contentType: 'image/png',
+        quality: 80, width: 4, limitInputPixels: 64, timeoutInSeconds: 3 }), /pixel limit/i);
+      console.log(JSON.stringify({ sharp: sharp.versions.sharp, rsvg: sharp.versions.rsvg,
+        next_consumer: true, svg_png_jpeg_webp: true, malformed_and_oversized_rejected: true }));
+    })().catch(error => { console.error(error); process.exitCode = 1; });
+  `], { cwd: repositoryRoot, encoding: "utf8", timeout: 15000 }));
+  expect(result).toMatchObject({
+    next_consumer: true, svg_png_jpeg_webp: true, malformed_and_oversized_rejected: true,
+  });
+});
+
 type PlannedCommand = {
   label: string;
   runner: "node" | "npm" | "playwright" | "tsc";
@@ -332,7 +375,9 @@ test("pins exact security-release evidence and every governed source", async () 
   expect(packageJson.dependencies.next).toBe("16.3.8");
   expect(packageJson.devDependencies["eslint-config-next"]).toBe("16.3.8");
   expect(lock.packages["node_modules/next"].version).toBe("16.3.8");
-  expect(lock.packages["node_modules/sharp"].version).toBe("0.35.4");
+  // The immutable historical receipt above retains sharp0.35.4. Today's lock
+  // uses the patched successor, independently exercised by the native consumer.
+  expect(lock.packages["node_modules/sharp"].version).toBe("0.35.5");
   expect(lock.packages["node_modules/js-yaml"].version).toBe("4.3.2");
   expect(lock.packages["node_modules/postcss"].version).toBe("8.5.23");
   expect(lock.packages["node_modules/nanoid"].version).toBe("3.3.18");
