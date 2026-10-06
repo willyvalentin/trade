@@ -375,7 +375,9 @@ test("pins exact security-release evidence and every governed source", async () 
   expect(packageJson.dependencies.next).toBe("16.3.8");
   expect(packageJson.devDependencies["eslint-config-next"]).toBe("16.3.8");
   expect(lock.packages["node_modules/next"].version).toBe("16.3.8");
-  expect(lock.packages["node_modules/sharp"].version).toBe("0.35.4");
+  // The immutable historical receipt above retains sharp0.35.4. Today's lock
+  // uses the patched successor, independently exercised by the native consumer.
+  expect(lock.packages["node_modules/sharp"].version).toBe("0.35.5");
   expect(lock.packages["node_modules/js-yaml"].version).toBe("4.3.2");
   expect(lock.packages["node_modules/postcss"].version).toBe("8.5.23");
   expect(lock.packages["node_modules/nanoid"].version).toBe("3.3.18");

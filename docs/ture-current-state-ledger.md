@@ -25,6 +25,17 @@ candidate. Exact approved migration bytes/SHA remain unchanged. Human approval
 and sufficient existing one-publication quota remain valid; no new OPEN,
 provider/meter, production configuration or schema action follows this failure.
 
+At18:28:26.670Z the fresh exact Linux build on `f91f4e3e` passes33 pages,
+full audit0 findings and4 native consumers (Next image sharp0.35.5 /
+librsvg2.63.2 / libvips8.18.7 included). Fresh macOS binaries match the same
+lock. The production-ACL packaged first-source proof passes all20+10 controls
+in29.9s; full lint0 errors/8 existing warnings. The broader security suite found
+one stale current-lock expectation0.35.4; only that current expectation now
+requires0.35.5. The immutable historical receipt and its original version/hashes
+remain unchanged. Final clean candidate verification follows this test-only
+reconciliation; no old-run green checks or prior build acceptance are inherited.
+Private fresh-install/build receipts use `/private/tmp/ture-pr738-sharp-`.
+
 **Current release gate — focused benchmark claim-read fix, Oct6 18:08Z:**
 Code/test/schema revision `21fdd0079980cee402359c131b62a45686ea322e` is
 locally accepted:112 distinct affected cases (69 original-input/publication/
