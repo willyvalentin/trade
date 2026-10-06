@@ -98,6 +98,36 @@ test("actual Next root consumer retains original CLI diagnostics and fails abusi
   }
 });
 
+test("installed source-map-js rejects malicious indexed offsets and preserves valid source maps", () => {
+  const result = JSON.parse(execFileSync(process.execPath, ["-e", `
+    const assert = require('node:assert/strict');
+    const { SourceMapConsumer, SourceNode } = require('source-map-js');
+    const flat = { version: 3, sources: ['input.js'], names: [], mappings: 'AAAA' };
+    const indexed = (line, column = 0, map = flat) => ({ version: 3,
+      sections: [{ offset: { line, column }, map }] });
+    let rejected = 0;
+    for (const value of [-1, 1.5, NaN, Infinity, '1', null]) {
+      for (const field of ['line', 'column']) {
+        const offset = { line: 0, column: 0, [field]: value };
+        assert.throws(() => new SourceMapConsumer(indexed(offset.line, offset.column)));
+        rejected++;
+      }
+    }
+    assert.throws(() => new SourceMapConsumer(indexed(1e7 + 1)), /must not exceed/);
+    rejected++;
+    assert.throws(() => new SourceMapConsumer(indexed(5e6, 0,
+      indexed(5e6, 0, indexed(5e6)))), /including offsets of nested sections/);
+    rejected++;
+    const consumer = new SourceMapConsumer(indexed(0));
+    assert.deepEqual(consumer.originalPositionFor({ line: 1, column: 0 }),
+      { source: 'input.js', line: 1, column: 0, name: null });
+    const code = 'const value = 1;\\n';
+    assert.equal(SourceNode.fromStringWithSourceMap(code, consumer).toString(), code);
+    console.log(JSON.stringify({ rejected, valid_source_preserved: true }));
+  `], { cwd: repositoryRoot, encoding: "utf8", timeout: 5000 }));
+  expect(result).toEqual({ rejected: 14, valid_source_preserved: true });
+});
+
 type PlannedCommand = {
   label: string;
   runner: "node" | "npm" | "playwright" | "tsc";

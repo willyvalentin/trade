@@ -2,6 +2,30 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-05, recommendation intelligence first
 
+**Current PR #736 audit interruption — 2026-10-06 05:18Z:** the normal
+foundation job `112119857201` in run `37417665169` attempt 1 fails its unchanged
+production dependency audit, not a recommendation assertion or runner allocation.
+Local `npm audit --omit=dev --audit-level=high --json` reproduces exactly one
+high finding: `source-map-js` 1.2.1, GHSA-68fv-2mgg-jv7q / CVE-2026-93749.
+The reviewed upstream patch is 1.2.2. Select only this actual safety/release
+blocker inside the existing product PR, not a separate infrastructure slice.
+The lock-only update changes one transitive package's version/resolved/integrity;
+package.json, Next, SDKs, other dependencies and all audit/CI/quality limits stay
+unchanged. New lock SHA256 is
+`4c13acaedeb8cde211e6a6c5f1ec04dc52201f6067a0c3838ca76b0e871a740a`.
+A new test in the already registered security test file is RED against the old
+installed package: invalid indexed offsets are accepted. It will require fourteen
+malformed/nested offset rejections and unchanged valid source-map behavior.
+No unbounded exploit is run. The earlier exact build/29-test acceptance below
+belongs to the old lock and cannot accept this successor. Require fresh locked
+installed dependencies, unchanged full audit, native consumers, affected
+prepared-context regressions/types/lint and exact Linux build before one normal
+successor push in the same PR. No blind CI rerun, workflow/runner/timeout/assertion
+weakening, schema/config/provider/broker action or new PR is selected. After this
+minimum fix passes, finish the existing recommendation-capability release and
+return to its separate real-source fitness/evaluation question. Remaining five
+old jobs are live at discovery; do not describe the whole run as terminal.
+
 **Current primary release accepted; prepared-context integration — 2026-10-06 05:05Z:**
 The direct human explicitly approved the exact pending
 `20261005190805_if4_publication_identity_compatibility.sql` in production project
