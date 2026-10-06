@@ -2,7 +2,52 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-06, recommendation intelligence first
 
-**Current CLOSED primary — NEW decision-time regime evidence, Oct6 21:49Z:**
+**Current Now / Next / Blocked — CLOSED regime correction accepted locally, Oct6 22:37Z:**
+The NEW original regime-clock correction is locally complete on exact
+`c71cedb1a0f6fe46775a9c2765428e24c3b9f77c`, base/main `5e53047a`.
+169 distinct affected cases in12 files pass:161 in the first4.7m run, then
+the8 unchanged actual SQL/SDK cases in18.5m after the diagnosed sandbox Docker
+socket denial was resolved through reviewed local environment access. Preserve
+that first exit1/8 environment failures; it is not a single green169-case run.
+Four additional exact Linux native checks,33-page clean build, nonincremental
+types and full lint0 errors/8 existing warnings pass:173 distinct local cases.
+Original96 training members,30/30 forward decisions and240/240 members remain.
+Separate v3/v2 complete sources exceed21MB and survive real isolated SQL/
+restarted SDK/negotiated HTTP. Actual run-only/snapshot-only/offset-both future
+contexts stop before NEW storage; honest offset bytes and old sealed retries,
+global parsers, goldens, original missingness and fingerprints remain unchanged.
+Receipt: `/private/tmp/ture-new-regime-clock-final-local-acceptance-oct6.receipt.json`.
+No SQL/dependency/provider/production change or push; no quality lift or alpha.
+The next commit is this acceptance ledger only, not a new tested code revision.
+
+Ready PR739 remains OPEN/CLEAN on `e0153c18`, base/main `5e53047a`, freshly read
+22:33Z; its six groups/aggregate/exact candidate provenance are accepted.
+Exact human approval for `20261006201519_completed_history_terminal_failure_readback.sql`
+in `ekdyopdrrkphlrsilyoo` is still unanswered. Only ONE history publication's
+existing quota is confirmed; no merge, DDL, alternative write path or new
+publication is dispatched. Integration order remains history protected
+release/exact approved schema/inert owner readback, completed candle/event
+correction against actual current main, then this context correction's own
+fresh composition. Extra publication quota is not inferred.
+
+Bounded CLOSED setup-continuity inspection gives no reproduced defect:
+actual NFLX snapshot retains `PULLBACK_CONTINUATION`; TSM/SOFI already had
+`UNKNOWN` at the original decision and remain unknown. No backfill/rank change.
+Receipt: `/private/tmp/ture-original-setup-continuity-closed-oct6.receipt.json`.
+Fresh owner-bound read-only SQL22:33:37Z still shows1 original decision/8 candidates,
+3 original snapshots,0 actual60m outcomes and0 comparison/model/confirmation/
+terminal rows. Receipt: `/private/tmp/ture-oct6-original-learning-gap-readonly-oct6.receipt.json`.
+The resumed intelligence link is actual fresh full-population input fitness
+and its canonical-outcome continuity, not another generic control-plane stream.
+Next bounded CLOSED investigation may replay the existing original-source →
+canonical consumer with retained real Oct6 shapes and explicitly synthetic
+outcome fixtures, keeping all8 declarations/five original gaps and no post-hoc
+freeze or quality claim. Owner Codex, initial investigation at most4h; select
+implementation only for a reproduced defect. No old OPEN/source card resumes,
+no provider/meter/outcome route in production, and the existing next-day gate
+check remains separate. Goal active/incomplete; graduation `not_met`.
+
+**Historical completed CLOSED selection — NEW decision-time regime evidence, Oct6 21:49Z:**
 The direct human requests continued useful CLOSED work while the market is
 closed. The preceding candle/event correction is locally complete on
 `7427114650713695e291ad7cf5ae075a8f7421d7`, ledger-only head `262b07d6`:
