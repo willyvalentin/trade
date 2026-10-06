@@ -379,8 +379,8 @@ test("new training preserves equal or later microsecond recordings and already-m
   }
 });
 
-async function legacyCandleSource(fault: "target" | "stop" | "aligned_target") {
-  const h = await harness(), snapshot = h.source[0].snapshots[0];
+async function legacyCandleSource(fault: "target" | "stop" | "aligned_target", originalIndex = 0) {
+  const h = await harness(), snapshot = h.source[0].snapshots[originalIndex];
   const anchor = recommendationOutcomeEvaluationAnchorFromSnapshot(snapshot)!;
   const start = Date.parse(anchor.evaluation_anchor_start_at);
   const complete = Array.from({ length: 12 }, (_, index) => ({
@@ -407,6 +407,65 @@ async function legacyCandleSource(fault: "target" | "stop" | "aligned_target") {
   } });
   return h;
 }
+
+test("NEW training rejects lossy retained candle grid clocks on an unselected original member", async () => {
+  for (const fault of ["first_microsecond", "last_microsecond", "offset_microsecond", "epoch_fraction", "implicit_zone"] as const) {
+    const h = await legacyCandleSource("aligned_target", 3);
+    const row = h.data.recommendation_outcomes.find(row =>
+      (row.payload_json as Record<string, unknown>).counterfactual_candles)!;
+    const bars = (row.payload_json as Record<string, unknown>).counterfactual_candles as Record<string, unknown>[];
+    const bar = fault === "last_microsecond" ? bars.at(-1)! : bars[0];
+    const at = String(bar.timestamp);
+    if (fault === "first_microsecond" || fault === "last_microsecond") bar.timestamp = at.replace(".000Z", ".000001Z");
+    if (fault === "offset_microsecond") bar.timestamp = at.replace(".000Z", ".000001+00:00");
+    if (fault === "epoch_fraction") bar.timestamp = Date.parse(at) / 1000 + 0.000001;
+    if (fault === "implicit_zone") bar.timestamp = at.slice(0, -1);
+    const before = JSON.stringify(h.data);
+    const result = await h.service.train(prospectiveOwner, {});
+    expect({ status: result.status, blocker: result.blocker, hasReceipt: result.receipt !== null }, fault).toEqual({
+      status: "unavailable", hasReceipt: false, blocker: "trained_probability_retained_candle_coverage_conflicting" });
+    expect(h.calls).not.toContain("materialize"); expect(h.calls).not.toContain("confirm");
+    expect(h.data.recommendation_outcomes).toHaveLength(48);
+    expect(JSON.stringify(h.data)).toBe(before);
+  }
+});
+
+test("NEW training rejects a submillisecond retained terminal event clock not present in its aligned bars", async () => {
+  for (const key of ["entry_triggered_at", "target_hit_at"] as const) {
+    const h = await legacyCandleSource("aligned_target", 3);
+    const row = h.data.recommendation_outcomes.find(row =>
+      (row.payload_json as Record<string, unknown>).counterfactual_candles)!;
+    const payload = row.payload_json as Record<string, unknown>;
+    expect(typeof payload[key]).toBe("string");
+    payload[key] = String(payload[key]).replace(".000Z", ".000001Z");
+    const before = JSON.stringify(h.data), result = await h.service.train(prospectiveOwner, {});
+    expect({ status: result.status, blocker: result.blocker, hasReceipt: result.receipt !== null }).toEqual({
+      status: "unavailable", hasReceipt: false, blocker: "trained_probability_retained_candle_outcome_conflicting" });
+    expect(h.calls).not.toContain("materialize"); expect(h.calls).not.toContain("confirm");
+    expect(h.data.recommendation_outcomes).toHaveLength(48); expect(JSON.stringify(h.data)).toBe(before);
+  }
+});
+
+test("NEW training preserves exact aligned epoch and explicit offset candle clocks", async () => {
+  for (const format of ["epoch_ms", "epoch_seconds", "zero_microseconds", "offset"] as const) {
+    const h = await legacyCandleSource("aligned_target", 3);
+    const row = h.data.recommendation_outcomes.find(row =>
+      (row.payload_json as Record<string, unknown>).counterfactual_candles)!;
+    const bars = (row.payload_json as Record<string, unknown>).counterfactual_candles as Record<string, unknown>[];
+    for (const bar of bars) {
+      const at = Date.parse(String(bar.timestamp));
+      if (format === "epoch_ms") bar.timestamp = at;
+      if (format === "epoch_seconds") bar.timestamp = at / 1000;
+      if (format === "zero_microseconds") bar.timestamp = new Date(at).toISOString().replace(".000Z", ".000000Z");
+      if (format === "offset") bar.timestamp = new Date(at + 345 * 60000).toISOString().replace(".000Z", ".000000+05:45");
+    }
+    const before = JSON.stringify(h.data), result = await h.service.train(prospectiveOwner, {});
+    expect(result.status, format).toBe("materialized");
+    expect(result.receipt?.trained_model.original_population_count).toBe(48);
+    expect(result.receipt?.trained_model.canonical_outcome_count).toBe(48);
+    expect(JSON.stringify(h.data)).toBe(before);
+  }
+});
 
 test("a new training job cannot seal legacy target or stop labels contradicted by their retained candles", async () => {
   for (const fault of ["target", "stop"] as const) {

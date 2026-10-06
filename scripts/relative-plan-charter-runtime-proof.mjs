@@ -50,6 +50,9 @@ let finalizedDecodedHttpBytes = null, finalizedTransportEncoding = null;
 let newResultRetainedCandlesVerified = false, sealedResultIgnoresMutableCandles = false;
 let newResultRetainedHorizonRVerified = false;
 let newResultRetainedFallbackHorizonRVerified = false;
+let newTrainingExactCandleGridVerified = false, newResultExactCandleGridVerified = false;
+let sealedResultIgnoresMutableCandleGrid = false;
+let newTrainingExactEventClockVerified = false, newResultExactEventClockVerified = false;
 let newTrainingSnapshotClocksVerified = false, newResultSnapshotClocksVerified = false;
 let sealedModelIgnoresMutableSnapshotClocks = false, sealedResultIgnoresMutableSnapshotClocks = false;
 let newTrainingRunClocksVerified = false, newResultRunClocksVerified = false;
@@ -348,6 +351,35 @@ try {
       contradictoryRetainedTrainingOutcome = bad;
     }
     validRetainedTrainingOutcome = legacy("aligned_target");
+    for (const index of [0, 11]) {
+      const misaligned = structuredClone(validRetainedTrainingOutcome);
+      const bar = misaligned.payload_json.counterfactual_candles[index];
+      bar.timestamp = bar.timestamp.replace(".000Z", ".000001Z");
+      assert.equal((await readers.persistRecommendationOutcome(misaligned, { supabaseClient: client, server: true })).status, "saved");
+      const beforeGrid = await readers.readRecommendationLearningBaselineSource(owner);
+      const rejectedGrid = await readers.createRelativePlanTrainedProbabilityService().train(owner, {});
+      assert.equal(rejectedGrid.blocker, "trained_probability_retained_candle_coverage_conflicting");
+      assert.equal(rejectedGrid.status, "unavailable"); assert.equal(rejectedGrid.receipt, null);
+      assert.deepEqual((await readers.readRecommendationLearningBaselineSource(owner)).data, beforeGrid.data);
+      assert.equal(beforeGrid.data.recommendation_outcomes.length, 12 * rankedCount);
+      assert.equal(sql("select count(*) from public.relative_plan_trained_probability_models"), "0");
+      assert.equal(sql("select count(*) from public.relative_plan_trained_probability_confirmations"), "0");
+    }
+    newTrainingExactCandleGridVerified = true;
+    for (const key of ["entry_triggered_at", "target_hit_at"]) {
+      const misaligned = structuredClone(validRetainedTrainingOutcome);
+      assert.equal(typeof misaligned[key], "string");
+      misaligned[key] = misaligned[key].replace(".000Z", ".000001Z");
+      assert.equal((await readers.persistRecommendationOutcome(misaligned, { supabaseClient: client, server: true })).status, "saved");
+      const beforeEvent = await readers.readRecommendationLearningBaselineSource(owner);
+      const rejectedEvent = await readers.createRelativePlanTrainedProbabilityService().train(owner, {});
+      assert.equal(rejectedEvent.blocker, "trained_probability_retained_candle_outcome_conflicting");
+      assert.equal(rejectedEvent.status, "unavailable"); assert.equal(rejectedEvent.receipt, null);
+      assert.deepEqual((await readers.readRecommendationLearningBaselineSource(owner)).data, beforeEvent.data);
+      assert.equal(sql("select count(*) from public.relative_plan_trained_probability_models"), "0");
+      assert.equal(sql("select count(*) from public.relative_plan_trained_probability_confirmations"), "0");
+    }
+    newTrainingExactEventClockVerified = true;
     assert.equal((await readers.persistRecommendationOutcome(validRetainedTrainingOutcome, { supabaseClient: client, server: true })).status, "saved");
     const restored = readers.parseRecommendationLearningBaselineSource((await readers.readRecommendationLearningBaselineSource(owner)).data);
     assert.deepEqual(restored.outcomes.filter(row => row.id !== outcome.id), original.outcomes.filter(row => row.id !== outcome.id));
@@ -680,6 +712,34 @@ try {
       payload_json: { ...originalOutcome.payload_json, ...replay.payload_json, canonical_provider_coverage: coverage,
         counterfactual_candles: bars, counterfactual_candle_source: "horizon_filtered_intraday_candles",
         retained_candles_available: true, retained_candle_count: bars.length } };
+    for (const index of [0, 11]) {
+      const misaligned = structuredClone(validRetained);
+      const bar = misaligned.payload_json.counterfactual_candles[index];
+      bar.timestamp = bar.timestamp.replace(".000Z", ".000001Z");
+      assert.equal((await readers.persistRecommendationOutcome(misaligned, { supabaseClient: client, server: true })).status, "saved");
+      const beforeGrid = await readers.readRecommendationLearningBaselineSource(owner);
+      const rejectedGrid = await readers.createRelativePlanCharterResultService().finalize(owner, {});
+      assert.equal(rejectedGrid.blocker, "relative_plan_result_retained_candle_coverage_conflicting");
+      assert.equal(rejectedGrid.status, "unavailable"); assert.equal(rejectedGrid.receipt, null);
+      assert.equal(rejectedGrid.terminal_quality_decision, null);
+      assert.deepEqual((await readers.readRecommendationLearningBaselineSource(owner)).data, beforeGrid.data);
+      assert.equal(beforeGrid.data.recommendation_snapshots.length, (72 + unrelatedPriorDecisions) * rankedCount);
+      assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "0");
+    }
+    newResultExactCandleGridVerified = true;
+    for (const key of ["entry_triggered_at", "target_hit_at"]) {
+      const misaligned = structuredClone(validRetained);
+      assert.equal(typeof misaligned[key], "string");
+      misaligned[key] = misaligned[key].replace(".000Z", ".000001Z");
+      assert.equal((await readers.persistRecommendationOutcome(misaligned, { supabaseClient: client, server: true })).status, "saved");
+      const beforeEvent = await readers.readRecommendationLearningBaselineSource(owner);
+      const rejectedEvent = await readers.createRelativePlanCharterResultService().finalize(owner, {});
+      assert.equal(rejectedEvent.blocker, "relative_plan_result_retained_candle_outcome_conflicting");
+      assert.equal(rejectedEvent.status, "unavailable"); assert.equal(rejectedEvent.receipt, null);
+      assert.deepEqual((await readers.readRecommendationLearningBaselineSource(owner)).data, beforeEvent.data);
+      assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "0");
+    }
+    newResultExactEventClockVerified = true;
     const conflictingRetained = structuredClone(validRetained);
     for (const bar of conflictingRetained.payload_json.counterfactual_candles) Object.assign(bar, { high: midpoint + 0.01, close: midpoint });
     assert.equal((await readers.persistRecommendationOutcome(conflictingRetained, { supabaseClient: client, server: true })).status, "saved");
@@ -795,6 +855,15 @@ try {
     sealedResultIgnoresMutableSnapshotClocks = true;
     await replaceIsolatedRunClocks(originalRun, { created_at: originalRun.created_at, updated_at: originalRun.updated_at });
     sealedResultIgnoresMutableRunClocks = true;
+    const laterMisaligned = structuredClone(validRetained);
+    laterMisaligned.payload_json.counterfactual_candles[11].timestamp =
+      laterMisaligned.payload_json.counterfactual_candles[11].timestamp.replace(".000Z", ".000001Z");
+    assert.equal((await readers.persistRecommendationOutcome(laterMisaligned, { supabaseClient: client, server: true })).status, "saved");
+    assert.deepEqual((await readers.createRelativePlanCharterResultService().read(owner)).receipt, durable.receipt);
+    const gridRetry = await readers.createRelativePlanCharterResultService().finalize(owner, {});
+    assert.equal(gridRetry.status, "already_finalized"); assert.deepEqual(gridRetry.receipt, durable.receipt);
+    assert.equal(sql("select count(*) from public.relative_plan_charter_results"), "1");
+    sealedResultIgnoresMutableCandleGrid = true;
     assert.equal((await readers.persistRecommendationOutcome(conflictingRetained, { supabaseClient: client, server: true })).status, "saved");
     assert.deepEqual((await readers.createRelativePlanCharterResultService().read(owner)).receipt, durable.receipt);
     const repeatCandles = await readers.createRelativePlanCharterResultService().finalize(owner, {});
@@ -946,6 +1015,11 @@ try {
     sealed_model_ignores_later_mutable_original_inputs: sealedModelIgnoresMutableInputs,
     sealed_result_ignores_later_mutable_original_inputs: sealedResultIgnoresMutableInputs,
     new_result_rejects_contradictory_retained_forward_candles_before_storage: newResultRetainedCandlesVerified,
+    new_training_rejects_submillisecond_candle_grid_before_storage: newTrainingExactCandleGridVerified,
+    new_result_rejects_submillisecond_candle_grid_before_storage: newResultExactCandleGridVerified,
+    new_training_rejects_submillisecond_event_clock_before_storage: newTrainingExactEventClockVerified,
+    new_result_rejects_submillisecond_event_clock_before_storage: newResultExactEventClockVerified,
+    sealed_result_ignores_later_mutable_candle_grid: sealedResultIgnoresMutableCandleGrid,
     new_result_rejects_contradictory_retained_horizon_r_before_storage: newResultRetainedHorizonRVerified,
     new_result_rejects_contradictory_retained_fallback_horizon_r_before_storage: newResultRetainedFallbackHorizonRVerified,
     valid_retained_forward_candles_keep_complete_result_population: newResultRetainedCandlesVerified,

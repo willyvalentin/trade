@@ -2,6 +2,79 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-06, recommendation intelligence first
 
+**Current CLOSED primary — NEW retained candle grid admission, reconciled Oct6 21:08Z:**
+Direct human mandate is to continue useful CLOSED work while the market is
+closed. The preceding terminal-history correction is locally accepted on
+`3eef974d7ae3cd748f8e72f221ba0a6a33120380` (ledger-only head `e0153c18`):116
+affected regressions plus4 exact Linux native consumer checks, types and lint
+pass. It remains a separate release-held slice: the human confirms ONE normal
+history-correction publication's existing capacity, not the unanswered exact
+SQL approval. No new history migration/push/PR/publication has occurred.
+
+Select `quality_measurement` on the existing relative-plan hypothesis's missing
+source-to-canonical-learning link, not a competing ranker or support stream.
+Actual unchanged main `5e53047a7b39d5bd4cbb87b55e9bcc0fd34dad8b` admits a retained
+`2026-10-05T18:15:00.000001Z` candle as a full5min slot after Date.parse
+truncation. An actual isolated SQL/PostgREST/SDK NEW terminal command stores1
+immutable result instead of0, retaining that exact misaligned candle and the
+complete30/30 decisions,240/240 original forward members. Its disclosed
+historical synthetic model-clock fixture is not a real pre-forward seal or
+alpha. Source bytes and full cohorts are preserved; isolated resources cleaned;
+real provider/production/broker actions0. Reproduction receipt:
+`/private/tmp/ture-new-learning-bar-alignment-native-red-oct6.receipt.json`.
+
+Owner Codex, isolated branch `codex/oct6-new-learning-bar-alignment` from that
+freshly read-back current main; one primary4–16h, initial investigation at most4h.
+Minimum scope: private NEW retained-candle grid admission shared by existing
+training and terminal commands and the direct bar-to-event clock agreement,
+behavior/native proofs and this active ledger.
+Reject an explicit off-grid or lossy timestamp before NEW model/result storage,
+without discarding original members. Preserve honest Date/epoch/explicit-offset
+aligned inputs, missing legacy-bar disclosure, global historical coverage and
+already sealed model/result readers, bytes, labels, thresholds and fingerprints.
+No SQL/schema ownership, route, dependency, provider, scheduler or broker change.
+The history slice retains exclusive ownership of its new SQL/ACL contract.
+Integration order remains history release/schema/inert readback first, then
+this independently verified slice rebased/verified against actual current main.
+Local acceptance requires NEW training and complete forward SQL/SDK negative
+controls, aligned positives, immutable retry and unchanged old golden checks,
+affected regression, nonincremental types/lint and exact locked Linux build.
+This closes measurement integrity only; actual fresh full input, forward cohort,
+full charter disposition and recommendation-quality lift remain unproven.
+Graduation `not_met`. No OPEN/source card is restarted or armed by this work.
+
+Initial implementation evidence: both newly added service regressions reproduce
+the old lossy-clock escape before repair. The private NEW grid predicate now
+passes first/last/offset microsecond, fractional epoch and implicit-zone denials;
+honest Date/epoch/explicit-offset/zero-fraction inputs pass on both5min and15min
+grids. The first extended native proof reaches the expected NEW denial but its
+new raw-population assertion incorrectly expects576 instead of672: the unchanged
+fixture also retains12 unrelated prior decisions/96 snapshots. Keep all of
+those rows and correct the expected raw denominator to the full84 decisions;
+the original scoped96-training/240/240-forward populations are unchanged. This
+failed investigation is not final native acceptance. No assertion, cohort,
+deadline, old golden or product behavior is relaxed. Final coherent native and
+affected regression/build acceptance follows on frozen source.
+The corrected native command completes successfully with NEW-result denial,
+immutable grid retry and complete population preserved. Its wrapper then
+exposes a second new expectation error: finalized mode truthfully reports no
+NEW training because it uses the already disclosed historical synthetic model
+fixture. Require false for that mode, not fictitious actual training. Verify
+the real NEW training guard separately through the existing non-finalized
+DB-clock mode, which must report true. Keep both mode-specific evidence and
+failures; do not relabel a historical insertion as pre-forward model acceptance.
+Those two mode-specific native cases now pass in3.7m; only non-finalized mode
+claims actual NEW training. A direct follow-up reproduces the same lossy
+comparison in retained entry/target clocks: both service paths reach storage
+for `...00.000001Z` even when every candle is exactly aligned. Include only
+that direct contradiction in this bounded NEW admission repair. Preserve all
+honest represented milliseconds and explicit offsets; reject only clocks that
+cannot exactly match the unchanged producer replay. No old capsule, label,
+global coverage contract or threshold changes. Final frozen acceptance must
+rerun the affected native modes with both candle and event controls.
+
+Historical release and experimental evidence below remains unchanged.
+
 **Current primary release gate — PR738 corrected candidate, Oct6 18:58Z:**
 Code/test/schema/dependency revision
 `2f2528063005f68c845dc05505a110d05f9ef919` passes all120 distinct cases
