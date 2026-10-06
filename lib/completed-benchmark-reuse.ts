@@ -151,17 +151,21 @@ export async function readPreparedCompletedBenchmarkReuse(options: { ownerUserId
       sources.push(source);
     }
     const identities = preparedBenchmarkTickers.map(ticker => preparedBenchmarkClaim(owner, session.market_date!, ticker));
-    const paid = await client.from("basic_free_discovery_credit_reservations")
-      .select("contract_version,claim_id,execution_fingerprint,owner_user_id,trading_date,minute_bucket,requested_credits,status,provider_attempted,finalized_at", { count: "exact" })
-      .eq("owner_user_id", owner).eq("trading_date", session.market_date)
-      .in("claim_id", identities.map(identity => identity.claim_id)).limit(2).abortSignal(signal);
+    // The production ledger intentionally denies direct table access even to
+    // service_role. Only its bounded, read-only owner/day RPC can attest paid
+    // originals. A write/claim RPC must never stand in for this lookup.
+    const paid = await client.rpc("read_prepared_benchmark_history_claims_v1", {
+      p_owner_user_id: owner, p_trading_date: session.market_date,
+    }, { count: "exact" }).abortSignal(signal);
     throwIfAborted(options.signal);
-    if (paid.error || paid.count !== 2 || paid.data?.length !== 2) return null;
+    const paidRows: Record<string, unknown>[] = Array.isArray(paid.data) ? paid.data.filter(record) : [];
+    if (paid.error || paid.count !== 2 || !Array.isArray(paid.data) || paid.data.length !== 2 || paidRows.length !== 2) return null;
     for (const source of sources) {
-      const rows = paid.data.filter(row => row.claim_id === source.claim_id);
+      const rows = paidRows.filter(row => row.claim_id === source.claim_id);
       if (rows.length !== 1) return null;
       const row = rows[0], finished = sqlInstantMicros(row.finalized_at), minute = sqlInstantMicros(row.minute_bucket);
-      if (row.contract_version !== "basic_free_discovery_credit_reservation_v1" || row.provider_attempted !== true ||
+      if (row.claim_id !== identities.find(identity => identity.execution_fingerprint === source.execution_fingerprint)?.claim_id ||
+        row.contract_version !== "basic_free_discovery_credit_reservation_v1" || row.provider_attempted !== true ||
         row.owner_user_id !== owner || row.trading_date !== session.market_date || row.status !== "completed" ||
         row.requested_credits !== 1 || row.execution_fingerprint !== source.execution_fingerprint || finished === null ||
         minute !== sqlInstantMicros(source.minute_bucket) || finished < BigInt(Date.parse(source.captured_at)) * BigInt(1000) ||

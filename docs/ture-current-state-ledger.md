@@ -2,6 +2,378 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-06, recommendation intelligence first
 
+**Current Now / Next — actual17:15Z result and verified cleanup, Oct6 17:34Z:**
+The one ordinary scheduled attempt `scheduled_scan_attempt_eygk9m` fired at
+17:15:26.665Z on unchanged main `e33c2f4f` / activation deploy
+`6ac5237c7cf112d628d1d8d7`; terminal HTTP200/scanned, one NFLX publication,
+canonical run `rec_scan_run_3k1f7r`. The complete original eight-member decision
+population TSM/SOFI/NFLX/IBM/V/TGT/MRK/UNP remains. Only3/8 are fully observed;
+five retain `daily_refresh_credit_cap_reached`. Original arithmetic replay at
+17:22:09.371Z matches all25 retained features/indicators for TSM/SOFI/NFLX;
+the five missing originals remain unavailable. This is operational completion,
+not passing8/8 input fitness, an evaluated no_trade or recommendation-quality
+acceptance. Model/comparison/confirmation/result counts remain0; graduation
+`not_met`. The completed eight-credit claim is fully attributed, no active claim.
+
+The frozen expected prepared-benchmark reuse criterion FAILED: actual benchmark
+provider calls2 and scanner cap6, not zero/8. Fresh owner SQL17:28:19.982503Z
+confirms the original signed SPY/QQQ cache contexts and finalized paid claims
+are unchanged. Actual bounded Supabase logs now identify the exact failure:
+the signed-cache read returned200/count2, then the direct paid-claim table read
+returned403; Postgres42501 at17:15:34.626Z. Authoritative ACL17:32:55.310951Z
+confirms SELECT=false for service_role/anon/authenticated, as intentionally
+required by the original RPC-only reservation migration. The CLOSED proof's
+general table grant had hidden that boundary. Production-identical claim denial
+is now reproduced in the actual isolated Postgres/PostgREST/SDK first-source
+proof: the same prepared handle is null and its expected acceptance fails.
+No second OPEN, provider meter/acquisition,
+schema change or policy relaxation follows this result. Selected primary CLOSED
+investigation: reproduce why the first actual native scheduled scan failed to
+consume those exact eligible prepared sources; cap initial investigation4h,
+vertical4–16h, same owner/worktree and isolated new branch
+`codex/oct6-prepared-claim-readback` from freshly verified/fetched main
+`e33c2f4f`. Local selected minimum fix is an explicit bounded owner/day
+read-only internal claim API, never direct table SELECT or an idempotent
+write/claim RPC as a substitute for reading. All table denials, signatures,
+minute/microsecond/finalization checks and provider budgets remain strict.
+The focused locally prepared migration is
+`20261006173541_prepared_benchmark_claim_readback.sql`, SHA256
+`ee5154e702cc59129a1685916b51b8add41c5884217c78c9c2c3c03e32dc0d2e`.
+It adds only the explicit two-identity owner/day read-only internal RPC; table
+SELECT remains denied, empty search_path and service request/EXECUTE gates hold.
+Actual packaged scheduler→route→Postgres/PostgREST/SDK CLOSED proof now passes
+with production table ACL, all20 unchanged source negatives plus9 exact-count,
+identity, unavailable-RPC and execute-denial controls; paid rows unchanged,
+zero real providers/production actions. Its installed Playwright acceptance
+passes1/1. Nonincremental types and affected lint pass after the narrowly fixed
+RPC response type guard. Wider regression/build/protected release are pending;
+these synthetic8/8 inputs do not replace actual Oct6 3/8 evidence.
+The final source adds the exact rollback/recovery control (drop only the new
+read-only API in the isolated database, no-row-change fallback, exact-file
+restore) and reproduces production's explicit anon/authenticated/service-role
+function default ACL before the migration's revokes. The original20 negatives
+are preserved separately from the now10 claim-read controls; final full-file
+acceptance follows. Final nonincremental types pass; full lint0 errors/8 existing
+warnings. Expected new prosrc MD5 `c8b22186cdca35e9ca43e9a6644de43c`.
+The exact new production migration approval question was sent once to the
+human, separately from all prior migration approvals. The direct human answer
+“Jag godkänner” at Oct6 17:41Z approves that exact source/SHA in
+`ekdyopdrrkphlrsilyoo`, conditional on verified tests and normal protected
+release. It is not another OPEN/source/meter or wider permission grant.
+Any new persistent production function needs its exact reviewed migration,
+release gates and specific human approval; none is executed by this diagnosis.
+Accept only an actual
+boundary regression/minimum fix, then resume fresh full-population input fitness
+and original source-to-canonical-outcome coverage; no generic support stream.
+
+Exactly one owned cleanup transaction/build restored enable=false and removed
+the six owned metadata fields. Cleanup deploy `6ac52de6d2c1692e314bddf1` was
+ready/public at17:21:38.483Z on unchanged main, effective owner HTTP verified
+17:23:44.189Z, anonymous401, global-disabletrue/all competing modesoff,
+zero active claims, one window attempt/8credits and no duplicate/unresolved work.
+Today's native cleanup heartbeat is deleted after verification; separate Oct7
+premarket follow-up remains. Goal active/incomplete, not a live-process wait.
+Private evidence: `/private/tmp/ture-oct6-open-1715.observation.receipt.json`,
+`.cleanup.receipt.json`, `.post-source.receipt.json` and
+`.original-input-readback.json`. Historical activation text below is superseded
+only as current operating state; original cards/evidence remain immutable.
+
+**Current Now / Next — direct human sufficient-budget resumption, Oct6 16:30Z:**
+“Det är tillräckligt. Kör på!” directly answers the actual remaining-Netlify
+capacity question. Record sufficient existing balance for the two normal
+publications/30 credits plus incidental compute; do not fabricate a numeric
+saldo, written provider license, purchase/top-up or wider cost authority.
+The goal is active again; its entire200-hour objective and graduation `not_met`
+remain unchanged. The old15:45Z card is no_go/unexecuted/expired and immutable,
+not a failed scan or reusable authorization. No old meter/scan/config/build ran.
+
+NEW frozen card `/private/tmp/ture-oct6-open-1715.card.json` selects the first
+ordinary slot with45min lead from human resumption:17:15Z, expiry17:30Z,
+ready deadline17:00Z, series`observation_series_61e16c5bb1d18b0b`.
+Same accepted main`e33c2f4f`, baseline deploy`6ac506159754820008f1ad35`,
+same completed-input v1/original-plan publication v4, max1 attempt/8 credits
+plus max1 separately charged one-credit meter, zero retries/overlap.
+The unchanged normal rotation selects TSM/SOFI/NFLX/IBM/V/TGT/MRK/UNP;
+keep all eight and the wider95-stock/97-history denominator. Fresh owner HTTP
+16:29:21.989Z is ready with actual signed/paid SPY/QQQ sources, global-disable
+true/all competing modes off, history8/8 and zero active/window/unresolved work.
+All selected eight still lack valid completed context. Real scheduled source
+consumption, full8/8 input fitness and recommendation quality remain separate
+unproven questions. Schema/body/OID/ACL/history and every original row digest
+are freshly unchanged at16:26–16:27Z; no migration is repeated.
+Evidence `/private/tmp/ture-oct6-open-1715-readiness.receipt.json`,
+`.card.json`, `.catalog.receipt.json` and `.rows.receipt.json` share that prefix.
+Next: one fresh capacity meter, owned normal activation/publication, actual
+scheduled readback and verified cleanup; no manual scan or broker path.
+
+**Current operating state — exact17:15Z activation verified,16:39Z:** the
+one fresh `/api_usage` at16:31:27.519Z confirms Basic800/8, daily used11,
+conservatively789 remaining before extra meter allowance; no market-data call
+or retry. Exactly one owned metadata/enable transaction and one normal Git
+build`6ac5237c7cf112d628d1d8d5` produced ready published
+deploy`6ac5237c7cf112d628d1d8d7` at16:37:00.453Z on frozen`e33c2f4f`,
+before17:00Z deadline. Owned effective HTTP16:39:14.777Z matches exact build,
+anonymous401, global-disable true, only this series enabled/all competing
+modes off, history8/8 and zero active/window/unresolved claims. Manifest
+`blocked` with ONLY`observation_series_already_enabled` is the expected
+already-armed control readback, not an unresolved release failure. All other
+environment/readback gates hold and unrelated environment digest is unchanged.
+
+One same-chat native heartbeat`ture-open-17-15z-terl-sning-och-cleanup` is
+created/viewed and persisted ACTIVE/one occurrence for19:20Europe/Stockholm
+(17:20Z). An initial DTSTART argument was rejected before creation; corrected
+native local-wall-clock creation happened once. Runtime max1/8 and17:30Z
+expiry independently prevent more scan requests, without timely agent wakeup;
+cleanup must still be verified. No duplicate observation/provider meter,
+migration, branch/code/policy change or broker authority is added.
+Receipt `/private/tmp/ture-oct6-open-1715.armed.receipt.json`; expected actual
+attempt`scheduled_scan_attempt_eygk9m`; post-event read-only query at
+`/private/tmp/ture-oct6-open-1715-observation.sql` and fixed owner GET driver
+`/private/tmp/ture-oct6-open-1715-original-readback.mjs` are prepared, NOT run
+as market evidence. The real17:15Z result/full8/8 input fitness/quality remain
+unobserved; old failures and whole97-source gap remain. After exact terminal
+readback, restore only owned flags/metadata and make at most ONE normal cleanup
+publication on unchanged main, follow its handle and verify inert owner HTTP
+and zero active claims. Keep the goal active, not complete; Oct7 follow-up is
+separate. No further dispatch or scan retry is authorized by this receipt.
+
+**Historical actual-host-budget block, 2026-10-06 15:21Z
+(superseded only by the direct human resumption above):**
+the same real remaining-Netlify-capacity dependency persists across three
+consecutive resumed goal turns. Fresh main remains `e33c2f4f`; actual account
+and runtime readback15:20:53.669Z retains published ready
+`6ac506159754820008f1ad35`, global-disable true/all competing modes off and no
+owned trial metadata. Account3000 plan credits/generic capability used0 do not
+prove real available balance. The already-sent factual question is unanswered;
+no independently eligible CLOSED slice closes the earlier actual-input gap.
+The goal tool returns `blocked`, not paused or complete; the full200-hour
+objective is unchanged and graduation remains `not_met`. No live handle is
+being waited on. The frozen 15:45Z card remains unexecuted, SHA256
+`451c90b75b97ddad01ffa95127f441edf0b3c047e22ab60ad845c6e7e7a1bfe8`.
+Its 15:30Z ready deadline and all gates remain strict; no automatic time shift,
+meter, activation, build, retry, schema/model/result or broker action is allowed
+by a goal continuation. A real budget fact and fresh gates are required to
+resume. Receipt:
+`/private/tmp/ture-oct6-open-host-capacity-third-blocked-audit.receipt.json`.
+
+**Frozen conditional selection — human-selected normal OPEN input observation,
+2026-10-06 15:14Z:** the human's “Marknaden är öppen. Vi borde testa på den
+öppna marknaden?” resumes the goal. The 14:46 pre-open blocker below applies
+to the separate bulk preparation route, not every normal OPEN scan. Reviewed
+normal scanner code permits bounded missing-daily-context refresh during OPEN
+inside its existing eight-credit whole-scan cap. No guard, deadline, provider
+plan, population, quality criterion or old experiment is changed.
+
+**Frozen test card before any meter/config/scan action:**
+`/private/tmp/ture-oct6-normal-open-input.card.json` selects ONE ordinary
+Oct6 15:45Z scan, expiry16:00Z, ready deadline15:30Z; exact accepted main
+`e33c2f4f`, baseline ready production `6ac506159754820008f1ad35`, approved
+schema `20261006143348`, series `observation_series_d506902fd8aafb92`.
+IF-2b/IF-4 question: actual prepared-benchmark consumption, fresh input coverage
+and original decision evidence, not another support implementation. Keep the
+unchanged scheduled eight NKE/LLY/DE/INTC/PLTR/CVX/MSTR/ROKU, completed-input
+policy v1 and original-plan publication v4. Max1 scan/8 provider credits plus
+at most one separately charged one-credit capacity meter; no retry/overlap.
+Existing Basic800/8 and 200 unused daily-credit allowance remain hard gates.
+
+Read-only owner HTTP at15:06:14.401Z was ready on exact released revision/deploy;
+all competing modes off, global disable true, eight paid history claims/credits,
+zero active/window/duplicate/unresolved/unattributed work. Actual stored signed
+SPY/QQQ contexts and their finalized paid claims pass unchanged source/HMAC
+validators; expected benchmark repurchase0, but actual scheduled SDK consumption
+is NOT yet proven. All selected eight lack valid completed history; a partial
+scan cannot pass eight-of-eight input fitness. Operational completion, data
+fitness and full-charter recommendation quality have independent criteria;
+data rejection/timeout is not called evaluated no_trade. Source89/97 gap and
+graduation `not_met` remain. Receipt:
+`/private/tmp/ture-oct6-open-readiness.receipt.json`.
+
+Actual prod-or-all environment at15:13:23.984Z resolves to Free8/23s/skip-AI.
+The inherited all-context Grow flag is requested but Free-plan blocked;
+research-only learning acceleration is already enabled and remains unchanged.
+The old HTTP manifest expired15:11:14Z: renew it immediately before any arm,
+never treat this recorded readiness as current activation authority.
+
+**Held before activation:** actual remaining Netlify Credit balance is not
+readable from current API/UI tools; the API's Pro3000 monthly allowance and
+legacy build-minutes are not remaining credits. A single factual question has
+already been sent to the human. The two planned normal Git publications cost
+30 hosting credits plus incidental compute; no purchase/top-up/plan change is
+selected. No new capacity meter, provider request, config write, build or scan
+has occurred. Do not arm until real host budget, fresh shared provider capacity,
+exact source/runtime/schema gates and reliable owned cleanup follow-up hold.
+Missing the frozen ready deadline is no_go/cleanup, not automatic slot shifting
+or another attempt. The existing Oct7 premarket follow-up remains separate.
+Only this local ledger and frozen card changed; no status-only push/PR.
+
+Second actual-host-capacity hold audit at15:19:13.797Z confirms unchanged
+exact main/deploy, global-disable true/all modes off and no owned trial metadata.
+Fresh authoritative rows at15:18:08.399616Z retain every count/digest and zero
+active claims. Official current public API spec2.60.0 and the account connector
+offer no real credit-balance endpoint; no hidden/private route is guessed.
+No independently eligible CLOSED slice closes the earlier actual-input gap.
+The goal remains active/incomplete; this is not a verified live-process wait.
+Receipt: `/private/tmp/ture-oct6-open-host-capacity-second-audit.receipt.json`.
+
+**Historical checkpoint — separate preparation source-window blocked,
+2026-10-06 14:46Z (superseded as the whole-goal status above):** the
+same actual-input blocker has now persisted across three consecutive goal
+turns: 14:36:54Z source-gate discovery, 14:42Z selection/follow-up audit and
+fresh 14:46:04.696526Z authoritative revalidation. Main remains accepted
+`e33c2f4f`; run `37479582147` is terminal success, not a live wait. The reviewed
+production before-session-open guard still rules out a new preparation now.
+Fresh read-only SQL gives the same complete selected row digests/counts:
+today's histories/credits 8/8, active reservations 0, cache 72, attempts 2373,
+and no comparison/model/confirmation/result. No external actor supplied the
+missing real input/learning evidence. Active selection/governance leaves no
+independent CLOSED slice with fulfilled dependencies that closes this earlier
+gap; the already accepted support surface must not be extended to fill time.
+
+The goal is now marked `blocked`, not paused or complete; its full 200-hour
+objective is unchanged and recommendation graduation remains `not_met`.
+This is an external valid-session/source-window dependency, not another
+migration-approval hold or an invitation to weaken the guard. The one native
+Oct 7 08:00 Europe/Stockholm follow-up remains ACTIVE for its independently
+preauthorized fresh gate check; it is not a live process, new acquisition card
+or automatic permission/goal-status bypass. A real external-state change and
+fresh scope/budget gates are needed before source operations can continue.
+No provider, source POST, runtime configuration, schema, model/result, policy,
+broker operation or status-only push occurred. Evidence:
+`/private/tmp/ture-oct6-source-window-third-blocked-audit.receipt.json`.
+Earlier paragraphs that say the goal remains active are historical snapshots
+superseded by this checkpoint; the verified focused release is unchanged.
+
+**PR #737 release and exact approved additive schema verified — 2026-10-06
+14:34:58Z:** the direct human's contextual “Jag godkänner. Kör på.” approves
+the already named `20261006090639_history_credit_preflight_compatibility.sql`
+in `ekdyopdrrkphlrsilyoo`; no goal/agent message was substituted for that
+approval. Fresh main, protection, all six groups, candidate provenance,
+reviews, existing published production and owned inert runtime were checked.
+Normal protected merge produced main `e33c2f4fce57f70397fd4d12fd03782d63989866`,
+tree `2729604bf15cc0de9f34c71bfd1bd657fb0b858e`, identical to accepted candidate
+`79550957f8a4bcfb56de6bb0d910e3dabb305f3a`; post-merge run `37479582147`
+and attestation job `112323943704` succeed with `matched` and no mismatches.
+Git-linked production deploy `6ac506159754820008f1ad35`, build
+`6ac506159754820008f1ad33`, published ready at 14:31:41.526Z on that exact main.
+
+After fresh byte/catalog/default-ACL/index/lock/row preflights and owned
+post-deploy inert HTTP, exactly one normal Supabase `apply_migration`
+completed. True source-to-remote mapping: source `20261006090639`, remote
+`20261006143348`, same name `history_credit_preflight_compatibility`; the one
+remote stored SQL statement SHA256 is exactly
+`6a213e2febc0b699d3549012d73e9f1e8674f381223e17f0df977c53a308a7fa`.
+New one-slot v3 OID `83163` / prosrc MD5 `5ba272a81be6323290067ba9957f470a`
+and series v2 OID `83164` / `39b57e9dd1444fcee31ddbdaa1d8bae4` are SQL-STABLE,
+postgres-owned, security-definer, empty-search-path and service-only; PUBLIC,
+anon and authenticated execution are denied. Both predecessors and all other
+public function attributes, relation/column attributes and old migration
+history remain digest-identical. All selected complete row digests/counts
+remain identical: 35 reservations, 2373 attempts, 72 cache rows and no
+comparison/model/confirmation/charter result; today's eight completed paid
+history claims remain eight charged credits with zero active reservations.
+Advisors are unchanged (including the pre-existing Auth password-protection
+warning); no unrelated Auth/RLS/schema setting was altered.
+
+Owned production HTTP at 14:34:58.161Z proves both new aggregate versions:
+200/available/ready, history 8/8, normal scans 0/0, unknown work 0/0 and active
+reservations 0; anonymous reads remain 401. Global scheduler-disable remains
+true and all competing modes remain off; the activation manifest remains
+blocked and every authority field false. No provider, scan, configuration,
+broker, model or quality-graduation action was part of this release. Fresh
+actual generated types are preserved at
+`/private/tmp/ture-pr737-actual-post-migration-generated.types.ts`, SHA256
+`c63b6dd082f59897376c038b605bd891f6ecaa1da6a6de55f4823f07874e6e95`;
+new routine arguments and mandatory outputs match the narrow server ports.
+Committed generated types were not manually fabricated or broadly replaced.
+
+Evidence: `/private/tmp/ture-pr737-approved-migration-release-oct6.receipt.json`.
+The focused release is verified, not the product-quality goal. The next
+dependency remains actual completed input preparation: 8/97 acquired, 89
+pending. The stopped 08:55 card is immutable and must never resume. Any
+remaining-history continuation must first freeze a new exact-main/schema
+card and observe fresh shared capacity, preserve the eight existing claim
+identities and the aggregate 97-source ceiling, and never repurchase them.
+No NEW OPEN activation is authorized by this migration approval. Original
+Oct 5 FAIL/cohorts/fingerprints remain untouched; graduation remains `not_met`.
+The older authority/CI state below is historical and superseded, not deleted.
+
+**Fresh continuation gate audit — 2026-10-06 14:36:54Z:** the exact public
+`lib/server/completed-session-history-preparation.ts` still requires
+`started < verified session_open` and rechecks the same gate before every
+reservation/acquisition. Oct 6 regular open was 13:30Z; that pre-open window
+has passed. Migration approval does not authorize removing this guard or
+calling the route to discover an already proven failure. No new history card,
+capacity meter, POST, provider history purchase or alternate write path is
+dispatched. 8/97 sources remain acquired and 89 pending; the stopped old card
+and all original claims/source hashes remain immutable. A later valid session
+must be separately frozen on its true date/calendar/universe and accepted
+runtime/schema with fresh capacity; today's eight claims are not relabeled
+as a future session's evidence or silently repurchased under another identity.
+The whole recommendation-quality objective remains active and `not_met`;
+this time gate is not a reason to undo the now verified focused release.
+
+**Next legitimate window / operating follow-up — 2026-10-06 14:42Z:** current
+GitHub main is freshly read as exact released `e33c2f4f`. Re-reading the full
+goal and active selection gate confirms that complete actual original inputs
+still precede canonical-learning/forward/full-charter acceptance. No independent
+CLOSED slice with fulfilled dependencies closes that earlier gap; do not extend
+the accepted preflight support surface or create a competing hypothesis.
+The goal's existing later-window instruction is implemented as one native
+same-chat heartbeat, `ture-f-rmarknad-7-oktober`, on Oct 7 at 08:00
+Europe/Stockholm (06:00Z), one occurrence. Creation, ACTIVE view and the persisted
+current-thread identity/one-occurrence schedule are verified; no duplicate or
+old release monitor is present. Receipt:
+`/private/tmp/ture-oct7-premarket-followup-oct6.receipt.json`.
+
+This is a future gate check, not a frozen acquisition or OPEN card, present
+capacity, completed data or new authorization. It must respect goal status and
+remaining work budget, revalidate exact accepted main/Git-deploy/inert runtime
+and schema read-only, derive the true new session/calendar/full source population,
+preserve every old claim/source/cohort, and require a fresh bounded purpose/card
+and real 800/8 capacity before any allowed owner command. Oct 6's eight histories
+through Oct 5 cannot masquerade as Oct 7 completed-session context. If new-date
+inputs are needed, keep their true separate identities/costs and do not repair
+the expired Oct 6 experiment. No meter, provider, source POST, config, schema,
+model/result, promotion or broker operation occurs in this goal continuation.
+The scheduled follow-up is deleted after its one check is consumed. The complete
+200-hour goal remains active and graduation `not_met`, not release-complete.
+
+**PR #737 protected CI accepted; exact schema authority still held —
+2026-10-06 10:39Z:** Ready PR #737 remains OPEN on
+`e94657b57d451482173b427f61f9758d3efad855`, base/main
+`7ebb2fb58a6a39278bde6b4c025a377e4975d986`. All six unchanged groups,
+required aggregate and candidate provenance pass in run `37446270706`,
+attempt 1, terminal success at 10:34:59Z. Candidate
+`79550957f8a4bcfb56de6bb0d910e3dabb305f3a` has exact tree
+`2729604bf15cc0de9f34c71bfd1bd657fb0b858e`, identical to clean local head,
+with the verified base/head parents. Artifact 11406327012, its full six-group
+contents and workflow blob `f49297f2256e59e0b3a0f9a9e59a40b559c42f77` match.
+Required app identity 15368, strict/admin/conversation protection and no
+force-push/deletion remain intact. PR is MERGEABLE/CLEAN, not merged; auto-merge
+is off. No blocking review is present. Actual CI logs also show the two new
+classification regressions, real SQL/SDK/restarted HTTP proof (11.2s), unchanged
+whole-session case (1.3m) and zero-vulnerability audit passing. The existing
+upload-action Node-20/forced-24 annotation is a warning, not a failed check;
+no workflow, dependency, assertion or deadline is changed to suppress it.
+
+The CI watch (session 56972) is terminal/exit 0. A fresh read-only remote
+inventory has 66 migrations and zero named
+`history_credit_preflight_compatibility`; the old approved #735 migration
+remains one remote `20261006050453` entry and is not repeated. New source SQL
+SHA256 remains `6a213e2febc0b699d3549012d73e9f1e8674f381223e17f0df977c53a308a7fa`.
+No direct exact human approval appears after the already-sent question; goal
+continuations, CI success, oral retention evidence and old #735 approval do not
+supply it. This same authority condition persists across more than three goal
+turns. The full objective is not complete: 8/97 sources are acquired, 89 remain,
+actual prepared input-to-learning/forward quality is unproven and graduation is
+`not_met`. The earlier independent secondary is already released; the active
+selection audit finds no independent CLOSED slice with satisfied dependencies
+that closes the next missing link. No merge, production migration/publish,
+new source batch, activation, configuration or broker action is dispatched.
+This local ledger-only annotation is not pushed to alter the accepted candidate.
+Handoff: `/private/tmp/ture-history-credit-preflight-pr737-oct6.handoff.json`;
+verified artifact: `/private/tmp/ture-pr737-provenance-ZbvTR9/merge-candidate-provenance.json`.
+
 **Selected additive preflight correction — final local acceptance, 2026-10-06
 09:53Z; protected release and exact migration approval still pending:** exact source migration
 `20261006090639_history_credit_preflight_compatibility.sql`, name

@@ -182,7 +182,7 @@ test("owned prepared context supplies the first complete original scan without a
   test.setTimeout(90_000);
   const result = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--cold",
     "--rotation-day", "--prospective-enrollment", "--full-original-history-setup", "--budgeted-history-setup",
-    "--history-preparation-app", "--prepared-first-scan"],
+    "--history-preparation-app", "--prepared-first-scan", "--production-claim-acl"],
   { cwd: process.cwd(), encoding: "utf8", timeout: 80_000 });
   expect(result.status, `${result.error?.message ?? ""}\n${result.stdout.slice(-2500)}\n${result.stderr.slice(-2500)}`).toBe(0);
   const evidence = JSON.parse(result.stdout.trim().split("\n").at(-1)!);
@@ -199,9 +199,14 @@ test("owned prepared context supplies the first complete original scan without a
       attempts: 1, normal_reservations: 1, normal_reserved_credits: 8,
       restarted_owner_read: true, owner_bound_source_signatures: true,
       original_claim_namespace_preserved: true, quality_improvement_claimed: false,
+      production_claim_table_select_denied: true, service_only_claim_readback_rpc: true,
     },
   });
   expect(evidence.prepared_first_scan_evidence.source_controls).toHaveLength(20);
+  expect(evidence.prepared_first_scan_evidence.claim_read_controls).toHaveLength(10);
+  expect(evidence.prepared_first_scan_evidence.claim_read_controls.every((control: {
+    provider_requests: number; paid_rows_unchanged: boolean;
+  }) => control.provider_requests === 0 && control.paid_rows_unchanged)).toBe(true);
   expect(evidence.prepared_first_scan_evidence.prepared_equity_tickers).toHaveLength(95);
   expect(evidence.prepared_first_scan_evidence.prepared_equity_tickers).toContain("XYZ");
   expect(evidence.prepared_first_scan_evidence.prepared_equity_tickers).not.toContain("SQ");
