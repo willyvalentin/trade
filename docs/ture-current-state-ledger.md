@@ -3,6 +3,41 @@
 ## Active Now / Next / Blocked — reconciled 2026-10-06, recommendation intelligence first
 
 **Current CLOSED selection after direct human request, Oct6 20:32Z:**
+Local minimum correction accepted Oct6 21:08Z on frozen product/test/schema
+revision `3eef974d7ae3cd748f8e72f221ba0a6a33120380`:116/116 coherent affected
+history/input/publication/replay/credit cases pass serially in26.1m, plus four
+distinct native dependency/consumer checks on the exact locked Linux build.
+Nonincremental types pass; full lint has0 errors/8 unchanged warnings. The
+build uses clean committed source, Node22.23.1/Next16.3.8 and no network or
+production credentials. Build receipt:
+`/private/tmp/ture-terminal-history-exact-linux-build-oct6-receipt.json`.
+This is120 distinct local cases, not reuse of PR738's different120-case set.
+The earlier mixed-source43/44 investigation remains a failure, not acceptance.
+The direct human confirms existing capacity for ONE normal history-correction
+publication (15 credits plus incidental compute), without purchase/top-up/plan
+change. The separate exact new SQL approval question remains unanswered;
+production dispatches, pushes and new PRs for this correction remain0. This
+minimum `supporting_blocker_removal` is locally complete, not production release
+or input/quality proof. Stop extending the history control surface.
+
+Next concrete CLOSED measurement defect is now reproduced through unchanged
+current-main canonical coverage and actual NEW terminal SQL/SDK finalization:
+retained first/last bar `...00.000001Z` loses its fractional part in Date.parse,
+is counted as a complete5min slot and reaches an immutable NEW result. The
+native probe stores1 result where the NEW admission contract requires0;
+the capsule preserves the exact unaligned original timestamp, with30 decisions
+and240 original members in each forward partition. This historical synthetic
+model-clock fixture is not real pre-forward sealing, market evidence or alpha.
+Probe source/product bytes stay unchanged and disposable SQL/API resources are
+cleaned; real provider/production/broker actions are0. Receipt:
+`/private/tmp/ture-new-learning-bar-alignment-native-red-oct6.receipt.json`.
+Select the minimum NEW retained-candle admission correction next on a separate
+current-main branch, preserving legacy global coverage, sealed v1 readers,
+original cohorts and labels. No new SQL, provider acquisition or ranking
+hypothesis is selected. Its independent local acceptance and integration order
+must be recorded before production claims; graduation remains `not_met`.
+
+Historical investigation and preparation for this accepted local correction:
 The human asks to find useful CLOSED work until the next source window. The
 goal is active again with its full200h objective, not a narrowed release goal.
 One concrete IF-2b source-fitness defect is now reproduced locally on exact
