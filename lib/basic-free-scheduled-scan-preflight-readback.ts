@@ -4,13 +4,14 @@ import {
 } from "@/lib/basic-free-discovery-credit-reservation-store";
 
 export const BASIC_FREE_SCHEDULED_SCAN_PREFLIGHT_VERSION =
-  "basic_free_scheduled_scan_preflight_v2" as const;
+  "basic_free_scheduled_scan_preflight_v3" as const;
+const LEGACY_PREFLIGHT_VERSION = "basic_free_scheduled_scan_preflight_v2" as const;
 
 export const basicFreeScheduledScanPreflightRpcName =
-  "read_basic_free_scheduled_scan_preflight_v2" as const;
+  "read_basic_free_scheduled_scan_preflight_v3" as const;
 
 type PreflightSnapshot = {
-  preflight_version: typeof BASIC_FREE_SCHEDULED_SCAN_PREFLIGHT_VERSION;
+  preflight_version: typeof BASIC_FREE_SCHEDULED_SCAN_PREFLIGHT_VERSION | typeof LEGACY_PREFLIGHT_VERSION;
   trading_date: string;
   target_slot_utc: string;
   total_reservation_count: number;
@@ -19,6 +20,10 @@ type PreflightSnapshot = {
   normal_scan_reserved_credits: number;
   catalog_observation_reservation_count: number;
   catalog_observation_reserved_credits: number;
+  completed_history_reservation_count: number;
+  completed_history_reserved_credits: number;
+  unclassified_reservation_count: number;
+  unclassified_reserved_credits: number;
   active_reservation_count: number;
   active_reserved_credits: number;
   terminal_reservation_count: number;
@@ -110,6 +115,12 @@ export function basicFreeScheduledScanPreflightReadbackFromUnknown(
   expected: { trading_date: string; target_slot_utc: string },
 ): BasicFreeScheduledScanPreflightReadback {
   const row = record(value);
+  const version = row?.preflight_version === BASIC_FREE_SCHEDULED_SCAN_PREFLIGHT_VERSION
+    ? BASIC_FREE_SCHEDULED_SCAN_PREFLIGHT_VERSION
+    : row?.preflight_version === LEGACY_PREFLIGHT_VERSION ? LEGACY_PREFLIGHT_VERSION : null;
+  const classifiedCount = (name: string) => version === LEGACY_PREFLIGHT_VERSION
+    ? row?.[name] === undefined ? 0 : null
+    : nonNegativeInteger(row?.[name]);
   const tradingDate = exactDate(row?.trading_date);
   const targetSlot = exactQuarterHour(row?.target_slot_utc);
   const expectedDate = exactDate(expected.trading_date);
@@ -124,6 +135,10 @@ export function basicFreeScheduledScanPreflightReadbackFromUnknown(
   const catalogReservedCredits = nonNegativeInteger(
     row?.catalog_observation_reserved_credits,
   );
+  const historyReservationCount = classifiedCount("completed_history_reservation_count");
+  const historyReservedCredits = classifiedCount("completed_history_reserved_credits");
+  const unclassifiedReservationCount = classifiedCount("unclassified_reservation_count");
+  const unclassifiedReservedCredits = classifiedCount("unclassified_reserved_credits");
   const activeReservationCount = nonNegativeInteger(row?.active_reservation_count);
   const activeReservedCredits = nonNegativeInteger(row?.active_reserved_credits);
   const terminalReservationCount = nonNegativeInteger(
@@ -168,7 +183,7 @@ export function basicFreeScheduledScanPreflightReadbackFromUnknown(
     maximumMinuteBudget === BASIC_FREE_DISCOVERY_MAX_PER_MINUTE_CREDITS;
 
   if (
-    row?.preflight_version !== BASIC_FREE_SCHEDULED_SCAN_PREFLIGHT_VERSION ||
+    version === null ||
     tradingDate === null ||
     targetSlot === null ||
     expectedDate === null ||
@@ -181,6 +196,8 @@ export function basicFreeScheduledScanPreflightReadbackFromUnknown(
     normalReservedCredits === null ||
     catalogReservationCount === null ||
     catalogReservedCredits === null ||
+    historyReservationCount === null || historyReservedCredits === null ||
+    unclassifiedReservationCount !== 0 || unclassifiedReservedCredits !== 0 ||
     activeReservationCount === null ||
     activeReservedCredits === null ||
     terminalReservationCount === null ||
@@ -204,13 +221,14 @@ export function basicFreeScheduledScanPreflightReadbackFromUnknown(
     terminalReservedCredits > totalReservedCredits ||
     targetSlotReservationCount > totalReservationCount ||
     targetSlotReservedCredits > totalReservedCredits ||
-    normalReservationCount + catalogReservationCount !== totalReservationCount ||
-    normalReservedCredits + catalogReservedCredits !== totalReservedCredits ||
+    normalReservationCount + catalogReservationCount + historyReservationCount !== totalReservationCount ||
+    normalReservedCredits + catalogReservedCredits + historyReservedCredits !== totalReservedCredits ||
     activeReservationCount + terminalReservationCount !== totalReservationCount ||
     activeReservedCredits + terminalReservedCredits !== totalReservedCredits ||
     normalReservedCredits !==
       normalReservationCount * BASIC_FREE_DISCOVERY_MAX_PER_MINUTE_CREDITS ||
     catalogReservedCredits !== catalogReservationCount ||
+    historyReservedCredits !== historyReservationCount ||
     (targetSlotReservationCount === 0) !== (targetSlotReservedCredits === 0) ||
     (!noReservations && !budgetsAreExpected) ||
     (noReservations && !budgetsAreAbsent)
@@ -221,7 +239,7 @@ export function basicFreeScheduledScanPreflightReadbackFromUnknown(
   return {
     status: "available",
     snapshot: {
-      preflight_version: BASIC_FREE_SCHEDULED_SCAN_PREFLIGHT_VERSION,
+      preflight_version: version,
       trading_date: tradingDate,
       target_slot_utc: targetSlot,
       total_reservation_count: totalReservationCount,
@@ -230,6 +248,10 @@ export function basicFreeScheduledScanPreflightReadbackFromUnknown(
       normal_scan_reserved_credits: normalReservedCredits,
       catalog_observation_reservation_count: catalogReservationCount,
       catalog_observation_reserved_credits: catalogReservedCredits,
+      completed_history_reservation_count: historyReservationCount,
+      completed_history_reserved_credits: historyReservedCredits,
+      unclassified_reservation_count: unclassifiedReservationCount,
+      unclassified_reserved_credits: unclassifiedReservedCredits,
       active_reservation_count: activeReservationCount,
       active_reserved_credits: activeReservedCredits,
       terminal_reservation_count: terminalReservationCount,

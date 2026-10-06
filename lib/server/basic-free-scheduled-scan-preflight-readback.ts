@@ -3,6 +3,7 @@ import "server-only";
 import {
   basicFreeScheduledScanPreflightReadbackFromUnknown,
   basicFreeScheduledScanPreflightRpcName,
+  BASIC_FREE_SCHEDULED_SCAN_PREFLIGHT_VERSION,
   type BasicFreeScheduledScanPreflightReadback,
 } from "@/lib/basic-free-scheduled-scan-preflight-readback";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
@@ -55,7 +56,10 @@ export async function readBasicFreeScheduledScanPreflight(input: {
       },
     );
     if (error) return unavailable();
-    return basicFreeScheduledScanPreflightReadbackFromUnknown(exactlyOne(data), {
+    const row = exactlyOne(data);
+    if (!row || typeof row !== "object" ||
+      (row as Record<string, unknown>).preflight_version !== BASIC_FREE_SCHEDULED_SCAN_PREFLIGHT_VERSION) return unavailable();
+    return basicFreeScheduledScanPreflightReadbackFromUnknown(row, {
       trading_date: input.trading_date,
       target_slot_utc: input.target_slot_utc,
     });

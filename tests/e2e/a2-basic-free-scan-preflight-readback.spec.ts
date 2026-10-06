@@ -94,6 +94,40 @@ test("A.2 preflight permits a canonical empty, unclaimed target state", async ()
   }
 });
 
+test("one-slot preflight partitions terminal prepared history without refunding credits or weakening scan costs", async () => {
+  const runtime = await loadRuntime();
+  try {
+    const snapshot = {
+      ...validSnapshot(), preflight_version: "basic_free_scheduled_scan_preflight_v3",
+      total_reservation_count: 8, total_reserved_credits: 8,
+      terminal_reservation_count: 8, terminal_reserved_credits: 8,
+      completed_history_reservation_count: 8, completed_history_reserved_credits: 8,
+      unclassified_reservation_count: 0, unclassified_reserved_credits: 0,
+      minimum_declared_daily_credit_budget: 800, maximum_declared_daily_credit_budget: 800,
+      minimum_declared_per_minute_credit_budget: 8, maximum_declared_per_minute_credit_budget: 8,
+    };
+    const readback = runtime.basicFreeScheduledScanPreflightReadbackFromUnknown(snapshot, expected);
+    expect(readback).toMatchObject({ status: "available", snapshot: {
+      total_reserved_credits: 8, normal_scan_reservation_count: 0,
+      completed_history_reservation_count: 8, completed_history_reserved_credits: 8,
+    } });
+    expect(runtime.evaluateBasicFreeScheduledScanPreflight(readback)).toMatchObject({ status: "ready" });
+    for (const change of [
+      { completed_history_reserved_credits: 7 },
+      { completed_history_reservation_count: undefined },
+      { unclassified_reservation_count: 1, unclassified_reserved_credits: 1 },
+      { normal_scan_reservation_count: 8, normal_scan_reserved_credits: 8, completed_history_reservation_count: 0, completed_history_reserved_credits: 0 },
+    ]) expect(runtime.basicFreeScheduledScanPreflightReadbackFromUnknown({ ...snapshot, ...change }, expected))
+      .toMatchObject({ status: "unavailable" });
+    expect(runtime.evaluateBasicFreeScheduledScanPreflight(
+      runtime.basicFreeScheduledScanPreflightReadbackFromUnknown({
+        ...snapshot, terminal_reservation_count: 7, terminal_reserved_credits: 7,
+        active_reservation_count: 1, active_reserved_credits: 1,
+      }, expected),
+    )).toMatchObject({ status: "blocked", reason_codes: expect.arrayContaining(["active_basic_free_reservation_exists"]) });
+  } finally { runtime.dispose(); }
+});
+
 test("A.2 preflight permits prior terminal normal slots while daily capacity remains", async () => {
   const runtime = await loadRuntime();
   try {

@@ -3,6 +3,7 @@ import "server-only";
 import {
   observationSeriesActivationPreflightReadbackFromUnknown,
   observationSeriesActivationPreflightRpcName,
+  OBSERVATION_SERIES_ACTIVATION_PREFLIGHT_VERSION,
   type ObservationSeriesActivationPreflightReadback,
 } from "@/lib/observation-series-activation-preflight";
 import type { ObservationSeriesControl } from "@/lib/observation-series-control";
@@ -62,6 +63,7 @@ export async function readObservationSeriesActivationPreflight(input: {
       },
     );
     if (error || !Array.isArray(data) || data.length !== 1) return unavailable();
+    if (data[0]?.preflight_version !== OBSERVATION_SERIES_ACTIVATION_PREFLIGHT_VERSION) return unavailable();
     return observationSeriesActivationPreflightReadbackFromUnknown(
       data[0],
       control,
