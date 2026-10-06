@@ -2,6 +2,29 @@
 
 ## Active Now / Next / Blocked — reconciled 2026-10-06, recommendation intelligence first
 
+**Current blocker — PR738 production audit, Oct6 18:25Z:**
+The normal Ready PR `https://github.com/willyvalentin/trade/pull/738` on
+`ea9286c10dcfc769a939688b54ca1208a7f04977` started protected run37509338577
+attempt1. Foundation job112426260052 passes lint/types but fails the unchanged
+production audit on sharp0.35.4: GHSA-wq5f-xc86-pv6w / CVE-2026-96889,
+newly reviewed in GitHub's advisory database Oct6. The same high finding is
+reproduced locally; the new actual Next image-consumer regression fails on the
+old installed native binary. No retry, audit exemption, merge or migration.
+
+Selected minimum correction in this SAME PR: refresh only sharp0.35.5 and its
+prebuilt sharp/libvips artifacts within Next16.3.8's existing `^0.35.4` range.
+No package.json/framework/configuration change. The upstream patch provides
+librsvg2.63.2; actual loaded binaries, Next SVG/PNG/JPEG/WebP behavior and
+malformed/oversized input rejection must pass, not version strings alone.
+The new lock SHA256 is
+`50eb34c320c486d37f75053bf2987114348cbbe58f2eb280ffdd40d274d1fada`.
+Fresh locked install, full audit, native consumers, types/lint, clean exact
+Linux build and protected current-candidate CI follow. The old112-case/build
+evidence below is historical for its old lock, not acceptance for this new
+candidate. Exact approved migration bytes/SHA remain unchanged. Human approval
+and sufficient existing one-publication quota remain valid; no new OPEN,
+provider/meter, production configuration or schema action follows this failure.
+
 **Current release gate — focused benchmark claim-read fix, Oct6 18:08Z:**
 Code/test/schema revision `21fdd0079980cee402359c131b62a45686ea322e` is
 locally accepted:112 distinct affected cases (69 original-input/publication/
