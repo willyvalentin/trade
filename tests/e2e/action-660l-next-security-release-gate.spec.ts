@@ -102,7 +102,8 @@ test("installed source-map-js rejects malicious indexed offsets and preserves va
   const result = JSON.parse(execFileSync(process.execPath, ["-e", `
     const assert = require('node:assert/strict');
     const { SourceMapConsumer, SourceNode } = require('source-map-js');
-    const flat = { version: 3, sources: ['input.js'], names: [], mappings: 'AAAA' };
+    const code = 'const value = 1;\\n';
+    const flat = { version: 3, sources: ['input.js'], sourcesContent: [code], names: [], mappings: 'AAAA' };
     const indexed = (line, column = 0, map = flat) => ({ version: 3,
       sections: [{ offset: { line, column }, map }] });
     let rejected = 0;
@@ -119,9 +120,12 @@ test("installed source-map-js rejects malicious indexed offsets and preserves va
       indexed(5e6, 0, indexed(5e6)))), /including offsets of nested sections/);
     rejected++;
     const consumer = new SourceMapConsumer(indexed(0));
+    // Preserve independently observed 1.2.1 indexed-map query semantics;
+    // the security patch must not silently change normal position readback.
     assert.deepEqual(consumer.originalPositionFor({ line: 1, column: 0 }),
+      { source: null, line: null, column: null, name: null });
+    assert.deepEqual(consumer.originalPositionFor({ line: 1, column: 1 }),
       { source: 'input.js', line: 1, column: 0, name: null });
-    const code = 'const value = 1;\\n';
     assert.equal(SourceNode.fromStringWithSourceMap(code, consumer).toString(), code);
     console.log(JSON.stringify({ rejected, valid_source_preserved: true }));
   `], { cwd: repositoryRoot, encoding: "utf8", timeout: 5000 }));
