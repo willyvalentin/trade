@@ -32,10 +32,44 @@ Nonincremental types pass, full lint has zero errors/eight existing warnings.
 The 171-test affected suite is in progress, not accepted yet. No previous
 PR #736 build/CI result is reused as acceptance for this changed source.
 
+Read-only production catalog at 09:19:04.192225Z verifies inspection role
+postgres, PostgreSQL 17.6, predecessor one-slot OID 76939/body MD5
+`9537289eb2cb772ff23648d745334ad0` and series OID 76973/body MD5
+`78b566f2d9b0cbf49073da3fb0af5655`, both byte-matching tracked source,
+SQL-STABLE/security-definer and existing postgres/service-only ACLs. New
+routines/history are absent; all reservation rows 35, today's count/credits
+8/8, active count zero, cache rows 72 and waiting relevant locks zero. These
+are read-only preparation, not approval; revalidate before any dispatch.
+At 09:32:07.316243Z the existing owner/day index and actual public function
+default ACL are read: postgres/anon/authenticated/service-role EXECUTE, no
+other default grantee. The isolated fixture now reproduces those explicit
+grants; the unchanged migration's revoke/service-only SDK/HTTP negatives pass
+again. Expected new body MD5s are one-slot
+`5ba272a81be6323290067ba9957f470a` and series
+`39b57e9dd1444fcee31ddbdaa1d8bae4`.
+
+The exact clean Linux Node 22.23.1/Next 16.3.8 build on product revision
+`7791fdd8a0d02b228105f599d3e1eae934575f6c` passes all 33 pages and three
+unchanged native consumers; complete locked cache is reverified, build network
+is none and no production credentials enter. Receipt:
+`/private/tmp/ture-history-credit-preflight-exact-linux-build-oct6-receipt.json`.
+The subsequent production-default-ACL fixture-only change does not change SQL
+or application code, but requires final native regression and a new exact
+clean build before current-head acceptance. The serial affected suite is still
+running. One existing whole-session child process reaches its unchanged
+95-second deadline during concurrent build, with null status and no product
+assertion; preserve that failure and diagnose the exact case serially after
+build/tests, without extending its deadline. Its two orphaned local synthetic
+containers/network are identified and cleaned; no user/production data is
+removed. Do not describe this incomplete suite as green.
+
 The human has been asked once to approve this exact migration and hash in
 `ekdyopdrrkphlrsilyoo`, only after normal protected release. The question is
 pending: oral retention evidence and the old #735 approval are not this new
-DDL/ACL authority. No new production migration, deployment or source batch
+DDL/ACL authority. Hold merge/production publication of the new required-RPC
+code until its test and schema-authority gates are satisfied; do not ship a
+known missing-function dependency while this exact approval is absent.
+No new production migration, deployment or source batch
 has occurred; freeze a new remaining-89 card only after accepted exact runtime,
 schema, fresh capacity and inert readback. Never repurchase the eight sources.
 

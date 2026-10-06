@@ -66,7 +66,11 @@ try {
   for(let i=0;i<40;i++){try{sql('select 1');break;}catch{if(i===39)throw new Error('isolated_db_not_ready');await delay(250);}}
   sql(`create role anon nologin; create role authenticated nologin; create role service_role nologin bypassrls;
     create role authenticator login noinherit password 'closed-proof-only'; grant anon,authenticated,service_role to authenticator;
-    grant usage on schema public to anon,authenticated,service_role;`);
+    grant usage on schema public to anon,authenticated,service_role;
+    -- Reproduce the read-only production default-ACL inventory: explicit
+    -- anon/auth grants must be revoked, not merely inherited PUBLIC access.
+    alter default privileges for role postgres in schema public
+      grant execute on functions to postgres,anon,authenticated,service_role;`);
   for(const file of ['20260625000000_create_scheduled_scan_attempts.sql','20260915222537_basic_free_discovery_credit_reservations.sql',
     '20260917135646_if2_basic_free_daily_observation_claim.sql','20260925171512_a2_multi_slot_scan_preflight.sql',
     '20260926163715_a2_observation_series_activation_preflight.sql']) sql(readFileSync(resolve(root,'supabase/migrations',file),'utf8'));
