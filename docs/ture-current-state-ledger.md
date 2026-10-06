@@ -42,6 +42,20 @@ is separate, not executed or authorized here. New OPEN needs separately frozen
 source/cost/session/activation/cleanup acceptance after this release. The Oct 5
 failed observation remains immutable; quality graduation stays `not_met`.
 
+**Exact integrated acceptance — 2026-10-06:** clean integrated source
+`e5b2342e4c1369401619525b38e5bbcc6581e71f` passes a fresh 29/29 affected
+four-file subset (1.2m), including both actual first-scan/20-negative-control and
+current-XYZ whole-session witnesses, legacy fallback and microsecond clock
+guards. Nonincremental types pass; full lint has zero errors/eight existing
+warnings. Exact committed Linux/Node 22.23.1/Next 16.3.8 build passes all 33
+pages and both unchanged native Next consumers with no network or production
+credentials. Receipt: `/private/tmp/ture-prepared-context-integrated-oct6-receipt.json`.
+Every non-ledger byte equals accepted product/test source `d7cafad8`; the old
+198-before-final-owner and 20-after-owner scopes remain separately labelled.
+This annotation is documentation-only. Next is one Ready main-targeted product
+PR, unchanged protected CI/provenance, then normal merge/deploy and owned inert
+readback; no production fitness/quality claim or OPEN acquisition yet.
+
 **Historical protected release / exact schema-authority hold — 2026-10-05 23:05Z
 (superseded by the approved release above):**
 PR #735 is normally merged at `4be8c9c6d4a2ee1a897cad7629f4a27f0ea41c05`
