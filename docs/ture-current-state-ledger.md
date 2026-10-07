@@ -71,6 +71,13 @@ completed by Poincare (Codex): no actionable static findings; no test/runtime/
 production execution by the reviewer. Separate #739 production acceptance is below;
 the next combined candle/event/regime review has not yet been performed.
 Capacity receipt: `/private/tmp/ture-oct7-whole-chain-capacity.receipt.json`.
+Actual read-only source revalidation16:10:12Z retains all97 original digest,
+capture-clock and paid-identity bindings;2 benchmark HMACs/terminal claims pass.
+The unchanged consumer accepts these historical contexts for hypothetical same-day
+17:30Z and rejects all97 on a new NY date. That is CLOSED reuse feasibility, not
+a new frozen card, current intraday fitness, capacity or runtime-owner acceptance.
+No preparation POST/finalization/provider/data/configuration write occurred.
+Receipt `/private/tmp/ture-oct7-existing-history-readonly-revalidation.receipt.json`.
 Next: no action remains on the terminal Oct7 card. A future separately prospective
 observation needs consumer-validated actual parameters and fresh source, quota,
 session and authority gates. Neither a historical card nor unused quota is authority.
