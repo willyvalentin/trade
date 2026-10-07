@@ -376,6 +376,15 @@ Research and paper must never
 fall back to live execution. The roadmap is a product decision, not authority
 to purchase data, place orders, migrate databases or deploy production.
 
+Execution delivery also requires a frozen execution decision policy, a separate
+full-population quality evaluation and controls against repeated economic
+activity. The exact recommendation/execution combination must pass the applicable
+scientific gate before live. M/O acceptance includes live-state upgrade/rollback,
+independent watchdog and recovery evidence, and exclusion of funding/account/access
+administration from worker capabilities. Use the Execution Engine contract and
+existing phase acceptance; do not turn these requirements into another planning
+queue or assume that technical broker success proves decision quality.
+
 ### Reporting and delivery
 
 Use small reviewed main-targeted PRs. Preserve unrelated work. Staging is a

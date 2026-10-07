@@ -41,6 +41,80 @@ validated management policy; it does not rewrite the original recommendation.
 Open positions retain their bound management policy even after entry eligibility
 expires. Research/model promotion is a separate versioned process.
 
+## Execution decision policy
+
+Start with one simple, deterministic and versioned `execution_policy_version`.
+Freeze its inputs, decision rules, numeric thresholds, tie-breaks, timing and
+management behavior before its paper evaluation. Keep calibrated estimates and
+unknown values distinguishable. An execution policy may use validated estimates
+from the Recommendation Engine, but cannot fabricate expected value to admit a trade.
+
+Define the complete decision sequence: eligibility and freshness → portfolio and
+mandate feasibility → compare feasible opportunities after costs → choose
+execute/wait/decline/no_trade → size and construct → final risk recheck. A higher
+recommendation rank does not override current price, concentration or execution
+cost. Competing opportunities use the same as-of state, a declared allocation
+rule and deterministic tie-breaks; reservations serialize the resulting actions.
+
+`wait` requires a specific condition, bounded re-evaluation trigger/cadence and
+deadline no later than recommendation/intent expiry or entry cutoff. Expiry,
+invalidation or exhausted retry/activity budget ends that opportunity. Repeated
+waiting cannot silently refresh its lifetime. Record considered alternatives,
+decision reasons and point-in-time state, including evaluated declines and
+unobservable opportunities. Never require a trade to demonstrate activity.
+
+## Execution decision-quality evaluation
+
+Evaluate the recommendation and execution policies separately and together.
+Correct transmission/fills prove mechanics; they do not prove good selection,
+timing, sizing or exits. Recommendation graduation alone does not validate a new
+execution policy. Reuse SV-E/F/H/N and their frozen research framework.
+
+Compare each proposed execution policy against a simple versioned reference
+policy on the same original recommendation population, observation windows,
+capital/risk budgets and point-in-time data, using separate simulated portfolios.
+Include waited, declined, expired, unfilled and missing opportunities; do not
+evaluate only filled trades. Keep actual results separate from modeled missed
+opportunities, and retain uncertainty when an alternative fill cannot be known.
+Each policy owns its portfolio path, so compare both opportunity decisions and
+whole-portfolio outcomes without assuming later capital availability is equal.
+
+Predeclare net outcome/expectancy, drawdown and exposure limits, cost/turnover,
+fill and opportunity coverage, concentration, uncertainty and operational limits.
+Attribute differences to selection, timing, sizing, execution and exits where
+the experiment identifies them; disclose interactions rather than claiming a
+causal decomposition from one combined change. Freeze held-out/forward windows,
+minimum effective samples, pass/fail/inconclusive criteria and withdrawal rules.
+Retain adverse results; risk-adjusted improvement cannot waive absolute risk limits.
+
+SV-C may run an explicitly experimental policy to collect research evidence.
+Before SV-O, the exact recommendation/execution-policy combination must satisfy
+the applicable scientific gates with a completed execution-policy scorecard;
+any claimed improvement needs the frozen reference comparison. Changes remain
+paper/shadow until accepted. A neutral or failed challenger does not displace a
+qualified reference, and neither can authorize its own production promotion.
+
+## Re-entry, repeated signals and order activity
+
+Distinguish economic repetition from transport retries. Deduplicating one order
+ID does not prevent multiple versions or strategies from trading the same idea.
+Define a stable opportunity identity across recommendation revisions and an
+account/contract/direction exposure scope shared across strategies. Freeze rules
+for re-entry after exit/stop, cooldown/reset conditions, position additions,
+average-down/pyramiding and simultaneous or conflicting recommendations.
+Absent explicit validated permission, reject re-entry on the same opportunity
+and increases to an existing position; a new ID cannot reset these limits.
+
+Use durable limits on entry attempts, cumulative position risk and cancel/replace
+activity, with a versioned material-change threshold or hysteresis rule to avoid
+chasing small quote/rank changes. Carry counters through restart and mandate
+versions. Distinguish broker retries from new economic attempts while charging
+both to their appropriate message/cost budgets. Freeze re-arm criteria; an
+ordinary date or strategy-version change cannot clear a loss/incident stop.
+Entry cooldowns must not delay necessary protective or risk-reducing actions;
+those use their separately bounded emergency policy. Test repeated signals,
+cross-strategy contention, stop-and-immediate-reentry and replacement loops.
+
 ## User mandate and settings
 
 Store an immutable, owner/account/environment-bound `execution_mandate_version`
@@ -81,6 +155,24 @@ Raising limits or adding strategies/accounts/instruments requires a new explicit
 mandate and applicable release acceptance. Never silently update in-flight intent
 versions. A kill state persists through restart and session rollover.
 
+## Authority that a trading mandate never grants
+
+The Execution Engine cannot withdraw or transfer cash/securities, manage bank
+beneficiaries, change account ownership/trading permissions, grant access,
+create or rotate its own credentials, or expand its account/instrument mandate.
+Account funding and administration belong to a separate authenticated control
+path unavailable to strategy and order workers. Reading cash movements for risk
+reconciliation grants no authority to initiate them. An order may consume only
+the already enabled account's permitted buying power.
+
+Expose an allowlisted broker capability surface to the worker; omit funding,
+transfer and administrative operations. Verify least-privilege credentials and
+broker restrictions where available. If broker authentication inherently grants
+broader capability, record that limitation and enforce/test server-side adapter,
+secret-access and network boundaries; do not claim unsupported broker-side scope.
+Unknown API operations and attempts to escape the allowlist fail closed and are
+audited. No model output, UI text or risk-profile setting can grant those powers.
+
 ## Decision and event contracts
 
 These are required interface semantics for implementation, not a claim that the
@@ -90,7 +182,7 @@ versioned adapters; map gaps explicitly rather than creating parallel ledgers.
 | Record | Minimum required content |
 | --- | --- |
 | Recommendation event | Owner, recommendation ID/version/digest, strategy/model/data versions, symbol/contract scope, direction, proposed plan/horizon, source and availability times, uncertainty, eligibility, expiry, supersession and invalidation. |
-| Execution decision | Unique ID; exact recommendation and mandate versions; as-of quote/event/account/portfolio state; choice/reasons, evaluated alternatives, size, risk/cost calculation, policy version and creation/expiry times. Missing data is `blocked_data`, not an evaluated investment `no_trade`. |
+| Execution decision | Unique ID; exact recommendation and mandate versions; as-of quote/event/account/portfolio state; choice/reasons, evaluated alternatives, size, risk/cost calculation, policy version and creation/expiry times, stable opportunity identity and activity/cooldown state. Missing data is `blocked_data`, not an evaluated investment `no_trade`. |
 | Order intent | Durable ID and idempotency key; owner/account/environment, contract ID, parent decision/position/protection group, side, quantity, order type/TIF, price/tick/currency, reservations, validity, submission attempt identity and permitted management policy. Persist before send. |
 | Broker event | Broker order/permanent/execution IDs, correlated intent, source event and receipt times, status, cumulative and incremental quantities, prices, commission/currency, corrections and deduplication identity. Acknowledgement is not a fill. |
 | Position and result | Attributable fills/lots, reserved/released capital, actual protection, remaining quantity, realized/unrealized result, execution costs, exit reason and reconciliation status linked to original decisions. |
@@ -145,6 +237,26 @@ Primary references checked 2026-10-07 (recheck during SV-L selection):
 - [TWS API introduction](https://www.interactivebrokers.com/docs/tws-api/doc/introduction): socket interface to TWS/IB Gateway.
 - [IBKR Web API documentation](https://www.interactivebrokers.com/campus/ibkr-api-page/webapi-doc/): account/authentication prerequisites, pacing, sessions and order reply workflow. These are transport constraints, not proof of this account's eligibility.
 
+## Upgrades with open orders and positions
+
+Bind each order/position to its execution policy, management policy, mandate and
+compatible state/schema versions. A code deployment does not migrate a live
+position to a new strategy implicitly. Before a worker upgrade, pause new entries,
+drain or checkpoint in-flight commands, fence the old writer and transfer state
+ownership only after the successor proves compatibility and broker reconciliation.
+Protective management must remain available through the handover; verify actual
+broker protection and provide a compatible manager for any remaining exposure.
+If that cannot be demonstrated, postpone the upgrade or apply the pre-authorized
+exit/incident policy before handover.
+
+Test upgrade and rollback with working entries, partial fills, a submit-unknown
+state, replacement in progress and open protected positions. Prove one effective
+writer, no lost/doubled effects and bounded protection/reconciliation lag. Use
+backward-compatible state changes or an explicit verified migration; an older
+binary that cannot read current state is not a valid rollback target. Application
+rollback never undoes broker fills, cash movements, audit events or reservations.
+Resume new entries only after state, mandate and protection are reconciled.
+
 ## Order, protection and failure behavior
 
 Track order submission, fills and protection as separate state dimensions.
@@ -187,6 +299,30 @@ Loss, severe drift, stale data or reconciliation failures can trigger an automat
 pause. Recovery/resume is explicit under the predeclared policy and recorded;
 the engine cannot reset risk limits to make itself eligible again.
 
+## Independent monitoring and unavailable control paths
+
+Run a minimal watchdog outside the Execution Engine process and the same failure
+domain as far as practical. It must detect total worker loss, stale heartbeats,
+expired writer ownership, overdue reconciliation and undelivered alerts without
+depending on the engine or dashboard being responsive. Record remaining shared
+infrastructure dependencies. It may request a durable entry pause, but is not
+a second order writer and receives no new trading authority.
+
+Freeze detection, alert delivery/escalation and response deadlines plus a named
+incident owner before enabling the relevant pilot. Healthy-state admission must
+expire when its required health/monitoring evidence goes stale. If the worker is
+down, distinguish a pause request from an acknowledged pause; keep uncertain
+broker exposure visible. A notification without delivery/escalation evidence is
+not a completed response.
+
+Document an independent operator recovery path to inspect the broker and manage
+only Ture-owned exposure under the emergency mandate when the normal Ture control
+path is unavailable. Broker authentication restoration is incident maintenance,
+not a per-trade approval step. Record external recovery actions, then reconcile
+before automation resumes. Test worker crash, dashboard/control-path outage and
+notification failure with working orders and positions; shared infrastructure
+failure and inaccessible broker state must leave an explicit incident.
+
 ## Delivery stages and acceptance
 
 Reuse the SV phases; this is not a second backlog. Every stage reports
@@ -196,9 +332,9 @@ Recommendation graduation remains binding before execution becomes primary work.
 
 | Stage | Autonomous product outcome | Required acceptance before expansion |
 | --- | --- | --- |
-| SV-C/basic D | Internal Paper: one versioned long-only equity strategy, whole shares, at most ten eligible symbols and one open position, regular hours, no overnight. | Full unattended session, conservative fills/costs, mandate/risk/accounting invariants, no-trade, partial fills, exits, restart and useful observer. Data rights and numeric limits established. |
-| SV-L/M + base N | Same decision/mandate semantics through IBKR Paper. | Account-specific API/hosting/session proof; actual entry/fill/protection/exit/reconciliation; fault matrix above; zero duplicate or lost economic effects; latency/health limits verified. Paper fill quality is not live evidence. |
-| SV-O | Limited autonomous equity live under an explicitly activated small-capital mandate. | Existing scientific gates and M operational acceptance; exact account/strategy/version/instrument scope, numeric capital/risk/latency limits, incident owner and recovery drills. Observe actual live costs and protection; no per-trade approval stage. |
+| SV-C/basic D | Internal Paper: one versioned long-only equity strategy, whole shares, at most ten eligible symbols and one open position, regular hours, no overnight. | Full unattended session, conservative fills/costs, mandate/risk/accounting invariants, no-trade, partial fills, exits, restart and useful observer. Data rights and numeric limits established; frozen execution decision/re-entry policy and reference-evaluation design. |
+| SV-L/M + base N | Same decision/mandate semantics through IBKR Paper. | Account-specific API/hosting/session proof; actual entry/fill/protection/exit/reconciliation; fault matrix above; zero duplicate or lost economic effects; latency/health limits, capability exclusions, upgrades/rollback and independent alert/recovery paths verified. Paper fill quality is not live evidence. |
+| SV-O | Limited autonomous equity live under an explicitly activated small-capital mandate. | Existing scientific gates including the exact execution-policy scorecard and M operational acceptance; exact account/strategy/version/instrument scope, numeric capital/risk/latency limits, incident owner and recovery drills. Observe actual live costs and protection; no per-trade approval stage. |
 | SV-P | Broader controlled equity automation. | Predeclared evidence supports each expansion; paper/live drift and net costs remain acceptable. Mandate expansion is explicit; time elapsed or trade count alone cannot promote scope. |
 | SV-Q/R/S/T | Separate options research, paper and bounded autonomous live mandate. | Options-specific strategy, data, leg/protection/expiry/assignment/margin evidence and account permissions. No implicit options admission through an equity mandate. |
 | SV-U | Improve execution policy using attributable fills/costs. | Frozen comparison, held-out/forward evidence, bounded versioned promotion and rollback; no automatic self-modification from recent profits. |
@@ -212,6 +348,9 @@ preferences; technical lead specifies and proves implementation feasibility.
 | Decision | Close before | Evidence required |
 | --- | --- | --- |
 | Mandate schema and first strategy, symbol selection and capital/risk settings | C pilot activation | Exact effective version, currency/P&L/reset semantics, settings-change tests and full decision-to-exit replay. |
+| Execution decision/reference policy and economic opportunity identity | C experimental pilot; accepted scorecard before O | Frozen wait/selection/sizing/exit rules, re-entry/cooldown and activity limits; full-population paired evaluation with independent portfolios and uncertainty. |
+| Upgrade/state compatibility and independent incident recovery | M operational acceptance and O activation | Fault tests across partial/unknown submissions and open positions; fenced handover, valid rollback, watchdog and delivered/escalated alerts with an independent recovery path. |
+| Worker/broker capability allowlist and credential isolation | L transport integration; recheck before O | Negative tests for transfer, funding, permission and credential administration; document any wider broker-side credential capability and verified compensating boundaries. |
 | Licensed execution quotes/history/events and feasible monitoring cadence | C pilot and each new environment | Entitlement, quote resolution/freshness, coverage, capacity and complete operating-cost calculation. |
 | IBKR transport, account and persistent hosting | L transport integration | Read-only account/session/recovery probe; runtime topology, credential owner and measured latency/capability comparison. |
 | Supported entry/stop/target/TIF and emergency policies | M orders | Broker Paper proof for partial fill, cancel/replace, rejected protection, reconnect and manual interference; explicit unsupported behavior. |

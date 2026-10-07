@@ -16,6 +16,10 @@ notional and risk limits. SV-O becomes limited autonomous live; SV-P expands
 evidence-supported scope. Mandate activation is explicit, with no per-trade
 approval stage. The contract records decision ownership, risk reservations,
 protection/recovery, latency evidence and decisions to close at implementation.
+The user-requested completeness extension adds a versioned execution decision
+policy and reference scorecard, economic repetition/cooldown rules, safe upgrades
+with open positions, independent failure detection/recovery and a trading-only
+capability boundary. Existing C/F/L/M/O acceptance now names their required proof.
 This is product preparation, not execution implementation or activation. The
 selected source-to-outcome work and graduation status below are unchanged.
 Historical broker records after END remain evidence, not current governance.

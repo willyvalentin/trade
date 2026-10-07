@@ -955,6 +955,24 @@ time/day, regime, entry/exit/stop/target/sizing and every version. Options add
 DTE/delta/moneyness/IV/liquidity/event proximity. Cost accounting must avoid
 subtracting spread/slippage twice when already embedded in fill prices.
 
+### Execution Engine completion requirements
+
+The [Execution Engine contract](./ture-execution-engine.md) adds the following
+acceptance to the existing SV phases; it does not create a parallel workstream:
+
+| Required outcome | Existing phase / evidence |
+| --- | --- |
+| Versioned execution decisions | C freezes execute/wait/decline, selection, timing, sizing and exit rules, including wait expiry and reproducible tie-breaks. |
+| Execution-policy quality | E/F/H/N compare the exact policy with a simple frozen reference on the same original opportunities and budgets using separate portfolio paths. Include declines, misses, costs and uncertainty. O needs scientific acceptance of the recommendation/execution combination; a functioning order path alone is insufficient. |
+| Bounded economic activity | C/M prove stable opportunity identity, account-wide reservations, re-entry/cooldown/addition rules and cancel/replace limits through duplicate signals, versions and restarts. Protective actions retain their separate priority. |
+| Safe live-state upgrades | M proves fenced version/state handover and compatible rollback with partial/unknown orders and open protected positions; O verifies the deployed recovery path. Software rollback cannot undo fills. |
+| Independent incident detection | C/M/O freeze and verify watchdog, stale-health admission, alert delivery/escalation and independent operator recovery. Whole-worker/control-path failure must be detectable without that worker. |
+| Trading-only capabilities | L/O prove the worker cannot access funding/transfers, account/permission administration or credential creation/expansion. Record broker credential limitations and test the adapter/server boundaries. |
+
+Experimental internal paper remains available to produce the evidence needed
+for evaluation. Keep capital/risk and scientific gates intact, and reject or
+retain an inconclusive execution-policy challenger rather than tuning its gate.
+
 ### Internal-paper accounting and research completeness
 
 SV-C owns a configurable virtual starting balance (the specification's $100,000
