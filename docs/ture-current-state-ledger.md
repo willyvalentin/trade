@@ -26,34 +26,49 @@ acceptance remains in the roadmap and delivery rules in governance.
   still zero in that observation. These are individual observations, not a weekly
   aggregate or accepted quality. See [#735](https://github.com/willyvalentin/trade/pull/735)
   and [#738](https://github.com/willyvalentin/trade/pull/738).
-- **Repository/environment snapshot:** main `e0d381d32fc6653e48750709f3e5ff6d0706ac6d`
-  includes documentation-only #740; production deploy `6ac57d74902d210008d788bb`
-  is current/ready on that exact main (authoritative Oct7 06Z readback).
-  [#739](https://github.com/willyvalentin/trade/pull/739) remains open, originally
-  accepted on `e0153c18` / base `5e53047a`; integrate new main and require fresh
-  protected candidate provenance. This is not a fresh schema/inert readback.
+- **Repository/environment snapshot:** [#739](https://github.com/willyvalentin/trade/pull/739)
+  is normally protected merged as main `8efe5038d9cc05ffcf81828495a0de4936af9200`.
+  All six groups/aggregate/provenance in37588206135/attempt1 and exact post-merge
+  attestation37593365849 are success/matched. Git production `6ac6015698f6c30008665412`
+  published08:23:36Z; exact approved SQL source20261006201519→remote20261007082824
+  applied once. Owner-bound inert HTTP verified08:32Z; all ten checked row digests
+  and old routines/ACLs/indexes unchanged. This closes the support fix, not input fitness.
 
 ### Now / Next / Blocked
 
 | Slot | Selected action and exit |
 | --- | --- |
-| Now — existing primary, Codex | Bring the same #739 correction onto exact current main without product/test/SQL/dependency changes; verify docs reconciliation and the new normal protected candidate. Old-base green checks do not accept the new candidate. Merge/production/exact SQL remain held on the unanswered migration approval; sufficient quota for ONE history publication is separately confirmed. No broader fixture ACL, retry, repurchase or support extension. |
-| CLOSED while primary waits — same outcome, Codex | Read-only whole-chain capacity investigation started Oct7 07:22Z, limit4h: existing universe/history, benchmark/context, fresh eight-member scans, mature outcomes, shared minute/day limits, failures and hosting. No provider/meter/production calls or new hypothesis. Record feasible/infeasible/unknown and the smallest decision-changing next action in this board before acquiring or changing cadence. |
+| Now — intelligence primary, Codex | Combined candle/event/regime code on main8efe is locally technically verified at `ca7d4807`:173 distinct cases/12 files serially without retries, nonincremental types, lint0 errors/8 unchanged warnings, exact locked Linux build and4 separate consumer/provenance cases (177 total). All four product files match the original frozen implementations; both guard families retain original membership and old seals. Prepare one focused PR with Netlify previews skipped and unchanged protected CI. Independent review is sought, not yet performed; production publication capacity remains unknown. No source acquisition, OPEN, new SQL or cadence change. |
+| CLOSED capacity result — same outcome, Codex | Investigation07:22–07:58Z completed read-only, within4h. Saturated26×8 original snapshots require at least52 outcome selections at4/run, but current cadence has32 runs/128 snapshots; full same-day coverage is infeasible. Concurrent scan8+outcome4 cannot fit shared8/minute. Daily514 is a conservative one-collection bound, not actual cost or whole-chain acceptance. Real bounded observation remains unknown pending release/schema/runtime and fresh provider/hosting capacity; no acquisition or cadence change selected. |
 | Next eligible OPEN | Use one prospective card under the OPEN contract only after relevant production-equivalent CLOSED proof, capacity and existing authority are satisfied. Verify the declared complete-input criterion and exact original outcome linkage, preserving the old Oct 5/6 results. New failure requires diagnosis/corrected readiness, not an identical retry. |
 | Next scientific outcome | Retain/freeze the selected comparison prospectively, obtain a pre-forward committed training model and complete original held-out/walk-forward evidence, then the full charter disposition. Missing evidence gets a bounded recovery or explicit stop; it never becomes a quality pass. |
-| Blocked / parked | Real complete-input acceptance, useful forward quality and IF-5 are unproven. #739's exact production migration authority is a separate hold. New autonomous paper, broker and options expansion remain behind the existing intelligence gate. #230 does not select a parallel CI transition. |
+| Blocked / parked | Real complete-input acceptance, useful forward quality and IF-5 are unproven. Fresh shared provider capacity and any future OPEN/clock-correction publication capacity are unknown; the one confirmed history-publication allocation is now used. New autonomous paper, broker and options expansion remain behind the intelligence gate. #230 does not select a parallel CI transition. |
 
-The primary implementation owner remains **Codex on
-`codex/oct6-history-terminal-readback` (#739)**, with its exact write/schema ownership.
-Integrating #740's six control/entry documents opens no second code/schema slice.
+The primary implementation owner remains **Codex**. Preserved composition branch:
+`codex/oct7-learning-current-main-composition`, starting from verified main8efe;
+created Oct7 08:50Z in the reused release worktree; technical proof completed09:41Z.
+Independent review, protected CI and relevant production acceptance remain pending.
+Retain both original local branches and receipts. One primary4–16h composition,
+initial investigation≤4h from08:50Z, no new SQL or competing hypothesis.
 Before integrating either branch, reconcile concurrent ledger additions with
 current main; preserve exact receipts and update this compact selection instead
 of replacing the other delivery's evidence. Refresh mutable PR/release facts at
 the next material event. Existing grants/holds are not renewed or expanded here.
 
-Independent review of #739's RPC/owner/clock/cost chain is not yet recorded.
-Permission for one separate read-only reviewing agent has been requested; no
-reviewer or review pass is claimed before an actual completed report.
+[Independent review of #739's RPC/owner/clock/cost chain](https://github.com/willyvalentin/trade/pull/739#issuecomment-6033417765)
+completed by Poincare (Codex): no actionable static findings; no test/runtime/
+production execution by the reviewer. Separate #739 production acceptance is below;
+the next combined candle/event/regime review has not yet been performed.
+Capacity receipt: `/private/tmp/ture-oct7-whole-chain-capacity.receipt.json`.
+Next: review/protected CI for the composed candle/event/regime correction, then relevant accepted runtime;
+before acquisition, prospectively freeze a whole eight-member source-to-mature-outcome
+question with non-overlapping existing scheduled phases and actual capacity. A114-credit
+base illustration is not an authorized card, full quality experiment or reduced old cohort.
+
+**Direct human migration mandate, Oct7 08:02Z:** exact #739 SQL is approved; future
+roadmap-scoped migrations need no repeated human approval. Exact-source review,
+normal release, security, row preservation and pre/post verification still apply;
+no unrelated destructive/schema/Auth/RLS/configuration or purchase authority is inferred.
 
 Budget the next implementation slice at 4–16 active hours with the brief in
 governance. Track cumulative effort on this outcome; actual elapsed engineering
@@ -66,7 +81,7 @@ hours are currently unknown. Retain the exact existing frozen acceptance limits.
 | Fresh input fitness | Oct 5: 3/8; Oct 6: 3/8. Separate dated observations, not a complete period denominator. Repeated full-input acceptance is unproven. |
 | Canonical outcome continuity | Current original-population mature production ratio unknown; synthetic linked outcomes do not fill this cell. |
 | Hypotheses disposed | No accepted recommendation-quality improvement demonstrated in the reviewed evidence. Allocation experiment has incomplete science; current relative-plan forward comparison remains unproven. Weekly complete-disposition count unknown. |
-| Time/cost per useful observation | Active hours and fully attributed useful-observation unit cost unknown. Oct 6 scan reserved/finalized 8 credits; preparation, failures and hosting must also be attributed before a total is stated. |
+| Time/cost per useful observation | Active hours and useful-observation unit cost unknown. Oct7 read-only owned ledger: Oct6 reserved8 history +8 scan, all completed; external meter/hosting and total actual cost unknown. No Oct7 owned claims returned; that does not establish shared provider availability. |
 | Integration escapes / rework | Observed examples: Oct 5 original-plan publication mismatch (#735), Oct 6 prepared-claim ACL mismatch (#738). Period total/rework hours unknown; #739 addresses a related terminal-history read path. |
 
 **Review dates:** 14 and 21 October. Update these five measures with exact windows
@@ -86,7 +101,71 @@ the current board above and fresh authoritative readbacks govern subsequent work
 Frozen experiments, failed observations and original authorization boundaries
 are not rewritten by this reconciliation.
 
+### Oct7 current-main learning composition — local technical acceptance
+
+Frozen product/test revision `ca7d4807244eea0354f877f933965be3123f4b27` on base
+`8efe5038d9cc05ffcf81828495a0de4936af9200` passed173/173 affected cases in12 files,
+serially with0 retries (28.8m), plus4 distinct locked-Linux consumer/provenance
+checks:177 unique local cases. The39 focused cases are a subset, not added again.
+The initial missing react-server condition failed collection with0 executed;
+the corrected environment keeps the server-only guard and that failure recorded.
+Nonincremental types pass; lint has0 errors/8 unchanged warnings. Exact normal
+Linux build uses Node22.23.1/Next16.3.8, unchanged lock, no network or production keys.
+Actual isolated SQL/SDK/restarted HTTP verifies NEW candle/event and original
+regime-time admission, full original v2/v3 populations and legacy sealed retries.
+Actual DB-clock training precedes synthetic forward data; terminal finalization
+uses a separate historical synthetic model fixture, not a real forward experiment.
+Native source-table fixture grants are broader than production; fixed-purpose
+model/result migrations retain their service-only boundaries. This composition
+changes no SQL/ACL. It is `quality_measurement`, not hosted acceptance or alpha.
+Owned native containers are absent after completion; this composition's local
+test/build processes are terminal.
+Receipt: `/private/tmp/ture-oct7-learning-composition-final-local-acceptance.receipt.json`;
+build: `/private/tmp/ture-oct7-learning-composition-exact-linux-build.receipt.json`.
+Seek a separate pinned review; none is recorded for this combined revision yet.
+One reviewed PR/current-candidate CI follows; hold production for actual remaining
+publication capacity. No provider/card/OPEN/broker action or extra publication quota.
+
 ## Retained Oct 6 delivery snapshot — recommendation intelligence first
+
+### Retained local candle/event and regime evidence — Oct6 branches
+
+Candle/event source `74271146`, original ledger head `262b07d6` / branch
+`codex/oct6-new-learning-bar-alignment`:128 affected cases plus4 distinct exact
+Linux consumers (132), types/lint0 errors/8 warnings and locked build passed.
+Regime source `c71cedb1`, original ledger head `ee708079` / branch
+`codex/oct6-new-learning-regime-clock`:161 cases then8 unchanged native cases
+after sandbox socket denial (169), plus4 exact Linux consumers (173), types/lint
+and locked build passed. Preserve that original first failed run, not a fictitious
+single green169-case run. Actual DB-clock training and the historical synthetic
+terminal model fixture are separate, not production/market-quality evidence.
+Both retain96 training members,30/30 forward decisions,240/240 forward members,
+the unrelated prior population, missingness and immutable old seals/fingerprints.
+Original detailed selections, failures and receipts remain intact in those
+unchanged Git parents; archived "Now/Next" headings do not select current work.
+Receipts: `/private/tmp/ture-new-candle-clock-final-local-acceptance-oct6.receipt.json`,
+`/private/tmp/ture-new-regime-clock-final-local-acceptance-oct6.receipt.json`.
+Fresh current-main combined acceptance is still pending; never add the overlapping
+local132/173 counts or relabel them as accepted production learning.
+
+**Oct7 verified #739 focused release, 08:32Z:** Main `8efe5038`/tree `786142bf`
+binds exact head `4a1537ce` and base `e0d381d3`; all six current-candidate groups,
+aggregate and provenance are success in37588206135/attempt1. Post-merge
+37593365849 attests the same tree/workflow. Normal Git production
+`6ac6015698f6c30008665412` published08:23:36.207Z, with no manual deploy or CI rerun.
+Exactly approved `completed_history_terminal_failure_readback` source20261006201519
+maps to remote20261007082824; byte-identical SHA256
+`f47a3165c3b86b22eb4820a17a7c1732864315dfc799928fe18a743109164bb4`.
+New OID83194/body `b7b5ec36b709057bb645dedf1dd997d2`, SQL-stable/security-definer,
+empty search_path/service-only EXECUTE. Old eight routine rows, table/default ACLs,
+indexes and ten checked row digests remain unchanged; advisors unchanged.
+Owner-bound inert HTTP verified08:32:00.752Z, zero active claims/providers/OPEN.
+No real failed history claim exists for a positive production sample; completed
+identity sanity reads and exact native positive/negative evidence remain distinct.
+Receipt: `/private/tmp/ture-pr739-approved-migration-release-oct7.receipt.json`.
+The history fix is closed; graduation remains `not_met`. Retained candle/event and
+regime implementations now require fresh-main combined review/acceptance, not more
+history helpers or reuse of their old local green evidence as production acceptance.
 
 **Oct7 current-main integration, existing #739:** Normal local main merge
 reconciles #740's marked board with this correction's exact retained acceptance.

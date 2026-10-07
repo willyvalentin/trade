@@ -56,6 +56,178 @@ async function retainedForwardHarness(index = 103) {
   return { input, data, payload };
 }
 
+test("NEW terminal admission rejects lossy retained candle grid clocks without dropping forward members", async () => {
+  test.setTimeout(120000);
+  const base = await retainedForwardHarness(343); // Original walk-forward member outside top three.
+  for (const fault of ["first_microsecond", "last_microsecond", "offset_microsecond", "epoch_fraction", "implicit_zone"] as const) {
+    const data = structuredClone(base.data), payload = data.recommendation_outcomes[343].payload_json as Record<string, unknown>;
+    const bars = payload.counterfactual_candles as Record<string, unknown>[];
+    const bar = fault === "last_microsecond" ? bars.at(-1)! : bars[0], at = String(bar.timestamp);
+    if (fault === "first_microsecond" || fault === "last_microsecond") bar.timestamp = at.replace(".000Z", ".000001Z");
+    if (fault === "offset_microsecond") bar.timestamp = at.replace(".000Z", ".000001+00:00");
+    if (fault === "epoch_fraction") bar.timestamp = Date.parse(at) / 1000 + 0.000001;
+    if (fault === "implicit_zone") bar.timestamp = at.slice(0, -1);
+    const before = JSON.stringify(data), h = harness({ clock: () => new Date(base.input.now),
+      modelStore: () => createRelativePlanTrainedProbabilityStore({ async read() {
+        return { status: "available", receipt: base.input.trainedModelReceipt };
+      }, async materialize() { throw new Error("must_not_refit"); }, async confirm() { throw new Error("must_not_confirm"); } }),
+      readSource: async () => ({ status: "available", data }), readRuntime: async () => base.input.runtime,
+    });
+    expect(await h.service.finalize(prospectiveOwner, {}), fault).toMatchObject({ status: "unavailable", receipt: null,
+      blocker: "relative_plan_result_retained_candle_coverage_conflicting", terminal_quality_decision: null });
+    expect(h.calls.writes).toBe(0); expect(JSON.stringify(data)).toBe(before);
+    expect(data.recommendation_scan_runs).toHaveLength(72);
+    expect(data.recommendation_snapshots).toHaveLength(576);
+    expect(data.recommendation_outcomes).toHaveLength(576);
+  }
+});
+
+test("NEW result rejects a submillisecond retained terminal event clock not present in its aligned bars", async () => {
+  const base = await retainedForwardHarness(343);
+  for (const key of ["entry_triggered_at", "target_hit_at"] as const) {
+    const data = structuredClone(base.data), payload = data.recommendation_outcomes[343].payload_json as Record<string, unknown>;
+    expect(typeof payload[key]).toBe("string");
+    payload[key] = String(payload[key]).replace(".000Z", ".000001Z");
+    const before = JSON.stringify(data), h = harness({ clock: () => new Date(base.input.now),
+      modelStore: () => createRelativePlanTrainedProbabilityStore({ async read() {
+        return { status: "available", receipt: base.input.trainedModelReceipt };
+      }, async materialize() { throw new Error("must_not_refit"); }, async confirm() { throw new Error("must_not_confirm"); } }),
+      readSource: async () => ({ status: "available", data }), readRuntime: async () => base.input.runtime,
+    });
+    const result = await h.service.finalize(prospectiveOwner, {});
+    expect({ status: result.status, blocker: result.blocker, hasReceipt: result.receipt !== null }).toEqual({
+      status: "unavailable", hasReceipt: false, blocker: "relative_plan_result_retained_candle_outcome_conflicting" });
+    expect(h.calls.writes).toBe(0); expect(JSON.stringify(data)).toBe(before);
+    expect(data.recommendation_snapshots).toHaveLength(576);
+  }
+});
+
+test("NEW candle admission preserves honest exact five and fifteen minute clock representations", async () => {
+  const { input } = await retainedForwardHarness(), original = input.source.outcomes[103];
+  const snapshot = input.source.snapshots.find(row => row.snapshot_fingerprint === original.snapshot_fingerprint)!;
+  const anchor = recommendationOutcomeEvaluationAnchorFromSnapshot(snapshot)!;
+  for (const interval of ["5min", "15min"] as const) {
+    const step = interval === "5min" ? 300000 : 900000;
+    const start = Date.parse(anchor.evaluation_anchor_start_at);
+    const originalBars = Array.from({ length: 3600000 / step }, (_, index) => ({
+      timestamp: new Date(start + index * step).toISOString(), open: 100, high: 109, low: 99, close: 108,
+    }));
+    const outcome = computeRecommendationOutcome({ snapshot, horizon: "60m", evaluated_at: original.evaluated_at,
+      candles: originalBars, current_price: 108, provider: "twelve_data", source: "intraday_candles",
+      data_completeness: "complete" }).outcome;
+    const coverage = buildCanonicalOutcomeProviderCoverageReceipt({ candles: originalBars, request: {
+      interval, horizon: "60m", ...anchor, start_at: anchor.evaluation_anchor_start_at,
+      end_at: new Date(start + 3600000).toISOString(),
+    }, result: { status: "available", provider: "twelve_data" } });
+    for (const format of ["iso", "date", "epoch_ms", "epoch_seconds", "zero_fraction", "offset"] as const) {
+      const candles = originalBars.map(bar => {
+        const at = Date.parse(bar.timestamp);
+        return { ...bar, timestamp: format === "date" ? new Date(at) : format === "epoch_ms" ? at
+          : format === "epoch_seconds" ? at / 1000 : format === "zero_fraction" ? bar.timestamp.replace(".000Z", ".000000Z")
+          : format === "offset" ? new Date(at - 240 * 60000).toISOString().replace(".000Z", ".000000-04:00") : bar.timestamp };
+      });
+      const retained = { ...outcome, payload_json: { ...outcome.payload_json,
+        canonical_provider_coverage: coverage, counterfactual_candles: candles,
+        counterfactual_candle_source: "horizon_filtered_intraday_candles",
+        retained_candles_available: true, retained_candle_count: candles.length } };
+      const before = JSON.stringify(retained);
+      expect(relativePlanRetainedOutcomeCandleConflict(snapshot, retained), `${interval}/${format}`).toBeNull();
+      expect(JSON.stringify(retained)).toBe(before);
+      const bad = { ...retained, payload_json: { ...retained.payload_json,
+        counterfactual_candles: [...candles.slice(0, -1), { ...candles.at(-1)!,
+          timestamp: originalBars.at(-1)!.timestamp.replace(".000Z", ".000000001Z") }] } };
+      expect(relativePlanRetainedOutcomeCandleConflict(snapshot, bad)).toBe("retained_candle_coverage_conflicting");
+    }
+  }
+});
+
+test("NEW terminal command cannot seal a microsecond-future original regime context", async () => {
+  const base = await retainedForwardHarness(343);
+  const snapshot = base.data.recommendation_snapshots[343];
+  const run = base.data.recommendation_scan_runs.find(row => row.run_fingerprint === snapshot.scan_run_id)!;
+  const decision = (run.payload_json as Record<string, unknown>).candidate_decision_record as { decision_timestamp: string };
+  const rawAt = decision.decision_timestamp.replace(".000Z", ".000001Z");
+  Object.assign((run.payload_json as Record<string, unknown>).market_regime_context as object, { captured_at: rawAt });
+  Object.assign((snapshot.payload_json as Record<string, unknown>).market_regime_context as object, { captured_at: rawAt });
+  const before = JSON.stringify(base.data), h = harness({ clock: () => new Date(base.input.now),
+    modelStore: () => createRelativePlanTrainedProbabilityStore({ async read() {
+      return { status: "available", receipt: base.input.trainedModelReceipt };
+    }, async materialize() { throw new Error("must_not_refit"); }, async confirm() { throw new Error("must_not_confirm"); } }),
+    readSource: async () => ({ status: "available", data: base.data }), readRuntime: async () => base.input.runtime,
+  });
+  const result = await h.service.finalize(prospectiveOwner, {});
+  expect({ status: result.status, blocker: result.blocker, hasReceipt: result.receipt !== null }).toEqual({
+    status: "unavailable", hasReceipt: false, blocker: "relative_plan_result_original_regime_context_clock_conflicting" });
+  expect(h.calls.writes).toBe(0); expect(JSON.stringify(base.data)).toBe(before);
+  expect(base.data.recommendation_scan_runs).toHaveLength(72);
+  expect(base.data.recommendation_snapshots).toHaveLength(576);
+});
+
+test("NEW terminal regime admission uses the sealed fitted source, not its mutable replacement", async () => {
+  const { input, data } = await retainedForwardHarness(343);
+  const archived = structuredClone(input.source), run = archived.scanRuns[0];
+  const decision = candidateDecisionRecordFromScanRun(run)!;
+  const context = { contract_version: "market_regime_decision_context_v1", classifier_version: "market_regime_v1",
+    regime: "risk_on", captured_at: decision.decision_timestamp.replace(".000Z", ".000001Z") };
+  Object.assign(run.payload_json, { market_regime: "risk_on", market_regime_context: context });
+  for (const snapshot of archived.snapshots.filter(row => row.scan_run_id === run.run_fingerprint)) {
+    Object.assign(snapshot.payload_json, { market_regime: "risk_on", market_regime_context: context });
+  }
+  // Build a valid historical capsule with unchanged pure fitting semantics;
+  // only the NEW terminal command must reject this contributing future clock.
+  const trained = buildRelativePlanTrainedProbabilityModel({ owner: input.owner, freeze: input.freeze,
+    source: archived, now: new Date("2026-10-10T00:00:00.000Z") }).trained_model!;
+  expect(trained.original_population_count).toBe(96);
+  const h = harness({ clock: () => new Date(input.now),
+    modelStore: () => createRelativePlanTrainedProbabilityStore({ async read() {
+      return { status: "available", receipt: { ...input.trainedModelReceipt, trained_model: trained } };
+    }, async materialize() { throw new Error("must_not_refit"); }, async confirm() { throw new Error("must_not_confirm"); } }),
+    readSource: async () => ({ status: "available", data }), readRuntime: async () => input.runtime,
+  });
+  const before = JSON.stringify(data), capsule = JSON.stringify(trained);
+  expect(await h.service.finalize(prospectiveOwner, {})).toMatchObject({ status: "unavailable", receipt: null,
+    blocker: "relative_plan_result_original_regime_context_clock_conflicting" });
+  expect(h.calls.writes).toBe(0); expect(JSON.stringify(data)).toBe(before);
+  expect(JSON.stringify(trained)).toBe(capsule);
+});
+
+test("NEW regime admission keeps absent and already-missing context without removing original members", async () => {
+  const base = await retainedForwardHarness(343);
+  for (const fault of ["absent", "already_future"] as const) {
+    const data = structuredClone(base.data), snapshot = data.recommendation_snapshots[343];
+    const run = data.recommendation_scan_runs.find(row => row.run_fingerprint === snapshot.scan_run_id)!;
+    const payload = run.payload_json as Record<string, unknown>;
+    if (fault === "absent") delete payload.market_regime_context;
+    else {
+      const decision = payload.candidate_decision_record as { decision_timestamp: string };
+      Object.assign(payload.market_regime_context as object, { captured_at:
+        new Date(Date.parse(decision.decision_timestamp) + 1000).toISOString() });
+    }
+    const before = JSON.stringify(data);
+    let writes = 0;
+    let stored: RelativePlanCharterResultReceipt | null = null;
+    const h = harness({ clock: () => new Date(base.input.now),
+      resultStore: () => createRelativePlanCharterResultStore({ async read() {
+        return { status: stored ? "available" : "not_found", receipt: stored }; },
+        async finalize(result) { writes++;
+          stored = { contract_version: RELATIVE_PLAN_CHARTER_RESULT_RECEIPT_VERSION,
+            result_id: "55555555-5555-4555-8555-555555555555", owner_user_id: prospectiveOwner,
+            finalized_at: base.input.now.toISOString(), result };
+          return { status: "finalized", receipt: stored }; } }),
+      modelStore: () => createRelativePlanTrainedProbabilityStore({ async read() {
+        return { status: "available", receipt: base.input.trainedModelReceipt };
+      }, async materialize() { throw new Error("must_not_refit"); }, async confirm() { throw new Error("must_not_confirm"); } }),
+      readSource: async () => ({ status: "available", data }), readRuntime: async () => base.input.runtime,
+    });
+    const result = await h.service.finalize(prospectiveOwner, {});
+    expect({ status: result.status, blocker: result.blocker, writes }, fault).toEqual({
+      status: "finalized", blocker: null, writes: 1 });
+    expect(result.receipt?.result.measurement).toMatchObject({ evidence_complete: false, computed_disposition: "evidence_incomplete",
+      partitions: [{ original_population_count: 240 }, { original_population_count: 240 }] });
+    expect(JSON.stringify(data)).toBe(before);
+  }
+});
+
 test("NEW terminal command cannot seal an invalid raw runtime recording source", async () => {
   const base = await retainedForwardHarness();
   let writes = 0;
