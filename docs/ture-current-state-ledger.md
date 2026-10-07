@@ -26,34 +26,48 @@ acceptance remains in the roadmap and delivery rules in governance.
   still zero in that observation. These are individual observations, not a weekly
   aggregate or accepted quality. See [#735](https://github.com/willyvalentin/trade/pull/735)
   and [#738](https://github.com/willyvalentin/trade/pull/738).
-- **Repository/environment snapshot:** main `e0d381d32fc6653e48750709f3e5ff6d0706ac6d`
-  includes documentation-only #740; production deploy `6ac57d74902d210008d788bb`
-  is current/ready on that exact main (authoritative Oct7 06Z readback).
-  [#739](https://github.com/willyvalentin/trade/pull/739) remains open, originally
-  accepted on `e0153c18` / base `5e53047a`; integrate new main and require fresh
-  protected candidate provenance. This is not a fresh schema/inert readback.
+- **Repository/environment snapshot:** [#739](https://github.com/willyvalentin/trade/pull/739)
+  is normally protected merged as main `8efe5038d9cc05ffcf81828495a0de4936af9200`.
+  All six groups/aggregate/provenance in37588206135/attempt1 and exact post-merge
+  attestation37593365849 are success/matched. Git production `6ac6015698f6c30008665412`
+  published08:23:36Z; exact approved SQL source20261006201519→remote20261007082824
+  applied once. Owner-bound inert HTTP verified08:32Z; all ten checked row digests
+  and old routines/ACLs/indexes unchanged. This closes the support fix, not input fitness.
 
 ### Now / Next / Blocked
 
 | Slot | Selected action and exit |
 | --- | --- |
-| Now — existing primary, Codex | Bring the same #739 correction onto exact current main without product/test/SQL/dependency changes; verify docs reconciliation and the new normal protected candidate. Old-base green checks do not accept the new candidate. Merge/production/exact SQL remain held on the unanswered migration approval; sufficient quota for ONE history publication is separately confirmed. No broader fixture ACL, retry, repurchase or support extension. |
-| CLOSED while primary waits — same outcome, Codex | Read-only whole-chain capacity investigation started Oct7 07:22Z, limit4h: existing universe/history, benchmark/context, fresh eight-member scans, mature outcomes, shared minute/day limits, failures and hosting. No provider/meter/production calls or new hypothesis. Record feasible/infeasible/unknown and the smallest decision-changing next action in this board before acquiring or changing cadence. |
+| Now — intelligence primary, Codex | #739 support exit is verified; stop extending its history control surface. Next compose the already local candle/event (`74271146`/`262b07d6`,132 cases) and regime (`c71cedb1`/`ee708079`,173 cases) corrections onto exact accepted main8efe. Preserve NEW/legacy boundaries and original populations; require fresh combined affected/native tests, nonincremental types, lint and exact Linux build plus independent review. Prior local counts are not combined acceptance. No source acquisition, OPEN activation or cadence change. |
+| CLOSED capacity result — same outcome, Codex | Investigation07:22–07:58Z completed read-only, within4h. Saturated26×8 original snapshots require at least52 outcome selections at4/run, but current cadence has32 runs/128 snapshots; full same-day coverage is infeasible. Concurrent scan8+outcome4 cannot fit shared8/minute. Daily514 is a conservative one-collection bound, not actual cost or whole-chain acceptance. Real bounded observation remains unknown pending release/schema/runtime and fresh provider/hosting capacity; no acquisition or cadence change selected. |
 | Next eligible OPEN | Use one prospective card under the OPEN contract only after relevant production-equivalent CLOSED proof, capacity and existing authority are satisfied. Verify the declared complete-input criterion and exact original outcome linkage, preserving the old Oct 5/6 results. New failure requires diagnosis/corrected readiness, not an identical retry. |
 | Next scientific outcome | Retain/freeze the selected comparison prospectively, obtain a pre-forward committed training model and complete original held-out/walk-forward evidence, then the full charter disposition. Missing evidence gets a bounded recovery or explicit stop; it never becomes a quality pass. |
-| Blocked / parked | Real complete-input acceptance, useful forward quality and IF-5 are unproven. #739's exact production migration authority is a separate hold. New autonomous paper, broker and options expansion remain behind the existing intelligence gate. #230 does not select a parallel CI transition. |
+| Blocked / parked | Real complete-input acceptance, useful forward quality and IF-5 are unproven. Fresh shared provider capacity and any future OPEN/clock-correction publication capacity are unknown; the one confirmed history-publication allocation is now used. New autonomous paper, broker and options expansion remain behind the intelligence gate. #230 does not select a parallel CI transition. |
 
-The primary implementation owner remains **Codex on
-`codex/oct6-history-terminal-readback` (#739)**, with its exact write/schema ownership.
-Integrating #740's six control/entry documents opens no second code/schema slice.
+The primary implementation owner remains **Codex**. Target for the next composition:
+`codex/oct7-learning-current-main-composition`, starting from verified main8efe;
+this branch/acceptance has not yet been created or claimed. Reuse the existing
+release worktree, retaining both original local branches and receipts. One primary
+4–16h composition, initial investigation≤4h, no new SQL or competing hypothesis.
 Before integrating either branch, reconcile concurrent ledger additions with
 current main; preserve exact receipts and update this compact selection instead
 of replacing the other delivery's evidence. Refresh mutable PR/release facts at
 the next material event. Existing grants/holds are not renewed or expanded here.
 
-Independent review of #739's RPC/owner/clock/cost chain is not yet recorded.
-Permission for one separate read-only reviewing agent has been requested; no
-reviewer or review pass is claimed before an actual completed report.
+[Independent review of #739's RPC/owner/clock/cost chain](https://github.com/willyvalentin/trade/pull/739#issuecomment-6033417765)
+completed by Poincare (Codex): no actionable static findings; no test/runtime/
+production execution by the reviewer. Separate #739 production acceptance is below;
+the next combined candle/event/regime review has not yet been performed.
+Capacity receipt: `/private/tmp/ture-oct7-whole-chain-capacity.receipt.json`.
+Next: current-main candle/event and regime composition, then relevant accepted runtime;
+before acquisition, prospectively freeze a whole eight-member source-to-mature-outcome
+question with non-overlapping existing scheduled phases and actual capacity. A114-credit
+base illustration is not an authorized card, full quality experiment or reduced old cohort.
+
+**Direct human migration mandate, Oct7 08:02Z:** exact #739 SQL is approved; future
+roadmap-scoped migrations need no repeated human approval. Exact-source review,
+normal release, security, row preservation and pre/post verification still apply;
+no unrelated destructive/schema/Auth/RLS/configuration or purchase authority is inferred.
 
 Budget the next implementation slice at 4–16 active hours with the brief in
 governance. Track cumulative effort on this outcome; actual elapsed engineering
@@ -66,7 +80,7 @@ hours are currently unknown. Retain the exact existing frozen acceptance limits.
 | Fresh input fitness | Oct 5: 3/8; Oct 6: 3/8. Separate dated observations, not a complete period denominator. Repeated full-input acceptance is unproven. |
 | Canonical outcome continuity | Current original-population mature production ratio unknown; synthetic linked outcomes do not fill this cell. |
 | Hypotheses disposed | No accepted recommendation-quality improvement demonstrated in the reviewed evidence. Allocation experiment has incomplete science; current relative-plan forward comparison remains unproven. Weekly complete-disposition count unknown. |
-| Time/cost per useful observation | Active hours and fully attributed useful-observation unit cost unknown. Oct 6 scan reserved/finalized 8 credits; preparation, failures and hosting must also be attributed before a total is stated. |
+| Time/cost per useful observation | Active hours and useful-observation unit cost unknown. Oct7 read-only owned ledger: Oct6 reserved8 history +8 scan, all completed; external meter/hosting and total actual cost unknown. No Oct7 owned claims returned; that does not establish shared provider availability. |
 | Integration escapes / rework | Observed examples: Oct 5 original-plan publication mismatch (#735), Oct 6 prepared-claim ACL mismatch (#738). Period total/rework hours unknown; #739 addresses a related terminal-history read path. |
 
 **Review dates:** 14 and 21 October. Update these five measures with exact windows
@@ -87,6 +101,25 @@ Frozen experiments, failed observations and original authorization boundaries
 are not rewritten by this reconciliation.
 
 ## Retained Oct 6 delivery snapshot — recommendation intelligence first
+
+**Oct7 verified #739 focused release, 08:32Z:** Main `8efe5038`/tree `786142bf`
+binds exact head `4a1537ce` and base `e0d381d3`; all six current-candidate groups,
+aggregate and provenance are success in37588206135/attempt1. Post-merge
+37593365849 attests the same tree/workflow. Normal Git production
+`6ac6015698f6c30008665412` published08:23:36.207Z, with no manual deploy or CI rerun.
+Exactly approved `completed_history_terminal_failure_readback` source20261006201519
+maps to remote20261007082824; byte-identical SHA256
+`f47a3165c3b86b22eb4820a17a7c1732864315dfc799928fe18a743109164bb4`.
+New OID83194/body `b7b5ec36b709057bb645dedf1dd997d2`, SQL-stable/security-definer,
+empty search_path/service-only EXECUTE. Old eight routine rows, table/default ACLs,
+indexes and ten checked row digests remain unchanged; advisors unchanged.
+Owner-bound inert HTTP verified08:32:00.752Z, zero active claims/providers/OPEN.
+No real failed history claim exists for a positive production sample; completed
+identity sanity reads and exact native positive/negative evidence remain distinct.
+Receipt: `/private/tmp/ture-pr739-approved-migration-release-oct7.receipt.json`.
+The history fix is closed; graduation remains `not_met`. Retained candle/event and
+regime implementations now require fresh-main combined review/acceptance, not more
+history helpers or reuse of their old local green evidence as production acceptance.
 
 **Oct7 current-main integration, existing #739:** Normal local main merge
 reconciles #740's marked board with this correction's exact retained acceptance.
