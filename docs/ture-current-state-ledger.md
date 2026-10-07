@@ -1,6 +1,113 @@
 # Ture Current-State Ledger
 
-## Active Now / Next / Blocked — reconciled 2026-10-06, recommendation intelligence first
+<a id="current-delivery-board"></a>
+<!-- BEGIN CURRENT DELIVERY BOARD -->
+## Active Now / Next / Blocked — 2026-10-07
+
+**Current delivery board.** This is the only work-selection queue. Update it in
+place; dated material after END is evidence, even where old headings say active,
+Now or Next. Read historical detail only for the selected dependency. Product
+acceptance remains in the roadmap and delivery rules in governance.
+
+### Current outcome and baseline
+
+- **Outcome:** complete the IF-2b → IF-4 research-source slice from fresh original
+  inputs through unchanged decisions/plans to mature canonical outcome readback,
+  then decide the existing relative-plan quality hypothesis under its full charter.
+  Preserve the eight-member denominator and unobservable candidates; no retrospective
+  cohort/threshold changes. The selected shadow is `relative_plan_context_shadow_v1`;
+  older clock-neutral/allocation experiments keep their separate frozen evidence.
+- **Acceptance:** integrated CLOSED behavior with production-equivalent ACLs and
+  configuration, then the selected authorized OPEN input-fitness observation and
+  exact source-to-outcome continuity. A recommendation is not required. Graduation
+  remains `not_met`; policy promotion and post-promotion monitoring are unproven.
+- **Observed baseline:** Oct 5 and Oct 6 scans each had 3/8 fully observed original
+  inputs; Oct 6 published one recommendation, with comparison/model/result counts
+  still zero in that observation. These are individual observations, not a weekly
+  aggregate or accepted quality. See [#735](https://github.com/willyvalentin/trade/pull/735)
+  and [#738](https://github.com/willyvalentin/trade/pull/738).
+- **Repository/environment snapshot:** main `e0d381d32fc6653e48750709f3e5ff6d0706ac6d`
+  includes documentation-only #740; production deploy `6ac57d74902d210008d788bb`
+  is current/ready on that exact main (authoritative Oct7 06Z readback).
+  [#739](https://github.com/willyvalentin/trade/pull/739) remains open, originally
+  accepted on `e0153c18` / base `5e53047a`; integrate new main and require fresh
+  protected candidate provenance. This is not a fresh schema/inert readback.
+
+### Now / Next / Blocked
+
+| Slot | Selected action and exit |
+| --- | --- |
+| Now — existing primary, Codex | Bring the same #739 correction onto exact current main without product/test/SQL/dependency changes; verify docs reconciliation and the new normal protected candidate. Old-base green checks do not accept the new candidate. Merge/production/exact SQL remain held on the unanswered migration approval; sufficient quota for ONE history publication is separately confirmed. No broader fixture ACL, retry, repurchase or support extension. |
+| CLOSED while primary waits — same outcome, Codex | Read-only whole-chain capacity investigation started Oct7 07:22Z, limit4h: existing universe/history, benchmark/context, fresh eight-member scans, mature outcomes, shared minute/day limits, failures and hosting. No provider/meter/production calls or new hypothesis. Record feasible/infeasible/unknown and the smallest decision-changing next action in this board before acquiring or changing cadence. |
+| Next eligible OPEN | Use one prospective card under the OPEN contract only after relevant production-equivalent CLOSED proof, capacity and existing authority are satisfied. Verify the declared complete-input criterion and exact original outcome linkage, preserving the old Oct 5/6 results. New failure requires diagnosis/corrected readiness, not an identical retry. |
+| Next scientific outcome | Retain/freeze the selected comparison prospectively, obtain a pre-forward committed training model and complete original held-out/walk-forward evidence, then the full charter disposition. Missing evidence gets a bounded recovery or explicit stop; it never becomes a quality pass. |
+| Blocked / parked | Real complete-input acceptance, useful forward quality and IF-5 are unproven. #739's exact production migration authority is a separate hold. New autonomous paper, broker and options expansion remain behind the existing intelligence gate. #230 does not select a parallel CI transition. |
+
+The primary implementation owner remains **Codex on
+`codex/oct6-history-terminal-readback` (#739)**, with its exact write/schema ownership.
+Integrating #740's six control/entry documents opens no second code/schema slice.
+Before integrating either branch, reconcile concurrent ledger additions with
+current main; preserve exact receipts and update this compact selection instead
+of replacing the other delivery's evidence. Refresh mutable PR/release facts at
+the next material event. Existing grants/holds are not renewed or expanded here.
+
+Independent review of #739's RPC/owner/clock/cost chain is not yet recorded.
+Permission for one separate read-only reviewing agent has been requested; no
+reviewer or review pass is claimed before an actual completed report.
+
+Budget the next implementation slice at 4–16 active hours with the brief in
+governance. Track cumulative effort on this outcome; actual elapsed engineering
+hours are currently unknown. Retain the exact existing frozen acceptance limits.
+
+### Weekly outcome scorecard — initial snapshot 2026-10-07
+
+| Measure | Observed baseline / gap |
+| --- | --- |
+| Fresh input fitness | Oct 5: 3/8; Oct 6: 3/8. Separate dated observations, not a complete period denominator. Repeated full-input acceptance is unproven. |
+| Canonical outcome continuity | Current original-population mature production ratio unknown; synthetic linked outcomes do not fill this cell. |
+| Hypotheses disposed | No accepted recommendation-quality improvement demonstrated in the reviewed evidence. Allocation experiment has incomplete science; current relative-plan forward comparison remains unproven. Weekly complete-disposition count unknown. |
+| Time/cost per useful observation | Active hours and fully attributed useful-observation unit cost unknown. Oct 6 scan reserved/finalized 8 credits; preparation, failures and hosting must also be attributed before a total is stated. |
+| Integration escapes / rework | Observed examples: Oct 5 original-plan publication mismatch (#735), Oct 6 prepared-claim ACL mismatch (#738). Period total/rework hours unknown; #739 addresses a related terminal-history read path. |
+
+**Review dates:** 14 and 21 October. Update these five measures with exact windows
+and source links; retain one previous dated summary. Target repeated usable real
+observations and a bounded disposition of the selected question, not positive
+alpha by a deadline. If sampling cannot finish, name the missing denominator,
+earliest feasible completion, recovery budget and explicit stop/review. These
+dates are planning checkpoints, not new automations, market slots or permissions.
+
+<!-- END CURRENT DELIVERY BOARD -->
+
+## Retained delivery evidence — historical selections, not the current queue
+
+The original chronological evidence below is retained at this path for audit
+and existing references. Its release instructions describe their dated state;
+the current board above and fresh authoritative readbacks govern subsequent work.
+Frozen experiments, failed observations and original authorization boundaries
+are not rewritten by this reconciliation.
+
+## Retained Oct 6 delivery snapshot — recommendation intelligence first
+
+**Oct7 current-main integration, existing #739:** Normal local main merge
+reconciles #740's marked board with this correction's exact retained acceptance.
+The original product/test/schema revision `3eef974d` passed116 affected cases
+plus4 distinct exact-Linux consumers (120 total), nonincremental types and
+lint0 errors/8 unchanged warnings. All product/test/SQL/dependency bytes remain
+unchanged by this integration; old CI run37532367431/candidate `e8c5de83` belongs
+to base `5e53047a`, not new-main candidate acceptance. No production dispatch.
+SQL SHA256 remains `f47a3165c3b86b22eb4820a17a7c1732864315dfc799928fe18a743109164bb4`;
+the direct human has confirmed only ONE publication quota, not that SQL approval.
+The separate local candle/event correction (`74271146`/`262b07d6`,132 cases) and
+regime correction (`c71cedb1`/`ee708079`,173 cases) are complete and retained,
+not main/production acceptance. Real-source CLOSED replay on main `5e53047a`
+passed both existing research-mode gates with the full8/3-source/5-gap original
+population; only future bars were synthetic, no product fix selected.
+Receipts: `/private/tmp/ture-new-candle-clock-final-local-acceptance-oct6.receipt.json`,
+`/private/tmp/ture-new-regime-clock-final-local-acceptance-oct6.receipt.json`,
+`/private/tmp/ture-real-original-source-outcome-replay-oct6.final.receipt.json`.
+Integration remains history protected release/exact approved SQL/inert readback,
+then fresh-main candle/event and regime composition. All old processes terminal;
+no restart, fresh source acquisition or OPEN activation is selected here.
 
 **Current CLOSED selection after direct human request, Oct6 20:32Z:**
 Local minimum correction accepted Oct6 21:08Z on frozen product/test/schema

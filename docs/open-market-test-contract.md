@@ -63,6 +63,37 @@ Verifiera stopp, expiry och återställning i CLOSED före användning. Till des
 gäller befintliga one-shot-gränser och godkännanden oförändrat; dokumentet
 aktiverar ingenting. Cleanup och verifierad readback krävs även efter expiry.
 
+### Produktionslika förutsättningar och kapacitet
+
+Återanvänd befintligt integrationstest och länka dess kvitto i testkortet.
+Verifiera de gränser som det aktuella försöket faktiskt passerar:
+
+| Gräns | CLOSED-bevis före berörd OPEN-observation |
+| --- | --- |
+| Behörigheter/schema | Samma relevanta roller, direkta tabellförbud, RPC- och defaultprivilegier som produktionen. Ett bredare fixture-grant får inte dölja en nekad läsning. |
+| Byggd konsument | Faktisk schemalagd runtime, SDK, datalagring och resultatläsare, inklusive omstart, använder samma kontrakt och relevanta transport-/tidsgränser. |
+| Indata och identitet | Kall/varm cache och förberedda källor där de används; originalplan, klockor och hela populationen följer med till utfall. Externa providers ersätts vid yttergränsen. |
+| Fel och avslut | Relevant saknad/nekad källa, timeout eller avbruten förberedelse bevarar saknade medlemmar och kostnad. Ingen dold återköp/retry; stopp och cleanup fungerar. |
+
+Skriv kvarvarande relevanta miljöskillnader och deras konsekvens. Ett okänt
+gränssnitt som behövs för acceptansen ger `no_go` tills det är verifierat;
+det kräver inte en generell kontroll av alla orelaterade systemdelar.
+Detta gäller tekniska drift-/kontraktsförutsättningar. Färsk marknadsfitness
+och rekommendationskvalitet är fortfarande frågor för själva observationen;
+de ska inte krävas bevisade innan experimentet får undersöka dem.
+
+Visa också en kort kapacitetsberäkning för **hela** den fördeklarerade kedjan:
+historik/förberedelse + benchmark/kontext + aktuella kandidatindata + mogna
+utfall + fördeklarerad felmarginal. Ange färskhetsfönster, minut-/dagstak,
+lagringsrättigheter, hosting/publicering och när utfallen kan bli tillgängliga.
+Skilj reservationer, faktisk förbrukning och redan betald återanvändning.
+Okänd kapacitet är inte tillgänglig kapacitet. Återanvänd befintliga uppgifter;
+en ny betald kontroll eller datakälla följer sitt befintliga mandat.
+
+Om upplägget inte ryms: välj en avgränsad genomförbarhets-/scopeåtgärd i ledgern
+före fler hjälpfunktioner eller försök. En framtida ändrad population/kadens får
+ett nytt prospektivt kontrakt; tidigare nämnare och kvalitetsgränser bevaras.
+
 ## 2. Go/no-go inför OPEN
 
 Kontrollera det publicerade systemet, inte bara källkoden: rätt revision och
@@ -106,8 +137,16 @@ Jämför policy-/rankingändringar med den frysta baseline och dess datamängd;
 håll held-out/walk-forward och forward shadow åtskilda. Rapportera även
 misslyckade och inconclusive resultat, kostnader, osäkerhet och återstående
 evidensgap. Uppdatera bara den befintliga ledgern med verifierade fakta och
-välj nästa verkliga roadmap-leverans. Efter att dagens OPEN-arbete är klart
-fortsätter CLOSED-utveckling även om börsen fortfarande är öppen.
+välj nästa verkliga roadmap-leverans. Skriv en kort avslutning i den aktuella
+leveranstavlan: observation, begränsning, beslut och exakt nästa åtgärd.
+`evidence_incomplete` anger saknad dimension, ansvarig, avgränsad återhämtning
+med budget/tidsfönster och granskningsdatum, eller ett uttryckligt stopp.
+Ett missat marknadsfönster får inte automatiskt starta en kedja av nya kontroller.
+För in användbara observationer, ursprungliga nämnare, total kostnad och
+integrationsfel i governance-dokumentets fem veckomått. Ett komplett `no_trade`
+kan vara användbart för driftfrågan; ett datafel räknas inte som kvalitetslärande.
+Efter att dagens OPEN-arbete är klart fortsätter den valda CLOSED-utvecklingen
+även om börsen fortfarande är öppen.
 
 Skilj alltid mellan lokalt implementerat, lokalt testat, mergat/deployat på
 exakt revision, miljöbeteendeverifierat och godkänt enligt roadmapens
