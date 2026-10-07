@@ -47,7 +47,7 @@ acceptance remains in the roadmap and delivery rules in governance.
 
 | Slot | Selected action and exit |
 | --- | --- |
-| Now — same outcome, Codex | Cleanup is verified; the Oct7 card remains terminal no_go. The exact-consumer regression is locally complete on `codex/oct7-consumer-slot-regression`, based on main656a76bd in the reused worktree:19/19 existing+new affected tests, nonincremental types and targeted lint pass. The unchanged parser/handler denies actual shorthand plus five noncanonical variants before every network/claim/provider boundary; canonical full UTC is a local positive control only. Investigation15:52–15:56Z; stop this support stream. No new route/helper, parser change, configuration mutation, push, publication or OPEN activation. Resume complete original input→canonical outcome evidence only through a new separately prospective, consumer-validated card with fresh authority/capacity/session/readiness. |
+| Now — same outcome, Codex | Cleanup is verified; the Oct7 card remains terminal no_go. The exact-consumer regression on `codex/oct7-consumer-slot-regression`, based on main656a76bd in the reused worktree, has19/19 affected tests, nonincremental types and targeted lint passing. Complete this existing change's normal CLOSED integration evidence in one Ready PR with Netlify skip markers on head commit and PR title; all six existing groups/aggregate/actual candidate provenance must accept the exact candidate. No added helper, parser/ABI/schema/dependency/workflow change or new hypothesis. Investigation15:52–15:56Z; retain cumulative parent effort. Hold merge/publication and all OPEN/source/activation operations pending their actual authority/readiness; do not infer any from this CI step. Resume original input→canonical outcome evidence through a separately prospective card only. |
 | CLOSED capacity result — same outcome, Codex | Investigation07:22–07:58Z completed read-only, within4h. Saturated26×8 original snapshots require at least52 outcome selections at4/run, but current cadence has32 runs/128 snapshots; full same-day coverage is infeasible. Concurrent scan8+outcome4 cannot fit shared8/minute. Daily514 is a conservative one-collection bound, not actual cost or whole-chain acceptance. Real bounded observation remains unknown pending release/schema/runtime and fresh provider/hosting capacity; no acquisition or cadence change selected. |
 | Next eligible OPEN | No further OPEN action follows the stopped Oct7 card. A future separately prospective observation needs consumer-validated full canonical production parameters, exact-runtime admission, fresh capacity/session/activation margin and its own valid authority. Do not repurpose today's completed sources or unused budget to resume this card. Preserve all Oct5/6/7 receipts and the complete-input/original-outcome criteria. |
 | Next scientific outcome | Retain/freeze the selected comparison prospectively, obtain a pre-forward committed training model and complete original held-out/walk-forward evidence, then the full charter disposition. Missing evidence gets a bounded recovery or explicit stop; it never becomes a quality pass. |
@@ -78,6 +78,12 @@ The unchanged consumer accepts these historical contexts for hypothetical same-d
 a new frozen card, current intraday fitness, capacity or runtime-owner acceptance.
 No preparation POST/finalization/provider/data/configuration write occurred.
 Receipt `/private/tmp/ture-oct7-existing-history-readonly-revalidation.receipt.json`.
+Ordinary owner-login/GET proof16:17:16Z now binds the current server-issued signed
+session to both original signed benchmark sources on exactmain656/deploy6ac668:
+all modes off/0 active or unresolved claims/97 history credits/0 scan credits,
+anonymous401. No source, claim, schema or configuration write; ordinary login
+protection counters may update. Provider capacity/new-card approval remain missing.
+Receipt `/private/tmp/ture-oct7-current-runtime-source-owner-proof.receipt.json`.
 Next: no action remains on the terminal Oct7 card. A future separately prospective
 observation needs consumer-validated actual parameters and fresh source, quota,
 session and authority gates. Neither a historical card nor unused quota is authority.
