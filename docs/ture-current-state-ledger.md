@@ -46,9 +46,9 @@ acceptance remains in the roadmap and delivery rules in governance.
 
 The primary implementation owner remains **Codex**. Target for the next composition:
 `codex/oct7-learning-current-main-composition`, starting from verified main8efe;
-this branch/acceptance has not yet been created or claimed. Reuse the existing
-release worktree, retaining both original local branches and receipts. One primary
-4–16h composition, initial investigation≤4h, no new SQL or competing hypothesis.
+branch created Oct7 08:50Z in the reused release worktree; combined acceptance is pending.
+Retain both original local branches and receipts. One primary4–16h composition,
+initial investigation≤4h from08:50Z, no new SQL or competing hypothesis.
 Before integrating either branch, reconcile concurrent ledger additions with
 current main; preserve exact receipts and update this compact selection instead
 of replacing the other delivery's evidence. Refresh mutable PR/release facts at
@@ -101,6 +101,142 @@ Frozen experiments, failed observations and original authorization boundaries
 are not rewritten by this reconciliation.
 
 ## Retained Oct 6 delivery snapshot — recommendation intelligence first
+
+### Retained candle/event local evidence — original Oct6 branch
+
+**Local CLOSED completion — candle/event admission, Oct6 21:47Z:**
+Frozen product/test revision `7427114650713695e291ad7cf5ae075a8f7421d7` passes
+all128 affected cases in9 files serially in26.9m, plus4 distinct native Linux
+consumer/security checks:132 distinct cases, not repeated focused runs added
+to the denominator. Nonincremental types pass; full lint0 errors/8 unchanged
+warnings. Exact clean Linux Node22.23.1/Next16.3.8 build passes33 static pages,
+no network or production credentials, with unchanged complete locked public
+dependencies. Receipt:
+`/private/tmp/ture-new-candle-grid-exact-linux-build-oct6-receipt.json`.
+Both actual DB-clock NEW training and separate historical-model NEW terminal
+finalization reject lossily represented candle/event clocks before storage.
+Honest Date/epoch/offset/zero-fraction representations and original old golden
+metrics/fingerprints pass; all96 training/240/240 forward members and84 raw
+decisions/672 snapshots remain. Complete original v2/v3 archives over21MB fit
+the unchanged32MB decoded bound and restarted negotiated SDK/HTTP transport.
+Actual DB-clock training and historical synthetic model insertion remain
+separate evidence. Old sealed reads/retries stay byte-equivalent; no model
+refit, cohort reduction, threshold, global legacy coverage or decoder change.
+No push/PR/schema/production/provider/broker operation for this slice.
+Disposition `quality_measurement` locally complete; no real quality lift or
+graduation. Stop this minimum admission correction and retain release order.
+
+The preceding history correction now has normal Ready PR739 on `e0153c18`,
+protected run37532367431 attempt1 / merge candidate
+`e8c5de83f48b38bb953f2bf883f9c62e9bac36dd`, tree
+`503f9f168e71e5c699b834f968847aa4127ff497` identical to its frozen head, with
+both parents and exact new SQL SHA verified. Four groups are success at21:37Z;
+foundation/lossless/aggregate/provenance are still pending, not acceptance.
+One normal branch push; no rerun, merge or migration. Netlify's documented
+PR-title marker suppresses only an extra Deploy Preview; all protected GitHub
+checks remain unchanged. No matching preview deploy is created; no site
+configuration change. Existing ONE history-correction production-publication
+capacity is confirmed, but exact new SQL approval remains unanswered. Merge
+and production stay held for that separate approval. The app cannot attach
+PR739 because this chat exceeds100 attachment identities; preserve the actual
+PR URL, do not delete unrelated artifacts or modify GitHub to conceal it.
+Last verified production remains main `5e53047a` / deploy
+`6ac5516584f8ea00091d4f0b`; no new release is claimed.
+
+Next bounded CLOSED defect is reproduced on unchanged current-main context
+consumer/service modules in an actual isolated SQL/PostgREST/SDK NEW terminal
+command: original decision `2026-10-05T18:15:00.000Z` accepts raw regime
+capture `2026-10-05T18:15:00.000001Z` as complete evidence after legacy
+normalization. The immutable NEW result retains that exact future clock and
+reports evidence_complete=true where point-in-time coverage requires false.
+Its overall disposition remains reject, not a demonstrated policy acceptance
+or alpha. Complete30/30 decisions and240/240 original forward members remain;
+existing model is not refitted, consumer leaves source unchanged, disposable
+resources are cleaned and real provider/production/broker actions0. Receipt:
+`/private/tmp/ture-new-regime-context-clock-native-red-oct6.receipt.json`.
+Select the smallest NEW point-in-time context admission correction next after
+this local completion, with the existing exact raw-clock check, separate
+current-main branch, named owner/budget and unchanged legacy parser/old seals.
+No third active development slice or competing ranking hypothesis. Integration
+order remains history protected release/selected schema/inert readback, then
+this accepted candle/event slice, then independently accepted context work,
+each revalidated against actual main. No extra publication capacity is inferred.
+Goal active; graduation `not_met`. Future OPEN/source gates are unchanged.
+
+Historical selection, failures and preparation below remain retained evidence.
+
+**Current CLOSED primary — NEW retained candle grid admission, reconciled Oct6 21:08Z:**
+Direct human mandate is to continue useful CLOSED work while the market is
+closed. The preceding terminal-history correction is locally accepted on
+`3eef974d7ae3cd748f8e72f221ba0a6a33120380` (ledger-only head `e0153c18`):116
+affected regressions plus4 exact Linux native consumer checks, types and lint
+pass. It remains a separate release-held slice: the human confirms ONE normal
+history-correction publication's existing capacity, not the unanswered exact
+SQL approval. No new history migration/push/PR/publication has occurred.
+
+Select `quality_measurement` on the existing relative-plan hypothesis's missing
+source-to-canonical-learning link, not a competing ranker or support stream.
+Actual unchanged main `5e53047a7b39d5bd4cbb87b55e9bcc0fd34dad8b` admits a retained
+`2026-10-05T18:15:00.000001Z` candle as a full5min slot after Date.parse
+truncation. An actual isolated SQL/PostgREST/SDK NEW terminal command stores1
+immutable result instead of0, retaining that exact misaligned candle and the
+complete30/30 decisions,240/240 original forward members. Its disclosed
+historical synthetic model-clock fixture is not a real pre-forward seal or
+alpha. Source bytes and full cohorts are preserved; isolated resources cleaned;
+real provider/production/broker actions0. Reproduction receipt:
+`/private/tmp/ture-new-learning-bar-alignment-native-red-oct6.receipt.json`.
+
+Owner Codex, isolated branch `codex/oct6-new-learning-bar-alignment` from that
+freshly read-back current main; one primary4–16h, initial investigation at most4h.
+Minimum scope: private NEW retained-candle grid admission shared by existing
+training and terminal commands and the direct bar-to-event clock agreement,
+behavior/native proofs and this active ledger.
+Reject an explicit off-grid or lossy timestamp before NEW model/result storage,
+without discarding original members. Preserve honest Date/epoch/explicit-offset
+aligned inputs, missing legacy-bar disclosure, global historical coverage and
+already sealed model/result readers, bytes, labels, thresholds and fingerprints.
+No SQL/schema ownership, route, dependency, provider, scheduler or broker change.
+The history slice retains exclusive ownership of its new SQL/ACL contract.
+Integration order remains history release/schema/inert readback first, then
+this independently verified slice rebased/verified against actual current main.
+Local acceptance requires NEW training and complete forward SQL/SDK negative
+controls, aligned positives, immutable retry and unchanged old golden checks,
+affected regression, nonincremental types/lint and exact locked Linux build.
+This closes measurement integrity only; actual fresh full input, forward cohort,
+full charter disposition and recommendation-quality lift remain unproven.
+Graduation `not_met`. No OPEN/source card is restarted or armed by this work.
+
+Initial implementation evidence: both newly added service regressions reproduce
+the old lossy-clock escape before repair. The private NEW grid predicate now
+passes first/last/offset microsecond, fractional epoch and implicit-zone denials;
+honest Date/epoch/explicit-offset/zero-fraction inputs pass on both5min and15min
+grids. The first extended native proof reaches the expected NEW denial but its
+new raw-population assertion incorrectly expects576 instead of672: the unchanged
+fixture also retains12 unrelated prior decisions/96 snapshots. Keep all of
+those rows and correct the expected raw denominator to the full84 decisions;
+the original scoped96-training/240/240-forward populations are unchanged. This
+failed investigation is not final native acceptance. No assertion, cohort,
+deadline, old golden or product behavior is relaxed. Final coherent native and
+affected regression/build acceptance follows on frozen source.
+The corrected native command completes successfully with NEW-result denial,
+immutable grid retry and complete population preserved. Its wrapper then
+exposes a second new expectation error: finalized mode truthfully reports no
+NEW training because it uses the already disclosed historical synthetic model
+fixture. Require false for that mode, not fictitious actual training. Verify
+the real NEW training guard separately through the existing non-finalized
+DB-clock mode, which must report true. Keep both mode-specific evidence and
+failures; do not relabel a historical insertion as pre-forward model acceptance.
+Those two mode-specific native cases now pass in3.7m; only non-finalized mode
+claims actual NEW training. A direct follow-up reproduces the same lossy
+comparison in retained entry/target clocks: both service paths reach storage
+for `...00.000001Z` even when every candle is exactly aligned. Include only
+that direct contradiction in this bounded NEW admission repair. Preserve all
+honest represented milliseconds and explicit offsets; reject only clocks that
+cannot exactly match the unchanged producer replay. No old capsule, label,
+global coverage contract or threshold changes. Final frozen acceptance must
+rerun the affected native modes with both candle and event controls.
+
+Historical release and experimental evidence below remains unchanged.
 
 **Oct7 verified #739 focused release, 08:32Z:** Main `8efe5038`/tree `786142bf`
 binds exact head `4a1537ce` and base `e0d381d3`; all six current-candidate groups,

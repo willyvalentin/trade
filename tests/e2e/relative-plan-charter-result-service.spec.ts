@@ -56,6 +56,91 @@ async function retainedForwardHarness(index = 103) {
   return { input, data, payload };
 }
 
+test("NEW terminal admission rejects lossy retained candle grid clocks without dropping forward members", async () => {
+  test.setTimeout(120000);
+  const base = await retainedForwardHarness(343); // Original walk-forward member outside top three.
+  for (const fault of ["first_microsecond", "last_microsecond", "offset_microsecond", "epoch_fraction", "implicit_zone"] as const) {
+    const data = structuredClone(base.data), payload = data.recommendation_outcomes[343].payload_json as Record<string, unknown>;
+    const bars = payload.counterfactual_candles as Record<string, unknown>[];
+    const bar = fault === "last_microsecond" ? bars.at(-1)! : bars[0], at = String(bar.timestamp);
+    if (fault === "first_microsecond" || fault === "last_microsecond") bar.timestamp = at.replace(".000Z", ".000001Z");
+    if (fault === "offset_microsecond") bar.timestamp = at.replace(".000Z", ".000001+00:00");
+    if (fault === "epoch_fraction") bar.timestamp = Date.parse(at) / 1000 + 0.000001;
+    if (fault === "implicit_zone") bar.timestamp = at.slice(0, -1);
+    const before = JSON.stringify(data), h = harness({ clock: () => new Date(base.input.now),
+      modelStore: () => createRelativePlanTrainedProbabilityStore({ async read() {
+        return { status: "available", receipt: base.input.trainedModelReceipt };
+      }, async materialize() { throw new Error("must_not_refit"); }, async confirm() { throw new Error("must_not_confirm"); } }),
+      readSource: async () => ({ status: "available", data }), readRuntime: async () => base.input.runtime,
+    });
+    expect(await h.service.finalize(prospectiveOwner, {}), fault).toMatchObject({ status: "unavailable", receipt: null,
+      blocker: "relative_plan_result_retained_candle_coverage_conflicting", terminal_quality_decision: null });
+    expect(h.calls.writes).toBe(0); expect(JSON.stringify(data)).toBe(before);
+    expect(data.recommendation_scan_runs).toHaveLength(72);
+    expect(data.recommendation_snapshots).toHaveLength(576);
+    expect(data.recommendation_outcomes).toHaveLength(576);
+  }
+});
+
+test("NEW result rejects a submillisecond retained terminal event clock not present in its aligned bars", async () => {
+  const base = await retainedForwardHarness(343);
+  for (const key of ["entry_triggered_at", "target_hit_at"] as const) {
+    const data = structuredClone(base.data), payload = data.recommendation_outcomes[343].payload_json as Record<string, unknown>;
+    expect(typeof payload[key]).toBe("string");
+    payload[key] = String(payload[key]).replace(".000Z", ".000001Z");
+    const before = JSON.stringify(data), h = harness({ clock: () => new Date(base.input.now),
+      modelStore: () => createRelativePlanTrainedProbabilityStore({ async read() {
+        return { status: "available", receipt: base.input.trainedModelReceipt };
+      }, async materialize() { throw new Error("must_not_refit"); }, async confirm() { throw new Error("must_not_confirm"); } }),
+      readSource: async () => ({ status: "available", data }), readRuntime: async () => base.input.runtime,
+    });
+    const result = await h.service.finalize(prospectiveOwner, {});
+    expect({ status: result.status, blocker: result.blocker, hasReceipt: result.receipt !== null }).toEqual({
+      status: "unavailable", hasReceipt: false, blocker: "relative_plan_result_retained_candle_outcome_conflicting" });
+    expect(h.calls.writes).toBe(0); expect(JSON.stringify(data)).toBe(before);
+    expect(data.recommendation_snapshots).toHaveLength(576);
+  }
+});
+
+test("NEW candle admission preserves honest exact five and fifteen minute clock representations", async () => {
+  const { input } = await retainedForwardHarness(), original = input.source.outcomes[103];
+  const snapshot = input.source.snapshots.find(row => row.snapshot_fingerprint === original.snapshot_fingerprint)!;
+  const anchor = recommendationOutcomeEvaluationAnchorFromSnapshot(snapshot)!;
+  for (const interval of ["5min", "15min"] as const) {
+    const step = interval === "5min" ? 300000 : 900000;
+    const start = Date.parse(anchor.evaluation_anchor_start_at);
+    const originalBars = Array.from({ length: 3600000 / step }, (_, index) => ({
+      timestamp: new Date(start + index * step).toISOString(), open: 100, high: 109, low: 99, close: 108,
+    }));
+    const outcome = computeRecommendationOutcome({ snapshot, horizon: "60m", evaluated_at: original.evaluated_at,
+      candles: originalBars, current_price: 108, provider: "twelve_data", source: "intraday_candles",
+      data_completeness: "complete" }).outcome;
+    const coverage = buildCanonicalOutcomeProviderCoverageReceipt({ candles: originalBars, request: {
+      interval, horizon: "60m", ...anchor, start_at: anchor.evaluation_anchor_start_at,
+      end_at: new Date(start + 3600000).toISOString(),
+    }, result: { status: "available", provider: "twelve_data" } });
+    for (const format of ["iso", "date", "epoch_ms", "epoch_seconds", "zero_fraction", "offset"] as const) {
+      const candles = originalBars.map(bar => {
+        const at = Date.parse(bar.timestamp);
+        return { ...bar, timestamp: format === "date" ? new Date(at) : format === "epoch_ms" ? at
+          : format === "epoch_seconds" ? at / 1000 : format === "zero_fraction" ? bar.timestamp.replace(".000Z", ".000000Z")
+          : format === "offset" ? new Date(at - 240 * 60000).toISOString().replace(".000Z", ".000000-04:00") : bar.timestamp };
+      });
+      const retained = { ...outcome, payload_json: { ...outcome.payload_json,
+        canonical_provider_coverage: coverage, counterfactual_candles: candles,
+        counterfactual_candle_source: "horizon_filtered_intraday_candles",
+        retained_candles_available: true, retained_candle_count: candles.length } };
+      const before = JSON.stringify(retained);
+      expect(relativePlanRetainedOutcomeCandleConflict(snapshot, retained), `${interval}/${format}`).toBeNull();
+      expect(JSON.stringify(retained)).toBe(before);
+      const bad = { ...retained, payload_json: { ...retained.payload_json,
+        counterfactual_candles: [...candles.slice(0, -1), { ...candles.at(-1)!,
+          timestamp: originalBars.at(-1)!.timestamp.replace(".000Z", ".000000001Z") }] } };
+      expect(relativePlanRetainedOutcomeCandleConflict(snapshot, bad)).toBe("retained_candle_coverage_conflicting");
+    }
+  }
+});
+
 test("NEW terminal command cannot seal an invalid raw runtime recording source", async () => {
   const base = await retainedForwardHarness();
   let writes = 0;
