@@ -38,15 +38,16 @@ acceptance remains in the roadmap and delivery rules in governance.
 
 | Slot | Selected action and exit |
 | --- | --- |
-| Now — intelligence primary, Codex | #739 support exit is verified. Candle/event (`74271146`/`262b07d6`) and regime (`c71cedb1`/`ee708079`) source bytes are now composed locally on accepted main8efe; all four product files match their original code, both test families remain, and native candle data is restored before independent regime faults. Combined acceptance is pending: affected/native tests, nonincremental types, lint, exact Linux build and independent review. Prior overlapping132/173 counts are not combined acceptance. No source acquisition, OPEN activation, new SQL or cadence change. |
+| Now — intelligence primary, Codex | Combined candle/event/regime code on main8efe is locally technically verified at `ca7d4807`:173 distinct cases/12 files serially without retries, nonincremental types, lint0 errors/8 unchanged warnings, exact locked Linux build and4 separate consumer/provenance cases (177 total). All four product files match the original frozen implementations; both guard families retain original membership and old seals. Prepare one focused PR with Netlify previews skipped and unchanged protected CI. Independent review is sought, not yet performed; production publication capacity remains unknown. No source acquisition, OPEN, new SQL or cadence change. |
 | CLOSED capacity result — same outcome, Codex | Investigation07:22–07:58Z completed read-only, within4h. Saturated26×8 original snapshots require at least52 outcome selections at4/run, but current cadence has32 runs/128 snapshots; full same-day coverage is infeasible. Concurrent scan8+outcome4 cannot fit shared8/minute. Daily514 is a conservative one-collection bound, not actual cost or whole-chain acceptance. Real bounded observation remains unknown pending release/schema/runtime and fresh provider/hosting capacity; no acquisition or cadence change selected. |
 | Next eligible OPEN | Use one prospective card under the OPEN contract only after relevant production-equivalent CLOSED proof, capacity and existing authority are satisfied. Verify the declared complete-input criterion and exact original outcome linkage, preserving the old Oct 5/6 results. New failure requires diagnosis/corrected readiness, not an identical retry. |
 | Next scientific outcome | Retain/freeze the selected comparison prospectively, obtain a pre-forward committed training model and complete original held-out/walk-forward evidence, then the full charter disposition. Missing evidence gets a bounded recovery or explicit stop; it never becomes a quality pass. |
 | Blocked / parked | Real complete-input acceptance, useful forward quality and IF-5 are unproven. Fresh shared provider capacity and any future OPEN/clock-correction publication capacity are unknown; the one confirmed history-publication allocation is now used. New autonomous paper, broker and options expansion remain behind the intelligence gate. #230 does not select a parallel CI transition. |
 
-The primary implementation owner remains **Codex**. Target for the next composition:
+The primary implementation owner remains **Codex**. Preserved composition branch:
 `codex/oct7-learning-current-main-composition`, starting from verified main8efe;
-branch created Oct7 08:50Z in the reused release worktree; combined acceptance is pending.
+created Oct7 08:50Z in the reused release worktree; technical proof completed09:41Z.
+Independent review, protected CI and relevant production acceptance remain pending.
 Retain both original local branches and receipts. One primary4–16h composition,
 initial investigation≤4h from08:50Z, no new SQL or competing hypothesis.
 Before integrating either branch, reconcile concurrent ledger additions with
@@ -59,7 +60,7 @@ completed by Poincare (Codex): no actionable static findings; no test/runtime/
 production execution by the reviewer. Separate #739 production acceptance is below;
 the next combined candle/event/regime review has not yet been performed.
 Capacity receipt: `/private/tmp/ture-oct7-whole-chain-capacity.receipt.json`.
-Next: current-main candle/event and regime composition, then relevant accepted runtime;
+Next: review/protected CI for the composed candle/event/regime correction, then relevant accepted runtime;
 before acquisition, prospectively freeze a whole eight-member source-to-mature-outcome
 question with non-overlapping existing scheduled phases and actual capacity. A114-credit
 base illustration is not an authorized card, full quality experiment or reduced old cohort.
@@ -99,6 +100,31 @@ and existing references. Its release instructions describe their dated state;
 the current board above and fresh authoritative readbacks govern subsequent work.
 Frozen experiments, failed observations and original authorization boundaries
 are not rewritten by this reconciliation.
+
+### Oct7 current-main learning composition — local technical acceptance
+
+Frozen product/test revision `ca7d4807244eea0354f877f933965be3123f4b27` on base
+`8efe5038d9cc05ffcf81828495a0de4936af9200` passed173/173 affected cases in12 files,
+serially with0 retries (28.8m), plus4 distinct locked-Linux consumer/provenance
+checks:177 unique local cases. The39 focused cases are a subset, not added again.
+The initial missing react-server condition failed collection with0 executed;
+the corrected environment keeps the server-only guard and that failure recorded.
+Nonincremental types pass; lint has0 errors/8 unchanged warnings. Exact normal
+Linux build uses Node22.23.1/Next16.3.8, unchanged lock, no network or production keys.
+Actual isolated SQL/SDK/restarted HTTP verifies NEW candle/event and original
+regime-time admission, full original v2/v3 populations and legacy sealed retries.
+Actual DB-clock training precedes synthetic forward data; terminal finalization
+uses a separate historical synthetic model fixture, not a real forward experiment.
+Native source-table fixture grants are broader than production; fixed-purpose
+model/result migrations retain their service-only boundaries. This composition
+changes no SQL/ACL. It is `quality_measurement`, not hosted acceptance or alpha.
+Owned native containers are absent after completion; this composition's local
+test/build processes are terminal.
+Receipt: `/private/tmp/ture-oct7-learning-composition-final-local-acceptance.receipt.json`;
+build: `/private/tmp/ture-oct7-learning-composition-exact-linux-build.receipt.json`.
+Seek a separate pinned review; none is recorded for this combined revision yet.
+One reviewed PR/current-candidate CI follows; hold production for actual remaining
+publication capacity. No provider/card/OPEN/broker action or extra publication quota.
 
 ## Retained Oct 6 delivery snapshot — recommendation intelligence first
 
