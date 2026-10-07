@@ -1,5 +1,11 @@
 # Ture – Scientific Validation, Autonomous Trading, Options & IBKR Execution Specification
 
+**Execution revision 2026-10-07:** Den ursprungliga källspecifikationen har
+uppdaterats enligt produktbeslutet om en autonom Execution Engine.
+[Execution Engine](./ture-execution-engine.md) är det normativa kontraktet för
+ansvar, användarmandat och exekvering. Roadmapen styr ordning och acceptans.
+Äldre versioner bevaras i Git-historiken; denna revision aktiverar ingen handel.
+
 ## 1. Syfte
 
 Nästa större utvecklingsfas för Ture ska flytta produkten från en motor som genererar intelligenta tradingbeslut till ett **mätbart, vetenskapligt validerat, självutvärderande och i framtiden automatiskt exekverbart trading-system**.
@@ -35,7 +41,7 @@ Utvecklingen ska ske i fyra sammanhängande huvudspår:
    Ture ska avgöra både vilken möjlighet som är bäst och vilket instrument som bäst uttrycker signalen: aktie, call, put eller definierad optionsspread.
 
 4. **IBKR-first Execution Architecture**\
-   Interactive Brokers ska bli Tures primära broker. All framtida live execution ska primärt optimeras för IBKR och deras API. Avanza deprioriteras.
+   Interactive Brokers är Tures primära broker. Execution Engine ska byggas för snabb, autonom exekvering via IBKR API inom användarens mandat.
 
 ---
 
@@ -1483,9 +1489,9 @@ Execution ska därmed utvecklas till en egen optimeringsmodell.
 
 # 43. IBKR-first Strategy
 
-Interactive Brokers ska bli Tures primära broker.
+Interactive Brokers är Tures primära broker.
 
-Avanza läggs tills vidare åt sidan i utvecklingsprioriteringen.
+Execution Engine väljer och hanterar trades autonomt inom ett versionsstyrt användarmandat.
 
 Brokerlagret ska fortfarande abstraheras för framtida flexibilitet.
 
@@ -1524,9 +1530,12 @@ Första fullständiga implementation:
 
 # 45. Separation mellan Decision och Execution
 
-Tures intelligens ska ligga utanför brokerlagret.
+Recommendation Engine levererar rankade möjligheter och föreslagna planer.
+Execution Engine fattar det slutliga exekveringsbeslutet utifrån dessa, färska
+data, portfölj och användarmandat. Deterministiska riskkontroller har vetorätt.
+Brokerns transportlager innehåller ingen strategi- eller mandatstyrning.
 
-## Ture decides
+## Recommendation Engine ger underlag; Execution Engine beslutar
 
 - ticker
 - direction
@@ -1561,7 +1570,10 @@ utan förändringar i tradinglogiken.
 
 # 46. Execution Service
 
-Brokerexecution ska köras som separat backend-service.
+Execution Engine ska köras som en beständig, serverägd backend-service med
+händelsestyrd IBKR API-anslutning. Inga användaråtgärder krävs per affär.
+Numeriska latency-, färskhets- och återhämtningskrav ska frysas och verifieras
+för vald strategi och API innan respektive pilot aktiveras.
 
 Ansvar:
 
@@ -1678,30 +1690,17 @@ Samma Risk Engine ska kunna användas i paper.
 
 ---
 
-# 51. One-click IBKR Execution
+# 51. Limited Autonomous IBKR Execution
 
-Första live-fasen:
+Första live-fasen är autonom inom ett uttryckligen aktiverat, begränsat mandat:
 
-**Ture recommends**
+Recommendation Engine → Execution Engine → aktuell riskkontroll → IBKR API.
 
-→ **Human approves**
-
-→ **IBKR executes**
-
-Exempel:
-
-NVDA LONG\
-42 shares\
-Limit $186.42\
-Stop $184.91\
-Target $190.80\
-Maximum risk $63
-
-**EXECUTE**
-
-Efter klicket hanterar Ture orderläggningen.
-
-Paper trading ska däremot redan vara helt autonomt.
+Användaren anger konto, budget, maximalt positions-/orderbelopp, förlustrisk,
+tillåtna strategier/instrument och driftgränser. Execution Engine avgör om och
+när en trade ska tas, dimensionerar den och hanterar order, skydd och exits.
+Ingen bekräftelse per affär behövs. Litet kapital och snäv omfattning begränsar
+första livefasen. Utökning kräver evidens och ett nytt explicit mandat.
 
 ---
 
@@ -1720,13 +1719,14 @@ Ture ska kunna:
 
 Paper mode ska göra detta autonomt.
 
-Live automation introduceras gradvis.
+Live introduceras med autonom positionshantering inom ett snävt mandat;
+omfattning och kapital kan därefter utökas när evidensen stödjer det.
 
 ---
 
 # 53. Full Auto Execution
 
-Senare ska hela liveflödet kunna vara autonomt:
+Hela liveflödet ska vara autonomt redan inom första begränsade live-mandatet:
 
 Signal
 
@@ -1778,7 +1778,7 @@ Reversal:
 
 Options:
 
-**APPROVAL REQUIRED**
+**SEPARAT AKTIVERAT OPTIONSMANDAT**
 
 ---
 
@@ -2195,19 +2195,19 @@ Bygg datagrund för framtida execution optimization.
 
 ---
 
-## Phase O — One-click Live IBKR
+## Phase O — Limited Autonomous Live IBKR
 
-Första riktiga live-fasen.
-
-Användaren godkänner varje entry.
-
-Ture sköter därefter execution och position lifecycle.
+Första riktiga live-fasen: Execution Engine fattar och exekverar beslut autonomt
+inom ett uttryckligen aktiverat mandat med litet kapital, namngiven strategi och
+snäva risk-/instrumentgränser. Användaren godkänner mandatet, inte varje entry.
+Ture sköter skydd, position lifecycle och exits enligt mandatet.
 
 ---
 
 ## Phase P — Controlled Auto Execution
 
-Automatisera live endast för validerade strategier.
+Utöka autonom live endast för validerade strategier, efter fungerande begränsad
+live och uttrycklig mandatändring. Motorn höjer inte sina egna gränser.
 
 Inkludera:
 
@@ -2268,15 +2268,11 @@ baserat på:
 
 ## Phase T — Options via IBKR
 
-Första fas:
-
-**APPROVAL REQUIRED**
-
-Senare:
-
-**AUTO**
-
-för separat validerade optionsstrategier.
+Autonom optionshandel kräver ett separat aktiverat mandat för specifikt
+validerade optionsstrategier och instrument. Börja med en snäv live-omfattning
+efter options-paper och nödvändig lifecycle-evidens. Ingen bekräftelse per trade
+behövs inom mandatet. Utökning följer optionsspecifik evidens och uttrycklig
+mandatändring; ett aktiemandat ger ingen optionsbehörighet.
 
 ---
 
@@ -2332,7 +2328,7 @@ Denna utvecklingsfas är framgångsrik när Ture kan:
 
 17. Mäta faktisk execution quality.
 
-18. Gradvis gå från one-click till full automation.
+18. Köra autonomt från första begränsade live-mandatet och utöka kapital och omfattning utifrån verifierad evidens.
 
 19. Simulera options parallellt med equities.
 

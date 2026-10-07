@@ -13,9 +13,12 @@ See `AGENTS.md` before work. Historical Action records and queues are evidence,
 not competing work selections.
 
 The longer-term vision is scientific validation, autonomous internal paper,
-IBKR paper and separately approved controlled live/options execution, after the
-recommendation-quality gate. Existing manual trade records and Avanza safety
-remain supported; new execution expansion does not precede proven intelligence.
+IBKR paper and mandate-authorized autonomous live/options execution, after the
+recommendation-quality gate. The [Execution Engine](docs/ture-execution-engine.md)
+decides whether, when and how to trade using recommendations, fresh data, portfolio
+state and user-defined capital/risk limits. IBKR is the primary broker. Users
+configure and enable a mandate; individual trades need no user action. New
+execution expansion does not precede proven intelligence.
 
 ## Framework development reference
 

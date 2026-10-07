@@ -7,6 +7,19 @@
 This is the only work-selection queue. Material after END is immutable dated
 evidence, not an active selection. Master-roadmap acceptance and governance bind.
 
+### Execution design preparation — 2026-10-07
+
+The user selected a documentation-only revision for the future
+[Execution Engine](./ture-execution-engine.md): autonomous trading through IBKR
+using recommendations, fresh data, portfolio state and user-defined capital,
+notional and risk limits. SV-O becomes limited autonomous live; SV-P expands
+evidence-supported scope. Mandate activation is explicit, with no per-trade
+approval stage. The contract records decision ownership, risk reservations,
+protection/recovery, latency evidence and decisions to close at implementation.
+This is product preparation, not execution implementation or activation. The
+selected source-to-outcome work and graduation status below are unchanged.
+Historical broker records after END remain evidence, not current governance.
+
 ### Primary outcome and acceptance
 
 - **Outcome:** IF-2b → IF-4: fresh whole-population original inputs → unchanged

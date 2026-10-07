@@ -9,6 +9,12 @@ datakälla, migrera data eller lägga brokerorder. Aktiva avsnitt i
 [operating governance](./roadmap-operating-governance.md) styr uppgiftsval,
 acceptance och auktorisation. Vid konflikt gäller de före detta kontrakt.
 
+För framtida exekvering gäller även [Execution Engine](./ture-execution-engine.md).
+Ett execution-testkort binder konto/miljö, mandat- och strategiversion, numeriska
+kapital-/risk-/latencygränser samt skydds-, exit- och återhämtningspolicy. En
+aktiverad testomfattning kan vara autonom; enskilda trades kräver ingen åtgärd.
+Ett observationskort för rekommendationer ger ingen orderbehörighet.
+
 ## 1. Före marknadssessionen — bygg färdigt i CLOSED
 
 För varje vald OPEN-testserie, skriv ett kort testkort i den befintliga
