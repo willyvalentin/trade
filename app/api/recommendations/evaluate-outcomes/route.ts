@@ -7,7 +7,8 @@ import { decisionLineageReceiptFromScanRun } from "@/lib/decision-lineage-receip
 import { summarizeEntryTypeTriggerDiagnostics } from "@/lib/recommendation-entry-type";
 import { getIntradayCandlesWithDiagnostics } from "@/lib/market-data";
 import { getNewYorkDateString } from "@/lib/intraday-scan-window";
-import { ORIGINAL_OUTCOME_BACKLOG_SCOPE, originalOutcomeSourceWindow } from "@/lib/original-outcome-source-window";
+import { ORIGINAL_OUTCOME_BACKLOG_SCOPE, RETAINED_ORIGINAL_OUTCOME_BATCH_SCOPE,
+  originalOutcomeSourceWindow, retainedOriginalOutcomeBatchControlFromEnvironment } from "@/lib/original-outcome-source-window";
 import { readCompleteOriginalOutcomes } from "@/lib/original-outcome-persistence-read";
 import {
   recommendationOutcomeFromPersistenceRow,
@@ -57,6 +58,7 @@ import { CANONICAL_OUTCOME_RETRY_WINDOW_VERSION, deferObservedCanonicalOutcomeWi
 import { canonicalizeOutcomeSnapshotsForBatch } from "@/lib/recommendation-outcome-snapshot-canonicalization";
 import {
   buildScheduledOutcomeEvaluationReceipt,
+  buildScheduledOutcomeEvaluationAttemptFingerprintForSlot,
   scheduledOutcomeEvaluationSlotStartedAt,
   type ScheduledOutcomeEvaluationAttempt,
   type ScheduledOutcomeEvaluationReceipt,
@@ -81,6 +83,7 @@ import {
   type OutcomeEvaluationSeriesControl,
   type OutcomeEvaluationSeriesSlotAdmission,
 } from "@/lib/outcome-evaluation-series-control";
+import { SCHEDULED_SCAN_PREFLIGHT_DELIVERY_GRACE_MILLISECONDS } from "@/netlify/functions/scheduled-scan";
 
 type EvaluateOutcomesRequest = {
   mode?: unknown;
@@ -183,7 +186,7 @@ type ReceiptRun = Pick<
   | "candle_requests_saved_by_reuse"
 >;
 
-const outcomeEvaluationRouteVersion = "outcome-evaluation-route-v1.3";
+const outcomeEvaluationRouteVersion = "outcome-evaluation-route-v1.4";
 const officialOutcomeAcquisitionOrderVersion = "official_original_bar_window_resumption_v2";
 const defaultOfficialLiveMaxBatchesPerRun = 5;
 // Page size, not permission to silently omit the rest of the day's sources.
@@ -736,12 +739,14 @@ function buildSameDayOfficialBatchAggregate(
 async function loadOfficialLiveSnapshots({
   batchFingerprint,
   recoverOriginalBacklog,
+  retainedOriginalBatch,
   includeGrowMaxLearningSnapshots,
   maxBatchesPerRun,
   now,
 }: {
   batchFingerprint: string | null;
   recoverOriginalBacklog: boolean;
+  retainedOriginalBatch: boolean;
   includeGrowMaxLearningSnapshots: boolean;
   maxBatchesPerRun: number;
   now: Date;
@@ -777,14 +782,21 @@ async function loadOfficialLiveSnapshots({
     const client = serverSupabase.client;
     const batchRows: Array<Record<string, unknown>> = [];
     const tradingDate = getNewYorkDateString(now);
-    const sourceWindow = recoverOriginalBacklog ? originalOutcomeSourceWindow(now) : null;
+    const sourceWindow = recoverOriginalBacklog || retainedOriginalBatch ? originalOutcomeSourceWindow(now) : null;
     if (recoverOriginalBacklog && !sourceWindow) throw new Error("original_outcome_source_window_unavailable");
     if (batchFingerprint) {
-      const result = await client.from("recommendation_batches").select("*")
+      const result = await client.from("recommendation_batches").select("*", retainedOriginalBatch ? { count: "exact" } : {})
         .eq("owner_user_id", ownerUserId).eq("batch_fingerprint", batchFingerprint)
-        .order("published_at", { ascending: false, nullsFirst: false }).limit(1);
+        .order("published_at", { ascending: false, nullsFirst: false }).limit(retainedOriginalBatch ? 2 : 1);
       if (result.error || !Array.isArray(result.data)) {
         throw new Error(result.error?.message ?? "Unable to load official recommendation batches.");
+      }
+      if (retainedOriginalBatch && (!sourceWindow || result.count !== 1 || result.data.length !== 1 ||
+          result.data[0].owner_user_id !== ownerUserId || result.data[0].batch_fingerprint !== batchFingerprint ||
+          typeof result.data[0].trading_date !== "string" ||
+          result.data[0].trading_date < sourceWindow.from_trading_date ||
+          result.data[0].trading_date > sourceWindow.through_trading_date)) {
+        throw new Error("retained_original_batch_source_unavailable");
       }
       batchRows.push(...result.data);
     } else {
@@ -981,7 +993,7 @@ async function loadOfficialLiveSnapshots({
           (snapshot): snapshot is RecommendationSnapshot =>
             snapshot !== null,
         );
-      if (payload.completed_input_research_capture_version === COMPLETED_INPUT_RESEARCH_CAPTURE_VERSION ||
+      if (retainedOriginalBatch || payload.completed_input_research_capture_version === COMPLETED_INPUT_RESEARCH_CAPTURE_VERSION ||
         rawBatchSnapshots.some(snapshot => snapshot.payload_json.published_input_capture_version !== undefined)) {
         // Owner-bound durable decision is the authority, not a research marker
         // or an "official" label. No new provider work during this validation.
@@ -992,6 +1004,13 @@ async function loadOfficialLiveSnapshots({
         const decisionRecord = sourceRun ? candidateDecisionRecordFromScanRun(sourceRun) : null;
         const attributableRecord = sourceRun && decisionRecord && decisionLineageReceiptFromScanRun(sourceRun, decisionRecord)
           ? decisionRecord : null;
+        if (retainedOriginalBatch && (!sourceRun || !attributableRecord ||
+            decisionRows.data?.[0]?.owner_user_id !== ownerUserId ||
+            sourceRun.trading_date !== batch.trading_date ||
+            getNewYorkDateString(new Date(attributableRecord.decision_timestamp)) !== batch.trading_date ||
+            Date.parse(attributableRecord.decision_timestamp) > now.getTime())) {
+          throw new Error("retained_original_batch_lineage_unavailable");
+        }
         rawBatchSnapshots = rawBatchSnapshots.filter(snapshot =>
           snapshot.payload_json.published_input_capture_version !== undefined
             ? completedInputPublishedSnapshotMatchesDecision(snapshot, attributableRecord)
@@ -999,11 +1018,27 @@ async function loadOfficialLiveSnapshots({
             ? completedInputResearchSnapshotMatchesDecision(snapshot, attributableRecord)
             : batch.batch_type === "official");
       }
+      if (retainedOriginalBatch) rawBatchSnapshots = rawBatchSnapshots.filter(snapshot =>
+        expectedSnapshotFingerprints.includes(snapshot.snapshot_fingerprint) &&
+        snapshot.scan_run_id === scanRunFingerprint &&
+        (snapshot.payload_json.batch_fingerprint === undefined ||
+          snapshot.payload_json.batch_fingerprint === selectedBatchFingerprint));
       const batchSnapshots = includeGrowMaxLearningSnapshots
         ? rawBatchSnapshots
         : rawBatchSnapshots
             .filter(isOfficialOutcomeEvaluationSnapshot)
             .map(officialEvaluationSnapshot);
+      if (retainedOriginalBatch && (snapshotQueryErrors.length > 0 ||
+          expectedSnapshotFingerprints.length === 0 ||
+          expectedSnapshotFingerprints.some(fingerprint =>
+            !rawBatchSnapshots.some(snapshot => snapshot.snapshot_fingerprint === fingerprint)))) {
+        throw new Error("retained_original_batch_membership_unavailable");
+      }
+      if (retainedOriginalBatch && batchSnapshots.some(snapshot =>
+          typeof snapshot.recommended_at !== "string" || !Number.isFinite(Date.parse(snapshot.recommended_at)) ||
+          Date.parse(snapshot.recommended_at) + 60 * 60_000 > now.getTime())) {
+        throw new Error("retained_original_batch_horizon_immature");
+      }
       const foundFingerprints = new Set(
         batchSnapshots.map((snapshot) => snapshot.snapshot_fingerprint),
       );
@@ -2175,9 +2210,31 @@ export async function POST(request: Request) {
   }
 
   const recoverOriginalBacklog = body?.original_source_scope === ORIGINAL_OUTCOME_BACKLOG_SCOPE;
+  const retainedOriginalBatch = body?.original_source_scope === RETAINED_ORIGINAL_OUTCOME_BATCH_SCOPE;
+  const retainedBatchControl = retainedOriginalOutcomeBatchControlFromEnvironment({ get: name => process.env[name] });
+  if (retainedOriginalBatch || retainedBatchControl.status !== "disabled") {
+    const invocation = scheduledInvocation.status === "ready" ? scheduledInvocation.invocation : null;
+    const firedAt = invocation ? Date.parse(invocation.scheduled_function_fired_at) : NaN;
+    const slotAt = invocation ? Date.parse(invocation.scheduled_slot_at) : NaN;
+    if (!retainedOriginalBatch || retainedBatchControl.status !== "ready" || !invocation ||
+        enrichmentMode || body?.batch_fingerprint !== retainedBatchControl.batch_fingerprint ||
+        invocation.scheduled_slot_at !== retainedBatchControl.target_slot_utc ||
+        body?.scheduled_slot_at_utc !== invocation.scheduled_slot_at ||
+        invocation.outcome_evaluation_series_control !== null ||
+        body?.scheduled_function_fired_at_utc !== invocation.scheduled_function_fired_at ||
+        invocation.attempt_fingerprint !== buildScheduledOutcomeEvaluationAttemptFingerprintForSlot(new Date(slotAt)) ||
+        firedAt < slotAt || firedAt - slotAt > SCHEDULED_SCAN_PREFLIGHT_DELIVERY_GRACE_MILLISECONDS ||
+        now.getTime() < firedAt || now.getTime() - slotAt > SCHEDULED_SCAN_PREFLIGHT_DELIVERY_GRACE_MILLISECONDS ||
+        JSON.stringify(body?.horizons) !== JSON.stringify(["15m", "30m", "60m"]) ||
+        body?.max_batches !== 1 || body?.max_snapshots !== 4 ||
+        body?.max_candle_requests !== undefined || body?.snapshots !== undefined || body?.existing_outcomes !== undefined) {
+      return NextResponse.json({ code: "retained_original_batch_invocation_invalid" },
+        { status: 400, headers: { "Cache-Control": "no-store" } });
+    }
+  }
   // Only the ordinary, admitted scheduler may extend its source window. Frozen
   // one-shots/series and legacy direct calls keep their original today's scope.
-  if (body?.original_source_scope !== undefined && (
+  if (body?.original_source_scope !== undefined && !retainedOriginalBatch && (
     !recoverOriginalBacklog || scheduledInvocation.status !== "ready" || dryRun || batchFingerprint ||
     scheduledInvocation.invocation.outcome_evaluation_series_control !== null ||
     process.env.TURE_OUTCOME_EVALUATION_ONE_SHOT_ENABLED === "true" ||
@@ -2210,6 +2267,10 @@ export async function POST(request: Request) {
         horizons,
         provider_budget_limit: providerBudgetLimit,
         ...(recoverOriginalBacklog ? { original_source_window: originalOutcomeSourceWindow(now) } : {}),
+        ...(retainedOriginalBatch && retainedBatchControl.status === "ready" ? {
+          retained_original_batch: retainedBatchControl,
+          original_source_window: originalOutcomeSourceWindow(now),
+        } : {}),
         ...(scheduledInvocation.invocation.outcome_evaluation_series_control &&
         scheduledInvocation.invocation
           .outcome_evaluation_series_slot_admission
@@ -2236,6 +2297,13 @@ export async function POST(request: Request) {
     }
 
     if (claim.status !== "claimed") {
+      const priorBatchControl = objectOrNull(claim.attempt.request_json.retained_original_batch);
+      if (retainedOriginalBatch && retainedBatchControl.status === "ready" &&
+          (!priorBatchControl || ["contract_version", "batch_fingerprint", "target_date", "target_slot_utc"]
+            .some(key => priorBatchControl[key] !== retainedBatchControl[key as keyof typeof retainedBatchControl]))) {
+        return NextResponse.json({ code: "retained_original_batch_claim_scope_conflict" },
+          { status: 409, headers: { "Cache-Control": "no-store" } });
+      }
       const receipt = claim.attempt.receipt_json;
       return NextResponse.json(
         {
@@ -2283,6 +2351,7 @@ export async function POST(request: Request) {
       ? await loadOfficialLiveSnapshots({
           batchFingerprint,
           recoverOriginalBacklog,
+          retainedOriginalBatch,
           includeGrowMaxLearningSnapshots: includeLearningSnapshots,
           maxBatchesPerRun,
           now,
@@ -2332,7 +2401,7 @@ export async function POST(request: Request) {
     mode === "official_live_today" || mode === "enrich_completed_outcomes"
       ? await loadSupabaseOutcomes(
           eligibleSnapshots.map((snapshot) => snapshot.snapshot_fingerprint),
-          recoverOriginalBacklog,
+          recoverOriginalBacklog || retainedOriginalBatch,
         )
       : null;
   const existingOutcomes =
@@ -2397,7 +2466,7 @@ export async function POST(request: Request) {
   if (
     (mode === "official_live_today" || mode === "enrich_completed_outcomes") &&
     (officialSnapshotLoad?.status !== "ready" || eligibleSnapshots.length === 0 ||
-      recoverOriginalBacklog && supabaseOutcomes?.error !== null)
+      (recoverOriginalBacklog || retainedOriginalBatch) && supabaseOutcomes?.error !== null)
   ) {
     const planReferenceMetadataTrace = buildPlanReferenceMetadataTrace({
       snapshots,
@@ -2517,7 +2586,7 @@ export async function POST(request: Request) {
     };
 
     const blockedStatus =
-      officialSnapshotLoad?.status === "failed" || recoverOriginalBacklog && supabaseOutcomes?.error
+      officialSnapshotLoad?.status === "failed" || (recoverOriginalBacklog || retainedOriginalBatch) && supabaseOutcomes?.error
         ? "failed" : "blocked";
     const scheduledReceiptFinalization = scheduledAttempt
       ? await finalizeScheduledOutcomeEvaluationReceipt({
@@ -2584,11 +2653,19 @@ export async function POST(request: Request) {
   }
 
   if (scheduledAttempt) {
+    if (retainedOriginalBatch && retainedBatchControl.status === "ready") {
+      const currentControl = retainedOriginalOutcomeBatchControlFromEnvironment({ get: name => process.env[name] });
+      if (currentControl.status !== "ready" || currentControl.batch_fingerprint !== retainedBatchControl.batch_fingerprint ||
+          currentControl.target_slot_utc !== retainedBatchControl.target_slot_utc ||
+          Date.now() > Date.parse(retainedBatchControl.target_slot_utc) + SCHEDULED_SCAN_PREFLIGHT_DELIVERY_GRACE_MILLISECONDS) {
+        throw new Error("retained_original_batch_control_changed_or_expired");
+      }
+    }
     outcomeCreditGuard = await prepareBasicFreeScheduledOutcomeCreditGuard({
       planMode: providerPlanProfile.effective_mode,
       // A fully read, completed backlog has no pending provider work. Keep
       // frozen observations and every nonempty recovery on the unchanged cap.
-      maximumCandleRequests: recoverOriginalBacklog && outcomeEvaluationSnapshots.length === 0 ? 0 : providerBudgetLimit,
+      maximumCandleRequests: (recoverOriginalBacklog || retainedOriginalBatch) && outcomeEvaluationSnapshots.length === 0 ? 0 : providerBudgetLimit,
       ownerUserId: ownerPrincipal.owner_user_id,
       executionFingerprint: scheduledAttempt.attempt_fingerprint,
     });

@@ -463,6 +463,19 @@ test("packaged published original inputs survive SQL restart and canonical outco
     actual_provider_requests: 0, production_actions: 0, broker_actions: 0, quality_improvement_claimed: false });
 });
 
+test("exact-batch one-shot recovers only retained original sources while global schedules stay disabled", () => {
+  test.setTimeout(90000);
+  const proof = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--diagnose-outcomes",
+    "--relative-plan-60m", "--retained-batch-one-shot"],
+    { cwd: process.cwd(), encoding: "utf8", timeout: 80000 });
+  expect(proof.status, `${proof.stdout}\n${proof.stderr}`).toBe(0);
+  const rows = proof.stdout.trim().split("\n").map(line => JSON.parse(line));
+  expect(rows.find(row=>row.retained_original_batch_one_shot_proof)).toMatchObject({
+    retained_original_batch_one_shot_proof:"passed",original_population:8,target_batch_count:1,
+    original_sources_unchanged:true,completed_repeat_requests:0,actual_provider_requests:0,
+    production_actions:0,quality_improvement_claimed:false });
+});
+
 test("ordinary scheduled outcomes recover only budget-deferred original sources after a weekend", () => {
   test.setTimeout(90000);
   const proof = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--diagnose-outcomes", "--next-session-outcomes"],

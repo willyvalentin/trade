@@ -1,7 +1,47 @@
 import { expect, test } from "@playwright/test";
-import { originalOutcomeSourceWindow } from "@/lib/original-outcome-source-window";
+import { originalOutcomeSourceWindow, RETAINED_ORIGINAL_OUTCOME_BATCH_FLAG,
+  retainedOriginalOutcomeBatchControlFromEnvironment } from "@/lib/original-outcome-source-window";
 import { createClient } from "@supabase/supabase-js";
 import { readCompleteOriginalOutcomes } from "@/lib/original-outcome-persistence-read";
+
+const retainedBatchEnvironment: Record<string, string> = {
+  [RETAINED_ORIGINAL_OUTCOME_BATCH_FLAG]: "rec_batch_4bq7jo",
+  TURE_OUTCOME_EVALUATION_ONE_SHOT_ENABLED: "true",
+  TURE_DISABLE_SCHEDULED_FUNCTIONS: "true",
+  TURE_OUTCOME_EVALUATION_ONE_SHOT_DATE: "2026-10-07",
+  TURE_OUTCOME_EVALUATION_ONE_SHOT_SLOT_UTC: "2026-10-07T17:30:00.000Z",
+};
+function retainedControl(values: Record<string, string | undefined>) {
+  return retainedOriginalOutcomeBatchControlFromEnvironment({get: name => values[name]});
+}
+test("retained batch is absent by default and exact only under the existing one-slot controls", () => {
+  expect(retainedControl({})).toEqual({status:"disabled"});
+  expect(retainedControl(retainedBatchEnvironment)).toEqual({status:"ready",
+    contract_version:"retained_original_batch_one_shot_v1",batch_fingerprint:"rec_batch_4bq7jo",
+    target_date:"2026-10-07",target_slot_utc:"2026-10-07T17:30:00.000Z"});
+});
+for (const [name, overrides] of Object.entries({
+  empty:{[RETAINED_ORIGINAL_OUTCOME_BATCH_FLAG]:""},
+  alias:{[RETAINED_ORIGINAL_OUTCOME_BATCH_FLAG]:" rec_batch_4bq7jo "},
+  wrong_prefix:{[RETAINED_ORIGINAL_OUTCOME_BATCH_FLAG]:"batch_4bq7jo"},
+  uppercase:{[RETAINED_ORIGINAL_OUTCOME_BATCH_FLAG]:"rec_batch_A"},
+  too_long:{[RETAINED_ORIGINAL_OUTCOME_BATCH_FLAG]:`rec_batch_${"a".repeat(65)}`},
+  one_shot_off:{TURE_OUTCOME_EVALUATION_ONE_SHOT_ENABLED:"false"},
+  global_on:{TURE_DISABLE_SCHEDULED_FUNCTIONS:"false"},
+  date_missing:{TURE_OUTCOME_EVALUATION_ONE_SHOT_DATE:undefined},
+  date_drift:{TURE_OUTCOME_EVALUATION_ONE_SHOT_DATE:"2026-10-06"},
+  slot_missing:{TURE_OUTCOME_EVALUATION_ONE_SHOT_SLOT_UTC:undefined},
+  slot_alias:{TURE_OUTCOME_EVALUATION_ONE_SHOT_SLOT_UTC:"2026-10-07T17:30:00Z"},
+  slot_unaligned:{TURE_OUTCOME_EVALUATION_ONE_SHOT_SLOT_UTC:"2026-10-07T17:31:00.000Z"},
+  ...Object.fromEntries(["TURE_NORMAL_SCAN_ONE_SHOT_ENABLED", "TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_ENABLED",
+    "TURE_BASIC_FREE_CATALOG_OBSERVATION_ONE_SHOT_ENABLED", "TURE_OBSERVATION_SERIES_ENABLED",
+    "TURE_OUTCOME_EVALUATION_SERIES_ENABLED", "TURE_INTERNAL_PAPER_WORKER_ENABLED"]
+    .map(flag=>[flag,{[flag]:"true"}])),
+})) {
+  test(`retained batch configuration fails closed for ${name}`, () => {
+    expect(retainedControl({...retainedBatchEnvironment,...overrides})).toEqual({status:"invalid"});
+  });
+}
 
 test("bounded original recovery spans a weekend without changing the original date", () => {
   expect(originalOutcomeSourceWindow(new Date("2026-10-05T17:30:20Z"))).toEqual({

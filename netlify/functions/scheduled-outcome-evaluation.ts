@@ -32,7 +32,11 @@ type ScheduledOutcomeRouteModule = {
   POST?: (request: Request) => Promise<Response>;
 };
 
-import { ORIGINAL_OUTCOME_BACKLOG_SCOPE } from "../../lib/original-outcome-source-window";
+import {
+  ORIGINAL_OUTCOME_BACKLOG_SCOPE,
+  RETAINED_ORIGINAL_OUTCOME_BATCH_SCOPE,
+  retainedOriginalOutcomeBatchControlFromEnvironment,
+} from "../../lib/original-outcome-source-window";
 
 const outcomeEvaluationRoute = "/api/recommendations/evaluate-outcomes";
 const officialIntradayHorizons = ["15m", "30m", "60m"] as const;
@@ -198,6 +202,7 @@ async function invokeScheduledOutcomeRoute({
   attemptFingerprint,
   outcomeEvaluationSeriesControl,
   outcomeEvaluationSeriesSlotAdmission,
+  retainedBatchFingerprint,
 }: {
   automationSecret: string;
   recoverOriginalBacklog: boolean;
@@ -207,6 +212,7 @@ async function invokeScheduledOutcomeRoute({
   outcomeEvaluationSeriesControl: OutcomeEvaluationSeriesControl | null;
   outcomeEvaluationSeriesSlotAdmission:
     OutcomeEvaluationSeriesSlotAdmission | null;
+  retainedBatchFingerprint: string | null;
 }) {
   const routeModule = runtimeRequire(
     "../.generated/scheduled-outcome-evaluation-runtime.cjs",
@@ -226,8 +232,12 @@ async function invokeScheduledOutcomeRoute({
       body: JSON.stringify({
         mode: "official_live_today",
         ...(recoverOriginalBacklog ? { original_source_scope: ORIGINAL_OUTCOME_BACKLOG_SCOPE } : {}),
+        ...(retainedBatchFingerprint ? {
+          original_source_scope: RETAINED_ORIGINAL_OUTCOME_BATCH_SCOPE,
+          batch_fingerprint: retainedBatchFingerprint,
+        } : {}),
         horizons: officialIntradayHorizons,
-        max_batches: 5,
+        max_batches: retainedBatchFingerprint ? 1 : 5,
         max_snapshots: BASIC_FREE_SCHEDULED_OUTCOME_MAX_SNAPSHOTS_PER_RUN,
         scheduled_function_fired_at_utc: firedAtUtc,
         scheduled_slot_at_utc: scheduledSlotAtUtc,
@@ -261,6 +271,10 @@ function scheduledOutcomeEvaluationSlotFromEvent({
 }
 
 export default async function handler(request: Request, context: Context) {
+  const retainedBatchControl = retainedOriginalOutcomeBatchControlFromEnvironment(Netlify.env);
+  if (retainedBatchControl.status === "invalid") {
+    return new Response("Retained original outcome batch configuration invalid", { status: 503 });
+  }
   const oneShotControl = outcomeOneShotControlFromEnvironment(Netlify.env);
   const oneShotRequested = oneShotControl.enabled;
   const outcomeEvaluationSeriesControl =
@@ -461,6 +475,8 @@ export default async function handler(request: Request, context: Context) {
         ? outcomeEvaluationSeriesControl
         : null,
       outcomeEvaluationSeriesSlotAdmission,
+      retainedBatchFingerprint: retainedBatchControl.status === "ready"
+        ? retainedBatchControl.batch_fingerprint : null,
     });
     const body = await response.text();
 

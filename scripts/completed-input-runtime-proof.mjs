@@ -146,6 +146,9 @@ assert(!(invalidBenchmarkReuse && baselineBenchmarkReuse) &&
 const wrongPolicy = process.argv.includes("--wrong-policy");
 const diagnoseOutcomes = process.argv.includes("--diagnose-outcomes");
 const nextSessionOutcomes = process.argv.includes("--next-session-outcomes");
+const retainedBatchOneShot = process.argv.includes("--retained-batch-one-shot");
+assert(!retainedBatchOneShot || diagnoseOutcomes && process.argv.includes("--relative-plan-60m") && !nextSessionOutcomes,
+  "Retained-batch one-shot preserves the existing original-input population and synthetic outcome boundary");
 const pagedOutcomeReads = process.argv.includes("--paged-outcome-reads");
 assert(!pagedOutcomeReads || nextSessionOutcomes, "Paged reads use the same original cross-date population");
 assert(!nextSessionOutcomes || diagnoseOutcomes && !cold && !rotationDay && !process.argv.includes("--publication-clock"),
@@ -348,7 +351,7 @@ try {
     entryPoints: [resolve(root, "app/api/automation/run-scan/route.ts")], outfile: join(generated, "scheduled-scan-runtime.cjs") });
   if (diagnoseOutcomes || publishedOriginalLearning || charterComposition || lateOriginalOutcomes || fullOriginalHistorySetup) await build({ ...options, entryPoints: [resolve(root, "app/api/recommendations/evaluate-outcomes/route.ts")], outfile: join(generated, "outcome-route.cjs") });
   await build({ ...options, entryPoints: [resolve(root, "netlify/functions/scheduled-scan.ts")], outfile: join(directory, "functions/scheduled.cjs") });
-  if(nextSessionOutcomes) {
+  if(nextSessionOutcomes || retainedBatchOneShot) {
     await build({ ...options, entryPoints: [resolve(root, "netlify/functions/scheduled-outcome-evaluation.ts")],
       outfile: join(directory, "functions/scheduled-outcomes.cjs") });
     writeFileSync(join(generated,"scheduled-outcome-evaluation-runtime.cjs"),readFileSync(join(generated,"outcome-route.cjs")));
@@ -408,6 +411,7 @@ try {
       export { candidateDecisionRecordFromScanRun } from './lib/candidate-decision-readback';
       export { decisionLineageReceiptFromScanRun } from './lib/decision-lineage-receipt';
       export { selectCompletedInputResearchSamples } from './lib/completed-input-research-selection';
+      export { buildScheduledOutcomeEvaluationAttemptFingerprintForSlot } from './lib/scheduled-outcome-evaluation-receipt';
       export { buildScannerProviderCreditAllocationReconciliation } from './lib/scanner-provider-credit-allocation-reconciliation';`,
   }, outfile: join(generated, "reader.cjs") });
   const require = createRequire(import.meta.url);
@@ -473,7 +477,7 @@ try {
     "20260915222537_basic_free_discovery_credit_reservations.sql",
     "20260917135646_if2_basic_free_daily_observation_claim.sql",
     ...(preparedFirstScan ? ["20261006173541_prepared_benchmark_claim_readback.sql"] : []),
-    ...(nextSessionOutcomes ? ["20260918233411_if4_after_market_outcome_evaluation_receipts.sql"] : []),
+    ...(nextSessionOutcomes || retainedBatchOneShot ? ["20260918233411_if4_after_market_outcome_evaluation_receipts.sql"] : []),
     ...(charterComposition || fullOriginalHistorySetup ? ["20261002213547_if4_relative_plan_prospective_comparison.sql",
       "20261002233358_if4_relative_plan_trained_probability_model.sql",
       "20261003015239_if4_relative_plan_charter_result.sql",
@@ -554,7 +558,7 @@ try {
       const values = [];
       if (intraday) {
         assert.equal(interval,"5min");
-        const providerEnd=lateOriginalOutcomes || fullOriginalHistorySetup || nextSessionOutcomes ? Math.min(clock,OriginalDate.parse("2026-10-01T20:00:00Z")) : clock;
+        const providerEnd=lateOriginalOutcomes || fullOriginalHistorySetup || nextSessionOutcomes || retainedBatchOneShot ? Math.min(clock,OriginalDate.parse("2026-10-01T20:00:00Z")) : clock;
         for (let time=OriginalDate.parse("2026-10-01T13:30:00Z"); time<providerEnd; time+=300000) {
           const datetime=new Intl.DateTimeFormat("sv-SE",{timeZone:"America/New_York",
             year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(new OriginalDate(time));
@@ -2665,6 +2669,139 @@ try {
     }
     assert(record.candidates.every(c=>c.data.source_timestamp===null || Date.parse(c.data.source_timestamp)<=Date.parse(record.decision_timestamp)));
     assert.equal(lineage.scan_run_fingerprint,scanRuns[0].run_fingerprint);
+    if(retainedBatchOneShot) {
+      const originalSources = sql("select jsonb_build_object('runs',(select jsonb_agg(t order by id) from recommendation_scan_runs t),'batches',(select jsonb_agg(t order by id) from recommendation_batches t),'snapshots',(select jsonb_agg(t order by id) from recommendation_snapshots t));");
+      const targetBatch = JSON.parse(sql("select row_to_json(t) from recommendation_batches t order by id limit 1;"));
+      clock = OriginalDate.parse("2026-10-05T17:30:20.000Z");
+      process.env.TURE_DISABLE_SCHEDULED_FUNCTIONS = "true";
+      process.env.TURE_OBSERVATION_SERIES_ENABLED = "false";
+      process.env.TURE_OUTCOME_EVALUATION_ONE_SHOT_ENABLED = "true";
+      process.env.TURE_OUTCOME_EVALUATION_ONE_SHOT_DATE = "2026-10-05";
+      process.env.TURE_OUTCOME_EVALUATION_ONE_SHOT_SLOT_UTC = "2026-10-05T17:30:00.000Z";
+      process.env.TURE_OUTCOME_EVALUATION_ONE_SHOT_BATCH_FINGERPRINT = targetBatch.batch_fingerprint;
+      const before = externalRequests;
+      const sourceRows = JSON.parse(originalSources);
+      const originalTargetSlot = process.env.TURE_OUTCOME_EVALUATION_ONE_SHOT_SLOT_UTC;
+      const setSlot = slot => {
+        process.env.TURE_OUTCOME_EVALUATION_ONE_SHOT_SLOT_UTC = slot;
+        clock = OriginalDate.parse(slot)+20000;
+      };
+      const invoke = () => require(join(directory,"functions/scheduled-outcomes.cjs")).default(
+        new Request("http://closed-fixture/.netlify/functions/scheduled-outcome-evaluation", {
+          method:"POST",body:JSON.stringify({next_run:new OriginalDate(OriginalDate.parse(process.env.TURE_OUTCOME_EVALUATION_ONE_SHOT_SLOT_UTC)+900000).toISOString()}) }),
+        {deploy:{id:identity.deploy_id,context:"production",published:true},site:{id:identity.site_id}});
+      const requestBody = () => ({mode:"official_live_today",original_source_scope:"retained_original_batch_one_shot_v1",
+        batch_fingerprint:targetBatch.batch_fingerprint,horizons:["15m","30m","60m"],max_batches:1,max_snapshots:4,
+        scheduled_function_fired_at_utc:new OriginalDate(clock).toISOString(),
+        scheduled_slot_at_utc:process.env.TURE_OUTCOME_EVALUATION_ONE_SHOT_SLOT_UTC,
+        scheduled_outcome_evaluation_attempt_fingerprint:readers.buildScheduledOutcomeEvaluationAttemptFingerprintForSlot(
+          new OriginalDate(process.env.TURE_OUTCOME_EVALUATION_ONE_SHOT_SLOT_UTC))});
+      const route = (body, secret=environment.AUTOMATION_SECRET) => require(join(generated,"outcome-route.cjs")).POST(
+        new Request("http://closed-fixture/api/recommendations/evaluate-outcomes",{method:"POST",
+          headers:{"x-automation-secret":secret,"Content-Type":"application/json"},body:JSON.stringify(body)}));
+      const invalidInvocations = {
+        missing_target:{batch_fingerprint:undefined}, wrong_target:{batch_fingerprint:"rec_batch_another"},
+        target_alias:{batch_fingerprint:` ${targetBatch.batch_fingerprint} `}, wrong_scope:{original_source_scope:"trailing_seven_ny_dates_v1"},
+        no_scope:{original_source_scope:undefined}, wrong_slot:{scheduled_slot_at_utc:"2026-10-05T17:45:00.000Z"},
+        slot_alias:{scheduled_slot_at_utc:"2026-10-05T17:30:00Z"}, forged_attempt:{scheduled_outcome_evaluation_attempt_fingerprint:"scheduled_outcome_evaluation_forged"},
+        direct_call:{scheduled_function_fired_at_utc:undefined,scheduled_slot_at_utc:undefined,scheduled_outcome_evaluation_attempt_fingerprint:undefined},
+        dry_run:{dry_run:true}, enrichment:{enrich_completed_outcomes:true}, wrong_horizon:{horizons:["eod"]},
+        enlarged_population:{max_batches:5}, enlarged_snapshot_cap:{max_snapshots:5}, caller_budget:{max_candle_requests:25},
+        supplied_snapshots:{snapshots:researchSnapshots}, supplied_outcomes:{existing_outcomes:[]},
+      };
+      for (const [name,override] of Object.entries(invalidInvocations)) {
+        const denied=await route({...requestBody(),...override});
+        assert.equal(denied.status,400,`${name}:${JSON.stringify(await denied.json())}`);
+      }
+      assert.equal((await route(requestBody(),"wrong-secret")).status,401);
+      assert.equal(Number(sql("select count(*) from scheduled_outcome_evaluation_attempts;")),0);
+      assert.equal(externalRequests,before);
+      // Actual persisted source failures must stop before a reservation or
+      // provider call. Every fault uses a different isolated scheduled slot;
+      // a terminal failure is never deleted/retried under the same identity.
+      const sourceFaults = [
+        ["missing_target",()=>{process.env.TURE_OUTCOME_EVALUATION_ONE_SHOT_BATCH_FINGERPRINT="rec_batch_missing";},()=>{process.env.TURE_OUTCOME_EVALUATION_ONE_SHOT_BATCH_FINGERPRINT=targetBatch.batch_fingerprint;}],
+        ["expired_source",()=>sql(`update recommendation_batches set trading_date='2026-09-28' where id='${targetBatch.id}';`),()=>sql(`update recommendation_batches set trading_date='${targetBatch.trading_date}' where id='${targetBatch.id}';`)],
+        ["future_source",()=>sql(`update recommendation_batches set trading_date='2026-10-06' where id='${targetBatch.id}';`),()=>sql(`update recommendation_batches set trading_date='${targetBatch.trading_date}' where id='${targetBatch.id}';`)],
+        ["wrong_owner",()=>{process.env.TURE_APPLICATION_OWNER_USER_ID="00000000-0000-4000-8000-000000000002";},()=>{process.env.TURE_APPLICATION_OWNER_USER_ID=owner;}],
+        ["missing_lineage",()=>sql("update recommendation_scan_runs set payload_json=payload_json-'decision_lineage_receipt';"),()=>{for(const row of sourceRows.runs) sql(`update recommendation_scan_runs set payload_json='${JSON.stringify(row.payload_json).replaceAll("'","''")}'::jsonb where id='${row.id}';`);}],
+        ["missing_member",()=>sql(`delete from recommendation_snapshots where id='${researchSnapshots[0].id}';`),()=>sql(`insert into recommendation_snapshots select * from jsonb_populate_record(null::recommendation_snapshots,'${JSON.stringify(researchSnapshots[0]).replaceAll("'","''")}'::jsonb);`)],
+      ];
+      for (const [index,[name,mutate,restore]] of sourceFaults.entries()) {
+        setSlot(new OriginalDate(OriginalDate.parse("2026-10-05T13:30:00.000Z")+index*900000).toISOString());
+        mutate();
+        const denied=await invoke(),deniedBody=await denied.json();
+        assert([200,503].includes(denied.status),`${name}:${JSON.stringify(deniedBody)}`);
+        assert.equal(deniedBody.evaluated_snapshot_count??0,0,name);
+        assert.equal(externalRequests,before,name);
+        assert.equal(Number(sql("select count(*) from recommendation_outcomes;")),0,name);
+        assert.equal(Number(sql("select count(*) from basic_free_discovery_credit_reservations where trading_date='2026-10-05';")),0,name);
+        restore();
+      }
+      setSlot(originalTargetSlot);
+      const response = await invoke(), result = await response.json();
+      assert.equal(response.status,200,JSON.stringify(result));
+      assert.equal(externalRequests-before,Math.min(4,researchSnapshots.length),
+        "The native exact-batch one-shot must recover the retained original horizon, not silently select today's empty population");
+      assert.equal(Number(sql("select count(*) from recommendation_outcomes;")),Math.min(4,researchSnapshots.length)*3);
+      assert.equal(sql("select jsonb_build_object('runs',(select jsonb_agg(t order by id) from recommendation_scan_runs t),'batches',(select jsonb_agg(t order by id) from recommendation_batches t),'snapshots',(select jsonb_agg(t order by id) from recommendation_snapshots t));"),originalSources);
+      assert.equal((await invoke()).status,200);
+      assert.equal(externalRequests-before,Math.min(4,researchSnapshots.length));
+      const firstOutcomes=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_outcomes t;"));
+      const firstAttempt=JSON.parse(sql(`select row_to_json(t) from scheduled_outcome_evaluation_attempts t where scheduled_slot_at='${originalTargetSlot}';`));
+      assert.equal(firstAttempt.request_json.retained_original_batch.batch_fingerprint,targetBatch.batch_fingerprint);
+      assert.equal(firstAttempt.receipt_json.scope.selected_batch_fingerprint,targetBatch.batch_fingerprint);
+      assert.equal(firstAttempt.receipt_json.cost.candle_requests_executed,4);
+      // A changed target cannot reuse a previously claimed slot as if that
+      // receipt belonged to another source. No second provider dispatch.
+      process.env.TURE_OUTCOME_EVALUATION_ONE_SHOT_BATCH_FINGERPRINT="rec_batch_other";
+      assert.equal((await invoke()).status,409);
+      process.env.TURE_OUTCOME_EVALUATION_ONE_SHOT_BATCH_FINGERPRINT=targetBatch.batch_fingerprint;
+      setSlot("2026-10-05T17:45:00.000Z");
+      const resumed=await invoke(),resumedBody=await resumed.json();
+      assert.equal(resumed.status,200,JSON.stringify(resumedBody));
+      const completed=JSON.parse(sql("select coalesce(jsonb_agg(t order by id),'[]') from recommendation_outcomes t;"));
+      assert.equal(completed.length,researchSnapshots.length*3);
+      assert.equal(externalRequests-before,researchSnapshots.length);
+      for(const row of firstOutcomes) assert.deepEqual(completed.find(value=>value.id===row.id),row);
+      assert(completed.every(row=>row.evaluated_at.startsWith("2026-10-05") &&
+        row.payload_json.canonical_provider_coverage.horizon_elapsed===true));
+      delete require.cache[require.resolve(join(generated,"scheduled-outcome-evaluation-runtime.cjs"))];
+      assert.equal((await invoke()).status,200);
+      setSlot("2026-10-05T18:00:00.000Z");
+      assert.equal((await invoke()).status,200);
+      assert.equal(externalRequests-before,researchSnapshots.length);
+      assert.deepEqual(JSON.parse(sql("select coalesce(jsonb_agg(t order by id),'[]') from recommendation_outcomes t;")),completed);
+      const credits=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from basic_free_discovery_credit_reservations t where trading_date='2026-10-05';"));
+      assert.equal(credits.length,2);
+      assert(credits.every(row=>row.requested_credits===4 && row.status==="completed" && row.provider_attempted && row.finalized_at));
+      const outcomeRequests=syntheticRequestEvidence.filter(value=>value.requested_at.startsWith("2026-10-05"));
+      assert.equal(outcomeRequests.length,researchSnapshots.length);
+      assert(outcomeRequests.every(value=>value.start_date.startsWith("2026-10-01") && value.end_date.startsWith("2026-10-01")));
+      delete require.cache[require.resolve(join(generated,"reader.cjs"))];
+      const consumer=require(join(generated,"reader.cjs"));
+      const ownerSource=consumer.parseRecommendationLearningBaselineSource((await consumer.readRecommendationLearningBaselineSource(owner)).data);
+      const continuity=consumer.buildRecommendationLearningBaselineReadiness(ownerSource).relative_plan_context_outcomes[0];
+      assert.equal(continuity.original_population_count,8);
+      assert.equal(continuity.canonical_outcome_count,researchSnapshots.length);
+      assert.equal(continuity.missing_outcome_count,8-researchSnapshots.length);
+      assert.equal(continuity.quality_improvement_claimed,false);
+      assert.equal((await consumer.readRecommendationLearningBaselineSource("00000000-0000-4000-8000-000000000002")).data.recommendation_outcomes.length,0);
+      clock=OriginalDate.parse(process.env.TURE_OUTCOME_EVALUATION_ONE_SHOT_SLOT_UTC)+180001;
+      assert.equal((await invoke()).status,503);
+      assert.equal(externalRequests-before,researchSnapshots.length);
+      assert.equal(sql("select jsonb_build_object('runs',(select jsonb_agg(t order by id) from recommendation_scan_runs t),'batches',(select jsonb_agg(t order by id) from recommendation_batches t),'snapshots',(select jsonb_agg(t order by id) from recommendation_snapshots t));"),originalSources);
+      originalLog(JSON.stringify({retained_original_batch_one_shot_proof:"passed",original_population:8,
+        target_batch_count:1,synthetic_outcome_requests:externalRequests-before,reserved_credits:8,
+        invocation_negative_controls:Object.keys(invalidInvocations).length,source_negative_controls:sourceFaults.length,
+        original_sources_unchanged:true,restarted_owner_read:true,original_horizons_retained:true,expiry_verified:true,
+        completed_repeat_requests:0,actual_provider_requests:0,production_actions:0,quality_improvement_claimed:false}));
+      for(const key of ["TURE_OUTCOME_EVALUATION_ONE_SHOT_DATE","TURE_OUTCOME_EVALUATION_ONE_SHOT_SLOT_UTC","TURE_OUTCOME_EVALUATION_ONE_SHOT_BATCH_FINGERPRINT"]) delete process.env[key];
+      process.env.TURE_OUTCOME_EVALUATION_ONE_SHOT_ENABLED = "false";
+      process.env.TURE_OBSERVATION_SERIES_ENABLED = "true";
+      externalRequests = before;
+      clock = OriginalDate.parse(slot)+20000;
+    }
     if(diagnoseOutcomes) {
       assert.equal(researchSnapshots.length,cold?3:6,
         "Fresh, non-published versioned inputs must retain research sources throughout the regular session");
@@ -2851,7 +2988,7 @@ try {
       externalRequests=before;
       clock=OriginalDate.parse(slot)+20000;
     }
-    if(diagnoseOutcomes) {
+    if(diagnoseOutcomes && !retainedBatchOneShot) {
       assert.equal(ownerRead.data.recommendation_snapshots.length,researchSnapshots.length);
       assert.equal(otherRead.data.recommendation_snapshots.length,0);
       // A separate, explicit synthetic future boundary supplies outcome bars.
