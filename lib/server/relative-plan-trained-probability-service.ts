@@ -10,6 +10,7 @@ import { buildRelativePlanTrainedProbabilityModel } from "@/lib/server/relative-
 import { relativePlanRetainedTrainingCandleConflict } from "@/lib/server/relative-plan-retained-outcome-admission";
 import { relativePlanTrainedProbabilityStore, type RelativePlanTrainedProbabilityStoreResult } from "@/lib/server/relative-plan-trained-probability-store";
 import { relativePlanOriginalInputConflict } from "@/lib/server/relative-plan-original-input-admission";
+import { relativePlanOriginalRegimeContextClockConflict } from "@/lib/server/relative-plan-original-regime-admission";
 
 type Dependencies = {
   prospectiveStore: typeof relativePlanProspectiveStore;
@@ -76,6 +77,8 @@ export function createRelativePlanTrainedProbabilityService(d: Dependencies = de
       }
       const inputConflict = await relativePlanOriginalInputConflict(candidate.trained_model.retained_training_source.scanRuns);
       if (inputConflict) return unavailable(`trained_probability_${inputConflict}`);
+      const contextConflict = relativePlanOriginalRegimeContextClockConflict(candidate.trained_model.retained_training_source);
+      if (contextConflict) return unavailable(`trained_probability_${contextConflict}`);
       const candleConflict = relativePlanRetainedTrainingCandleConflict(candidate.trained_model);
       if (candleConflict) {
         // Keep the whole original population in storage. Never drop or relabel

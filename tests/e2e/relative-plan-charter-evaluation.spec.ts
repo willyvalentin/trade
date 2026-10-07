@@ -107,6 +107,7 @@ test("actual persisted original sources, DB-attested model and runtime feed a re
     new_training_rejects_contradictory_retained_candles_before_storage: true,
     new_training_rejects_submillisecond_candle_grid_before_storage: true,
     new_training_rejects_submillisecond_event_clock_before_storage: true,
+    new_training_rejects_future_original_regime_context_before_storage: true,
     valid_legacy_candles_keep_complete_training_population: true, sealed_model_ignores_later_mutable_candles: true,
     durable_terminal_result_verified: false, quality_improvement_verified: false,
     provider_requests: 0, production_writes: 0, broker_actions: 0 });

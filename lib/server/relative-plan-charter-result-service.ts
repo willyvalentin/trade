@@ -16,6 +16,7 @@ import { relativePlanCompleteResponseFitsTransport } from "@/lib/server/relative
 import { relativePlanOriginalInputConflict } from "@/lib/server/relative-plan-original-input-admission";
 import { relativePlanRetainedOutcomeCandleConflict, relativePlanRetainedTrainingCandleConflict } from "@/lib/server/relative-plan-retained-outcome-admission";
 import { canonicalOutcomeProviderCoverageQuality } from "@/lib/recommendation-outcome-canonical-coverage";
+import { relativePlanOriginalRegimeContextClockConflict } from "@/lib/server/relative-plan-original-regime-admission";
 
 type Dependencies = { prospectiveStore: typeof relativePlanProspectiveStore;
   modelStore: typeof relativePlanTrainedProbabilityStore; resultStore: typeof relativePlanCharterResultStore;
@@ -126,6 +127,13 @@ export function createRelativePlanCharterResultService(d: Dependencies = depende
         const at = row.recommended_at === null ? NaN : Date.parse(row.recommended_at);
         return !Number.isFinite(at) || at < Date.parse(trainingWindow.start_at) || at >= Date.parse(trainingWindow.end_at);
       });
+      const forwardRuns = scoped.scanRuns.filter(row => {
+        const at = Date.parse(candidateDecisionRecordFromScanRun(row)?.decision_timestamp ?? "");
+        return !Number.isFinite(at) || at < Date.parse(trainingWindow.start_at) || at >= Date.parse(trainingWindow.end_at);
+      });
+      const contextConflict = relativePlanOriginalRegimeContextClockConflict(model.receipt.trained_model.retained_training_source) ??
+        relativePlanOriginalRegimeContextClockConflict({ scanRuns: forwardRuns, snapshots: forwardSnapshots });
+      if (contextConflict) return unavailable(`relative_plan_result_${contextConflict}`);
       for (const outcome of scoped.outcomes) {
         // Missing/partial acquisition is already an explicit measurement gap,
         // not an assertion that original candles prove a complete label.
