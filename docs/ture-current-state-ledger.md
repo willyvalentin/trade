@@ -107,6 +107,15 @@ update this SAME followup after source/scan arming for terminal scan and then
 outcome/cleanup; remove after verified inert completion/no_go. No new streams.
 
 Readiness remains `not_yet_ready`. Native cross-phase proof and actual8table ACL
+are supplemented by the completed SAME-outcome CLOSED check11:59:08–11:59:29Z:
+actual packaged scan/outcome owner-SDK rows retain8/8 original arithmetic matches
+and8/8 mature60m outcomes through unchanged NEW-learning input/regime/candle
+admission. Three in-memory clock/candle contradictions are denied; original DB
+rows unchanged, wrong-owner empty, owned isolation cleaned. No model/result,
+product/schema/production write, cohort filtering or new hypothesis. Stop this
+support check here; real Oct7 fitness and full charter remain unproven. Receipt:
+`/private/tmp/ture-oct7-produced-source-learning-admission-closed-probe.receipt.json`.
+The existing readiness evidence and actual8table ACL
 are recorded in `/private/tmp/ture-oct7-cross-phase-deploy-closed-probe.receipt.json`
 and `/private/tmp/ture-oct7-relevant-production-table-acls.receipt.json`.
 The old13:45Z card retains8fresh but0/8assessed relative contexts
@@ -115,6 +124,22 @@ remains. Synthetic outcomes, unavailable upstream provider version and legacy-in
 diagnostics do not establish real Oct7 fitness, quality or IF5. Pass requires actual
 8/8complete input and all original eligible-plan→canonical60m linkage, never forced
 recommendations or relabelled gaps. The retained early-card state below is history.
+
+**Scan-phase release preparation — same card, no activation yet.** Codex prepares
+the existing observation branch as one normal main-targeted PR with `[skip netlify]`
+head/title, suppressing preview/branch publications. Its ledger change binds the
+already approved Oct7 scan slot/input policy; product/test/SQL/workflow/lock bytes
+remain identical to e7. Existing classifier excludes this program-control ledger,
+so all6 protected groups/aggregate/candidate provenance remain mandatory. Actual
+last product CI37602825072 took57m20s (09:45:43–10:43:03Z): start validation early,
+not after source preparation. Hold merge/config/publication until actual frozen
+history/capacity/inert/schema gates pass. No quota consumed or environment change
+by this preparation; actual phase commit/deploy is unknown until normal release.
+After scan-phase main is accepted, prepare outcome-phase CI on that exact base;
+only publish after terminal scan/readback and non-overlap. Prepare cleanup CI on
+outcome-phase main while its runtime remains untouched, then publish cleanup only
+after expiry. No stale-base reuse, fourth publication, retry or deadline extension;
+delay or drift that prevents timely accepted readiness means no_go/safe cleanup.
 
 **Direct human migration mandate, Oct7 08:02Z:** exact #739 SQL is approved; future
 roadmap-scoped migrations need no repeated human approval. Exact-source review,
