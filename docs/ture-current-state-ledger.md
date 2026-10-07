@@ -26,25 +26,30 @@ acceptance remains in the roadmap and delivery rules in governance.
   still zero in that observation. These are individual observations, not a weekly
   aggregate or accepted quality. See [#735](https://github.com/willyvalentin/trade/pull/735)
   and [#738](https://github.com/willyvalentin/trade/pull/738).
-- **Repository/environment snapshot:** [#739](https://github.com/willyvalentin/trade/pull/739)
-  and [#741](https://github.com/willyvalentin/trade/pull/741) are normally protected
-  merged. Current main `e7b9999d0b17911054387f2a4eb5cc1c77d0ae76` has exact tested
-  tree `47e0ffe5fdf73fc5c8f47ca535951e35ffdbb881`; all six/aggregate/candidate in
-  37602825072/attempt1 and actual post-merge artifact11478198438 in37612040403 match.
-  Git production `6ac6281cb449e7000764336f` published11:08:58Z; owner-inert HTTP
-  verified11:10Z, zero active reservations. #741 changed no SQL. Selected #738/#739
-  read-RPC bodies/OIDs/service-only ACL and migration mapping revalidated11:12Z;
-  direct claim-table SELECT remains denied. No source acquisition or OPEN yet.
+- **Repository/environment snapshot:** [#742](https://github.com/willyvalentin/trade/pull/742)
+  is normally protected merged13:18:29Z as main
+  `4ca44b164f01f9f47286a34737218dc804d663d3`, tested tree
+  `8a8c6164cfb0c453ac9f9844462822d0d19a87e7`. All six/aggregate/candidate in
+  37618408635/attempt1 and actual artifact11483946390 match; post-merge
+  37627468189/artifact11485080754 is success/matched. Automatic Git production
+  `6ac646a70907e9000800b786` published13:19:17.903Z. Owner runtime verified
+  13:21:43.267Z: global disable=true, only exact Oct7 normal one-shot enabled,
+  other modes off, zero active claims. The complete95+2 history preparation
+  used97 credits in13 accounted batches, plus one meter credit, ending13:11:18Z.
+  This is phase1/3 publication and preparation, not a scan result or quality pass.
+  Product/test/SQL/workflow bytes are unchanged from #741. Selected schema/RPC/
+  service-only ACL/migration mappings revalidated13:14:40Z; direct claim-table
+  SELECT remains denied. Receipt `/private/tmp/ture-pr742-later-scan-phase-release-oct7.receipt.json`.
 
 ### Now / Next / Blocked
 
 | Slot | Selected action and exit |
 | --- | --- |
-| Now — intelligence primary, Codex | #741 is code-release/inert verified, not quality accepted. The directly approved NEW prospective Oct7 card prepares14:45, scans16:30 and selects at most2 mature outcomes17:45/18:00, cleanup by18:45 CEST; same114 Twelve Data and45+15 hosting caps. The same followup is ACTIVE for14:45. Later14:30Z→15:45/16:00Z chain is CLOSED verified with distinct deploys/RLS/RPC, not real market fitness. Old first-quarter card remains terminal no_go,0requests. Fresh preparation/capacity/phase binding still required; preserve all originals, policies and broker boundary. |
+| Now — intelligence primary, Codex | NEW later Oct7 card has real97/97 completed histories/98 preparation credits and verified exact #742 scan-phase production. One normal scheduled scan16:30 CEST, expiry16:45, original IBM/DDOG/TGT/V/UNP/MRK/CRWD/AVGO; existing completed-input policy selected, no forced recommendation. Prepare only outcome-phase protected PR/CI on current main4ca while leaving live scan configuration unchanged. No outcome config/merge/publication until actual terminal scan/owner readback and non-overlap. At most2 mature outcomes17:45/18:00; cleanup verified by18:45. Same114 provider/3 publications45+compute≤15 caps. Same followup moves to terminal scan/phase change, not new preparation. |
 | CLOSED capacity result — same outcome, Codex | Investigation07:22–07:58Z completed read-only, within4h. Saturated26×8 original snapshots require at least52 outcome selections at4/run, but current cadence has32 runs/128 snapshots; full same-day coverage is infeasible. Concurrent scan8+outcome4 cannot fit shared8/minute. Daily514 is a conservative one-collection bound, not actual cost or whole-chain acceptance. Real bounded observation remains unknown pending release/schema/runtime and fresh provider/hosting capacity; no acquisition or cadence change selected. |
 | Next eligible OPEN | Use one prospective card under the OPEN contract only after relevant production-equivalent CLOSED proof, capacity and existing authority are satisfied. Verify the declared complete-input criterion and exact original outcome linkage, preserving the old Oct 5/6 results. New failure requires diagnosis/corrected readiness, not an identical retry. |
 | Next scientific outcome | Retain/freeze the selected comparison prospectively, obtain a pre-forward committed training model and complete original held-out/walk-forward evidence, then the full charter disposition. Missing evidence gets a bounded recovery or explicit stop; it never becomes a quality pass. |
-| Blocked / parked | Real complete-input acceptance, useful forward quality and IF-5 remain unproven. The human reports1560 remaining Netlify credits; the ordinary included-quota publication hold is resolved. Fresh shared Twelve Data capacity and preparation/phase readiness remain pending. New autonomous paper, broker and options expansion stay behind the intelligence gate. #230 does not select a parallel CI transition. |
+| Blocked / parked | Real same-session complete-input acceptance, canonical original outcome continuity, useful forward quality and IF-5 remain unproven. Actual Basic800/8 meter and complete preparation are now observed, not reserved future shared capacity; remaining scan/outcome budget≤16 credits. Human reports1560 Netlify credits; phase1/3 is published, actual billing debit is not independently read. New autonomous paper, broker and options expansion stay behind the intelligence gate. #230 does not select a parallel CI transition. |
 
 The primary implementation owner remains **Codex**. Preserved composition branch:
 `codex/oct7-learning-current-main-composition`, starting from verified main8efe;
@@ -67,6 +72,29 @@ Capacity receipt: `/private/tmp/ture-oct7-whole-chain-capacity.receipt.json`.
 Next: execute only the newly frozen preparation/observation card below when its real
 time/capacity/runtime gates hold. The earlier114-credit illustration was not authority;
 this card follows the full goal and direct Oct7 after-open testing instruction.
+
+**Current phase2 preparation, not activation — Oct7 13:22Z, Codex.** Branch
+`codex/oct7-later-original-mature-outcomes` starts from exact accepted scan-phase
+main4ca. Only this compact ledger changes; code, tests, SQL, lockfile, scheduler and
+workflow remain identical. Normal protected candidate CI is prepared in advance
+because the preceding full run required56m48s. This is the SAME approved card,
+not an additional publication/source experiment. Keep current scan runtime
+unchanged while CI runs. Phase2 merge/configuration/publication remains held until
+actual terminal14:30Z scan, owner-only original decision/input/plan readback, zero
+active/unknown claims, cost and exact maturity/lineage evidence. Disable normal
+scan first, then set the existing same-date outcome series15:45–16:15Z, max2
+attempts/max8 credits (≤4 per attempt), enabling last. No manual outcome route or
+provider retry; invalid/unobservable originals remain denominator gaps. Bind the
+actual phase2 SHA/deploy to identical accepted product bytes. Immediately after
+accepted phase2 main/deploy, prepare normal cleanup candidate CI in advance, but
+publish cleanup only after16:15Z expiry and verify inert/0claims by16:45Z. Preserve
+operation-owned after-state IDs in
+`/private/tmp/ture-oct7-later-scan-phase-environment.final.receipt.json` and restore
+only exact matching temporary values, never unrelated contexts/baselines. No
+fourth publication, scope rewrite, new automation, migration, model or broker.
+The local phase1 readback comparator's nonexistent field was corrected to the
+unchanged declared `completed_history_reserved_credits`; no product defect,
+CI rerun, production rewrite or paid redispatch resulted.
 
 **Oct7 NEW later source→mature-outcome card, Codex.** The direct human answered
 "Ja, använd det verifierade senare tidskortet" to the exact changed-times question.
