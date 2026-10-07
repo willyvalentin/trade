@@ -2,7 +2,7 @@
 
 <a id="current-delivery-board"></a>
 <!-- BEGIN CURRENT DELIVERY BOARD -->
-## Active Now / Next / Blocked — 2026-10-07 20:04Z
+## Active Now / Next / Blocked — 2026-10-07 20:10Z
 
 This is the only work-selection queue. Material after END is immutable dated
 evidence, not an active selection. Master-roadmap acceptance and governance bind.
@@ -60,7 +60,7 @@ evidence, not an active selection. Master-roadmap acceptance and governance bind
 
 | Slot | Selected action and exit |
 | --- | --- |
-| Now — main-only regression integration | NEW1930Z card is terminal skipped/cleanupverified, never restarted. Actual canonical/matching scheduler delivery admitted; backend correctly rejected `closing_soon_cutoff` before provider/originaldecision. Operator readiness missed that separate gate. NEW CLOSED Oct1/NY15:30 normaloneShot reproduces1rejected/no_request cycle,0claims/inputs/decisions/providerrequests, owner restart and expiry; this is NOT0/8 or evaluatedno_trade. Both existing closing research-only cases retain their original3/8 synthetic inputs.106different affected local cases pass; types/nonincremental and lint0errors/8oldwarnings pass. Exact Linux build and fresh protected six-group/candidate CI remain required. Integrate only harness/test/currentboard with `[skip netlify]`, no production/schema/policy change. Receipt `/private/tmp/ture-oct7-closing-gate-local-acceptance.receipt.json`. Same investigation from19:44Z; then stop this supporting stream and resume full-eight input→canonical outcomes. |
+| Now — main-only regression integration | NEW1930Z card is terminal skipped/cleanupverified, never restarted. Actual canonical/matching scheduler delivery admitted; backend correctly rejected `closing_soon_cutoff` before provider/originaldecision. Operator readiness missed that separate gate. NEW CLOSED Oct1/NY15:30 normaloneShot reproduces1rejected/no_request cycle,0claims/inputs/decisions/providerrequests, owner restart and expiry; this is NOT0/8 or evaluatedno_trade. Both existing closing research-only cases retain their original3/8 synthetic inputs.106different affected local cases pass; types/nonincremental and lint0errors/8oldwarnings pass. Exact clean Linux build on c9c3678f and4native-consumer checks pass20:10Z, no network/productioncredentials; subsequent change is this board only. Fresh protected six-group/candidate CI remains required. Integrate only harness/test/currentboard with `[skip netlify]`, no production/schema/policy change. Receipts `/private/tmp/ture-oct7-closing-gate-local-acceptance.receipt.json` and `/private/tmp/ture-oct7-closing-gate-exact-linux-build.receipt.json`. Same investigation from19:44Z; then stop this supporting stream and resume full-eight input→canonical outcomes. |
 | Primary input chain — CLOSED preserved | Existing owner-prepared first-scan case also passes on the NEW harness:95equities+2benchmarks,8/8complete original inputs,8synthetic scanrequests/0benchmarkrequests, production-like direct-claim SELECT denial/service-only RPC,20source/10claim controls and restarted owner read. No prior regular decision or new product change. This is synthetic CLOSED acceptance, not actualOct7 input fitness or quality. The realOct6 original trace remains3/8, five`daily_refresh_credit_cap_reached` gaps; its paid identities/rows are immutable. |
 | Actual cost/readiness | Newcard spent1metercredit,0scan/providercredits; actual target97old historyreservations only/1terminalskippedattempt/0claims. Both2/2normalGitpublications completed on identicalmain (30publicationcredits+≤10compute ceiling; actual hostingdebit unknown). Old98preparationcredits remain separate,99knownhistory/metercredits across today. No newhistories/outcomes/retries/broker. Human reports1560Netlifycredits; no purchase/top-up/planchange. |
 | Readback and stop | Frozen full-eight native original record/lineage, original clocks/source/archive, each fresh/missing/UNKNOWN feature, actual attempt/cost and owner readback. A complete native no_trade can pass operations, never data/quality by implication. Missing execution is missing_result, not measured0/8. Native replay match is not input fitness. Explicit pre-result criteria: `/private/tmp/ture-oct7-2130-acceptance-addendum.json`. |
@@ -86,7 +86,7 @@ The11-session/64scan/2102TD example is not scheduled, not a forecast or authorit
 Actual unchanged Git-revision normal publication is verified for BOTH NEW
 scan andcleanup phases. No pooling of changed Git candidates or qualityclaim.
 
-### Weekly outcome scorecard — 2026-10-07 20:04Z
+### Weekly outcome scorecard — 2026-10-07 20:10Z
 
 | Measure | Actual evidence / gap |
 | --- | --- |
