@@ -107,6 +107,27 @@ test(`closing regular-session analysis retains ${strongInput ? "directional" : "
     actual_provider_requests:0,production_actions:0,broker_actions:0,cleanup:"inert"});
 });
 }
+// The Oct7 operator admitted the scheduler but did not check the downstream
+// generation gate. This is not the observationSeries research-only case above.
+test("closing cutoff rejects an admitted normal one-shot before input acquisition without inventing no_trade", () => {
+  test.setTimeout(90000);
+  const proof=spawnSync(process.execPath,["scripts/completed-input-runtime-proof.mjs",
+    "--cold","--closing","--closing-normal-one-shot"],
+    {cwd:process.cwd(),encoding:"utf8",timeout:80000});
+  expect(proof.status,`${proof.stdout}\n${proof.stderr}`).toBe(0);
+  const evidence=JSON.parse(proof.stdout.trim().split("\n").at(-1)!);
+  expect(evidence).toMatchObject({scenario:"closing_normal_one_shot_pre_provider_skip",
+    scheduler_admitted:true,backend_block_reason:"closing_soon_cutoff",attempts:1,
+    cycles:1,claims:0,scheduled_synthetic_requests:0,original_research_sources:0,
+    original_input_population_evaluated:false,input_fitness_measurement:null,
+    cycle_status:"rejected",cycle_disposition:"no_request",provider_request_status:"not_attempted",
+    input_freshness_status:"not_evaluated",owner_read_after_restart:true,
+    evaluated_no_trade:false,automatic_expiry_verified:true,unchanged_publication_policy:true,
+    actual_provider_requests:0,production_actions:0,publications:0,
+    production_publications:0,broker_actions:0,cleanup:"inert"});
+  expect(evidence).not.toHaveProperty("decision_version");
+  expect(evidence).not.toHaveProperty("fresh_inputs");
+});
 for (const [bounded, selected] of [[true,false],[true,true],[false,false]]) {
 test(`market context ${bounded ? "drains owned transports" : "preserves unbounded legacy rejection"}${selected ? " with completed inputs" : ""} on benchmark failure`, async () => {
   const bundle = await build({ entryPoints: [resolve(process.cwd(), "lib/market-regime.ts")],

@@ -158,6 +158,10 @@ assert(!relativePlan60m || diagnoseOutcomes && !process.argv.includes("--opening
   "Mature relative-plan outcomes require their own unchanged original-input CLOSED scenario");
 const opening = process.argv.includes("--opening");
 const closing = process.argv.includes("--closing");
+const closingNormalOneShot = process.argv.includes("--closing-normal-one-shot");
+assert(!closingNormalOneShot || closing && cold && process.argv.length === 5 &&
+  process.argv.slice(2).every(value => ["--cold", "--closing", "--closing-normal-one-shot"].includes(value)),
+  "The Oct7 normal-one-shot escape is a separate CLOSED phase case, not a changed research population or policy");
 assert(!closing || cold && !opening && !wrongPolicy && !diagnoseOutcomes,
   "Closing analysis is one isolated cold input path, not outcome/forward acceptance");
 const publicationClock = process.argv.includes("--publication-clock");
@@ -200,7 +204,7 @@ assert(!existingPremarketSetup || !process.argv.some(value=>[
   "--benchmark-reuse-invalid", "--benchmark-reuse-baseline", "--wrong-policy", "--opening", "--closing",
   "--publication-clock", "--point-in-time-context", "--benchmark-stale", "--benchmark-partial",
 ].includes(value)), "Actual pre-market preparation uses only the unchanged original regular-session comparison");
-const slot = rotationDay ? "2026-10-01T13:30:00.000Z" : closing ? "2026-10-01T19:45:00.000Z" : powerHourPublication ? "2026-10-01T19:00:00.000Z" : opening ? "2026-10-01T13:45:00.000Z" : "2026-10-01T17:30:00.000Z";
+const slot = rotationDay ? "2026-10-01T13:30:00.000Z" : closingNormalOneShot ? "2026-10-01T19:30:00.000Z" : closing ? "2026-10-01T19:45:00.000Z" : powerHourPublication ? "2026-10-01T19:00:00.000Z" : opening ? "2026-10-01T13:45:00.000Z" : "2026-10-01T17:30:00.000Z";
 const expiry = rotationDay ? "2026-10-01T20:00:00.000Z" : new Date(Date.parse(slot) + 900000).toISOString();
 const nextSlot = new Date(Date.parse(expiry) + 900000).toISOString();
 const futureBoundary = new Date(Date.parse(slot) + (relativePlan60m || publishedOriginalLearning || nextSessionOutcomes ? 4500000 : 1800000)).toISOString();
@@ -417,7 +421,7 @@ try {
     SITE_ID: identity.site_id, AUTOMATION_SECRET: "closed-fixture-automation-only",
     NEXT_PUBLIC_SUPABASE_URL: "https://closed-fixture.supabase.invalid",
     TURE_APPLICATION_OWNER_USER_ID: owner, TWELVE_DATA_PLAN_MODE: "free",
-    TURE_DISABLE_SCHEDULED_FUNCTIONS: "true", TURE_OBSERVATION_SERIES_ENABLED: "true",
+    TURE_DISABLE_SCHEDULED_FUNCTIONS: "true", TURE_OBSERVATION_SERIES_ENABLED: closingNormalOneShot ? "false" : "true",
     TURE_OBSERVATION_SERIES_DATE: contract.trading_date,
     TURE_OBSERVATION_SERIES_START_SLOT_UTC: slot,
     TURE_OBSERVATION_SERIES_EXPIRES_AT_UTC: benchmarkReuse ? nextSlot : expiry,
@@ -427,7 +431,9 @@ try {
     TURE_SCANNER_INPUT_POLICY_VERSION: wrongPolicy ? "unknown_input_policy" : "completed_daily_intraday_input_v1",
     TURE_BASIC_FREE_CATALOG_OBSERVATION_ONE_SHOT_ENABLED: "false",
     TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_ENABLED: "false",
-    TURE_NORMAL_SCAN_ONE_SHOT_ENABLED: "false", TURE_OUTCOME_EVALUATION_ONE_SHOT_ENABLED: "false",
+    TURE_NORMAL_SCAN_ONE_SHOT_ENABLED: closingNormalOneShot ? "true" : "false", TURE_OUTCOME_EVALUATION_ONE_SHOT_ENABLED: "false",
+    ...(closingNormalOneShot ? { TURE_NORMAL_SCAN_ONE_SHOT_DATE: slot.slice(0,10),
+      TURE_NORMAL_SCAN_ONE_SHOT_SLOT_UTC: slot, TURE_GROW_MAX_LEARNING_MODE: "true" } : {}),
     TURE_INTERNAL_PAPER_WORKER_ENABLED: "false",
     TURE_LEARNING_ACCELERATION_ENABLED: diagnoseOutcomes || closing || rotationDay || charterComposition ? "true" : "false",
     TURE_BASIC_FREE_CATALOG_DAILY_CREDIT_BUDGET: "800", TURE_BASIC_FREE_CATALOG_PER_MINUTE_CREDIT_BUDGET: "8",
@@ -446,7 +452,7 @@ try {
   const basis = [Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url"), Buffer.from(JSON.stringify({ role: "service_role" })).toString("base64url")].join(".");
   process.env.SUPABASE_SERVICE_ROLE_KEY = `${basis}.${createHmac("sha256", jwtSecret).update(basis).digest("base64url")}`;
   const control = readers.observationSeriesControlFromEnvironment({ get: (name) => process.env[name] });
-  assert.equal(control.status, "ready");
+  assert.equal(control.status, closingNormalOneShot ? "disabled" : "ready");
   // An internal Docker Desktop network suppresses published host ports. Use a
   // dedicated bridge without outbound masquerading; the Node fetch boundary
   // additionally refuses every origin except this fixture's local Data API.
@@ -2175,7 +2181,41 @@ try {
   if(relativePlan60m || publishedOriginalLearning || nextSessionOutcomes) futureOutcomePlans=researchSnapshots.map((snapshot,index)=>({...snapshot,synthetic_win:index%2===0}));
   let outcomeChainEvidence = null;
   let charterCompositionEvidence = null;
-  if(wrongPolicy) {
+  if(closingNormalOneShot) {
+    // Same NY15:30 phase as the real Oct7 escape, on the retained Oct1
+    // synthetic calendar. Admit the real scheduler, then retain the backend's
+    // existing pre-provider denial; never reinterpret it as an input0/8/no_trade.
+    assert.equal(response.status,200);
+    assert.equal(rows.length,1); assert.equal(rows[0].outcome,"skipped");
+    assert.equal(rows[0].skip_reason,"outside_generation_window");
+    assert.equal(receipts.length,1); assert.equal(claims.length,0);
+    assert.equal(scanRuns.length,0); assert.equal(researchSnapshots.length,0);
+    assert.equal(externalRequests,0);
+    assert.equal(receipts[0].cycle_status,"rejected");
+    assert.equal(receipts[0].receipt_json.disposition,"no_request");
+    assert.equal(receipts[0].receipt_json.provider_request.status,"not_attempted");
+    assert.equal(receipts[0].receipt_json.freshness.status,"not_evaluated");
+    assert.equal(receipts[0].receipt_json.publication.status,"not_attempted");
+    const rejectedCycle=readers.buildObservationCycleReadback(receipts);
+    assert.equal(rejectedCycle.status,"available"); assert.equal(rejectedCycle.invalid_row_count,0);
+    delete require.cache[require.resolve(join(generated,"reader.cjs"))];
+    const restarted=require(join(generated,"reader.cjs"));
+    const owned=await restarted.readRecommendationLearningBaselineSource(owner);
+    assert.equal(owned.status,"available");
+    assert.equal(owned.data.recommendation_scan_runs.length,0);
+    assert.equal(owned.data.recommendation_snapshots.length,0);
+    const payload=rows[0].payload_json, trace=payload.active_scan_trace;
+    assert.equal(payload.normal_scan_one_shot_control.target_slot_utc,slot);
+    assert.equal(payload.normal_scan_one_shot_admission.admitted,true);
+    assert.equal(payload.basic_free_scheduled_scan_credit_reservation??null,null);
+    assert.equal(trace.market_session,"closing_soon");
+    assert.equal(trace.power_hour_publish_block_reason,"closing_soon_cutoff");
+    assert.equal(trace.final.decision,"skipped_outside_window");
+    assert.equal(trace.market_data_fetch.attempted_tickers,0);
+    assert.equal(trace.stages.market_data_fetch,"not_reached");
+    assert.equal(trace.stages.raw_candidates,"not_reached");
+    assert.equal(trace.stages.persistence,"not_reached");
+  } else if(wrongPolicy) {
     assert.equal(response.status,503);
     assert.equal(externalRequests,0);
     assert.equal(claims.length,0);
@@ -3659,6 +3699,14 @@ try {
   assert.equal(Number(sql("select count(*) from recommendations;")),syntheticPublicationCount);
   assert.equal(Number(sql("select count(*) from positions;")),0);
   // Disable/expiry are exercised by the real scheduled entrypoint, not a mock.
+  if(closingNormalOneShot) {
+    clock=OriginalDate.parse(expiry)+20000;
+    const expired=await scheduler(new Request("http://closed-scheduler",{method:"POST",
+      body:JSON.stringify({next_run:nextSlot})}),{deploy:{id:identity.deploy_id,context:"production",published:true}});
+    assert.equal(expired.status,204); assert.equal(externalRequests,0);
+    assert.equal(Number(sql("select count(*) from scheduled_scan_attempts;")),1);
+    process.env.TURE_NORMAL_SCAN_ONE_SHOT_ENABLED="false";
+  }
   process.env.TURE_OBSERVATION_SERIES_ENABLED="false";
   clock=OriginalDate.parse(expiry)+20000;
   const cleanup=await scheduler(new Request("http://closed-scheduler",{method:"POST",
@@ -3667,7 +3715,13 @@ try {
   assert.equal(Number(sql("select count(*) from scheduled_scan_attempts;")),benchmarkReuse?2:1);
   assert.equal(Number(sql("select count(*) from recommendations;")),syntheticPublicationCount);
   originalLog(JSON.stringify({evidence_mode:"synthetic_closed_packaged_input_runtime_actual_source_schema",
-    scenario:benchmarkReuse?"retained_benchmark_two_slot":closing?"closing_research_only":wrongPolicy?"invalid_policy":opening?"opening_cold_history":cold?"cold_history":"warm_history_restart",
+    scenario:benchmarkReuse?"retained_benchmark_two_slot":closingNormalOneShot?"closing_normal_one_shot_pre_provider_skip":closing?"closing_research_only":wrongPolicy?"invalid_policy":opening?"opening_cold_history":cold?"cold_history":"warm_history_restart",
+    ...(closingNormalOneShot ? { scheduler_admitted:true,backend_block_reason:"closing_soon_cutoff",
+      original_input_population_evaluated:false,input_fitness_measurement:null,evaluated_no_trade:false,
+      cycle_status:receipts[0].cycle_status,cycle_disposition:receipts[0].receipt_json.disposition,
+      provider_request_status:receipts[0].receipt_json.provider_request.status,
+      input_freshness_status:receipts[0].receipt_json.freshness.status,owner_read_after_restart:true,
+      automatic_expiry_verified:true,unchanged_publication_policy:true } : {}),
     ...(closing?{late_publication_withheld:true,original_research_sources:researchSnapshots.length}:{}),
     setup_synthetic_requests:setupRequests,scheduled_synthetic_requests:benchmarkReuse?
       benchmarkReuseEvidence.first_scan_requests+benchmarkReuseEvidence.second_scan_requests:externalRequests,
