@@ -11,6 +11,8 @@ import type {
 } from "../../lib/recommendation-outcome-tracker";
 import { buildRecommendationSnapshot } from "../../lib/recommendation-snapshot";
 import { canonicalOutcomeProviderCoverageQuality } from "../../lib/recommendation-outcome-canonical-coverage";
+import { buildScheduledOutcomeRequestBody } from "../../netlify/functions/scheduled-outcome-evaluation";
+import { RETAINED_ORIGINAL_OUTCOME_BATCH_SCOPE } from "../../lib/original-outcome-source-window";
 
 const routePath = "app/api/recommendations/evaluate-outcomes/route.ts";
 const scheduledFunctionPath = "netlify/functions/scheduled-outcome-evaluation.ts";
@@ -417,7 +419,35 @@ test.describe("Action 555 official outcome candle acquisition investigation", ()
     expect(routeSource).toContain('"input"');
     expect(scheduledSource).toContain('mode: "official_live_today"');
     expect(scheduledSource).toContain("max_batches: 5");
-    expect(scheduledSource).not.toContain("batch_fingerprint:");
+    for (const recoverOriginalBacklog of [false, true]) {
+      const body = buildScheduledOutcomeRequestBody({
+        recoverOriginalBacklog,
+        firedAtUtc: "2026-10-08T16:15:01.000Z",
+        scheduledSlotAtUtc: "2026-10-08T16:15:00.000Z",
+        attemptFingerprint: "default-source-contract-fixture",
+        outcomeEvaluationSeriesControl: null,
+        outcomeEvaluationSeriesSlotAdmission: null,
+        retainedBatchFingerprint: null,
+      });
+      expect(body).not.toHaveProperty("batch_fingerprint");
+      expect(body).toMatchObject({ mode: "official_live_today", max_batches: 5,
+        max_snapshots: 4, horizons: ["15m", "30m", "60m"] });
+    }
+  });
+
+  test("an explicit retained target narrows only the batch scope and preserves original horizons and request ceiling", () => {
+    const body = buildScheduledOutcomeRequestBody({
+      recoverOriginalBacklog: false,
+      firedAtUtc: "2026-10-08T16:15:01.000Z",
+      scheduledSlotAtUtc: "2026-10-08T16:15:00.000Z",
+      attemptFingerprint: "retained-source-contract-fixture",
+      outcomeEvaluationSeriesControl: null,
+      outcomeEvaluationSeriesSlotAdmission: null,
+      retainedBatchFingerprint: "rec_batch_abcd",
+    });
+    expect(body).toMatchObject({ original_source_scope: RETAINED_ORIGINAL_OUTCOME_BATCH_SCOPE,
+      batch_fingerprint: "rec_batch_abcd", max_batches: 1, max_snapshots: 4,
+      horizons: ["15m", "30m", "60m"] });
   });
 
   test("scheduled candle acquisition has no scanner ranking execution trade or projection side effects", () => {
