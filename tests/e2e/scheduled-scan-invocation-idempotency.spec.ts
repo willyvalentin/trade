@@ -868,6 +868,128 @@ test.describe("scheduled scan invocation idempotency", () => {
     });
   });
 
+  test("reproduces the Oct7 shorthand operator denial through the exact environment consumer", () => {
+    // The stopped production card supplied HH:mm, not this consumer's canonical
+    // UTC timestamp. Keep that operator error distinct from a parser defect.
+    const environment: Record<string, string> = {
+      TURE_NORMAL_SCAN_ONE_SHOT_ENABLED: "true",
+      TURE_NORMAL_SCAN_ONE_SHOT_DATE: "2026-10-07",
+      TURE_NORMAL_SCAN_ONE_SHOT_SLOT_UTC: "14:30",
+    };
+    const control = scheduledScanNormalOneShotControlFromEnvironment({
+      get: (key) => environment[key],
+    });
+    const eventEvidence = scheduledScanPreflightEventEvidence({
+      nextRun: "2026-10-07T14:45:00.000Z",
+      deliveryTime: new Date("2026-10-07T14:30:38.214Z"),
+    });
+    expect(control).toEqual({
+      enabled: true,
+      target_date: "2026-10-07",
+      target_slot_utc: null,
+    });
+    expect(eventEvidence).toMatchObject({
+      status: "time_bound_scheduled_event",
+      scheduled_slot_started_at_utc: "2026-10-07T14:30:00.000Z",
+      delivery_delay_milliseconds: 38_214,
+    });
+    const input = {
+      contextIdentity: {
+        deploy_id: productionDeployId,
+        deploy_context: "production",
+        deploy_published: true,
+      },
+      buildIdentity: null,
+      runtimeSiteId: productionSiteId,
+      eventEvidence,
+      configuredProbeSlotUtc: control.target_slot_utc,
+      configuredProbeDate: control.target_date,
+    };
+    expect(scheduledScanTimeBoundAdmission(input)).toMatchObject({
+      status: "probe_slot_unavailable",
+      admitted: false,
+    });
+
+    // A prospective operator must feed its actual planned bytes through this
+    // same consumer before dispatch; enabled booleans are not that evidence.
+    const canonical = scheduledScanNormalOneShotControlFromEnvironment({
+      get: (key) => key === "TURE_NORMAL_SCAN_ONE_SHOT_SLOT_UTC"
+        ? "2026-10-07T14:30:00.000Z"
+        : environment[key],
+    });
+    expect(canonical.target_slot_utc).toBe("2026-10-07T14:30:00.000Z");
+    expect(scheduledScanTimeBoundAdmission({
+      ...input,
+      configuredProbeSlotUtc: canonical.target_slot_utc,
+      configuredProbeDate: canonical.target_date,
+    })).toMatchObject({ status: "admitted_runtime_context", admitted: true });
+    expect(environment.TURE_NORMAL_SCAN_ONE_SHOT_SLOT_UTC).toBe("14:30");
+  });
+
+  test("keeps shorthand and noncanonical Oct7 slots before every claim, route and provider request", async () => {
+    const originalNetlify = Object.getOwnPropertyDescriptor(globalThis, "Netlify");
+    const originalFetch = globalThis.fetch;
+    const originalError = console.error;
+    let requests = 0;
+    let slot = "14:30";
+    const denials: unknown[][] = [];
+    try {
+      Object.defineProperty(globalThis, "Netlify", {
+        configurable: true,
+        value: { env: { get(key: string) {
+          return {
+            TURE_DISABLE_SCHEDULED_FUNCTIONS: "true",
+            TURE_NORMAL_SCAN_ONE_SHOT_ENABLED: "true",
+            TURE_NORMAL_SCAN_ONE_SHOT_DATE: "2026-10-07",
+            TURE_NORMAL_SCAN_ONE_SHOT_SLOT_UTC: slot,
+          }[key];
+        } } },
+      });
+      globalThis.fetch = async () => {
+        requests += 1;
+        throw new Error("Malformed one-shot must not cross the network boundary");
+      };
+      console.error = (...arguments_: unknown[]) => { denials.push(arguments_); };
+
+      for (slot of [
+        "14:30",
+        "2026-10-07T14:30:00Z",
+        "2026-10-07T16:30:00.000+02:00",
+        "2026-10-07T14:30:00.001Z",
+        "2026-10-07T14:31:00.000Z",
+        "",
+      ]) {
+        const response = await withFixedDate("2026-10-07T14:30:38.214Z", () =>
+          scheduledScanHandler(new Request("https://scheduled.example", {
+            method: "POST",
+            body: JSON.stringify({ next_run: "2026-10-07T14:45:00.000Z" }),
+          }), {
+            deploy: { id: handlerProductionDeployId, context: "production", published: true },
+          } as Parameters<typeof scheduledScanHandler>[1]),
+        );
+        expect(response.status).toBe(204);
+        expect(await response.text()).toBe("");
+        expect(requests).toBe(0);
+        expect(denials.at(-1)).toEqual([
+          "[scheduled-scan] Normal one-shot admission failed.",
+          {
+            status: "probe_slot_unavailable",
+            event_evidence: expect.objectContaining({
+              status: "time_bound_scheduled_event",
+              scheduled_slot_started_at_utc: "2026-10-07T14:30:00.000Z",
+            }),
+          },
+        ]);
+      }
+      expect(denials).toHaveLength(6);
+    } finally {
+      globalThis.fetch = originalFetch;
+      console.error = originalError;
+      if (originalNetlify) Object.defineProperty(globalThis, "Netlify", originalNetlify);
+      else Reflect.deleteProperty(globalThis, "Netlify");
+    }
+  });
+
   test("keeps non-target and malformed one-shot slots inert before database or route", async () => {
     const originalNetlify = Object.getOwnPropertyDescriptor(globalThis, "Netlify");
     const originalFetch = globalThis.fetch;
