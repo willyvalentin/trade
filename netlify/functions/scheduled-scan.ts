@@ -1,8 +1,6 @@
 import { createRequire } from "node:module";
 
 import type { Config, Context } from "@netlify/functions";
-import { SCHEDULED_SCAN_PREFLIGHT_DELIVERY_GRACE_MILLISECONDS } from "../../lib/scheduled-scan-invocation-receipt";
-export { SCHEDULED_SCAN_PREFLIGHT_DELIVERY_GRACE_MILLISECONDS } from "../../lib/scheduled-scan-invocation-receipt";
 import {
   buildObservationSeriesSlotAdmission,
   observationSeriesControlFromEnvironment,
@@ -44,6 +42,8 @@ const outcomeEvaluationSeriesEnabledFlag =
 const internalPaperWorkerEnabledFlag = "TURE_INTERNAL_PAPER_WORKER_ENABLED";
 export const SCHEDULED_SCAN_DEPLOYMENT_IDENTITY_SCHEMA_VERSION =
   "scheduled_scan_deployment_identity_v1" as const;
+export const SCHEDULED_SCAN_PREFLIGHT_DELIVERY_GRACE_MILLISECONDS =
+  3 * 60 * 1000;
 
 export type ScheduledScanRuntimeConfiguration = {
   scheduled_functions_disabled: boolean;

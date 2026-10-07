@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
 import { originalOutcomeSourceWindow, RETAINED_ORIGINAL_OUTCOME_BATCH_FLAG,
+  RETAINED_ORIGINAL_OUTCOME_BATCH_DELIVERY_GRACE_MILLISECONDS,
   retainedOriginalOutcomeBatchControlFromEnvironment } from "@/lib/original-outcome-source-window";
+import { SCHEDULED_SCAN_PREFLIGHT_DELIVERY_GRACE_MILLISECONDS } from "../../netlify/functions/scheduled-scan";
 import { createClient } from "@supabase/supabase-js";
 import { readCompleteOriginalOutcomes } from "@/lib/original-outcome-persistence-read";
 
@@ -15,6 +17,7 @@ function retainedControl(values: Record<string, string | undefined>) {
   return retainedOriginalOutcomeBatchControlFromEnvironment({get: name => values[name]});
 }
 test("retained batch is absent by default and exact only under the existing one-slot controls", () => {
+  expect(RETAINED_ORIGINAL_OUTCOME_BATCH_DELIVERY_GRACE_MILLISECONDS).toBe(SCHEDULED_SCAN_PREFLIGHT_DELIVERY_GRACE_MILLISECONDS);
   expect(retainedControl({})).toEqual({status:"disabled"});
   expect(retainedControl(retainedBatchEnvironment)).toEqual({status:"ready",
     contract_version:"retained_original_batch_one_shot_v1",batch_fingerprint:"rec_batch_4bq7jo",

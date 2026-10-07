@@ -6,6 +6,9 @@ export const ORIGINAL_OUTCOME_BACKLOG_SCOPE = "trailing_seven_ny_dates_v1" as co
 
 export const RETAINED_ORIGINAL_OUTCOME_BATCH_SCOPE = "retained_original_batch_one_shot_v1" as const;
 export const RETAINED_ORIGINAL_OUTCOME_BATCH_FLAG = "TURE_OUTCOME_EVALUATION_ONE_SHOT_BATCH_FINGERPRINT";
+// This new route scope has its own bounded delivery check. Keep the scanner's
+// existing authority inline; its bundling/idempotency boundary must not move.
+export const RETAINED_ORIGINAL_OUTCOME_BATCH_DELIVERY_GRACE_MILLISECONDS = 3 * 60 * 1000;
 
 /** An optional server-selected source, never a caller-selected backlog. Missing
  * configuration preserves today's existing one-shot. Present but invalid

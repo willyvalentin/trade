@@ -1,8 +1,6 @@
 export const SCHEDULED_SCAN_INVOCATION_RECEIPT_VERSION =
   "scheduled_scan_invocation_receipt_v1" as const;
 
-export const SCHEDULED_SCAN_PREFLIGHT_DELIVERY_GRACE_MILLISECONDS = 3 * 60 * 1000;
-
 const SCHEDULED_SCAN_DEPLOYMENT_IDENTITY_SCHEMA_VERSION =
   "scheduled_scan_deployment_identity_v1" as const;
 const scheduledSlotMilliseconds = 15 * 60 * 1000;

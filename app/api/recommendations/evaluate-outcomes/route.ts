@@ -7,7 +7,7 @@ import { decisionLineageReceiptFromScanRun } from "@/lib/decision-lineage-receip
 import { summarizeEntryTypeTriggerDiagnostics } from "@/lib/recommendation-entry-type";
 import { getIntradayCandlesWithDiagnostics } from "@/lib/market-data";
 import { getNewYorkDateString } from "@/lib/intraday-scan-window";
-import { ORIGINAL_OUTCOME_BACKLOG_SCOPE, RETAINED_ORIGINAL_OUTCOME_BATCH_SCOPE,
+import { ORIGINAL_OUTCOME_BACKLOG_SCOPE, RETAINED_ORIGINAL_OUTCOME_BATCH_SCOPE, RETAINED_ORIGINAL_OUTCOME_BATCH_DELIVERY_GRACE_MILLISECONDS,
   originalOutcomeSourceWindow, retainedOriginalOutcomeBatchControlFromEnvironment } from "@/lib/original-outcome-source-window";
 import { readCompleteOriginalOutcomes } from "@/lib/original-outcome-persistence-read";
 import {
@@ -83,7 +83,6 @@ import {
   type OutcomeEvaluationSeriesControl,
   type OutcomeEvaluationSeriesSlotAdmission,
 } from "@/lib/outcome-evaluation-series-control";
-import { SCHEDULED_SCAN_PREFLIGHT_DELIVERY_GRACE_MILLISECONDS } from "@/lib/scheduled-scan-invocation-receipt";
 import { recommendationOutcomeEvaluationAnchorFromSnapshot } from "@/lib/recommendation-outcome-evaluation-anchor";
 
 type EvaluateOutcomesRequest = {
@@ -2225,8 +2224,8 @@ export async function POST(request: Request) {
         invocation.outcome_evaluation_series_control !== null ||
         body?.scheduled_function_fired_at_utc !== invocation.scheduled_function_fired_at ||
         invocation.attempt_fingerprint !== buildScheduledOutcomeEvaluationAttemptFingerprintForSlot(new Date(slotAt)) ||
-        firedAt < slotAt || firedAt - slotAt > SCHEDULED_SCAN_PREFLIGHT_DELIVERY_GRACE_MILLISECONDS ||
-        now.getTime() < firedAt || now.getTime() - slotAt > SCHEDULED_SCAN_PREFLIGHT_DELIVERY_GRACE_MILLISECONDS ||
+        firedAt < slotAt || firedAt - slotAt > RETAINED_ORIGINAL_OUTCOME_BATCH_DELIVERY_GRACE_MILLISECONDS ||
+        now.getTime() < firedAt || now.getTime() - slotAt > RETAINED_ORIGINAL_OUTCOME_BATCH_DELIVERY_GRACE_MILLISECONDS ||
         JSON.stringify(body?.horizons) !== JSON.stringify(["15m", "30m", "60m"]) ||
         body?.max_batches !== 1 || body?.max_snapshots !== 4 ||
         body?.max_candle_requests !== undefined || body?.snapshots !== undefined || body?.existing_outcomes !== undefined) {
@@ -2659,7 +2658,7 @@ export async function POST(request: Request) {
       const currentControl = retainedOriginalOutcomeBatchControlFromEnvironment({ get: name => process.env[name] });
       if (currentControl.status !== "ready" || currentControl.batch_fingerprint !== retainedBatchControl.batch_fingerprint ||
           currentControl.target_slot_utc !== retainedBatchControl.target_slot_utc ||
-          Date.now() > Date.parse(retainedBatchControl.target_slot_utc) + SCHEDULED_SCAN_PREFLIGHT_DELIVERY_GRACE_MILLISECONDS) {
+          Date.now() > Date.parse(retainedBatchControl.target_slot_utc) + RETAINED_ORIGINAL_OUTCOME_BATCH_DELIVERY_GRACE_MILLISECONDS) {
         throw new Error("retained_original_batch_control_changed_or_expired");
       }
     }
