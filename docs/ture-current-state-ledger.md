@@ -27,27 +27,31 @@ acceptance remains in the roadmap and delivery rules in governance.
   aggregate or accepted quality. See [#735](https://github.com/willyvalentin/trade/pull/735)
   and [#738](https://github.com/willyvalentin/trade/pull/738).
 - **Repository/environment snapshot:** [#739](https://github.com/willyvalentin/trade/pull/739)
-  is normally protected merged as main `8efe5038d9cc05ffcf81828495a0de4936af9200`.
-  All six groups/aggregate/provenance in37588206135/attempt1 and exact post-merge
-  attestation37593365849 are success/matched. Git production `6ac6015698f6c30008665412`
-  published08:23:36Z; exact approved SQL source20261006201519→remote20261007082824
-  applied once. Owner-bound inert HTTP verified08:32Z; all ten checked row digests
-  and old routines/ACLs/indexes unchanged. This closes the support fix, not input fitness.
+  and [#741](https://github.com/willyvalentin/trade/pull/741) are normally protected
+  merged. Current main `e7b9999d0b17911054387f2a4eb5cc1c77d0ae76` has exact tested
+  tree `47e0ffe5fdf73fc5c8f47ca535951e35ffdbb881`; all six/aggregate/candidate in
+  37602825072/attempt1 and actual post-merge artifact11478198438 in37612040403 match.
+  Git production `6ac6281cb449e7000764336f` published11:08:58Z; owner-inert HTTP
+  verified11:10Z, zero active reservations. #741 changed no SQL. Selected #738/#739
+  read-RPC bodies/OIDs/service-only ACL and migration mapping revalidated11:12Z;
+  direct claim-table SELECT remains denied. No source acquisition or OPEN yet.
 
 ### Now / Next / Blocked
 
 | Slot | Selected action and exit |
 | --- | --- |
-| Now — intelligence primary, Codex | Combined candle/event/regime code on main8efe is locally technically verified at `ca7d4807`:173 distinct cases/12 files serially without retries, nonincremental types, lint0 errors/8 unchanged warnings, exact locked Linux build and4 separate consumer/provenance cases (177 total). All four product files match the original frozen implementations; both guard families retain original membership and old seals. Prepare one focused PR with Netlify previews skipped and unchanged protected CI. Independent review is sought, not yet performed; production publication capacity remains unknown. No source acquisition, OPEN, new SQL or cadence change. |
+| Now — intelligence primary, Codex | #741 is code-release/inert verified, not quality accepted. The directly approved NEW prospective Oct7 card prepares14:45, scans16:30 and selects at most2 mature outcomes17:45/18:00, cleanup by18:45 CEST; same114 Twelve Data and45+15 hosting caps. The same followup is ACTIVE for14:45. Later14:30Z→15:45/16:00Z chain is CLOSED verified with distinct deploys/RLS/RPC, not real market fitness. Old first-quarter card remains terminal no_go,0requests. Fresh preparation/capacity/phase binding still required; preserve all originals, policies and broker boundary. |
 | CLOSED capacity result — same outcome, Codex | Investigation07:22–07:58Z completed read-only, within4h. Saturated26×8 original snapshots require at least52 outcome selections at4/run, but current cadence has32 runs/128 snapshots; full same-day coverage is infeasible. Concurrent scan8+outcome4 cannot fit shared8/minute. Daily514 is a conservative one-collection bound, not actual cost or whole-chain acceptance. Real bounded observation remains unknown pending release/schema/runtime and fresh provider/hosting capacity; no acquisition or cadence change selected. |
 | Next eligible OPEN | Use one prospective card under the OPEN contract only after relevant production-equivalent CLOSED proof, capacity and existing authority are satisfied. Verify the declared complete-input criterion and exact original outcome linkage, preserving the old Oct 5/6 results. New failure requires diagnosis/corrected readiness, not an identical retry. |
 | Next scientific outcome | Retain/freeze the selected comparison prospectively, obtain a pre-forward committed training model and complete original held-out/walk-forward evidence, then the full charter disposition. Missing evidence gets a bounded recovery or explicit stop; it never becomes a quality pass. |
-| Blocked / parked | Real complete-input acceptance, useful forward quality and IF-5 are unproven. Fresh shared provider capacity and any future OPEN/clock-correction publication capacity are unknown; the one confirmed history-publication allocation is now used. New autonomous paper, broker and options expansion remain behind the intelligence gate. #230 does not select a parallel CI transition. |
+| Blocked / parked | Real complete-input acceptance, useful forward quality and IF-5 remain unproven. The human reports1560 remaining Netlify credits; the ordinary included-quota publication hold is resolved. Fresh shared Twelve Data capacity and preparation/phase readiness remain pending. New autonomous paper, broker and options expansion stay behind the intelligence gate. #230 does not select a parallel CI transition. |
 
 The primary implementation owner remains **Codex**. Preserved composition branch:
 `codex/oct7-learning-current-main-composition`, starting from verified main8efe;
 created Oct7 08:50Z in the reused release worktree; technical proof completed09:41Z.
-Independent review, protected CI and relevant production acceptance remain pending.
+Technical177-case acceptance and protected CI are complete; #741 code production/inert
+acceptance is complete. Independent combined review is not performed; market/quality
+acceptance is not inferred. Preserve all original source heads and receipts.
 Retain both original local branches and receipts. One primary4–16h composition,
 initial investigation≤4h from08:50Z, no new SQL or competing hypothesis.
 Before integrating either branch, reconcile concurrent ledger additions with
@@ -60,10 +64,82 @@ completed by Poincare (Codex): no actionable static findings; no test/runtime/
 production execution by the reviewer. Separate #739 production acceptance is below;
 the next combined candle/event/regime review has not yet been performed.
 Capacity receipt: `/private/tmp/ture-oct7-whole-chain-capacity.receipt.json`.
-Next: review/protected CI for the composed candle/event/regime correction, then relevant accepted runtime;
-before acquisition, prospectively freeze a whole eight-member source-to-mature-outcome
-question with non-overlapping existing scheduled phases and actual capacity. A114-credit
-base illustration is not an authorized card, full quality experiment or reduced old cohort.
+Next: execute only the newly frozen preparation/observation card below when its real
+time/capacity/runtime gates hold. The earlier114-credit illustration was not authority;
+this card follows the full goal and direct Oct7 after-open testing instruction.
+
+**Oct7 NEW later source→mature-outcome card, Codex.** The direct human answered
+"Ja, använd det verifierade senare tidskortet" to the exact changed-times question.
+This is a separately frozen card, not a restart/extension of the early no_go.
+Question: can completed Oct6 history and fresh same-session inputs preserve all8
+originals through canonical60m readback? Baseline main`e7b9999d`, Gitdeploy
+`6ac6281cb449e7000764336f`; regular session13:30–20:00Z, calendar`fnv1a32:6aa61e36`.
+Actual selector freezes95equities+SPY/QQQ; NEW14:30Z originals are
+IBM/DDOG/TGT/V/UNP/MRK/CRWD/AVGO. No paid requests or production activation yet.
+
+Prepare12:45–13:15Z/lateststart12:47Z (14:45–15:15CEST); at most13 bounded
+batches/97histories plus EN≤1credit fresh api_usage meter,≤8/minute,0retries,
+≥200unused daily margin. Whole-chain114=97+1+8+8. One exact normal scheduled
+scan14:30Z/16:30CEST, expiry14:45Z. After actual terminal scan/readback and a
+non-overlapping mode transition: bounded same-date outcome series15:45–16:15Z,
+max2attempts≤4 each at15:45/16:00Z (17:45/18:00CEST). Actual ceil5min original
+anchor+60m must be mature; otherwise no_go, no extension/manual route.
+Globaldisabletrue throughout, all competing modes off. Select the EXISTING
+`completed_daily_intraday_input_v1` only via exact operation-owned production
+Functions override and matching scheduler envelope; baseline was unset. No policy,
+ranking, thresholds or membership changes. Preserve baseline learning_acceleration/
+grow_max=true; no model/promotion/broker authority. Every normal Git phase must bind
+actual SHA/deploy and accepted product-byte equality. Max3additional publications45
+plus compute≤15 within existing1560-reported quota; codepub15 already completed.
+Technical slot/date/expiry stops work independently of assistant wake. Restore only
+operation-owned temporary flags/metadata/input override via normal Git publication;
+verify owner-inert/0claims by16:45Z/18:45CEST. First unknown/fault stops; read-only
+reconcile, no retry/repurchase/newidentity. Invalid/no_trade/UNKNOWN members stay gaps.
+
+New card/operator: `/private/tmp/ture-oct7-later-original-source-preparation.card.json`
+(SHA256`1208f1dd405346e3a3bb84bc47825a542b96ceaa99f36a0d528e8a79d902c53f`) and
+`/private/tmp/ture-oct7-later-original-source-preparation.mjs`
+(SHA256`e72799e1397f8fa4a338d294f20e7d726280685b32ea334398aab17e48fdf7a0`).
+Exact direct authority and normal same-ID resume are in its
+`.automation-authorization.receipt.json`. Existing heartbeat
+`ture-oct7-original-source-och-mogna-utfall` is ACTIVE, same chat/14:45CEST;
+update this SAME followup after source/scan arming for terminal scan and then
+outcome/cleanup; remove after verified inert completion/no_go. No new streams.
+
+Readiness remains `not_yet_ready`. Native cross-phase proof and actual8table ACL
+are supplemented by the completed SAME-outcome CLOSED check11:59:08–11:59:29Z:
+actual packaged scan/outcome owner-SDK rows retain8/8 original arithmetic matches
+and8/8 mature60m outcomes through unchanged NEW-learning input/regime/candle
+admission. Three in-memory clock/candle contradictions are denied; original DB
+rows unchanged, wrong-owner empty, owned isolation cleaned. No model/result,
+product/schema/production write, cohort filtering or new hypothesis. Stop this
+support check here; real Oct7 fitness and full charter remain unproven. Receipt:
+`/private/tmp/ture-oct7-produced-source-learning-admission-closed-probe.receipt.json`.
+The existing readiness evidence and actual8table ACL
+are recorded in `/private/tmp/ture-oct7-cross-phase-deploy-closed-probe.receipt.json`
+and `/private/tmp/ture-oct7-relevant-production-table-acls.receipt.json`.
+The old13:45Z card retains8fresh but0/8assessed relative contexts
+(`short_closed_range_window`, unchanged60min minimum); its terminal stopped guard
+remains. Synthetic outcomes, unavailable upstream provider version and legacy-intake
+diagnostics do not establish real Oct7 fitness, quality or IF5. Pass requires actual
+8/8complete input and all original eligible-plan→canonical60m linkage, never forced
+recommendations or relabelled gaps. The retained early-card state below is history.
+
+**Scan-phase release preparation — same card, no activation yet.** Codex prepares
+the existing observation branch as one normal main-targeted PR with `[skip netlify]`
+head/title, suppressing preview/branch publications. Its ledger change binds the
+already approved Oct7 scan slot/input policy; product/test/SQL/workflow/lock bytes
+remain identical to e7. Existing classifier excludes this program-control ledger,
+so all6 protected groups/aggregate/candidate provenance remain mandatory. Actual
+last product CI37602825072 took57m20s (09:45:43–10:43:03Z): start validation early,
+not after source preparation. Hold merge/config/publication until actual frozen
+history/capacity/inert/schema gates pass. No quota consumed or environment change
+by this preparation; actual phase commit/deploy is unknown until normal release.
+After scan-phase main is accepted, prepare outcome-phase CI on that exact base;
+only publish after terminal scan/readback and non-overlap. Prepare cleanup CI on
+outcome-phase main while its runtime remains untouched, then publish cleanup only
+after expiry. No stale-base reuse, fourth publication, retry or deadline extension;
+delay or drift that prevents timely accepted readiness means no_go/safe cleanup.
 
 **Direct human migration mandate, Oct7 08:02Z:** exact #739 SQL is approved; future
 roadmap-scoped migrations need no repeated human approval. Exact-source review,
@@ -100,6 +176,69 @@ and existing references. Its release instructions describe their dated state;
 the current board above and fresh authoritative readbacks govern subsequent work.
 Frozen experiments, failed observations and original authorization boundaries
 are not rewritten by this reconciliation.
+
+### Retained early-card state — Oct7 11:45Z, superseded by direct later-card approval
+
+**Oct7 prospective source→mature-outcome card, Codex.** One IF-2b→IF-4 question:
+can prepared completed Oct6 history plus fresh same-session inputs preserve all8
+original selected candidates through exact canonical60m readback? Product main `e7b9999d`,
+baseline deploy `6ac6281cb449e7000764336f`; calendar `fnv1a32:6aa61e36`, regular
+session13:30–20:00Z confirmed against NYSE. Current selector revalidated95 equities
++SPY/QQQ;13:45Z originals SE/BBAI/UBER/KLAC/META/INTU/DASH/AMAT. No old denominator changes.
+Prepare12:45–13:15Z, latest start12:47Z, at most13 successful bounded batches/97 histories,
+≤8/minute plus exactly one≤1-credit fresh meter; zero retries, ≥200 unused daily margin.
+Whole-chain cap114=97+1+8+8. One exact-slot normal scan13:45Z, expiry14:00Z; only after
+its terminal readback and safe mode transition, same-date outcome series15:00–15:30Z,
+two attempts≤4 each. Actual original ceil5min anchor+60m must fit; never extend or
+manually invoke scan/outcome. Global disable stays true; competing modes off, research-only
+learning capture may be enabled solely for this observation; no model/promotion/broker.
+Each phase's actual Git revision/deploy must be bound before its window, with product-byte
+equality to e7. Reserve60 hosting credits for code+at most3 phase publications and15
+incidental compute from the human-reported1560; no purchase/top-up/plan change.
+Pass requires attributable operational receipts,8/8 fresh complete inputs and exact
+8-original eligible-plan→60m linkage; invalid/unobservable members remain explicit gaps.
+Honest no_trade is allowed; one observation never accepts quality or IF-5. Any unknown
+identity/cost/claim/provider outcome stops; read-only reconcile, no blind redispatch.
+Exact existing `completed_daily_intraday_input_v1` must be selected by the temporary
+functions/production input-policy override and identical durable scheduler payload;
+the observed unset baseline otherwise chooses legacy behavior. Preserve that baseline
+for cleanup, removing only this operation's exact matching override. No policy code,
+ranking/threshold or population change. Frozen-card revision2 clarifies this before
+any provider/result, preserving original first-freeze bytes, budgets and windows.
+Both allocation-experiment and market-wide-discovery must remain off; baseline
+learning_acceleration/grow_max values stay unchanged. One-shot slot and outcome expiry enforce automatic no-work outside declared windows;
+Codex restores all temporary flags by normal Git publication/readback after expiry,
+latest16:00Z. CLOSED readiness reuses unchanged input/consumer/dependency bytes from
+the actual production-claim-ACL prepared first-scan and terminal-failure proofs plus
+unchanged canonical real-original replay; synthetic futures are not market evidence.
+Exact private card/operator: `/private/tmp/ture-oct7-original-source-preparation.card.json`
+and `/private/tmp/ture-oct7-original-source-preparation.mjs`. Current disposition:
+`no_go`11:41Z, provider/acquisition/activation0. Actual isolated first-quarter13:45
+scan retains8 fresh members but the unchanged relative context correctly assesses0/8:
+`short_closed_range_window` requires60min closed regular bars. This is a scope/time
+feasibility result, not a product defect or actual market failure. Its exact stopped
+receipt/guard is `/private/tmp/ture-oct7-original-source-preparation.stopped.json`;
+never resume this card, extend its windows or relax its gate. The separate later
+native14:30→15:45/16:00 chain passes actual source→two4-request outcome phases,
+8/8 mature60m originals, duplicate0, expiry and distinct original/outcome deploys,
+with matching relevant RLS and RPC-only claim ACL. This synthetic research evidence
+still has unavailable upstream provider version/legacy intake diagnostics, not full
+quality/baseline acceptance. Receipt:
+`/private/tmp/ture-oct7-cross-phase-deploy-closed-probe.receipt.json`.
+The direct human question for a NEW later card (local16:30 scan,17:45/18:00
+outcomes,cleanup18:45; same114/45+15 caps) is pending. Do not silently extend the old
+18:00 cleanup deadline. Goal remains active; no early-card acquisition is allowed.
+The first scheduled-followup creation was rejected by auto-review for persistent
+future effects; no automation was created by it. The direct human then answered
+"Ja, schemalägg denna avgränsade testkedja" to the exact114-credit/three-publication
+question; one normal heartbeat `ture-oct7-original-source-och-mogna-utfall` is now
+ACTIVE in this same chat, first14:45 Europe/Stockholm/12:45Z. Invalid DTSTART/target
+arguments were corrected from the tool diagnostic; no duplicate automation exists.
+Reuse this same followup for later phase/readback/cleanup, then remove it. Preserve
+the rejection receipt; no alternate/indirect dispatch or expired-card restart. Current non-secret
+runtime has learning_acceleration=true and grow_max=true already; preserve these
+baseline values at cleanup, changing only actually temporary phase flags. No new
+learning flag authority is inferred from this read.
 
 ### Oct7 current-main learning composition — local technical acceptance
 
