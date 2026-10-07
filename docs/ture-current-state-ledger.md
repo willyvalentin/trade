@@ -37,6 +37,10 @@ acceptance remains in the roadmap and delivery rules in governance.
   other modes off, zero active claims. The complete95+2 history preparation
   used97 credits in13 accounted batches, plus one meter credit, ending13:11:18Z.
   This is phase1/3 publication and preparation, not a scan result or quality pass.
+  The actual14:30Z scheduler delivery was denied before invocation claim/provider
+  at14:30:38Z: `probe_slot_unavailable`. Codex's release operator supplied `14:30`
+  instead of the consumer's required full canonical UTC timestamp. The product
+  parser failed closed; the card is terminal no_go, not a market no_trade.
   Product/test/SQL/workflow bytes are unchanged from #741. Selected schema/RPC/
   service-only ACL/migration mappings revalidated13:14:40Z; direct claim-table
   SELECT remains denied. Receipt `/private/tmp/ture-pr742-later-scan-phase-release-oct7.receipt.json`.
@@ -45,11 +49,11 @@ acceptance remains in the roadmap and delivery rules in governance.
 
 | Slot | Selected action and exit |
 | --- | --- |
-| Now — intelligence primary, Codex | NEW later Oct7 card has real97/97 completed histories/98 preparation credits and verified exact #742 scan-phase production. One normal scheduled scan16:30 CEST, expiry16:45, original IBM/DDOG/TGT/V/UNP/MRK/CRWD/AVGO; existing completed-input policy selected, no forced recommendation. Prepare only outcome-phase protected PR/CI on current main4ca while leaving live scan configuration unchanged. No outcome config/merge/publication until actual terminal scan/owner readback and non-overlap. At most2 mature outcomes17:45/18:00; cleanup verified by18:45. Same114 provider/3 publications45+compute≤15 caps. Same followup moves to terminal scan/phase change, not new preparation. |
+| Now — intelligence primary, Codex | The later Oct7 card stopped14:34Z after actual scheduler delivery rejected the operator's shorthand slot before any new scan claim/provider/source/decision. Preserve97 histories/98 preparation credits and the frozen8-member question. Reuse existing PR743/owner branch for only normally protected operation-owned cleanup and truthful incident closeout on current main4ca; no outcome activation, corrected live slot, manual scan, retry, repurchase or deadline extension. New head requires fresh all6/aggregate/actual provenance; old phase2 greens are historical. Restore only exact matching temporary metadata/normal-scan flag, normal Git cleanup publication within the same max3 ceiling, owner-inert/0claims verified by18:45. |
 | CLOSED capacity result — same outcome, Codex | Investigation07:22–07:58Z completed read-only, within4h. Saturated26×8 original snapshots require at least52 outcome selections at4/run, but current cadence has32 runs/128 snapshots; full same-day coverage is infeasible. Concurrent scan8+outcome4 cannot fit shared8/minute. Daily514 is a conservative one-collection bound, not actual cost or whole-chain acceptance. Real bounded observation remains unknown pending release/schema/runtime and fresh provider/hosting capacity; no acquisition or cadence change selected. |
-| Next eligible OPEN | Use one prospective card under the OPEN contract only after relevant production-equivalent CLOSED proof, capacity and existing authority are satisfied. Verify the declared complete-input criterion and exact original outcome linkage, preserving the old Oct 5/6 results. New failure requires diagnosis/corrected readiness, not an identical retry. |
+| Next eligible OPEN | No further OPEN action follows the stopped Oct7 card. A future separately prospective observation needs consumer-validated full canonical production parameters, exact-runtime admission, fresh capacity/session/activation margin and its own valid authority. Do not repurpose today's completed sources or unused budget to resume this card. Preserve all Oct5/6/7 receipts and the complete-input/original-outcome criteria. |
 | Next scientific outcome | Retain/freeze the selected comparison prospectively, obtain a pre-forward committed training model and complete original held-out/walk-forward evidence, then the full charter disposition. Missing evidence gets a bounded recovery or explicit stop; it never becomes a quality pass. |
-| Blocked / parked | Real same-session complete-input acceptance, canonical original outcome continuity, useful forward quality and IF-5 remain unproven. Actual Basic800/8 meter and complete preparation are now observed, not reserved future shared capacity; remaining scan/outcome budget≤16 credits. Human reports1560 Netlify credits; phase1/3 is published, actual billing debit is not independently read. New autonomous paper, broker and options expansion stay behind the intelligence gate. #230 does not select a parallel CI transition. |
+| Blocked / parked | Real same-session complete-input acceptance, canonical original outcome continuity, useful forward quality and IF-5 remain unproven. Actual Basic800/8 meter and97 completed preparations/98 credits are observed. Owner readback14:34:33Z has0 normal-scan credits/0 active or unresolved claims/0 target attempts; no new decision/snapshot. Unused card credits do not authorize another scan. Human reports1560 Netlify credits; phase1/3 is published, actual billing debit is not independently read. Only bounded cleanup remains; no paper/broker/options expansion. |
 
 The primary implementation owner remains **Codex**. Preserved composition branch:
 `codex/oct7-learning-current-main-composition`, starting from verified main8efe;
@@ -73,30 +77,51 @@ Next: execute only the newly frozen preparation/observation card below when its 
 time/capacity/runtime gates hold. The earlier114-credit illustration was not authority;
 this card follows the full goal and direct Oct7 after-open testing instruction.
 
-**Current phase2 preparation, not activation — Oct7 13:22Z, Codex.** Branch
-`codex/oct7-later-original-mature-outcomes` starts from exact accepted scan-phase
-main4ca. Only this compact ledger changes; code, tests, SQL, lockfile, scheduler and
-workflow remain identical. Normal protected candidate CI is prepared in advance
-because the preceding full run required56m48s. This is the SAME approved card,
-not an additional publication/source experiment. Keep current scan runtime
-unchanged while CI runs. Phase2 merge/configuration/publication remains held until
-actual terminal14:30Z scan, owner-only original decision/input/plan readback, zero
-active/unknown claims, cost and exact maturity/lineage evidence. Disable normal
-scan first, then set the existing same-date outcome series15:45–16:15Z, max2
-attempts/max8 credits (≤4 per attempt), enabling last. No manual outcome route or
-provider retry; invalid/unobservable originals remain denominator gaps. Bind the
-actual phase2 SHA/deploy to identical accepted product bytes. Immediately after
-accepted phase2 main/deploy, prepare normal cleanup candidate CI in advance, but
-publish cleanup only after16:15Z expiry and verify inert/0claims by16:45Z. Preserve
-operation-owned after-state IDs in
-`/private/tmp/ture-oct7-later-scan-phase-environment.final.receipt.json` and restore
-only exact matching temporary values, never unrelated contexts/baselines. No
-fourth publication, scope rewrite, new automation, migration, model or broker.
-The local phase1 readback comparator's nonexistent field was corrected to the
-unchanged declared `completed_history_reserved_credits`; no product defect,
-CI rerun, production rewrite or paid redispatch resulted.
+**Actual terminal incident and cleanup selection — Oct7 14:34Z, Codex.** Actual
+published scheduled-scan logs14:30:38.218Z show a validtime-bound event for14:30Z,
+delivery38.214s, but `probe_slot_unavailable` before durable claim/provider.
+The operator set `TURE_NORMAL_SCAN_ONE_SHOT_SLOT_UTC=14:30`; unchanged tracked
+`catalogProbeSlotOrNull` requires a full canonical timestamp. Exact in-memory
+consumer reproduction14:34:14Z parses that actual value to null and returns the
+same denial; the canonical timestamp parses correctly but is NOT written live.
+This is Codex's operation/configuration error, not a market-data or parser bug.
+Earlier owner/readiness reads checked raw metadata and enabled booleans, not
+the scheduler's semantic admission. Retain that acceptance gap explicitly.
 
-**Oct7 NEW later source→mature-outcome card, Codex.** The direct human answered
+Owner GET14:34:33.595Z confirms exactmain4ca/deploy6ac646,97 terminal history
+reservations/97 credits,0 scan credits/target attempts/active or unresolved claims,
+0 new owned scan runs/snapshots. The98 preparation credits include the separate
+meter; historical source bytes/fingerprints/receipts remain untouched. No original
+Oct7 decision or mature outcome was produced; this is no_go, not no_trade,0/8
+measured input fitness, alpha or IF5. The stopped guard forbids this card's reuse.
+Outcome configuration remains absent;17:45/18:00 runs will not be armed.
+
+Reuse PR743 and branch`codex/oct7-later-original-mature-outcomes` for only safe
+cleanup. The formerheadf302/kandidata418/fullCI37628090335attempt1 and actual
+artifact11488886147 were success14:24Z, but do not accept this NEW cleanup head.
+Only the ledger changes; app/test/SQL/lock/scheduler/workflow remain identical.
+Fresh six groups/aggregate/candidate provenance, exact-main normal protected
+merge, post-merge artifact and automatic ready Git publication remain required.
+Before that build, revalidate site+shared/current candidate and actual0claims,
+restore the existingnormal enabled value to false and remove ONLY the three
+still-exact-matching operation-owned new production Functions keys. Preserve
+all other contexts/scopes/values, globaldisabletrue/free800/8 and baseline
+learning_acceleration/grow_max=true. This no_go cleanup can occur before the
+unused outcome expiry; successful-card after16:15Z sequencing no longer applies.
+No corrected slot, fourth publication, retry, new source, migration or broker.
+Verify exact cleanup runtime inert/0claims by16:45Z. Update only the SAME existing
+followup to cleanup and remove after verified inert closeout. Classify this as
+`supporting_blocker_removal`; intelligence evidence remains incomplete.
+
+Receipts: `/private/tmp/ture-oct7-later-scan-delivery-log-readback.receipt.json`,
+`/private/tmp/ture-oct7-scan-slot-incident-local-proof.receipt.json`,
+`/private/tmp/ture-oct7-later-scan-owned-result-terminal.receipt.json`, and
+`/private/tmp/ture-oct7-later-original-source-preparation.stopped.json`.
+Conditional recovery IDs/scopes are preserved in
+`/private/tmp/ture-oct7-later-scan-phase-environment.final.receipt.json`; the
+pre-operation baseline remains authoritative for unrelated values.
+
+**Frozen Oct7 later source→mature-outcome card, stopped14:34Z.** The direct human answered
 "Ja, använd det verifierade senare tidskortet" to the exact changed-times question.
 This is a separately frozen card, not a restart/extension of the early no_go.
 Question: can completed Oct6 history and fresh same-session inputs preserve all8
