@@ -3,6 +3,16 @@
 <a id="current-delivery-map"></a>
 ## Current delivery map — 2026-10-07
 
+**Execution product decision — 2026-10-07.** The
+[Execution Engine](./ture-execution-engine.md) is the normative future execution
+contract. It autonomously decides whether, when and how to trade recommendations
+using fresh data, portfolio state and a user mandate. IBKR is the primary broker.
+Users set capital/notional/risk limits and enable the mandate; individual trades
+require no action. SV-O is limited autonomous live; SV-P expands its proven
+scope. Historical broker preparation milestones below cannot override this
+decision. Documentation preparation is selected now; the intelligence gate and
+current implementation queue remain binding.
+
 Ture's product vision is an evidence-based recommendation and learning engine,
 followed by autonomous internal paper, IBKR paper and separately approved
 controlled live/options execution. The active priority remains
@@ -58,16 +68,17 @@ ranking or measured recommendation quality.
 
 The 2026-09-21 scientific-validation and IBKR specification remains the retained
 execution destination after the intelligence gate: autonomous internal paper,
-autonomous IBKR paper, approved limited live and controlled live automation,
-with separately validated options research/execution. IBKR remains the future
-broker. Avanza is maintenance-only: preserve existing records, ownership and
-safety fixes, but build no new Avanza handoff or automation capability. No AI
-model gains a direct broker path, and this direction activates no broker.
+autonomous IBKR paper, mandate-authorized limited live and expanded automation,
+with separately validated options research/execution. IBKR is the primary broker.
+The Execution Engine owns autonomous trading
+decisions inside deterministic Ture Core mandate/risk controls. Preserve existing
+records, ownership and safety; historical broker/UI contracts are evidence only.
+No AI model gains a direct broker path, and this direction activates no broker.
 
 The repository remains the only control source. The [ledger](./ture-current-state-ledger.md)
 selects work; [governance](./roadmap-operating-governance.md) controls delivery.
-Notion is not maintained or used for selection. The complete user specification
-is preserved in [the dated source specification](./ture-scientific-validation-ibkr-spec-2026-09-21.md).
+Notion is not maintained or used for selection. The user specification and its explicit execution revision
+are maintained in [the dated source specification](./ture-scientific-validation-ibkr-spec-2026-09-21.md).
 Its numerical examples are illustrative, not observed results or approved limits.
 
 **Selection rule.** Until the active intelligence path has durable full-population
@@ -730,9 +741,9 @@ independent CLOSED slice are active, within the two-slice limit below.
 | R-SCI-1: autonomous internal equity paper | A, B, C and the basic D observer; C includes baseline risk, event checks, portfolio accounting and cost instrumentation | Collect forward evidence continuously; no live capital |
 | R-SCI-2: reproducible scientific laboratory | D, E, F, G, H, I, J, K; calibrated/versioned research and fully attributed results | Admit only strategies whose frozen gates pass; a rejected strategy is a valid scientific result |
 | R-IBKR-P: autonomous broker rehearsal | C + L + M, with base N telemetry, account isolation and deterministic risk | Test integration without claiming paper fills reproduce live execution |
-| R-IBKR-L: human-approved limited live | Applicable A–G/I/J/K capabilities, F strategy gates, M operational proof and N TCA; O release approval | Human approves each entry; exit permissions are separately bounded |
+| R-IBKR-L: limited autonomous live | Applicable A–G/I/J/K capabilities, F strategy gates, M operational proof and N TCA; O release acceptance and explicit mandate activation | Execution Engine chooses entries and manages protection/exits within a small-capital account/strategy/risk mandate; no per-trade user action |
 | R-IBKR-A: controlled equity automation | O live evidence + P scope/limits/ramp/drift/kill-switch gates | Only named validated strategies and allowed accounts/instruments |
-| R-OPT: options research, selection and execution | Q → R → S → T with B/E/F/G/I/K/N and separate options validation | Approval-required options first; auto only after its own live evidence |
+| R-OPT: options research, selection and execution | Q → R → S → T with B/E/F/G/I/K/N and separate options validation | Separate options-paper and bounded autonomous live mandate; expansion only after options-specific live evidence |
 | R-EXEC: measured execution optimization | U after enough attributable N/O data; separate T data for options | Shadow challenger, then bounded promotion and rollback |
 
 Active working order: **IF-2b → IF-3 → IF-4 → IF-5**, using SV-B/E/F/G/J/K
@@ -846,12 +857,12 @@ separate fields. A closed market is not a reason to bypass missing data or gates
 | SV-L — IBKR foundation | Separate backend adapter identifies correct account/contracts, persists order intent/events, reconciles and recovers | A/B stable contracts; C lifecycle before order integration | API/session feasibility, persistent hosting, connect/authenticate, account/buying power/position/order reads, submit/modify/cancel, execution/position subscriptions, contract tests | SPLIT: account/auth checks may run CLOSED; fresh quotes and meaningful fills require OPEN; permissions and credentials are external dependencies | 80–160 |
 | SV-M — autonomous IBKR paper | Signal → risk → paper order → fill → position → exit → reconciliation with no per-trade user input | C, L, base N telemetry | Failure injection: uncertain submit, duplicate/out-of-order events, disconnect, cancel/replace, orphan protection, restart | SPLIT: plan 5–10 operational paper sessions including reconnection; not a profitability gate or substitute for fills not observed | 64–120 |
 | SV-N — transaction cost analysis | Decision, arrival, order and execution reconcile to gross/net edge and attributable cost | B/C telemetry; L/M for broker data | Arrival benchmarks, spread/slippage/latency, missed/partial fills, cancellation, commissions and impact estimate disclosure | SPLIT: paper measures simulation; actual live TCA starts with O and remains a separate cohort | 40–80 |
-| SV-O — one-click limited IBKR live | A human-approved, freshly revalidated equity intent executes with verified protection, exit and reconciliation | F scientific gate, G/I/J/K risk context, M operational gate, N telemetry | Approval expiry and exact intent binding, live account allowlist, per-order risk recheck, incident/rollback runbook | OPEN: explicitly authorized supervised small-capital trials; initially plan 5–10 sessions, extend for missing scenarios | 56–104 |
-| SV-P — controlled equity auto | Named strategies run within permissions, capital stages and automatic withdrawal rules | O observed live behavior, F/J gates, N paper/live comparison | Permissions by strategy/setup/instrument/universe/confidence/regime/risk, risk reservations, ramp and two distinct emergency controls | OPEN: staged forward live evidence; initial planning allowance 10–20 sessions, never automatic time-based promotion | 64–120 |
+| SV-O — limited autonomous IBKR live | Execution Engine chooses and executes eligible equity trades with verified protection, exits and reconciliation under an activated small-capital mandate | F scientific gate, G/I/J/K risk context, M operational gate, N telemetry | Versioned mandate/intent binding, account allowlist, atomic risk reservations, per-order recheck, latency/protection deadlines and incident/recovery runbook | OPEN: explicitly enabled limited autonomous trials; initially plan 5–10 observed sessions, extend for missing scenarios; no per-trade user action | 56–104; re-estimate for revised autonomous scope |
+| SV-P — expanded controlled equity auto | Proven autonomous strategies expand within explicitly updated mandates, capital stages and withdrawal rules | O observed live behavior, F/J gates, N paper/live comparison | Permissions by strategy/setup/instrument/universe/confidence/regime/risk, risk reservations, ramp and two distinct emergency controls | OPEN: staged forward live evidence; initial planning allowance 10–20 sessions, never automatic time-based promotion | 64–120 |
 | SV-Q — options research data/pricing | Reproducible option chain and forecast distribution yield costed contract scenario results | B/E/F foundation, stable equity evidence path; G/K context | Contract IDs, strike/expiry/DTE/Greeks/IV/bid-ask/volume/OI; forecast calibration, pricing, skew/surface/term structure later; expiry/assignment scenarios | SPLIT: licensed chains/underlying quotes, fresh Greeks/IV and feed alignment; historical data availability is separate | 96–180 |
 | SV-R — autonomous options shadow | Each eligible equity opportunity compares stock, long call/put and later defined-risk vertical spreads without capital | Q, C/H, F | Parallel option portfolios, costs/partial fills/exercise/assignment, equity comparison and options attribution | SPLIT: forward observations across expiry, liquidity and volatility conditions; underperformance retained | 64–120 |
 | SV-S — instrument selection | Rank stock/call/put/defined spread on calibrated net EV, downside, liquidity and portfolio risk; abstain when unclear | Q/R evidence, F, I, G/K | Common capital/risk basis, uncertainty, theta/IV sensitivity, portfolio Greeks; shadow comparison and rollback | SPLIT: out-of-sample and forward shadow selection before eligible promotion | 64–128 |
-| SV-T — IBKR options execution | Approved options trades reconcile by leg and position; auto is a later separate gate | L/M/N/O operational controls, Q/R/S strategy evidence, permissions | Combo orders, tick/multiplier checks, incomplete legs, assignment/exercise/expiry and margin stress; no naked short options | SPLIT: IBKR options paper first, then authorized limited live; initial allowance 5–10 sessions plus relevant expiry evidence | 80–160 |
+| SV-T — autonomous IBKR options execution | Options trades under a separately activated bounded mandate reconcile by leg and position; wider scope is separately gated | L/M/N/O operational controls, Q/R/S strategy evidence, permissions | Combo orders, tick/multiplier checks, incomplete legs, assignment/exercise/expiry and margin stress; no naked short options | SPLIT: IBKR options paper first, then authorized limited live; initial allowance 5–10 sessions plus relevant expiry evidence | 80–160 |
 | SV-U — execution optimization | A cost model improves net execution versus frozen policy without worse fill/risk behavior | N and enough O/P or T instrument-specific live evidence | Market/limit choice, offset, patience, timing and liquidity sizing; paired replay/shadow and holdout validation | SPLIT: prospective bounded live challenger; no automatic change from a historical win | 64–128 |
 
 Observation-session counts are initial **operational planning allowances**, not
@@ -861,6 +872,11 @@ scenarios, and separately record which broker behaviors were actually observed.
 Re-estimate each phase when selected, after its first 4–16-hour vertical slice.
 
 ### Effort roll-up and calendar limits
+
+The ranges below are retained planning estimates, not a current forecast. The
+2026-10-07 autonomous-live decision changes the O/P work split; re-estimate their
+remaining effort and the total when selected, using delivered foundations and
+account/API feasibility. No schedule saving is claimed by removing per-trade UI.
 
 - A–D, including the complete D dashboard: **248–468 active hours**. The first
   internal-paper release can ship before advanced D research views, but do not
@@ -918,9 +934,9 @@ is inconclusive or failed. Never count 21 phases as equal effort units.
    partial/rejected/unfilled orders, protection/exit semantics, restart and
    reconciliation. IBKR Paper establishes integration, not live execution alpha.
 6. **O/P live gate:** explicit account/strategy/instrument/risk enablement after
-   scientific and operational gates. O requires a human-approved entry and
-   bounded exit permissions; P permits autonomous entries only within named
-   limits. Capital stages advance on evidence, never on elapsed days or an
+   scientific and operational gates. O permits autonomous entries, protection
+   and exits within a bounded user mandate; P expands only the proven named
+   scope through explicit mandate changes. Capital stages advance on evidence, never on elapsed days or an
    implementation checkbox. Compare paper/live fills, costs, latency, expectancy
    and drawdown; deteriorating evidence reduces risk or pauses entry.
 7. **Q–T options gate:** calibrated distributions and options-specific OOS,
@@ -938,6 +954,24 @@ Attribution covers setup, ticker, sector/industry/market cap, direction, confide
 time/day, regime, entry/exit/stop/target/sizing and every version. Options add
 DTE/delta/moneyness/IV/liquidity/event proximity. Cost accounting must avoid
 subtracting spread/slippage twice when already embedded in fill prices.
+
+### Execution Engine completion requirements
+
+The [Execution Engine contract](./ture-execution-engine.md) adds the following
+acceptance to the existing SV phases; it does not create a parallel workstream:
+
+| Required outcome | Existing phase / evidence |
+| --- | --- |
+| Versioned execution decisions | C freezes execute/wait/decline, selection, timing, sizing and exit rules, including wait expiry and reproducible tie-breaks. |
+| Execution-policy quality | E/F/H/N compare the exact policy with a simple frozen reference on the same original opportunities and budgets using separate portfolio paths. Include declines, misses, costs and uncertainty. O needs scientific acceptance of the recommendation/execution combination; a functioning order path alone is insufficient. |
+| Bounded economic activity | C/M prove stable opportunity identity, account-wide reservations, re-entry/cooldown/addition rules and cancel/replace limits through duplicate signals, versions and restarts. Protective actions retain their separate priority. |
+| Safe live-state upgrades | M proves fenced version/state handover and compatible rollback with partial/unknown orders and open protected positions; O verifies the deployed recovery path. Software rollback cannot undo fills. |
+| Independent incident detection | C/M/O freeze and verify watchdog, stale-health admission, alert delivery/escalation and independent operator recovery. Whole-worker/control-path failure must be detectable without that worker. |
+| Trading-only capabilities | L/O prove the worker cannot access funding/transfers, account/permission administration or credential creation/expansion. Record broker credential limitations and test the adapter/server boundaries. |
+
+Experimental internal paper remains available to produce the evidence needed
+for evaluation. Keep capital/risk and scientific gates intact, and reject or
+retain an inconclusive execution-policy challenger rather than tuning its gate.
 
 ### Internal-paper accounting and research completeness
 
@@ -1109,7 +1143,7 @@ plan. Do not silently omit a field because it is abbreviated in the table.
 | 40–42 | N TCA and U execution optimization |
 | 43–49 | L adapter/service/lifecycle/idempotency/reconciliation |
 | 50 | C shared baseline risk; I/K extensions; L/M/O/P per-order enforcement |
-| 51–55 | O approval-first, C/M autonomous paper exits, P permissioned live exits/auto/ramp/kill controls |
+| 51–55 | Execution Engine mandate; C/M autonomous paper, O limited autonomous live, P evidence-based expansion/ramp/kill controls |
 | 56–58 | Environment separation, C internal paper, L/M autonomous IBKR paper |
 | 59–60 | O/P capital ramp and paper/live divergence, N/J measurement |
 | 61 | Permanent C/E/H/R research collection with B lineage |
@@ -1153,7 +1187,7 @@ filters. It does not mean pretending that unavailable, stale or unlicensed data
 is coverage.
 
 The final product phase is controlled autonomous execution: Ture may submit a
-BUY or SELL to Avanza only after the engine has proven useful and the order has
+BUY or SELL to IBKR only after the engine has proven useful and the order has
 passed deterministic Ture Core risk, authority, idempotency, reconciliation,
 monitoring and kill-switch controls. An AI model never has a direct broker path.
 
@@ -1216,8 +1250,8 @@ historical evidence; it no longer determines the next engine slice.
 | IF-3 — contextual quality engine | Ture ranks candidates using market, sector and ticker context rather than isolated chart signals | Point-in-time SPY/QQQ/IWM, sector/industry relative strength and catalyst-presence snapshots; one published quality policy with explainable components |
 | IF-4 — measured learning dataset | Ture has the right evidence to know whether its selections were good | Complete visible, research, rejected and explicit no-trade samples; canonical outcomes, deduplication, outcome coverage, point-in-time replay and a frozen evaluation charter |
 | IF-5 — shadow learning and promotion | Ture improves a policy only when evidence shows it helps | Held-out and walk-forward comparison; quality, calibration, feasibility, cost and reliability measures; shadow winner, versioned rollback-capable promotion and post-promotion monitoring |
-| EX-1 — execution preparation | A proven recommendation can become a correct, human-confirmed Avanza order package | Account/instrument binding, deterministic order admission, risk limits, durable intent, reconciliation and recovery |
-| EX-2 — controlled autonomous execution | Ture can submit and later close a narrowly scoped Avanza position automatically | Sustained engine evidence, explicit enablement, per-order and portfolio limits, kill switch, idempotency, audit, real-time monitoring, broker reconciliation and incident recovery |
+| EX-1 — historical execution preparation (superseded) | Retained preparation evidence only; future execution follows the Execution Engine contract and SV-L/M/O | Account/instrument binding, deterministic admission, durable intent and reconciliation remain reusable constraints |
+| EX-2 — historical automatic-execution destination (superseded by SV-O/P) | Execution Engine autonomously trades through IBKR within a user mandate | Sustained engine evidence, explicit enablement, per-order and portfolio limits, kill switch, idempotency, audit, real-time monitoring, broker reconciliation and incident recovery |
 
 ### Market-window delivery map
 
@@ -1640,7 +1674,7 @@ database, deployment, secret, transport, writer, route or UI authority.
 | B-01 source-only follow-on | PR #312 verifies an unbound canonical position-lineage projection on exact main; it is source evidence only, not canonical live state | No automatic successor; retain the closed runtime boundary unless a new product decision admits one |
 | B-03 staging readiness | PR #314 verifies only an opaque-reference admission candidate. Action 666IY verified the private writer package, RLS containment and direct-table denial. [ACTION 666IZ](./action-666iz-b03-staging-private-transport-proof-containment.md) then verified current metadata for an existing dedicated least-privileged writer principal and direct-port reachability, but stopped before an authenticated session when its proof token lacked a secret-safe outbound caller path. [ACTION 666JB](./action-666jb-b03-private-transport-path-decision.md) retains the literal private-transport requirement and selects Supabase PrivateLink plus a same-region AWS VPC as the future path; current Pro cannot provide it. [ACTION 666JC](./action-666jc-b03-decision-accountability-reconciliation.md) records the autonomous controller, delivery automation and independent-verification boundaries for that defer decision. IP network restrictions remain public-path allowlisting, not a private path. | Keep B-03 `not_admitted` until the selected external infrastructure is explicitly provisioned. Then require a new staging-only non-public-path verification before a separately reviewed secret-safe caller, one dedicated-principal rollback call and an independent zero-row readback. |
 | D-01.1 credential alias boundary | PR #329 is merged and exact-main verified as a source-only fail-closed resolver for server service-role aliases | It selects no secret value and admits no remote call, staging, runtime, deployment, provider, broker or production authority |
-| C-01 canonical execution-intent audit foundation | [ACTION 666JD](./action-666jd-c01-canonical-execution-intent-audit-foundation.md) defines a source-only, owner-bound pre-broker intent identity and a proposed append-only audit relation. The contract accepts only exact semi-automatic, lineage-complete intents with `broker_result = null`, freezes the prepared candidate, and has no database or broker capability. Its proposed schema independently requires a nonblank, control-free market, an exact trigger/priority pair and finite positive quantity/price values. [ACTION 666JE](./action-666je-c01-adversarial-input-containment.md) additionally rejects uninspectable caller-owned object graphs before canonicalization and contains inspection faults in the existing rejected result. | Do not apply the migration or create a writer from these Actions. A later separately reviewed server-owned writer needs generated types, authenticated owner context, approved private transport, rollback and independent readback before any prepare-only broker integration is considered. |
+| C-01 canonical execution-intent audit foundation | [ACTION 666JD](./action-666jd-c01-canonical-execution-intent-audit-foundation.md) defines a source-only, owner-bound pre-broker intent identity and a proposed append-only audit relation. The contract accepts only exact legacy operator-confirmed, lineage-complete intents with `broker_result = null`, freezes the prepared candidate, and has no database or broker capability. Its proposed schema independently requires a nonblank, control-free market, an exact trigger/priority pair and finite positive quantity/price values. [ACTION 666JE](./action-666je-c01-adversarial-input-containment.md) additionally rejects uninspectable caller-owned object graphs before canonicalization and contains inspection faults in the existing rejected result. | Do not apply the migration or create a writer from these Actions. A later separately reviewed server-owned writer needs generated types, authenticated owner context, approved private transport, rollback and independent readback before any prepare-only broker integration is considered. |
 | REL-03 provider degradation / freshness planning | [ACTION 666JF](./action-666jf-rel03-provider-degradation-fail-closed-defaults.md) makes the existing continuous-intelligence planner default to `unknown` capacity unless it receives both the exact `available` provider state and an affirmative capacity attestation. A caller-supplied optimistic degradation level cannot override unavailable, missing or false provider capacity metadata. | This is source-only allocation planning. It creates no provider observation, freshness measurement, runtime, route, database, deployment, broker or production authority. A later operational REL-03 step requires separately admitted real provider-health/freshness evidence. |
 | CI cancellation reliability | PR #330 established the command-level boundary; follow-up PR #417 is merged and exact-main verified, forwarding cancellation to the active provider-free command's dedicated Unix process group and blocking later commands in that shard | The six-shard suite, required-check identity, fail-closed aggregate, branch protection and development CI profile are unchanged |
 | REL-00 CI-B8 observation | CI-B0 is verified on exact main and CI-B7 is merged as PR #300. The former CI-B8 observation is superseded on 2026-09-04 by the explicit development-CI-profile decision; CI-B0 through CI-B7 and the partial CI-B8 record remain historical evidence, but CI-B8 is not claimed complete | Do not collect a further 14-day/10-PR CI-B8 decision record. Before any external release, provider, broker or production authority, start a separately authorized CI re-hardening review. |
@@ -3355,8 +3389,9 @@ has been separately corroborated.
 
 Ture remains a privacy-first trading decision-support product. Capability may
 not outrun data ownership, durable auditability, operator controls or verified
-production behavior. Advisory, shadow, semi-automatic and automatic behavior
-must remain visibly and operationally distinct.
+production behavior. Research, internal paper, broker paper and autonomous live
+must remain visibly and operationally distinct. The current Execution Engine
+contract supersedes the historical broker preparation milestones below.
 
 ## Stable milestones
 
@@ -3551,16 +3586,15 @@ non-admissible as that concrete command port; a future v2 port, not the adapter,
 must prove any SQL command, schema function,
 route, worker or production activation it uses.
 
-### C. Semi-Automatic Execution
+### C. Historical broker preparation evidence
 
-One bounded operator-confirmed broker operation may be considered only after
-the secure data boundary, server-owned trade-management core, canonical
-execution identity, durable audit/record boundary and prepare-only broker
-checks are independently verified. A dry-run, mock or preparation contract is
-not execution authority.
+This historical milestone records an earlier operator-confirmed preparation
+contract. It is not a current delivery stage or a prerequisite for autonomous
+trading. Future broker work follows the Execution Engine contract and SV-L/M/O;
+retain the source-only evidence and its original capability boundaries below.
 
 ACTION 666JD supplies only the first source-side C-01 component: a deterministic
-identity for an exact semi-automatic pre-broker intent and an unapplied
+identity for an exact legacy operator-confirmed pre-broker intent and an unapplied
 append-only audit schema proposal. It deliberately has no writer, generated
 database types, owner session, database application, readback, private
 transport, route, runtime or broker capability. Its output is an immutable
@@ -3582,10 +3616,10 @@ ranking without separate approval.
 
 ### E. Controlled Automatic Execution
 
-This remains deferred. Detailed planning requires sufficient semi-automatic
-production history with identity, broker, durable-evidence, exit-handling and
-operator-review evidence. No legacy preview/no-op helper may bypass that
-threshold.
+This historical gate is superseded by the Execution Engine contract and the
+SV-C/M/O/P acceptance sequence. Current prerequisites are scientific evidence,
+autonomous paper/broker lifecycle proof and an activated user mandate. Historical
+preview/no-op helpers are not evidence of broker execution.
 
 ## Preserved delivery gates
 
@@ -3595,7 +3629,7 @@ threshold.
 | Deployment identity reconciliation plus release preflight | Production canary or release assertion |
 | Generated types plus migration allowlist | Any new durable Supabase contract |
 | Canonical execution identity plus service-owned audit/record boundary | Prepare-only broker integration |
-| Semi-automatic production history and reconciliation | Automatic-execution planning |
+| Scientific and autonomous broker-paper acceptance plus explicit user mandate | Limited autonomous live under SV-O |
 | Canonical outcomes plus offline/shadow evaluation | Learning-policy change |
 
 No migration is applied because a PR merges. No provider build or deployment

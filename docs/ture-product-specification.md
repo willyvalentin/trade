@@ -1,6 +1,6 @@
 # Ture Produktspecifikation
 
-**Senast uppdaterad:** 2026-07-21
+**Senast uppdaterad:** 2026-10-07 (Execution Engine)
 **Produktinriktning:** Continuous Market Intelligence
 **Primär marknad:** USA-aktier, daytrading
 
@@ -49,7 +49,8 @@ market data
 → continuous quality scoring
 → recommendation state management
 → execution opportunity ranking
-→ Execution Agent contract
+→ Execution Engine decision and risk mandate
+→ IBKR order, position and exit lifecycle
 → outcome tracking
 → learning and calibration
 → förbättrad intelligence
@@ -162,26 +163,30 @@ Ett korrekt resultat kan vara:
 
 No-trade får aldrig bero på att ett artificiellt batchfönster är stängt. Det ska bero på faktisk setup-kvalitet, risk/reward, datakvalitet, marknadsregim eller riskbegränsningar.
 
-## Relation till Execution Agent
+## Relation mellan Recommendation Engine och Execution Engine
 
-Execution Agent utvecklas som ett separat tekniskt spår. Recommendation engine ansvarar för **vad** som är execution-ready och **varför**. Brokerintegration ansvarar för själva orderflödet.
+Recommendation Engine bedömer och rankar möjligheter samt levererar versionerade
+rekommendationer med entry, stop, target, tidshorisont, kvalitet, osäkerhet,
+datakällor, giltighet och invalidation. En rekommendation är beslutsunderlag.
 
-Intelligence-motorn ska leverera ett stabilt, versionerat kontrakt med:
+Execution Engine beslutar autonomt om, när och hur en rekommendation ska handlas.
+Den väger färska marknadsdata, aktuell portfölj, väntande order och användarens
+mandat. Den kan avstå, vänta, dimensionera och exekvera samt skydda, förvalta och
+avsluta positioner. Deterministiska riskkontroller har alltid vetorätt.
 
-- candidate och recommendation identity
-- lifecycle state
-- quality score och confidence
-- rank relativt andra aktuella möjligheter
-- entry, stop, target och quantity/risk-underlag
-- execution eligibility
-- entry proximity och timing
-- data quality och freshness
-- reason codes och caution flags
-- invalidation och expiry
-- supersession
-- authority- och riskrelevant metadata
+IBKR är primär broker. Användaren ställer in budget, maximalt positions-/orderbelopp,
+förlustrisk, tillåtna strategier/instrument och driftgränser och aktiverar mandatet.
+Därefter krävs ingen åtgärd per affär. Motorn får aldrig utöka sitt eget mandat.
+Det fullständiga gällande kontraktet finns i [Execution Engine](./ture-execution-engine.md).
+Det styr framtida exekvering; roadmapens kvalitetsgrind och aktuella arbetsordning gäller.
 
-Execution Agent får inte behöva tolka ostrukturerad UI-text för att avgöra om den bör agera.
+Motorerna utbyter strukturerade kontrakt med ägare, recommendation/version/digest,
+strategi-/dataversion, föreslagen plan, kvalitet/färskhet, expiry, supersession
+och riskrelevant metadata. Execution Engine lägger till konto, mandatversion,
+aktuellt tillstånd, beslutsskäl, kapital-/riskreservation och orderidentitet.
+Den behöver inte tolka UI-text eller fråga en språkmodell för att skicka order.
+Återkopplingen bevarar skillnaden mellan rekommendationens kvalitet och faktisk
+exekveringskostnad; lärande ändrar inte en aktiv strategi utan versionsstyrd promotion.
 
 Tures intelligens
 
@@ -793,42 +798,28 @@ Detta är viktigt eftersom mycket edge inte bara ligger i entry, utan i hur posi
 Position management ska alltid vara kopplat till riskregler och execution mode.
 
 
-Execution
+Execution Engine
 
-Execution är en central del av Tures långsiktiga produkt. Ture ska inte bara kunna rekommendera trades, utan även agera som en agent som kan förbereda och utföra KÖP/SÄLJ-flöden utifrån rekommendationer, användarens inställningar och definierade riskregler.
+Execution Engine är Tures autonoma tradingmotor för IBKR API. Den fattar
+exekveringsbeslut utifrån rekommendationer, färska data, portfölj och ett
+versionsstyrt användarmandat och hanterar hela order- och positionslivscykeln.
+Användaren aktiverar omfattningen och kan pausa eller återkalla den. Entries,
+storleksbeslut, ordersändning och tillåtna exits kräver ingen bekräftelse per affär.
 
-Execution kan ske i två lägen.
+Samma besluts- och risklogik ska användas i intern paper, IBKR paper och autonom
+live. Första livefasen har litet kapital och snäv omfattning; senare utökning
+kräver evidens och ett nytt mandat. Riskkontroller, skyddsordrar, återstart,
+avstämning och full loggning ingår från början. Helt autonom handel kräver att
+anslutning och behörigheter fungerar; fel ska ge säker paus och tydliga larm.
 
-Semi-automatiskt läge:
-
-Användaren väljer eller godkänner en rekommendation. Ture förbereder orderflödet, fyller i relevanta parametrar som ticker, ordertyp, position size, entry, stop och target, men användaren gör den sista bekräftelsen innan ordern skickas.
-
-Automatiskt läge:
-
-Ture kan, efter uttryckligt godkännande från användaren och inom fördefinierade riskramar, själv utföra KÖP/SÄLJ baserat på rekommendationer som uppfyller tillräckligt hög confidence, risk/reward och övriga säkerhetskriterier.
-
-I detta läge fungerar Ture som en autonom trading-agent, men endast inom de gränser som användaren har satt upp.
-
-Automatisk execution ska alltid vara styrd av tydliga säkerhetslager:
-
-- maxrisk per trade
-- maxrisk per dag
-- max antal trades per fönster
-- stop-loss-krav
-- tillåtna marknader
-- tillåtna ordertyper
-- confidence-trösklar
-- trusted ticker krav
-- trusted setup krav
-- kill switch
-- full loggning av alla beslut och åtgärder
-
-Användaren ska alltid kunna se varför en trade togs, vilka regler som triggades och hur utfallet blev.
+[Execution Engine-kontraktet](./ture-execution-engine.md) specificerar ansvar,
+användarinställningar, beslut/order/fills, snabb API-exekvering, felsituationer
+och acceptans före aktivering.
 
 
 Execution Quality / Slippage Tracking
 
-När Ture börjar användas med Avanza-flödet bör Ture mäta execution quality.
+Execution Engine ska mäta execution quality genom hela IBKR-flödet.
 
 En rekommendation kan vara bra men execution kan försämra resultatet.
 
@@ -836,13 +827,13 @@ Ture bör mäta:
 
 - planned entry vs actual entry
 - slippage
-- delay from signal to prepared order
-- delay from prepared order to manual confirmation
+- recommendation receipt → decision → durable intent → API send latency
+- API send → broker acknowledgement → fill latency
 - missed entries
 - partial fills
 - actual P/L vs planned R
 - actual risk vs planned risk
-- manual confirmation delay
+- protection and reconciliation lag
 - broker confirmation timestamp
 - exit quality
 - planned exit vs actual exit
@@ -855,7 +846,7 @@ och:
 
 “Setupen var bra, men execution blev dålig.”
 
-Det är avgörande när Ture på sikt ska förbättra både rekommendationer och execution-agenten.
+Det är avgörande när Ture på sikt ska förbättra både rekommendationer och Execution Engine.
 
 
 Personal Risk Profile
@@ -870,20 +861,24 @@ Riskprofilen kan innehålla:
 - max daily loss
 - max antal trades per dag
 - max antal trades per fönster
-- preferred number of trades
+- maximum activity limits without a trade quota
 - aggressive / balanced / conservative mode
 - avoid high beta
 - avoid low-confidence tickers
 - avoid low-confidence setups
-- semi-auto only
-- automatic allowed only for trusted setups
-- automatic allowed only for trusted tickers
+- allocated capital budget and maximum position/order notional
+- permitted strategy versions, instruments and ticker universe
+- portfolio exposure and aggregate open-risk limits
+- versioned mandate activation, pause and withdrawal
 - no trades after certain time
 - forced EOD close
 - minimum confidence threshold
 - minimum data quality threshold
 
-Ture ska kunna anpassa output efter användarens riskprofil utan att bli odisciplinerad.
+Riskprofilens etiketter ska motsvara explicita gränser. Orderbelopp och beräknad
+förlustrisk är olika mått. Den striktaste av mandatets, produktens och brokerns
+gränser gäller; motorn får aldrig öka sin egen budget eller kringgå riskkontroller.
+Se [mandatets exakta semantik](./ture-execution-engine.md#user-mandate-and-settings).
 
 
 Explainability Layer
@@ -1036,7 +1031,7 @@ Ture ska bygga intelligens genom att kombinera:
 - entry timing engine
 - target/stop calibration
 - position management intelligence
-- execution agent
+- Execution Engine
 - execution quality tracking
 - personal risk profile
 - explainability layer
