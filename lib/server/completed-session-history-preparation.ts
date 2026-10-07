@@ -2,7 +2,7 @@ import "server-only";
 
 import { createHash } from "node:crypto";
 import { getConfiguredApplicationOwnerUserId, getConfiguredApplicationSessionSecret } from "@/lib/application-session-core";
-import { buildBasicFreeDiscoveryCreditReservationClaimId } from "@/lib/basic-free-discovery-credit-reservation-store";
+import { basicFreeDiscoveryCreditReservationContractVersion, buildBasicFreeDiscoveryCreditReservationClaimId } from "@/lib/basic-free-discovery-credit-reservation-store";
 import { getIntradayScanWindow } from "@/lib/intraday-scan-window";
 import { getDailyCandlesWithRetainedHistory, getDailyCandlesWithIdentity } from "@/lib/market-data";
 import { throwIfAborted } from "@/lib/operation-abort";
@@ -33,6 +33,20 @@ function budget(value: string | undefined, maximum: number) {
 }
 function minute(now: Date) {
   return new Date(Math.floor(now.getTime() / 60000) * 60000).toISOString();
+}
+// PostgreSQL preserves microseconds; Date.parse alone truncates a future
+// terminal receipt into the sampled millisecond. Accept explicit SQL instants
+// without normalizing impossible dates or losing their ordering precision.
+function reservationInstantMicros(value: unknown): bigint | null {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/.test(value)) return null;
+  const at = Date.parse(value);
+  if (!Number.isFinite(at)) return null;
+  const suffix = value.slice(-6);
+  const offset = value.endsWith("Z") ? 0 : (suffix[0] === "+" ? 1 : -1) *
+    (Number(suffix.slice(1, 3)) * 60 + Number(suffix.slice(4)));
+  if (new Date(at + offset * 60000).toISOString().slice(0, 19) !== value.slice(0, 19)) return null;
+  const fraction = value.match(/\.(\d{1,6})(?:Z|[+-]\d{2}:\d{2})$/)?.[1] ?? "";
+  return BigInt(at) * BigInt(1000) + BigInt(fraction.padEnd(6, "0").slice(3));
 }
 
 /** Fixed-purpose, server-owned history acquisition, NOT a scheduler or route.
@@ -197,18 +211,28 @@ export async function prepareCompletedSessionHistories(options: { signal?: Abort
         // The immutable claim includes its ORIGINAL minute. A later invocation
         // may only recover that exact identity from the owner-bound ledger,
         // never relax the RPC's immutable-minute/conflict checks.
-        const prior = await client.from("basic_free_discovery_credit_reservations")
-          .select("claim_id,status,minute_bucket,finalized_at")
-          .eq("owner_user_id", owner).eq("trading_date", session.market_date)
-          .eq("execution_fingerprint", execution).abortSignal(signal).maybeSingle();
+        // This private ledger intentionally has no service-role table SELECT.
+        // Read only one terminal history identity through its internal API;
+        // incomplete, duplicated or mismatched responses prove nothing.
+        const prior: { data: unknown; error: unknown; count: number | null } = await client.rpc("read_completed_history_terminal_failure_v1", {
+          p_owner_user_id: owner, p_trading_date: session.market_date,
+          p_ticker: member.ticker, p_claim_id: claimId,
+        }, { count: "exact" }).abortSignal(signal);
         throwIfAborted(signal);
-        const saved = prior.data;
-        if (!prior.error && saved?.claim_id === claimId && saved.status === "failed" &&
+        const saved: Record<string, unknown> | null = !prior.error && Array.isArray(prior.data) && prior.data.length === 1 && prior.count === 1
+          ? record(prior.data[0]) : null;
+        const originalMinute = reservationInstantMicros(saved?.minute_bucket);
+        const terminalAt = reservationInstantMicros(saved?.finalized_at);
+        const observedAt = BigInt(now.getTime()) * BigInt(1000);
+        if (saved?.contract_version === basicFreeDiscoveryCreditReservationContractVersion &&
+          saved.claim_id === claimId && saved.execution_fingerprint === execution &&
+          saved.owner_user_id === owner && saved.trading_date === session.market_date &&
+          saved.catalog_observation === false && saved.requested_credits === 1 &&
+          saved.declared_daily_credit_budget === dailyBudget && saved.declared_per_minute_credit_budget === minuteBudget &&
+          saved.status === "failed" &&
           typeof saved.minute_bucket === "string" &&
-          Number.isFinite(Date.parse(saved.minute_bucket)) && Date.parse(saved.minute_bucket) <= now.getTime() &&
-          typeof saved.finalized_at === "string" && Number.isFinite(Date.parse(saved.finalized_at)) &&
-          Date.parse(saved.finalized_at) >= Date.parse(saved.minute_bucket) &&
-          Date.parse(saved.finalized_at) <= now.getTime()) {
+          originalMinute !== null && originalMinute % BigInt(60000000) === BigInt(0) && originalMinute <= observedAt &&
+          terminalAt !== null && terminalAt >= originalMinute && terminalAt <= observedAt) {
           claim = await prepareBasicFreeDiscoveryCreditReservation({ ...claimInput,
             minute_bucket: new Date(saved.minute_bucket).toISOString() }, { signal });
           if (claim.provider_execution_allowed || claim.status !== "already_failed" ||
