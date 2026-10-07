@@ -147,6 +147,8 @@ const wrongPolicy = process.argv.includes("--wrong-policy");
 const diagnoseOutcomes = process.argv.includes("--diagnose-outcomes");
 const nextSessionOutcomes = process.argv.includes("--next-session-outcomes");
 const retainedBatchOneShot = process.argv.includes("--retained-batch-one-shot");
+const retainedBatchImmature = process.argv.includes("--retained-batch-immature");
+assert(!retainedBatchImmature || retainedBatchOneShot, "Canonical maturity is a negative case of the same original-batch one-shot");
 assert(!retainedBatchOneShot || diagnoseOutcomes && process.argv.includes("--relative-plan-60m") && !nextSessionOutcomes,
   "Retained-batch one-shot preserves the existing original-input population and synthetic outcome boundary");
 const pagedOutcomeReads = process.argv.includes("--paged-outcome-reads");
@@ -2670,6 +2672,30 @@ try {
     assert(record.candidates.every(c=>c.data.source_timestamp===null || Date.parse(c.data.source_timestamp)<=Date.parse(record.decision_timestamp)));
     assert.equal(lineage.scan_run_fingerprint,scanRuns[0].run_fingerprint);
     if(retainedBatchOneShot) {
+      // Mirror the affected production boundary read 2026-10-07T21:02:55Z.
+      // No broad table grants may hide a source/outcome/claim permission gap.
+      const sourceTables=["recommendation_batches","recommendation_scan_runs","recommendation_snapshots","recommendation_outcomes"];
+      sql(`grant authenticated to authenticator;
+        revoke all on public.basic_free_discovery_credit_reservations, public.scheduled_outcome_evaluation_attempts,
+          ${sourceTables.map(name=>`public.${name}`).join(",")} from public,anon,authenticated,service_role;
+        grant select,insert,update on public.scheduled_outcome_evaluation_attempts to service_role;
+        grant select,insert,update,delete on ${sourceTables.map(name=>`public.${name}`).join(",")} to service_role;`);
+      for(const table of [...sourceTables,"scheduled_outcome_evaluation_attempts","basic_free_discovery_credit_reservations"]) {
+        assert.equal(sql(`select relrowsecurity and not relforcerowsecurity from pg_class where oid='public.${table}'::regclass;`),"t");
+        for(const role of ["anon","authenticated","service_role"]) for(const privilege of ["SELECT","INSERT","UPDATE","DELETE","TRUNCATE","REFERENCES","TRIGGER"]) {
+          const expected=role==="service_role" && table!=="basic_free_discovery_credit_reservations" &&
+            (["SELECT","INSERT","UPDATE"].includes(privilege) || privilege==="DELETE" && sourceTables.includes(table));
+          assert.equal(sql(`select has_table_privilege('${role}','public.${table}','${privilege}');`),expected?"t":"f");
+        }
+      }
+      const rpcPermissions=JSON.parse(sql(`select jsonb_agg(jsonb_build_object('name',p.proname,'definer',p.prosecdef,
+        'config',p.proconfig,'service',has_function_privilege('service_role',p.oid,'EXECUTE'),
+        'anon',has_function_privilege('anon',p.oid,'EXECUTE'),'authenticated',has_function_privilege('authenticated',p.oid,'EXECUTE')))
+        from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname in
+        ('claim_basic_free_discovery_credit_reservation','begin_basic_free_discovery_credit_reservation_attempt','finalize_basic_free_discovery_credit_reservation_attempt');`));
+      assert.equal(rpcPermissions.length,4);
+      assert(rpcPermissions.every(row=>row.definer && row.service && !row.anon && !row.authenticated &&
+        JSON.stringify(row.config)===JSON.stringify(["search_path=pg_catalog, public"])));
       const originalSources = sql("select jsonb_build_object('runs',(select jsonb_agg(t order by id) from recommendation_scan_runs t),'batches',(select jsonb_agg(t order by id) from recommendation_batches t),'snapshots',(select jsonb_agg(t order by id) from recommendation_snapshots t));");
       const targetBatch = JSON.parse(sql("select row_to_json(t) from recommendation_batches t order by id limit 1;"));
       clock = OriginalDate.parse("2026-10-05T17:30:20.000Z");
@@ -2699,6 +2725,22 @@ try {
       const route = (body, secret=environment.AUTOMATION_SECRET) => require(join(generated,"outcome-route.cjs")).POST(
         new Request("http://closed-fixture/api/recommendations/evaluate-outcomes",{method:"POST",
           headers:{"x-automation-secret":secret,"Content-Type":"application/json"},body:JSON.stringify(body)}));
+      if (retainedBatchImmature) {
+        process.env.TURE_OUTCOME_EVALUATION_ONE_SHOT_DATE="2026-10-01";
+        setSlot("2026-10-01T18:30:00.000Z");
+        assert(researchSnapshots.every(row=>row.recommended_at==="2026-10-01T17:30:20+00:00" ||
+          OriginalDate.parse(row.recommended_at)===OriginalDate.parse("2026-10-01T17:30:20.000Z")));
+        const denied=await invoke(),deniedBody=await denied.json();
+        assert.equal(denied.status,200,JSON.stringify(deniedBody));
+        assert.equal(externalRequests,before,"Decision-time+60m is not the immutable five-minute anchor+60m");
+        assert.equal(deniedBody.persistence_error,"retained_original_batch_horizon_immature");
+        assert.equal(Number(sql("select count(*) from recommendation_outcomes;")),0);
+        assert.equal(Number(sql("select count(*) from basic_free_discovery_credit_reservations;")),claims.length);
+        originalLog(JSON.stringify({retained_batch_canonical_maturity_proof:"passed",
+          decision_timestamp:"2026-10-01T17:30:20.000Z",delivery_timestamp:"2026-10-01T18:30:20.000Z",
+          canonical_horizon_end:"2026-10-01T18:35:00.000Z",synthetic_outcome_requests:0,
+          actual_provider_requests:0,production_actions:0}));
+      } else {
       const invalidInvocations = {
         missing_target:{batch_fingerprint:undefined}, wrong_target:{batch_fingerprint:"rec_batch_another"},
         target_alias:{batch_fingerprint:` ${targetBatch.batch_fingerprint} `}, wrong_scope:{original_source_scope:"trailing_seven_ny_dates_v1"},
@@ -2751,7 +2793,7 @@ try {
       const firstAttempt=JSON.parse(sql(`select row_to_json(t) from scheduled_outcome_evaluation_attempts t where scheduled_slot_at='${originalTargetSlot}';`));
       assert.equal(firstAttempt.request_json.retained_original_batch.batch_fingerprint,targetBatch.batch_fingerprint);
       assert.equal(firstAttempt.receipt_json.scope.selected_batch_fingerprint,targetBatch.batch_fingerprint);
-      assert.equal(firstAttempt.receipt_json.cost.candle_requests_executed,4);
+      assert.equal(firstAttempt.receipt_json.cost.candle_requests_executed,Math.min(4,researchSnapshots.length));
       // A changed target cannot reuse a previously claimed slot as if that
       // receipt belonged to another source. No second provider dispatch.
       process.env.TURE_OUTCOME_EVALUATION_ONE_SHOT_BATCH_FINGERPRINT="rec_batch_other";
@@ -2773,7 +2815,7 @@ try {
       assert.equal(externalRequests-before,researchSnapshots.length);
       assert.deepEqual(JSON.parse(sql("select coalesce(jsonb_agg(t order by id),'[]') from recommendation_outcomes t;")),completed);
       const credits=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from basic_free_discovery_credit_reservations t where trading_date='2026-10-05';"));
-      assert.equal(credits.length,2);
+      assert.equal(credits.length,researchSnapshots.length<=4?1:2);
       assert(credits.every(row=>row.requested_credits===4 && row.status==="completed" && row.provider_attempted && row.finalized_at));
       const outcomeRequests=syntheticRequestEvidence.filter(value=>value.requested_at.startsWith("2026-10-05"));
       assert.equal(outcomeRequests.length,researchSnapshots.length);
@@ -2792,10 +2834,12 @@ try {
       assert.equal(externalRequests-before,researchSnapshots.length);
       assert.equal(sql("select jsonb_build_object('runs',(select jsonb_agg(t order by id) from recommendation_scan_runs t),'batches',(select jsonb_agg(t order by id) from recommendation_batches t),'snapshots',(select jsonb_agg(t order by id) from recommendation_snapshots t));"),originalSources);
       originalLog(JSON.stringify({retained_original_batch_one_shot_proof:"passed",original_population:8,
-        target_batch_count:1,synthetic_outcome_requests:externalRequests-before,reserved_credits:8,
+        target_batch_count:1,synthetic_outcome_requests:externalRequests-before,reserved_credits:credits.length*4,
+        affected_production_acl_matched:true,first_slot_complete:researchSnapshots.length<=4,
         invocation_negative_controls:Object.keys(invalidInvocations).length,source_negative_controls:sourceFaults.length,
         original_sources_unchanged:true,restarted_owner_read:true,original_horizons_retained:true,expiry_verified:true,
         completed_repeat_requests:0,actual_provider_requests:0,production_actions:0,quality_improvement_claimed:false}));
+      }
       for(const key of ["TURE_OUTCOME_EVALUATION_ONE_SHOT_DATE","TURE_OUTCOME_EVALUATION_ONE_SHOT_SLOT_UTC","TURE_OUTCOME_EVALUATION_ONE_SHOT_BATCH_FINGERPRINT"]) delete process.env[key];
       process.env.TURE_OUTCOME_EVALUATION_ONE_SHOT_ENABLED = "false";
       process.env.TURE_OBSERVATION_SERIES_ENABLED = "true";

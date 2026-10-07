@@ -83,7 +83,8 @@ import {
   type OutcomeEvaluationSeriesControl,
   type OutcomeEvaluationSeriesSlotAdmission,
 } from "@/lib/outcome-evaluation-series-control";
-import { SCHEDULED_SCAN_PREFLIGHT_DELIVERY_GRACE_MILLISECONDS } from "@/netlify/functions/scheduled-scan";
+import { SCHEDULED_SCAN_PREFLIGHT_DELIVERY_GRACE_MILLISECONDS } from "@/lib/scheduled-scan-invocation-receipt";
+import { recommendationOutcomeEvaluationAnchorFromSnapshot } from "@/lib/recommendation-outcome-evaluation-anchor";
 
 type EvaluateOutcomesRequest = {
   mode?: unknown;
@@ -1034,9 +1035,10 @@ async function loadOfficialLiveSnapshots({
             !rawBatchSnapshots.some(snapshot => snapshot.snapshot_fingerprint === fingerprint)))) {
         throw new Error("retained_original_batch_membership_unavailable");
       }
-      if (retainedOriginalBatch && batchSnapshots.some(snapshot =>
-          typeof snapshot.recommended_at !== "string" || !Number.isFinite(Date.parse(snapshot.recommended_at)) ||
-          Date.parse(snapshot.recommended_at) + 60 * 60_000 > now.getTime())) {
+      if (retainedOriginalBatch && batchSnapshots.some(snapshot => {
+          const anchor = recommendationOutcomeEvaluationAnchorFromSnapshot(snapshot);
+          return !anchor || Date.parse(anchor.evaluation_anchor_start_at) + 60 * 60_000 > now.getTime();
+        })) {
         throw new Error("retained_original_batch_horizon_immature");
       }
       const foundFingerprints = new Set(
