@@ -2,7 +2,7 @@
 
 <a id="current-delivery-board"></a>
 <!-- BEGIN CURRENT DELIVERY BOARD -->
-## Active Now / Next / Blocked — 2026-10-08 00:08Z
+## Active Now / Next / Blocked — 2026-10-08 00:38Z
 
 Only this marked board selects work; dated material after END stays immutable.
 Follow PR740's IF-2b → IF-4 source-to-outcome direction and existing governance.
@@ -106,13 +106,20 @@ Historical broker records after END remain evidence, not current governance.
   six/aggregate/actual provenance acceptance and inert release. The existing Oct8
   wrapper/test is now locally bundled with current-main composition in this same
   PR; no separate product slice/publication. No admin/force or activation.
+- Combined composition8c08314f on mainf2 is locally accepted:547regressions/20.0m,
+  including exact Oct8 normal8→native4+4/24labels, all old cold/history/cost cases.
+  Nonincremental types and lint0errors8oldwarnings pass. NEW exact locked Linux
+  build/4native Next consumers passes00:34:46Z on8c; no old build reused.
+  Historical tail474f3741 and all f2execution docs are preserved. Freeze/push once
+  in the same747; new exact-candidate CI/provenance/inert production remain pending.
+  Receipt: `/private/tmp/ture-pr747-current-main-oct8-local-acceptance.receipt.json`.
 
 ### Now / Next / Blocked
 
 | Slot | Concrete result / next gate |
 | --- | --- |
-| Now — Oct8 preparation | Verify the locally composed current-main PR747, including the existing dated normal8→4+4 regression/card; then full new-candidate CI and normal inert release. No production activation yet. |
-| Dependency — PR747 | Prior head4bc607cf/run37698515829attempt1 terminal cancelled; isolated archive reproduction passes5.3/5.1m at unchanged limits. Local composition now preserves mainf2f63aeb/PR746 execution docs and includes Oct8 test. Verify/commit/push once in the same PR, then fresh full acceptance; no old-candidate retry/deadline change. |
+| Now — Oct8 preparation | Combined current-main PR747 is locally accepted on8c08314f, including dated normal8→4+4 and exact Linux build. Freeze/push once, then full new-candidate CI and normal inert release. No production activation yet. |
+| Dependency — PR747 | Prior4bc/run37698515829attempt1 cancellation is preserved; archive reproduction passes at unchanged limits. Combined8c is locally accepted on mainf2/PR746, preserving execution docs and including Oct8 test. Normal same-PR push and fresh full acceptance next; no old-candidate retry/deadline change. |
 | Real source gate | Read-only22:12 sees97owned histories, all latestOct6; **0/97validOct8**. Need latest completeOct7,60dailycandles for95equities+2benchmarks; no old card/paid identity relabel or silent reuse. |
 | Capacity | New direct human approval:114TD max=1meter+97histories+8scan+8outcomes,8/minute,≥200unuseddaily. Account API confirms existing Netlify plan, NOT remaining balance; human reports1560. Four card Git-publications max60+20compute; PR747 inert release separately accounted. Fresh Oct8 capacity remains a start gate. |
 | Operating owner / followup | Human explicitly approved this exact Oct8 scheduled chain. Same-chat heartbeat `ture-oct8-originalkedja-17-00`, initial14:35local; reuse it for phase followups, no parallel stream. Keep host/app available. No scheduling authority inferred from old cards or the250hgoal. |
