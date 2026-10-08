@@ -8,12 +8,13 @@ import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 
 const root = process.cwd();
-const earliestSeries = process.argv.includes('--earliest-bounded-slot');
+const beforeCloseSeries = process.argv.includes('--before-close-bounded-series');
+const earliestSeries = process.argv.includes('--earliest-bounded-slot') || beforeCloseSeries;
 const originalSeries = process.argv.includes('--bounded-original-series');
 const boundedSeries = originalSeries || earliestSeries;
 const publicationStop = process.argv.includes('--early-publication-stop');
-assert(!(boundedSeries && publicationStop) && !(originalSeries && earliestSeries) && process.argv.slice(2).every(value =>
-  ['--bounded-original-series', '--early-publication-stop', '--earliest-bounded-slot'].includes(value)), 'Only one declared CLOSED scenario is allowed');
+assert(!(beforeCloseSeries && process.argv.slice(2).length !== 1) && !(boundedSeries && publicationStop) && !(originalSeries && earliestSeries) && process.argv.slice(2).every(value =>
+  ['--bounded-original-series', '--early-publication-stop', '--earliest-bounded-slot', '--before-close-bounded-series'].includes(value)), 'Only one declared CLOSED scenario is allowed');
 const pin = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
 assert.equal(execFileSync('git', ['diff', '--name-only', '--', 'app', 'lib', 'netlify/functions', 'supabase', 'package.json', 'package-lock.json'], { encoding: 'utf8' }).trim(), '', 'Product bytes must match the declared HEAD');
 const harness = resolve(root, 'scripts/completed-input-runtime-proof.mjs');
@@ -321,11 +322,103 @@ if (boundedSeries) {
       first_inputs:firstInputs,quality_gates_unchanged:true,actual_provider_requests:0,production_actions:0}));
     const seriesScanEvidence=[{slot:sourceSlot,original_members:8,assessed_members:8,requests:8}];`);
   }
-  source = source.replace('scenario:"oct8_1700_normal_one_shot_positive"', 'scenario:"prospective_bounded_original_series_positive"')
+  if (beforeCloseSeries) {
+    // A separate seven-set fixture removes the after-close availability assumption.
+    // Preserve the earlier eight-set fixtures and every original eight-member set.
+    const begin = source.indexOf('} else if(preparedFirstScan) {');
+    const end = source.indexOf('} else if(rotationDay) {', begin);
+    assert(begin >= 0 && end > begin);
+    let beforeClose = source.slice(begin, end);
+    const replaceExisting = (before, after) => {
+      assert(beforeClose.includes(before), before);
+      beforeClose = beforeClose.replaceAll(before, after);
+    };
+    for (const [before, after] of [
+      ['const outcomePhases=[];', 'const outcomeRequestStart=syntheticRequestEvidence.length;\n    const outcomePhases=[];'],
+      ['TURE_OBSERVATION_SERIES_EXPIRES_AT_UTC="2026-10-08T16:30:00.000Z"', 'TURE_OBSERVATION_SERIES_EXPIRES_AT_UTC="2026-10-08T16:15:00.000Z"'],
+      ['TURE_OBSERVATION_SERIES_MAX_ATTEMPTS="8"', 'TURE_OBSERVATION_SERIES_MAX_ATTEMPTS="7"'],
+      ['TURE_OBSERVATION_SERIES_MAX_PROVIDER_CREDITS="64"', 'TURE_OBSERVATION_SERIES_MAX_PROVIDER_CREDITS="56"'],
+      ['for(let index=1;index<8;index++)', 'for(let index=1;index<7;index++)'],
+      ['2026-10-08T17:15:00.000Z', '2026-10-08T16:15:00.000Z'],
+      ['2026-10-08T21:15:00.000Z', '2026-10-08T19:45:00.000Z'],
+      ['2026-10-08T21:15:20.000Z', '2026-10-08T19:45:20.000Z'],
+      ['2026-10-08T21:30:00.000Z', '2026-10-08T20:00:00.000Z'],
+      ['TURE_OUTCOME_EVALUATION_SERIES_MAX_ATTEMPTS="16"', 'TURE_OUTCOME_EVALUATION_SERIES_MAX_ATTEMPTS="14"'],
+      ['TURE_OUTCOME_EVALUATION_SERIES_MAX_PROVIDER_CREDITS="64"', 'TURE_OUTCOME_EVALUATION_SERIES_MAX_PROVIDER_CREDITS="56"'],
+      ['Array.from({length:16}', 'Array.from({length:14}'],
+      ['assert.equal(externalRequests,64);', 'assert.equal(externalRequests,56);'],
+      ['assert.equal(externalRequests,128', 'assert.equal(externalRequests,112'],
+      ['assert.equal(Number(sql("select count(*) from recommendation_scan_runs;")),8)', 'assert.equal(Number(sql("select count(*) from recommendation_scan_runs;")),7)'],
+      ['assert.equal(Number(sql("select count(*) from recommendation_snapshots;")),64)', 'assert.equal(Number(sql("select count(*) from recommendation_snapshots;")),56)'],
+      ['assert.equal(Number(sql("select count(*) from scheduled_scan_attempts;")),8)', 'assert.equal(Number(sql("select count(*) from scheduled_scan_attempts;")),7)'],
+      ['assert.equal(owned.data.recommendation_scan_runs.length,8)', 'assert.equal(owned.data.recommendation_scan_runs.length,7)'],
+      ['assert.equal(owned.data.recommendation_outcomes.length,192)', 'assert.equal(owned.data.recommendation_outcomes.length,168)'],
+      ['assert.equal(Number(sql("select count(*) from recommendation_outcomes;")),192)', 'assert.equal(Number(sql("select count(*) from recommendation_outcomes;")),168)'],
+      ['assert.equal(outcomeClaims.length,16)', 'assert.equal(outcomeClaims.length,14)'],
+      ['assert.equal(Number(sql("select count(*) from scheduled_outcome_evaluation_attempts;")),16)', 'assert.equal(Number(sql("select count(*) from scheduled_outcome_evaluation_attempts;")),14)'],
+      ['assert.equal(held.enrolled_decision_count,8)', 'assert.equal(held.enrolled_decision_count,7)'],
+      ['assert.equal(held.original_population_count,64)', 'assert.equal(held.original_population_count,56)'],
+      ['assert.equal(held.canonical_outcome_count,64)', 'assert.equal(held.canonical_outcome_count,56)'],
+      ['assert.equal(measured.operational.reliability.admitted_attempt_count,8)', 'assert.equal(measured.operational.reliability.admitted_attempt_count,7)'],
+      ['assert.equal(measured.operational.cost.reserved_provider_credits,64)', 'assert.equal(measured.operational.cost.reserved_provider_credits,56)'],
+      ['assert.equal(syntheticRequestEvidence.length,225,"Include all97 prepared histories plus64 scan and64 outcome requests")', 'assert.equal(syntheticRequestEvidence.length,209,"Include all97 prepared histories plus56 scan and56 outcome requests")'],
+      ['assert.equal(Number(sql("select count(*) from basic_free_discovery_credit_reservations;")),121)', 'assert.equal(Number(sql("select count(*) from basic_free_discovery_credit_reservations;")),118)'],
+      ['assert.equal(Number(sql("select sum(requested_credits) from basic_free_discovery_credit_reservations;")),225)', 'assert.equal(Number(sql("select sum(requested_credits) from basic_free_discovery_credit_reservations;")),209)'],
+      ['original_population:64', 'original_population:56'],
+      ['complete_assessed_members:64', 'complete_assessed_members:56'],
+      ['synthetic_requests:64', 'synthetic_requests:56'],
+      ['canonical_60m_outcomes:64', 'canonical_60m_outcomes:56'],
+      ['enrolled_original_decisions:8', 'enrolled_original_decisions:7'],
+      ['operational_attempts:8', 'operational_attempts:7'],
+      ['reserved_scan_credits:64', 'reserved_scan_credits:56'],
+      ['full_chain_synthetic_requests:225', 'full_chain_synthetic_requests:209'],
+      ['terminal_finalized_claims:121', 'terminal_finalized_claims:118'],
+      ['reserved_all_phase_credits:225', 'reserved_all_phase_credits:209'],
+      ['label_rows:192', 'label_rows:168'],
+      ['provider_requests:64', 'provider_requests:56'],
+    ]) replaceExisting(before, after);
+    replaceExisting('    const frozenAt="2026-09-25T12:00:00.000Z";', `    const session=restarted.getUsEquityMarketSession(sourceSlot.slice(0,10));
+    assert.equal(session.session_type,"regular_session");
+    assert.equal(session.session_close,"2026-10-08T20:00:00.000Z");
+    const closeAt=OriginalDate.parse(session.session_close);
+    assert(syntheticRequestEvidence.every(request=>OriginalDate.parse(request.requested_at)<closeAt),"No before-close proof may use a request made after close");
+    assert(outcomePhases.every(phase=>OriginalDate.parse(phase.target_slot_utc)<closeAt));
+    const originalSnapshots=JSON.parse(sql("select jsonb_agg(jsonb_build_object('snapshot_fingerprint',snapshot_fingerprint,'ticker',ticker,'decision_timestamp',payload_json->>'decision_timestamp') order by snapshot_fingerprint) from recommendation_snapshots;"));
+    const originalOutcomes=JSON.parse(sql("select jsonb_agg(jsonb_build_object('snapshot_fingerprint',snapshot_fingerprint,'mark',payload_json->'canonical_horizon_price_mark') order by snapshot_fingerprint) from recommendation_outcomes where horizon='60m';"));
+    assert.equal(originalSnapshots.length,56);assert.equal(originalOutcomes.length,56);
+    assert.deepEqual(originalOutcomes.map(row=>row.snapshot_fingerprint),originalSnapshots.map(row=>row.snapshot_fingerprint));
+    const formatNY=value=>new Intl.DateTimeFormat("sv-SE",{timeZone:"America/New_York",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(new OriginalDate(value));
+    const actualWindowRequests=syntheticRequestEvidence.slice(outcomeRequestStart);
+    assert.equal(actualWindowRequests.length,56,"Every original outcome uses its native bounded request, not a current-price fallback");
+    assert(actualWindowRequests.every(request=>request.interval==="5min" && request.start_date && request.end_date));
+    const requestedWindows=actualWindowRequests.map(request=>request.ticker+"|"+request.start_date+"|"+request.end_date).sort();
+    const originalWindows=originalSnapshots.map((original,index)=>{
+      const anchor=Math.ceil(OriginalDate.parse(original.decision_timestamp)/300000)*300000;
+      const end=anchor+3600000;
+      assert(end<closeAt,"Retain each original full60m horizon inside the session");
+      const mark=originalOutcomes[index].mark;
+      assert.equal(mark.status,"available");assert.equal(mark.source,"original_horizon_candle_close");
+      assert.equal(mark.evaluation_anchor_start_at,new OriginalDate(anchor).toISOString());
+      assert.equal(mark.marked_at,new OriginalDate(end).toISOString());
+      assert.equal(mark.candle_started_at,new OriginalDate(end-300000).toISOString());
+      return original.ticker+"|"+formatNY(anchor)+"|"+formatNY(end);
+    }).sort();
+    assert.deepEqual(requestedWindows,originalWindows,"The provider-edge windows must exactly equal the immutable original horizons");
+    originalLog(JSON.stringify({before_close_source_outcome_evidence:true,evidence_scope:"separate_synthetic_seven_set_fixture_not_a_live_card",
+      session_close:session.session_close,scan_slots:seriesScanEvidence.map(row=>row.slot),outcome_slots:outcomePhases.map(row=>row.target_slot_utc),
+      original_sets:7,members_per_set:8,original_population:56,canonical_60m_outcomes:56,label_rows:168,
+      native_outcome_requests:56,original_source_windows_preserved:true,all_requests_before_close:true,
+      after_close_availability_assumed:false,real_source_availability:"unverified",actual_provider_requests:0,
+      production_actions:0,broker_actions:0,quality_improvement_claimed:false}));
+    const frozenAt="2026-09-25T12:00:00.000Z";`);
+    source = source.slice(0, begin) + beforeClose + source.slice(end);
+  }
+  source = source.replace('scenario:"oct8_1700_normal_one_shot_positive"', beforeCloseSeries
+    ? 'scenario:"prospective_before_close_seven_sets_positive"' : 'scenario:"prospective_bounded_original_series_positive"')
     .replace('exact_scan_mode:"normal_one_shot", observation_series_enabled:false,',
       'exact_scan_mode:"bounded_observation_series", observation_series_enabled:true,')
     .replace('backend_evaluation_reached:true, full_original_denominator:8',
-      'backend_evaluation_reached:true, full_original_denominator:64')
+      `backend_evaluation_reached:true, full_original_denominator:${beforeCloseSeries ? 56 : 64}`)
     .replaceAll('2026-10-08', '2026-10-09').replaceAll('2026-10-07', '2026-10-08');
 }
 if (publicationStop) {

@@ -11,6 +11,45 @@ import { getUsEquityMarketSession } from "@/lib/us-equity-market-calendar";
 import { spawnSync } from "node:child_process";
 
 // Synthetic CLOSED source/transport fixtures, never market or alpha evidence.
+test("before-close fixture cannot combine or duplicate declared scenarios", () => {
+  for (const mode of ["--before-close-bounded-series", "--earliest-bounded-slot", "--bounded-original-series", "--early-publication-stop"]) {
+    const result = spawnSync(process.execPath, ["scripts/prospective-normal-one-shot-runtime-proof.mjs", "--before-close-bounded-series", mode],
+      { cwd: process.cwd(), encoding: "utf8", timeout: 10_000 });
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("Only one declared CLOSED scenario is allowed");
+    expect(result.stdout).not.toContain("bounded_original_scan_series_evidence");
+  }
+});
+
+test("seven complete original sets reach native mature outcomes and private charter before close", () => {
+  test.setTimeout(180_000);
+  const result = spawnSync(process.execPath, ["scripts/prospective-normal-one-shot-runtime-proof.mjs", "--before-close-bounded-series"],
+    { cwd: process.cwd(), encoding: "utf8", timeout: 170_000 });
+  expect(result.status, `${result.error?.message ?? ""}\n${result.stdout.slice(-4500)}\n${result.stderr.slice(-4500)}`).toBe(0);
+  const records = result.stdout.trim().split("\n").filter(line => line.startsWith("{")).map(line => JSON.parse(line));
+  const evidence = records.find(record => record.before_close_source_outcome_evidence === true);
+  expect(evidence).toMatchObject({ evidence_scope: "separate_synthetic_seven_set_fixture_not_a_live_card",
+    session_close: "2026-10-09T20:00:00.000Z", original_sets: 7, members_per_set: 8,
+    original_population: 56, canonical_60m_outcomes: 56, label_rows: 168, native_outcome_requests: 56,
+    original_source_windows_preserved: true, all_requests_before_close: true, after_close_availability_assumed: false,
+    real_source_availability: "unverified", actual_provider_requests: 0, production_actions: 0,
+    broker_actions: 0, quality_improvement_claimed: false });
+  expect(evidence.scan_slots).toEqual(Array.from({ length: 7 }, (_, index) =>
+    new Date(Date.parse("2026-10-09T14:30:00.000Z") + index * 900_000).toISOString()));
+  expect(evidence.outcome_slots).toEqual(Array.from({ length: 14 }, (_, index) =>
+    new Date(Date.parse("2026-10-09T16:15:00.000Z") + index * 900_000).toISOString()));
+  const scans = records.find(record => record.bounded_original_scan_series_evidence === true);
+  expect(scans).toMatchObject({ original_population: 56, complete_assessed_members: 56, synthetic_requests: 56 });
+  const outcomes = records.find(record => record.bounded_original_outcome_series_evidence === true);
+  expect(outcomes).toMatchObject({ original_population: 56, canonical_60m_outcomes: 56, label_rows: 168,
+    unchanged_original_sources: true, restarted_owner_read: true, wrong_owner_empty: true, automatic_expiry: true });
+  const charter = records.find(record => record.bounded_original_series_charter_evidence === true);
+  expect(charter).toMatchObject({ enrolled_original_decisions: 7, original_population: 56, canonical_60m_outcomes: 56,
+    missing_outcomes: 0, disposition: "evidence_incomplete", trained_model: null, terminal_quality_decision: null,
+    quality_improvement_claimed: false, charter_private_tables_direct_access_denied: true, service_only_read_RPCS: true,
+    full_chain_synthetic_requests: 209, max_minute_credits: 8, terminal_finalized_claims: 118, reserved_all_phase_credits: 209 });
+});
+
 test("earliest native bounded slot retains complete originals after exactly sixty closed minutes", () => {
   test.setTimeout(180_000);
   const result = spawnSync(process.execPath, ["scripts/prospective-normal-one-shot-runtime-proof.mjs", "--earliest-bounded-slot"],
