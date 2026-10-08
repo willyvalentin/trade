@@ -29,7 +29,11 @@ inputs and broad discovery -> contextual ranking -> canonical outcome learning
 -> full-charter evaluation -> reversible IF-5 promotion and monitoring. The
 longer-term SV-A-SV-U vision remains scientific validation, autonomous internal
 paper, IBKR paper and separately approved live/options execution. IBKR is the
-future broker; Avanza is maintenance-only. The graduation gate remains binding.
+primary broker. The graduation gate remains binding. Future execution follows
+`docs/ture-execution-engine.md`: the Execution Engine autonomously chooses and
+manages eligible trades under a versioned user mandate, with deterministic risk
+veto and no per-trade user action. Mandate activation/expansion is distinct from
+order approval. Historical implementation records cannot override this contract.
 
 Choose one usable outcome spanning the actual data-to-result chain. Its brief
 in the current board names the hypothesis, original population, next missing

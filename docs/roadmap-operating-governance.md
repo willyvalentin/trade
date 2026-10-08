@@ -351,6 +351,15 @@ decisions, not new administrative phases or blanket live activation.
 
 ### Scientific and execution boundaries
 
+The 2026-10-07 user product decision establishes the
+[Execution Engine](./ture-execution-engine.md) as the current execution contract.
+It autonomously decides and manages trades from recommendations, fresh data,
+portfolio state and a versioned user mandate. IBKR is the primary broker.
+Mandate activation/expansion is explicit; individual trades need no approval.
+SV-O is limited autonomous live and SV-P expands its proven scope. This product
+decision selects documentation preparation now, not a parallel implementation
+stream or a broker operation. The recommendation graduation gate stays binding.
+
 Freeze experiment population, baseline, versions, time windows, outcome/cost
 semantics, minimum effective samples, uncertainty and numeric thresholds before
 reading evaluation results. Preserve held-out/walk-forward separation, leakage
@@ -360,12 +369,21 @@ counterfactual results cannot automatically change an active strategy.
 
 Internal-paper, IBKR-paper and live adapters share decision/risk semantics but
 have separate credentials, accounts, state and submission capabilities. All new
-broker work targets IBKR. Keep Avanza history and safety fixes, without new
-Avanza features or relabelling old manual confirmations as IBKR evidence. Live
-orders require separately enabled account/strategy/instrument/risk scope, with
-approval-first entries before controlled auto. Research and paper must never
+broker work targets IBKR. Historical broker/UI evidence is not IBKR acceptance.
+Live orders require an enabled account/strategy/version/instrument/risk mandate
+and deterministic per-order enforcement, starting with limited autonomous live.
+Research and paper must never
 fall back to live execution. The roadmap is a product decision, not authority
 to purchase data, place orders, migrate databases or deploy production.
+
+Execution delivery also requires a frozen execution decision policy, a separate
+full-population quality evaluation and controls against repeated economic
+activity. The exact recommendation/execution combination must pass the applicable
+scientific gate before live. M/O acceptance includes live-state upgrade/rollback,
+independent watchdog and recovery evidence, and exclusion of funding/account/access
+administration from worker capabilities. Use the Execution Engine contract and
+existing phase acceptance; do not turn these requirements into another planning
+queue or assume that technical broker success proves decision quality.
 
 ### Reporting and delivery
 
@@ -466,7 +484,7 @@ returns the affected policy to `no_trade`; it never relaxes a quality gate.
 
 Execution work remains parked until IF-5 demonstrates sustained useful engine
 quality. When execution begins, all orders still follow `AI → Ture Core →
-deterministic risk/authorization → Avanza`; no model or UI shortcut can bypass
+deterministic risk/authorization → IBKR`; no model or UI shortcut can bypass
 that path.
 
 ### Current delivery rule

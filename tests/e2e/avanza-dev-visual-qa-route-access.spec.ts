@@ -27243,7 +27243,10 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       "docs/avanza-sharp-semi-auto-execution-agent-scope.md";
     const contractPath = "docs/ture-engine-execution-agent-contract.md";
     const scope = readRepoFile(scopePath);
-    const contract = readRepoFile(contractPath);
+    // Preserve checks against the exact historical implementation contract.
+    const contract = readRepoFile(
+      "docs/archive/ture-engine-execution-agent-contract-2026-10-07.md",
+    );
     const approvalGate = readRepoFile(
       "docs/avanza-disabled-local-only-chain-approval-gate.md",
     );
@@ -29751,7 +29754,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       ).toContain(copy);
       expect(
         normalizeWhitespace(
-          readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+          readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
         ),
       ).toContain(copy);
     }
@@ -30054,7 +30057,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       ).toContain(copy);
       expect(
         normalizeWhitespace(
-          readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+          readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
         ),
       ).toContain(copy);
     }
@@ -30376,7 +30379,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       ).toContain(copy);
       expect(
         normalizeWhitespace(
-          readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+          readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
         ),
       ).toContain(copy);
     }
@@ -30746,7 +30749,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       ).toContain(copy);
       expect(
         normalizeWhitespace(
-          readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+          readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
         ),
       ).toContain(copy);
     }
@@ -31091,7 +31094,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       ).toContain(copy);
       expect(
         normalizeWhitespace(
-          readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+          readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
         ),
       ).toContain(copy);
       expect(
@@ -31453,7 +31456,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
         "docs/avanza-login-local-dev-executor.md",
         "docs/avanza-execution-settings-profile.md",
         "docs/avanza-sharp-semi-auto-execution-agent-scope.md",
-        "docs/ture-engine-execution-agent-contract.md",
+        "docs/archive/ture-engine-execution-agent-contract-2026-10-07.md",
         "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
         "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
       ]) {
@@ -31968,7 +31971,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
         "docs/avanza-login-local-dev-executor.md",
         "docs/avanza-macos-keychain-credential-provider.md",
         "docs/avanza-sharp-semi-auto-execution-agent-scope.md",
-        "docs/ture-engine-execution-agent-contract.md",
+        "docs/archive/ture-engine-execution-agent-contract-2026-10-07.md",
         "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
         "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
       ]) {
@@ -32307,7 +32310,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
         "docs/avanza-login-local-dev-credential-executor.md",
         "docs/avanza-login-local-dev-executor.md",
         "docs/avanza-sharp-semi-auto-execution-agent-scope.md",
-        "docs/ture-engine-execution-agent-contract.md",
+        "docs/archive/ture-engine-execution-agent-contract-2026-10-07.md",
         "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
         "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
       ]) {
@@ -32741,7 +32744,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       "docs/avanza-instrument-search-action-contract.md",
       "docs/avanza-order-ticket-action-contract.md",
       "docs/avanza-sharp-semi-auto-execution-agent-scope.md",
-      "docs/ture-engine-execution-agent-contract.md",
+      "docs/archive/ture-engine-execution-agent-contract-2026-10-07.md",
       "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
       "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
     ]) {
@@ -33179,7 +33182,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       "docs/avanza-instrument-to-order-handoff-chain.md",
       "docs/avanza-order-ticket-action-contract.md",
       "docs/avanza-sharp-semi-auto-execution-agent-scope.md",
-      "docs/ture-engine-execution-agent-contract.md",
+      "docs/archive/ture-engine-execution-agent-contract-2026-10-07.md",
       "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
       "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
     ]) {
@@ -33620,7 +33623,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       "docs/avanza-execution-readiness-map.md",
       "docs/avanza-sharp-semi-auto-execution-architecture-checkpoint.md",
       "docs/avanza-sharp-semi-auto-execution-agent-scope.md",
-      "docs/ture-engine-execution-agent-contract.md",
+      "docs/archive/ture-engine-execution-agent-contract-2026-10-07.md",
       "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
       "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
     ]) {
@@ -33913,7 +33916,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       "docs/avanza-execution-readiness-map.md",
       "docs/avanza-sharp-semi-auto-execution-architecture-checkpoint.md",
       "docs/avanza-sharp-semi-auto-execution-agent-scope.md",
-      "docs/ture-engine-execution-agent-contract.md",
+      "docs/archive/ture-engine-execution-agent-contract-2026-10-07.md",
       "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
       "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
       "docs/avanza-execution-settings-ui.md",
@@ -34263,7 +34266,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
         "docs/avanza-login-credential-resolution-bridge.md",
         "docs/avanza-macos-keychain-credential-provider.md",
         "docs/avanza-sharp-semi-auto-execution-agent-scope.md",
-        "docs/ture-engine-execution-agent-contract.md",
+        "docs/archive/ture-engine-execution-agent-contract-2026-10-07.md",
         "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
         "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
       ]) {
@@ -34736,7 +34739,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
         "docs/avanza-login-credential-resolution-bridge.md",
         "docs/avanza-macos-keychain-credential-provider.md",
         "docs/avanza-sharp-semi-auto-execution-agent-scope.md",
-        "docs/ture-engine-execution-agent-contract.md",
+        "docs/archive/ture-engine-execution-agent-contract-2026-10-07.md",
         "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
         "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
       ]) {
@@ -34979,7 +34982,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
         readRepoFile("docs/avanza-local-playwright-page-action-binding.md"),
         readRepoFile("docs/avanza-login-local-dev-credential-executor.md"),
         readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
-        readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+        readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
         readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
         readRepoFile(
           "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
@@ -35247,7 +35250,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       readRepoFile("docs/avanza-execution-readiness-map.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-architecture-checkpoint.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
-      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
       readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
       readRepoFile(
         "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
@@ -35534,7 +35537,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       readRepoFile("docs/avanza-execution-readiness-map.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-architecture-checkpoint.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
-      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
     ]) {
       const normalized = normalizeWhitespace(source);
 
@@ -35785,7 +35788,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       readRepoFile("docs/avanza-execution-readiness-map.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-architecture-checkpoint.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
-      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
       readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
       readRepoFile(
         "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
@@ -36275,7 +36278,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       readRepoFile("docs/avanza-execution-readiness-map.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-architecture-checkpoint.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
-      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
       readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
       readRepoFile(
         "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
@@ -36587,7 +36590,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       readRepoFile("docs/avanza-execution-readiness-map.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-architecture-checkpoint.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
-      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
       readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
       readRepoFile(
         "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
@@ -37070,7 +37073,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       ),
       readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
-      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
       readRepoFile("docs/avanza-execution-readiness-map.md"),
     ]) {
       const normalized = normalizeWhitespace(doc);
@@ -37439,7 +37442,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       ),
       readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
-      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
       readRepoFile("docs/avanza-execution-readiness-map.md"),
     ]) {
       const normalized = normalizeWhitespace(doc);
@@ -37760,7 +37763,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       readRepoFile("docs/avanza-headless-execution-data-contract.md"),
       readRepoFile("docs/avanza-execution-readiness-map.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
-      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
       readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
       readRepoFile(
         "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
@@ -38122,7 +38125,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       readRepoFile("docs/avanza-headless-execution-data-contract.md"),
       readRepoFile("docs/avanza-execution-readiness-map.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
-      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
       readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
       readRepoFile(
         "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
@@ -38418,7 +38421,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       readRepoFile("docs/avanza-headless-execution-data-contract.md"),
       readRepoFile("docs/avanza-execution-readiness-map.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
-      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
       readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
       readRepoFile(
         "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
@@ -38699,7 +38702,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       readRepoFile("docs/avanza-headless-execution-data-contract.md"),
       readRepoFile("docs/avanza-execution-readiness-map.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
-      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
       readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
       readRepoFile(
         "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
@@ -39001,7 +39004,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       readRepoFile("docs/avanza-headless-execution-data-contract.md"),
       readRepoFile("docs/avanza-execution-readiness-map.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
-      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
       readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
       readRepoFile(
         "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
@@ -39291,7 +39294,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       readRepoFile("docs/avanza-headless-execution-orchestration-pipeline.md"),
       readRepoFile("docs/avanza-execution-readiness-map.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
-      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
       readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
       readRepoFile(
         "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
@@ -39592,7 +39595,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       readRepoFile("docs/avanza-headless-execution-orchestration-pipeline.md"),
       readRepoFile("docs/avanza-execution-readiness-map.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
-      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
       readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
       readRepoFile(
         "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
@@ -39926,7 +39929,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       readRepoFile("docs/avanza-headless-execution-architecture-checkpoint.md"),
       readRepoFile("docs/avanza-execution-readiness-map.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
-      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
       readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
       readRepoFile(
         "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
@@ -40227,7 +40230,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       readRepoFile("docs/avanza-headless-execution-architecture-checkpoint.md"),
       readRepoFile("docs/avanza-execution-readiness-map.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
-      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
       readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
       readRepoFile(
         "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
@@ -40573,7 +40576,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       readRepoFile("docs/avanza-headless-execution-architecture-checkpoint.md"),
       readRepoFile("docs/avanza-execution-readiness-map.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
-      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
       readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
       readRepoFile(
         "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
@@ -40939,7 +40942,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       readRepoFile("docs/avanza-headless-execution-architecture-checkpoint.md"),
       readRepoFile("docs/avanza-execution-readiness-map.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
-      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
       readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
       readRepoFile(
         "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
@@ -41310,7 +41313,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       readRepoFile("docs/avanza-model-only-local-dev-bridge-dry-runner.md"),
       readRepoFile("docs/avanza-execution-readiness-map.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
-      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
       readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
       readRepoFile(
         "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
@@ -41720,7 +41723,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       readRepoFile("docs/avanza-local-dev-bridge-readiness-checkpoint.md"),
       readRepoFile("docs/avanza-execution-readiness-map.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
-      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
       readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
       readRepoFile(
         "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
@@ -42092,7 +42095,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       readRepoFile("docs/avanza-local-dev-bridge-readiness-checkpoint.md"),
       readRepoFile("docs/avanza-execution-readiness-map.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
-      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
       readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
       readRepoFile(
         "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
@@ -46245,7 +46248,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       "docs/avanza-sharp-semi-auto-execution-agent-scope.md",
     );
     const contractDoc = readRepoFile(
-      "docs/ture-engine-execution-agent-contract.md",
+      "docs/archive/ture-engine-execution-agent-contract-2026-10-07.md",
     );
     const integrationPlan = readRepoFile(
       "docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md",
@@ -46824,7 +46827,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       readRepoFile("docs/avanza-order-ticket-field-contract.md"),
       readRepoFile("docs/avanza-real-world-order-flow-signals.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
-      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
       readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
       readRepoFile("docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md"),
       readRepoFile("docs/avanza-execution-settings-ui.md"),
@@ -47248,7 +47251,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       readRepoFile("docs/avanza-order-ticket-field-contract.md"),
       readRepoFile("docs/avanza-order-ticket-action-contract.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
-      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
       readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
       readRepoFile("docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md"),
       readRepoFile("docs/avanza-execution-settings-ui.md"),
@@ -47516,7 +47519,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       readRepoFile("docs/avanza-order-ticket-field-contract.md"),
       readRepoFile("docs/avanza-order-ticket-action-contract.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
-      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
       readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
       readRepoFile("docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md"),
       readRepoFile("docs/avanza-execution-settings-ui.md"),
@@ -47767,7 +47770,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       readRepoFile("docs/avanza-order-ticket-field-contract.md"),
       readRepoFile("docs/avanza-order-ticket-action-contract.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
-      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
       readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
       readRepoFile("docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md"),
       readRepoFile("docs/avanza-execution-settings-ui.md"),
@@ -48032,7 +48035,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       readRepoFile("docs/avanza-order-ticket-field-contract.md"),
       readRepoFile("docs/avanza-order-ticket-action-contract.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
-      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
       readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
       readRepoFile("docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md"),
       readRepoFile("docs/avanza-execution-settings-ui.md"),
@@ -48278,7 +48281,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
 
     for (const doc of [
       readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
-      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
       readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
       readRepoFile("docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md"),
       readRepoFile("docs/avanza-instrument-to-order-mock-executor.md"),
@@ -48661,7 +48664,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
     for (const doc of [
       readRepoFile("docs/avanza-real-world-settlement-note-signals.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
-      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
       readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
       readRepoFile("docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md"),
       readRepoFile("docs/avanza-execution-settings-ui.md"),
@@ -49007,7 +49010,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       readRepoFile("docs/avanza-settlement-note-route-contract.md"),
       readRepoFile("docs/avanza-settlement-note-action-contract.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
-      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
       readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
       readRepoFile("docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md"),
       readRepoFile("docs/avanza-execution-settings-ui.md"),
@@ -49333,7 +49336,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       readRepoFile("docs/avanza-settlement-note-extraction-schema.md"),
       readRepoFile("docs/avanza-settlement-reconciliation-mapping.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
-      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
       readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
       readRepoFile("docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md"),
       readRepoFile("docs/avanza-execution-settings-ui.md"),
@@ -49668,7 +49671,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       readRepoFile("docs/avanza-settlement-note-extraction-schema.md"),
       readRepoFile("docs/avanza-settlement-reconciliation-mapping.md"),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
-      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
       readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
       readRepoFile("docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md"),
       readRepoFile("docs/avanza-execution-settings-ui.md"),
@@ -49968,7 +49971,7 @@ test.describe("Avanza dev-only visual QA route access guard", () => {
       readRepoFile(checkpointPath),
       readRepoFile(readinessPath),
       readRepoFile("docs/avanza-sharp-semi-auto-execution-agent-scope.md"),
-      readRepoFile("docs/ture-engine-execution-agent-contract.md"),
+      readRepoFile("docs/archive/ture-engine-execution-agent-contract-2026-10-07.md"),
       readRepoFile("docs/semi-auto-avanza-fill-only-poc-ui-integration-plan.md"),
       readRepoFile(
         "docs/avanza-read-only-real-selected-recommendation-dev-preview-plan.md",
