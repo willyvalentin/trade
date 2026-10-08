@@ -424,9 +424,15 @@ if (publicationStop) {
     for(const outcome of outcomes) {
       const original=snapshots.find(row=>row.snapshot_fingerprint===outcome.snapshot_fingerprint);
       const anchor=Math.ceil(OriginalDate.parse(original.payload_json.decision_timestamp)/300000)*300000;
+      const sourceAnchor=original.payload_json.outcome_evaluation_anchor;
+      // Visible sources retain their own later publication timestamp. The
+      // existing completed-input contract admits them only when its immutable
+      // candle anchor is identical to the original pre-publication decision's.
+      assert.equal(sourceAnchor.decision_timestamp,new OriginalDate(original.recommended_at).toISOString());
+      assert.equal(sourceAnchor.evaluation_anchor_start_at,new OriginalDate(anchor).toISOString());
       const mark=outcome.payload_json.canonical_horizon_price_mark;
       assert.equal(mark.status,"available");assert.equal(mark.source,"original_horizon_candle_close");
-      assert.equal(mark.decision_timestamp,original.payload_json.decision_timestamp);
+      assert.equal(mark.decision_timestamp,sourceAnchor.decision_timestamp);
       assert.equal(mark.evaluation_anchor_start_at,new OriginalDate(anchor).toISOString());
       assert.equal(mark.marked_at,new OriginalDate(anchor+3600000).toISOString());
       assert.equal(mark.candle_started_at,new OriginalDate(anchor+3300000).toISOString());
