@@ -2,10 +2,10 @@
 
 <a id="current-delivery-board"></a>
 <!-- BEGIN CURRENT DELIVERY BOARD -->
-## Active Now / Next / Blocked — 2026-10-07 20:10Z
+## Active Now / Next / Blocked — 2026-10-08 00:38Z
 
-This is the only work-selection queue. Material after END is immutable dated
-evidence, not an active selection. Master-roadmap acceptance and governance bind.
+Only this marked board selects work; dated material after END stays immutable.
+Follow PR740's IF-2b → IF-4 source-to-outcome direction and existing governance.
 
 ### Execution design preparation — 2026-10-07
 
@@ -26,96 +26,170 @@ Historical broker records after END remain evidence, not current governance.
 
 ### Primary outcome and acceptance
 
-- **Outcome:** IF-2b → IF-4: fresh whole-population original inputs → unchanged
-  decisions/plans → canonical outcomes → the selected full-charter comparison.
-- **Hypothesis/population:** `relative_plan_context_shadow_v1`, complete original
-  eight-member denominator; preserve missing/UNKNOWN, immutable models and cohorts.
-- **Owner/branch:** Codex, reused release worktree
-  `/private/tmp/ture-original-outcome-overlap-oct5`; current branch
-  `codex/oct7-closing-gate-regression`, starting from protected main1c531358;
-  all previous branches/receipts and the local board edits are preserved.
-- **Acceptance:** built CLOSED chain with production-equivalent ACLs, then actual
-  bounded OPEN input/source continuity and complete canonical original outcomes.
-  Recommendation publication is optional; full-charter quality/IF-5 is `not_met`.
-- **Effort:** same parent composition from08:50Z, primary4–16 active hours,
-  initial investigation≤4h; market waits are separate, names do not reset effort.
-- **Stop/next:** exact prospective time, identity, entitlement, budget and cleanup
-  gates; unknown dispatch stops/reconciles read-only. Select the next real missing
-  link from attributable results, not another generic helper or broker stream.
+- Outcome: complete fresh original inputs → unchanged original decisions/plans
+  → canonical60m outcomes → the frozen full-charter comparison; IF-5 remains not_met.
+- Hypothesis: `relative_plan_context_shadow_v1`; keep all8original members,
+  missing/UNKNOWN outcomes, source/plan/model/cohort fingerprints and numeric gates.
+- Owner: Codex, same PR747/branch `codex/oct7-retained-original-outcome-batch`
+  in `/private/tmp/ture-original-outcome-overlap-oct5`, now composed on mainf2f63aeb.
+  After main moved, bundle the already verified Oct8 regression/card in this same
+  product delivery; full fresh candidate CI follows, no old-green reuse. The former
+  preparation branch remains preserved locally for the fixed-date operators.
+- Same parent from08:50Z; 4–16active-hour budget/investigation≤4h remains.
+  New date/names do not reset effort. Human expanded goal200→250h, not cost authority.
+- Acceptance: the actual native normal-one-shot chain CLOSED with affected
+  production-like ACLs, then the distinct authorized Oct8 source/market observation.
+  Code/environment/strategy acceptance are separate; no broker or quality promotion.
 
-### Authoritative current baseline
+### Authoritative baseline / material verification
 
-- Protected main **1c5313587bbacdb9221aaae3d6495bdbcca5a058**, tree
-  **2d7a50d7b0c463b7fb8bde7dffaccdde15fdb4ee**, is PR744's normal17:52:31Z merge.
-  Six/aggregate/candidate37652503351attempt1/artifact11499366193 and actual19-case
-  foundation log pass; post-merge37662453319/artifact11501602009 matches.
-  Receipt: `/private/tmp/ture-pr744-no-deploy-protected-merge.final.receipt.json`.
-- CURRENT normal Git-production **6ac69f6551ff3b982288981a** is ready/public
-  19:37:58.821Z on the same exact main, after scoped cleanup. Owner readback
-  19:38:44Z verifies original-source-bound signed session, globaldisabletrue,
-  all modesoff,97 terminal history reservations,0active/unresolvedclaims,
-  0scancredits and1terminal skipped targetattempt. Only3owned keys removed,
-  existingenablefalse-ID restored; all25controls/context/scopes retained.
-  Receipt: `/private/tmp/ture-oct7-2130-closeout.receipt.json`.
-- PR744 initially used `[skip netlify]` and was main-only; the NEW explicitly
-  approved card's normal build now publishes its same protected main. Relevant
-  app/lib/functions/schema/dependencies are unchanged; no new push/PR/CI rerun.
-- Oct5 andOct6 each observed3/8 complete fresh inputs; Oct6 one original decision,
-  no passing quality/model/comparison/result. Oct7's old1430Z card stopped before
-  claim/provider because Codex suppliedHH:mm, not canonicalUTC. It remains
-  immutable no_go, NOT0/8/no_trade. PR743 cleanup was verified15:48Z;
-  old followup deleted15:51Z,97 histories+1meter=98 old credits retained.
-- Fresh schema19:10 has unchanged selected migration mapping/body/OID/service-only
-  ACL/emptysearch_path/RLS and0 waitinglocks. NO new SQL/schema/Auth/RLS change.
-  Receipt: `/private/tmp/ture-oct7-2130-schema-preflight.receipt.json`.
-- Fresh source19:11 validates all97 old paid identities/hash/capture clocks,
-  latest completeOct6, both benchmark HMACs/terminal claims; none reusableOct8.
-  InventorySHA56487ab02b7d79e71cc2026c0c40f40dfa7fcded3c1f0a7ec3470b332048c1cc.
-  Receipt: `/private/tmp/ture-oct7-2130-source-revalidation.receipt.json`.
+- PR744 MERGED17:52:31Z as1c531358; all six/aggregate/provenance37652503351 success.
+  PR745 MERGED21:13:13Z as **85764d1fc6993496cefd985d76ac3ace21b8d799**,
+  tree206b45a3fc27b61dc9f9a0d27784d9eff7facb23; six/aggregate/candidate
+  37680126708attempt1/artifact11511442506 and matched post-merge37687831440.
+  Both rejection regressions are integrated; neither is a positive Oct8 pass.
+- Published ready Git production **6ac69f6551ff3b982288981a** remains on1c531358,
+  public19:37:58.821Z. App/lib/functions/schema/dependencies are byteidentical1c→857.
+  Fresh22:12:11Z signed owner read proves globaldisabletrue/allmodesoff/0activeclaims.
+- Fresh22:06:42Z catalog: Pg17.6,0waitinglocks; prepared/terminal read RPC bodies
+  c8b22186cdca35e9ca43e9a6644de43c/b7b5ec36b709057bb645dedf1dd997d2,
+  OIDs83187/83194, emptysearch_path/service-only; affected table ACL/RLS unchanged.
+  CLOSED fixture Pg16.14/PostgREST16.1 matches affected privileges, not all production.
+- New exact Oct8 CLOSED proof on857: built normal scan scheduler→native backend,
+  canonical date/slot15:00Z,95equities+SPY/QQQ paid fixture preparation,
+  **8/8fresh assessed original inputs and8immutable snapshots**, then native outcome
+  one-shots16:15/16:30Z:4+4requests,8canonical60m outcomes/24labels,
+ 0completed-retryrequests, restarted owner read/wrong-ownerdenial/expiry pass.
+ 20source+10claim controls retained. Synthetic providers only; no real outcome oralpha.
+- Seven focused cases pass, including the new positive8-chain, old prepared scan,
+  #744canonical-time and #745closing rejection. Nonincremental types pass;
+  lint0errors/8oldwarnings. Positive regression now joins this local PR747
+  composition; its final combined candidate acceptance is still pending.
+  See `scripts/prospective-normal-one-shot-runtime-proof.mjs`. Eleven additional
+  fixed-purpose operator/readback CLOSED checks pass: actual native full8, evaluated
+  no_trade with retained gaps, missing/ambiguous originals, wrong identity/population,
+  scoped production-ID-preserving phase projection and denied unknown/ambiguous modes.
+- Private readback gap reproduced/fixed23:08Z: candle quality3 alone did not bind
+  the original anchor. Exact native id/ticker/clock/12bar-policy/maturity joins now
+  reject forged anchors, invalid/partial labels and duplicates;25fixed-purpose
+  CLOSED checks and the actual isolated SDK8/8source→60m reader pass on4bc607cf.
+  No product/candidate/production bytes changed. Native absent original plans are
+  explicitly not-applicable only with complete inputs; missing inputs are still gaps.
+  Valid evaluated no_trade remains valid; only remaining assessed original plans
+  receive outcomes. Zero remaining plans skips unnecessary authorized phases,
+  without shrinking8, increasing budget or claiming scientific quality.
+  Receipt: `/private/tmp/ture-oct8-original-reader-correction.closed.receipt.json`.
+- Private classification corrected23:46Z: absent originals are missing_result;
+  ambiguous originals are unavailable, never inferred backend rejection or0/8.
+  Actual terminal rejection evidence is required for not_evaluated.25checks and
+  actual native SDK8/8/24labels pass; unchanged product4bc607cf/CI candidate.
+  Receipt: `/private/tmp/ture-oct8-reader-missing-result.closed.receipt.json`.
+- PR747 oldhead16bcb2f0/run37692473892attempt1 is terminal failure: five groups
+  pass, lossless-scalar has three static request-shape failures. Preserve that result.
+  Minimal correction b4c8b542 keeps default max_batches5/no batch target and retained
+  max_batches1, unchanged4request/15-30-60m ceilings.69relevant tests+3native retained
+  source/maturity cases pass; types/lint0errors8oldwarnings, NEW exact Linux build
+  with4native consumers passes22:47:43Z. No old green/build acceptance reused.
+  Exact Oct8 positive full8chain also passes onb4c8b542. Normal focused push is
+  confirmed as4bc607cf (ledger-only successor).Run37698515829attempt1 is now
+  terminal cancelled23:49:22Z: five groups pass; lossless exceeded unchanged60m.
+  The three fixed regressions pass in actual CI; two unchanged full-archive cases
+  reached their470s child limits. Prior head's same cases passed4.0/4.1m; proof,
+  fixtures/server/dependencies/schema/workflow bytes are unchanged. Cause unproven;
+  exact two-case current-head isolated reproduction3606 now passes5.3/5.1m,
+  full240members/partition and>21MBoriginal capsules unchanged, no retries.
+  Main advanced normally via docs/test PR746 to f2f63aeb; direct Git confirms it.
+  Current main's Execution Engine documentation preserves source-to-outcome priority
+  and graduation gate; it grants no broker authority. No old-candidate retry.
+  Candidate8145a663/tree0bb11fce/ordered857,4bc/workflowf49297f2 verified; no old
+  green checks reused. NEXT diagnose this terminal result, then fresh normal
+  six/aggregate/actual provenance acceptance and inert release. The existing Oct8
+  wrapper/test is now locally bundled with current-main composition in this same
+  PR; no separate product slice/publication. No admin/force or activation.
+- Combined composition8c08314f on mainf2 is locally accepted:547regressions/20.0m,
+  including exact Oct8 normal8→native4+4/24labels, all old cold/history/cost cases.
+  Nonincremental types and lint0errors8oldwarnings pass. NEW exact locked Linux
+  build/4native Next consumers passes00:34:46Z on8c; no old build reused.
+  Historical tail474f3741 and all f2execution docs are preserved. Freeze/push once
+  in the same747; new exact-candidate CI/provenance/inert production remain pending.
+  Receipt: `/private/tmp/ture-pr747-current-main-oct8-local-acceptance.receipt.json`.
 
 ### Now / Next / Blocked
 
-| Slot | Selected action and exit |
+| Slot | Concrete result / next gate |
 | --- | --- |
-| Now — main-only regression integration | NEW1930Z card is terminal skipped/cleanupverified, never restarted. Actual canonical/matching scheduler delivery admitted; backend correctly rejected `closing_soon_cutoff` before provider/originaldecision. Operator readiness missed that separate gate. NEW CLOSED Oct1/NY15:30 normaloneShot reproduces1rejected/no_request cycle,0claims/inputs/decisions/providerrequests, owner restart and expiry; this is NOT0/8 or evaluatedno_trade. Both existing closing research-only cases retain their original3/8 synthetic inputs.106different affected local cases pass; types/nonincremental and lint0errors/8oldwarnings pass. Exact clean Linux build on c9c3678f and4native-consumer checks pass20:10Z, no network/productioncredentials; subsequent change is this board only. Fresh protected six-group/candidate CI remains required. Integrate only harness/test/currentboard with `[skip netlify]`, no production/schema/policy change. Receipts `/private/tmp/ture-oct7-closing-gate-local-acceptance.receipt.json` and `/private/tmp/ture-oct7-closing-gate-exact-linux-build.receipt.json`. Same investigation from19:44Z; then stop this supporting stream and resume full-eight input→canonical outcomes. |
-| Primary input chain — CLOSED preserved | Existing owner-prepared first-scan case also passes on the NEW harness:95equities+2benchmarks,8/8complete original inputs,8synthetic scanrequests/0benchmarkrequests, production-like direct-claim SELECT denial/service-only RPC,20source/10claim controls and restarted owner read. No prior regular decision or new product change. This is synthetic CLOSED acceptance, not actualOct7 input fitness or quality. The realOct6 original trace remains3/8, five`daily_refresh_credit_cap_reached` gaps; its paid identities/rows are immutable. |
-| Actual cost/readiness | Newcard spent1metercredit,0scan/providercredits; actual target97old historyreservations only/1terminalskippedattempt/0claims. Both2/2normalGitpublications completed on identicalmain (30publicationcredits+≤10compute ceiling; actual hostingdebit unknown). Old98preparationcredits remain separate,99knownhistory/metercredits across today. No newhistories/outcomes/retries/broker. Human reports1560Netlifycredits; no purchase/top-up/planchange. |
-| Readback and stop | Frozen full-eight native original record/lineage, original clocks/source/archive, each fresh/missing/UNKNOWN feature, actual attempt/cost and owner readback. A complete native no_trade can pass operations, never data/quality by implication. Missing execution is missing_result, not measured0/8. Native replay match is not input fitness. Explicit pre-result criteria: `/private/tmp/ture-oct7-2130-acceptance-addendum.json`. |
-| Cleanup — complete | Exact owned metadata restoration19:37:08Z, normalGit cleanup6ac69f65 public19:37:58.821Z, owner/signature/inert/0claims proof19:38:44Z; before22:15deadline. Same-chat one-time followup DELETED after verifiedcleanup. `.stopped.json` forbids restart. Preserve complete receipts and both failedcards, no further same-day activation. |
-| CLOSED reader exit — complete | Private result-reader contract19:21:35Z uses unchanged tracked native row/decision/lineage/input consumers at original clocks. Existing synthetic full8, partial archive1/8, gap2/8 with6missing, validno_trade, wrongpopulation and identitydrift cases pass; original bytes unchanged,0network/provider/production/handler calls. Replay1/8 and native source-input coverage are separately reported. No product revision or frozen runtime change. Receipt `/private/tmp/ture-oct7-2130-diagnostic-contract-closed.receipt.json`. Return immediately to actual observation. |
-| Next scientific outcome / blocked | Whole60m source-to-outcome acceptance and useful full-charter forward quality remain unproven; NEWlatecard produced no originalpopulation evaluation, not0/8. A future complete-horizon card must pass BOTH scheduler and unmodified backend/source-analysis policy before activation, and mature within actualRTH. The existing observationSeries research-only path is distinct from normaloneShot, not implicit authority or a renamed oldcard. No multi-session acquisition/campaign is selected. Immutable pre-forward training model, first30qualified decisions per forwardpartition, canonical labels/everycharterdimension/reversibleIF5monitoring remain required. |
+| Now — Oct8 preparation | Combined current-main PR747 is locally accepted on8c08314f, including dated normal8→4+4 and exact Linux build. Freeze/push once, then full new-candidate CI and normal inert release. No production activation yet. |
+| Dependency — PR747 | Prior4bc/run37698515829attempt1 cancellation is preserved; archive reproduction passes at unchanged limits. Combined8c is locally accepted on mainf2/PR746, preserving execution docs and including Oct8 test. Normal same-PR push and fresh full acceptance next; no old-candidate retry/deadline change. |
+| Real source gate | Read-only22:12 sees97owned histories, all latestOct6; **0/97validOct8**. Need latest completeOct7,60dailycandles for95equities+2benchmarks; no old card/paid identity relabel or silent reuse. |
+| Capacity | New direct human approval:114TD max=1meter+97histories+8scan+8outcomes,8/minute,≥200unuseddaily. Account API confirms existing Netlify plan, NOT remaining balance; human reports1560. Four card Git-publications max60+20compute; PR747 inert release separately accounted. Fresh Oct8 capacity remains a start gate. |
+| Operating owner / followup | Human explicitly approved this exact Oct8 scheduled chain. Same-chat heartbeat `ture-oct8-originalkedja-17-00`, initial14:35local; reuse it for phase followups, no parallel stream. Keep host/app available. No scheduling authority inferred from old cards or the250hgoal. |
+| Stop / return | First error/unknown dispatch stops; read-only reconcile, never blind retry. Preserve Oct5FAIL and both Oct7pre-evaluation failures. After verifiedcleanup return to the earliest actual input→outcome/full-charter gap, not generic helpers. |
 
-Card/operator: `/private/tmp/ture-oct7-2130.card.json`,
-`/private/tmp/ture-oct7-2130-operator.mjs`.
-Result/log readers: `/private/tmp/ture-oct7-2130-scan-readback.mjs`,
-`/private/tmp/ture-oct7-2130-delivery-log-readback.mjs`.
-Final cleanup reader: `/private/tmp/ture-oct7-2130-cleanup-owner-readback.mjs`.
-Previous proof/fixture/release rows are never relabelled as this NEW market result.
-The independent PR739 RPC/owner/clock/cost review by Poincare found no actionable
-static findings ([review](https://github.com/willyvalentin/trade/pull/739#issuecomment-6033417765));
-combined candle/event/regime independent review remains not performed.
-Retain all original local branches/receipts and primary-first integration order.
-CLOSED source-to-outcome replay22:55Z Oct6 was synthetic, not market outcomes.
-Capacity/scope decisions remain conditional evidence:
-`/private/tmp/ture-oct7-whole-chain-capacity.receipt.json`,
-`/private/tmp/ture-oct7-prospective-scope-feasibility.receipt.json`.
-The11-session/64scan/2102TD example is not scheduled, not a forecast or authority.
-Actual unchanged Git-revision normal publication is verified for BOTH NEW
-scan andcleanup phases. No pooling of changed Git candidates or qualityclaim.
+### Prospective Oct8 execution card — authorized, not armed
 
-### Weekly outcome scorecard — 2026-10-07 20:10Z
+Full machine-readable card: `/private/tmp/ture-oct8-original-eight-1700.card.json`.
+Private fixed-date operators/readers: `/private/tmp/ture-oct8-source-preparation.mjs`,
+`/private/tmp/ture-oct8-phase-operator.mjs`, `/private/tmp/ture-oct8-owner-phase-readback.mjs`.
+All fail before credentials/network while final_binding_verified is false;
+actual observations persist before acceptance, failures stop/read-only reconcile.
+CLOSED code857/b4/4bc is recorded separately; final exact protected revision and
+readyGitdeploy must be rebound after the combined current-main PR747 release. This is NOT permission to run an unbound candidate.
+[Official hours](https://www.nyse.com/markets/hours-calendars) and
+[2026 holiday table](https://www.nasdaqtrader.com/Trader.aspx?id=Calendar) show a normal
+Oct8session; pinned calendar verifies13:30–20:00Z =15:30–22:00CEST, noearlyclose.
+
+| Phase Oct8 | Europe/Stockholm (+02) | Full UTC |
+| --- | --- | --- |
+| Go/no-go / max1capacity meter |14:35 / by14:40|2026-10-08T12:35:00.000Z /12:40Z|
+| At most13normal owner history batches |14:45–before15:00|2026-10-08T12:45:00.000Z–13:00Z|
+| Normal native scan, next_run15:15Z |17:00|2026-10-08T15:00:00.000Z|
+| Canonical latest bounded60m maturity |18:05|2026-10-08T16:05:00.000Z|
+| Native outcome one-shot1, max4/4 |18:15|2026-10-08T16:15:00.000Z|
+| Native outcome one-shot2, max4/4 |18:30|2026-10-08T16:30:00.000Z|
+| Verified cleanup deadline |19:00|2026-10-08T17:00:00.000Z|
+
+Original ordered8: **DIS,JPM,CAT,XOM,UNH,DKNG,RKLB,SMCI**; never shrink denominator.
+Input policy `completed_daily_intraday_input_v1`, Basic free800/8, globaldisabletrue,
+GROW_MAX/learningcapturetrue; scan's exact DATE/SLOT/enabledtrue only for15:00Z.
+All observation/outcome-series/catalog/probe/paper/allocation/market-wide modesoff.
+For outcomes, scanenablefalse and exact same-date outcomeDATE/SLOT/enabledtrue;
+no retained-batch override, unrelated same-day batch or globally enabled backlog.
+Two separate slots, not a retry of failed/unknown work; no competing provider calls.
+Only affect owned temporary production/function metadata; keep all other scopes/IDs.
+
+Start gates: accepted exact code/deploy/schema/owner, zero active/unresolved claims,
+fresh actual Basic capacity for full114+200margin (≥314beforemeter), complete signed
+Oct7histories/current benchmark handle, no competing calls, normal scheduler AND
+backend positive acceptance. Arm scan only after preparation and published/readback
+before16:45.90minutes closed-session context then available at17:00; actual fresh
+intraday identity/volume/features still require measurement, not fixture inference.
+Use immutable next5min-anchor+60m, not decision+60; reject any horizon that cannotfit.
+Source/HTTP/provider/budget/identity/deadline/readback failure stops the card;
+0HTTP/providerretries, no manual routes, extra slots, repurchase or new thresholds.
+Restore owned metadata/false-enable-ID, verify normalGitcleanup/allmodesoff/0claims
+by19:00. Exact date/slot grace fails closed even without an awake assistant.
+
+Pass:8/8complete attributable inputs, preserved original decisions/plans, every
+predeclared member followed to exact60m or explicitly justified unchanged native
+not-applicable status, clear loss/cost accounting. Missing sources are missing,
+not not-applicable; pre-evaluation rejection = **inte utvärderat**, not0/8/no_trade.
+An evaluated, correctly motivated no_trade is valid. Operatingpass≠qualitylift/alpha.
+
+### Weekly outcome scorecard — 2026-10-07 22:52Z
 
 | Measure | Actual evidence / gap |
 | --- | --- |
-| Fresh input fitness | Oct5:3/8; Oct6:3/8. BothOct7cards have no evaluated inputpopulation. NEW1930Z backendphase rejected beforeprovider; full8declared, measurementunavailable. |
-| Canonical outcome continuity | No Oct7 originaldecision/matureoutcome. No60m phase armed, no short-horizon substitution. Broader actualratio unknown; fixtures do not fill it. |
-| Hypotheses disposed | Old1430Z no_go; NEW1930Z terminalsession-gate skip; bothcleanupverified. Scientific input/full-charter question evidence_incomplete, graduationnot_met, no qualitypromotion. |
-| Time/cost per useful observation | Old98 + new1meter=99knownpreparation/metercredits;0actualscan/providercredits forNEWcard. NEW2/2normalpublicationscomplete, hostingdebit unknown. No useful source/decision observation; unitcost unavailable. |
-| Integration escapes / rework | PreserveOct5/#735 andOct6/#738. Oct7HH:mm operatorerror correctlydenied and regression/#744 integrated. NEWoperator checked scheduler but missed backendclosing-soon gate; actual40s delivery/terminalskip/cleanup19:38verified. Existing research-only path must not be conflated with normaloneShot. Period totals unknown. |
+| Fresh input fitness | Oct5/Oct6 each3/8; neither Oct7card evaluated its population. Oct8 not run; new8/8 is synthetic CLOSED only. |
+| Canonical outcome continuity | Actual Oct6 still0/3snapshots/full8denominator; new CLOSED8/8/24labels do not fill the actual cell. |
+| Hypotheses disposed | Both Oct7cards terminal/cleanupverified; source/full-charter evidence_incomplete, graduationnot_met. |
+| Time/cost per useful observation | Old98+new1meter=99knownOct7preparation credits; latercard0scancredits/twoGitpublications. Oct8 no provider/publication consumption yet, unitcost unknown. |
+| Integration escapes / rework | Retain #735/#738 and Oct7HH:mm/backend-closing misses. New combined positive dated CLOSED regression closes rehearsal gap, not market quality. |
 
-Review14/21October against exact frozen evidence; checkpoints do not authorize
-new automations/acquisition or relax quality thresholds. Keep only this active
-queue, update on material results, historical evidence afterEND unchanged.
+Receipts: `/private/tmp/ture-oct8-whole-chain.closed.receipt.json`,
+`/private/tmp/ture-oct8-source-runtime.read.receipt.json`,
+`/private/tmp/ture-pr745-no-deploy-protected-merge.final.receipt.json`.
+Keep historical tailSHA474f37419befd5ba740e72648dbffa80051f6a7d0a3fd48ac2f1335b1d1e9add.
+Only actual bounded results may change the next scientific decision.
 
 <!-- END CURRENT DELIVERY BOARD -->
 

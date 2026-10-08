@@ -49,6 +49,40 @@ path is infeasible or unknown, make a bounded scope/data decision before more
 helpers; any changed prospective experiment has a new contract and preserves
 old populations. This does not purchase data or relax an existing charter.
 
+<a id="full-session-publication-policy"></a>
+### Planned product change — quality-gated full-session recommendations, 2026-10-07
+
+The user's product direction is that Ture may discover, evaluate and publish
+qualified recommendations throughout the verified regular trading session.
+Morning, midday and power-hour labels are context, not automatic eligibility
+vetoes. Replace the legacy generation-window bans and blanket last-30-minute
+publication cutoff with a separately versioned, candidate-specific quality and
+actionability policy; do not simply enable every old path unconditionally.
+
+Keep observation/research independent of publication. A trade-ready candidate
+must meet the [publication quality bar](#publication-quality-bar), with fresh
+attributable inputs, valid setup/risk geometry, disclosed liquidity and execution
+cost limits, and enough remaining session time for its stated entry, holding
+horizon and exit. A day-trade plan must fit the actual verified session close;
+missing feasibility evidence is not a pass and a high score alone is insufficient.
+Preserve honest `no_trade`, research/unavailable states, owner isolation,
+idempotency, kill controls, entitlements and bounded provider/cost budgets.
+Pre-/after-market eligibility and overnight holding remain separate policies.
+
+Acceptance crosses scheduler admission, backend, generator, ranking and final
+publication/readback: prove that an otherwise qualified candidate is not rejected
+solely by a legacy window label, while insufficient exit time, stale/missing data
+and real risk/budget blockers still fail closed. Cover closing boundaries, early
+closes and delayed delivery CLOSED, then verify a prospectively frozen bounded
+market comparison and the applicable quality/promotion gates before rollout.
+Preserve all existing cohorts, horizons, models and numeric thresholds; any new
+policy comparison is separately versioned and reviewed under governance.
+
+This is planned product work, not implemented or quality-accepted behavior.
+It follows the active source-to-outcome evidence priority, not a competing helper
+stream. Bundle this roadmap addition with the next product PR; the documentation
+alone changes no production flag, policy, acquisition cadence or broker authority.
+
 Report capability delivered, environment behavior verified and quality accepted
 separately. A negative scientific result can finish a hypothesis. Infrastructure
 completion, candidate count and rank movement cannot establish quality lift.
@@ -1638,6 +1672,10 @@ A trade-ready recommendation must have all of the following:
 
 Anything below that bar remains research, developing, rejected or no-trade. It
 must never be presented as a strong trade merely because the market is open.
+
+The [planned full-session policy](#full-session-publication-policy) replaces
+legacy clock vetoes only after candidate-specific actionability is verified;
+it does not lower this quality bar or remove genuine late-entry safety.
 
 ### Planning and acceptance rules
 

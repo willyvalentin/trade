@@ -484,6 +484,34 @@ test("packaged published original inputs survive SQL restart and canonical outco
     actual_provider_requests: 0, production_actions: 0, broker_actions: 0, quality_improvement_claimed: false });
 });
 
+for(const cold of [false,true]) {
+test(`exact-batch one-shot recovers only retained ${cold ? "three" : "six"} original sources while global schedules stay disabled`, () => {
+  test.setTimeout(90000);
+  const proof = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--diagnose-outcomes",
+    "--relative-plan-60m", "--retained-batch-one-shot", ...(cold?["--cold"]:[])],
+    { cwd: process.cwd(), encoding: "utf8", timeout: 80000 });
+  expect(proof.status, `${proof.stdout}\n${proof.stderr}`).toBe(0);
+  const rows = proof.stdout.trim().split("\n").map(line => JSON.parse(line));
+  expect(rows.find(row=>row.retained_original_batch_one_shot_proof)).toMatchObject({
+    retained_original_batch_one_shot_proof:"passed",original_population:8,target_batch_count:1,
+    original_sources_unchanged:true,completed_repeat_requests:0,actual_provider_requests:0,
+    production_actions:0,quality_improvement_claimed:false,affected_production_acl_matched:true,
+    first_slot_complete:cold,synthetic_outcome_requests:cold?3:6,reserved_credits:cold?4:8 });
+});
+}
+
+test("retained batch one-shot waits for its immutable canonical 60m anchor instead of decision-time maturity", () => {
+  test.setTimeout(90000);
+  const proof=spawnSync(process.execPath,["scripts/completed-input-runtime-proof.mjs","--diagnose-outcomes",
+    "--relative-plan-60m","--retained-batch-one-shot","--retained-batch-immature"],
+    {cwd:process.cwd(),encoding:"utf8",timeout:80000});
+  expect(proof.status,`${proof.stdout}\n${proof.stderr}`).toBe(0);
+  expect(proof.stdout.trim().split("\n").map(line=>JSON.parse(line))
+    .find(row=>row.retained_batch_canonical_maturity_proof)).toMatchObject({
+    retained_batch_canonical_maturity_proof:"passed",canonical_horizon_end:"2026-10-01T18:35:00.000Z",
+    synthetic_outcome_requests:0,actual_provider_requests:0,production_actions:0});
+});
+
 test("ordinary scheduled outcomes recover only budget-deferred original sources after a weekend", () => {
   test.setTimeout(90000);
   const proof = spawnSync(process.execPath, ["scripts/completed-input-runtime-proof.mjs", "--diagnose-outcomes", "--next-session-outcomes"],

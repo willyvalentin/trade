@@ -11,6 +11,35 @@ import { getUsEquityMarketSession } from "@/lib/us-equity-market-calendar";
 import { spawnSync } from "node:child_process";
 
 // Synthetic CLOSED source/transport fixtures, never market or alpha evidence.
+test("Oct8 exact normal one-shot reaches complete original inputs and two mature native outcome slots", () => {
+  test.setTimeout(80_000);
+  const result = spawnSync(process.execPath, ["scripts/prospective-normal-one-shot-runtime-proof.mjs"],
+    { cwd: process.cwd(), encoding: "utf8", timeout: 75_000 });
+  expect(result.status, `${result.error?.message ?? ""}\n${result.stdout.slice(-2500)}\n${result.stderr.slice(-2500)}`).toBe(0);
+  const records = result.stdout.trim().split("\n").filter(line => line.startsWith("{")).map(line => JSON.parse(line));
+  const scan = records.find(record => record.scenario === "oct8_1700_normal_one_shot_positive");
+  const outcomes = records.find(record => record.oct8_outcome_evidence === true);
+  expect(scan).toMatchObject({ exact_scan_mode: "normal_one_shot", observation_series_enabled: false,
+    target_slot_utc: "2026-10-08T15:00:00.000Z", backend_evaluation_reached: true,
+    full_original_denominator: 8, snapshot_count: 8, actual_provider_requests: 0,
+    production_actions: 0, broker_actions: 0, cleanup: "inert",
+    prepared_first_scan_evidence: { original_member_count: 8, complete_assessed_input_count: 8,
+      setup_provider_requests: 97, maximum_setup_minute_credits: 8,
+      scanner_provider_requests: 8, benchmark_provider_requests: 0,
+      production_claim_table_select_denied: true, service_only_claim_readback_rpc: true } });
+  expect(scan.prepared_first_scan_evidence.original_tickers).toEqual(["DIS", "JPM", "CAT", "XOM", "UNH", "DKNG", "RKLB", "SMCI"]);
+  expect(scan.prepared_first_scan_evidence.source_controls).toHaveLength(20);
+  expect(scan.prepared_first_scan_evidence.claim_read_controls).toHaveLength(10);
+  expect(outcomes).toMatchObject({ original_population: 8, canonical_60m_outcomes: 8, label_rows: 24,
+    unchanged_original_sources: true, restarted_owner_read: true, wrong_owner_empty: true,
+    automatic_expiry: true, provider_requests: 8, actual_provider_requests: 0, production_actions: 0,
+    affected_table_privileges_matched: true });
+  expect(outcomes.native_one_shot_phases).toEqual([
+    { target_slot_utc: "2026-10-08T16:15:00.000Z", scheduled_next_run_utc: "2026-10-08T16:30:00.000Z", provider_requests: 4, cumulative_canonical_60m: 4, completed_retry_requests: 0, native_attempt_status: "completed", claim_and_persistence_terminal_success: true },
+    { target_slot_utc: "2026-10-08T16:30:00.000Z", scheduled_next_run_utc: "2026-10-08T16:45:00.000Z", provider_requests: 4, cumulative_canonical_60m: 8, completed_retry_requests: 0, native_attempt_status: "completed", claim_and_persistence_terminal_success: true },
+  ]);
+});
+
 test("only revalidated owned original benchmark capsules can free the two reserved calls", async () => {
   const bundle = await build({ stdin: { resolveDir: process.cwd(), contents: `
     export * from './lib/market-regime'; export * from './lib/completed-benchmark-reuse';
