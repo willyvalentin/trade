@@ -8,6 +8,8 @@ import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 
 const root = process.cwd();
+const boundedSeries = process.argv.includes('--bounded-original-series');
+assert(process.argv.slice(2).every(value => value === '--bounded-original-series'), 'Only the declared CLOSED scenario is allowed');
 const pin = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
 assert.equal(execFileSync('git', ['diff', '--name-only', '--', 'app', 'lib', 'netlify/functions', 'supabase', 'package.json', 'package-lock.json'], { encoding: 'utf8' }).trim(), '', 'Product bytes must match the declared HEAD');
 const harness = resolve(root, 'scripts/completed-input-runtime-proof.mjs');
@@ -123,6 +125,169 @@ replaceOne('scenario:"first_owner_prepared_context_scan"', `scenario:"oct8_1700_
       snapshot_count:Number(sql("select count(*) from recommendation_snapshots;")),
       snapshot_tickers:JSON.parse(sql("select coalesce(jsonb_agg(ticker),'[]') from recommendation_snapshots;")),
       backend_evaluation_reached:true, full_original_denominator:8`);
+if (boundedSeries) {
+  // A distinct synthetic feasibility question, not an alternative Oct8 test
+  // or a live card. Keep the original normal-one-shot scenario unchanged.
+  replaceOne('TURE_OBSERVATION_SERIES_ENABLED: "false"', 'TURE_OBSERVATION_SERIES_ENABLED: "true"');
+  replaceOne('TURE_NORMAL_SCAN_ONE_SHOT_ENABLED: "true"', 'TURE_NORMAL_SCAN_ONE_SHOT_ENABLED: "false"');
+  replaceOne('TURE_OBSERVATION_SERIES_DATE: contract.trading_date,', 'TURE_OBSERVATION_SERIES_DATE: slot.slice(0,10),');
+  replaceOne('assert.equal(control.status, "disabled");', 'assert.equal(control.status, "ready",JSON.stringify(control));');
+  replaceOne('process.env.TURE_OBSERVATION_SERIES_STARTS_AT_UTC=sourceSlot;',
+    'process.env.TURE_OBSERVATION_SERIES_START_SLOT_UTC=sourceSlot;');
+  replaceOne('process.env.TURE_OBSERVATION_SERIES_EXPIRES_AT_UTC=followingSlot;',
+    'process.env.TURE_OBSERVATION_SERIES_EXPIRES_AT_UTC="2026-10-08T17:00:00.000Z";');
+  replaceOne('process.env.TURE_OBSERVATION_SERIES_MAX_ATTEMPTS="1";',
+    'process.env.TURE_OBSERVATION_SERIES_MAX_ATTEMPTS="8";');
+  replaceOne('process.env.TURE_OBSERVATION_SERIES_MAX_PROVIDER_CREDITS="8";',
+    'process.env.TURE_OBSERVATION_SERIES_MAX_PROVIDER_CREDITS="64";');
+  replaceOne('grant usage on schema public to service_role; grant all on all tables in schema public to service_role;',
+    `grant usage on schema public to service_role; grant all on all tables in schema public to service_role;
+    revoke all on public.relative_plan_prospective_comparisons,public.relative_plan_trained_probability_models,
+      public.relative_plan_trained_probability_confirmations,public.relative_plan_charter_results
+      from public,anon,authenticated,service_role;`);
+  replaceOne('    const sourceDigest=sql(', `    const seriesScanEvidence=[{slot:sourceSlot,original_members:8,assessed_members:8,requests:8}];
+    delete process.env.TURE_NORMAL_SCAN_ONE_SHOT_DATE;
+    delete process.env.TURE_NORMAL_SCAN_ONE_SHOT_SLOT_UTC;
+    for(let index=1;index<8;index++) {
+      const target=new OriginalDate(OriginalDate.parse(sourceSlot)+index*900000).toISOString();
+      const next=new OriginalDate(OriginalDate.parse(target)+900000).toISOString();
+      clock=OriginalDate.parse(target)+20000;
+      const before=externalRequests;
+      const response=await scheduler(new Request("http://closed-scheduler",{method:"POST",body:JSON.stringify({next_run:next})}),
+        {deploy:{id:identity.deploy_id,context:"production",published:true}});
+      assert.equal(response.status,200,JSON.stringify(await response.clone().json()));
+      assert.equal(externalRequests-before,8,"Every declared original set has its complete bounded input acquisition");
+      assert.equal(Number(sql("select count(*) from recommendation_scan_runs;")),index+1);
+      const stored=JSON.parse(sql("select row_to_json(t) from recommendation_scan_runs t order by observed_at desc,run_fingerprint desc limit 1;"));
+      const record=restarted.candidateDecisionRecordFromScanRun(stored);
+      assert(record && restarted.decisionLineageReceiptFromScanRun(stored,record));
+      const assessed=restarted.buildRelativePlanContextShadow(record);
+      assert.equal(record.candidates.length,8);assert.equal(assessed.assessed_count,8,JSON.stringify(assessed));
+      assert.equal(record.candidates.filter(member=>member.data.freshness==="fresh").length,8);
+      seriesScanEvidence.push({slot:target,original_members:8,assessed_members:8,requests:externalRequests-before});
+      const after=externalRequests;
+      const duplicate=await scheduler(new Request("http://closed-scheduler",{method:"POST",body:JSON.stringify({next_run:next})}),
+        {deploy:{id:identity.deploy_id,context:"production",published:true}});
+      assert.equal(duplicate.status,204,"The series suppresses a repeated observed slot before backend/provider work");
+      assert.equal(externalRequests,after,"Completed native slot cannot repeat provider work");
+    }
+    assert.equal(externalRequests,64);assert.equal(externalBenchmarkRequests,0);
+    assert.equal(Number(sql("select count(*) from recommendation_scan_runs;")),8);
+    assert.equal(Number(sql("select count(*) from recommendation_snapshots;")),64);
+    process.env.TURE_OBSERVATION_SERIES_ENABLED="false";
+    originalLog(JSON.stringify({bounded_original_scan_series_evidence:true,slots:seriesScanEvidence,
+      original_population:64,complete_assessed_members:64,synthetic_requests:64,actual_provider_requests:0}));
+    const sourceDigest=sql(`);
+  const begin = source.indexOf('} else if(preparedFirstScan) {');
+  const end = source.indexOf('} else if(rotationDay) {', begin);
+  assert(begin >= 0 && end > begin);
+  let prepared = source.slice(begin, end);
+  const partOne = (before, after) => {
+    assert.equal(prepared.split(before).length, 2, before);
+    prepared = prepared.replace(before, after);
+  };
+  partOne('assert.equal(Number(sql("select count(*) from recommendation_snapshots;")),8);',
+    'assert.equal(Number(sql("select count(*) from recommendation_snapshots;")),64);');
+  partOne('process.env.TURE_OUTCOME_EVALUATION_ONE_SHOT_ENABLED="true";',
+    'process.env.TURE_OUTCOME_EVALUATION_ONE_SHOT_ENABLED="false";');
+  partOne('process.env.TURE_OUTCOME_EVALUATION_SERIES_ENABLED="false";', `process.env.TURE_OUTCOME_EVALUATION_SERIES_ENABLED="true";
+    process.env.TURE_OUTCOME_EVALUATION_SERIES_DATE="2026-10-08";
+    process.env.TURE_OUTCOME_EVALUATION_SERIES_START_SLOT_UTC="2026-10-08T17:15:00.000Z";
+    process.env.TURE_OUTCOME_EVALUATION_SERIES_EXPIRES_AT_UTC="2026-10-08T21:15:00.000Z";
+    process.env.TURE_OUTCOME_EVALUATION_SERIES_MAX_ATTEMPTS="16";
+    process.env.TURE_OUTCOME_EVALUATION_SERIES_MAX_PROVIDER_CREDITS="64";`);
+  partOne('for(const target of ["2026-10-08T16:15:00.000Z","2026-10-08T16:30:00.000Z"]) {',
+    'for(const target of Array.from({length:16},(_,index)=>new OriginalDate(OriginalDate.parse("2026-10-08T17:15:00.000Z")+index*900000).toISOString())) {');
+  prepared = prepared.replaceAll('assert.equal(externalRequests,16);', 'assert.equal(externalRequests,128);')
+    .replaceAll('assert.equal(owned.data.recommendation_scan_runs.length,1);', 'assert.equal(owned.data.recommendation_scan_runs.length,8);')
+    .replaceAll('assert.equal(owned.data.recommendation_outcomes.length,24);', 'assert.equal(owned.data.recommendation_outcomes.length,192);')
+    .replaceAll('assert.equal(Number(sql("select count(*) from scheduled_scan_attempts;")),1);',
+      'assert.equal(Number(sql("select count(*) from scheduled_scan_attempts;")),8);');
+  partOne('assert.equal(Number(sql("select count(*) from recommendation_outcomes;")),24);',
+    'assert.equal(Number(sql("select count(*) from recommendation_outcomes;")),192);');
+  partOne('assert.equal(outcomeClaims.length,2);', 'assert.equal(outcomeClaims.length,16);');
+  partOne('assert.equal(Number(sql("select count(*) from scheduled_outcome_evaluation_attempts;")),2);',
+    'assert.equal(Number(sql("select count(*) from scheduled_outcome_evaluation_attempts;")),16);');
+  partOne('clock=OriginalDate.parse("2026-10-08T16:45:20.000Z");', 'clock=OriginalDate.parse("2026-10-08T21:15:20.000Z");');
+  partOne('body:JSON.stringify({next_run:"2026-10-08T17:00:00.000Z"})', 'body:JSON.stringify({next_run:"2026-10-08T21:30:00.000Z"})');
+  partOne('    const owned=await restarted.readRecommendationLearningBaselineSource(owner);',
+    '    process.env.TURE_OUTCOME_EVALUATION_SERIES_ENABLED="false";\n    const owned=await restarted.readRecommendationLearningBaselineSource(owner);');
+  partOne('    const wrongOutcomes=await restarted.readRecommendationLearningBaselineSource(', `    // Same existing controlled-clock charter fixture basis. These isolated
+    // metadata are NOT an actual pre-forward production DB/model seal.
+    for(const table of ["relative_plan_prospective_comparisons","relative_plan_trained_probability_models",
+      "relative_plan_trained_probability_confirmations","relative_plan_charter_results"]) {
+      assert.equal(sql("select relrowsecurity from pg_class where oid='public."+table+"'::regclass;"),"t");
+      for(const role of ["anon","authenticated","service_role"])
+        assert.equal(sql("select has_table_privilege('"+role+"','public."+table+"','SELECT,INSERT,UPDATE,DELETE');"),"f");
+    }
+    for(const signature of ["read_relative_plan_prospective_comparison_v1(uuid,text)",
+      "read_relative_plan_trained_probability_model_v1(uuid,uuid,text)","read_relative_plan_charter_result_v1(uuid,uuid,text)"]) {
+      assert.equal(sql("select has_function_privilege('service_role','public."+signature+"','EXECUTE');"),"t");
+      for(const role of ["anon","authenticated"])
+        assert.equal(sql("select has_function_privilege('"+role+"','public."+signature+"','EXECUTE');"),"f");
+    }
+    const frozenAt="2026-09-25T12:00:00.000Z";
+    const plan=restarted.buildRelativePlanProspectivePlan({owner_user_id:owner,
+      source_revision:{commit_ref:identity.commit_ref,build_identity:restarted.relativePlanCanonicalBuildIdentity,
+        deploy_id:identity.deploy_id},windows:{
+        training:{start_at:"2026-10-05T13:30:00.000Z",end_at:"2026-10-07T20:00:00.000Z"},
+        held_out:{start_at:sourceSlot,end_at:"2026-10-08T20:00:00.000Z"},
+        walk_forward:{start_at:"2026-10-12T15:00:00.000Z",end_at:"2026-10-16T20:00:00.000Z"},
+      }},frozenAt);assert(plan);
+    sql(\`insert into relative_plan_prospective_comparisons(id,owner_user_id,model_version,plan_fingerprint,plan_json,frozen_at)
+      values('22222222-2222-4222-8222-222222222222','\${owner}','\${plan.model_version}','\${plan.plan_fingerprint}',
+        '\${JSON.stringify(plan).replaceAll("'","''")}'::jsonb,'\${frozenAt}');\`);
+    delete require.cache[require.resolve(join(generated,"reader.cjs"))];
+    const charterReader=require(join(generated,"reader.cjs"));
+    const asOf=new OriginalDate(clock+1000);
+    const charter=await charterReader.createRelativePlanProspectiveService().read(owner,asOf);
+    assert.equal(charter.status,"available",charter.blocker);
+    const held=charter.learning.partitions.find(value=>value.partition==="held_out");
+    assert.equal(held.enrolled_decision_count,8);assert.equal(held.original_population_count,64);
+    assert.equal(held.canonical_outcome_count,64);assert.equal(held.missing_outcome_count,0);
+    const measured=charter.learning.full_charter.partitions.find(value=>value.partition==="held_out");
+    assert.equal(measured.operational.reliability.admitted_attempt_count,8);
+    assert.equal(measured.operational.cost.reserved_provider_credits,64);
+    assert.equal(charter.learning.full_charter.computed_disposition,"evidence_incomplete");
+    assert.equal(charter.learning.trained_probability_model,null);
+    assert.equal(charter.learning.terminal_quality_decision,null);
+    assert.equal(charter.learning.quality_improvement_claimed,false);
+    assert.equal((await charterReader.createRelativePlanProspectiveService().read("00000000-0000-4000-8000-000000000002",asOf)).learning,null);
+    assert.equal(sql("select md5(string_agg(row_to_json(t)::text,'|' order by id)) from recommendation_snapshots t;"),sourceDigest);
+    assert.equal(sql("select md5(string_agg(row_to_json(t)::text,'|' order by id)) from recommendation_scan_runs t;"),runDigest);
+    assert.equal(externalRequests,128,"Charter readback cannot acquire data");
+    assert.equal(syntheticRequestEvidence.length,225,"Include all97 prepared histories plus64 scan and64 outcome requests");
+    const perMinute=new Map();
+    for(const request of syntheticRequestEvidence) {
+      const bucket=Math.floor(OriginalDate.parse(request.requested_at)/60000);
+      perMinute.set(bucket,(perMinute.get(bucket)??0)+1);
+    }
+    const maxMinuteCredits=Math.max(...perMinute.values());
+    assert.equal(maxMinuteCredits,8,"No acquisition/scan/outcome overlap may exceed unchanged Basic8/minute");
+    assert.equal(Number(sql("select count(*) from basic_free_discovery_credit_reservations;")),121);
+    assert.equal(Number(sql("select sum(requested_credits) from basic_free_discovery_credit_reservations;")),225);
+    assert.equal(Number(sql("select count(*) from basic_free_discovery_credit_reservations where status <> 'completed' or not provider_attempted or finalized_at is null;")),0);
+    originalLog(JSON.stringify({bounded_original_series_charter_evidence:true,
+      evidence_scope:"synthetic_native_original_rows_and_SQL_SDK_charter_read_not_pre_forward_DB_seal",
+      enrolled_original_decisions:8,original_population:64,canonical_60m_outcomes:64,missing_outcomes:0,
+      operational_attempts:8,reserved_scan_credits:64,disposition:"evidence_incomplete",trained_model:null,
+      terminal_quality_decision:null,quality_improvement_claimed:false,actual_provider_requests:0,
+      charter_private_tables_direct_access_denied:true,service_only_read_RPCS:true,
+      full_chain_synthetic_requests:225,max_minute_credits:maxMinuteCredits,
+      terminal_finalized_claims:121,reserved_all_phase_credits:225}));
+    const wrongOutcomes=await restarted.readRecommendationLearningBaselineSource(`);
+  partOne('oct8_outcome_evidence:true,original_population:8,canonical_60m_outcomes:8,',
+    'bounded_original_outcome_series_evidence:true,original_population:64,canonical_60m_outcomes:64,');
+  partOne('label_rows:24,native_one_shot_phases:outcomePhases,', 'label_rows:192,native_series_slots:outcomePhases,');
+  partOne('automatic_expiry:true,provider_requests:8,', 'automatic_expiry:true,provider_requests:64,');
+  source = source.slice(0, begin) + prepared + source.slice(end);
+  source = source.replace('scenario:"oct8_1700_normal_one_shot_positive"', 'scenario:"prospective_bounded_original_series_positive"')
+    .replace('exact_scan_mode:"normal_one_shot", observation_series_enabled:false,',
+      'exact_scan_mode:"bounded_observation_series", observation_series_enabled:true,')
+    .replace('backend_evaluation_reached:true, full_original_denominator:8',
+      'backend_evaluation_reached:true, full_original_denominator:64')
+    .replaceAll('2026-10-08', '2026-10-09').replaceAll('2026-10-07', '2026-10-08');
+}
 process.argv = [process.execPath, harness, '--cold', '--rotation-day', '--prospective-enrollment',
   '--full-original-history-setup', '--budgeted-history-setup', '--history-preparation-app',
   '--prepared-first-scan', '--production-claim-acl'];

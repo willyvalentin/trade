@@ -11,6 +11,37 @@ import { getUsEquityMarketSession } from "@/lib/us-equity-market-calendar";
 import { spawnSync } from "node:child_process";
 
 // Synthetic CLOSED source/transport fixtures, never market or alpha evidence.
+test("bounded native series retains all original inputs and outcomes through private charter readback", () => {
+  test.setTimeout(180_000);
+  const result = spawnSync(process.execPath, ["scripts/prospective-normal-one-shot-runtime-proof.mjs", "--bounded-original-series"],
+    { cwd: process.cwd(), encoding: "utf8", timeout: 170_000 });
+  expect(result.status, `${result.error?.message ?? ""}\n${result.stdout.slice(-3500)}\n${result.stderr.slice(-3500)}`).toBe(0);
+  const records = result.stdout.trim().split("\n").filter(line => line.startsWith("{")).map(line => JSON.parse(line));
+  const scans = records.find(record => record.bounded_original_scan_series_evidence === true);
+  const outcomes = records.find(record => record.bounded_original_outcome_series_evidence === true);
+  const charter = records.find(record => record.bounded_original_series_charter_evidence === true);
+  expect(scans).toMatchObject({ original_population: 64, complete_assessed_members: 64,
+    synthetic_requests: 64, actual_provider_requests: 0 });
+  expect(scans.slots).toHaveLength(8);
+  for (const slot of scans.slots) expect(slot).toMatchObject({ original_members: 8, assessed_members: 8, requests: 8 });
+  expect(outcomes).toMatchObject({ original_population: 64, canonical_60m_outcomes: 64, label_rows: 192,
+    unchanged_original_sources: true, restarted_owner_read: true, wrong_owner_empty: true, automatic_expiry: true,
+    provider_requests: 64, actual_provider_requests: 0, production_actions: 0, affected_table_privileges_matched: true });
+  expect(outcomes.native_series_slots).toHaveLength(16);
+  outcomes.native_series_slots.forEach((slot: { cumulative_canonical_60m: number }, index: number) =>
+    expect(slot).toMatchObject({ provider_requests: 4, cumulative_canonical_60m: 4 * (index + 1),
+      completed_retry_requests: 0, native_attempt_status: "completed", claim_and_persistence_terminal_success: true }));
+  expect(charter).toMatchObject({
+    evidence_scope: "synthetic_native_original_rows_and_SQL_SDK_charter_read_not_pre_forward_DB_seal",
+    enrolled_original_decisions: 8, original_population: 64, canonical_60m_outcomes: 64, missing_outcomes: 0,
+    operational_attempts: 8, reserved_scan_credits: 64, disposition: "evidence_incomplete", trained_model: null,
+    terminal_quality_decision: null, quality_improvement_claimed: false, actual_provider_requests: 0,
+    charter_private_tables_direct_access_denied: true, service_only_read_RPCS: true,
+    full_chain_synthetic_requests: 225, max_minute_credits: 8,
+    terminal_finalized_claims: 121, reserved_all_phase_credits: 225,
+  });
+});
+
 test("Oct8 exact normal one-shot reaches complete original inputs and two mature native outcome slots", () => {
   test.setTimeout(80_000);
   const result = spawnSync(process.execPath, ["scripts/prospective-normal-one-shot-runtime-proof.mjs"],
