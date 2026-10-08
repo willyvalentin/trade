@@ -8,10 +8,12 @@ import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 
 const root = process.cwd();
-const boundedSeries = process.argv.includes('--bounded-original-series');
+const earliestSeries = process.argv.includes('--earliest-bounded-slot');
+const originalSeries = process.argv.includes('--bounded-original-series');
+const boundedSeries = originalSeries || earliestSeries;
 const publicationStop = process.argv.includes('--early-publication-stop');
-assert(!(boundedSeries && publicationStop) && process.argv.slice(2).every(value =>
-  ['--bounded-original-series', '--early-publication-stop'].includes(value)), 'Only one declared CLOSED scenario is allowed');
+assert(!(boundedSeries && publicationStop) && !(originalSeries && earliestSeries) && process.argv.slice(2).every(value =>
+  ['--bounded-original-series', '--early-publication-stop', '--earliest-bounded-slot'].includes(value)), 'Only one declared CLOSED scenario is allowed');
 const pin = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
 assert.equal(execFileSync('git', ['diff', '--name-only', '--', 'app', 'lib', 'netlify/functions', 'supabase', 'package.json', 'package-lock.json'], { encoding: 'utf8' }).trim(), '', 'Product bytes must match the declared HEAD');
 const harness = resolve(root, 'scripts/completed-input-runtime-proof.mjs');
@@ -283,6 +285,42 @@ if (boundedSeries) {
   partOne('label_rows:24,native_one_shot_phases:outcomePhases,', 'label_rows:192,native_series_slots:outcomePhases,');
   partOne('automatic_expiry:true,provider_requests:8,', 'automatic_expiry:true,provider_requests:64,');
   source = source.slice(0, begin) + prepared + source.slice(end);
+  if (earliestSeries) {
+    // A new synthetic window-boundary case, not altered predecessor sources,
+    // fewer members, a changed policy, a live card or a data-availability claim.
+    replaceOne('const sourceSlot = "2026-10-08T15:00:00.000Z";', 'const sourceSlot = "2026-10-08T14:30:00.000Z";');
+    replaceOne('const followingSlot = "2026-10-08T15:15:00.000Z";', 'const followingSlot = "2026-10-08T14:45:00.000Z";');
+    replaceOne('process.env.TURE_OBSERVATION_SERIES_EXPIRES_AT_UTC="2026-10-08T17:00:00.000Z";',
+      'process.env.TURE_OBSERVATION_SERIES_EXPIRES_AT_UTC="2026-10-08T16:30:00.000Z";');
+    replaceOne('target_slot_utc:"2026-10-08T15:00:00.000Z"', 'target_slot_utc:"2026-10-08T14:30:00.000Z"');
+    source = source.replaceAll('2026-10-08T15:00:20.000001Z', '2026-10-08T14:30:20.000001Z');
+    replaceOne('    const seriesScanEvidence=[{slot:sourceSlot,original_members:8,assessed_members:8,requests:8}];', `    const currentArchive=run.payload_json.scanner_current_input_archive;
+    assert.equal(currentArchive.archive_version,"scanner_current_input_archive_v1");
+    assert.equal(currentArchive.scan_run_fingerprint,run.run_fingerprint);
+    assert.equal(currentArchive.decision_timestamp,decision.decision_timestamp);
+    assert.equal(currentArchive.entries.length,8);
+    const firstInputs=decision.candidates.map(member=>{
+      const context=member.data.input_snapshot.current_session;
+      const matches=currentArchive.entries.filter(entry=>entry.candidate_id===member.candidate_id && entry.ticker===member.ticker);
+      assert.equal(matches.length,1,"Read the exact persisted original, not a later cache or caller-supplied context");
+      const archived=matches[0].current_context;
+      assert.equal(archived.content_sha256,context.content_sha256);
+      assert.equal(archived.captured_at,context.captured_at);
+      assert.equal(context.session_open_at,"2026-10-08T13:30:00.000Z");
+      assert.equal(context.latest_bar_closed_at,sourceSlot);
+      assert.equal(archived.candles.length,12,"Exactly the first60minutes must consist of12fullyclosed5min bars");
+      for(const [index,bar] of archived.candles.entries()) {
+        assert.equal(bar.timestamp*1000,OriginalDate.parse(context.session_open_at)+index*300000);
+        assert(bar.timestamp*1000+300000<=OriginalDate.parse(sourceSlot),"No partial future bar in the original archive");
+      }
+      return {ticker:member.ticker,closed_bars:archived.candles.length,session_open_at:context.session_open_at,
+        latest_bar_closed_at:context.latest_bar_closed_at,captured_at:context.captured_at};
+    });
+    originalLog(JSON.stringify({earliest_bounded_input_evidence:true,exact_scan_mode:"bounded_observation_series",
+      source_slot:sourceSlot,first_original_population:8,first_complete_assessed:assessment.assessed_count,
+      first_inputs:firstInputs,quality_gates_unchanged:true,actual_provider_requests:0,production_actions:0}));
+    const seriesScanEvidence=[{slot:sourceSlot,original_members:8,assessed_members:8,requests:8}];`);
+  }
   source = source.replace('scenario:"oct8_1700_normal_one_shot_positive"', 'scenario:"prospective_bounded_original_series_positive"')
     .replace('exact_scan_mode:"normal_one_shot", observation_series_enabled:false,',
       'exact_scan_mode:"bounded_observation_series", observation_series_enabled:true,')

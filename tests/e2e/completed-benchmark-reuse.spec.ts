@@ -11,6 +11,35 @@ import { getUsEquityMarketSession } from "@/lib/us-equity-market-calendar";
 import { spawnSync } from "node:child_process";
 
 // Synthetic CLOSED source/transport fixtures, never market or alpha evidence.
+test("earliest native bounded slot retains complete originals after exactly sixty closed minutes", () => {
+  test.setTimeout(180_000);
+  const result = spawnSync(process.execPath, ["scripts/prospective-normal-one-shot-runtime-proof.mjs", "--earliest-bounded-slot"],
+    { cwd: process.cwd(), encoding: "utf8", timeout: 170_000 });
+  expect(result.status, `${result.error?.message ?? ""}\n${result.stdout.slice(-4500)}\n${result.stderr.slice(-4500)}`).toBe(0);
+  const records = result.stdout.trim().split("\n").filter(line => line.startsWith("{")).map(line => JSON.parse(line));
+  const first = records.find(record => record.earliest_bounded_input_evidence === true);
+  expect(first).toMatchObject({ exact_scan_mode: "bounded_observation_series", source_slot: "2026-10-09T14:30:00.000Z",
+    first_original_population: 8, first_complete_assessed: 8, quality_gates_unchanged: true,
+    actual_provider_requests: 0, production_actions: 0 });
+  expect(first.first_inputs).toHaveLength(8);
+  first.first_inputs.forEach((input: { closed_bars: number }) => expect(input).toMatchObject({ closed_bars: 12,
+    session_open_at: "2026-10-09T13:30:00.000Z", latest_bar_closed_at: "2026-10-09T14:30:00.000Z",
+    captured_at: "2026-10-09T14:30:20.000Z" }));
+  const scans = records.find(record => record.bounded_original_scan_series_evidence === true);
+  expect(scans).toMatchObject({ original_population: 64, complete_assessed_members: 64, synthetic_requests: 64 });
+  expect(scans.slots).toHaveLength(8);
+  expect(scans.slots[0].slot).toBe("2026-10-09T14:30:00.000Z");
+  expect(scans.slots[7].slot).toBe("2026-10-09T16:15:00.000Z");
+  const outcomes = records.find(record => record.bounded_original_outcome_series_evidence === true);
+  expect(outcomes).toMatchObject({ original_population: 64, canonical_60m_outcomes: 64, label_rows: 192,
+    unchanged_original_sources: true, wrong_owner_empty: true, automatic_expiry: true, provider_requests: 64 });
+  const charter = records.find(record => record.bounded_original_series_charter_evidence === true);
+  expect(charter).toMatchObject({ enrolled_original_decisions: 8, original_population: 64, canonical_60m_outcomes: 64,
+    missing_outcomes: 0, disposition: "evidence_incomplete", trained_model: null, terminal_quality_decision: null,
+    quality_improvement_claimed: false, charter_private_tables_direct_access_denied: true, service_only_read_RPCS: true,
+    full_chain_synthetic_requests: 225, max_minute_credits: 8, terminal_finalized_claims: 121 });
+});
+
 test("native publication stops further series scans while original mature outcomes remain collectable", () => {
   test.setTimeout(80_000);
   const result = spawnSync(process.execPath, ["scripts/prospective-normal-one-shot-runtime-proof.mjs", "--early-publication-stop"],
