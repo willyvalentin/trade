@@ -9,7 +9,9 @@ import { resolve } from 'node:path';
 
 const root = process.cwd();
 const boundedSeries = process.argv.includes('--bounded-original-series');
-assert(process.argv.slice(2).every(value => value === '--bounded-original-series'), 'Only the declared CLOSED scenario is allowed');
+const publicationStop = process.argv.includes('--early-publication-stop');
+assert(!(boundedSeries && publicationStop) && process.argv.slice(2).every(value =>
+  ['--bounded-original-series', '--early-publication-stop'].includes(value)), 'Only one declared CLOSED scenario is allowed');
 const pin = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
 assert.equal(execFileSync('git', ['diff', '--name-only', '--', 'app', 'lib', 'netlify/functions', 'supabase', 'package.json', 'package-lock.json'], { encoding: 'utf8' }).trim(), '', 'Product bytes must match the declared HEAD');
 const harness = resolve(root, 'scripts/completed-input-runtime-proof.mjs');
@@ -287,6 +289,197 @@ if (boundedSeries) {
     .replace('backend_evaluation_reached:true, full_original_denominator:8',
       'backend_evaluation_reached:true, full_original_denominator:64')
     .replaceAll('2026-10-08', '2026-10-09').replaceAll('2026-10-07', '2026-10-08');
+}
+if (publicationStop) {
+  // A separate positive transport fixture for the existing publication path.
+  // Change no compiled producer, quality gate, original plan or durable receipt.
+  replaceOne('TURE_OBSERVATION_SERIES_ENABLED: "false"', 'TURE_OBSERVATION_SERIES_ENABLED: "true"');
+  replaceOne('TURE_NORMAL_SCAN_ONE_SHOT_ENABLED: "true"', 'TURE_NORMAL_SCAN_ONE_SHOT_ENABLED: "false"');
+  replaceOne('TURE_OBSERVATION_SERIES_DATE: contract.trading_date,', 'TURE_OBSERVATION_SERIES_DATE: slot.slice(0,10),');
+  replaceOne('assert.equal(control.status, "disabled");', 'assert.equal(control.status, "ready",JSON.stringify(control));');
+  replaceOne("TURE_GROW_MAX_LEARNING_MODE: 'true',", "TURE_GROW_MAX_LEARNING_MODE: 'true',\n  TURE_SCHEDULED_SCAN_SKIP_OPENAI: 'true',");
+  replaceOne('process.env.TURE_OBSERVATION_SERIES_STARTS_AT_UTC=sourceSlot;',
+    'process.env.TURE_OBSERVATION_SERIES_START_SLOT_UTC=sourceSlot;');
+  replaceOne('process.env.TURE_OBSERVATION_SERIES_EXPIRES_AT_UTC=followingSlot;',
+    'process.env.TURE_OBSERVATION_SERIES_EXPIRES_AT_UTC="2026-10-08T18:00:00.000Z";');
+  replaceOne('process.env.TURE_OBSERVATION_SERIES_MAX_ATTEMPTS="1";', 'process.env.TURE_OBSERVATION_SERIES_MAX_ATTEMPTS="2";');
+  replaceOne('process.env.TURE_OBSERVATION_SERIES_MAX_PROVIDER_CREDITS="8";', 'process.env.TURE_OBSERVATION_SERIES_MAX_PROVIDER_CREDITS="16";');
+  replaceOne('const sourceSlot = "2026-10-08T15:00:00.000Z";', 'const sourceSlot = "2026-10-08T17:30:00.000Z";');
+  replaceOne('const followingSlot = "2026-10-08T15:15:00.000Z";', 'const followingSlot = "2026-10-08T17:45:00.000Z";');
+  source = source.replaceAll('2026-10-08T15:00:20.000001Z', '2026-10-08T17:30:20.000001Z');
+  // Reuse the established rising-price/support-geometry provider-edge data.
+  replaceOne(': publicationClock\n            ? {datetime,open:String(close-0.05)', ': true\n            ? {datetime,open:String(close-0.05)');
+  replaceOne('values.unshift(originalPlanGeometry && !benchmark', 'values.unshift(!benchmark');
+  replaceOne('const isPublication=publicationClock && url.pathname===', 'const isPublication=url.pathname===');
+  replaceOne('grant usage on schema public to service_role; grant all on all tables in schema public to service_role;',
+    `grant usage on schema public to service_role; grant all on all tables in schema public to service_role;
+    revoke all on public.recommendations from public,anon,authenticated,service_role;
+    grant select,insert,update,delete on public.recommendations to service_role;`);
+  const begin = source.indexOf('} else if(preparedFirstScan) {');
+  const end = source.indexOf('} else if(rotationDay) {', begin);
+  assert(begin >= 0 && end > begin);
+  let prepared = source.slice(begin, end);
+  const outcomeBegin = prepared.indexOf('    const sourceDigest=sql(');
+  const outcomeEnd = prepared.indexOf('    const wrong=await restarted.readRecommendationLearningBaselineSource(', outcomeBegin);
+  assert(outcomeBegin >= 0 && outcomeEnd > outcomeBegin);
+  prepared = prepared.slice(0, outcomeBegin) + `    const published=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendations t;"));
+    assert(published.length>0 && published.length<=4,"The normal producer must actually publish within its unchanged cap");
+    syntheticPublicationCount=published.length;
+    assert.equal(decision.final_decision.disposition,"recommendations_published");
+    assert.equal(process.env.TURE_GROW_MAX_LEARNING_MODE,"true");
+    assert.equal(process.env.TURE_LEARNING_ACCELERATION_ENABLED,"true");
+    const snapshots=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_snapshots t;"));
+    assert.equal(snapshots.length,8,"Keep the same bounded quality-series capture; never shrink to published winners");
+    assert.deepEqual(snapshots.map(row=>row.ticker).sort(),decision.candidates.map(row=>row.ticker).sort());
+    for(const original of snapshots) {
+      const member=decision.candidates.find(value=>value.ticker===original.ticker);
+      assert.deepEqual(original.payload_json.scanner_decision_input_snapshot,member.data.input_snapshot);
+      assert.equal(original.payload_json.decision_timestamp,decision.decision_timestamp);
+    }
+    for(const row of published) {
+      const member=decision.candidates.find(value=>value.ticker===row.ticker && value.disposition==="published");
+      assert(member?.data.input_snapshot);
+      for(const [column,feature] of [["entry_low","proposed_entry_low"],["entry_high","proposed_entry_high"],
+        ["stop_loss","proposed_stop_loss"],["target_1","proposed_target_1"],["target_2","proposed_target_2"],["risk_reward","proposed_risk_reward"]])
+        assert.equal(Number(row[column]),member.data.input_snapshot.features[feature]);
+      assert(OriginalDate.parse(decision.decision_timestamp)<=OriginalDate.parse(row.created_at));
+      assert(OriginalDate.parse(row.created_at)<=OriginalDate.parse(run.completed_at));
+      const original=snapshots.find(value=>value.recommendation_id===row.id);
+      assert(original && original.source_mode!=="research_only");
+      assert.equal(original.payload_json.decision_timestamp,decision.decision_timestamp);
+      assert.deepEqual(original.payload_json.scanner_decision_input_snapshot,member.data.input_snapshot);
+    }
+    const digest=table=>sql("select md5(string_agg(row_to_json(t)::text,'|' order by id)) from "+table+" t;");
+    const sourceDigests=["recommendation_snapshots","recommendation_scan_runs","recommendation_batches"].map(digest);
+    const claimsDigest=sql("select md5(string_agg(row_to_json(t)::text,'|' order by claim_id)) from basic_free_discovery_credit_reservations t;");
+    const paidHistoryDigest=sql("select md5(string_agg(row_to_json(t)::text,'|' order by claim_id)) from basic_free_discovery_credit_reservations t where execution_fingerprint like 'completed_session_history_preparation_v1|%';");
+    const publicationCycle=JSON.parse(sql("select row_to_json(t) from observation_cycle_receipts t;"));
+    assert.equal(publicationCycle.receipt_json.publication.published_count,published.length);
+    clock=OriginalDate.parse(followingSlot)+20000;
+    const stoppedEvent=()=>new Request("http://closed-scheduler",{method:"POST",body:JSON.stringify({next_run:new OriginalDate(OriginalDate.parse(followingSlot)+900000).toISOString()})});
+    const stopped=await scheduler(stoppedEvent(),{deploy:{id:identity.deploy_id,context:"production",published:true}});
+    const stoppedBody=await stopped.json();
+    assert.equal(stopped.status,200,JSON.stringify(stoppedBody));
+    assert.equal(stoppedBody.status,"skipped",JSON.stringify(stoppedBody));
+    const stoppedAttempt=JSON.parse(sql("select row_to_json(t) from scheduled_scan_attempts t order by route_received_at desc limit 1;"));
+    const admission=stoppedAttempt.payload_json.observation_series_admission;
+    assert.equal(admission.decision,"no_request",JSON.stringify(stoppedAttempt));
+    assert.equal(admission.status,"series_terminal_publication_observed");
+    assert.equal(admission.facts.published_recommendations,published.length);
+    assert.equal(admission.facts.attempted_cycles,1);assert.equal(admission.facts.reserved_provider_credits,8);
+    assert.equal(admission.facts.remaining_attempts,1);assert.equal(admission.facts.remaining_provider_credits,8);
+    const stoppedCycle=JSON.parse(sql("select row_to_json(t) from observation_cycle_receipts t order by route_received_at desc limit 1;"));
+    assert.equal(stoppedCycle.receipt_json.disposition,"no_request");
+    assert.equal(stoppedCycle.receipt_json.freshness.status,"not_evaluated");
+    assert.equal(stoppedCycle.receipt_json.discovery_evaluation.status,"not_attempted");
+    assert.equal(stoppedCycle.receipt_json.publication.status,"not_attempted");
+    assert.equal(externalRequests,8,"Publication stops the next scan before any new market request");
+    assert.equal(sql("select md5(string_agg(row_to_json(t)::text,'|' order by claim_id)) from basic_free_discovery_credit_reservations t;"),claimsDigest,"No second scan reservation");
+    assert.deepEqual(["recommendation_snapshots","recommendation_scan_runs","recommendation_batches"].map(digest),sourceDigests);
+    const repeated=await scheduler(stoppedEvent(),{deploy:{id:identity.deploy_id,context:"production",published:true}});
+    assert.equal(repeated.status,204);assert.equal(externalRequests,8);
+    assert.equal(Number(sql("select count(*) from scheduled_scan_attempts;")),2);
+    clock=OriginalDate.parse("2026-10-08T18:00:20.000Z");
+    const expiredScan=await scheduler(new Request("http://closed-scheduler",{method:"POST",body:JSON.stringify({next_run:"2026-10-08T18:15:00.000Z"})}),
+      {deploy:{id:identity.deploy_id,context:"production",published:true}});
+    assert.equal(expiredScan.status,204);assert.equal(externalRequests,8);
+    process.env.TURE_OBSERVATION_SERIES_ENABLED="false";
+    process.env.TURE_OUTCOME_EVALUATION_SERIES_ENABLED="false";
+    process.env.TURE_OUTCOME_EVALUATION_ONE_SHOT_ENABLED="true";
+    process.env.TURE_OUTCOME_EVALUATION_ONE_SHOT_DATE="2026-10-08";
+    clock=OriginalDate.parse("2026-10-08T18:45:20.000Z");
+    for(const original of snapshots) {
+      const anchor=Math.ceil(OriginalDate.parse(original.payload_json.decision_timestamp)/300000)*300000;
+      assert(anchor+3600000<=clock && anchor+3600000<=OriginalDate.parse("2026-10-08T20:00:00.000Z"));
+    }
+    const outcomeScheduler=require(join(directory,"functions/scheduled-outcomes.cjs")).default;
+    const outcomePhases=[];
+    for(const target of ["2026-10-08T18:45:00.000Z","2026-10-08T19:00:00.000Z"]) {
+      process.env.TURE_OUTCOME_EVALUATION_ONE_SHOT_SLOT_UTC=target;
+      clock=OriginalDate.parse(target)+20000;
+      const next=new OriginalDate(OriginalDate.parse(target)+900000).toISOString();
+      const outcomeEvent=()=>new Request("http://closed-outcome-scheduler",{method:"POST",body:JSON.stringify({next_run:next})});
+      const before=externalRequests;
+      const outcomeResponse=await outcomeScheduler(outcomeEvent(),{deploy:{id:identity.deploy_id,context:"production",published:true}});
+      const outcomeBody=await outcomeResponse.json();
+      assert.equal(outcomeResponse.status,200,JSON.stringify(outcomeBody));
+      assert.equal(outcomeBody.persistence_status,"success",JSON.stringify(outcomeBody));
+      assert.equal(externalRequests-before,4);
+      const outcomeAttempt=JSON.parse(sql("select row_to_json(t) from scheduled_outcome_evaluation_attempts t order by scheduled_slot_at desc limit 1;"));
+      assert.equal(outcomeAttempt.status,"completed");assert(outcomeAttempt.finalized_at);
+      assert.equal(outcomeAttempt.receipt_json.cost.provider_budget_limit,4);
+      assert.equal(outcomeAttempt.receipt_json.cost.candle_requests_executed,4);
+      assert.equal(outcomeAttempt.receipt_json.failures.first_blocker,null);
+      const after=externalRequests;
+      const outcomeRepeat=await outcomeScheduler(outcomeEvent(),{deploy:{id:identity.deploy_id,context:"production",published:true}});
+      assert.equal(outcomeRepeat.status,200);assert.equal(externalRequests,after);
+      outcomePhases.push({target_slot_utc:target,requests:4,completed_retry_requests:0,
+        cumulative_canonical_60m:Number(sql("select count(*) from recommendation_outcomes where horizon='60m';"))});
+      assert.equal(outcomePhases.at(-1).cumulative_canonical_60m,outcomePhases.length*4);
+    }
+    assert.equal(externalRequests,16);
+    const outcomes=JSON.parse(sql("select coalesce(jsonb_agg(t),'[]') from recommendation_outcomes t where horizon='60m';"));
+    assert.equal(outcomes.length,snapshots.length);
+    assert.deepEqual(outcomes.map(row=>row.snapshot_fingerprint).sort(),snapshots.map(row=>row.snapshot_fingerprint).sort());
+    for(const outcome of outcomes) {
+      const original=snapshots.find(row=>row.snapshot_fingerprint===outcome.snapshot_fingerprint);
+      const anchor=Math.ceil(OriginalDate.parse(original.payload_json.decision_timestamp)/300000)*300000;
+      const mark=outcome.payload_json.canonical_horizon_price_mark;
+      assert.equal(mark.status,"available");assert.equal(mark.source,"original_horizon_candle_close");
+      assert.equal(mark.decision_timestamp,original.payload_json.decision_timestamp);
+      assert.equal(mark.evaluation_anchor_start_at,new OriginalDate(anchor).toISOString());
+      assert.equal(mark.marked_at,new OriginalDate(anchor+3600000).toISOString());
+      assert.equal(mark.candle_started_at,new OriginalDate(anchor+3300000).toISOString());
+    }
+    clock=OriginalDate.parse("2026-10-08T19:15:20.000Z");
+    const expiredOutcomes=await outcomeScheduler(new Request("http://closed-outcome-scheduler",{method:"POST",body:JSON.stringify({next_run:"2026-10-08T19:30:00.000Z"})}),
+      {deploy:{id:identity.deploy_id,context:"production",published:true}});
+    assert.equal(expiredOutcomes.status,204);assert.equal(externalRequests,16);
+    process.env.TURE_OUTCOME_EVALUATION_ONE_SHOT_ENABLED="false";
+    delete require.cache[require.resolve(join(generated,"reader.cjs"))];
+    const owned=await require(join(generated,"reader.cjs")).readRecommendationLearningBaselineSource(owner);
+    assert.equal(owned.status,"available");assert.equal(owned.data.recommendation_scan_runs.length,1);
+    assert.equal(owned.data.recommendation_outcomes.filter(row=>row.horizon==="60m").length,snapshots.length);
+    const wrongOutcomes=await restarted.readRecommendationLearningBaselineSource("00000000-0000-4000-8000-000000000002");
+    assert.equal(wrongOutcomes.data.recommendation_outcomes.length,0);
+    assert.deepEqual(["recommendation_snapshots","recommendation_scan_runs","recommendation_batches"].map(digest),sourceDigests);
+    assert.equal(sql("select md5(string_agg(row_to_json(t)::text,'|' order by claim_id)) from basic_free_discovery_credit_reservations t where execution_fingerprint like 'completed_session_history_preparation_v1|%';"),paidHistoryDigest);
+    assert.equal(Number(sql("select count(*) from basic_free_discovery_credit_reservations where status <> 'completed' or not provider_attempted or finalized_at is null;")),0);
+    assert.equal(Number(sql("select count(*) from basic_free_discovery_credit_reservations;")),100);
+    assert.equal(Number(sql("select sum(requested_credits) from basic_free_discovery_credit_reservations;")),113);
+    const minuteCounts=new Map();
+    for(const request of syntheticRequestEvidence) {
+      const minute=Math.floor(OriginalDate.parse(request.requested_at)/60000);
+      minuteCounts.set(minute,(minuteCounts.get(minute)??0)+1);
+    }
+    assert.equal(Math.max(...minuteCounts.values()),8);
+    assert.equal(syntheticRequestEvidence.length,105+snapshots.length);
+    originalLog(JSON.stringify({early_publication_stop_evidence:true,original_population:8,complete_assessed_members:8,
+      published_originals:published.length,non_published_original_members:8-published.length,
+      publication_stop_status:admission.status,post_publication_scan_requests:0,post_publication_scan_claims:0,
+      stopped_scan_evaluation:"not_evaluated",remaining_scan_attempts:1,remaining_scan_credits:8,
+      original_members:decision.candidates.map(member=>({ticker:member.ticker,disposition:member.disposition,freshness:member.data.freshness})),
+      canonical_60m_outcomes:outcomes.length,outcome_requests:snapshots.length,outcome_credit_ceiling:4,native_outcome_slots:outcomePhases,
+      original_next_5min_anchor_and_60m_mark_preserved:true,
+      original_source_and_plan_digests_unchanged:true,paid_history_unchanged:true,completed_retry_requests:0,
+      restarted_owner_read:true,wrong_owner_empty:true,scan_and_outcome_expiry:true,
+      full_chain_synthetic_requests:syntheticRequestEvidence.length,reserved_all_phase_credits:113,
+      max_minute_credits:8,terminal_claims:100,active_claims:0,research_capture_enabled:true,
+      actual_provider_requests:0,production_actions:0,broker_actions:0,quality_improvement_claimed:false}));
+` + prepared.slice(outcomeEnd);
+  prepared = prepared.replace('assert.equal(Number(sql("select count(*) from scheduled_scan_attempts;")),1);',
+    'assert.equal(Number(sql("select count(*) from scheduled_scan_attempts;")),2);')
+    .replace('assert.equal(Number(sql("select count(*) from recommendations;")),0);',
+      'assert.equal(Number(sql("select count(*) from recommendations;")),published.length);')
+    .replace('publications:0,broker_actions:0,cleanup:"inert"', 'publications:published.length,broker_actions:0,cleanup:"inert"')
+    .replace('scenario:"oct8_1700_normal_one_shot_positive"', 'scenario:"prospective_early_publication_stop_positive"')
+    .replace('exact_scan_mode:"normal_one_shot", observation_series_enabled:false,',
+      'exact_scan_mode:"bounded_observation_series", observation_series_enabled:true,')
+    .replace('target_slot_utc:"2026-10-08T15:00:00.000Z"', 'target_slot_utc:sourceSlot');
+  source = source.slice(0, begin) + prepared + source.slice(end);
+  replaceOne('assert.equal(Number(sql("select count(*) from scheduled_scan_attempts;")),benchmarkReuse?2:1);',
+    'assert.equal(Number(sql("select count(*) from scheduled_scan_attempts;")),2);');
+  source = source.replaceAll('2026-10-08', '2026-10-09').replaceAll('2026-10-07', '2026-10-08');
 }
 process.argv = [process.execPath, harness, '--cold', '--rotation-day', '--prospective-enrollment',
   '--full-original-history-setup', '--budgeted-history-setup', '--history-preparation-app',
